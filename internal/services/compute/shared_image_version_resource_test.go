@@ -105,6 +105,172 @@ func TestAccSharedImageVersion_storageAccountTypeZrs(t *testing.T) {
 	})
 }
 
+func TestAccSharedImageVersion_blobURI(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_shared_image_version", "test")
+	r := SharedImageVersionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.imageVersionBlobURI(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSharedImageVersion_uefiSettingsSignatureTemplateNames(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_shared_image_version", "test")
+	r := SharedImageVersionResource{}
+
+	signatureTemplateNames := `["MicrosoftUefiCertificateAuthorityTemplate"]`
+	updatedSignatureTemplateNames := `["MicrosoftUefiCertificateAuthorityTemplate", "MicrosoftWindowsTemplate"]`
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// need to create a vm and then reference it in the image creation
+			Config:  r.setup(data),
+			Destroy: false,
+			Check: acceptance.ComposeTestCheckFunc(
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+			),
+		},
+		{
+			// First create a shared image version with initial signature Template Name
+			Config: r.imageVersionUefiSettingsTemplates(data, signatureTemplateNames),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		// The security profile and hence the uefi_settings are not returned by the API
+		// so we need to ignore them
+		data.ImportStep(
+			"uefi_settings.#",
+			"uefi_settings.0.%",
+			"uefi_settings.0.signature_template_names.#",
+			"uefi_settings.0.signature_template_names.0",
+			"uefi_settings.0.additional_signatures.#",
+		),
+		{
+			// Then add additional signature template name (forces a new resource)
+			Config: r.imageVersionUefiSettingsTemplates(data, updatedSignatureTemplateNames),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		// The security profile and hence the uefi_settings are not returned by the API
+		// so we need to ignore them
+		data.ImportStep(
+			"uefi_settings.#",
+			"uefi_settings.0.%",
+			"uefi_settings.0.signature_template_names.#",
+			"uefi_settings.0.signature_template_names.0",
+			"uefi_settings.0.signature_template_names.1",
+			"uefi_settings.0.additional_signatures.#",
+		),
+	})
+}
+
+func TestAccSharedImageVersion_uefiSettingsDb(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_shared_image_version", "test")
+	r := SharedImageVersionResource{}
+
+	signatureTemplateNames := `["MicrosoftUefiCertificateAuthorityTemplate"]`
+	certDb := "testdata/uefi_test_certificate.pem"
+	keyType := "x509"
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// need to create a vm and then reference it in the image creation
+			Config:  r.setup(data),
+			Destroy: false,
+			Check: acceptance.ComposeTestCheckFunc(
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+			),
+		},
+		{
+			Config: r.imageVersionUefiSettingsDb(data, signatureTemplateNames, keyType, certDb),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		// The security profile and hence the uefi_settings are not returned by the API
+		// so we need to ignore them
+		data.ImportStep(
+			"uefi_settings.#",
+			"uefi_settings.0.%",
+			"uefi_settings.0.signature_template_names.#",
+			"uefi_settings.0.signature_template_names.0",
+			"uefi_settings.0.additional_signatures.#",
+			"uefi_settings.0.additional_signatures.0.%",
+			"uefi_settings.0.additional_signatures.0.db.#",
+			"uefi_settings.0.additional_signatures.0.db.0.%",
+			"uefi_settings.0.additional_signatures.0.db.0.certificate_base64",
+			"uefi_settings.0.additional_signatures.0.db.0.type",
+		),
+	})
+}
+
+func TestAccSharedImageVersion_uefiSettingsPk(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_shared_image_version", "test")
+	r := SharedImageVersionResource{}
+
+	// Test with NoSignatureTemplate and DB, DBX, KEK, PK
+	signatureTemplateNames := `["NoSignatureTemplate"]`
+	certDb := "testdata/uefi_test_certificate.pem"
+	certDbx := certDb // Using same cert for simplicity
+	certKek := certDb
+	certPk := certDb
+	keyType := "x509"
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// need to create a vm and then reference it in the image creation
+			Config:  r.setup(data),
+			Destroy: false,
+			Check: acceptance.ComposeTestCheckFunc(
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+			),
+		},
+		{
+			Config: r.imageVersionUefiSettingsPk(data, signatureTemplateNames, keyType, certDb, certDbx, certKek, certPk),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		// The security profile and hence the uefi_settings are not returned by the API
+		// so we need to ignore them
+		data.ImportStep(
+			"uefi_settings.#",
+			"uefi_settings.0.%",
+			"uefi_settings.0.signature_template_names.#",
+			"uefi_settings.0.signature_template_names.0",
+			"uefi_settings.0.additional_signatures.#",
+			"uefi_settings.0.additional_signatures.0.%",
+			"uefi_settings.0.additional_signatures.0.db.#",
+			"uefi_settings.0.additional_signatures.0.db.0.%",
+			"uefi_settings.0.additional_signatures.0.db.0.certificate_base64",
+			"uefi_settings.0.additional_signatures.0.db.0.type",
+			"uefi_settings.0.additional_signatures.0.dbx.#",
+			"uefi_settings.0.additional_signatures.0.dbx.0.%",
+			"uefi_settings.0.additional_signatures.0.dbx.0.certificate_base64",
+			"uefi_settings.0.additional_signatures.0.dbx.0.type",
+			"uefi_settings.0.additional_signatures.0.kek.#",
+			"uefi_settings.0.additional_signatures.0.kek.0.%",
+			"uefi_settings.0.additional_signatures.0.kek.0.certificate_base64",
+			"uefi_settings.0.additional_signatures.0.kek.0.type",
+			"uefi_settings.0.additional_signatures.0.pk.#",
+			"uefi_settings.0.additional_signatures.0.pk.0.%",
+			"uefi_settings.0.additional_signatures.0.pk.0.certificate_base64",
+			"uefi_settings.0.additional_signatures.0.pk.0.type",
+		),
+	})
+}
+
 func TestAccSharedImageVersion_specializedImageVersionBySnapshot(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image_version", "test")
 	r := SharedImageVersionResource{}
@@ -308,8 +474,16 @@ func (SharedImageVersionResource) setup(data acceptance.TestData) string {
 	return ImageResource{}.setupManagedDisks(data)
 }
 
-func (SharedImageVersionResource) provision(data acceptance.TestData) string {
-	template := ImageResource{}.standaloneImageProvision(data, "")
+func (SharedImageVersionResource) provision(data acceptance.TestData, hyperVGen string, trustedLaunch string) string {
+	template := ImageResource{}.standaloneImageProvision(data, hyperVGen)
+	hyperVGenAtt := ""
+	if hyperVGen != "" {
+		hyperVGenAtt = fmt.Sprintf(`hyper_v_generation = "%s"`, hyperVGen)
+	}
+	trustedLaunchAtt := ""
+	if trustedLaunch != "" {
+		trustedLaunchAtt = fmt.Sprintf(`trusted_launch_%s = true`, trustedLaunch)
+	}
 	return fmt.Sprintf(`
 %s
 
@@ -326,17 +500,20 @@ resource "azurerm_shared_image" "test" {
   location            = azurerm_resource_group.test.location
   os_type             = "Linux"
 
+  %s
+  %s
+
   identifier {
     publisher = "AccTesPublisher%d"
     offer     = "AccTesOffer%d"
     sku       = "AccTesSku%d"
   }
 }
-`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, template, data.RandomInteger, data.RandomInteger, hyperVGenAtt, trustedLaunchAtt, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r SharedImageVersionResource) imageVersion(data acceptance.TestData) string {
-	template := r.provision(data)
+	template := r.provision(data, "", "")
 	return fmt.Sprintf(`
 %s
 
@@ -358,6 +535,147 @@ resource "azurerm_shared_image_version" "test" {
   }
 }
 `, template)
+}
+
+func (r SharedImageVersionResource) imageVersionBlobURI(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_shared_image_gallery" "test" {
+  name                = "acctestsig%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_shared_image" "test" {
+  name                = "acctestimg%[2]d"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  os_type             = "Linux"
+
+  identifier {
+    publisher = "AccTesPublisher%[2]d"
+    offer     = "AccTesOffer%[2]d"
+    sku       = "AccTesSku%[2]d"
+  }
+}
+
+resource "azurerm_shared_image_version" "test" {
+  name                = "0.0.1"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  image_name          = azurerm_shared_image.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  blob_uri           = azurerm_virtual_machine.testsource.storage_os_disk[0].vhd_uri
+  storage_account_id = azurerm_storage_account.test.id
+
+  target_region {
+    name                   = azurerm_resource_group.test.location
+    regional_replica_count = 1
+  }
+}
+`, r.setup(data), data.RandomInteger)
+}
+
+func (r SharedImageVersionResource) imageVersionUefiSettingsTemplates(data acceptance.TestData, signatureTemplateNames string) string {
+	template := r.provision(data, "V2", "supported")
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_shared_image_version" "test" {
+  name                = "0.0.1"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  image_name          = azurerm_shared_image.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  managed_image_id    = azurerm_image.test.id
+
+  target_region {
+    name                   = azurerm_resource_group.test.location
+    regional_replica_count = 1
+  }
+
+  uefi_settings {
+    signature_template_names = %s
+  }
+}
+`, template, signatureTemplateNames)
+}
+
+func (r SharedImageVersionResource) imageVersionUefiSettingsDb(data acceptance.TestData, signatureTemplateNames string, keyType string, certDataDb string) string {
+	template := r.provision(data, "V2", "supported")
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_shared_image_version" "test" {
+  name                = "0.0.1"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  image_name          = azurerm_shared_image.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  managed_image_id    = azurerm_image.test.id
+
+  target_region {
+    name                   = azurerm_resource_group.test.location
+    regional_replica_count = 1
+  }
+
+  uefi_settings {
+    signature_template_names = %s
+    additional_signatures {
+      db {
+        type               = "%s"
+        certificate_base64 = [filebase64("%s")]
+      }
+    }
+  }
+}
+`, template, signatureTemplateNames, keyType, certDataDb)
+}
+
+func (r SharedImageVersionResource) imageVersionUefiSettingsPk(data acceptance.TestData, signatureTemplateNames string, keyType string, certDataDb string, certDataDbx string, certDataKek string, certDataPk string) string {
+	template := r.provision(data, "V2", "supported")
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_shared_image_version" "test" {
+  name                = "0.0.1"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  image_name          = azurerm_shared_image.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  managed_image_id    = azurerm_image.test.id
+
+  target_region {
+    name                   = azurerm_resource_group.test.location
+    regional_replica_count = 1
+  }
+
+  uefi_settings {
+    signature_template_names = %s
+    additional_signatures {
+      db {
+        type               = "%s"
+        certificate_base64 = [filebase64("%s")]
+      }
+      dbx {
+        type               = "%s"
+        certificate_base64 = [filebase64("%s")]
+      }
+      kek {
+        type               = "%s"
+        certificate_base64 = [filebase64("%s")]
+      }
+      pk {
+        type               = "%s"
+        certificate_base64 = [filebase64("%s")]
+      }
+    }
+  }
+}
+`, template, signatureTemplateNames, keyType, certDataDb, keyType, certDataDbx, keyType, certDataKek, keyType, certDataPk)
 }
 
 func (r SharedImageVersionResource) provisionSpecialized(data acceptance.TestData) string {
@@ -449,7 +767,7 @@ resource "azurerm_shared_image_version" "test" {
 }
 
 func (r SharedImageVersionResource) imageVersionStorageAccountType(data acceptance.TestData, storageAccountType string) string {
-	template := r.provision(data)
+	template := r.provision(data, "", "")
 	return fmt.Sprintf(`
 %s
 
@@ -491,7 +809,7 @@ resource "azurerm_shared_image_version" "import" {
 }
 
 func (r SharedImageVersionResource) imageVersionUpdated(data acceptance.TestData) string {
-	template := r.provision(data)
+	template := r.provision(data, "", "")
 	return fmt.Sprintf(`
 %s
 
@@ -517,7 +835,7 @@ resource "azurerm_shared_image_version" "test" {
 }
 
 func (r SharedImageVersionResource) diskEncryptionSetID(data acceptance.TestData) string {
-	template := r.provision(data)
+	template := r.provision(data, "", "")
 	return fmt.Sprintf(`
 %s
 
@@ -621,7 +939,7 @@ resource "azurerm_shared_image_version" "test" {
 }
 
 func (r SharedImageVersionResource) endOfLifeDate(data acceptance.TestData, endOfLifeDate string) string {
-	template := r.provision(data)
+	template := r.provision(data, "", "")
 	return fmt.Sprintf(`
 %s
 
@@ -643,7 +961,7 @@ resource "azurerm_shared_image_version" "test" {
 }
 
 func (r SharedImageVersionResource) replicationMode(data acceptance.TestData) string {
-	template := r.provision(data)
+	template := r.provision(data, "", "")
 	return fmt.Sprintf(`
 %s
 
@@ -665,7 +983,7 @@ resource "azurerm_shared_image_version" "test" {
 }
 
 func (r SharedImageVersionResource) replicatedRegionDeletion(data acceptance.TestData) string {
-	template := r.provision(data)
+	template := r.provision(data, "", "")
 	return fmt.Sprintf(`
 %s
 
