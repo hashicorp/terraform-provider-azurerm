@@ -299,6 +299,21 @@ func TestAccVirtualNetworkGatewayConnection_ingressNatRules(t *testing.T) {
 	})
 }
 
+func TestAccVirtualNetworkGatewayConnection_siteToSiteCertificateAuthentication(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
+	r := VirtualNetworkGatewayConnectionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.siteToSiteCertificateAuthentication(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t VirtualNetworkGatewayConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := virtualnetworkgatewayconnections.ParseConnectionID(state.ID)
 	if err != nil {
@@ -1973,4 +1988,233 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (VirtualNetworkGatewayConnectionResource) siteToSiteCertificateAuthentication(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+locals {
+  outbound_pfx_filename = "/tmp/outbound.pfx"
+}
+
+resource "tls_private_key" "root" {
+  algorithm = "RSA"
+}
+
+resource "tls_self_signed_cert" "root" {
+  private_key_pem       = tls_private_key.root.private_key_pem
+  validity_period_hours = 24
+  is_ca_certificate     = true
+  allowed_uses = [
+    "cert_signing",
+    "crl_signing"
+  ]
+
+  subject {
+    common_name = "vcn-root"
+  }
+}
+
+resource "local_file" "root_certificate" {
+  content  = tls_self_signed_cert.root.cert_pem
+  filename = "root.crt"
+}
+
+resource "tls_private_key" "outbound" {
+  algorithm = "RSA"
+}
+
+resource "tls_cert_request" "outbound" {
+  private_key_pem = tls_private_key.outbound.private_key_pem
+}
+
+resource "tls_locally_signed_cert" "outbound" {
+  ca_cert_pem           = tls_self_signed_cert.root.cert_pem
+  ca_private_key_pem    = tls_self_signed_cert.root.private_key_pem
+  cert_request_pem      = tls_cert_request.outbound.cert_request_pem
+  validity_period_hours = 24
+  allowed_uses = [
+    "client_auth",
+    "digital_signature",
+    "key_encipherment",
+    "server_auth"
+  ]
+}
+
+resource "local_sensitive_file" "outbound_private_key" {
+  content         = tls_private_key.outbound.private_key_pem
+  filename        = "outbound.key"
+  file_permission = "0600"
+}
+
+resource "local_file" "outbound_certificate" {
+  content  = tls_locally_signed_cert.outbound.cert_pem
+  filename = "outbound.crt"
+}
+
+resource "terraform_data" "test" {
+  provisioner "local-exec" {
+    command = "openssl pkcs12 -export -out ${local.outbound_pfx_filename} -inkey ${local_sensitive_file.outbound_private_key.filename} -in ${local_file.outbound_certificate.filename} -certfile ${local_file.root_certificate.filename} -password pass:Password1234!"
+  }
+}
+
+data "local_file" "outbound_pfx" {
+  filename   = local.outbound_pfx_filename
+  depends_on = [terraform_data.test]
+}
+
+resource "tls_private_key" "inbound" {
+  algorithm = "RSA"
+}
+
+resource "tls_cert_request" "inbound" {
+  private_key_pem = tls_private_key.inbound.private_key_pem
+
+  subject {
+    common_name = "vcn-inbound"
+  }
+}
+
+resource "tls_locally_signed_cert" "inbound" {
+  ca_cert_pem           = tls_self_signed_cert.root.cert_pem
+  ca_private_key_pem    = tls_self_signed_cert.root.private_key_pem
+  cert_request_pem      = tls_cert_request.inbound.cert_request_pem
+  validity_period_hours = 24
+  allowed_uses = [
+    "client_auth",
+    "digital_signature",
+    "key_encipherment",
+    "server_auth"
+  ]
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-rg-vcn0-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_resource_group" "test2" {
+  name     = "acctest-rg-vcn1-%[1]d"
+  location = azurerm_resource_group.test.location
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "acctest-kv-%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = true
+  sku_name                   = "standard"
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  soft_delete_retention_days = 7
+}
+
+resource "azurerm_role_assignment" "sp_key_vault_certificates_officer" {
+  scope                = azurerm_key_vault.test.id
+  role_definition_name = "Key Vault Certificates Officer"
+  principal_id         = data.azurerm_client_config.current.object_id
+}
+
+resource "azurerm_key_vault_certificate" "test" {
+  name         = "acctest-kvcert-%[1]d"
+  key_vault_id = azurerm_key_vault.test.id
+
+  certificate {
+    contents = data.local_file.outbound_pfx.content_base64
+    password = "Password1234!"
+  }
+
+  depends_on = [azurerm_role_assignment.sp_key_vault_certificates_officer]
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-vnet-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  address_space       = ["10.0.0.0/24"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "GatewaySubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.0.0/26"]
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctest-pip-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  allocation_method   = "Static"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest-uai-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_role_assignment" "uai_key_vault_certificate_user" {
+  scope                = azurerm_key_vault.test.id
+  role_definition_name = "Key Vault Certificate User"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_role_assignment" "uai_key_vault_secrets_user" {
+  scope                = azurerm_key_vault.test.id
+  role_definition_name = "Key Vault Secrets User"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_virtual_network_gateway" "test" {
+  name                = "acctest-vpng-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  type                = "Vpn"
+  vpn_type            = "RouteBased"
+  sku                 = "VpnGw1AZ"
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  ip_configuration {
+    name                          = "acctest-ipconfig-%[1]d"
+    public_ip_address_id          = azurerm_public_ip.test.id
+    private_ip_address_allocation = "Dynamic"
+    subnet_id                     = azurerm_subnet.test.id
+  }
+}
+
+resource "azurerm_local_network_gateway" "test" {
+  name                = "acctest-lgw-%[1]d"
+  resource_group_name = azurerm_resource_group.test2.name
+  location            = azurerm_resource_group.test2.location
+  gateway_address     = "168.62.225.23"
+  address_space       = ["10.1.1.0/28"]
+}
+
+resource "azurerm_virtual_network_gateway_connection" "test" {
+  name                       = "accetest-vcn-%[1]d"
+  resource_group_name        = azurerm_resource_group.test2.name
+  location                   = azurerm_resource_group.test2.location
+  type                       = "IPsec"
+  virtual_network_gateway_id = azurerm_virtual_network_gateway.test.id
+  local_network_gateway_id   = azurerm_local_network_gateway.test.id
+
+  key_vault_certificate {
+    outbound_certificate_path        = azurerm_key_vault_certificate.test.id
+    inbound_certificate_subject_name = tls_cert_request.inbound.subject[0].common_name
+    inbound_certificate_chains = [
+      trimspace(replace(replace(tls_self_signed_cert.root.cert_pem, "-----BEGIN CERTIFICATE-----", ""), "-----END CERTIFICATE-----", "")),
+      trimspace(replace(replace(tls_locally_signed_cert.inbound.cert_pem, "-----BEGIN CERTIFICATE-----", ""), "-----END CERTIFICATE-----", ""))
+    ]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
