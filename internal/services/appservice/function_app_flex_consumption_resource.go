@@ -746,7 +746,7 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 					}
 
 					if faConfigSiteUpdate := functionAppConfig.SiteUpdateStrategy; faConfigSiteUpdate != nil {
-						state.SiteUpdateStrategy = pointer.FromEnum[webapps.SiteUpdateStrategyType](faConfigSiteUpdate.Type)
+						state.SiteUpdateStrategy = pointer.FromEnum(faConfigSiteUpdate.Type)
 					}
 				}
 
