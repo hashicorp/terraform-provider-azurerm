@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2025-05-01/webapps"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
@@ -104,7 +103,7 @@ func (r FunctionAppFlexConsumptionResource) IDValidationFunc() pluginsdk.SchemaV
 }
 
 func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -306,14 +305,6 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 
 		"tags": commonschema.Tags(),
 	}
-
-	if !features.SixPointOh() {
-		s["virtual_network_application_traffic_enabled"].Computed = true
-		s["virtual_network_application_traffic_enabled"].Default = nil
-		s["virtual_network_application_traffic_enabled"].ConflictsWith = []string{"site_config.0.vnet_route_all_enabled"}
-	}
-
-	return s
 }
 
 func (r FunctionAppFlexConsumptionResource) Attributes() map[string]*pluginsdk.Schema {
@@ -533,17 +524,6 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if !features.SixPointOh() {
-				rawSiteVnetRouting, err := metadata.GetRawConfigAt("site_config.0.vnet_route_all_enabled")
-				if err != nil {
-					return err
-				}
-
-				if !rawSiteVnetRouting.IsNull() {
-					siteEnvelope.Properties.OutboundVnetRouting.ApplicationTraffic = siteConfig.VnetRouteAllEnabled
-				}
-			}
-
 			pna := helpers.PublicNetworkAccessEnabled
 			if !functionAppFlexConsumption.PublicNetworkAccess {
 				pna = helpers.PublicNetworkAccessDisabled
@@ -735,9 +715,6 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 				}
 				if model.Properties.OutboundVnetRouting != nil {
 					state.VirtualNetworkApplicationTrafficEnabled = pointer.From(model.Properties.OutboundVnetRouting.ApplicationTraffic)
-					if !features.SixPointOh() {
-						siteConfig.VnetRouteAllEnabled = state.VirtualNetworkApplicationTrafficEnabled
-					}
 				}
 				state.SiteConfig = []helpers.SiteConfigFunctionAppFlexConsumption{*siteConfig}
 
@@ -949,10 +926,6 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 			}
 			if metadata.ResourceData.HasChange("virtual_network_application_traffic_enabled") {
 				vnetRoutingProps.ApplicationTraffic = pointer.To(state.VirtualNetworkApplicationTrafficEnabled)
-			}
-
-			if !features.SixPointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
-				vnetRoutingProps.ApplicationTraffic = siteConfig.VnetRouteAllEnabled
 			}
 
 			if metadata.ResourceData.HasChange("maximum_instance_count") {

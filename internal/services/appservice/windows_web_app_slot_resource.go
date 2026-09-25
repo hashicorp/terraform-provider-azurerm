@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2025-05-01/webapps"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
@@ -89,7 +88,7 @@ func (r WindowsWebAppSlotResource) IDValidationFunc() pluginsdk.SchemaValidateFu
 }
 
 func (r WindowsWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -239,21 +238,6 @@ func (r WindowsWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 	}
-
-	if !features.SixPointOh() {
-		s["virtual_network_image_pull_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			// Note: O+C because the setting is controlled by virtual_network_application_traffic_enabled.
-			Computed: true,
-		}
-
-		s["virtual_network_application_traffic_enabled"].Computed = true
-		s["virtual_network_application_traffic_enabled"].Default = nil
-		s["virtual_network_application_traffic_enabled"].ConflictsWith = []string{"site_config.0.vnet_route_all_enabled"}
-	}
-
-	return s
 }
 
 func (r WindowsWebAppSlotResource) Attributes() map[string]*pluginsdk.Schema {
@@ -397,31 +381,11 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 					ClientCertExclusionPaths:  pointer.To(webAppSlot.ClientCertExclusionPaths),
 					EndToEndEncryptionEnabled: pointer.To(webAppSlot.EndToEndTLSEncryptionEnabled),
 					OutboundVnetRouting: &webapps.OutboundVnetRouting{
+						ImagePullTraffic:     pointer.To(webAppSlot.VirtualNetworkImagePullEnabled),
 						BackupRestoreTraffic: pointer.To(webAppSlot.VirtualNetworkBackupRestoreEnabled),
 						ApplicationTraffic:   pointer.To(webAppSlot.VirtualNetworkApplicationTrafficEnabled),
 					},
 				},
-			}
-
-			if !features.SixPointOh() {
-				rawVnetImagePullEnabled, err := metadata.GetRawConfigAt("virtual_network_image_pull_enabled")
-				if err != nil {
-					return err
-				}
-
-				if !rawVnetImagePullEnabled.IsNull() {
-					siteEnvelope.Properties.OutboundVnetRouting.ImagePullTraffic = pointer.To(webAppSlot.VirtualNetworkImagePullEnabled)
-				}
-
-				rawSiteVnetRouting, err := metadata.GetRawConfigAt("site_config.0.vnet_route_all_enabled")
-				if err != nil {
-					return err
-				}
-				if !rawSiteVnetRouting.IsNull() {
-					siteEnvelope.Properties.OutboundVnetRouting.ApplicationTraffic = siteConfig.VnetRouteAllEnabled
-				}
-			} else {
-				siteEnvelope.Properties.OutboundVnetRouting.ImagePullTraffic = pointer.To(webAppSlot.VirtualNetworkImagePullEnabled)
 			}
 
 			if differentServicePlanToParent {
@@ -705,9 +669,6 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 						state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.OutboundVnetRouting.BackupRestoreTraffic)
 						state.VirtualNetworkImagePullEnabled = pointer.From(props.OutboundVnetRouting.ImagePullTraffic)
 						state.VirtualNetworkApplicationTrafficEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
-						if !features.SixPointOh() {
-							siteConfig.VnetRouteAllEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
-						}
 					}
 
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
@@ -910,14 +871,6 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			vnetRoutingProps := &webapps.OutboundVnetRouting{}
-			if model.Properties.OutboundVnetRouting != nil {
-				vnetRoutingProps = model.Properties.OutboundVnetRouting
-			}
-			if !features.SixPointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
-				vnetRoutingProps.ApplicationTraffic = &sc.VnetRouteAllEnabled
-			}
-
 			if metadata.ResourceData.HasChange("public_network_access_enabled") {
 				pna := helpers.PublicNetworkAccessEnabled
 				if !state.PublicNetworkAccess {
@@ -927,6 +880,11 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 				// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
 				model.Properties.PublicNetworkAccess = pointer.To(pna)
 				model.Properties.SiteConfig.PublicNetworkAccess = model.Properties.PublicNetworkAccess
+			}
+
+			vnetRoutingProps := &webapps.OutboundVnetRouting{}
+			if model.Properties.OutboundVnetRouting != nil {
+				vnetRoutingProps = model.Properties.OutboundVnetRouting
 			}
 
 			if metadata.ResourceData.HasChange("virtual_network_backup_restore_enabled") {

@@ -117,7 +117,7 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_logic_app_standard`
 
-* The `site_config.vnet_route_all_enabled` property is no longer referred from the `WEBSITE_VNET_ROUTE_ALL` app setting, and vnet application traffic will be referred from the `vnet_application_traffic_enabled` property instead.
+* The `WEBSITE_VNET_ROUTE_ALL` app setting no longer controls `site_config.vnet_route_all_enabled`; use `vnet_application_traffic_enabled` to configure application traffic routing instead.
 
 ### `azurerm_windows_function_app`
 

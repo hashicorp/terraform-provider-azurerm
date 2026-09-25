@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2025-05-01/webapps"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
@@ -96,7 +95,7 @@ func (r LinuxFunctionAppSlotResource) IDValidationFunc() pluginsdk.SchemaValidat
 }
 
 func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
-	args := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -310,14 +309,6 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 	}
-
-	if !features.SixPointOh() {
-		args["virtual_network_application_traffic_enabled"].Computed = true
-		args["virtual_network_application_traffic_enabled"].Default = nil
-		args["virtual_network_application_traffic_enabled"].ConflictsWith = []string{"site_config.0.vnet_route_all_enabled"}
-	}
-
-	return args
 }
 
 func (r LinuxFunctionAppSlotResource) Attributes() map[string]*pluginsdk.Schema {
@@ -566,17 +557,6 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 						ApplicationTraffic:   pointer.To(functionAppSlot.VirtualNetworkApplicationTrafficEnabled),
 					},
 				},
-			}
-
-			if !features.SixPointOh() {
-				rawSiteVnetRouting, err := metadata.GetRawConfigAt("site_config.0.vnet_route_all_enabled")
-				if err != nil {
-					return err
-				}
-
-				if !rawSiteVnetRouting.IsNull() {
-					siteEnvelope.Properties.OutboundVnetRouting.ApplicationTraffic = siteConfig.VnetRouteAllEnabled
-				}
 			}
 
 			pan := helpers.PublicNetworkAccessEnabled
@@ -829,9 +809,6 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 						state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.OutboundVnetRouting.BackupRestoreTraffic)
 						state.VnetImagePullEnabled = pointer.From(props.OutboundVnetRouting.ImagePullTraffic)
 						state.VirtualNetworkApplicationTrafficEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
-						if !features.SixPointOh() {
-							siteConfig.VnetRouteAllEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
-						}
 					}
 					state.SiteConfig = []helpers.SiteConfigLinuxFunctionAppSlot{*siteConfig}
 
@@ -1051,10 +1028,6 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 					return fmt.Errorf("expanding Site Config for Linux %s: %+v", id, err)
 				}
 				model.Properties.SiteConfig = siteConfig
-			}
-
-			if !features.SixPointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
-				vnetRoutingProps.ApplicationTraffic = siteConfig.VnetRouteAllEnabled
 			}
 
 			if metadata.ResourceData.HasChange("site_config.0.application_stack") {

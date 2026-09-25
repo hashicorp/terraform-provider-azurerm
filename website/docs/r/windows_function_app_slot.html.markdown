@@ -129,6 +129,8 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Windows Function App Slot.
 
+* `virtual_network_application_traffic_enabled` - (Optional) Whether application traffic is routed through the virtual network. Defaults to `false`.
+
 * `virtual_network_backup_restore_enabled` - (Optional) Whether backup and restore operations over the linked virtual network are enabled. Defaults to `false`.
 
 * `virtual_network_subnet_id` - (Optional) The subnet id which will be used by this Function App Slot for [regional virtual network integration](https://docs.microsoft.com/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
@@ -140,8 +142,6 @@ The following arguments are supported:
 * `vnet_image_pull_enabled` - (Optional) Specifies whether traffic for the image pull should be routed over virtual network. Defaults to `false`.
 
 ~> **Note:** The feature can also be enabled via the app setting `WEBSITE_PULL_IMAGE_OVER_VNET`. The Setting is enabled by default for app running in the App Service Environment.
-
-* `virtual_network_application_traffic_enabled` - (Optional) Whether application traffic is routed through the virtual network. Defaults to `false`.
 
 * `webdeploy_publish_basic_authentication_enabled` - (Optional) Should the default WebDeploy Basic Authentication publishing credentials enabled. Defaults to `true`.
 

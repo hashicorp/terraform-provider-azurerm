@@ -108,13 +108,13 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Windows Web App Slot.
 
+* `virtual_network_application_traffic_enabled` - (Optional) Whether application traffic is routed through the virtual network. Defaults to `false`.
+
 * `virtual_network_backup_restore_enabled` - (Optional) Whether backup and restore operations over the linked virtual network are enabled. Defaults to `false`.
 
 * `virtual_network_image_pull_enabled` - (Optional) Whether traffic for the image pull should be routed over the virtual network. Defaults to `false`.
 
 ~> **Note:** `virtual_network_image_pull_enabled` must be set to `true` when running in an App Service Environment.
-
-* `virtual_network_application_traffic_enabled` - (Optional) Whether application traffic is routed through the virtual network. Defaults to `false`.
 
 * `virtual_network_subnet_id` - (Optional) The subnet id which will be used by this Web App Slot for [regional virtual network integration](https://docs.microsoft.com/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
 

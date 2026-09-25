@@ -79,7 +79,7 @@ var (
 )
 
 func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -228,21 +228,6 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 	}
-
-	if !features.SixPointOh() {
-		s["virtual_network_image_pull_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			// Note: O+C because the setting is controlled by virtual_network_application_traffic_enabled.
-			Computed: true,
-		}
-
-		s["virtual_network_application_traffic_enabled"].Computed = true
-		s["virtual_network_application_traffic_enabled"].Default = nil
-		s["virtual_network_application_traffic_enabled"].ConflictsWith = []string{"site_config.0.vnet_route_all_enabled"}
-	}
-
-	return s
 }
 
 func (r WindowsWebAppResource) Attributes() map[string]*pluginsdk.Schema {
@@ -423,32 +408,11 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 					ClientCertMode:            pointer.ToEnum[webapps.ClientCertMode](webApp.ClientCertMode),
 					EndToEndEncryptionEnabled: pointer.To(webApp.EndToEndTLSEncryptionEnabled),
 					OutboundVnetRouting: &webapps.OutboundVnetRouting{
+						ImagePullTraffic:     pointer.To(webApp.VirtualNetworkImagePullEnabled),
 						BackupRestoreTraffic: pointer.To(webApp.VirtualNetworkBackupRestoreEnabled),
 						ApplicationTraffic:   pointer.To(webApp.VirtualNetworkApplicationTrafficEnabled),
 					},
 				},
-			}
-
-			if !features.SixPointOh() {
-				rawVnetImagePullEnabled, err := metadata.GetRawConfigAt("virtual_network_image_pull_enabled")
-				if err != nil {
-					return err
-				}
-
-				if !rawVnetImagePullEnabled.IsNull() {
-					siteEnvelope.Properties.OutboundVnetRouting.ImagePullTraffic = pointer.To(webApp.VirtualNetworkImagePullEnabled)
-				}
-
-				rawSiteVnetRouting, err := metadata.GetRawConfigAt("site_config.0.vnet_route_all_enabled")
-				if err != nil {
-					return err
-				}
-
-				if !rawSiteVnetRouting.IsNull() {
-					siteEnvelope.Properties.OutboundVnetRouting.ApplicationTraffic = siteConfig.VnetRouteAllEnabled
-				}
-			} else {
-				siteEnvelope.Properties.OutboundVnetRouting.ImagePullTraffic = pointer.To(webApp.VirtualNetworkImagePullEnabled)
 			}
 
 			pna := helpers.PublicNetworkAccessEnabled

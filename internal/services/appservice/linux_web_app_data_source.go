@@ -386,7 +386,6 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 					webApp.ClientCertExclusionPaths = pointer.From(props.ClientCertExclusionPaths)
 					webApp.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 					webApp.DefaultHostname = pointer.From(props.DefaultHostName)
-					webApp.VirtualNetworkImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
 
 					if props.Enabled != nil {
 						webApp.Enabled = *props.Enabled
@@ -411,6 +410,7 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 					if props.OutboundVnetRouting != nil {
 						webApp.VirtualNetworkBackupRestoreEnabled = pointer.From(props.OutboundVnetRouting.BackupRestoreTraffic)
 						webApp.VirtualNetworkApplicationTrafficEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
+						webApp.VirtualNetworkImagePullEnabled = pointer.From(props.OutboundVnetRouting.ImagePullTraffic)
 					}
 
 					if subnetId := pointer.From(props.VirtualNetworkSubnetId); subnetId != "" {

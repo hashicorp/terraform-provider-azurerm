@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2025-05-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
@@ -58,7 +57,7 @@ type LogicAppResourceModel struct {
 	StorageAccountShareName       string                                     `tfschema:"storage_account_share_name"`
 	Version                       string                                     `tfschema:"version"`
 	VNETContentShareEnabled       bool                                       `tfschema:"vnet_content_share_enabled"`
-	VNETApplicationTrafficEnabled bool                                       `tfschema:"vnet_application_traffic_enabled"`
+	VNETApplicationTrafficEnabled bool                                       `tfschema:"virtual_network_application_traffic_enabled"`
 	VirtualNetworkSubnetId        string                                     `tfschema:"virtual_network_subnet_id"`
 	Tags                          map[string]string                          `tfschema:"tags"`
 
@@ -261,7 +260,7 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 
-		"vnet_application_traffic_enabled": {
+		"virtual_network_application_traffic_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
@@ -483,12 +482,9 @@ func (r LogicAppResource) Create() sdk.ResourceFunc {
 				ApplicationTraffic:  pointer.To(data.VNETApplicationTrafficEnabled),
 			}
 
-			if v, ok := data.AppSettings["WEBSITE_VNET_ROUTE_ALL"]; ok && !features.SixPointOh() {
-				// For compatibility between app_settings and site_config, we need to set the API property based on the presence of the app_setting map value if present.
-				// a replacement of this resource should consider deprecating support for this.
+			if v, ok := data.AppSettings["WEBSITE_VNET_ROUTE_ALL"]; ok {
 				vnetRouteAll, _ := strconv.ParseBool(v)
 				siteConfig.VnetRouteAllEnabled = pointer.To(vnetRouteAll)
-				vNetSettings.ApplicationTraffic = pointer.To(vnetRouteAll)
 			}
 
 			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(data.Identity)
@@ -855,7 +851,7 @@ func (r LogicAppResource) Update() sdk.ResourceFunc {
 				vnetRoutingProps.ContentShareTraffic = pointer.To(data.VNETContentShareEnabled)
 			}
 
-			if metadata.ResourceData.HasChange("vnet_application_traffic_enabled") {
+			if metadata.ResourceData.HasChange("virtual_network_application_traffic_enabled") {
 				vnetRoutingProps.ApplicationTraffic = pointer.To(data.VNETApplicationTrafficEnabled)
 			}
 

@@ -266,12 +266,10 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 
 	if !features.SixPointOh() {
 		s.Elem.(*pluginsdk.Resource).Schema["vnet_route_all_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			// Note: O+C because the setting is controlled by virtual_network_application_traffic_enabled.
-			Computed:      true,
-			ConflictsWith: []string{"virtual_network_application_traffic_enabled"},
-			Deprecated:    "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v6.0 of the AzureRM Provider",
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Default:    false,
+			Deprecated: "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v6.0 of the AzureRM Provider",
 		}
 	}
 
@@ -532,12 +530,10 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 
 	if !features.SixPointOh() {
 		s.Elem.(*pluginsdk.Resource).Schema["vnet_route_all_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			// Note: O+C because the setting is controlled by virtual_network_application_traffic_enabled.
-			Computed:      true,
-			ConflictsWith: []string{"virtual_network_application_traffic_enabled"},
-			Deprecated:    "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v6.0 of the AzureRM Provider",
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Default:    false,
+			Deprecated: "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v6.0 of the AzureRM Provider",
 		}
 	}
 
@@ -884,6 +880,10 @@ func (s *SiteConfigLinuxWebAppSlot) Flatten(appSiteSlotConfig *webapps.SiteConfi
 	s.WebSockets = pointer.From(appSiteSlotConfig.WebSocketsEnabled)
 	s.IpRestrictionDefaultAction = string(pointer.From(appSiteSlotConfig.IPSecurityRestrictionsDefaultAction))
 	s.ScmIpRestrictionDefaultAction = string(pointer.From(appSiteSlotConfig.ScmIPSecurityRestrictionsDefaultAction))
+
+	if !features.SixPointOh() {
+		s.VnetRouteAllEnabled = pointer.From(appSiteSlotConfig.VnetRouteAllEnabled)
+	}
 
 	if appSiteSlotConfig.ApiManagementConfig != nil && appSiteSlotConfig.ApiManagementConfig.Id != nil {
 		s.ApiManagementConfigId = *appSiteSlotConfig.ApiManagementConfig.Id
@@ -1315,6 +1315,10 @@ func (s *SiteConfigWindowsWebAppSlot) Flatten(appSiteSlotConfig *webapps.SiteCon
 	s.WebSockets = pointer.From(appSiteSlotConfig.WebSocketsEnabled)
 	s.IpRestrictionDefaultAction = string(pointer.From(appSiteSlotConfig.IPSecurityRestrictionsDefaultAction))
 	s.ScmIpRestrictionDefaultAction = string(pointer.From(appSiteSlotConfig.ScmIPSecurityRestrictionsDefaultAction))
+
+	if !features.SixPointOh() {
+		s.VnetRouteAllEnabled = pointer.From(appSiteSlotConfig.VnetRouteAllEnabled)
+	}
 
 	if appSiteSlotConfig.ApiManagementConfig != nil && appSiteSlotConfig.ApiManagementConfig.Id != nil {
 		s.ApiManagementConfigId = *appSiteSlotConfig.ApiManagementConfig.Id

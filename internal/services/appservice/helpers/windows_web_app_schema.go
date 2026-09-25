@@ -271,12 +271,10 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 
 	if !features.SixPointOh() {
 		s.Elem.(*pluginsdk.Resource).Schema["vnet_route_all_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			// Note: O+C because the setting is controlled by virtual_network_application_traffic_enabled.
-			Computed:      true,
-			ConflictsWith: []string{"virtual_network_application_traffic_enabled"},
-			Deprecated:    "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v6.0 of the AzureRM Provider",
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Default:    false,
+			Deprecated: "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v6.0 of the AzureRM Provider",
 		}
 	}
 
@@ -836,6 +834,10 @@ func (s *SiteConfigWindows) Flatten(appSiteConfig *webapps.SiteConfig, currentSt
 		s.WebSockets = pointer.From(appSiteConfig.WebSocketsEnabled)
 		s.IpRestrictionDefaultAction = string(pointer.From(appSiteConfig.IPSecurityRestrictionsDefaultAction))
 		s.ScmIpRestrictionDefaultAction = string(pointer.From(appSiteConfig.ScmIPSecurityRestrictionsDefaultAction))
+
+		if !features.SixPointOh() {
+			s.VnetRouteAllEnabled = pointer.From(appSiteConfig.VnetRouteAllEnabled)
+		}
 	}
 
 	if appSiteConfig.ApiManagementConfig != nil && appSiteConfig.ApiManagementConfig.Id != nil {

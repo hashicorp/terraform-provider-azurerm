@@ -338,12 +338,10 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 
 	if !features.SixPointOh() {
 		s.Elem.(*pluginsdk.Resource).Schema["vnet_route_all_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-			// Note: O+C because the setting is controlled by virtual_network_application_traffic_enabled.
-			Optional:      true,
-			ConflictsWith: []string{"virtual_network_application_traffic_enabled"},
-			Deprecated:    "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v6.0 of the AzureRM Provider",
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Default:    false,
+			Deprecated: "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v6.0 of the AzureRM Provider",
 		}
 	}
 
@@ -812,12 +810,10 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 
 	if !features.SixPointOh() {
 		s.Elem.(*pluginsdk.Resource).Schema["vnet_route_all_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			// Note: O+C because the setting is controlled by virtual_network_application_traffic_enabled.
-			Computed:      true,
-			ConflictsWith: []string{"virtual_network_application_traffic_enabled"},
-			Deprecated:    "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v6.0 of the AzureRM Provider",
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Default:    false,
+			Deprecated: "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v6.0 of the AzureRM Provider",
 		}
 	}
 
@@ -1123,12 +1119,10 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 
 	if !features.SixPointOh() {
 		s.Elem.(*pluginsdk.Resource).Schema["vnet_route_all_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			// Note: O+C because the setting is controlled by virtual_network_application_traffic_enabled.
-			Computed:      true,
-			ConflictsWith: []string{"virtual_network_application_traffic_enabled"},
-			Deprecated:    "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v6.0 of the AzureRM Provider",
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Default:    false,
+			Deprecated: "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v6.0 of the AzureRM Provider",
 		}
 	}
 
@@ -2241,6 +2235,10 @@ func ExpandSiteConfigFunctionFlexConsumptionApp(siteConfigFlexConsumption []Site
 		expanded.FunctionsRuntimeScaleMonitoringEnabled = pointer.To(FlexConsumptionSiteConfig.RuntimeScaleMonitoring)
 	}
 
+	if !features.SixPointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
+		expanded.VnetRouteAllEnabled = pointer.To(FlexConsumptionSiteConfig.VnetRouteAllEnabled)
+	}
+
 	expanded.AppSettings = &appSettings
 
 	return expanded, nil
@@ -2521,6 +2519,10 @@ func FlattenSiteConfigLinuxFunctionApp(functionAppSiteConfig *webapps.SiteConfig
 		RemoteDebuggingVersion:        strings.ToUpper(pointer.From(functionAppSiteConfig.RemoteDebuggingVersion)),
 	}
 
+	if !features.SixPointOh() {
+		result.VnetRouteAllEnabled = pointer.From(functionAppSiteConfig.VnetRouteAllEnabled)
+	}
+
 	if v := functionAppSiteConfig.ApiDefinition; v != nil && v.Url != nil {
 		result.ApiDefinition = *v.Url
 	}
@@ -2582,6 +2584,10 @@ func FlattenSiteConfigFunctionAppFlexConsumption(functionAppFlexConsumptionSiteC
 		Http2Enabled:                  pointer.From(functionAppFlexConsumptionSiteConfig.HTTP20Enabled),
 	}
 
+	if !features.SixPointOh() {
+		result.VnetRouteAllEnabled = pointer.From(functionAppFlexConsumptionSiteConfig.VnetRouteAllEnabled)
+	}
+
 	if v := functionAppFlexConsumptionSiteConfig.ApiDefinition; v != nil && v.Url != nil {
 		result.ApiDefinition = *v.Url
 	}
@@ -2637,6 +2643,10 @@ func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *webapps.SiteConf
 		RemoteDebuggingVersion:        strings.ToUpper(pointer.From(functionAppSiteConfig.RemoteDebuggingVersion)),
 		IpRestrictionDefaultAction:    string(pointer.From(functionAppSiteConfig.IPSecurityRestrictionsDefaultAction)),
 		ScmIpRestrictionDefaultAction: string(pointer.From(functionAppSiteConfig.ScmIPSecurityRestrictionsDefaultAction)),
+	}
+
+	if !features.SixPointOh() {
+		result.VnetRouteAllEnabled = pointer.From(functionAppSiteConfig.VnetRouteAllEnabled)
 	}
 
 	if v := functionAppSiteConfig.ApiDefinition; v != nil && v.Url != nil {

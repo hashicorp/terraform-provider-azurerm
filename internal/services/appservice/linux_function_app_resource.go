@@ -114,7 +114,7 @@ func (r LinuxFunctionAppResource) IDValidationFunc() pluginsdk.SchemaValidateFun
 }
 
 func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
-	args := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -335,14 +335,6 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "The local path and filename of the Zip packaged application to deploy to this Linux Function App. **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`.",
 		},
 	}
-
-	if !features.SixPointOh() {
-		args["virtual_network_application_traffic_enabled"].Computed = true
-		args["virtual_network_application_traffic_enabled"].Default = nil
-		args["virtual_network_application_traffic_enabled"].ConflictsWith = []string{"site_config.0.vnet_route_all_enabled"}
-	}
-
-	return args
 }
 
 func (r LinuxFunctionAppResource) Attributes() map[string]*pluginsdk.Schema {
@@ -573,17 +565,6 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 					},
 					EndToEndEncryptionEnabled: pointer.To(functionApp.EndToEndTLSEncryptionEnabled),
 				},
-			}
-
-			if !features.SixPointOh() {
-				rawSiteVnetRouting, err := metadata.GetRawConfigAt("site_config.0.vnet_route_all_enabled")
-				if err != nil {
-					return err
-				}
-
-				if !rawSiteVnetRouting.IsNull() {
-					siteEnvelope.Properties.OutboundVnetRouting.ApplicationTraffic = siteConfig.VnetRouteAllEnabled
-				}
 			}
 
 			pna := helpers.PublicNetworkAccessEnabled
@@ -1109,10 +1090,6 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("site_config") {
 				model.Properties.SiteConfig = siteConfig
-			}
-
-			if !features.SixPointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
-				vnetRoutingProps.ApplicationTraffic = siteConfig.VnetRouteAllEnabled
 			}
 
 			if metadata.ResourceData.HasChange("site_config.0.application_stack") {
