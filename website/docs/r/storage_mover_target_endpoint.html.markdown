@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_storage_mover_target_endpoint
 
-Manages a Storage Mover Target Endpoint.
+Manages a Storage Mover **Target Endpoint** for an Azure Storage **blob container** migration destination (as shown in the Azure portal).
 
 ## Example Usage
 
