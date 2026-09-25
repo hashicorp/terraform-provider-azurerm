@@ -119,7 +119,9 @@ resource "azurerm_windows_virtual_machine_scale_set" "example" {
 
 * `boot_diagnostics` - (Optional) A `boot_diagnostics` block as defined below.
 
-* `capacity_reservation_group_id` - (Optional) Specifies the ID of the Capacity Reservation Group which the Virtual Machine Scale Set should be allocated to. Changing this forces a new resource to be created.
+* `capacity_reservation_group_id` - (Optional) Specifies the ID of the Capacity Reservation Group which the Virtual Machine Scale Set should be allocated to.
+
+~> **Note:** Associating a `capacity_reservation_group_id` with a Virtual Machine Scale Set with `zones` configured is applied in-place. Changing or removing an existing `capacity_reservation_group_id`, or any change on a Virtual Machine Scale Set without `zones` configured, forces a new resource to be created.
 
 ~> **Note:** `capacity_reservation_group_id` cannot be used with `proximity_placement_group_id`
 
