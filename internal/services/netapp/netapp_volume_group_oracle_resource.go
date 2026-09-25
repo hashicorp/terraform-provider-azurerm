@@ -167,7 +167,7 @@ func (r NetAppVolumeGroupOracleResource) Arguments() map[string]*pluginsdk.Schem
 					"storage_quota_in_gb": {
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
-						ValidateFunc: validation.IntBetween(100, 102400),
+						ValidateFunc: validation.IntBetween(50, 102400),
 					},
 
 					"throughput_in_mibps": {
