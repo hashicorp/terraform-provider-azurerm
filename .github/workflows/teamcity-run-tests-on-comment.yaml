@@ -52,8 +52,6 @@ jobs:
 
               if (isMember) {
                 core.info(`User ${username} is a member of team ${teamSlug}`);
-              } else {
-                core.warning(`User ${username} is not an active member of team ${teamSlug}`);
               }
 
               return isMember;
@@ -87,8 +85,6 @@ jobs:
 
             if (isAllowedUser) {
               core.info(`User ${username} is in the allowed users list`);
-            } else {
-              core.warning(`User ${username} is not in the allowed users list`);
             }
 
             return isAllowedUser;
