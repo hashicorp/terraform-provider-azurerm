@@ -1381,15 +1381,19 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	if d.HasChange("capacity_reservation_group_id") {
 		shouldUpdate = true
-		shouldDeallocate = true
 
 		if v, ok := d.GetOk("capacity_reservation_group_id"); ok {
+			if _, ok := d.GetOk("zone"); !ok {
+				shouldDeallocate = true
+			}
+
 			update.Properties.CapacityReservation = &virtualmachines.CapacityReservationProfile{
 				CapacityReservationGroup: &virtualmachines.SubResource{
 					Id: pointer.To(v.(string)),
 				},
 			}
 		} else {
+			shouldDeallocate = true
 			update.Properties.CapacityReservation = &virtualmachines.CapacityReservationProfile{
 				CapacityReservationGroup: &virtualmachines.SubResource{},
 			}
