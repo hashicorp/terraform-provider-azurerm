@@ -4217,6 +4217,27 @@ func TestAccKubernetesClusterNodePool_localDNSProfile_vnetDNS(t *testing.T) {
 	})
 }
 
+func (r KubernetesClusterNodePoolResource) localDNSProfileRemovedConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "test"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_A4_v2"
+  node_count            = 1
+
+  upgrade_settings {
+    max_surge = "10%%"
+  }
+}
+`, r.templateConfig(data))
+}
+
 func (r KubernetesClusterNodePoolResource) localDNSProfileKubeDNSConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -4285,6 +4306,14 @@ func TestAccKubernetesClusterNodePool_localDNSProfile_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.localDNSProfileRemovedConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+
+		{
 			Config: r.localDNSProfileKubeDNSConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -4307,6 +4336,13 @@ func TestAccKubernetesClusterNodePool_localDNSProfile_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.localDNSProfileComplete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.localDNSProfileRemovedConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),

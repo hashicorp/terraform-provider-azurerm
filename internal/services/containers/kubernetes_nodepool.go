@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"maps"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -608,9 +609,11 @@ func schemaNodePoolLocalDNSProfile() *pluginsdk.Schema {
 				},
 
 				"mode": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForLocalDNSMode(), true),
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice(slices.DeleteFunc(agentpools.PossibleValuesForLocalDNSMode(), func(s string) bool {
+						return strings.EqualFold(s, string(agentpools.LocalDNSModeDisabled))
+					}), false),
 				},
 			},
 		},
@@ -1129,8 +1132,9 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		profile.LinuxOSConfig = linuxOSConfig
 	}
 
-	if localDNSProfile := raw["local_dns_profile"].([]interface{}); len(localDNSProfile) > 0 {
-		profile.LocalDNSProfile = expandClusterNodePoolLocalDNSProfile(localDNSProfile)
+	localDNSProfileRaw := raw["local_dns_profile"].([]interface{})
+	if len(localDNSProfileRaw) > 0 || d.HasChange("default_node_pool.0.local_dns_profile") {
+		profile.LocalDNSProfile = expandClusterNodePoolLocalDNSProfile(localDNSProfileRaw)
 	}
 
 	if networkProfile := raw["node_network_profile"].([]interface{}); len(networkProfile) > 0 {
@@ -1212,7 +1216,9 @@ func expandClusterNodePoolLinuxOSConfig(input []interface{}) (*managedclusters.L
 
 func expandClusterNodePoolLocalDNSProfile(input []interface{}) *managedclusters.LocalDNSProfile {
 	if len(input) == 0 || input[0] == nil {
-		return nil
+		return &managedclusters.LocalDNSProfile{
+			Mode: pointer.ToEnum[managedclusters.LocalDNSMode](string(managedclusters.LocalDNSModeDisabled)),
+		}
 	}
 
 	raw := input[0].(map[string]interface{})
@@ -1562,7 +1568,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 }
 
 func flattenClusterNodePoolLocalDNSProfile(input *managedclusters.LocalDNSProfile) []interface{} {
-	if input == nil {
+	if input == nil || (input.Mode != nil && string(*input.Mode) == string(managedclusters.LocalDNSModeDisabled)) {
 		return []interface{}{}
 	}
 

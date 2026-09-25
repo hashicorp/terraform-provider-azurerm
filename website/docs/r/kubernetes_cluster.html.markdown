@@ -561,7 +561,9 @@ A `linux_os_config` block supports the following:
 
 A `local_dns_profile` block supports the following:
 
-* `mode` - (Required) The mode of the Local DNS Profile. Possible values are `Required`, `Disabled` and `Preferred`.
+* `mode` - (Required) The mode of the Local DNS Profile. Possible values are `Required` and `Preferred`.
+
+~> **Note:** To disable the Local DNS Profile, remove the `local_dns_profile` block entirely from the configuration.
 
 * `kube_dns_override` - (Optional) One or more `kube_dns_override` blocks as defined below.
 

@@ -1347,7 +1347,9 @@ func expandAgentPoolKubeletConfig(input []interface{}) *agentpools.KubeletConfig
 
 func expandAgentPoolLocalDNSProfile(input []interface{}) *agentpools.LocalDNSProfile {
 	if len(input) == 0 || input[0] == nil {
-		return nil
+		return &agentpools.LocalDNSProfile{
+			Mode: pointer.ToEnum[agentpools.LocalDNSMode](string(agentpools.LocalDNSModeDisabled)),
+		}
 	}
 
 	raw := input[0].(map[string]interface{})
@@ -1412,7 +1414,7 @@ func expandAgentPoolLocalDNSOverride(raw map[string]interface{}) agentpools.Loca
 }
 
 func flattenAgentPoolLocalDNSProfile(input *agentpools.LocalDNSProfile) []interface{} {
-	if input == nil {
+	if input == nil || (input.Mode != nil && string(*input.Mode) == string(agentpools.LocalDNSModeDisabled)) {
 		return []interface{}{}
 	}
 
