@@ -1684,12 +1684,12 @@ func (r LogicAppStandardResource) vnetRouteConfig(data acceptance.TestData) stri
 %s
 
 resource "azurerm_logic_app_standard" "test" {
-  name                             = "acctest-%d-func"
-  location                         = azurerm_resource_group.test.location
-  resource_group_name              = azurerm_resource_group.test.name
-  app_service_plan_id              = azurerm_service_plan.test.id
-  storage_account_name             = azurerm_storage_account.test.name
-  storage_account_access_key       = azurerm_storage_account.test.primary_access_key
+  name                                        = "acctest-%d-func"
+  location                                    = azurerm_resource_group.test.location
+  resource_group_name                         = azurerm_resource_group.test.name
+  app_service_plan_id                         = azurerm_service_plan.test.id
+  storage_account_name                        = azurerm_storage_account.test.name
+  storage_account_access_key                  = azurerm_storage_account.test.primary_access_key
   virtual_network_application_traffic_enabled = true
 
   site_config {
