@@ -1496,6 +1496,14 @@ func TestAccKubernetesCluster_localDNSProfile_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.localDNSProfileRemoved(data, currentKubernetesVersion),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+
+		{
 			Config: r.localDNSProfileKubeDNS(data, currentKubernetesVersion),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -1518,6 +1526,13 @@ func TestAccKubernetesCluster_localDNSProfile_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.localDNSProfileComplete(data, currentKubernetesVersion),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.localDNSProfileRemoved(data, currentKubernetesVersion),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1697,6 +1712,46 @@ resource "azurerm_kubernetes_cluster" "test" {
         serve_stale                     = "Immediate"
         serve_stale_duration_in_seconds = 240
       }
+    }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomString, data.Locations.Primary, version)
+}
+
+func (r KubernetesClusterResource) localDNSProfileRemoved(data acceptance.TestData, version string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg%[1]s"
+  location = "%[2]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[1]s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[1]s"
+  kubernetes_version  = "%[3]s"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_A4_v2"
+
+    upgrade_settings {
+      max_surge = "10%%"
     }
   }
 
