@@ -22,7 +22,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2025-05-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
@@ -45,34 +46,35 @@ type LinuxFunctionAppModel struct {
 	StorageUsesMSI          bool   `tfschema:"storage_uses_managed_identity"` // Storage uses MSI not account key
 	StorageKeyVaultSecretID string `tfschema:"storage_key_vault_secret_id"`
 
-	AppSettings                        map[string]string                          `tfschema:"app_settings"`
-	StickySettings                     []helpers.StickySettings                   `tfschema:"sticky_settings"`
-	AuthSettings                       []helpers.AuthSettings                     `tfschema:"auth_settings"`
-	AuthV2Settings                     []helpers.AuthV2Settings                   `tfschema:"auth_settings_v2"`
-	Backup                             []helpers.Backup                           `tfschema:"backup"` // Not supported on Dynamic or Basic plans
-	BuiltinLogging                     bool                                       `tfschema:"builtin_logging_enabled"`
-	ClientCertEnabled                  bool                                       `tfschema:"client_certificate_enabled"`
-	ClientCertMode                     string                                     `tfschema:"client_certificate_mode"`
-	ClientCertExclusionPaths           string                                     `tfschema:"client_certificate_exclusion_paths"`
-	ConnectionStrings                  []helpers.ConnectionString                 `tfschema:"connection_string"`
-	DailyMemoryTimeQuota               int64                                      `tfschema:"daily_memory_time_quota"` // TODO - Value ignored in for linux apps, even in Consumption plans?
-	Enabled                            bool                                       `tfschema:"enabled"`
-	FunctionExtensionsVersion          string                                     `tfschema:"functions_extension_version"`
-	ForceDisableContentShare           bool                                       `tfschema:"content_share_force_disabled"`
-	HttpsOnly                          bool                                       `tfschema:"https_only"`
-	KeyVaultReferenceIdentityID        string                                     `tfschema:"key_vault_reference_identity_id"`
-	PublicNetworkAccess                bool                                       `tfschema:"public_network_access_enabled"`
-	SiteConfig                         []helpers.SiteConfigLinuxFunctionApp       `tfschema:"site_config"`
-	StorageAccounts                    []helpers.StorageAccount                   `tfschema:"storage_account"`
-	Tags                               map[string]string                          `tfschema:"tags"`
-	VirtualNetworkBackupRestoreEnabled bool                                       `tfschema:"virtual_network_backup_restore_enabled"`
-	VirtualNetworkSubnetID             string                                     `tfschema:"virtual_network_subnet_id"`
-	ZipDeployFile                      string                                     `tfschema:"zip_deploy_file"`
-	PublishingDeployBasicAuthEnabled   bool                                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
-	PublishingFTPBasicAuthEnabled      bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
-	Identity                           []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	VnetImagePullEnabled               bool                                       `tfschema:"vnet_image_pull_enabled"`
-	EndToEndTLSEncryptionEnabled       bool                                       `tfschema:"end_to_end_tls_encryption_enabled"`
+	AppSettings                             map[string]string                          `tfschema:"app_settings"`
+	StickySettings                          []helpers.StickySettings                   `tfschema:"sticky_settings"`
+	AuthSettings                            []helpers.AuthSettings                     `tfschema:"auth_settings"`
+	AuthV2Settings                          []helpers.AuthV2Settings                   `tfschema:"auth_settings_v2"`
+	Backup                                  []helpers.Backup                           `tfschema:"backup"` // Not supported on Dynamic or Basic plans
+	BuiltinLogging                          bool                                       `tfschema:"builtin_logging_enabled"`
+	ClientCertEnabled                       bool                                       `tfschema:"client_certificate_enabled"`
+	ClientCertMode                          string                                     `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths                string                                     `tfschema:"client_certificate_exclusion_paths"`
+	ConnectionStrings                       []helpers.ConnectionString                 `tfschema:"connection_string"`
+	DailyMemoryTimeQuota                    int64                                      `tfschema:"daily_memory_time_quota"` // TODO - Value ignored in for linux apps, even in Consumption plans?
+	Enabled                                 bool                                       `tfschema:"enabled"`
+	FunctionExtensionsVersion               string                                     `tfschema:"functions_extension_version"`
+	ForceDisableContentShare                bool                                       `tfschema:"content_share_force_disabled"`
+	HttpsOnly                               bool                                       `tfschema:"https_only"`
+	KeyVaultReferenceIdentityID             string                                     `tfschema:"key_vault_reference_identity_id"`
+	PublicNetworkAccess                     bool                                       `tfschema:"public_network_access_enabled"`
+	SiteConfig                              []helpers.SiteConfigLinuxFunctionApp       `tfschema:"site_config"`
+	StorageAccounts                         []helpers.StorageAccount                   `tfschema:"storage_account"`
+	Tags                                    map[string]string                          `tfschema:"tags"`
+	VirtualNetworkBackupRestoreEnabled      bool                                       `tfschema:"virtual_network_backup_restore_enabled"`
+	VirtualNetworkSubnetID                  string                                     `tfschema:"virtual_network_subnet_id"`
+	ZipDeployFile                           string                                     `tfschema:"zip_deploy_file"`
+	PublishingDeployBasicAuthEnabled        bool                                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
+	PublishingFTPBasicAuthEnabled           bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
+	Identity                                []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	VnetImagePullEnabled                    bool                                       `tfschema:"vnet_image_pull_enabled"`
+	VirtualNetworkApplicationTrafficEnabled bool                                       `tfschema:"virtual_network_application_traffic_enabled"`
+	EndToEndTLSEncryptionEnabled            bool                                       `tfschema:"end_to_end_tls_encryption_enabled"`
 
 	// Computed
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
@@ -313,6 +315,12 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Description: "Is container image pull over virtual network enabled? Defaults to `false`.",
 		},
 
+		"virtual_network_application_traffic_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
 		"end_to_end_tls_encryption_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
@@ -543,16 +551,18 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				Kind:     pointer.To("functionapp,linux"),
 				Identity: expandedIdentity,
 				Properties: &webapps.SiteProperties{
-					ServerFarmId:              pointer.To(functionApp.ServicePlanId),
-					Enabled:                   pointer.To(functionApp.Enabled),
-					HTTPSOnly:                 pointer.To(functionApp.HttpsOnly),
-					SiteConfig:                siteConfig,
-					ClientCertEnabled:         pointer.To(functionApp.ClientCertEnabled),
-					ClientCertMode:            pointer.ToEnum[webapps.ClientCertMode](functionApp.ClientCertMode),
-					DailyMemoryTimeQuota:      pointer.To(functionApp.DailyMemoryTimeQuota), // TODO - Investigate, setting appears silently ignored on Linux Function Apps?
-					VnetBackupRestoreEnabled:  pointer.To(functionApp.VirtualNetworkBackupRestoreEnabled),
-					VnetImagePullEnabled:      pointer.To(functionApp.VnetImagePullEnabled),
-					VnetRouteAllEnabled:       siteConfig.VnetRouteAllEnabled,
+					ServerFarmId:         pointer.To(functionApp.ServicePlanId),
+					Enabled:              pointer.To(functionApp.Enabled),
+					HTTPSOnly:            pointer.To(functionApp.HttpsOnly),
+					SiteConfig:           siteConfig,
+					ClientCertEnabled:    pointer.To(functionApp.ClientCertEnabled),
+					ClientCertMode:       pointer.ToEnum[webapps.ClientCertMode](functionApp.ClientCertMode),
+					DailyMemoryTimeQuota: pointer.To(functionApp.DailyMemoryTimeQuota), // TODO - Investigate, setting appears silently ignored on Linux Function Apps?
+					OutboundVnetRouting: &webapps.OutboundVnetRouting{
+						BackupRestoreTraffic: pointer.To(functionApp.VirtualNetworkBackupRestoreEnabled),
+						ImagePullTraffic:     pointer.To(functionApp.VnetImagePullEnabled),
+						ApplicationTraffic:   pointer.To(functionApp.VirtualNetworkApplicationTrafficEnabled),
+					},
 					EndToEndEncryptionEnabled: pointer.To(functionApp.EndToEndTLSEncryptionEnabled),
 				},
 			}
@@ -787,13 +797,11 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 					state.ClientCertMode = pointer.FromEnum(props.ClientCertMode)
 					state.ClientCertExclusionPaths = pointer.From(props.ClientCertExclusionPaths)
 					state.DailyMemoryTimeQuota = pointer.From(props.DailyMemoryTimeQuota)
+					state.EndToEndTLSEncryptionEnabled = pointer.From(props.EndToEndEncryptionEnabled)
 					state.KeyVaultReferenceIdentityID = pointer.From(props.KeyVaultReferenceIdentity)
 					state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 					state.DefaultHostname = pointer.From(props.DefaultHostName)
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
-					state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetBackupRestoreEnabled)
-					state.VnetImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
-					state.EndToEndTLSEncryptionEnabled = pointer.From(props.EndToEndEncryptionEnabled)
 
 					servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(*props.ServerFarmId)
 					if err != nil {
@@ -828,6 +836,16 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 					if err != nil {
 						return fmt.Errorf("reading Site Config for Linux %s: %+v", id, err)
 					}
+
+					if props.OutboundVnetRouting != nil {
+						state.VnetImagePullEnabled = pointer.From(props.OutboundVnetRouting.ImagePullTraffic)
+						state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.OutboundVnetRouting.BackupRestoreTraffic)
+						state.VirtualNetworkApplicationTrafficEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
+						if !features.SixPointOh() {
+							siteConfig.VnetRouteAllEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
+						}
+					}
+
 					state.SiteConfig = []helpers.SiteConfigLinuxFunctionApp{*siteConfig}
 
 					state.unpackLinuxFunctionAppSettings(*appSettingsResp.Model, metadata)
@@ -945,8 +963,12 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				model.Properties.HTTPSOnly = pointer.To(state.HttpsOnly)
 			}
 
+			vnetRoutingProps := &webapps.OutboundVnetRouting{}
+			if model.Properties.OutboundVnetRouting != nil {
+				vnetRoutingProps = model.Properties.OutboundVnetRouting
+			}
 			if metadata.ResourceData.HasChange("virtual_network_backup_restore_enabled") {
-				model.Properties.VnetBackupRestoreEnabled = pointer.To(state.VirtualNetworkBackupRestoreEnabled)
+				vnetRoutingProps.BackupRestoreTraffic = pointer.To(state.VirtualNetworkBackupRestoreEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {
@@ -963,7 +985,11 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("vnet_image_pull_enabled") {
-				model.Properties.VnetImagePullEnabled = pointer.To(state.VnetImagePullEnabled)
+				vnetRoutingProps.ImagePullTraffic = pointer.To(state.VnetImagePullEnabled)
+			}
+
+			if metadata.ResourceData.HasChange("virtual_network_application_traffic_enabled") {
+				vnetRoutingProps.ApplicationTraffic = pointer.To(state.VirtualNetworkApplicationTrafficEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("client_certificate_enabled") {
@@ -1064,7 +1090,6 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("site_config") {
 				model.Properties.SiteConfig = siteConfig
-				model.Properties.VnetRouteAllEnabled = siteConfig.VnetRouteAllEnabled
 			}
 
 			if metadata.ResourceData.HasChange("site_config.0.application_stack") {
@@ -1072,6 +1097,7 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 			}
 
 			model.Properties.SiteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, state.AppSettings)
+			model.Properties.OutboundVnetRouting = vnetRoutingProps
 
 			if metadata.ResourceData.HasChange("public_network_access_enabled") {
 				pna := helpers.PublicNetworkAccessEnabled
