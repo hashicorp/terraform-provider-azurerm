@@ -49,6 +49,10 @@ The following arguments are supported:
 
 ~> **Note:** `zones` must be omitted when `sku_name` is set to `StandardV2`. `StandardV2` NAT Gateways are zone-redundant by default and Azure automatically deploys across all available zones. For more information, please see the [Azure documentation](https://learn.microsoft.com/azure/nat-gateway/nat-overview#standardv2-nat-gateway).
 
+* `source_virtual_network_id` - (Optional) The ID of the Virtual Network which this NAT Gateway should be attached to. New subnets added to this Virtual Network automatically inherit the NAT Gateway. Changing this forces a new resource to be created.
+
+~> **Note:** `source_virtual_network_id` is only supported when `sku_name` is set to `StandardV2`. Replacing the source Virtual Network on an existing `StandardV2` NAT Gateway is not supported by Azure, so changing this value forces a new resource to be created.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource. 
 
 ## Attributes Reference
