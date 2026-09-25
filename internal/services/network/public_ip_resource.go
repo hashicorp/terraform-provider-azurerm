@@ -142,13 +142,18 @@ func resourcePublicIp() *pluginsdk.Resource {
 
 			"ip_address": {
 				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Optional: true,
+				// NOTE: O+C Azure assigns an IP address when one is not specified
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IsIPAddress,
 			},
 
 			"public_ip_prefix_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
+				RequiredWith: []string{"ip_address"},
 				ValidateFunc: publicipprefixes.ValidatePublicIPPrefixID,
 			},
 
@@ -175,6 +180,7 @@ func resourcePublicIp() *pluginsdk.Resource {
 					"location",
 					"allocation_method",
 					"edge_zone",
+					"ip_address",
 					"ip_version",
 					"sku",
 					"sku_tier",
@@ -298,6 +304,10 @@ func resourcePublicIpCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		publicIp.Properties.DnsSettings = &dnsSettings
+	}
+
+	if v, ok := d.GetOk("ip_address"); ok {
+		publicIp.Properties.IPAddress = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("ip_tags"); ok {
