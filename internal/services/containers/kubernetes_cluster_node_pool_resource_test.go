@@ -2276,6 +2276,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "import" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster_node_pool.test.kubernetes_cluster_id
   vm_size               = azurerm_kubernetes_cluster_node_pool.test.vm_size
   node_count            = azurerm_kubernetes_cluster_node_pool.test.node_count
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, r.manualScaleConfig(data))
 }
@@ -2395,6 +2398,11 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_taints = [
     "kubernetes.azure.com/scalesetpriority=spot:NoSchedule"
   ]
+  upgrade_settings {
+    drain_timeout_in_minutes      = 15
+    node_soak_duration_in_minutes = 5
+    undrainable_node_behavior     = "Schedule"
+  }
 }
 `, r.templateConfig(data))
 }
