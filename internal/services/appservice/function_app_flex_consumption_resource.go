@@ -855,28 +855,18 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 
 				if functionAppConfig := props.FunctionAppConfig; functionAppConfig != nil {
 					if faConfigDeployment := functionAppConfig.Deployment; faConfigDeployment != nil && faConfigDeployment.Storage != nil {
-<<<<<<< HEAD
 						deploymentStorage := flattenDeploymentStorage(faConfigDeployment.Storage, deploymentSaConStr)
 						state.DeploymentStorage = []DeploymentStorage{deploymentStorage}
 						if !features.SixPointOh() {
-							state.StorageContainerType = string(pointer.From(faConfigDeployment.Storage.Type))
+							state.StorageContainerType = pointer.FromEnum(faConfigDeployment.Storage.Type)
 							state.StorageContainerEndpoint = deploymentStorage.ContainerEndPoint
 							if faConfigDeployment.Storage.Authentication != nil {
-								storageAuthType := pointer.From(faConfigDeployment.Storage.Authentication.Type)
-								if storageAuthType == webapps.AuthenticationTypeStorageAccountConnectionString {
+								storageAuthType := pointer.FromEnum(faConfigDeployment.Storage.Authentication.Type)
+								if storageAuthType == string(webapps.AuthenticationTypeStorageAccountConnectionString) {
 									_, state.StorageAccessKey = helpers.ParseWebJobsStorageString(deploymentSaConStr)
 								}
 								state.StorageAuthType = string(storageAuthType)
 								state.StorageUserAssignedIdentityID = deploymentStorage.UserAssignedIdentityId
-=======
-						storageConfig := *faConfigDeployment.Storage
-						state.StorageContainerType = pointer.FromEnum(storageConfig.Type)
-						state.StorageContainerEndpoint = pointer.From(storageConfig.Value)
-						if storageConfig.Authentication != nil && storageConfig.Authentication.Type != nil {
-							state.StorageAuthType = pointer.FromEnum(storageConfig.Authentication.Type)
-							if storageConfig.Authentication.UserAssignedIdentityResourceId != nil {
-								state.StorageUserAssignedIdentityID = pointer.From(storageConfig.Authentication.UserAssignedIdentityResourceId)
->>>>>>> upstream/main
 							}
 						}
 					}
