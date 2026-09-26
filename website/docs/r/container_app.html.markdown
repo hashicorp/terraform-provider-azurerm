@@ -386,6 +386,8 @@ An `identity` block supports the following:
 
 An `ingress` block supports the following:
 
+* `additional_port_mapping` - (Optional) One or more `additional_port_mapping` blocks as defined below.
+
 * `allow_insecure_connections` - (Optional) Should this ingress allow insecure connections?
 
 * `cors` - (Optional) A `cors` block as defined below.
@@ -409,6 +411,18 @@ An `ingress` block supports the following:
 ~> **Note:** if `transport` is set to `tcp`, `exposed_port` and `target_port` should be set at the same time.
 
 * `client_certificate_mode` - (Optional) The client certificate mode for the Ingress. Possible values are `require`, `accept`, and `ignore`.
+
+---
+
+An `additional_port_mapping` block supports the following:
+
+* `external_enabled` - (Optional) Are connections to this port mapping from outside the Container App Environment enabled? Defaults to `false`.
+
+~> **Note:** `external_enabled` can only be set to `true` when `external_enabled` on the `ingress` block is also set to `true`.
+
+* `target_port` - (Required) The target TCP port on the container for the additional Ingress traffic.
+
+* `exposed_port` - (Optional) The TCP port exposed for the additional Ingress traffic. Defaults to `target_port` if not set. External exposed ports must be unique across the Container App Environment; internal ones may be shared by multiple apps.
 
 ---
 

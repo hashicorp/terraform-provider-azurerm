@@ -388,6 +388,38 @@ func TestAccContainerAppResource_completeTcpExposedPort(t *testing.T) {
 	})
 }
 
+func TestAccContainerAppResource_additionalPortMappings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
+	r := ContainerAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.additionalPortMappings(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ingress.0.additional_port_mapping.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.additionalPortMappingsUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ingress.0.additional_port_mapping.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.additionalPortMappingsRemoved(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ingress.0.additional_port_mapping.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccContainerAppResource_removeDaprAppPort(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
 	r := ContainerAppResource{}
@@ -2433,6 +2465,151 @@ resource "azurerm_container_app" "test" {
   }
 }
 `, r.templateWithVnet(data), data.RandomInteger, revisionSuffix)
+}
+
+func (r ContainerAppResource) templateWithDelegatedVnet(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_container_app_environment" "test" {
+  name                       = "acctest-CAEnv%[2]d"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  logs_destination           = "log-analytics"
+  infrastructure_subnet_id   = azurerm_subnet.control.id
+
+  workload_profile {
+    name                  = "Consumption"
+    workload_profile_type = "Consumption"
+  }
+}
+`, ContainerAppEnvironmentResource{}.templateVNet(data), data.RandomInteger)
+}
+
+func (r ContainerAppResource) additionalPortMappings(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "Single"
+  workload_profile_name        = "Consumption"
+
+  template {
+    container {
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+  }
+
+  ingress {
+    external_enabled = true
+    target_port      = 5000
+    exposed_port     = 5555
+    transport        = "tcp"
+
+    additional_port_mapping {
+      external_enabled = true
+      target_port      = 5001
+      exposed_port     = 5556
+    }
+
+    traffic_weight {
+      latest_revision = true
+      percentage      = 100
+    }
+  }
+}
+`, r.templateWithDelegatedVnet(data), data.RandomInteger)
+}
+
+func (r ContainerAppResource) additionalPortMappingsUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "Single"
+  workload_profile_name        = "Consumption"
+
+  template {
+    container {
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+  }
+
+  ingress {
+    external_enabled = true
+    target_port      = 5000
+    exposed_port     = 5555
+    transport        = "tcp"
+
+    additional_port_mapping {
+      external_enabled = true
+      target_port      = 5001
+      exposed_port     = 5557
+    }
+
+    additional_port_mapping {
+      target_port = 5002
+    }
+
+    traffic_weight {
+      latest_revision = true
+      percentage      = 100
+    }
+  }
+}
+`, r.templateWithDelegatedVnet(data), data.RandomInteger)
+}
+
+func (r ContainerAppResource) additionalPortMappingsRemoved(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "Single"
+  workload_profile_name        = "Consumption"
+
+  template {
+    container {
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+  }
+
+  ingress {
+    external_enabled = true
+    target_port      = 5000
+    exposed_port     = 5555
+    transport        = "tcp"
+
+    traffic_weight {
+      latest_revision = true
+      percentage      = 100
+    }
+  }
+}
+`, r.templateWithDelegatedVnet(data), data.RandomInteger)
 }
 
 func (r ContainerAppResource) scaleRules(data acceptance.TestData) string {
