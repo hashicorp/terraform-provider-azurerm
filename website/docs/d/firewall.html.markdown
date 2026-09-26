@@ -54,6 +54,8 @@ The following attributes are exported:
 
 * `threat_intel_mode` - The operation mode for threat intelligence-based filtering.
 
+* `autoscale_configuration` - An `autoscale_configuration` block as defined below.
+
 * `virtual_hub` - A `virtual_hub` block as defined below.
 
 * `zones` - A list of Availability Zones in which this Azure Firewall is located.
@@ -91,6 +93,14 @@ A `virtual_hub` block exports the following:
 * `public_ip_addresses` - The list of public IP addresses associated with the Azure Firewall.
 
 * `private_ip_address` - The private IP address associated with the Azure Firewall.
+
+---
+
+An `autoscale_configuration` block exports the following:
+
+* `min_capacity` - The minimum number of capacity units for this Azure Firewall.
+
+* `max_capacity` - The maximum number of capacity units for this Azure Firewall.
 
 ## Timeouts
 
