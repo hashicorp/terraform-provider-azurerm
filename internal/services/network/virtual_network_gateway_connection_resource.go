@@ -379,6 +379,13 @@ func resourceVirtualNetworkGatewayConnectionCreate(d *pluginsdk.ResourceData, me
 	return resourceVirtualNetworkGatewayConnectionRead(d, meta)
 }
 
+// connectionTypeUsesSharedKey reports whether a connection type authenticates with a
+// Shared Key. IPsec and Vnet2Vnet do; ExpressRoute uses an Authorization Key and has no
+// Shared Key to retrieve.
+func connectionTypeUsesSharedKey(connectionType virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionType) bool {
+	return connectionType != virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionTypeExpressRoute
+}
+
 func resourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualNetworkGatewayConnections
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -401,17 +408,6 @@ func resourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, meta
 	d.Set("name", id.ConnectionName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	respKey, err := client.GetSharedKey(ctx, *id)
-	if err != nil {
-		return fmt.Errorf("retrieving Shared Key for %s: %+v", id, err)
-	}
-
-	if model := respKey.Model; model != nil {
-		if model.Value != "" {
-			d.Set("shared_key", model.Value)
-		}
-	}
-
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 
@@ -419,6 +415,23 @@ func resourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, meta
 
 		if string(props.ConnectionType) != "" {
 			d.Set("type", string(props.ConnectionType))
+		}
+
+		// A Shared Key only exists for connection types that use one. ExpressRoute
+		// connections authenticate with an Authorization Key instead, so the Shared
+		// Key endpoint has nothing to return for them and reading it here breaks
+		// every subsequent plan for an otherwise healthy connection.
+		if connectionTypeUsesSharedKey(props.ConnectionType) {
+			respKey, err := client.GetSharedKey(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving Shared Key for %s: %+v", id, err)
+			}
+
+			if keyModel := respKey.Model; keyModel != nil {
+				if keyModel.Value != "" {
+					d.Set("shared_key", keyModel.Value)
+				}
+			}
 		}
 
 		d.Set("virtual_network_gateway_id", props.VirtualNetworkGateway1.Id)
