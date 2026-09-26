@@ -70,6 +70,8 @@ The following arguments are supported:
 
 * `sku_tier` - (Required) SKU tier of the Firewall. Possible values are `Premium`, `Standard` and `Basic`.
 
+* `autoscale_configuration` - (Optional) An `autoscale_configuration` block as documented below.
+
 * `firewall_policy_id` - (Optional) The ID of the Firewall Policy applied to this Firewall.
 
 * `ip_configuration` - (Optional) An `ip_configuration` block as documented below.
@@ -91,6 +93,16 @@ The following arguments are supported:
 -> **Note:** Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/azure/availability-zones/az-overview).
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+An `autoscale_configuration` block supports the following:
+
+* `min_capacity` - (Optional) The minimum number of capacity units for this Firewall. Possible values are at least `2`. Omitting this resets the value to the service default.
+
+* `max_capacity` - (Optional) The maximum number of capacity units for this Firewall. Possible values are at least `2`. Omitting this resets the value to the service default.
+
+-> **Note:** At least one of `min_capacity` and `max_capacity` must be specified.
 
 ---
 
