@@ -55,7 +55,6 @@ func (a ContainerAppCustomDomainResource) Arguments() map[string]*pluginsdk.Sche
 		"container_app_environment_certificate_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			RequiredWith: []string{"certificate_binding_type"},
 			ValidateFunc: managedenvironments.ValidateCertificateID,
 		},
@@ -63,7 +62,6 @@ func (a ContainerAppCustomDomainResource) Arguments() map[string]*pluginsdk.Sche
 		"certificate_binding_type": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForBindingType(), false),
 			Description:  "The Binding type. Possible values include `Disabled` and `SniEnabled`.",
 		},
@@ -184,6 +182,115 @@ func (a ContainerAppCustomDomainResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+
+			return nil
+		},
+	}
+}
+
+func (a ContainerAppCustomDomainResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.ContainerApps.ContainerAppClient
+
+			model := ContainerAppCustomDomainResourceModel{}
+			if err := metadata.Decode(&model); err != nil {
+				return err
+			}
+
+			id, err := parse.ContainerAppCustomDomainID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			containerAppId := containerapps.NewContainerAppID(id.SubscriptionId, id.ResourceGroupName, id.ContainerAppName)
+
+			locks.ByID(containerAppId.ID())
+			defer locks.UnlockByID(containerAppId.ID())
+
+			var certificateId *managedenvironments.CertificateId
+			if model.CertificateId != "" {
+				certificateId, err = managedenvironments.ParseCertificateID(model.CertificateId)
+				if err != nil {
+					return err
+				}
+			}
+
+			containerApp, err := client.Get(ctx, containerAppId)
+			if err != nil || containerApp.Model == nil {
+				return fmt.Errorf("retrieving %s to update %s", containerAppId, *id)
+			}
+
+			props := containerApp.Model.Properties
+			if props == nil || props.Configuration == nil {
+				return fmt.Errorf("could not retrieve properties of %s", containerAppId)
+			}
+
+			config := *props.Configuration
+			if config.Ingress == nil {
+				return fmt.Errorf("specified Container App (%s) has no Ingress configuration for Custom Domains", containerAppId)
+			}
+
+			// Delta-updates need the secrets back from the list API, or we'll end up removing them or erroring out.
+			secretsResp, err := client.ListSecrets(ctx, containerAppId)
+			if err != nil || secretsResp.Model == nil {
+				if !response.WasStatusCode(secretsResp.HttpResponse, http.StatusNoContent) {
+					return fmt.Errorf("retrieving secrets for update for %s: %+v", containerAppId, err)
+				}
+			}
+			props.Configuration.Secrets = helpers.UnpackContainerSecretsCollection(secretsResp.Model)
+
+			ingress := *config.Ingress
+			if ingress.CustomDomains == nil {
+				return fmt.Errorf("could not locate Custom Domain %q on %s", id.CustomDomainName, containerAppId)
+			}
+
+			customDomains := *ingress.CustomDomains
+			found := false
+			for i := range customDomains {
+				if strings.EqualFold(customDomains[i].Name, id.CustomDomainName) {
+					found = true
+					if certificateId != nil {
+						customDomains[i].CertificateId = pointer.To(certificateId.ID())
+						customDomains[i].BindingType = pointer.To(containerapps.BindingType(model.BindingType))
+					}
+					break
+				}
+			}
+
+			if !found {
+				return fmt.Errorf("could not locate Custom Domain %q on %s", id.CustomDomainName, containerAppId)
+			}
+
+			containerApp.Model.Properties.Configuration.Ingress.CustomDomains = pointer.To(customDomains)
+
+			if err := client.CreateOrUpdateThenPoll(ctx, containerAppId, *containerApp.Model); err != nil {
+				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+
+			return nil
+		},
+	}
+}
+
+func (a ContainerAppCustomDomainResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			if metadata.ResourceDiff == nil {
+				return nil
+			}
+
+			// Removing an explicit certificate (switching to an Azure-managed certificate) cannot be
+			// expressed as an in-place update: the Update path only writes the certificate when one is
+			// configured, so clearing it would leave the previous certificate bound at Azure and
+			// produce an inconsistent result after apply. Force a new resource for that transition.
+			if metadata.ResourceDiff.HasChange("container_app_environment_certificate_id") {
+				oldCertID, newCertID := metadata.ResourceDiff.GetChange("container_app_environment_certificate_id")
+				if oldCertID.(string) != "" && newCertID.(string) == "" {
+					return metadata.ResourceDiff.ForceNew("container_app_environment_certificate_id")
+				}
+			}
 
 			return nil
 		},
