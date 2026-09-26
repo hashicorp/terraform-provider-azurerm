@@ -32,3 +32,12 @@ func KubernetesDNSPrefix(i interface{}, k string) (warnings []string, errors []e
 func KubernetesGitRepositoryUrl() pluginsdk.SchemaValidateFunc {
 	return validation.StringStartsWithOneOf("http://", "https://", "git@", "ssh://")
 }
+
+// KubernetesNodeTaint validates a single node taint, which must be expressed as `key=value:effect`
+// see https://kubernetes.io/docs/reference/kubectl/generated/kubectl_taint/
+func KubernetesNodeTaint(i interface{}, k string) ([]string, []error) {
+	return validation.StringMatch(
+		regexp.MustCompile(`^[\w\-.\/]{1,253}=[\w\-.\/]{0,63}:(NoSchedule|PreferNoSchedule|NoExecute)$`),
+		"must be expressed as `key=value:effect`, where `key` is between 1 and 253 characters of letters, numbers, underscores, hyphens, periods and forward slashes, `value` is optional and up to 63 characters of the same, and `effect` is one of `NoSchedule`, `PreferNoSchedule` or `NoExecute`",
+	)(i, k)
+}
