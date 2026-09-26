@@ -16,6 +16,16 @@ import (
 
 type AutomationVariableDateTimeResource struct{}
 
+func TestAccAutomationVariableDateTime_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_variable_datetime", "test")
+	r := AutomationVariableDateTimeResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccAutomationVariableDateTime_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_variable_datetime", "test")
 	r := AutomationVariableDateTimeResource{}
