@@ -31,6 +31,16 @@ func (a TrustedSigningAccountResource) Exists(ctx context.Context, client *clien
 	return pointer.To(resp.Model != nil), nil
 }
 
+func TestAccTrustedSigningAccount_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, codesigning.TrustedSigningAccountResource{}.ResourceType(), "test")
+	r := TrustedSigningAccountResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccTrustedSigningAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, codesigning.TrustedSigningAccountResource{}.ResourceType(), "test")
 	r := TrustedSigningAccountResource{}

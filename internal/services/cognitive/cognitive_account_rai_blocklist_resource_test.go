@@ -25,8 +25,20 @@ func TestAccCognitiveRaiBlocklist_sequential(t *testing.T) {
 			"requiresImport": TestAccCognitiveRaiBlocklist_requiresImport,
 			"complete":       TestAccCognitiveRaiBlocklist_complete,
 			"update":         TestAccCognitiveRaiBlocklist_update,
+			"regression":     TestAccCognitiveRaiBlocklist_regressionTest,
 		},
 	})
+}
+
+func TestAccCognitiveRaiBlocklist_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_rai_blocklist", "test")
+	r := CognitiveRaiBlocklistTestResource{}
+
+	data.ResourceSequentialRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
 }
 
 func TestAccCognitiveRaiBlocklist_basic(t *testing.T) {

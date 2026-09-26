@@ -19,6 +19,16 @@ import (
 
 type CdnFrontDoorRuleSetResource struct{}
 
+func TestAccCdnFrontDoorRuleSet_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_set", "test")
+	r := CdnFrontdoorBatchRuleSetResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.disableCacheAndNoOriginGroup(data),
+		},
+	}, "")
+}
+
 func TestAccCdnFrontDoorRuleSet_basic_unattachedRoute(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_set", "test")
 	r := CdnFrontDoorRuleSetResource{}

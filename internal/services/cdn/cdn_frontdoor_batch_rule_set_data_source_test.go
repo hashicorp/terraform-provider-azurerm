@@ -14,6 +14,16 @@ import (
 
 type CdnFrontDoorBatchRuleSetDataSource struct{}
 
+func TestAccCdnFrontDoorBatchRuleSetDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_cdn_frontdoor_batch_rule_set", "test")
+	r := CdnFrontDoorBatchRuleSetDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccCdnFrontDoorBatchRuleSetDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_cdn_frontdoor_batch_rule_set", "test")
 	d := CdnFrontDoorBatchRuleSetDataSource{}
