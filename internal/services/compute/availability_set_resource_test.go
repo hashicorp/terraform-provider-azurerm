@@ -19,6 +19,16 @@ import (
 
 type AvailabilitySetResource struct{}
 
+func TestAccAvailabilitySet_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_availability_set", "test")
+	r := AvailabilitySetResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccAvailabilitySet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_availability_set", "test")
 	r := AvailabilitySetResource{}

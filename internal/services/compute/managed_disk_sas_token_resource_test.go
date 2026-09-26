@@ -18,6 +18,16 @@ import (
 
 type ManagedDiskSASTokenResource struct{}
 
+func TestAccManagedDiskSASToken_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk_sas_token", "test")
+	r := ManagedDiskSASTokenResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccManagedDiskSASToken_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk_sas_token", "test")
 	r := ManagedDiskSASTokenResource{}

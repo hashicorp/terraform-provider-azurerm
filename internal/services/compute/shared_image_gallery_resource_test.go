@@ -20,6 +20,16 @@ import (
 
 type SharedImageGalleryResource struct{}
 
+func TestAccSharedImageGallery_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_shared_image_gallery", "test")
+	r := SharedImageGalleryResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccSharedImageGallery_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image_gallery", "test")
 	r := SharedImageGalleryResource{}

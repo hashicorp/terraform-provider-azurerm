@@ -19,6 +19,16 @@ import (
 
 type ApiConnectionTestResource struct{}
 
+func TestAccApiConnection_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_connection", "test")
+	r := ApiConnectionTestResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccApiConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_connection", "test")
 	r := ApiConnectionTestResource{}

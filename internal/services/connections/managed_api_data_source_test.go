@@ -13,6 +13,16 @@ import (
 
 type ManagedApiTestDataSource struct{}
 
+func TestAccDataSourceManagedApi_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_managed_api", "test")
+	r := ManagedApiTestDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceManagedApi_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_managed_api", "test")
 	r := ManagedApiTestDataSource{}
