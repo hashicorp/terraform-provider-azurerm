@@ -19,6 +19,16 @@ import (
 
 type AppInsightsAnalyticsItemResource struct{}
 
+func TestAccApplicationInsightsAnalyticsItem_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_insights_analytics_item", "test")
+	r := AppInsightsAnalyticsItemResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccApplicationInsightsAnalyticsItem_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_analytics_item", "test")
 	r := AppInsightsAnalyticsItemResource{}

@@ -20,6 +20,16 @@ import (
 
 type ApplicationInsightsWorkbookResource struct{}
 
+func TestAccApplicationInsightsWorkbook_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_insights_workbook", "test")
+	r := ApplicationInsightsWorkbookResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccApplicationInsightsWorkbook_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_workbook", "test")
 	r := ApplicationInsightsWorkbookResource{}
