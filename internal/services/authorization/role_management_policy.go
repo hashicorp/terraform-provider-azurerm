@@ -111,8 +111,11 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 					if model.ActiveAssignmentRules[0].RequireJustification {
 						enabledRules = append(enabledRules, rolemanagementpolicies.EnablementRulesJustification)
 					}
+					// `Enablement_Admin_Assignment` accepts only MultiFactorAuthentication and
+					// Justification. Sending Ticketing here is rejected with a 400 that names
+					// the rule id rather than the argument, so say which argument caused it.
 					if model.ActiveAssignmentRules[0].RequireTicketInfo {
-						enabledRules = append(enabledRules, rolemanagementpolicies.EnablementRulesTicketing)
+						return nil, fmt.Errorf("`active_assignment_rules.0.require_ticket_info` is not supported by Azure for active assignments and must be removed or set to `false`. Ticket information can only be required for activation, via `activation_rules.0.require_ticket_info`")
 					}
 				}
 				enablementAdminEligibility.EnabledRules = pointer.To(enabledRules)
