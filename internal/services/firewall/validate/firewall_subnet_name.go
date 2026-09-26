@@ -5,6 +5,7 @@ package validate
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
@@ -16,8 +17,8 @@ func FirewallSubnetName(v interface{}, k string) (warnings []string, errors []er
 		return warnings, errors
 	}
 
-	if parsed.SubnetName != "AzureFirewallSubnet" {
-		errors = append(errors, fmt.Errorf("the name of the Subnet for %q must be exactly 'AzureFirewallSubnet' to be used for the Azure Firewall resource", k))
+	if !strings.EqualFold(parsed.SubnetName, "AzureFirewallSubnet") {
+		errors = append(errors, fmt.Errorf("the name of the Subnet for %q must be 'AzureFirewallSubnet' (case-insensitive) to be used for the Azure Firewall resource", k))
 	}
 
 	return warnings, errors
