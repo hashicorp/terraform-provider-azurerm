@@ -280,7 +280,6 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 			PerDatabaseSettings:        expandMsSqlElasticPoolPerDatabaseSettings(d),
 			ZoneRedundant:              pointer.To(d.Get("zone_redundant").(bool)),
 			MaintenanceConfigurationId: pointer.To(maintenanceConfigId.ID()),
-			PreferredEnclaveType:       nil,
 		},
 	}
 
@@ -354,7 +353,7 @@ func resourceMssqlElasticPoolSetFlatten(d *pluginsdk.ResourceData, id *commonids
 		if props := model.Properties; props != nil {
 			enclaveType := ""
 			if v := props.PreferredEnclaveType; v != nil {
-				enclaveType = string(pointer.From(v))
+				enclaveType = pointer.FromEnum(v)
 			}
 			d.Set("enclave_type", enclaveType)
 			d.Set("max_size_gb", pointer.To(float64(*props.MaxSizeBytes)/1073741824))

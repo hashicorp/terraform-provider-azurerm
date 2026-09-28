@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -228,10 +227,9 @@ func resourceCosmosDbGremlinGraphCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if partitionkeypaths != "" {
-		partitionKindHash := cosmosdb.PartitionKindHash
 		db.Properties.Resource.PartitionKey = &cosmosdb.ContainerPartitionKey{
 			Paths: &[]string{partitionkeypaths},
-			Kind:  &partitionKindHash,
+			Kind:  pointer.To(cosmosdb.PartitionKindHash),
 		}
 		if partitionKeyVersion, ok := d.GetOk("partition_key_version"); ok {
 			db.Properties.Resource.PartitionKey.Version = pointer.To(int64(partitionKeyVersion.(int)))
@@ -296,10 +294,9 @@ func resourceCosmosDbGremlinGraphUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if partitionkeypaths != "" {
-		partitionKindHash := cosmosdb.PartitionKindHash
 		db.Properties.Resource.PartitionKey = &cosmosdb.ContainerPartitionKey{
 			Paths: &[]string{partitionkeypaths},
-			Kind:  &partitionKindHash,
+			Kind:  pointer.To(cosmosdb.PartitionKindHash),
 		}
 
 		if partitionKeyVersion, ok := d.GetOk("partition_key_version"); ok {
@@ -514,7 +511,7 @@ func expandAzureRmCosmosDbGremlinGraphUniqueKeys(s *pluginsdk.Set) *[]cosmosdb.U
 		}
 
 		keys = append(keys, cosmosdb.UniqueKey{
-			Paths: helpers.ExpandStringSlice(paths),
+			Paths: pluginsdk.ExpandStringSlice(paths),
 		})
 	}
 

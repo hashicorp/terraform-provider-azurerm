@@ -220,7 +220,7 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"azure_blob_file_system": {
 							Type:     pluginsdk.TypeList,
-							Optional: true,
+							Computed: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"account_name": {
@@ -256,7 +256,7 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 						},
 						"azure_file_share": {
 							Type:     pluginsdk.TypeList,
-							Optional: true,
+							Computed: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"account_name": {
@@ -741,7 +741,7 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		if props := model.Properties; props != nil {
 			d.Set("display_name", props.DisplayName)
 			d.Set("vm_size", props.VMSize)
-			d.Set("inter_node_communication", string(pointer.From(props.InterNodeCommunication)))
+			d.Set("inter_node_communication", pointer.FromEnum(props.InterNodeCommunication))
 			d.Set("max_tasks_per_node", props.TaskSlotsPerNode)
 
 			if scaleSettings := props.ScaleSettings; scaleSettings != nil {

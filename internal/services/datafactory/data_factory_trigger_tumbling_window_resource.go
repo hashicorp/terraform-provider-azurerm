@@ -266,8 +266,7 @@ func resourceDataFactoryTriggerTumblingWindowCreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		props.Annotations = &annotations
+		props.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {

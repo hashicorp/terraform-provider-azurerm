@@ -248,7 +248,6 @@ func resourceVirtualDesktopScalingPlanCreate(d *pluginsdk.ResourceData, meta int
 	location := location.Normalize(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	hostPoolType := scalingplan.ScalingHostPoolTypePooled // Only one possible value for this
 	payload := scalingplan.ScalingPlan{
 		Name:     pointer.To(d.Get("name").(string)),
 		Location: location,
@@ -257,7 +256,7 @@ func resourceVirtualDesktopScalingPlanCreate(d *pluginsdk.ResourceData, meta int
 			Description:        pointer.To(d.Get("description").(string)),
 			FriendlyName:       pointer.To(d.Get("friendly_name").(string)),
 			TimeZone:           d.Get("time_zone").(string),
-			HostPoolType:       &hostPoolType,
+			HostPoolType:       pointer.To(scalingplan.ScalingHostPoolTypePooled),
 			ExclusionTag:       pointer.To(d.Get("exclusion_tag").(string)),
 			Schedules:          expandScalingPlanSchedule(d.Get("schedule").([]interface{})),
 			HostPoolReferences: expandScalingPlanHostpoolReference(d.Get("host_pool").([]interface{})),
@@ -381,41 +380,36 @@ func expandScalingPlanSchedule(input []interface{}) *[]scalingplan.ScalingSchedu
 		}
 
 		rampUpStartTime := v["ramp_up_start_time"].(string)
-		rampUpLoadBalancingAlgorithm := scalingplan.SessionHostLoadBalancingAlgorithm(v["ramp_up_load_balancing_algorithm"].(string))
 		rampUpMinimumHostsPct := v["ramp_up_minimum_hosts_percent"].(int)
 		rampUpCapacityThresholdPct := v["ramp_up_capacity_threshold_percent"].(int)
 		peakStartTime := v["peak_start_time"].(string)
-		peakLoadBalancingAlgorithm := scalingplan.SessionHostLoadBalancingAlgorithm(v["peak_load_balancing_algorithm"].(string))
 		rampDownStartTime := v["ramp_down_start_time"].(string)
-		rampDownLoadBalancingAlgorithm := scalingplan.SessionHostLoadBalancingAlgorithm(v["ramp_down_load_balancing_algorithm"].(string))
 		rampDownMinimumHostsPct := v["ramp_down_minimum_hosts_percent"].(int)
 		rampDownCapacityThresholdPct := v["ramp_down_capacity_threshold_percent"].(int)
 		rampDownForceLogoffUsers := v["ramp_down_force_logoff_users"].(bool)
-		rampDownStopHostsWhen := scalingplan.StopHostsWhen(v["ramp_down_stop_hosts_when"].(string))
 		rampDownWaitTimeMinutes := v["ramp_down_wait_time_minutes"].(int)
 		rampDownNotificationMessage := v["ramp_down_notification_message"].(string)
 		offPeakStartTime := v["off_peak_start_time"].(string)
-		offPeakLoadBalancingAlgorithm := scalingplan.SessionHostLoadBalancingAlgorithm(v["off_peak_load_balancing_algorithm"].(string))
 
 		results = append(results, scalingplan.ScalingSchedule{
 			Name:                           pointer.To(name),
 			DaysOfWeek:                     &daysOfWeek,
 			RampUpStartTime:                expandScalingPlanScheduleTime(rampUpStartTime),
-			RampUpLoadBalancingAlgorithm:   &rampUpLoadBalancingAlgorithm,
+			RampUpLoadBalancingAlgorithm:   pointer.ToEnum[scalingplan.SessionHostLoadBalancingAlgorithm](v["ramp_up_load_balancing_algorithm"].(string)),
 			RampUpMinimumHostsPct:          pointer.To(int64(rampUpMinimumHostsPct)),
 			RampUpCapacityThresholdPct:     pointer.To(int64(rampUpCapacityThresholdPct)),
 			PeakStartTime:                  expandScalingPlanScheduleTime(peakStartTime),
-			PeakLoadBalancingAlgorithm:     &peakLoadBalancingAlgorithm,
+			PeakLoadBalancingAlgorithm:     pointer.ToEnum[scalingplan.SessionHostLoadBalancingAlgorithm](v["peak_load_balancing_algorithm"].(string)),
 			RampDownStartTime:              expandScalingPlanScheduleTime(rampDownStartTime),
-			RampDownLoadBalancingAlgorithm: &rampDownLoadBalancingAlgorithm,
+			RampDownLoadBalancingAlgorithm: pointer.ToEnum[scalingplan.SessionHostLoadBalancingAlgorithm](v["ramp_down_load_balancing_algorithm"].(string)),
 			RampDownMinimumHostsPct:        pointer.To(int64(rampDownMinimumHostsPct)),
 			RampDownCapacityThresholdPct:   pointer.To(int64(rampDownCapacityThresholdPct)),
 			RampDownForceLogoffUsers:       pointer.To(rampDownForceLogoffUsers),
-			RampDownStopHostsWhen:          &rampDownStopHostsWhen,
+			RampDownStopHostsWhen:          pointer.ToEnum[scalingplan.StopHostsWhen](v["ramp_down_stop_hosts_when"].(string)),
 			RampDownWaitTimeMinutes:        pointer.To(int64(rampDownWaitTimeMinutes)),
 			RampDownNotificationMessage:    pointer.To(rampDownNotificationMessage),
 			OffPeakStartTime:               expandScalingPlanScheduleTime(offPeakStartTime),
-			OffPeakLoadBalancingAlgorithm:  &offPeakLoadBalancingAlgorithm,
+			OffPeakLoadBalancingAlgorithm:  pointer.ToEnum[scalingplan.SessionHostLoadBalancingAlgorithm](v["off_peak_load_balancing_algorithm"].(string)),
 		})
 	}
 

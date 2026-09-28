@@ -42,8 +42,6 @@ func resourceVirtualDesktopApplication() *pluginsdk.Resource {
 			return err
 		}),
 
-		SchemaVersion: 0,
-
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
 				Type:     pluginsdk.TypeString,

@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2024-03-01/webpubsub"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -315,7 +314,7 @@ func flattenEventHandler(input *[]webpubsub.EventHandler) []interface{} {
 	for _, item := range *input {
 		sysEvents := make([]interface{}, 0)
 		if item.SystemEvents != nil {
-			sysEvents = helpers.FlattenStringSlice(item.SystemEvents)
+			sysEvents = pluginsdk.FlattenSlice(item.SystemEvents)
 		}
 
 		authBlock := make([]interface{}, 0)
@@ -344,7 +343,7 @@ func expandEventListener(input []interface{}) (*[]webpubsub.EventListener, error
 		systemEvents := make([]string, 0)
 		userEventPattern := ""
 		if v, ok := block["user_event_name_filter"]; ok && len(v.([]interface{})) > 0 {
-			userEventPatternList := helpers.ExpandStringSlice(v.([]interface{}))
+			userEventPatternList := pluginsdk.ExpandStringSlice(v.([]interface{}))
 			userEventPattern = strings.Join(*userEventPatternList, ",")
 		}
 
@@ -390,11 +389,11 @@ func flattenEventListener(listener *[]webpubsub.EventListener) []interface{} {
 			eventNameFilter := item.Filter.(webpubsub.EventNameFilter)
 			userNameFilterList := make([]interface{}, 0)
 			if eventNameFilter.SystemEvents != nil {
-				listenerBlock["system_event_name_filter"] = helpers.FlattenStringSlice(eventNameFilter.SystemEvents)
+				listenerBlock["system_event_name_filter"] = pluginsdk.FlattenSlice(eventNameFilter.SystemEvents)
 			}
 			if eventNameFilter.UserEventPattern != nil && *eventNameFilter.UserEventPattern != "" {
-				v := strings.Split(*eventNameFilter.UserEventPattern, ",")
-				for _, s := range v {
+				v := strings.SplitSeq(*eventNameFilter.UserEventPattern, ",")
+				for s := range v {
 					userNameFilterList = append(userNameFilterList, s)
 				}
 				listenerBlock["user_event_name_filter"] = userNameFilterList
@@ -414,19 +413,16 @@ func flattenEventListener(listener *[]webpubsub.EventListener) []interface{} {
 
 func expandAuth(input []interface{}) *webpubsub.UpstreamAuthSettings {
 	if len(input) == 0 || input[0] == nil {
-		authType := webpubsub.UpstreamAuthTypeNone
 		return &webpubsub.UpstreamAuthSettings{
-			Type: &authType,
+			Type: pointer.To(webpubsub.UpstreamAuthTypeNone),
 		}
 	}
 
 	authRaw := input[0].(map[string]interface{})
-	authId := authRaw["managed_identity_id"].(string)
-	authType := webpubsub.UpstreamAuthTypeManagedIdentity
 	return &webpubsub.UpstreamAuthSettings{
-		Type: &authType,
+		Type: pointer.To(webpubsub.UpstreamAuthTypeManagedIdentity),
 		ManagedIdentity: &webpubsub.ManagedIdentitySettings{
-			Resource: &authId,
+			Resource: pointer.To(authRaw["managed_identity_id"].(string)),
 		},
 	}
 }

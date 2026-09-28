@@ -484,7 +484,7 @@ func expandUserInfoModel(inputList []UserInfoModel) *monitors.UserInfo {
 func flattenPlanDataModel(input *monitors.PlanData) []PlanDataModel {
 	var outputList []PlanDataModel
 	if input == nil {
-		return outputList
+		return []PlanDataModel{}
 	}
 	output := PlanDataModel{}
 	if input.BillingCycle != nil {
@@ -509,7 +509,7 @@ func flattenPlanDataModel(input *monitors.PlanData) []PlanDataModel {
 func flattenUserInfoModel(input *monitors.UserInfo) []UserInfoModel {
 	var outputList []UserInfoModel
 	if input == nil {
-		return outputList
+		return []UserInfoModel{}
 	}
 	output := UserInfoModel{}
 

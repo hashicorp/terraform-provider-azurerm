@@ -9,8 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/queues"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/queuesauthorizationrule"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/queues"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -115,7 +114,7 @@ func dataSourceServiceBusQueueAuthorizationRule() *pluginsdk.Resource {
 }
 
 func dataSourceServiceBusQueueAuthorizationRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ServiceBus.QueuesAuthClient
+	client := meta.(*clients.Client).ServiceBus.QueuesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -124,7 +123,7 @@ func dataSourceServiceBusQueueAuthorizationRuleRead(d *pluginsdk.ResourceData, m
 	var nsName string
 	var queueName string
 	if v, ok := d.Get("queue_id").(string); ok && v != "" {
-		queueId, err := queuesauthorizationrule.ParseQueueID(v)
+		queueId, err := queues.ParseQueueID(v)
 		if err != nil {
 			return fmt.Errorf("parsing topic ID %q: %+v", v, err)
 		}
@@ -137,8 +136,8 @@ func dataSourceServiceBusQueueAuthorizationRuleRead(d *pluginsdk.ResourceData, m
 		queueName = d.Get("queue_name").(string)
 	}
 
-	id := queuesauthorizationrule.NewQueueAuthorizationRuleID(subscriptionId, rgName, nsName, queueName, d.Get("name").(string))
-	resp, err := client.QueuesGetAuthorizationRule(ctx, id)
+	id := queues.NewQueueAuthorizationRuleID(subscriptionId, rgName, nsName, queueName, d.Get("name").(string))
+	resp, err := client.GetAuthorizationRule(ctx, id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
@@ -151,7 +150,7 @@ func dataSourceServiceBusQueueAuthorizationRuleRead(d *pluginsdk.ResourceData, m
 	d.Set("queue_name", id.QueueName)
 	d.Set("namespace_name", id.NamespaceName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("queue_id", queuesauthorizationrule.NewQueueID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.QueueName).ID())
+	d.Set("queue_id", queues.NewQueueID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.QueueName).ID())
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
@@ -162,7 +161,7 @@ func dataSourceServiceBusQueueAuthorizationRuleRead(d *pluginsdk.ResourceData, m
 		}
 	}
 
-	keysResp, err := client.QueuesListKeys(ctx, id)
+	keysResp, err := client.ListKeys(ctx, id)
 	if err != nil {
 		return fmt.Errorf("listing keys for %s: %+v", id, err)
 	}

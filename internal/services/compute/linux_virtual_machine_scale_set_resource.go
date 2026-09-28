@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"slices"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -26,7 +27,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -68,13 +68,7 @@ func resourceLinuxVirtualMachineScaleSet() *pluginsdk.Resource {
 				newZones := zones.ExpandUntyped(new.(*schema.Set).List())
 
 				for _, ov := range oldZones {
-					found := false
-					for _, nv := range newZones {
-						if ov == nv {
-							found = true
-							break
-						}
-					}
+					found := slices.Contains(newZones, ov)
 
 					if !found {
 						return true
@@ -435,8 +429,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		}
 	}
 
-	spotRestoreRaw := d.Get("spot_restore").([]interface{})
-	if spotRestorePolicy := ExpandVirtualMachineScaleSetSpotRestorePolicy(spotRestoreRaw); spotRestorePolicy != nil {
+	if spotRestorePolicy := ExpandVirtualMachineScaleSetSpotRestorePolicy(d.Get("spot_restore").([]interface{})); spotRestorePolicy != nil {
 		props.Properties.SpotRestorePolicy = spotRestorePolicy
 	}
 
@@ -652,11 +645,10 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		if d.HasChanges("source_image_id", "source_image_reference") {
 			sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
 			sourceImageId := d.Get("source_image_id").(string)
-			sourceImageReference := expandSourceImageReferenceVMSS(sourceImageReferenceRaw, sourceImageId)
 
 			// Must include all storage profile properties when updating disk image.  See: https://github.com/hashicorp/terraform-provider-azurerm/issues/8273
 			updateProps.VirtualMachineProfile.StorageProfile.DataDisks = existing.Model.Properties.VirtualMachineProfile.StorageProfile.DataDisks
-			updateProps.VirtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
+			updateProps.VirtualMachineProfile.StorageProfile.ImageReference = expandSourceImageReferenceVMSS(sourceImageReferenceRaw, sourceImageId)
 			updateProps.VirtualMachineProfile.StorageProfile.OsDisk = &virtualmachinescalesets.VirtualMachineScaleSetUpdateOSDisk{
 				Caching:                 existing.Model.Properties.VirtualMachineProfile.StorageProfile.OsDisk.Caching,
 				WriteAcceleratorEnabled: existing.Model.Properties.VirtualMachineProfile.StorageProfile.OsDisk.WriteAcceleratorEnabled,
@@ -937,7 +929,7 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 				}
 				d.Set("max_bid_price", maxBidPrice)
 
-				d.Set("eviction_policy", string(pointer.From(profile.EvictionPolicy)))
+				d.Set("eviction_policy", pointer.FromEnum(profile.EvictionPolicy))
 
 				if profile.ApplicationProfile != nil && profile.ApplicationProfile.GalleryApplications != nil {
 					d.Set("gallery_application", flattenVirtualMachineScaleSetGalleryApplication(profile.ApplicationProfile.GalleryApplications))
@@ -1007,8 +999,7 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 				d.Set("extension_operations_enabled", extensionOperationsEnabled)
 
 				if nwProfile := profile.NetworkProfile; nwProfile != nil {
-					flattenedNics := FlattenVirtualMachineScaleSetNetworkInterface(nwProfile.NetworkInterfaceConfigurations)
-					if err := d.Set("network_interface", flattenedNics); err != nil {
+					if err := d.Set("network_interface", FlattenVirtualMachineScaleSetNetworkInterface(nwProfile.NetworkInterfaceConfigurations)); err != nil {
 						return fmt.Errorf("setting `network_interface`: %+v", err)
 					}
 
@@ -1062,15 +1053,13 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 			}
 
 			if policy := props.UpgradePolicy; policy != nil {
-				d.Set("upgrade_mode", string(pointer.From(policy.Mode)))
+				d.Set("upgrade_mode", pointer.FromEnum(policy.Mode))
 
-				flattenedAutomatic := FlattenVirtualMachineScaleSetAutomaticOSUpgradePolicy(policy.AutomaticOSUpgradePolicy)
-				if err := d.Set("automatic_os_upgrade_policy", flattenedAutomatic); err != nil {
+				if err := d.Set("automatic_os_upgrade_policy", FlattenVirtualMachineScaleSetAutomaticOSUpgradePolicy(policy.AutomaticOSUpgradePolicy)); err != nil {
 					return fmt.Errorf("setting `automatic_os_upgrade_policy`: %+v", err)
 				}
 
-				flattenedRolling := FlattenVirtualMachineScaleSetRollingUpgradePolicy(policy.RollingUpgradePolicy)
-				if err := d.Set("rolling_upgrade_policy", flattenedRolling); err != nil {
+				if err := d.Set("rolling_upgrade_policy", FlattenVirtualMachineScaleSetRollingUpgradePolicy(policy.RollingUpgradePolicy)); err != nil {
 					return fmt.Errorf("setting `rolling_upgrade_policy`: %+v", err)
 				}
 			}
@@ -1265,7 +1254,7 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      "PT1H30M",
-			ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
+			ValidateFunc: validation.ISO8601DurationBetween("PT15M", "PT2H"),
 		},
 
 		"gallery_application": VirtualMachineScaleSetGalleryApplicationSchema(),

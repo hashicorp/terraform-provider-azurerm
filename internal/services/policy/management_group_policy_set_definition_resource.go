@@ -212,7 +212,7 @@ func (r ManagementGroupPolicySetDefinitionResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					state.Description = pointer.From(props.Description)
 					state.DisplayName = pointer.From(props.DisplayName)
-					state.PolicyType = string(pointer.From(props.PolicyType))
+					state.PolicyType = pointer.FromEnum(props.PolicyType)
 
 					if v, ok := pointer.From(props.Metadata).(map[string]interface{}); ok {
 						flattenedMetadata, err := pluginsdk.FlattenJsonToString(v)

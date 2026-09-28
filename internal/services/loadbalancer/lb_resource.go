@@ -20,8 +20,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/publicipprefixes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -149,8 +149,7 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeSet,
 							Computed: true,
 							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
+								Type: pluginsdk.TypeString,
 							},
 							Set: pluginsdk.HashString,
 						},
@@ -159,8 +158,7 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeSet,
 							Computed: true,
 							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
+								Type: pluginsdk.TypeString,
 							},
 							Set: pluginsdk.HashString,
 						},
@@ -169,8 +167,7 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeSet,
 							Computed: true,
 							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
+								Type: pluginsdk.TypeString,
 							},
 							Set: pluginsdk.HashString,
 						},
@@ -317,8 +314,8 @@ func resourceArmLoadBalancerRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("location", location.NormalizeNilable(model.Location))
 		d.Set("edge_zone", flattenEdgeZone(model.ExtendedLocation))
 		if sku := model.Sku; sku != nil {
-			d.Set("sku", string(pointer.From(sku.Name)))
-			d.Set("sku_tier", string(pointer.From(sku.Tier)))
+			d.Set("sku", pointer.FromEnum(sku.Name))
+			d.Set("sku_tier", pointer.FromEnum(sku.Tier))
 		}
 
 		if props := model.Properties; props != nil {
@@ -400,9 +397,7 @@ func resourceArmLoadBalancerDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
-	plbId := loadbalancers.ProviderLoadBalancerId{SubscriptionId: id.SubscriptionId, ResourceGroupName: id.ResourceGroupName, LoadBalancerName: id.LoadBalancerName}
-
-	if err = client.DeleteThenPoll(ctx, plbId); err != nil {
+	if err = client.DeleteThenPoll(ctx, loadbalancers.ProviderLoadBalancerId{SubscriptionId: id.SubscriptionId, ResourceGroupName: id.ResourceGroupName, LoadBalancerName: id.LoadBalancerName}); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
@@ -498,7 +493,7 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]loadbalancers.Front
 		privateIpAddress := ""
 
 		if props := config.Properties; props != nil {
-			privateIPAllocationMethod = string(pointer.From(props.PrivateIPAllocationMethod))
+			privateIPAllocationMethod = pointer.FromEnum(props.PrivateIPAllocationMethod)
 
 			if props.GatewayLoadBalancer != nil {
 				gatewayLoadBalancerId = pointer.From(props.GatewayLoadBalancer.Id)
@@ -508,7 +503,7 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]loadbalancers.Front
 				subnetId = pointer.From(subnet.Id)
 			}
 			privateIpAddress = pointer.From(props.PrivateIPAddress)
-			privateIpAddressVersion = string(pointer.From(props.PrivateIPAddressVersion))
+			privateIpAddressVersion = pointer.FromEnum(props.PrivateIPAddressVersion)
 
 			if pip := props.PublicIPAddress; pip != nil {
 				publicIpAddressId = pointer.From(pip.Id)

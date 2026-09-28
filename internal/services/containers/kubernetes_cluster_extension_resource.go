@@ -245,12 +245,10 @@ func (r KubernetesClusterExtensionResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			autoUpgradeMinorVersion := model.Version == ""
-
 			properties := &extensions.Extension{
 				Plan: expandPlanModel(model.Plan),
 				Properties: &extensions.ExtensionProperties{
-					AutoUpgradeMinorVersion:        &autoUpgradeMinorVersion,
+					AutoUpgradeMinorVersion:        pointer.To(model.Version == ""),
 					ConfigurationProtectedSettings: &model.ConfigurationProtectedSettings,
 					ConfigurationSettings:          &model.ConfigurationSettings,
 				},
@@ -441,7 +439,7 @@ func expandPlanModel(inputList []PlanModel) *extensions.Plan {
 func flattenPlanModel(input *extensions.Plan) []PlanModel {
 	var outputList []PlanModel
 	if input == nil {
-		return outputList
+		return []PlanModel{}
 	}
 	output := PlanModel{
 		Name:      input.Name,

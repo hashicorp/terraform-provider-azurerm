@@ -14,11 +14,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/expressroutecircuits"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/localnetworkgateways"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworkgatewayconnections"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworkgateways"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressroutecircuits"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/localnetworkgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworkgatewayconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworkgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -109,7 +109,7 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 				Optional: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					ValidateFunc: virtualnetworkgateways.ValidateVirtualNetworkGatewayNatRuleID,
+					ValidateFunc: networkgateways.ValidateVirtualNetworkGatewayNatRuleID,
 				},
 			},
 
@@ -118,7 +118,7 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 				Optional: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					ValidateFunc: virtualnetworkgateways.ValidateVirtualNetworkGatewayNatRuleID,
+					ValidateFunc: networkgateways.ValidateVirtualNetworkGatewayNatRuleID,
 				},
 			},
 
@@ -460,9 +460,9 @@ func resourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, meta
 			return fmt.Errorf("setting `custom_bgp_addresses`: %+v", err)
 		}
 
-		d.Set("connection_protocol", string(pointer.From(props.ConnectionProtocol)))
+		d.Set("connection_protocol", pointer.FromEnum(props.ConnectionProtocol))
 
-		d.Set("connection_mode", string(pointer.From(props.ConnectionMode)))
+		d.Set("connection_mode", pointer.FromEnum(props.ConnectionMode))
 
 		if props.ExpressRouteGatewayBypass != nil {
 			d.Set("express_route_gateway_bypass", props.ExpressRouteGatewayBypass)
@@ -473,15 +473,12 @@ func resourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, meta
 		}
 
 		if props.IPsecPolicies != nil {
-			ipsecPolicies := flattenVirtualNetworkGatewayConnectionIpsecPolicies(props.IPsecPolicies)
-
-			if err := d.Set("ipsec_policy", ipsecPolicies); err != nil {
+			if err := d.Set("ipsec_policy", flattenVirtualNetworkGatewayConnectionIpsecPolicies(props.IPsecPolicies)); err != nil {
 				return fmt.Errorf("setting `ipsec_policy`: %+v", err)
 			}
 		}
 
-		trafficSelectorPolicies := flattenVirtualNetworkGatewayConnectionTrafficSelectorPolicies(props.TrafficSelectorPolicies)
-		if err := d.Set("traffic_selector_policy", trafficSelectorPolicies); err != nil {
+		if err := d.Set("traffic_selector_policy", flattenVirtualNetworkGatewayConnectionTrafficSelectorPolicies(props.TrafficSelectorPolicies)); err != nil {
 			return fmt.Errorf("setting `traffic_selector_policy`: %+v", err)
 		}
 
@@ -672,7 +669,7 @@ func virtualNetworkGatewayConnectionStateRefreshFunc(ctx context.Context, client
 		}
 
 		if res.Model != nil && res.Model.Properties.ProvisioningState != nil {
-			return res, string(pointer.From(res.Model.Properties.ProvisioningState)), nil
+			return res, pointer.FromEnum(res.Model.Properties.ProvisioningState), nil
 		}
 
 		return nil, "", fmt.Errorf("polling for %s: %+v", id, err)
@@ -703,8 +700,7 @@ func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData, vir
 	}
 
 	if v, ok := d.GetOk("authorization_key"); ok {
-		authorizationKey := v.(string)
-		props.AuthorizationKey = &authorizationKey
+		props.AuthorizationKey = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("dpd_timeout_seconds"); ok {
@@ -712,9 +708,8 @@ func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData, vir
 	}
 
 	if v, ok := d.GetOk("express_route_circuit_id"); ok {
-		expressRouteCircuitId := v.(string)
 		props.Peer = &virtualnetworkgatewayconnections.SubResource{
-			Id: &expressRouteCircuitId,
+			Id: pointer.To(v.(string)),
 		}
 	}
 
@@ -880,10 +875,10 @@ func expandVirtualNetworkGatewayConnectionTrafficSelectorPolicies(schemaTrafficS
 		schemaTrafficSelectorPolicy := d.(map[string]interface{})
 		trafficSelectorPolicy := &virtualnetworkgatewayconnections.TrafficSelectorPolicy{}
 		if localAddressRanges, ok := schemaTrafficSelectorPolicy["local_address_cidrs"].([]interface{}); ok {
-			trafficSelectorPolicy.LocalAddressRanges = pointer.From(helpers.ExpandStringSlice(localAddressRanges))
+			trafficSelectorPolicy.LocalAddressRanges = pointer.From(pluginsdk.ExpandStringSlice(localAddressRanges))
 		}
 		if remoteAddressRanges, ok := schemaTrafficSelectorPolicy["remote_address_cidrs"].([]interface{}); ok {
-			trafficSelectorPolicy.RemoteAddressRanges = pointer.From(helpers.ExpandStringSlice(remoteAddressRanges))
+			trafficSelectorPolicy.RemoteAddressRanges = pointer.From(pluginsdk.ExpandStringSlice(remoteAddressRanges))
 		}
 
 		trafficSelectorPolicies = append(trafficSelectorPolicies, *trafficSelectorPolicy)

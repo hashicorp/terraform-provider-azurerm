@@ -201,7 +201,6 @@ func resourceFrontDoorCustomHTTPSConfigurationDelete(d *pluginsdk.ResourceData, 
 		input := customHttpsConfigurationUpdateInput{
 			customHttpsConfigurationCurrent: props.CustomHTTPSConfiguration,
 			customHttpsConfigurationNew:     make([]interface{}, 0),
-			customHttpsProvisioningEnabled:  false,
 			frontendEndpointId:              *id,
 		}
 
@@ -305,9 +304,8 @@ func makeCustomHTTPSConfiguration(customHttpsConfiguration map[string]interface{
 		}
 	} else {
 		customHTTPSConfigurationUpdate.CertificateSource = frontdoors.FrontDoorCertificateSourceFrontDoor
-		certificateType := frontdoors.FrontDoorCertificateTypeDedicated
 		customHTTPSConfigurationUpdate.FrontDoorCertificateSourceParameters = &frontdoors.FrontDoorCertificateSourceParameters{
-			CertificateType: &certificateType,
+			CertificateType: pointer.To(frontdoors.FrontDoorCertificateTypeDedicated),
 		}
 	}
 

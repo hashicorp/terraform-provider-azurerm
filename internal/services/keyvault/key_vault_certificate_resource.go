@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
@@ -549,7 +548,7 @@ func recoverDeletedCertificate(ctx context.Context, d *pluginsdk.ResourceData, m
 		stateConf := &pluginsdk.StateChangeConf{
 			Pending:                   []string{"pending"},
 			Target:                    []string{"available"},
-			Refresh:                   keyVaultChildItemRefreshFunc(*certificate),
+			Refresh:                   keyVaultChildItemRefreshFunc(ctx, *certificate),
 			Delay:                     30 * time.Second,
 			PollInterval:              10 * time.Second,
 			ContinuousTargetOccurence: 10,
@@ -683,7 +682,7 @@ func keyVaultCertificateCreationRefreshFunc(ctx context.Context, client *kv.Base
 			return operation, "Ready", nil
 		}
 
-		return nil, "", fmt.Errorf("certifcate creation faild in state '%s'", *operation.Status)
+		return nil, "", fmt.Errorf("certificate creation failed in state '%s'", *operation.Status)
 	}
 }
 
@@ -738,8 +737,7 @@ func resourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface{}
 
 	d.Set("name", id.Name)
 
-	certificatePolicy := flattenKeyVaultCertificatePolicy(cert.Policy, cert.Cer)
-	if err := d.Set("certificate_policy", certificatePolicy); err != nil {
+	if err := d.Set("certificate_policy", flattenKeyVaultCertificatePolicy(cert.Policy, cert.Cer)); err != nil {
 		return fmt.Errorf("setting Key Vault Certificate Policy: %+v", err)
 	}
 
@@ -934,7 +932,7 @@ func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*kv.Certificate
 		cert := v.(map[string]interface{})
 
 		ekus := cert["extended_key_usage"].([]interface{})
-		extendedKeyUsage := helpers.ExpandStringSlice(ekus)
+		extendedKeyUsage := pluginsdk.ExpandStringSlice(ekus)
 
 		keyUsage := make([]kv.KeyUsageType, 0)
 		keys := cert["key_usage"].(*pluginsdk.Set).List()
@@ -950,17 +948,17 @@ func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*kv.Certificate
 
 					emails := san["emails"].(*pluginsdk.Set).List()
 					if len(emails) > 0 {
-						subjectAlternativeNames.Emails = helpers.ExpandStringSlice(emails)
+						subjectAlternativeNames.Emails = pluginsdk.ExpandStringSlice(emails)
 					}
 
 					dnsNames := san["dns_names"].(*pluginsdk.Set).List()
 					if len(dnsNames) > 0 {
-						subjectAlternativeNames.DNSNames = helpers.ExpandStringSlice(dnsNames)
+						subjectAlternativeNames.DNSNames = pluginsdk.ExpandStringSlice(dnsNames)
 					}
 
 					upns := san["upns"].(*pluginsdk.Set).List()
 					if len(upns) > 0 {
-						subjectAlternativeNames.Upns = helpers.ExpandStringSlice(upns)
+						subjectAlternativeNames.Upns = pluginsdk.ExpandStringSlice(upns)
 					}
 				}
 			}

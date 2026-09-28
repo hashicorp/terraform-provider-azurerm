@@ -52,8 +52,7 @@ func ExpandCosmosDBThroughputSettingsUpdateParameters(d *pluginsdk.ResourceData)
 func SetResourceDataThroughputFromResponse(throughputResponse cosmosdb.ThroughputSettingsGetResults, d *pluginsdk.ResourceData) {
 	d.Set("throughput", GetThroughputFromResult(throughputResponse))
 
-	autoscaleSettings := FlattenCosmosDbAutoscaleSettings(throughputResponse)
-	d.Set("autoscale_settings", autoscaleSettings)
+	d.Set("autoscale_settings", FlattenCosmosDbAutoscaleSettings(throughputResponse))
 }
 
 func CheckForChangeFromAutoscaleAndManualThroughput(d *pluginsdk.ResourceData) error {

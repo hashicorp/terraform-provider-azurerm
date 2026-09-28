@@ -168,7 +168,7 @@ func (HyperVHostTestResource) keyVault() string {
 	return `
 data "azurerm_client_config" "current" {}
 
-resource "azurerm_key_vault" "hybird" {
+resource "azurerm_key_vault" "hybrid" {
   name                       = local.keyvault_name
   resource_group_name        = azurerm_resource_group.hybrid.name
   rbac_authorization_enabled = false
@@ -233,7 +233,7 @@ resource "azurerm_key_vault" "hybird" {
 
 resource "azurerm_key_vault_certificate" "winrm" {
   name         = local.cert_name
-  key_vault_id = azurerm_key_vault.hybird.id
+  key_vault_id = azurerm_key_vault.hybrid.id
 
   certificate_policy {
     issuer_parameters {
@@ -413,7 +413,7 @@ resource "azurerm_windows_virtual_machine" "host" {
   }
 
   secret {
-    key_vault_id = azurerm_key_vault.hybird.id
+    key_vault_id = azurerm_key_vault.hybrid.id
 
     certificate {
       store = "My"

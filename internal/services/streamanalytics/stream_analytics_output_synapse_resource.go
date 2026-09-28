@@ -173,7 +173,7 @@ func resourceStreamAnalyticsOutputSynapseRead(d *pluginsdk.ResourceData, meta in
 			return nil
 		}
 
-		return fmt.Errorf("retreving %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.OutputName)

@@ -137,10 +137,6 @@ func resourceApiManagementAPIOperationPolicyRead(d *pluginsdk.ResourceData, meta
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroupName
-	serviceName := id.ServiceName
-	apiName := getApiName(id.ApiId)
-	operationName := id.OperationId
 
 	resp, err := client.Get(ctx, *id, apioperationpolicy.GetOperationOptions{Format: pointer.To(apioperationpolicy.PolicyExportFormatXml)})
 	if err != nil {
@@ -153,10 +149,10 @@ func resourceApiManagementAPIOperationPolicyRead(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("making Read request for %s: %+v", *id, err)
 	}
 
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("api_management_name", serviceName)
-	d.Set("api_name", apiName)
-	d.Set("operation_id", operationName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("api_management_name", id.ServiceName)
+	d.Set("api_name", getApiName(id.ApiId))
+	d.Set("operation_id", id.OperationId)
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {

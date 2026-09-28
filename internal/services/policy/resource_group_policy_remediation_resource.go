@@ -22,12 +22,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func resourceArmResourceGroupPolicyRemediation() *pluginsdk.Resource {
+func resourceResourceGroupPolicyRemediation() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmResourceGroupPolicyRemediationCreateUpdate,
-		Read:   resourceArmResourceGroupPolicyRemediationRead,
-		Update: resourceArmResourceGroupPolicyRemediationCreateUpdate,
-		Delete: resourceArmResourceGroupPolicyRemediationDelete,
+		Create: resourceResourceGroupPolicyRemediationCreateUpdate,
+		Read:   resourceResourceGroupPolicyRemediationRead,
+		Update: resourceResourceGroupPolicyRemediationCreateUpdate,
+		Delete: resourceResourceGroupPolicyRemediationDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := remediations.ParseProviderRemediationID(id)
@@ -110,7 +110,7 @@ func resourceArmResourceGroupPolicyRemediation() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmResourceGroupPolicyRemediationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceResourceGroupPolicyRemediationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.RemediationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -150,10 +150,10 @@ func resourceArmResourceGroupPolicyRemediationCreateUpdate(d *pluginsdk.Resource
 		d.SetId(id.ID())
 	}
 
-	return resourceArmResourceGroupPolicyRemediationRead(d, meta)
+	return resourceResourceGroupPolicyRemediationRead(d, meta)
 }
 
-func resourceArmResourceGroupPolicyRemediationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceResourceGroupPolicyRemediationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.RemediationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -181,7 +181,7 @@ func resourceArmResourceGroupPolicyRemediationRead(d *pluginsdk.ResourceData, me
 	return setRemediationProperties(d, resp.Model.Properties)
 }
 
-func resourceArmResourceGroupPolicyRemediationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceResourceGroupPolicyRemediationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.RemediationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

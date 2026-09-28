@@ -81,7 +81,7 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 				// enclave_type cannot be removed once it has been set
 				// but can be changed between VBS and Default...
 				// this Diff will not work until 4.0 when we remove
-				// the computed property from the field scheam.
+				// the computed property from the field schema.
 				if old.(string) != "" && new.(string) == "" {
 					return true
 				}
@@ -283,7 +283,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 				return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.Id, err)
 			}
 
-			// See: https://docs.microsoft.com/en-us/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
+			// See: https://docs.microsoft.com/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
 			if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != "" && helper.CompareDatabaseSkuServiceTiers(skuName, partnerDatabase.Sku.Name) {
 				if err := client.UpdateThenPoll(ctx, *partnerDatabaseId, databases.DatabaseUpdate{
 					Sku: &databases.Sku{
@@ -316,7 +316,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 		if elasticPool.Model != nil {
 			if elasticPool.Model.Properties != nil && elasticPool.Model.Properties.PreferredEnclaveType != nil {
-				elasticEnclaveType := string(pointer.From(elasticPool.Model.Properties.PreferredEnclaveType))
+				elasticEnclaveType := pointer.FromEnum(elasticPool.Model.Properties.PreferredEnclaveType)
 				databaseEnclaveType := string(enclaveType)
 
 				if !strings.EqualFold(elasticEnclaveType, databaseEnclaveType) {
@@ -520,7 +520,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			}
 
 			if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.Status != nil {
-				return resp, string(pointer.From(resp.Model.Properties.Status)), nil
+				return resp, pointer.FromEnum(resp.Model.Properties.Status), nil
 			}
 
 			return resp, "", nil
@@ -886,7 +886,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 					return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.Id, err)
 				}
 
-				// See: https://docs.microsoft.com/en-us/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
+				// See: https://docs.microsoft.com/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
 				if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != "" && helper.CompareDatabaseSkuServiceTiers(skuName, partnerDatabase.Sku.Name) {
 					if err := client.UpdateThenPoll(ctx, *partnerDatabaseId, databases.DatabaseUpdate{
 						Sku: &databases.Sku{
@@ -985,7 +985,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					return resp, string(pointer.From(props.Status)), nil
+					return resp, pointer.FromEnum(props.Status), nil
 				}
 			}
 
@@ -1188,8 +1188,6 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 		d.Set("name", id.DatabaseName)
 
 		if props := model.Properties; props != nil {
-			minCapacity := pointer.From(props.MinCapacity)
-
 			requestedBackupStorageRedundancy := ""
 			if props.RequestedBackupStorageRedundancy != nil {
 				requestedBackupStorageRedundancy = string(*props.RequestedBackupStorageRedundancy)
@@ -1214,7 +1212,7 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 			}
 
 			if props.LicenseType != nil {
-				d.Set("license_type", string(pointer.From(props.LicenseType)))
+				d.Set("license_type", pointer.FromEnum(props.LicenseType))
 			} else {
 				// value not returned, try to set from state
 				d.Set("license_type", d.Get("license_type").(string))
@@ -1242,7 +1240,7 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 			// NOTE: Always set the PreferredEnclaveType to an empty string
 			// if not in the properties that were returned from Azure...
 			if v := props.PreferredEnclaveType; v != nil {
-				enclaveType = string(pointer.From(v))
+				enclaveType = pointer.FromEnum(v)
 			}
 
 			configurationName := ""
@@ -1255,7 +1253,7 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 			}
 
 			d.Set("elastic_pool_id", elasticPoolId)
-			d.Set("min_capacity", minCapacity)
+			d.Set("min_capacity", pointer.From(props.MinCapacity))
 			d.Set("sku_name", skuName)
 			d.Set("maintenance_configuration_name", configurationName)
 			d.Set("ledger_enabled", ledgerEnabled)

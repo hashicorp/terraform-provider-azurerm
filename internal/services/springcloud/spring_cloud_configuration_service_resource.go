@@ -331,7 +331,7 @@ func (s SpringCloudConfigurationServiceResource) Read() sdk.ResourceFunc {
 
 			if resp.Model != nil {
 				if props := resp.Model.Properties; props != nil {
-					state.Generation = string(pointer.From(props.Generation))
+					state.Generation = pointer.FromEnum(props.Generation)
 					if props.Settings != nil && props.Settings.GitProperty != nil {
 						state.Repository = flattenConfigurationServiceConfigurationServiceGitRepositoryArray(props.Settings.GitProperty.Repositories, model.Repository)
 						state.RefreshInterval = pointer.From(props.Settings.RefreshIntervalInSeconds)

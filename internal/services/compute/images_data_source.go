@@ -145,13 +145,11 @@ func dataSourceImagesRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	if len(virtualMachineImages) == 0 {
 		return fmt.Errorf("no images were found that match the specified tags")
 	}
-	flattenedImages := flattenImages(virtualMachineImages)
-	if err := d.Set("images", flattenedImages); err != nil {
+	if err := d.Set("images", flattenImages(virtualMachineImages)); err != nil {
 		return fmt.Errorf("setting `images`: %+v", err)
 	}
 
-	resourceId := resourceIdForImagesDataSource(resourceGroupId, *filterTags)
-	d.SetId(resourceId)
+	d.SetId(resourceIdForImagesDataSource(resourceGroupId, *filterTags))
 
 	d.Set("resource_group_name", resourceGroupId.ResourceGroupName)
 

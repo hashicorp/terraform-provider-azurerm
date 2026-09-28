@@ -165,8 +165,7 @@ func resourceAutomationJobScheduleCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if v, ok := d.GetOk("run_on"); ok {
-		value := v.(string)
-		parameters.Properties.RunOn = &value
+		parameters.Properties.RunOn = pointer.To(v.(string))
 	}
 
 	if _, err := client.Create(ctx, id, parameters); err != nil {

@@ -69,7 +69,6 @@ func (r NetAppVolumeBucketResource) Create() sdk.ResourceFunc {
 
 			id := buckets.NewBucketID(subscriptionId, volumeID.ResourceGroupName, volumeID.NetAppAccountName, volumeID.CapacityPoolName, volumeID.VolumeName, model.Name)
 
-			metadata.Logger.Infof("Import check for %s", id)
 			existing, err := client.Get(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
@@ -138,8 +137,8 @@ func (r NetAppVolumeBucketResource) flatten(metadata sdk.ResourceMetaData, id *b
 		props := bucket.Properties
 
 		model.Path = pointer.From(props.Path)
-		model.Permissions = string(pointer.From(props.Permissions))
-		model.Status = string(pointer.From(props.Status))
+		model.Permissions = pointer.FromEnum(props.Permissions)
+		model.Status = pointer.FromEnum(props.Status)
 
 		if props.FileSystemUser != nil {
 			model.FileSystemNfsUser = flattenNetAppBucketNfsUser(props.FileSystemUser.NfsUser)

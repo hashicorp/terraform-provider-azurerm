@@ -276,7 +276,6 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Update() sdk.ResourceF
 
 				props.AssociatedRulestack = &firewalls.RulestackDetails{
 					Location:    props.AssociatedRulestack.Location,
-					ResourceId:  nil,
 					RulestackId: pointer.To(ruleStackID.ID()),
 				}
 				locks.ByID(ruleStackID.ID())

@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networksecuritygroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -93,7 +93,7 @@ func dataSourceNetworkSecurityGroup() *pluginsdk.Resource {
 
 						"source_application_security_group_ids": {
 							Type:     pluginsdk.TypeSet,
-							Optional: true,
+							Computed: true,
 							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 							Set:      pluginsdk.HashString,
 						},
@@ -112,7 +112,7 @@ func dataSourceNetworkSecurityGroup() *pluginsdk.Resource {
 
 						"destination_application_security_group_ids": {
 							Type:     pluginsdk.TypeSet,
-							Optional: true,
+							Computed: true,
 							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 							Set:      pluginsdk.HashString,
 						},
@@ -167,8 +167,7 @@ func dataSourceNetworkSecurityGroupRead(d *pluginsdk.ResourceData, meta interfac
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 		if props := model.Properties; props != nil {
-			flattenedRules := flattenNetworkSecurityRules(props.SecurityRules)
-			if err := d.Set("security_rule", flattenedRules); err != nil {
+			if err := d.Set("security_rule", flattenNetworkSecurityRules(props.SecurityRules)); err != nil {
 				return fmt.Errorf("setting `security_rule`: %+v", err)
 			}
 		}

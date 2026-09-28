@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/automationaccount"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-01-01/actiongroupsapis"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
@@ -27,6 +26,8 @@ import (
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity
+
+const monitorActionGroupResourceName = "azurerm_monitor_action_group"
 
 func resourceMonitorActionGroup() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -505,7 +506,7 @@ func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			ArmRoleReceivers:           expandMonitorActionGroupRoleReceiver(armRoleReceiversRaw),
 			EventHubReceivers:          expandMonitorActionGroupEventHubReceiver(tenantId, subscriptionId, eventHubReceiversRaw),
 		},
-		Tags: helpers.ExpandPtrMapStringString(t),
+		Tags: pluginsdk.ExpandPtrMapStringString(t),
 	}
 
 	if _, err := client.ActionGroupsCreateOrUpdate(ctx, id, parameters); err != nil {
@@ -539,10 +540,15 @@ func resourceMonitorActionGroupRead(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	return resourceMonitorActionGroupFlatten(d, id, resp.Model)
+}
+
+func resourceMonitorActionGroupFlatten(d *pluginsdk.ResourceData, id *actiongroupsapis.ActionGroupId, model *actiongroupsapis.ActionGroupResource) error {
+	var err error
 	d.Set("name", id.ActionGroupName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
@@ -591,7 +597,7 @@ func resourceMonitorActionGroupRead(d *pluginsdk.ResourceData, meta interface{})
 				return fmt.Errorf("setting `event_hub_receiver`: %+v", err)
 			}
 		}
-		if err = d.Set("tags", helpers.FlattenPtrMapStringString(model.Tags)); err != nil {
+		if err = d.Set("tags", pluginsdk.FlattenPtrMapStringString(model.Tags)); err != nil {
 			return err
 		}
 	}
