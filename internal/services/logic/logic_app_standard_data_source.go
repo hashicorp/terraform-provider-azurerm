@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -259,7 +258,7 @@ func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{})
 
 			clientCertMode := ""
 			if props.ClientCertEnabled != nil && *props.ClientCertEnabled {
-				clientCertMode = string(pointer.From(props.ClientCertMode))
+				clientCertMode = pointer.FromEnum(props.ClientCertMode)
 			}
 			d.Set("client_certificate_mode", clientCertMode)
 
@@ -349,8 +348,7 @@ func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if model := configResp.Model; model != nil {
-		siteConfig := flattenLogicAppStandardDataSourceSiteConfig(model.Properties)
-		if err = d.Set("site_config", siteConfig); err != nil {
+		if err = d.Set("site_config", flattenLogicAppStandardDataSourceSiteConfig(model.Properties)); err != nil {
 			return err
 		}
 	}
@@ -403,14 +401,14 @@ func flattenLogicAppStandardDataSourceSiteConfig(input *webapps.SiteConfig) []in
 
 	result["ip_restriction"] = flattenLogicAppStandardIpRestriction(input.IPSecurityRestrictions)
 
-	result["scm_type"] = string(pointer.From(input.ScmType))
-	result["scm_min_tls_version"] = string(pointer.From(input.ScmMinTlsVersion))
+	result["scm_type"] = pointer.FromEnum(input.ScmType)
+	result["scm_min_tls_version"] = pointer.FromEnum(input.ScmMinTlsVersion)
 	result["scm_ip_restriction"] = flattenLogicAppStandardIpRestriction(input.ScmIPSecurityRestrictions)
 	result["scm_ip_restriction_default_action"] = pointer.FromEnum(input.ScmIPSecurityRestrictionsDefaultAction)
 	result["scm_use_main_ip_restriction"] = pointer.From(input.ScmIPSecurityRestrictionsUseMain)
 
-	result["min_tls_version"] = string(pointer.From(input.MinTlsVersion))
-	result["ftps_state"] = string(pointer.From(input.FtpsState))
+	result["min_tls_version"] = pointer.FromEnum(input.MinTlsVersion)
+	result["ftps_state"] = pointer.FromEnum(input.FtpsState)
 
 	result["cors"] = flattenLogicAppStandardCorsSettings(input.Cors)
 
@@ -424,7 +422,7 @@ func flattenLogicAppStandardDataSourceSiteConfig(input *webapps.SiteConfig) []in
 
 	result["vnet_route_all_enabled"] = pointer.From(input.VnetRouteAllEnabled)
 
-	result["ip_restriction_default_action"] = string(pointer.From(input.IPSecurityRestrictionsDefaultAction))
+	result["ip_restriction_default_action"] = pointer.FromEnum(input.IPSecurityRestrictionsDefaultAction)
 
 	results = append(results, result)
 	return results
@@ -493,7 +491,7 @@ func flattenHeaders(input map[string][]string) []interface{} {
 }
 
 func schemaLogicAppStandardSiteConfigDataSource() *pluginsdk.Schema {
-	schema := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
 		Elem: &pluginsdk.Resource{
@@ -606,24 +604,6 @@ func schemaLogicAppStandardSiteConfigDataSource() *pluginsdk.Schema {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		schema.Elem.(*pluginsdk.Resource).Schema["public_network_access_enabled"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Computed:   true,
-			Deprecated: "the `site_config.public_network_access_enabled` property has been superseded by the `public_network_access` property and will be removed in v5.0 of the AzureRM Provider.",
-		}
-		schema.Elem.(*pluginsdk.Resource).Schema["scm_min_tls_version"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		}
-		schema.Elem.(*pluginsdk.Resource).Schema["min_tls_version"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		}
-	}
-
-	return schema
 }
 
 func schemaLogicAppCorsSettingsDataSource() *pluginsdk.Schema {

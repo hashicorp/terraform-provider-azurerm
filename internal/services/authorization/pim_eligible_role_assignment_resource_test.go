@@ -150,7 +150,7 @@ func (r PimEligibleRoleAssignmentResource) Exists(ctx context.Context, client *c
 		Filter: pointer.To(fmt.Sprintf("(principalId eq '%s')", id.PrincipalId)),
 	})
 	if err != nil {
-		return nil, fmt.Errorf("listing role eligiblity schedules for %s: %+v", scopeId, err)
+		return nil, fmt.Errorf("listing role eligibility schedules for %s: %+v", scopeId, err)
 	}
 
 	for _, schedule := range schedulesResult.Items {

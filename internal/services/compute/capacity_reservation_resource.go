@@ -243,20 +243,10 @@ func expandCapacityReservationSku(input []interface{}) capacityreservations.Sku 
 }
 
 func flattenCapacityReservationSku(input capacityreservations.Sku) []interface{} {
-	var name string
-	if input.Name != nil {
-		name = *input.Name
-	}
-
-	var capacity int64
-	if input.Capacity != nil {
-		capacity = *input.Capacity
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"name":     name,
-			"capacity": capacity,
+			"name":     pointer.From(input.Name),
+			"capacity": pointer.From(input.Capacity),
 		},
 	}
 }

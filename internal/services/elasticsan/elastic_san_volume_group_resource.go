@@ -220,10 +220,10 @@ func (r ElasticSANVolumeGroupResource) Create() sdk.ResourceFunc {
 			payload := volumegroups.VolumeGroup{
 				Identity: expandedIdentity,
 				Properties: &volumegroups.VolumeGroupProperties{
-					Encryption:           pointer.To(volumegroups.EncryptionType(config.EncryptionType)),
+					Encryption:           pointer.ToEnum[volumegroups.EncryptionType](config.EncryptionType),
 					EncryptionProperties: encryption,
 					NetworkAcls:          ExpandVolumeGroupNetworkRules(config.NetworkRule),
-					ProtocolType:         pointer.To(volumegroups.StorageTargetType(config.ProtocolType)),
+					ProtocolType:         pointer.ToEnum[volumegroups.StorageTargetType](config.ProtocolType),
 				},
 			}
 
@@ -270,11 +270,11 @@ func (r ElasticSANVolumeGroupResource) Read() sdk.ResourceFunc {
 				schema.Identity = *flattenedIdentity
 
 				if model.Properties != nil {
-					schema.EncryptionType = string(pointer.From(model.Properties.Encryption))
+					schema.EncryptionType = pointer.FromEnum(model.Properties.Encryption)
 					schema.NetworkRule = FlattenVolumeGroupNetworkRules(model.Properties.NetworkAcls)
 
 					if model.Properties.ProtocolType != nil {
-						schema.ProtocolType = string(pointer.From(model.Properties.ProtocolType))
+						schema.ProtocolType = pointer.FromEnum(model.Properties.ProtocolType)
 					}
 
 					schema.Encryption, err = FlattenVolumeGroupEncryption(model.Properties.EncryptionProperties)
@@ -330,7 +330,7 @@ func (r ElasticSANVolumeGroupResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("encryption_type") {
-				payload.Properties.Encryption = pointer.To(volumegroups.EncryptionType(config.EncryptionType))
+				payload.Properties.Encryption = pointer.ToEnum[volumegroups.EncryptionType](config.EncryptionType)
 			}
 
 			if metadata.ResourceData.HasChange("encryption") {
@@ -352,7 +352,7 @@ func (r ElasticSANVolumeGroupResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("protocol_type") {
-				payload.Properties.ProtocolType = pointer.To(volumegroups.StorageTargetType(config.ProtocolType))
+				payload.Properties.ProtocolType = pointer.ToEnum[volumegroups.StorageTargetType](config.ProtocolType)
 			}
 
 			if metadata.ResourceData.HasChange("network_rule") {
@@ -447,7 +447,7 @@ func ExpandVolumeGroupNetworkRules(input []ElasticSANVolumeGroupResourceNetworkR
 	for _, rule := range input {
 		networkRules = append(networkRules, volumegroups.VirtualNetworkRule{
 			Id:     rule.SubnetId,
-			Action: pointer.To(volumegroups.Action(rule.Action)),
+			Action: pointer.ToEnum[volumegroups.Action](rule.Action),
 		})
 	}
 
@@ -465,7 +465,7 @@ func FlattenVolumeGroupNetworkRules(input *volumegroups.NetworkRuleSet) []Elasti
 	for _, rule := range *input.VirtualNetworkRules {
 		networkRules = append(networkRules, ElasticSANVolumeGroupResourceNetworkRuleModel{
 			SubnetId: rule.Id,
-			Action:   string(pointer.From(rule.Action)),
+			Action:   pointer.FromEnum(rule.Action),
 		})
 	}
 

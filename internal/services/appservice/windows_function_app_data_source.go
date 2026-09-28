@@ -315,7 +315,7 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 					}
 					functionApp.ServicePlanId = servicePlanId.ID()
 					functionApp.Enabled = pointer.From(props.Enabled)
-					functionApp.ClientCertMode = string(pointer.From(props.ClientCertMode))
+					functionApp.ClientCertMode = pointer.FromEnum(props.ClientCertMode)
 					functionApp.ClientCertExclusionPaths = pointer.From(props.ClientCertExclusionPaths)
 					functionApp.DailyMemoryTimeQuota = pointer.From(props.DailyMemoryTimeQuota)
 					functionApp.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
@@ -490,8 +490,7 @@ func (m *WindowsFunctionAppDataSourceModel) unpackWindowsFunctionAppSettings(inp
 
 		case "AzureWebJobsStorage":
 			if strings.HasPrefix(v, "@Microsoft.KeyVault") {
-				trimmed := strings.TrimPrefix(strings.TrimSuffix(v, ")"), "@Microsoft.KeyVault(")
-				m.StorageKeyVaultSecretID = trimmed
+				m.StorageKeyVaultSecretID = strings.TrimPrefix(strings.TrimSuffix(v, ")"), "@Microsoft.KeyVault(")
 			} else {
 				m.StorageAccountName, m.StorageAccountKey = helpers.ParseWebJobsStorageString(v)
 			}

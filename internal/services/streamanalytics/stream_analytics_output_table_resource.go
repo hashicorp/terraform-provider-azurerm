@@ -216,35 +216,15 @@ func (r OutputTableResource) Read() sdk.ResourceFunc {
 							StorageAccountKey:  metadata.ResourceData.Get("storage_account_key").(string),
 						}
 
-						accountName := ""
-						if v := output.Properties.AccountName; v != nil {
-							accountName = *v
-						}
-						state.StorageAccount = accountName
+						state.StorageAccount = pointer.From(output.Properties.AccountName)
 
-						table := ""
-						if v := output.Properties.Table; v != nil {
-							table = *v
-						}
-						state.Table = table
+						state.Table = pointer.From(output.Properties.Table)
 
-						partitonKey := ""
-						if v := output.Properties.PartitionKey; v != nil {
-							partitonKey = *v
-						}
-						state.PartitionKey = partitonKey
+						state.PartitionKey = pointer.From(output.Properties.PartitionKey)
 
-						rowKey := ""
-						if v := output.Properties.RowKey; v != nil {
-							rowKey = *v
-						}
-						state.RowKey = rowKey
+						state.RowKey = pointer.From(output.Properties.RowKey)
 
-						var batchSize int64
-						if v := output.Properties.BatchSize; v != nil {
-							batchSize = *v
-						}
-						state.BatchSize = batchSize
+						state.BatchSize = pointer.From(output.Properties.BatchSize)
 
 						var columnsToRemove []string
 						if columns := output.Properties.ColumnsToRemove; columns != nil && len(*columns) > 0 {

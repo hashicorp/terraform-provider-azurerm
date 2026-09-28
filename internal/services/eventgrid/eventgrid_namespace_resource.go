@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2023-12-15-preview/namespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/topics"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -89,15 +88,13 @@ func (r EventGridNamespaceResource) Arguments() map[string]*pluginsdk.Schema {
 					"ip_mask": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validate.CIDR,
+						ValidateFunc: validation.IsCIDRIPv4,
 					},
 					"action": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  string(namespaces.IPActionTypeAllow),
-						ValidateFunc: validation.StringInSlice([]string{
-							string(namespaces.IPActionTypeAllow),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      string(namespaces.IPActionTypeAllow),
+						ValidateFunc: validation.StringInSlice(namespaces.PossibleValuesForIPActionType(), false),
 					},
 				},
 			},
@@ -305,11 +302,11 @@ func expandCreateForEventGridNamespace(model EventGridNamespaceResourceModel) (n
 		Name:     pointer.To(model.Name),
 		Properties: &namespaces.NamespaceProperties{
 			InboundIPRules:      expandInboundIPRules(model.InboundIpRules),
-			PublicNetworkAccess: pointer.To(namespaces.PublicNetworkAccess(model.PublicNetworkAccess)),
+			PublicNetworkAccess: pointer.ToEnum[namespaces.PublicNetworkAccess](model.PublicNetworkAccess),
 		},
 		Sku: &namespaces.NamespaceSku{
 			Capacity: pointer.To(model.Capacity),
-			Name:     pointer.To(namespaces.SkuName(model.Sku)),
+			Name:     pointer.ToEnum[namespaces.SkuName](model.Sku),
 		},
 		Tags: pointer.To(model.Tags),
 	}
@@ -364,7 +361,7 @@ func (r EventGridNamespaceResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("public_network_access") {
-				payload.Properties.PublicNetworkAccess = pointer.To(namespaces.PublicNetworkAccess(model.PublicNetworkAccess))
+				payload.Properties.PublicNetworkAccess = pointer.ToEnum[namespaces.PublicNetworkAccess](model.PublicNetworkAccess)
 			}
 
 			if metadata.ResourceData.HasChange("topic_spaces_configuration") {
@@ -410,7 +407,7 @@ func (r EventGridNamespaceResource) Read() sdk.ResourceFunc {
 				state.Location = location.Normalize(model.Location)
 
 				if model.Sku != nil {
-					state.Sku = string(pointer.From(model.Sku.Name))
+					state.Sku = pointer.FromEnum(model.Sku.Name)
 					state.Capacity = pointer.From(model.Sku.Capacity)
 				}
 				flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
@@ -427,7 +424,7 @@ func (r EventGridNamespaceResource) Read() sdk.ResourceFunc {
 					}
 					state.TopicSpacesConfiguration = topicSpacesConfig
 					state.InboundIpRules = flattenInboundIPRules(props.InboundIPRules)
-					state.PublicNetworkAccess = string(pointer.From(props.PublicNetworkAccess))
+					state.PublicNetworkAccess = pointer.FromEnum(props.PublicNetworkAccess)
 				}
 			}
 
@@ -468,7 +465,7 @@ func expandInboundIPRules(input []InboundIpRuleModel) *[]namespaces.InboundIPRul
 	ipRules := make([]namespaces.InboundIPRule, 0)
 	for _, v := range input {
 		ipRules = append(ipRules, namespaces.InboundIPRule{
-			Action: pointer.To(namespaces.IPActionType(v.Action)),
+			Action: pointer.ToEnum[namespaces.IPActionType](v.Action),
 			IPMask: pointer.To(v.IpMask),
 		})
 	}
@@ -485,7 +482,7 @@ func flattenInboundIPRules(ipRules *[]namespaces.InboundIPRule) []InboundIpRuleM
 	for _, v := range *ipRules {
 		output = append(output, InboundIpRuleModel{
 			IpMask: pointer.From(v.IPMask),
-			Action: string(pointer.From(v.Action)),
+			Action: pointer.FromEnum(v.Action),
 		})
 	}
 	return output
@@ -577,7 +574,7 @@ func expandStaticRoutingEnrichments(input []RoutingEnrichmentModel) *[]namespace
 func flattenTopicSpacesConfiguration(topicSpacesConfig *namespaces.TopicSpacesConfiguration) ([]TopicSpacesConfigurationModel, error) {
 	var output TopicSpacesConfigurationModel
 	if topicSpacesConfig == nil {
-		return nil, nil
+		return []TopicSpacesConfigurationModel{}, nil
 	}
 
 	output.MaximumSessionExpiryInHours = pointer.From(topicSpacesConfig.MaximumSessionExpiryInHours)

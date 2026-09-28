@@ -8,6 +8,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 func InitTimeout(i interface{}, k string) (warnings []string, errors []error) {
@@ -24,19 +26,12 @@ func InitTimeout(i interface{}, k string) (warnings []string, errors []error) {
 	return
 }
 
-func DaprComponentName(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return
-	}
-
-	if matched := regexp.MustCompile(`^([a-z])[a-z0-9-]{0,58}[a-z]?$`).Match([]byte(v)); !matched || strings.HasSuffix(v, "-") || strings.Contains(v, "--") {
-		errors = append(errors, fmt.Errorf("%q must consist of lower case alphanumeric characters or '-', start with an alphabetic character, and end with an alphanumeric character and cannot have '--'. The length must not be more than 60 characters", k))
-		return
-	}
-
-	return
+func DaprComponentName(i interface{}, k string) ([]string, []error) {
+	return validation.All(
+		validation.StringMatch(regexp.MustCompile(`^([a-z])[a-z0-9-]{0,58}[a-z]?$`), "must consist of lower case alphanumeric characters or '-', start with an alphabetic character, and end with an alphanumeric character. The length must not be more than 60 characters"),
+		validation.StringDoesNotMatch(regexp.MustCompile(`-$`), "must not end with '-'"),
+		validation.StringDoesNotMatch(regexp.MustCompile(`--`), "must not contain '--'"),
+	)(i, k)
 }
 
 func SecretName(i interface{}, k string) (warnings []string, errors []error) {
@@ -52,49 +47,26 @@ func SecretName(i interface{}, k string) (warnings []string, errors []error) {
 	return
 }
 
-func CertificateName(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return
-	}
-
-	if matched := regexp.MustCompile(`^([a-z0-9])[a-z0-9-.]*[a-z0-9]$`).Match([]byte(v)); !matched || strings.HasSuffix(v, "-") || strings.Contains(v, "--") {
-		errors = append(errors, fmt.Errorf("%q must consist of lower case alphanumeric characters or '-', start with an alphabetic character, and end with an alphanumeric character", k))
-		return
-	}
-
-	return
+func CertificateName(i interface{}, k string) ([]string, []error) {
+	return validation.All(
+		validation.StringMatch(regexp.MustCompile(`^([a-z0-9])[a-z0-9-.]*[a-z0-9]$`), "must consist of lower case alphanumeric characters or '-', start with an alphabetic character, and end with an alphanumeric character"),
+		validation.StringDoesNotMatch(regexp.MustCompile(`--`), "must not contain '--'"),
+	)(i, k)
 }
 
-func ContainerAppName(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return
-	}
-
-	if matched := regexp.MustCompile(`^([a-z]\z)|(^([a-z0-9])([a-z0-9-.]{0,30})([^A-Z\W]))$`).Match([]byte(v)); !matched || strings.Contains(v, "--") {
-		errors = append(errors, fmt.Errorf("%q must consist of lower case alphanumeric characters or '-', start with an alphabetic character, and end with an alphanumeric character and cannot have '--'. The length must not be more than 32 characters", k))
-		return
-	}
-
-	return
+func ContainerAppName(i interface{}, k string) ([]string, []error) {
+	return validation.All(
+		validation.StringMatch(regexp.MustCompile(`^([a-z]\z)|(^([a-z0-9])([a-z0-9-.]{0,30})([^A-Z\W]))$`), "must consist of lower case alphanumeric characters or '-', start with an alphabetic character, and end with an alphanumeric character. The length must not be more than 32 characters"),
+		validation.StringDoesNotMatch(regexp.MustCompile(`--`), "must not contain '--'"),
+	)(i, k)
 }
 
-func ManagedEnvironmentStorageName(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return
-	}
-
-	if matched := regexp.MustCompile(`^([a-z])[a-z0-9-]{0,30}[a-z]?$`).Match([]byte(v)); !matched || strings.HasSuffix(v, "-") || strings.Contains(v, "--") {
-		errors = append(errors, fmt.Errorf("%q must consist of lower case alphanumeric characters or '-', start with an alphabetic character, and end with an alphanumeric character and cannot have '--'. The length must not be more than 32 characters", k))
-		return
-	}
-
-	return
+func ManagedEnvironmentStorageName(i interface{}, k string) ([]string, []error) {
+	return validation.All(
+		validation.StringMatch(regexp.MustCompile(`^([a-z])[a-z0-9-]{0,30}[a-z]?$`), "must consist of lower case alphanumeric characters or '-', start with an alphabetic character, and end with an alphanumeric character. The length must not be more than 32 characters"),
+		validation.StringDoesNotMatch(regexp.MustCompile(`-$`), "must not end with '-'"),
+		validation.StringDoesNotMatch(regexp.MustCompile(`--`), "must not contain '--'"),
+	)(i, k)
 }
 
 func ManagedEnvironmentName(i interface{}, k string) (warnings []string, errors []error) {
@@ -125,32 +97,12 @@ func ContainerAppContainerName(i interface{}, k string) (warnings []string, erro
 	return
 }
 
-func ContainerAppJobName(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return
-	}
-
-	if len(v) == 1 {
-		if matched := regexp.MustCompile(`^[a-z0-9]$`).Match([]byte(v)); !matched {
-			errors = append(errors, fmt.Errorf("%q must consist of lower case alphanumeric characters, '-', or '.', start and end with an alphanumeric character", k))
-		}
-	} else {
-		if matched := regexp.MustCompile(`^([a-z0-9])[a-z0-9-]*[a-z0-9]$`).Match([]byte(v)); !matched || strings.HasSuffix(v, "-") {
-			errors = append(errors, fmt.Errorf("%q must consist of lower case alphanumeric characters, or '-', start and end with an alphanumeric character", k))
-		}
-	}
-
-	if len(v) > 32 {
-		errors = append(errors, fmt.Errorf("%q must not exceed 32 characters", k))
-	}
-
-	if strings.Contains(v, "--") {
-		errors = append(errors, fmt.Errorf("%q must not contain --", k))
-	}
-
-	return
+func ContainerAppJobName(i interface{}, k string) ([]string, []error) {
+	return validation.All(
+		validation.StringMatch(regexp.MustCompile(`^[a-z0-9]([a-z0-9-]*[a-z0-9])?$`), "must consist of lower case alphanumeric characters, or '-', start and end with an alphanumeric character"),
+		validation.StringLenBetween(0, 32),
+		validation.StringDoesNotMatch(regexp.MustCompile(`--`), "must not contain --"),
+	)(i, k)
 }
 
 func LowerCaseAlphaNumericWithHyphensAndPeriods(i interface{}, k string) (warnings []string, errors []error) {
@@ -165,7 +117,7 @@ func LowerCaseAlphaNumericWithHyphensAndPeriods(i interface{}, k string) (warnin
 			errors = append(errors, fmt.Errorf("%q must consist of lower case alphanumeric characters, '-', or '.', start and end with an alphanumeric character", k))
 		}
 	} else {
-		if matched := regexp.MustCompile(`^([a-z0-9])[a-z0-9-.]*[a-z0-9]$`).Match([]byte(v)); !matched || strings.HasSuffix(v, "-") {
+		if matched := regexp.MustCompile(`^([a-z0-9])[a-z0-9-.]*[a-z0-9]$`).Match([]byte(v)); !matched {
 			errors = append(errors, fmt.Errorf("%q must consist of lower case alphanumeric characters, '-', or '.', start and end with an alphanumeric character", k))
 		}
 	}

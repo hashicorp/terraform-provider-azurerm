@@ -240,12 +240,10 @@ func expandAzureRmPrivateDnsMxRecords(d *pluginsdk.ResourceData) *[]privatedns.M
 			continue
 		}
 		record := v.(map[string]interface{})
-		mxRecord := privatedns.MxRecord{
+		records[i] = privatedns.MxRecord{
 			Preference: pointer.To(int64(record["preference"].(int))),
 			Exchange:   pointer.To(record["exchange"].(string)),
 		}
-
-		records[i] = mxRecord
 	}
 
 	return &records

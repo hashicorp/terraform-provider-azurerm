@@ -55,7 +55,7 @@ func resourceApiManagementGatewayHostNameConfiguration() *pluginsdk.Resource {
 			"certificate_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: certificate.ValidateCertificateID,
+				ValidateFunc: validation.AsGeneratedID(certificate.ParseCertificateIDInsensitively),
 			},
 
 			"host_name": {

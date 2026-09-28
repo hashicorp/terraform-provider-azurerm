@@ -120,7 +120,7 @@ func resourceLogicAppTriggerRecurrence() *pluginsdk.Resource {
 			"time_zone": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validate.TriggerRecurrenceTimeZone(),
 			},
 		},
@@ -225,8 +225,7 @@ func resourceLogicAppTriggerRecurrenceDelete(d *pluginsdk.ResourceData, meta int
 
 	workflowId := workflows.NewWorkflowID(id.SubscriptionId, id.ResourceGroupName, id.WorkflowName)
 
-	err = resourceLogicAppTriggerRemove(d, meta, workflowId, id.TriggerName)
-	if err != nil {
+	if err = resourceLogicAppTriggerRemove(d, meta, workflowId, id.TriggerName); err != nil {
 		return fmt.Errorf("removing Trigger %s: %+v", id, err)
 	}
 

@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func dataSourceArmPolicyDefinition() *pluginsdk.Resource {
+func dataSourcePolicyDefinition() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Read: policyDefinitionReadFunc(false),
 
@@ -32,7 +32,7 @@ func policyDefinitionDataSourceSchema() map[string]*pluginsdk.Schema {
 		"display_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringIsNotEmpty,
 			ExactlyOneOf: []string{"name", "display_name"},
 		},
@@ -40,7 +40,7 @@ func policyDefinitionDataSourceSchema() map[string]*pluginsdk.Schema {
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringIsNotEmpty,
 			ExactlyOneOf: []string{"name", "display_name"},
 		},
@@ -141,8 +141,7 @@ func policyDefinitionReadFunc(builtInOnly bool) func(d *pluginsdk.ResourceData, 
 		d.Set("policy_type", policyDefinition.PolicyType)
 		d.Set("mode", policyDefinition.Mode)
 
-		policyRule := policyDefinition.PolicyRule.(map[string]interface{})
-		if policyRuleStr := flattenJSON(policyRule); policyRuleStr != "" {
+		if policyRuleStr := flattenJSON(policyDefinition.PolicyRule.(map[string]interface{})); policyRuleStr != "" {
 			d.Set("policy_rule", policyRuleStr)
 			roleIDs, _ := getPolicyRoleDefinitionIDs(policyRuleStr)
 			d.Set("role_definition_ids", roleIDs)

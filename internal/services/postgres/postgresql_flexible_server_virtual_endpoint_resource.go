@@ -140,7 +140,7 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Create() sdk.ResourceFu
 			payload := virtualendpoints.VirtualEndpoint{
 				Name: &virtualEndpoint.Name,
 				Properties: &virtualendpoints.VirtualEndpointResourceProperties{
-					EndpointType: pointer.To(virtualendpoints.VirtualEndpointType(virtualEndpoint.Type)),
+					EndpointType: pointer.ToEnum[virtualendpoints.VirtualEndpointType](virtualEndpoint.Type),
 					Members:      &[]string{replicaServerId.FlexibleServerName},
 				},
 			}
@@ -199,7 +199,7 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Read() sdk.ResourceFunc
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					state.Type = string(pointer.From(props.EndpointType))
+					state.Type = pointer.FromEnum(props.EndpointType)
 
 					if props.Members == nil || len(*props.Members) == 0 {
 						// if members list is nil or empty, this is an endpoint that was previously deleted
@@ -339,7 +339,7 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Update() sdk.ResourceFu
 			endpointId := virtualendpoints.NewVirtualEndpointID(id.First.SubscriptionId, id.First.ResourceGroupName, id.First.FlexibleServerName, virtualEndpoint.Name)
 			if err := client.UpdateThenPoll(ctx, endpointId, virtualendpoints.VirtualEndpointResourceForPatch{
 				Properties: &virtualendpoints.VirtualEndpointResourceProperties{
-					EndpointType: pointer.To(virtualendpoints.VirtualEndpointType(virtualEndpoint.Type)),
+					EndpointType: pointer.ToEnum[virtualendpoints.VirtualEndpointType](virtualEndpoint.Type),
 					Members:      pointer.To([]string{replicaServerId.FlexibleServerName}),
 				},
 			}); err != nil {
@@ -348,8 +348,7 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Update() sdk.ResourceFu
 
 			// the id has changed and needs to be updated
 			replicaEndpointId := virtualendpoints.NewVirtualEndpointID(replicaServerId.SubscriptionId, replicaServerId.ResourceGroupName, replicaServerId.FlexibleServerName, virtualEndpoint.Name)
-			endPointId := commonids.NewCompositeResourceID(&virtualEndpointId, &replicaEndpointId)
-			metadata.SetID(endPointId)
+			metadata.SetID(commonids.NewCompositeResourceID(&virtualEndpointId, &replicaEndpointId))
 
 			return nil
 		},

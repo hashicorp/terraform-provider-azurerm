@@ -10,10 +10,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/blobauditing"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/blobauditing"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -21,7 +20,7 @@ import (
 )
 
 func resourceMsSqlDatabaseExtendedAuditingPolicy() *pluginsdk.Resource {
-	r := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceMsSqlDatabaseExtendedAuditingPolicyCreateUpdate,
 		Read:   resourceMsSqlDatabaseExtendedAuditingPolicyRead,
 		Update: resourceMsSqlDatabaseExtendedAuditingPolicyCreateUpdate,
@@ -86,27 +85,6 @@ func resourceMsSqlDatabaseExtendedAuditingPolicy() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		r.Schema["storage_endpoint"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Computed:      true,
-			ValidateFunc:  validation.IsURLWithHTTPS,
-			ConflictsWith: []string{"blob_storage_endpoint"},
-			Deprecated:    "`storage_endpoint` is deprecated in favour of `blob_storage_endpoint` and will be removed in version 5.0 of the AzureRM provider",
-		}
-
-		r.Schema["blob_storage_endpoint"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Computed:      true,
-			ValidateFunc:  validation.IsURLWithHTTPS,
-			ConflictsWith: []string{"storage_endpoint"},
-		}
-	}
-
-	return r
 }
 
 func resourceMsSqlDatabaseExtendedAuditingPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -142,12 +120,6 @@ func resourceMsSqlDatabaseExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resour
 			RetentionDays:               pointer.To(int64(d.Get("retention_in_days").(int))),
 			IsAzureMonitorTargetEnabled: pointer.To(d.Get("log_monitoring_enabled").(bool)),
 		},
-	}
-
-	if !features.FivePointOh() {
-		if !pluginsdk.IsExplicitlyNullInConfig(d, "storage_endpoint") {
-			params.Properties.StorageEndpoint = pointer.To(d.Get("storage_endpoint").(string))
-		}
 	}
 
 	if d.Get("enabled").(bool) {
@@ -211,9 +183,6 @@ func resourceMsSqlDatabaseExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("blob_storage_endpoint", props.StorageEndpoint)
-			if !features.FivePointOh() {
-				d.Set("storage_endpoint", props.StorageEndpoint)
-			}
 			d.Set("storage_account_access_key_is_secondary", props.IsStorageSecondaryKeyInUse)
 			d.Set("retention_in_days", props.RetentionDays)
 			d.Set("log_monitoring_enabled", props.IsAzureMonitorTargetEnabled)

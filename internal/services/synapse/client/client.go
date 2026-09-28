@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-sdk/data-plane/synapse/2021-06-01-preview/managedprivateendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/bigdatapools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	accesscontrol "github.com/jackofallops/kermit/sdk/synapse/2020-08-01-preview/synapse"
@@ -18,6 +19,7 @@ import (
 
 type Client struct {
 	// Resource Manager
+	SparkPoolClient  *bigdatapools.BigDataPoolsClient
 	WorkspacesClient *workspaces.WorkspacesClient
 
 	// Data Plane
@@ -29,7 +31,6 @@ type Client struct {
 	IntegrationRuntimesClient                         *synapse.IntegrationRuntimesClient
 	KeysClient                                        *synapse.KeysClient
 	PrivateLinkHubsClient                             *synapse.PrivateLinkHubsClient
-	SparkPoolClient                                   *synapse.BigDataPoolsClient
 	SqlPoolClient                                     *synapse.SQLPoolsClient
 	SqlPoolExtendedBlobAuditingPoliciesClient         *synapse.ExtendedSQLPoolBlobAuditingPoliciesClient
 	SqlPoolGeoBackupPoliciesClient                    *synapse.SQLPoolGeoBackupPoliciesClient
@@ -53,6 +54,12 @@ type Client struct {
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
 	// Resource Manager
+	sparkPoolClient, err := bigdatapools.NewBigDataPoolsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Spark Pool Client: %+v", err)
+	}
+	o.Configure(sparkPoolClient.Client, o.Authorizers.ResourceManager)
+
 	workspacesClient, err := workspaces.NewWorkspacesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Workspaces Client: %+v", err)
@@ -81,10 +88,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	privateLinkHubsClient := synapse.NewPrivateLinkHubsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&privateLinkHubsClient.Client, o.ResourceManagerAuthorizer)
-
-	// the service team hopes to rename it to sparkPool, so rename the sdk here
-	sparkPoolClient := synapse.NewBigDataPoolsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&sparkPoolClient.Client, o.ResourceManagerAuthorizer)
 
 	sqlPoolClient := synapse.NewSQLPoolsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&sqlPoolClient.Client, o.ResourceManagerAuthorizer)
@@ -139,6 +142,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	return &Client{
 		// Resource Manager
+		SparkPoolClient:  sparkPoolClient,
 		WorkspacesClient: workspacesClient,
 
 		// Data Plane
@@ -150,7 +154,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		IntegrationRuntimesClient:                         &integrationRuntimesClient,
 		KeysClient:                                        &keysClient,
 		PrivateLinkHubsClient:                             &privateLinkHubsClient,
-		SparkPoolClient:                                   &sparkPoolClient,
 		SqlPoolClient:                                     &sqlPoolClient,
 		SqlPoolExtendedBlobAuditingPoliciesClient:         &sqlPoolExtendedBlobAuditingPoliciesClient,
 		SqlPoolGeoBackupPoliciesClient:                    &sqlPoolGeoBackupPoliciesClient,

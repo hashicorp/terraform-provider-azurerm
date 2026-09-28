@@ -586,14 +586,11 @@ func (r KubernetesFluxConfigurationResource) Arguments() map[string]*pluginsdk.S
 		},
 
 		"scope": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(fluxconfiguration.ScopeTypeNamespace),
-				string(fluxconfiguration.ScopeTypeCluster),
-			}, false),
-			Default: string(fluxconfiguration.ScopeTypeNamespace),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(fluxconfiguration.PossibleValuesForScopeType(), false),
+			Default:      string(fluxconfiguration.ScopeTypeNamespace),
 		},
 
 		"continuous_reconciliation_enabled": {
@@ -644,7 +641,7 @@ func (r KubernetesFluxConfigurationResource) Create() sdk.ResourceFunc {
 			properties := &fluxconfiguration.FluxConfiguration{
 				Properties: &fluxconfiguration.FluxConfigurationProperties{
 					Kustomizations: expandKustomizationDefinitionModel(model.Kustomizations),
-					Scope:          pointer.To(fluxconfiguration.ScopeType(model.Scope)),
+					Scope:          pointer.ToEnum[fluxconfiguration.ScopeType](model.Scope),
 					Suspend:        pointer.To(!model.ContinuousReconciliationEnabled),
 				},
 			}
@@ -824,7 +821,7 @@ func (r KubernetesFluxConfigurationResource) Read() sdk.ResourceFunc {
 					state.GitRepository = gitRepositoryValue
 					state.Kustomizations = flattenKustomizationDefinitionModel(properties.Kustomizations)
 					state.Namespace = pointer.From(properties.Namespace)
-					state.Scope = string(pointer.From(properties.Scope))
+					state.Scope = pointer.FromEnum(properties.Scope)
 					state.ContinuousReconciliationEnabled = !pointer.From(properties.Suspend)
 				}
 			}
@@ -1091,7 +1088,7 @@ func expandGitRepositoryDefinitionModel(inputList []GitRepositoryDefinitionModel
 	}
 
 	if input.Provider != "" {
-		output.Provider = pointer.To(fluxconfiguration.ProviderType(input.Provider))
+		output.Provider = pointer.ToEnum[fluxconfiguration.ProviderType](input.Provider)
 	}
 
 	configSettings := make(map[string]string)
@@ -1283,7 +1280,7 @@ func flattenGitRepositoryDefinitionModel(input *fluxconfiguration.GitRepositoryD
 		HttpsCACert:           pointer.From(input.HTTPSCACert),
 		HttpsUser:             pointer.From(input.HTTPSUser),
 		LocalAuthRef:          pointer.From(input.LocalAuthRef),
-		Provider:              string(pointer.From(input.Provider)),
+		Provider:              pointer.FromEnum(input.Provider),
 		SshKnownHosts:         pointer.From(input.SshKnownHosts),
 		SyncIntervalInSeconds: pointer.From(input.SyncIntervalInSeconds),
 		TimeoutInSeconds:      pointer.From(input.TimeoutInSeconds),

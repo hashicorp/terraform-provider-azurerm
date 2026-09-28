@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement
 
 import (
@@ -5,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspace"
@@ -16,6 +20,7 @@ import (
 type ApiManagementWorkspaceDataSourceModel struct {
 	Name            string `tfschema:"name"`
 	ApiManagementId string `tfschema:"api_management_id"`
+	Description     string `tfschema:"description"`
 	DisplayName     string `tfschema:"display_name"`
 }
 
@@ -43,6 +48,10 @@ func (d ApiManagementWorkspaceDataSource) Attributes() map[string]*schema.Schema
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 			Description: "The display name of the API Management Workspace.",
+		},
+		"description": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 	}
 }
@@ -89,6 +98,7 @@ func (d ApiManagementWorkspaceDataSource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
+					state.Description = pointer.From(props.Description)
 					state.DisplayName = props.DisplayName
 				}
 			}

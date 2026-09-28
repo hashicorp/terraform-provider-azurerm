@@ -41,8 +41,8 @@ func tryBlockHeadDetect(line string) bool {
 }
 
 func tryFixBlockHead(line string) string {
-	if strings.HasPrefix(line, "*") {
-		line = strings.TrimSpace(strings.TrimPrefix(line, "*"))
+	if after, ok := strings.CutPrefix(line, "*"); ok {
+		line = strings.TrimSpace(after)
 	}
 
 	if strings.HasPrefix(line, "`") {
@@ -177,8 +177,7 @@ func FixFileNormalize(file string) {
 			}
 		} else if strings.HasPrefix(line, "*") {
 			// need a dash(-) after property name
-			line2 := tryFixProp(line)
-			line = line2
+			line = tryFixProp(line)
 			for k, v := range orderFixMap {
 				if strings.Contains(line, k) && !strings.Contains(line, v) {
 					line = strings.Replace(line, k, v, 1)

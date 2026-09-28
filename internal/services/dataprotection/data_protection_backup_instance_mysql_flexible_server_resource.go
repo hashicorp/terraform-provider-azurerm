@@ -300,8 +300,7 @@ func (r DataProtectionBackupInstanceMySQLFlexibleServerResource) Delete() sdk.Re
 				return err
 			}
 
-			err = client.BackupInstancesDeleteThenPoll(ctx, *id, backupinstanceresources.DefaultBackupInstancesDeleteOperationOptions())
-			if err != nil {
+			if err = client.BackupInstancesDeleteThenPoll(ctx, *id, backupinstanceresources.DefaultBackupInstancesDeleteOperationOptions()); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -325,6 +324,6 @@ func dataProtectionBackupInstanceMySQLFlexibleServerStateRefreshFunc(ctx context
 			return nil, "", fmt.Errorf("polling for %s: `properties` was nil", id)
 		}
 
-		return resp, string(pointer.From(resp.Model.Properties.CurrentProtectionState)), nil
+		return resp, pointer.FromEnum(resp.Model.Properties.CurrentProtectionState), nil
 	}
 }

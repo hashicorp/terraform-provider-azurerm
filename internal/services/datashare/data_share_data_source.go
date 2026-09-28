@@ -110,7 +110,7 @@ func dataSourceDataShareRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("kind", string(pointer.From(props.ShareKind)))
+			d.Set("kind", pointer.FromEnum(props.ShareKind))
 			d.Set("description", props.Description)
 			d.Set("terms", props.Terms)
 		}
@@ -139,13 +139,8 @@ func flattenDataShareDataSourceSnapshotSchedule(input []synchronizationsetting.S
 
 	for _, setting := range input {
 		props := setting.Properties
-		name := ""
-		if props.UserName != nil {
-			name = *props.UserName
-		}
-
 		output = append(output, map[string]interface{}{
-			"name":       name,
+			"name":       pointer.From(props.UserName),
 			"recurrence": string(props.RecurrenceInterval),
 			"start_time": props.SynchronizationTime,
 		})

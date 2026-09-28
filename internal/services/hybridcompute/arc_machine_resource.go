@@ -105,7 +105,7 @@ func (r ArcMachineResource) Create() sdk.ResourceFunc {
 
 			parameters := machines.Machine{
 				Location: location.Normalize(model.Location),
-				Kind:     pointer.To(machines.ArcKindEnum(model.Kind)),
+				Kind:     pointer.ToEnum[machines.ArcKindEnum](model.Kind),
 				Tags:     pointer.To(model.Tags),
 				Identity: expandedIdentity,
 			}
@@ -145,7 +145,7 @@ func (r ArcMachineResource) Read() sdk.ResourceFunc {
 			}
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
-				state.Kind = string(pointer.From(model.Kind))
+				state.Kind = pointer.FromEnum(model.Kind)
 				state.Identity = identity.FlattenSystemAssignedToModel(model.Identity)
 				state.Tags = pointer.From(model.Tags)
 			}
