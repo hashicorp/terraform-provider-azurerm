@@ -119,7 +119,7 @@ func (r PrivateEndpointApplicationSecurityGroupAssociationResource) Exists(ctx c
 	}
 
 	if response.WasNotFound(existingPrivateEndpoint.HttpResponse) {
-		return &exists, fmt.Errorf("PrivateEndpoint %q does not exsits", endpointId)
+		return &exists, fmt.Errorf("PrivateEndpoint %q does not exist", endpointId)
 	}
 
 	input := existingPrivateEndpoint
@@ -221,7 +221,7 @@ resource "azurerm_private_link_service" "test" {
 `, data.RandomInteger, data.RandomInteger)
 }
 
-func (r PrivateEndpointApplicationSecurityGroupAssociationResource) template(data acceptance.TestData, seviceCfg string) string {
+func (r PrivateEndpointApplicationSecurityGroupAssociationResource) template(data acceptance.TestData, serviceCfg string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -279,7 +279,7 @@ resource "azurerm_lb" "test" {
 }
 
 %s
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, seviceCfg)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, serviceCfg)
 }
 
 func (r PrivateEndpointApplicationSecurityGroupAssociationResource) requiresImport(data acceptance.TestData) string {
@@ -315,7 +315,7 @@ func (r PrivateEndpointApplicationSecurityGroupAssociationResource) destroy(ctx 
 	}
 
 	if response.WasNotFound(existingPrivateEndpoint.HttpResponse) {
-		return fmt.Errorf("PrivateEndpoint %q does not exsits", endpointId)
+		return fmt.Errorf("PrivateEndpoint %q does not exist", endpointId)
 	}
 
 	if existingPrivateEndpoint.Model == nil || existingPrivateEndpoint.Model.Properties == nil || existingPrivateEndpoint.Model.Properties.ApplicationSecurityGroups == nil {

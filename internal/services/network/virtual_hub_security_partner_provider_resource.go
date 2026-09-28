@@ -143,7 +143,7 @@ func resourceVirtualHubSecurityPartnerProviderRead(d *pluginsdk.ResourceData, me
 		d.Set("location", location.NormalizeNilable(model.Location))
 
 		if props := model.Properties; props != nil {
-			d.Set("security_provider_name", string(pointer.From(props.SecurityProviderName)))
+			d.Set("security_provider_name", pointer.FromEnum(props.SecurityProviderName))
 
 			if props.VirtualHub != nil && props.VirtualHub.Id != nil {
 				d.Set("virtual_hub_id", props.VirtualHub.Id)

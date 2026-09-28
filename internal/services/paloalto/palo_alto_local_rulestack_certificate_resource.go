@@ -248,7 +248,7 @@ func (r LocalRuleStackCertificate) Update() sdk.ResourceFunc {
 
 			existing, err := client.CertificateObjectLocalRulestackGet(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("retreiving %s: %+v", *id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			cert := *existing.Model

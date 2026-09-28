@@ -281,7 +281,7 @@ func (r ContainerAppResource) Read() sdk.ResourceFunc {
 					state.Template = helpers.FlattenContainerAppTemplate(props.Template)
 					if config := props.Configuration; config != nil {
 						if config.ActiveRevisionsMode != nil {
-							state.RevisionMode = string(pointer.From(config.ActiveRevisionsMode))
+							state.RevisionMode = pointer.FromEnum(config.ActiveRevisionsMode)
 						}
 						state.Ingress = helpers.FlattenContainerAppIngress(config.Ingress, id.ContainerAppName)
 						state.Registries = helpers.FlattenContainerAppRegistries(config.Registries)
@@ -352,7 +352,7 @@ func (r ContainerAppResource) Update() sdk.ResourceFunc {
 			model := existing.Model
 
 			if model.Properties == nil {
-				return fmt.Errorf("retreiving properties for %s for update: %+v", *id, err)
+				return fmt.Errorf("retrieving properties for %s for update: %+v", *id, err)
 			}
 
 			if model.Properties.Configuration == nil {

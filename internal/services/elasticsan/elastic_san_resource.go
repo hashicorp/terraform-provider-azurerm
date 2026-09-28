@@ -359,7 +359,7 @@ func FlattenSku(input elasticsans.Sku) []ElasticSANResourceSkuModel {
 	return []ElasticSANResourceSkuModel{
 		{
 			Name: string(input.Name),
-			Tier: string(pointer.From(input.Tier)),
+			Tier: pointer.FromEnum(input.Tier),
 		},
 	}
 }

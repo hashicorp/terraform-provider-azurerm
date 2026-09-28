@@ -96,6 +96,8 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Is the Linux Function App Slot enabled. Defaults to `true`.
 
+* `end_to_end_tls_encryption_enabled` - (Optional) Whether to enable end-to-end TLS encryption. Defaults to `false`.
+
 * `ftp_publish_basic_authentication_enabled` - (Optional) Are the default FTP Basic Authentication publishing credentials enabled. Defaults to `true`.
 
 * `functions_extension_version` - (Optional) The runtime version associated with the Function App Slot. Defaults to `~4`.

@@ -1,3 +1,59 @@
+## v5.7.0 (September 24, 2026)
+
+FEATURES:
+
+* **New List Resource**: `azurerm_private_dns_resolver_forwarding_rule` ([#33313](https://github.com/hashicorp/terraform-provider-azurerm/issues/33313))
+* **New List Resource**: `azurerm_windows_virtual_machine` ([#33332](https://github.com/hashicorp/terraform-provider-azurerm/issues/33332))
+
+ENHANCEMENTS:
+
+* dependencies: `go-azure-sdk` - update to `v0.20260917.1142820` ([#33495](https://github.com/hashicorp/terraform-provider-azurerm/issues/33495))
+* dependencies: `network` - update API version to `2025-07-01` ([#33441](https://github.com/hashicorp/terraform-provider-azurerm/issues/33441))
+* Data Source: `azurerm_linux_web_app` - export the `virtual_network_image_pull_enabled` property ([#33316](https://github.com/hashicorp/terraform-provider-azurerm/issues/33316))
+* Data Source: `azurerm_network_interface` - export the `auxiliary_mode`, `auxiliary_sku`, `edge_zone`, and `internal_domain_name_suffix` properties ([#33204](https://github.com/hashicorp/terraform-provider-azurerm/issues/33204))
+* Data Source: `azurerm_public_ip` - export the `domain_name_label_scope`, `edge_zone`, `public_ip_prefix_id`, and `sku_tier` properties ([#33193](https://github.com/hashicorp/terraform-provider-azurerm/issues/33193))
+* Data Source: `azurerm_service_plan` - export the `premium_plan_auto_scale_enabled` property ([#33300](https://github.com/hashicorp/terraform-provider-azurerm/issues/33300))
+* Data Source: `azurerm_storage_blob` - export the `cache_control` and `source_uri` properties ([#33318](https://github.com/hashicorp/terraform-provider-azurerm/issues/33318))
+* Data Source: `azurerm_traffic_manager_profile` - export the `maximum_return` property ([#33346](https://github.com/hashicorp/terraform-provider-azurerm/issues/33346))
+* Data Source: `azurerm_web_pubsub` - export the `live_trace` and `identity` properties ([#33373](https://github.com/hashicorp/terraform-provider-azurerm/issues/33373))
+* `azurerm_kubernetes_cluster_node_pool` - add `Windows2025` as a valid value for the `os_sku` property ([#33463](https://github.com/hashicorp/terraform-provider-azurerm/issues/33463))
+* `azurerm_kubernetes_cluster` - add `Windows2025` as a valid value for the `os_sku` property ([#33463](https://github.com/hashicorp/terraform-provider-azurerm/issues/33463))
+
+BUG FIXES:
+
+* Data Source: `azurerm_kubernetes_cluster` - fix a panic caused by a nil pointer dereference while flattening `agent_pool_profile` ([#33488](https://github.com/hashicorp/terraform-provider-azurerm/issues/33488))
+* `azurerm_postgresql_flexible_server` - fix `cluster` block read for replica `create_mode` ([#33082](https://github.com/hashicorp/terraform-provider-azurerm/issues/33082))
+
+## 5.6.0 (September 17, 2026)
+
+FEATURES:
+
+* **New List Resource**: `azurerm_batch_account` ([#33252](https://github.com/hashicorp/terraform-provider-azurerm/issues/33252))
+* **New List Resource**: `azurerm_cdn_frontdoor_origin_group` ([#33334](https://github.com/hashicorp/terraform-provider-azurerm/issues/33334))
+* **New Resource**: `azurerm_storage_discovery_workspace` ([#31479](https://github.com/hashicorp/terraform-provider-azurerm/issues/31479))
+
+ENHANCEMENTS:
+
+* dependencies: `containers` - update API version to `2026-05-01` ([#32688](https://github.com/hashicorp/terraform-provider-azurerm/issues/32688))
+* dependencies: `go-azure-sdk` - update to `v0.20260910.1141000` ([#33413](https://github.com/hashicorp/terraform-provider-azurerm/issues/33413))
+* dependencies: `qumulo` - update API version to `2026-04-16` ([#33421](https://github.com/hashicorp/terraform-provider-azurerm/issues/33421))
+* dependencies: `servicebus` - update to API version `2026-01-01` ([#33450](https://github.com/hashicorp/terraform-provider-azurerm/issues/33450))
+* `azurerm_iothub_device_update_instance` - add support for the `connection_string_wo` and `connection_string_wo_version` properties ([#33448](https://github.com/hashicorp/terraform-provider-azurerm/issues/33448))
+* `azurerm_linux_function_app` - add support for the `end_to_end_tls_encryption_enabled` property ([#31135](https://github.com/hashicorp/terraform-provider-azurerm/issues/31135))
+* `azurerm_linux_function_app_slot` - add support for the `end_to_end_tls_encryption_enabled` property ([#31135](https://github.com/hashicorp/terraform-provider-azurerm/issues/31135))
+* `azurerm_linux_web_app` - add support for the `end_to_end_tls_encryption_enabled` property ([#31135](https://github.com/hashicorp/terraform-provider-azurerm/issues/31135))
+* `azurerm_linux_web_app_slot` - add support for the `end_to_end_tls_encryption_enabled` property ([#31135](https://github.com/hashicorp/terraform-provider-azurerm/issues/31135))
+* `azurerm_mongo_cluster` - Support new property `network_bypass_mode` ([#33168](https://github.com/hashicorp/terraform-provider-azurerm/issues/33168))
+* `azurerm_servicebus_namespace` - add support for the `1.3` value to the `minimum_tls_version` property ([#33457](https://github.com/hashicorp/terraform-provider-azurerm/issues/33457))
+* `azurerm_windows_function_app` - add support for the `end_to_end_tls_encryption_enabled` property ([#31135](https://github.com/hashicorp/terraform-provider-azurerm/issues/31135))
+* `azurerm_windows_function_app_slot` - add support for the `end_to_end_tls_encryption_enabled` property ([#31135](https://github.com/hashicorp/terraform-provider-azurerm/issues/31135))
+* `azurerm_windows_web_app` - add support for the `end_to_end_tls_encryption_enabled` property ([#31135](https://github.com/hashicorp/terraform-provider-azurerm/issues/31135))
+* `azurerm_windows_web_app_slot` - add support for the `end_to_end_tls_encryption_enabled` property ([#31135](https://github.com/hashicorp/terraform-provider-azurerm/issues/31135))
+
+BUG FIXES:
+
+* `azurerm_site_recovery_replicated_vm` - select `managed_disk` properties compared case insensitive ([#33424](https://github.com/hashicorp/terraform-provider-azurerm/issues/33424))
+
 ## 5.5.0 (September 10, 2026)
 
 FEATURES:

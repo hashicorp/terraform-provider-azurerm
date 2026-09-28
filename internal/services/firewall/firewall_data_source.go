@@ -196,10 +196,10 @@ func firewallDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				return fmt.Errorf("setting `management_ip_configuration`: %+v", err)
 			}
 
-			d.Set("threat_intel_mode", string(pointer.From(props.ThreatIntelMode)))
+			d.Set("threat_intel_mode", pointer.FromEnum(props.ThreatIntelMode))
 
-			dnsProxyEnabeld, dnsServers := flattenFirewallAdditionalProperty(props.AdditionalProperties)
-			if err := d.Set("dns_proxy_enabled", dnsProxyEnabeld); err != nil {
+			dnsProxyEnabled, dnsServers := flattenFirewallAdditionalProperty(props.AdditionalProperties)
+			if err := d.Set("dns_proxy_enabled", dnsProxyEnabled); err != nil {
 				return fmt.Errorf("setting `dns_proxy_enabled`: %+v", err)
 			}
 			if err := d.Set("dns_servers", dnsServers); err != nil {
@@ -211,8 +211,8 @@ func firewallDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 
 			if sku := props.Sku; sku != nil {
-				d.Set("sku_name", string(pointer.From(sku.Name)))
-				d.Set("sku_tier", string(pointer.From(sku.Tier)))
+				d.Set("sku_name", pointer.FromEnum(sku.Name))
+				d.Set("sku_tier", pointer.FromEnum(sku.Tier))
 			}
 
 			if err := d.Set("virtual_hub", flattenFirewallVirtualHubSetting(props)); err != nil {

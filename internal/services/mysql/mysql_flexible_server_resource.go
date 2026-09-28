@@ -533,14 +533,14 @@ func resourceMysqlFlexibleServerFlatten(d *pluginsdk.ResourceData, id *servers.F
 		if props := server.Properties; props != nil {
 			d.Set("administrator_login", props.AdministratorLogin)
 			d.Set("zone", props.AvailabilityZone)
-			d.Set("version", string(pointer.From(props.Version)))
+			d.Set("version", pointer.FromEnum(props.Version))
 			d.Set("fqdn", props.FullyQualifiedDomainName)
 			d.Set("source_server_id", props.SourceServerResourceId)
 
 			if network := props.Network; network != nil {
 				d.Set("delegated_subnet_id", network.DelegatedSubnetResourceId)
 				d.Set("private_dns_zone_id", network.PrivateDnsZoneResourceId)
-				d.Set("public_network_access", string(pointer.From(network.PublicNetworkAccess)))
+				d.Set("public_network_access", pointer.FromEnum(network.PublicNetworkAccess))
 			}
 
 			cmk, err := flattenFlexibleServerDataEncryption(props.DataEncryption)
@@ -575,7 +575,7 @@ func resourceMysqlFlexibleServerFlatten(d *pluginsdk.ResourceData, id *servers.F
 			if err := d.Set("high_availability", flattenFlexibleServerHighAvailability(props.HighAvailability)); err != nil {
 				return fmt.Errorf("setting `high_availability`: %+v", err)
 			}
-			d.Set("replication_role", string(pointer.From(props.ReplicationRole)))
+			d.Set("replication_role", pointer.FromEnum(props.ReplicationRole))
 			d.Set("replica_capacity", props.ReplicaCapacity)
 		}
 		sku, err := flattenFlexibleServerSku(server.Sku)

@@ -268,7 +268,7 @@ func resourceApiManagementDiagnosticRead(d *pluginsdk.ResourceData, meta interfa
 
 			format := ""
 			if props.OperationNameFormat != nil {
-				format = string(pointer.From(props.OperationNameFormat))
+				format = pointer.FromEnum(props.OperationNameFormat)
 			}
 			d.Set("operation_name_format", format)
 		}

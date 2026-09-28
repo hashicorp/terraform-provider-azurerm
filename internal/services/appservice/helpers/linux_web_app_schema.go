@@ -1088,27 +1088,27 @@ func (s *SiteConfigLinux) Flatten(appSiteConfig *webapps.SiteConfig) {
 		s.DefaultDocuments = pointer.From(appSiteConfig.DefaultDocuments)
 		s.Http2Enabled = pointer.From(appSiteConfig.HTTP20Enabled)
 		s.IpRestriction = FlattenIpRestrictions(appSiteConfig.IPSecurityRestrictions)
-		s.ManagedPipelineMode = string(pointer.From(appSiteConfig.ManagedPipelineMode))
-		s.ScmType = string(pointer.From(appSiteConfig.ScmType))
-		s.FtpsState = string(pointer.From(appSiteConfig.FtpsState))
+		s.ManagedPipelineMode = pointer.FromEnum(appSiteConfig.ManagedPipelineMode)
+		s.ScmType = pointer.FromEnum(appSiteConfig.ScmType)
+		s.FtpsState = pointer.FromEnum(appSiteConfig.FtpsState)
 		s.HealthCheckPath = pointer.From(appSiteConfig.HealthCheckPath)
-		s.LoadBalancing = string(pointer.From(appSiteConfig.LoadBalancing))
+		s.LoadBalancing = pointer.FromEnum(appSiteConfig.LoadBalancing)
 		s.LocalMysql = pointer.From(appSiteConfig.LocalMySqlEnabled)
-		s.MinTlsVersion = string(pointer.From(appSiteConfig.MinTlsVersion))
+		s.MinTlsVersion = pointer.FromEnum(appSiteConfig.MinTlsVersion)
 		s.NumberOfWorkers = pointer.From(appSiteConfig.NumberOfWorkers)
 		s.RemoteDebugging = pointer.From(appSiteConfig.RemoteDebuggingEnabled)
 		s.RemoteDebuggingVersion = strings.ToUpper(pointer.From(appSiteConfig.RemoteDebuggingVersion))
 		s.ScmIpRestriction = FlattenIpRestrictions(appSiteConfig.ScmIPSecurityRestrictions)
-		s.ScmMinTlsVersion = string(pointer.From(appSiteConfig.ScmMinTlsVersion))
-		s.MinTlsCipherSuite = string(pointer.From(appSiteConfig.MinTlsCipherSuite))
+		s.ScmMinTlsVersion = pointer.FromEnum(appSiteConfig.ScmMinTlsVersion)
+		s.MinTlsCipherSuite = pointer.FromEnum(appSiteConfig.MinTlsCipherSuite)
 		s.ScmUseMainIpRestriction = pointer.From(appSiteConfig.ScmIPSecurityRestrictionsUseMain)
 		s.Use32BitWorker = pointer.From(appSiteConfig.Use32BitWorkerProcess)
 		s.UseManagedIdentityACR = pointer.From(appSiteConfig.AcrUseManagedIdentityCreds)
 		s.WebSockets = pointer.From(appSiteConfig.WebSocketsEnabled)
 		s.VnetRouteAllEnabled = pointer.From(appSiteConfig.VnetRouteAllEnabled)
 		s.Cors = FlattenCorsSettings(appSiteConfig.Cors)
-		s.IpRestrictionDefaultAction = string(pointer.From(appSiteConfig.IPSecurityRestrictionsDefaultAction))
-		s.ScmIpRestrictionDefaultAction = string(pointer.From(appSiteConfig.ScmIPSecurityRestrictionsDefaultAction))
+		s.IpRestrictionDefaultAction = pointer.FromEnum(appSiteConfig.IPSecurityRestrictionsDefaultAction)
+		s.ScmIpRestrictionDefaultAction = pointer.FromEnum(appSiteConfig.ScmIPSecurityRestrictionsDefaultAction)
 
 		if appSiteConfig.ApiManagementConfig != nil {
 			s.ApiManagementConfigId = pointer.From(appSiteConfig.ApiManagementConfig.Id)
@@ -1351,7 +1351,7 @@ func flattenAutoHealSettingsLinux(autoHealRules *webapps.AutoHealRules) []AutoHe
 		actions := *autoHealRules.Actions
 
 		result.Actions = []AutoHealActionLinux{{
-			ActionType:         string(pointer.From(actions.ActionType)),
+			ActionType:         pointer.FromEnum(actions.ActionType),
 			MinimumProcessTime: pointer.From(actions.MinProcessExecutionTime),
 		}}
 	}

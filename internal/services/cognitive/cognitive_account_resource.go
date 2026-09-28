@@ -23,9 +23,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/subnets"
 	search "github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/services"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -227,8 +225,8 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 								ValidateFunc: validation.Any(
-									commonValidate.IPv4Address,
-									commonValidate.CIDR,
+									validation.IsIPv4Address,
+									validation.IsCIDRIPv4,
 								),
 							},
 							Set: set.HashIPv4AddressOrCIDR,
@@ -488,7 +486,7 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 			ApiProperties:                 apiProps,
 			NetworkAcls:                   networkAcls,
 			CustomSubDomainName:           pointer.To(d.Get("custom_subdomain_name").(string)),
-			AllowedFqdnList:               helpers.ExpandStringSlice(d.Get("fqdns").([]interface{})),
+			AllowedFqdnList:               pluginsdk.ExpandStringSlice(d.Get("fqdns").([]interface{})),
 			PublicNetworkAccess:           &publicNetworkAccess,
 			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
 			RestrictOutboundNetworkAccess: pointer.To(d.Get("outbound_network_access_restricted").(bool)),
@@ -562,7 +560,7 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 			ApiProperties:                 apiProps,
 			NetworkAcls:                   networkAcls,
 			CustomSubDomainName:           pointer.To(d.Get("custom_subdomain_name").(string)),
-			AllowedFqdnList:               helpers.ExpandStringSlice(d.Get("fqdns").([]interface{})),
+			AllowedFqdnList:               pluginsdk.ExpandStringSlice(d.Get("fqdns").([]interface{})),
 			PublicNetworkAccess:           &publicNetworkAccess,
 			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
 			RestrictOutboundNetworkAccess: pointer.To(d.Get("outbound_network_access_restricted").(bool)),

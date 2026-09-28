@@ -565,7 +565,7 @@ resource "azurerm_private_endpoint" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (PrivateEndpointResource) template(data acceptance.TestData, seviceCfg string) string {
+func (PrivateEndpointResource) template(data acceptance.TestData, serviceCfg string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -623,7 +623,7 @@ resource "azurerm_lb" "test" {
 }
 
 %s
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, seviceCfg)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, serviceCfg)
 }
 
 func (PrivateEndpointResource) serviceAutoApprove(data acceptance.TestData) string {

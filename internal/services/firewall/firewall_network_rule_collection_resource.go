@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/azurefirewalls"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -315,7 +314,7 @@ func resourceFirewallNetworkRuleCollectionRead(d *pluginsdk.ResourceData, meta i
 
 	if props := rule.Properties; props != nil {
 		if action := props.Action; action != nil {
-			d.Set("action", string(pointer.From(action.Type)))
+			d.Set("action", pointer.FromEnum(action.Type))
 		}
 
 		if priority := props.Priority; priority != nil {
@@ -481,22 +480,22 @@ func flattenFirewallNetworkRuleCollectionRules(rules *[]azurefirewalls.AzureFire
 			description = *rule.Description
 		}
 		if rule.SourceAddresses != nil {
-			sourceAddresses = helpers.FlattenStringSlice(rule.SourceAddresses)
+			sourceAddresses = pluginsdk.FlattenSlice(rule.SourceAddresses)
 		}
 		if rule.SourceIPGroups != nil {
-			sourceIPGroups = helpers.FlattenStringSlice(rule.SourceIPGroups)
+			sourceIPGroups = pluginsdk.FlattenSlice(rule.SourceIPGroups)
 		}
 		if rule.DestinationAddresses != nil {
-			destAddresses = helpers.FlattenStringSlice(rule.DestinationAddresses)
+			destAddresses = pluginsdk.FlattenSlice(rule.DestinationAddresses)
 		}
 		if rule.DestinationIPGroups != nil {
-			destIPGroups = helpers.FlattenStringSlice(rule.DestinationIPGroups)
+			destIPGroups = pluginsdk.FlattenSlice(rule.DestinationIPGroups)
 		}
 		if rule.DestinationPorts != nil {
-			destPorts = helpers.FlattenStringSlice(rule.DestinationPorts)
+			destPorts = pluginsdk.FlattenSlice(rule.DestinationPorts)
 		}
 		if rule.DestinationFqdns != nil {
-			destFqdns = helpers.FlattenStringSlice(rule.DestinationFqdns)
+			destFqdns = pluginsdk.FlattenSlice(rule.DestinationFqdns)
 		}
 		protocols := make([]string, 0)
 		if rule.Protocols != nil {
@@ -513,7 +512,7 @@ func flattenFirewallNetworkRuleCollectionRules(rules *[]azurefirewalls.AzureFire
 			"destination_ip_groups": destIPGroups,
 			"destination_ports":     destPorts,
 			"destination_fqdns":     destFqdns,
-			"protocols":             helpers.FlattenStringSlice(&protocols),
+			"protocols":             pluginsdk.FlattenSlice(&protocols),
 		})
 	}
 	return outputs

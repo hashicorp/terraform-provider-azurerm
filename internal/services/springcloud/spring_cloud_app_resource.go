@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
@@ -481,7 +480,7 @@ func expandAppCustomPersistentDiskResourceArray(input []interface{}, id appplatf
 				ShareName:    pointer.To(v["share_name"].(string)),
 				MountPath:    pointer.To(v["mount_path"].(string)),
 				ReadOnly:     pointer.To(v["read_only_enabled"].(bool)),
-				MountOptions: helpers.ExpandStringSlice(v["mount_options"].(*pluginsdk.Set).List()),
+				MountOptions: pluginsdk.ExpandStringSlice(v["mount_options"].(*pluginsdk.Set).List()),
 			},
 		})
 	}

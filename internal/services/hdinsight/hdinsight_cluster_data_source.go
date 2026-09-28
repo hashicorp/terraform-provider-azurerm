@@ -158,11 +158,11 @@ func dataSourceHDInsightClusterRead(d *pluginsdk.ResourceData, meta interface{})
 		if props := model.Properties; props != nil {
 			d.Set("cluster_id", props.ClusterId)
 			d.Set("cluster_version", props.ClusterVersion)
-			d.Set("tier", string(pointer.From(props.Tier)))
+			d.Set("tier", pointer.FromEnum(props.Tier))
 			d.Set("tls_min_version", props.MinSupportedTlsVersion)
 
 			d.Set("component_versions", flattenHDInsightsDataSourceComponentVersions(props.ClusterDefinition.ComponentVersion))
-			d.Set("kind", string(pointer.From(props.ClusterDefinition.Kind)))
+			d.Set("kind", pointer.FromEnum(props.ClusterDefinition.Kind))
 			if err := d.Set("gateway", FlattenHDInsightsConfigurations(configuration, d)); err != nil {
 				return fmt.Errorf("flattening `gateway`: %+v", err)
 			}
