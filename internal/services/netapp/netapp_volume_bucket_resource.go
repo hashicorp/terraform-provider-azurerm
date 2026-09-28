@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -31,7 +31,7 @@ func (r NetAppVolumeBucketResource) Identity() resourceids.ResourceId {
 }
 
 func (r NetAppVolumeBucketResource) ModelObject() interface{} {
-	return &netAppModels.NetAppVolumeBucketModel{}
+	return &models.NetAppVolumeBucketModel{}
 }
 
 func (r NetAppVolumeBucketResource) ResourceType() string {
@@ -57,7 +57,7 @@ func (r NetAppVolumeBucketResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.NetApp.BucketsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var model netAppModels.NetAppVolumeBucketModel
+			var model models.NetAppVolumeBucketModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -128,7 +128,7 @@ func (r NetAppVolumeBucketResource) Read() sdk.ResourceFunc {
 func (r NetAppVolumeBucketResource) flatten(metadata sdk.ResourceMetaData, id *buckets.BucketId, bucket *buckets.Bucket) error {
 	volumeID := volumes.NewVolumeID(id.SubscriptionId, id.ResourceGroupName, id.NetAppAccountName, id.CapacityPoolName, id.VolumeName)
 
-	model := netAppModels.NetAppVolumeBucketModel{
+	model := models.NetAppVolumeBucketModel{
 		Name:     id.BucketName,
 		VolumeID: volumeID.ID(),
 	}
@@ -171,7 +171,7 @@ func (r NetAppVolumeBucketResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var state netAppModels.NetAppVolumeBucketModel
+			var state models.NetAppVolumeBucketModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}

@@ -25,7 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
-	billingValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/billing/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/billing/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -74,7 +74,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 					validation.StringMatch(regexp.MustCompile("/providers/Microsoft.Capacity"), "Capacity scope is invalid"),
 					validation.StringMatch(regexp.MustCompile("/providers/Microsoft.BillingBenefits"), "BillingBenefits scope is invalid"),
 
-					billingValidate.EnrollmentID,
+					validate.EnrollmentID,
 					commonids.ValidateManagementGroupID,
 					commonids.ValidateSubscriptionID,
 					commonids.ValidateResourceGroupID,

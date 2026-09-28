@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
-	firewallValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -45,14 +45,14 @@ func resourceFirewallApplicationRuleCollection() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: firewallValidate.FirewallName,
+				ValidateFunc: validate.FirewallName,
 			},
 
 			"azure_firewall_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: firewallValidate.FirewallName,
+				ValidateFunc: validate.FirewallName,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),

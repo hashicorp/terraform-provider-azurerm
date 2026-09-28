@@ -33,7 +33,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/custompoller"
-	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -68,7 +68,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: computeValidate.VirtualMachineName,
+				ValidateFunc: validate.VirtualMachineName,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -83,7 +83,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 					"os_managed_disk_id",
 				},
 				ForceNew:     true,
-				ValidateFunc: computeValidate.LinuxAdminUsername,
+				ValidateFunc: validate.LinuxAdminUsername,
 			},
 
 			"network_interface_ids": {
@@ -129,7 +129,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				ForceNew:         true,
 				Sensitive:        true,
 				DiffSuppressFunc: adminPasswordDiffSuppressFunc,
-				ValidateFunc:     computeValidate.LinuxAdminPassword,
+				ValidateFunc:     validate.LinuxAdminPassword,
 				ConflictsWith: []string{
 					"os_managed_disk_id",
 				},
@@ -189,7 +189,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				Computed: true,
 				ForceNew: true,
 
-				ValidateFunc: computeValidate.LinuxComputerNameFull,
+				ValidateFunc: validate.LinuxComputerNameFull,
 				ConflictsWith: []string{
 					"os_managed_disk_id",
 				},
@@ -382,10 +382,10 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 					images.ValidateImageID,
 					validation.AsGeneratedID(galleryimages.ParseGalleryImageIDInsensitively),
 					validation.AsGeneratedID(galleryimageversions.ParseImageVersionIDInsensitively),
-					computeValidate.CommunityGalleryImageID,
-					computeValidate.CommunityGalleryImageVersionID,
-					computeValidate.SharedGalleryImageID,
-					computeValidate.SharedGalleryImageVersionID,
+					validate.CommunityGalleryImageID,
+					validate.CommunityGalleryImageVersionID,
+					validate.SharedGalleryImageID,
+					validate.SharedGalleryImageVersionID,
 				),
 				ExactlyOneOf: []string{
 					"os_managed_disk_id",
@@ -577,7 +577,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		if v, ok := d.GetOk("computer_name"); ok && len(v.(string)) > 0 {
 			computerName = v.(string)
 		} else {
-			_, errs := computeValidate.LinuxComputerNameFull(d.Get("name"), "computer_name")
+			_, errs := validate.LinuxComputerNameFull(d.Get("name"), "computer_name")
 			if len(errs) > 0 {
 				return fmt.Errorf("unable to assume default computer name %s. Please adjust the `name`, or specify an explicit `computer_name`", errs[0])
 			}

@@ -20,8 +20,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
-	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -31,7 +31,7 @@ type NetAppVolumeGroupOracleResource struct{}
 var _ sdk.Resource = NetAppVolumeGroupOracleResource{}
 
 func (r NetAppVolumeGroupOracleResource) ModelObject() interface{} {
-	return &netAppModels.NetAppVolumeGroupOracleModel{}
+	return &models.NetAppVolumeGroupOracleModel{}
 }
 
 func (r NetAppVolumeGroupOracleResource) ResourceType() string {
@@ -48,7 +48,7 @@ func (r NetAppVolumeGroupOracleResource) Arguments() map[string]*pluginsdk.Schem
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: netAppValidate.VolumeGroupName,
+			ValidateFunc: validate.VolumeGroupName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -59,7 +59,7 @@ func (r NetAppVolumeGroupOracleResource) Arguments() map[string]*pluginsdk.Schem
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: netAppValidate.AccountName,
+			ValidateFunc: validate.AccountName,
 		},
 
 		"group_description": {
@@ -95,7 +95,7 @@ func (r NetAppVolumeGroupOracleResource) Arguments() map[string]*pluginsdk.Schem
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: netAppValidate.VolumeName,
+						ValidateFunc: validate.VolumeName,
 					},
 
 					"capacity_pool_id": {
@@ -117,14 +117,14 @@ func (r NetAppVolumeGroupOracleResource) Arguments() map[string]*pluginsdk.Schem
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: validation.StringInSlice(netAppValidate.PossibleValuesForVolumeSpecNameOracle(), false),
+						ValidateFunc: validation.StringInSlice(validate.PossibleValuesForVolumeSpecNameOracle(), false),
 					},
 
 					"volume_path": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: netAppValidate.VolumePath,
+						ValidateFunc: validate.VolumePath,
 					},
 
 					"service_level": {
@@ -153,7 +153,7 @@ func (r NetAppVolumeGroupOracleResource) Arguments() map[string]*pluginsdk.Schem
 						MaxItems: 1,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
-							ValidateFunc: validation.StringInSlice(netAppValidate.PossibleValuesForProtocolTypeVolumeGroupOracle(), false),
+							ValidateFunc: validation.StringInSlice(validate.PossibleValuesForProtocolTypeVolumeGroupOracle(), false),
 						},
 					},
 
@@ -278,7 +278,7 @@ func (r NetAppVolumeGroupOracleResource) Arguments() map[string]*pluginsdk.Schem
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
-									ValidateFunc: validation.StringInSlice(netAppModels.PossibleValuesForReplicationSchedule(), false),
+									ValidateFunc: validation.StringInSlice(models.PossibleValuesForReplicationSchedule(), false),
 								},
 							},
 						},
@@ -363,7 +363,7 @@ func (r NetAppVolumeGroupOracleResource) CustomizeDiff() sdk.ResourceFunc {
 					var kerberosEnabled bool
 					var dataReplication []interface{}
 
-					validationErrors := netAppValidate.ValidateNetAppVolumeProtocolConversion(oldProtocolsStr, newProtocolsStr, kerberosEnabled, dataReplication, exportPolicyRules)
+					validationErrors := validate.ValidateNetAppVolumeProtocolConversion(oldProtocolsStr, newProtocolsStr, kerberosEnabled, dataReplication, exportPolicyRules)
 					for _, err := range validationErrors {
 						return err
 					}
@@ -383,7 +383,7 @@ func (r NetAppVolumeGroupOracleResource) Create() sdk.ResourceFunc {
 			volumeClient := metadata.Client.NetApp.VolumeClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var model netAppModels.NetAppVolumeGroupOracleModel
+			var model models.NetAppVolumeGroupOracleModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -407,7 +407,7 @@ func (r NetAppVolumeGroupOracleResource) Create() sdk.ResourceFunc {
 			}
 
 			// Performing some basic validations that are not possible in the schema
-			if errorList := netAppValidate.ValidateNetAppVolumeGroupOracleVolumes(volumeList); len(errorList) > 0 {
+			if errorList := validate.ValidateNetAppVolumeGroupOracleVolumes(volumeList); len(errorList) > 0 {
 				return fmt.Errorf("one or more issues found while performing deeper validations for %s:\n%+v", id, errorList)
 			}
 
@@ -454,7 +454,7 @@ func (r NetAppVolumeGroupOracleResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var state netAppModels.NetAppVolumeGroupOracleModel
+			var state models.NetAppVolumeGroupOracleModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -501,7 +501,7 @@ func (r NetAppVolumeGroupOracleResource) Update() sdk.ResourceFunc {
 									rule.Nfsv3 = pointer.To(v["nfsv3_enabled"].(bool))
 									rule.Nfsv41 = pointer.To(v["nfsv41_enabled"].(bool))
 
-									errors = append(errors, netAppValidate.ValidateNetAppVolumeGroupExportPolicyRule(rule, volumeProtocol)...)
+									errors = append(errors, validate.ValidateNetAppVolumeGroupExportPolicyRule(rule, volumeProtocol)...)
 								}
 							}
 
@@ -587,7 +587,7 @@ func (r NetAppVolumeGroupOracleResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			var state netAppModels.NetAppVolumeGroupOracleModel
+			var state models.NetAppVolumeGroupOracleModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -600,7 +600,7 @@ func (r NetAppVolumeGroupOracleResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
 
-			model := netAppModels.NetAppVolumeGroupOracleModel{
+			model := models.NetAppVolumeGroupOracleModel{
 				Name:              id.VolumeGroupName,
 				AccountName:       id.NetAppAccountName,
 				Location:          location.NormalizeNilable(existing.Model.Location),
