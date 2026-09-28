@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	containersclient "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
 )
 
 func TestKubernetesNodeResourceGroupRestrictionPlan(t *testing.T) {
@@ -126,7 +126,7 @@ func TestKubernetesNodeResourceGroupRestrictionResponse(t *testing.T) {
 				clusterClient.Client.SetTransport(transport)
 				maintenanceClient.Client.AuthorizeRequest = nil
 				maintenanceClient.Client.SetTransport(transport)
-				meta := &clients.Client{StopContext: context.Background(), Containers: &containersclient.Client{
+				meta := &clients.Client{StopContext: context.Background(), Containers: &client.Client{
 					KubernetesClustersClient: clusterClient, MaintenanceConfigurationsClient: maintenanceClient,
 				}}
 				if err := resourceKubernetesClusterRead(data, meta); err != nil {
