@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	service "github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/resource"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -401,9 +400,9 @@ func expandCorsConfiguration(d *pluginsdk.ResourceData) *service.ServiceCorsConf
 
 	corsConfigAttr := corsConfigRaw[0].(map[string]interface{})
 
-	allowedOrigins := *helpers.ExpandStringSlice(corsConfigAttr["allowed_origins"].(*pluginsdk.Set).List())
-	allowedHeaders := *helpers.ExpandStringSlice(corsConfigAttr["allowed_headers"].(*pluginsdk.Set).List())
-	allowedMethods := *helpers.ExpandStringSlice(corsConfigAttr["allowed_methods"].([]interface{}))
+	allowedOrigins := *pluginsdk.ExpandStringSlice(corsConfigAttr["allowed_origins"].(*pluginsdk.Set).List())
+	allowedHeaders := *pluginsdk.ExpandStringSlice(corsConfigAttr["allowed_headers"].(*pluginsdk.Set).List())
+	allowedMethods := *pluginsdk.ExpandStringSlice(corsConfigAttr["allowed_methods"].([]interface{}))
 
 	return &service.ServiceCorsConfigurationInfo{
 		Origins:          &allowedOrigins,
@@ -486,9 +485,9 @@ func flattenCorsConfig(input *service.ServiceCorsConfigurationInfo) []interface{
 	return []interface{}{
 		map[string]interface{}{
 			"allow_credentials":  pointer.From(input.AllowCredentials),
-			"allowed_headers":    helpers.FlattenStringSlice(input.Headers),
-			"allowed_methods":    helpers.FlattenStringSlice(input.Methods),
-			"allowed_origins":    helpers.FlattenStringSlice(input.Origins),
+			"allowed_headers":    pluginsdk.FlattenSlice(input.Headers),
+			"allowed_methods":    pluginsdk.FlattenSlice(input.Methods),
+			"allowed_origins":    pluginsdk.FlattenSlice(input.Origins),
 			"max_age_in_seconds": maxAge,
 		},
 	}

@@ -50,9 +50,5 @@ func StaticWebAppPassword(v interface{}, k string) (warnings []string, errs []er
 		errs = append(errs, errors.New("the password must contain at least one number"))
 	}
 
-	if matched := regexp.MustCompile(`[!@#$%^&*(),.?":{}|<>]`).Match([]byte(value)); !matched {
-		errs = append(errs, errors.New("the password must contain at least one symbol"))
-	}
-
 	return
 }

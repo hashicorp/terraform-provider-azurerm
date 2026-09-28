@@ -4,9 +4,7 @@
 package validate
 
 import (
-	"fmt"
 	"regexp"
-	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -32,16 +30,5 @@ func KubernetesDNSPrefix(i interface{}, k string) (warnings []string, errors []e
 }
 
 func KubernetesGitRepositoryUrl() pluginsdk.SchemaValidateFunc {
-	return func(i interface{}, k string) ([]string, []error) {
-		v, ok := i.(string)
-		if !ok {
-			return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
-		}
-
-		if strings.HasPrefix(v, "http://") || strings.HasPrefix(v, "https://") || strings.HasPrefix(v, "git@") || strings.HasPrefix(v, "ssh://") {
-			return nil, nil
-		}
-
-		return nil, []error{fmt.Errorf("expected %q to start with `http://`, `https://`, `git@` or `ssh://`", k)}
-	}
+	return validation.StringStartsWithOneOf("http://", "https://", "git@", "ssh://")
 }

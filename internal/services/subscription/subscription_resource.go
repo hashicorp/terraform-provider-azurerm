@@ -489,7 +489,7 @@ func waitForSubscriptionStateToSettle(ctx context.Context, client *subscriptions
 		if !ok {
 			return fmt.Errorf("failure in parsing response while waiting for Subscription %q to become %q: %+v", subscriptionId, targetState, err)
 		}
-		actualState := string(pointer.From(sub.State))
+		actualState := pointer.FromEnum(sub.State)
 		return fmt.Errorf("waiting for Subscription %q to become %q, currently %q", subscriptionId, targetState, actualState)
 	}
 

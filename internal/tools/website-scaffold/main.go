@@ -33,7 +33,7 @@ func main() {
 	websitePath := f.String("website-path", "", "The relative path to the website folder")
 
 	// example generation related flags
-	genExample := f.Bool("example", false, "Wether to generate the Terraform configuration example from AccTest")
+	genExample := f.Bool("example", false, "Whether to generate the Terraform configuration example from AccTest")
 	rootDir := f.String("root-dir", "", "The path to the project root. Required when `-example` is set.")
 	servicePkg := f.String("service-pkg", "", "The service package where the AccTest resides in. Required when `-example` is set.")
 	testCase := f.String("testcase", "", "The name of the AccTest where the Terraform configuration derives from. Required when `-example` is set.")
@@ -892,7 +892,7 @@ func (gen documentationGenerator) uniqueBlockNamesForAttribute(fields map[string
 	for _, fieldName := range gen.sortFields(fields) {
 		field := fields[fieldName]
 
-		// fields which are setable but aren't computed-only can be skipped
+		// fields which are settable but aren't computed-only can be skipped
 		if (field.Optional || field.Required) && !field.Computed {
 			continue
 		}

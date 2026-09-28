@@ -194,7 +194,7 @@ func (r IotHubEndpointCosmosDBAccountResource) Create() sdk.ResourceFunc {
 				EndpointURI:        pointer.To(state.EndpointUri),
 			}
 
-			// To align with the previous TF behavior, `subscription_id` needs to be set with the provider's subscription Id when it isn't specified in the tf config, otherwise TF behavior is different than before and it may block the existing users
+			// To align with the previous TF behaviour, `subscription_id` needs to be set with the provider's subscription Id when it isn't specified in the tf config, otherwise TF behaviour is different than before and it may block the existing users
 			// From the business perspective, the raw config handling is only meant for the case that the user has an CosmosDB Account whose Endpoint's subscription is not the provider's one. Then the user wants to reset it to the provider's one by unset the subscription_id
 			// From the TF code perspective, given `Computed: true` is enabled, TF would always get the value from the last apply when this property isn't set in the tf config. So `d.GetRawConfig()` is required to determine if it's set in the tf config
 			if v := metadata.ResourceData.GetRawConfig().AsValueMap()["subscription_id"]; v.IsNull() {
@@ -419,7 +419,7 @@ func (r IotHubEndpointCosmosDBAccountResource) Update() sdk.ResourceFunc {
 					}
 
 					// As `subscription_id` is `O+C`, `HasChange()` can't detect the change when it isn't specified. And `subscription_id` always needs to be set to the subscription ID used in the provider block when it isn't specified. So, `HasChange()` is not needed.
-					// To align with the previous TF behavior, `subscription_id` needs to be set with the provider's subscription Id when it isn't specified in the tf config, otherwise TF behavior is different than before and it may block the existing users
+					// To align with the previous TF behaviour, `subscription_id` needs to be set with the provider's subscription Id when it isn't specified in the tf config, otherwise TF behaviour is different than before and it may block the existing users
 					// From the business perspective, the raw config handling is only meant for the case that the user has an CosmosDB Account whose Endpoint's subscription is not the provider's one. Then the user wants to reset it to the provider's one by unset the subscription_id
 					// From the TF code perspective, given `Computed: true` is enabled, TF would always get the value from the last apply when this property isn't set in the tf config. So `d.GetRawConfig()` is required to determine if it's set in the tf config
 					if v := metadata.ResourceData.GetRawConfig().AsValueMap()["subscription_id"]; v.IsNull() {

@@ -330,7 +330,7 @@ func (AccountResource) flatten(metadata sdk.ResourceMetaData, id *accounts.Accou
 				return fmt.Errorf("flattening `storage`: %+v", err)
 			}
 
-			state.PublicNetworkAccess = string(pointer.From(props.PublicNetworkAccess))
+			state.PublicNetworkAccess = pointer.FromEnum(props.PublicNetworkAccess)
 		}
 	}
 
