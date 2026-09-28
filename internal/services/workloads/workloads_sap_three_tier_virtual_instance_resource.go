@@ -1264,7 +1264,7 @@ func (WorkloadsSAPThreeTierVirtualInstanceResource) flatten(metadata sdk.Resourc
 
 		if props := model.Properties; props != nil {
 			state.Environment = string(props.Environment)
-			state.ManagedResourcesNetworkAccessType = string(pointer.From(props.ManagedResourcesNetworkAccessType))
+			state.ManagedResourcesNetworkAccessType = pointer.FromEnum(props.ManagedResourcesNetworkAccessType)
 			state.SapProduct = string(props.SapProduct)
 			state.Tags = pointer.From(model.Tags)
 
@@ -1407,13 +1407,11 @@ func expandDiskVolumeConfigurations(input []DiskVolumeConfiguration) *sapvirtual
 	result := make(map[string]sapvirtualinstances.DiskVolumeConfiguration, 0)
 
 	for _, v := range input {
-		skuName := sapvirtualinstances.DiskSkuName(v.SkuName)
-
 		result[v.VolumeName] = sapvirtualinstances.DiskVolumeConfiguration{
 			Count:  pointer.To(v.NumberOfDisks),
 			SizeGB: pointer.To(v.SizeGb),
 			Sku: &sapvirtualinstances.DiskSku{
-				Name: &skuName,
+				Name: pointer.ToEnum[sapvirtualinstances.DiskSkuName](v.SkuName),
 			},
 		}
 	}
@@ -1466,8 +1464,7 @@ func expandDatabaseServer(input []DatabaseServerConfiguration) *sapvirtualinstan
 	}
 
 	if v := databaseServer.DatabaseType; v != "" {
-		dbType := sapvirtualinstances.SAPDatabaseType(v)
-		result.DatabaseType = &dbType
+		result.DatabaseType = pointer.ToEnum[sapvirtualinstances.SAPDatabaseType](v)
 	}
 
 	return result
@@ -1846,7 +1843,7 @@ func flattenDiskVolumeConfigurations(input *sapvirtualinstances.DiskConfiguratio
 		}
 
 		if sku := v.Sku; sku != nil {
-			diskVolumeConfiguration.SkuName = string(pointer.From(sku.Name))
+			diskVolumeConfiguration.SkuName = pointer.FromEnum(sku.Name)
 		}
 
 		result = append(result, diskVolumeConfiguration)

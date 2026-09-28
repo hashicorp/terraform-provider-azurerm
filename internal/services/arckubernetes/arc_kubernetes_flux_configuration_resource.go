@@ -491,14 +491,11 @@ func (r ArcKubernetesFluxConfigurationResource) Arguments() map[string]*pluginsd
 		},
 
 		"scope": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(fluxconfiguration.ScopeTypeNamespace),
-				string(fluxconfiguration.ScopeTypeCluster),
-			}, false),
-			Default: string(fluxconfiguration.ScopeTypeNamespace),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(fluxconfiguration.PossibleValuesForScopeType(), false),
+			Default:      string(fluxconfiguration.ScopeTypeNamespace),
 		},
 
 		"continuous_reconciliation_enabled": {
@@ -732,7 +729,7 @@ func (r ArcKubernetesFluxConfigurationResource) Read() sdk.ResourceFunc {
 					state.GitRepository = gitRepositoryValue
 					state.Kustomizations = flattenKustomizationDefinitionModel(properties.Kustomizations)
 					state.Namespace = pointer.From(properties.Namespace)
-					state.Scope = string(pointer.From(properties.Scope))
+					state.Scope = pointer.FromEnum(properties.Scope)
 					state.ContinuousReconciliationEnabled = !pointer.From(properties.Suspend)
 				}
 			}

@@ -17,6 +17,16 @@ LABEL_OUTDATED="%env.LABEL_OUTDATED%"
 LABEL_NEW_FAILURE="%env.LABEL_NEW_FAILURE%"
 APPLY_TESTING_LABELS_ENABLED="%env.APPLY_TESTING_LABELS_ENABLED%"
 TRACKING_ID="%TRACKING_ID%"
+BUILD_VCS_NUMBER="%build.vcs.number%"
+
+# Builds triggered outside of /test (TeamCity UI, tctest without --properties) have no
+# TRACKING_ID and inherit the "0" default. Since one test run is now split into several
+# per-service builds, a zero tracking id would make each build's comment minimize its
+# sibling builds' still-valid comments. Fall back to the VCS revision so builds of the
+# same revision share a tracking id and never minimize each other.
+if [ "$TRACKING_ID" = "0" ] || [ -z "$TRACKING_ID" ]; then
+  TRACKING_ID="$BUILD_VCS_NUMBER"
+fi
 
 if [ "$POST_GITHUB_COMMENT" != "true" ]; then
   echo "GitHub commenting disabled — skipping."
@@ -83,30 +93,78 @@ set_testing_label() {
   fi
 }
 
-# Fetch test results for this build from the TeamCity REST API
+# Fetch test results for this build from the TeamCity REST API.
+#
+# This step runs immediately after the test step, while the build is still running, and
+# TeamCity indexes test service messages asynchronously - the tests that finished last
+# (often several at once, since they run in parallel) may not be visible yet, and a short
+# run can briefly return no occurrences at all. Poll (bounded) until at least one result is
+# visible and the count has not changed between two consecutive polls.
 TEAMCITY_ERROR=""
-RAW_TEST_RESULTS_JSON=$(curl -sS -f \
-  -H "Authorization: Bearer $TEAMCITY_TOKEN" \
-  -H "Accept: application/json" \
-  "$TEAMCITY_SERVER_URL/app/rest/testOccurrences?locator=build:(id:$BUILD_ID),count:100000&fields=testOccurrence(name,status,duration,newFailure,test(id),firstFailed(build(id,number,branchName)))")
+TEST_RESULTS=""
+RESULTS_ATTEMPTS=12
+RESULTS_DELAY_S=5
+SEEN_COUNT=0
+PREV_SEEN_COUNT=-1
+for attempt in $(seq 1 "$RESULTS_ATTEMPTS"); do
+  RAW_TEST_RESULTS_JSON=$(curl -sS -f \
+    -H "Authorization: Bearer $TEAMCITY_TOKEN" \
+    -H "Accept: application/json" \
+    "$TEAMCITY_SERVER_URL/app/rest/testOccurrences?locator=build:(id:$BUILD_ID),count:100000&fields=testOccurrence(name,status,ignored,duration,newFailure,test(id),firstFailed(build(id,number,branchName)))")
 
-if [ $? -ne 0 ] || [ -z "$RAW_TEST_RESULTS_JSON" ]; then
-  TEAMCITY_ERROR="Failed to fetch test results from TeamCity for build $BUILD_ID."
-  TEST_RESULTS=""
-else
+  if [ $? -ne 0 ] || [ -z "$RAW_TEST_RESULTS_JSON" ]; then
+    TEAMCITY_ERROR="Failed to fetch test results from TeamCity for build $BUILD_ID."
+    TEST_RESULTS=""
+    break
+  fi
+
   TEST_RESULTS=$(echo "$RAW_TEST_RESULTS_JSON" | jq -r '(.testOccurrence // [])[]
-      | select(.status == "SUCCESS" or .status == "FAILURE")
-      | "\(.name)|\(if .status == "SUCCESS" then "PASS" else "FAIL" end)|\((.duration // 0) / 1000)|"')
+      | select(.status == "SUCCESS" or .status == "FAILURE" or .ignored == true)
+      | "\(.name)|\(if .status == "SUCCESS" then "PASS" elif .status == "FAILURE" then "FAIL" else "SKIP" end)|\((.duration // 0) / 1000)|"')
 
   if [ $? -ne 0 ]; then
     TEAMCITY_ERROR="Failed to parse TeamCity test results for build $BUILD_ID."
     TEST_RESULTS=""
+    break
   fi
+
+  SEEN_COUNT=$(echo "$RAW_TEST_RESULTS_JSON" | jq -r '(.testOccurrence // []) | length')
+
+  if [ "$SEEN_COUNT" -gt 0 ] && [ "$SEEN_COUNT" -eq "$PREV_SEEN_COUNT" ]; then
+    break
+  fi
+
+  echo "Test results for build $BUILD_ID not settled yet: $SEEN_COUNT visible (attempt $attempt/$RESULTS_ATTEMPTS), retrying in ${RESULTS_DELAY_S}s..."
+  PREV_SEEN_COUNT=$SEEN_COUNT
+  sleep "$RESULTS_DELAY_S"
+done
+
+# The build's own status catches failures the test list cannot show: a test step that
+# failed before or without reporting tests, or failed tests that were still not indexed.
+BUILD_STATUS=""
+BUILD_STATUS_TEXT=""
+BUILD_INFO_JSON=$(curl -sS -f \
+  -H "Authorization: Bearer $TEAMCITY_TOKEN" \
+  -H "Accept: application/json" \
+  "$TEAMCITY_SERVER_URL/app/rest/builds/id:$BUILD_ID?fields=status,statusText")
+if [ $? -eq 0 ] && [ -n "$BUILD_INFO_JSON" ]; then
+  BUILD_STATUS=$(echo "$BUILD_INFO_JSON" | jq -r '.status // ""' 2>/dev/null)
+  BUILD_STATUS_TEXT=$(echo "$BUILD_INFO_JSON" | jq -r '.statusText // ""' 2>/dev/null)
+else
+  echo "Warning: could not fetch build status for build $BUILD_ID"
 fi
 
 PASS_COUNT=$(echo "$TEST_RESULTS" | awk -F'|' 'BEGIN{c=0} $1!="" && $2=="PASS"{c++} END{print c}')
 FAIL_COUNT=$(echo "$TEST_RESULTS" | awk -F'|' 'BEGIN{c=0} $1!="" && $2=="FAIL"{c++} END{print c}')
-TOTAL=$((PASS_COUNT + FAIL_COUNT))
+SKIP_COUNT=$(echo "$TEST_RESULTS" | awk -F'|' 'BEGIN{c=0} $1!="" && $2=="SKIP"{c++} END{print c}')
+TOTAL=$((PASS_COUNT + FAIL_COUNT + SKIP_COUNT))
+
+# A build that failed without any failed tests (test step crashed, results not indexed)
+# must not be reported or labelled as passing.
+BUILD_FAILED_WITHOUT_TEST_FAILURES="false"
+if [ -z "$TEAMCITY_ERROR" ] && [ "$BUILD_STATUS" = "FAILURE" ] && [ "$FAIL_COUNT" -eq 0 ]; then
+  BUILD_FAILED_WITHOUT_TEST_FAILURES="true"
+fi
 
 # Fetch main branch test results early to identify new failures for comment marking
 NEW_FAILURES=""
@@ -174,7 +232,7 @@ if [ -z "$TEAMCITY_ERROR" ]; then
   echo "Fetching per-test main branch history..."
 
   ALL_TEST_NAMES=$(echo "$RAW_TEST_RESULTS_JSON" \
-    | jq -r '(.testOccurrence // [])[] | select(.status == "SUCCESS" or .status == "FAILURE") | .name' \
+    | jq -r '(.testOccurrence // [])[] | select(.status == "SUCCESS" or .status == "FAILURE" or .ignored == true) | .name' \
     2>/dev/null || echo "")
 
   while IFS= read -r test_name; do
@@ -263,6 +321,18 @@ if [ -z "$TEAMCITY_ERROR" ]; then
   done <<< "$ALL_TEST_NAMES"
 fi
 
+NO_RESULTS_NOTE=""
+if [ -z "$TEAMCITY_ERROR" ] && [ "$TOTAL" -eq 0 ]; then
+  NO_RESULTS_NOTE="
+> TeamCity reported no test results for this build after waiting $((RESULTS_ATTEMPTS * RESULTS_DELAY_S))s. Check the build log: the test filter may have matched nothing, or the build may have failed before the tests ran."
+fi
+
+BUILD_FAILED_NOTE=""
+if [ "$BUILD_FAILED_WITHOUT_TEST_FAILURES" = "true" ]; then
+  BUILD_FAILED_NOTE="
+> TeamCity reports this build as **FAILURE** (${BUILD_STATUS_TEXT:-no status text}) but no failed tests were returned. Treating the run as failed; check the build log."
+fi
+
 if [ -n "$TEAMCITY_ERROR" ]; then
   COMMENT="Build: [$BUILD_ID]($TEAMCITY_SERVER_URL/viewLog.html?buildId=$BUILD_ID)
 PR: #$PR_NUMBER
@@ -314,6 +384,8 @@ $1 == "" { next }
 
     if (status == "PASS") {
       label = "✅ PASS"
+    } else if (status == "SKIP") {
+      label = "⏭️ SKIP"
     } else if (is_new == "true") {
       label = "❌ NEW"
     } else {
@@ -330,7 +402,9 @@ PR: #$PR_NUMBER
 **Total:** $TOTAL
 **Passed:** $PASS_COUNT
 **Failed:** $FAIL_COUNT
+**Skipped:** $SKIP_COUNT
 **Test Duration:** ${BUILD_HOURS}h ${BUILD_MINUTES}m ${BUILD_SECONDS}s
+${NO_RESULTS_NOTE}${BUILD_FAILED_NOTE}
 
 <details>
 <summary>Test Details</summary>
@@ -344,14 +418,17 @@ fi
 
 # Fetch PR author if there are failures
 AUTHOR_MESSAGE=""
-if [ -z "$TEAMCITY_ERROR" ] && [ "$FAIL_COUNT" -gt 0 ]; then
+if [ -z "$TEAMCITY_ERROR" ] && { [ "$FAIL_COUNT" -gt 0 ] || [ "$BUILD_FAILED_WITHOUT_TEST_FAILURES" = "true" ]; }; then
   PR_AUTHOR=$(github_api_request "/pulls/${PR_NUMBER}" \
   | jq -r '.user.login')
 
   if [ -z "$PR_AUTHOR" ] || [ "$PR_AUTHOR" = "null" ]; then
     echo "Warning: Could not fetch PR author"
   else
-    if [ "$HAS_NEW_FAILURES" = "true" ]; then
+    if [ "$BUILD_FAILED_WITHOUT_TEST_FAILURES" = "true" ]; then
+      AUTHOR_MESSAGE="@${PR_AUTHOR} - The TeamCity build failed without reporting failed tests. Please review the build log.
+      "
+    elif [ "$HAS_NEW_FAILURES" = "true" ]; then
       AUTHOR_MESSAGE="@${PR_AUTHOR} - One or more tests newly failed in this PR. Please review the failures.
       "
     else
@@ -381,13 +458,19 @@ echo "Fetching existing comments..."
 COMMENTS_JSON=$(github_api_request "/issues/${PR_NUMBER}/comments")
 
 # Filter comments that should be minimized (teamcity-test-results or /test comments)
-# but exclude those with the current tracking ID
+# but exclude those with the current tracking ID. Without a usable tracking id we
+# cannot tell sibling builds of the current run from stale ones, so minimize nothing.
+COMMENT_IDS=""
+if [ -n "$TRACKING_ID" ] && [ "$TRACKING_ID" != "0" ]; then
 COMMENT_IDS=$(echo "$COMMENTS_JSON" | jq -r --arg tracking_id "$TRACKING_ID" '
   .[] |
   select(.body | type == "string" and (contains("<!-- teamcity-test-results -->") or startswith("/test"))) |
   select(.body | contains("tracking-id:" + $tracking_id) | not) |
   .node_id
 ' 2>&1 | grep -v "^jq:")
+else
+  echo "No usable tracking id; skipping minimization of previous comments"
+fi
 
 if [ -n "$COMMENT_IDS" ]; then
   echo "Found previous comments to minimize"
@@ -433,6 +516,13 @@ if [ "$APPLY_TESTING_LABELS_ENABLED" = "true" ]; then
 
   if [ -n "$TEAMCITY_ERROR" ]; then
     echo "Skipping label application due to TeamCity error"
+    exit 0
+  fi
+
+  # A failed build never gets the passed label, even with no failed tests reported
+  if [ "$BUILD_FAILED_WITHOUT_TEST_FAILURES" = "true" ]; then
+    echo "Build status is FAILURE with no failed tests reported"
+    set_testing_label "$LABEL_FAILURE"
     exit 0
   fi
 

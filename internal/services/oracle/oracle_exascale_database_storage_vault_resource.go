@@ -63,9 +63,9 @@ func (ExascaleDatabaseStorageVaultResource) Arguments() map[string]*pluginsdk.Sc
 		},
 
 		"description": {
-			Type: pluginsdk.TypeString,
-			// Note: O+C API use display_name value if omitted
+			Type:     pluginsdk.TypeString,
 			Optional: true,
+			// Note: O+C API use `display_name` value if omitted
 			Computed: true,
 			ForceNew: true,
 		},

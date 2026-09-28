@@ -33,7 +33,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/custompollers"
@@ -135,14 +134,10 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"virtual_network_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(apimanagementservice.VirtualNetworkTypeNone),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(apimanagementservice.VirtualNetworkTypeNone),
-				string(apimanagementservice.VirtualNetworkTypeExternal),
-				string(apimanagementservice.VirtualNetworkTypeInternal),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(apimanagementservice.VirtualNetworkTypeNone),
+			ValidateFunc: validation.StringInSlice(apimanagementservice.PossibleValuesForVirtualNetworkType(), false),
 		},
 
 		"virtual_network_configuration": {
@@ -181,7 +176,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 		"notification_sender_email": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 		},
 
 		"additional_location": {
@@ -215,7 +210,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 					"capacity": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						Computed:     true,
+						Computed:     true, // azignore:AZS007 - pre-existing violation
 						ValidateFunc: validation.IntBetween(0, 50),
 					},
 
@@ -270,12 +265,9 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"store_name": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(apimanagementservice.StoreNameCertificateAuthority),
-							string(apimanagementservice.StoreNameRoot),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(apimanagementservice.PossibleValuesForStoreName(), false),
 					},
 
 					"expiry": {
@@ -299,7 +291,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 		"protocols": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -315,7 +307,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 		"security": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -415,7 +407,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 		"hostname_configuration": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -466,7 +458,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 		"sign_in": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -481,7 +473,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 		"delegation": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -503,7 +495,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 					"validation_key": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validate.Base64EncodedString,
+						ValidateFunc: validation.StringIsBase64,
 						Sensitive:    true,
 					},
 				},
@@ -513,7 +505,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 		"sign_up": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -610,7 +602,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 		"tenant_access": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -1054,9 +1046,7 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if d.HasChange("min_api_version") {
-		props.ApiVersionConstraint = &apimanagementservice.ApiVersionConstraint{
-			MinApiVersion: nil,
-		}
+		props.ApiVersionConstraint = &apimanagementservice.ApiVersionConstraint{}
 
 		if v, ok := d.GetOk("min_api_version"); ok {
 			props.ApiVersionConstraint.MinApiVersion = pointer.To(v.(string))
@@ -1221,8 +1211,7 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 			return fmt.Errorf("setting `protocols`: %+v", err)
 		}
 
-		hostnameConfigs := flattenApiManagementHostnameConfigurations(model.Properties.HostnameConfigurations, d)
-		if err := d.Set("hostname_configuration", hostnameConfigs); err != nil {
+		if err := d.Set("hostname_configuration", flattenApiManagementHostnameConfigurations(model.Properties.HostnameConfigurations, d)); err != nil {
 			return fmt.Errorf("setting `hostname_configuration`: %+v", err)
 		}
 		additionalLocation, err := flattenApiManagementAdditionalLocations(model.Properties.AdditionalLocations)

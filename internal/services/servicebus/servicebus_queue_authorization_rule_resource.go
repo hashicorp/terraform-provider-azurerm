@@ -10,9 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/queues"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/queuesauthorizationrule"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/queues"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
@@ -28,7 +27,7 @@ func resourceServiceBusQueueAuthorizationRule() *pluginsdk.Resource {
 		Delete: resourceServiceBusQueueAuthorizationRuleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := queuesauthorizationrule.ParseQueueAuthorizationRuleID(id)
+			_, err := queues.ParseQueueAuthorizationRuleID(id)
 			return err
 		}),
 
@@ -65,20 +64,20 @@ func resourceServiceBusqueueAuthorizationRuleSchema() map[string]*pluginsdk.Sche
 }
 
 func resourceServiceBusQueueAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ServiceBus.QueuesAuthClient
+	client := meta.(*clients.Client).ServiceBus.QueuesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	queueId, err := queuesauthorizationrule.ParseQueueID(d.Get("queue_id").(string))
+	queueId, err := queues.ParseQueueID(d.Get("queue_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := queuesauthorizationrule.NewQueueAuthorizationRuleID(queueId.SubscriptionId, queueId.ResourceGroupName, queueId.NamespaceName, queueId.QueueName, d.Get("name").(string))
+	id := queues.NewQueueAuthorizationRuleID(queueId.SubscriptionId, queueId.ResourceGroupName, queueId.NamespaceName, queueId.QueueName, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-			existing, err := client.QueuesGetAuthorizationRule(ctx, id)
+			existing, err := client.GetAuthorizationRule(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -91,14 +90,14 @@ func resourceServiceBusQueueAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceD
 		}
 	}
 
-	parameters := queuesauthorizationrule.SBAuthorizationRule{
+	parameters := queues.SBAuthorizationRule{
 		Name: pointer.To(id.AuthorizationRuleName),
-		Properties: &queuesauthorizationrule.SBAuthorizationRuleProperties{
+		Properties: &queues.SBAuthorizationRuleProperties{
 			Rights: *expandQueueAuthorizationRuleRights(d),
 		},
 	}
 
-	if _, err := client.QueuesCreateOrUpdateAuthorizationRule(ctx, id, parameters); err != nil {
+	if _, err := client.CreateOrUpdateAuthorizationRule(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -115,16 +114,16 @@ func resourceServiceBusQueueAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceD
 }
 
 func resourceServiceBusQueueAuthorizationRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ServiceBus.QueuesAuthClient
+	client := meta.(*clients.Client).ServiceBus.QueuesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := queuesauthorizationrule.ParseQueueAuthorizationRuleID(d.Id())
+	id, err := queues.ParseQueueAuthorizationRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.QueuesGetAuthorizationRule(ctx, *id)
+	resp, err := client.GetAuthorizationRule(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
@@ -135,7 +134,7 @@ func resourceServiceBusQueueAuthorizationRuleRead(d *pluginsdk.ResourceData, met
 	}
 
 	d.Set("name", id.AuthorizationRuleName)
-	d.Set("queue_id", queuesauthorizationrule.NewQueueID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.QueueName).ID())
+	d.Set("queue_id", queues.NewQueueID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.QueueName).ID())
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
@@ -146,7 +145,7 @@ func resourceServiceBusQueueAuthorizationRuleRead(d *pluginsdk.ResourceData, met
 		}
 	}
 
-	keysResp, err := client.QueuesListKeys(ctx, *id)
+	keysResp, err := client.ListKeys(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("listing keys for %s: %+v", id, err)
 	}
@@ -164,16 +163,16 @@ func resourceServiceBusQueueAuthorizationRuleRead(d *pluginsdk.ResourceData, met
 }
 
 func resourceServiceBusQueueAuthorizationRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ServiceBus.QueuesAuthClient
+	client := meta.(*clients.Client).ServiceBus.QueuesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := queuesauthorizationrule.ParseQueueAuthorizationRuleID(d.Id())
+	id, err := queues.ParseQueueAuthorizationRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err = client.QueuesDeleteAuthorizationRule(ctx, *id); err != nil {
+	if _, err = client.DeleteAuthorizationRule(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
@@ -185,35 +184,35 @@ func resourceServiceBusQueueAuthorizationRuleDelete(d *pluginsdk.ResourceData, m
 	return nil
 }
 
-func expandQueueAuthorizationRuleRights(d *pluginsdk.ResourceData) *[]queuesauthorizationrule.AccessRights {
-	rights := make([]queuesauthorizationrule.AccessRights, 0)
+func expandQueueAuthorizationRuleRights(d *pluginsdk.ResourceData) *[]queues.AccessRights {
+	rights := make([]queues.AccessRights, 0)
 
 	if d.Get("listen").(bool) {
-		rights = append(rights, queuesauthorizationrule.AccessRightsListen)
+		rights = append(rights, queues.AccessRightsListen)
 	}
 
 	if d.Get("send").(bool) {
-		rights = append(rights, queuesauthorizationrule.AccessRightsSend)
+		rights = append(rights, queues.AccessRightsSend)
 	}
 
 	if d.Get("manage").(bool) {
-		rights = append(rights, queuesauthorizationrule.AccessRightsManage)
+		rights = append(rights, queues.AccessRightsManage)
 	}
 
 	return &rights
 }
 
-func flattenQueueAuthorizationRuleRights(rights *[]queuesauthorizationrule.AccessRights) (listen, send, manage bool) {
+func flattenQueueAuthorizationRuleRights(rights *[]queues.AccessRights) (listen, send, manage bool) {
 	// zero (initial) value for a bool in go is false
 
 	if rights != nil {
 		for _, right := range *rights {
 			switch right {
-			case queuesauthorizationrule.AccessRightsListen:
+			case queues.AccessRightsListen:
 				listen = true
-			case queuesauthorizationrule.AccessRightsSend:
+			case queues.AccessRightsSend:
 				send = true
-			case queuesauthorizationrule.AccessRightsManage:
+			case queues.AccessRightsManage:
 				manage = true
 			default:
 				log.Printf("[DEBUG] Unknown Authorization Rule Right '%s'", right)

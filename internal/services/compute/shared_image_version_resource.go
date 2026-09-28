@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/date"
@@ -22,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -112,14 +114,10 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 						// And `CustomizeDiff` also cannot be used since it doesn't support in a `Set`.
 						// So currently terraform would directly return the error message from Service API while updating this property. If this property needs to be updated, please recreate this pluginsdk.
 						"storage_account_type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(galleryimageversions.StorageAccountTypePremiumLRS),
-								string(galleryimageversions.StorageAccountTypeStandardLRS),
-								string(galleryimageversions.StorageAccountTypeStandardZRS),
-							}, false),
-							Default: string(galleryimageversions.StorageAccountTypeStandardLRS),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(galleryimageversions.PossibleValuesForStorageAccountType(), false),
+							Default:      string(galleryimageversions.StorageAccountTypeStandardLRS),
 						},
 					},
 				},
@@ -169,14 +167,11 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 			},
 
 			"replication_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(galleryimageversions.ReplicationModeFull),
-					string(galleryimageversions.ReplicationModeShallow),
-				}, false),
-				Default: galleryimageversions.ReplicationModeFull,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(galleryimageversions.PossibleValuesForReplicationMode(), false),
+				Default:      galleryimageversions.ReplicationModeFull,
 			},
 
 			"exclude_from_latest": {
@@ -480,40 +475,16 @@ func resourceSharedImageVersionDelete(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	// @tombuildsstuff: there appears to be an eventual consistency issue here
-	timeout, _ := ctx.Deadline()
 	log.Printf("[DEBUG] Waiting for %s to be eventually deleted", *id)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"Exists"},
-		Target:                    []string{"NotFound"},
-		Refresh:                   sharedImageVersionDeleteStateRefreshFunc(ctx, client, *id),
-		MinTimeout:                10 * time.Second,
-		ContinuousTargetOccurence: 10,
-		Timeout:                   time.Until(timeout),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	poller := custompollers.NewEventualConsistencyPoller(10, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.Get(pollerCtx, *id, galleryimageversions.DefaultGetOperationOptions())
+		return resp.HttpResponse, err
+	}, custompollers.DefaultDeletionEventualConsistencyPollerOptions())
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to be deleted: %+v", *id, err)
 	}
 
 	return nil
-}
-
-func sharedImageVersionDeleteStateRefreshFunc(ctx context.Context, client *galleryimageversions.GalleryImageVersionsClient, id galleryimageversions.ImageVersionId) pluginsdk.StateRefreshFunc {
-	// Whilst the Shared Image Version is deleted quickly, it appears it's not actually finished replicating at this time
-	// so the deletion of the parent Shared Image fails with "can not delete until nested resources are deleted"
-	// ergo we need to poll on this for a bit
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id, galleryimageversions.DefaultGetOperationOptions())
-		if err != nil {
-			if response.WasNotFound(res.HttpResponse) {
-				return "NotFound", "NotFound", nil
-			}
-
-			return nil, "", fmt.Errorf("failed to poll to check if the Shared Image Version has been deleted: %+v", err)
-		}
-
-		return res, "Exists", nil
-	}
 }
 
 func expandSharedImageVersionTargetRegions(d *pluginsdk.ResourceData) (*[]galleryimageversions.TargetRegion, error) {

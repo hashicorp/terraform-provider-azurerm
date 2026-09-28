@@ -4,20 +4,11 @@
 package validate
 
 import (
-	"fmt"
 	"regexp"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func FlexibleServerBackupName(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return
-	}
-
-	if !regexp.MustCompile(`^[-\w\._]+$`).MatchString(v) {
-		errors = append(errors, fmt.Errorf("%q is not a valid backup name, got %v", k, v))
-		return
-	}
-	return
+func FlexibleServerBackupName(i interface{}, k string) ([]string, []error) {
+	return validation.StringMatch(regexp.MustCompile(`^[-\w\._]+$`), "is not a valid backup name")(i, k)
 }

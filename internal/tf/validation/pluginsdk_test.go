@@ -51,3 +51,47 @@ func TestValidateFloatInSlice(t *testing.T) {
 		}
 	}
 }
+
+func TestValidateStringInEnumSlice(t *testing.T) {
+	type testEnum string
+	const (
+		testEnumOne testEnum = "One"
+		testEnumTwo testEnum = "Two"
+	)
+
+	cases := map[string]struct {
+		Value                  interface{}
+		ValidateFunc           pluginsdk.SchemaValidateFunc
+		ExpectValidationErrors bool
+	}{
+		"accept valid value": {
+			Value:                  "One",
+			ValidateFunc:           StringInEnumSlice([]testEnum{testEnumOne, testEnumTwo}, false),
+			ExpectValidationErrors: false,
+		},
+		"reject different case when ignoreCase is false": {
+			Value:                  "one",
+			ValidateFunc:           StringInEnumSlice([]testEnum{testEnumOne, testEnumTwo}, false),
+			ExpectValidationErrors: true,
+		},
+		"accept different case when ignoreCase is true": {
+			Value:                  "one",
+			ValidateFunc:           StringInEnumSlice([]testEnum{testEnumOne, testEnumTwo}, true),
+			ExpectValidationErrors: false,
+		},
+		"reject value not in enum": {
+			Value:                  "Three",
+			ValidateFunc:           StringInEnumSlice([]testEnum{testEnumOne, testEnumTwo}, false),
+			ExpectValidationErrors: true,
+		},
+	}
+
+	for tn, tc := range cases {
+		_, errors := tc.ValidateFunc(tc.Value, tn)
+		if len(errors) > 0 && !tc.ExpectValidationErrors {
+			t.Errorf("%s: unexpected errors %s", tn, errors)
+		} else if len(errors) == 0 && tc.ExpectValidationErrors {
+			t.Errorf("%s: expected errors but got none", tn)
+		}
+	}
+}

@@ -45,7 +45,7 @@ func resourceLogAnalyticsLinkedService() *pluginsdk.Resource {
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 			if d.HasChange("read_access_id") {
 				if readAccessID := d.Get("read_access_id").(string); readAccessID != "" {
-					if _, err := automationaccount.ValidateAutomationAccountID(readAccessID, "read_acces_id"); err != nil {
+					if _, err := automationaccount.ValidateAutomationAccountID(readAccessID, "read_access_id"); err != nil {
 						return fmt.Errorf("'read_access_id' must be an Automation Account resource ID, got %q", readAccessID)
 					}
 				}
@@ -212,7 +212,7 @@ func resourceLogAnalyticsLinkedServiceSchema() map[string]*pluginsdk.Schema {
 
 		"read_access_id": {
 			Type:         pluginsdk.TypeString,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			Optional:     true,
 			ValidateFunc: azure.ValidateResourceID,
 			ExactlyOneOf: []string{"read_access_id", "write_access_id"},

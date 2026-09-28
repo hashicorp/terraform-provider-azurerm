@@ -4,16 +4,11 @@
 package validate
 
 import (
-	"fmt"
 	"regexp"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func SharedImageGalleryPrefix(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	if !regexp.MustCompile("^[A-Za-z0-9]{5,16}$").MatchString(value) {
-		errors = append(errors, fmt.Errorf("%q must be 5 to 16 characters long, and can only contain alphanumeric", k))
-	}
-
-	return warnings, errors
+func SharedImageGalleryPrefix(v interface{}, k string) ([]string, []error) {
+	return validation.StringMatch(regexp.MustCompile("^[A-Za-z0-9]{5,16}$"), "must be 5 to 16 characters long, and can only contain alphanumeric")(v, k)
 }

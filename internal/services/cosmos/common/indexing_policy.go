@@ -120,7 +120,7 @@ func ExpandAzureRmCosmosDbIndexingPolicy(d *pluginsdk.ResourceData) *cosmosdb.In
 
 func flattenCosmosDBIndexingPolicyExcludedPaths(input *[]cosmosdb.ExcludedPath) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	excludedPaths := make([]interface{}, 0)
@@ -174,7 +174,7 @@ func FlattenCosmosDBIndexingPolicyCompositeIndexes(input *[][]cosmosdb.Composite
 
 func flattenCosmosDBIndexingPolicyIncludedPaths(input *[]cosmosdb.IncludedPath) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	includedPaths := make([]interface{}, 0)
@@ -208,7 +208,7 @@ func FlattenCosmosDBIndexingPolicySpatialIndexes(input *[]cosmosdb.SpatialSpec) 
 
 func flattenCosmosDBIndexingPolicySpatialIndexesTypes(input *[]cosmosdb.SpatialType) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	types := make([]interface{}, 0)

@@ -3,11 +3,9 @@
 
 package validate
 
-import "fmt"
+import "github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 
-func IoTHubEndpointName(v interface{}, _ string) (warnings []string, errors []error) {
-	value := v.(string)
-
+func IoTHubEndpointName(v interface{}, k string) ([]string, []error) {
 	reservedNames := []string{
 		"events",
 		"operationsMonitoringEvents",
@@ -15,11 +13,5 @@ func IoTHubEndpointName(v interface{}, _ string) (warnings []string, errors []er
 		"$default",
 	}
 
-	for _, name := range reservedNames {
-		if name == value {
-			errors = append(errors, fmt.Errorf("the reserved endpoint name %s could not be used as a name for a custom endpoint", name))
-		}
-	}
-
-	return warnings, errors
+	return validation.StringNotInSlice(reservedNames, false)(v, k)
 }

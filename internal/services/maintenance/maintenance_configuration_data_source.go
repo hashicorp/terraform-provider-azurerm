@@ -189,8 +189,8 @@ func dataSourceArmMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta i
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("scope", string(pointer.From(props.MaintenanceScope)))
-			d.Set("visibility", string(pointer.From(props.Visibility)))
+			d.Set("scope", pointer.FromEnum(props.MaintenanceScope))
+			d.Set("visibility", pointer.FromEnum(props.Visibility))
 
 			properties := flattenExtensionProperties(props.ExtensionProperties)
 			if properties["InGuestPatchMode"] != nil {
@@ -199,13 +199,11 @@ func dataSourceArmMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta i
 			}
 			d.Set("properties", properties)
 
-			window := flattenMaintenanceConfigurationWindow(props.MaintenanceWindow)
-			if err := d.Set("window", window); err != nil {
+			if err := d.Set("window", flattenMaintenanceConfigurationWindow(props.MaintenanceWindow)); err != nil {
 				return fmt.Errorf("setting `window`: %+v", err)
 			}
 
-			installPatches := flattenMaintenanceConfigurationInstallPatches(props.InstallPatches)
-			if err := d.Set("install_patches", installPatches); err != nil {
+			if err := d.Set("install_patches", flattenMaintenanceConfigurationInstallPatches(props.InstallPatches)); err != nil {
 				return fmt.Errorf("setting `install_patches`: %+v", err)
 			}
 		}

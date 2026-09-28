@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/pipelines"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
@@ -80,7 +79,7 @@ func resourceDataFactoryPipeline() *pluginsdk.Resource {
 			"activities_json": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				StateFunc:        helpers.NormalizeJson,
+				StateFunc:        pluginsdk.NormalizeJson,
 				DiffSuppressFunc: suppressJsonOrderingDifference,
 			},
 
@@ -243,13 +242,11 @@ func resourceDataFactoryPipelineRead(d *pluginsdk.ResourceData, meta interface{}
 
 		d.Set("description", pointer.From(props.Description))
 
-		parameters := flattenDataFactoryPipelineParameters(props.Parameters)
-		if err := d.Set("parameters", parameters); err != nil {
+		if err := d.Set("parameters", flattenDataFactoryPipelineParameters(props.Parameters)); err != nil {
 			return fmt.Errorf("setting `parameters`: %+v", err)
 		}
 
-		annotations := flattenDataFactoryAnnotations(props.Annotations)
-		if err := d.Set("annotations", annotations); err != nil {
+		if err := d.Set("annotations", flattenDataFactoryAnnotations(props.Annotations)); err != nil {
 			return fmt.Errorf("setting `annotations`: %+v", err)
 		}
 
@@ -268,8 +265,7 @@ func resourceDataFactoryPipelineRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("folder", pointer.From(folder.Name))
 		}
 
-		variables := flattenDataFactoryPipelineVariables(props.Variables)
-		if err := d.Set("variables", variables); err != nil {
+		if err := d.Set("variables", flattenDataFactoryPipelineVariables(props.Variables)); err != nil {
 			return fmt.Errorf("setting `variables`: %+v", err)
 		}
 

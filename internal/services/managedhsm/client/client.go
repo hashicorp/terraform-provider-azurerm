@@ -57,7 +57,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	o.ConfigureClient(&roleAssignmentsClient.Client, o.ManagedHSMAuthorizer)
 
 	return &Client{
-		// Resource Manger
+		// Resource Manager
 		DeletedManagedHsmClient: deletedManagedHsmClient,
 		ManagedHsmClient:        managedHsmClient,
 

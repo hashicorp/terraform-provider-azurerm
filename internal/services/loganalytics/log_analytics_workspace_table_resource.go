@@ -63,13 +63,10 @@ func (r LogAnalyticsWorkspaceTableResource) Arguments() map[string]*pluginsdk.Sc
 		},
 
 		"plan": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(tables.TablePlanEnumAnalytics),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(tables.TablePlanEnumAnalytics),
-				string(tables.TablePlanEnumBasic),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(tables.TablePlanEnumAnalytics),
+			ValidateFunc: validation.StringInSlice(tables.PossibleValuesForTablePlanEnum(), false),
 		},
 
 		"retention_in_days": {
@@ -247,7 +244,7 @@ func (r LogAnalyticsWorkspaceTableResource) Read() sdk.ResourceFunc {
 						state.RetentionInDays = pointer.From(props.RetentionInDays)
 					}
 					state.TotalRetentionInDays = pointer.From(props.TotalRetentionInDays)
-					state.Plan = string(pointer.From(props.Plan))
+					state.Plan = pointer.FromEnum(props.Plan)
 				}
 			}
 
