@@ -107,6 +107,7 @@ linters:
         type: module
         settings:
           disable:
+            - AZG010 # import aliases that are not needed - new in v0.11.0, enabled in a follow up commit
             - AZG008 # pointer dereferences (*props.Status) must have a reachable nil guard - ~1398 findings to fix later
             - AZR002 # split create and update: ~350 todo over time
             - AZT002 # tests should not obtain credentials via os.Getenv - investigate in a later pr
@@ -114,8 +115,8 @@ linters:
             - AZR003 # d.Get should not be used within a Delete function as it does not work as expected during deletion - 9 findings to fix later
             - AZR007 # StateChangeConf should be replaced with a custom poller implementing pollers.PollerType - 159 findings, being migrated over time (eventual consistency poller series was the start)
             - AZS003 # TypeList blocks where every property is optional with no default allow empty blocks - 290 findings to fix later
-            - AZS005 # resources with no corresponding data source - 768 findings, to determine if to be fixed later
-            - AZS006 # data sources missing properties that exist on the resource - 185 findings, todo later
+            - AZP002 # resources with no corresponding data source - 768 findings, to determine if to be fixed later
+            - AZP003 # data sources missing properties that exist on the resource - 185 findings, todo later
             - AZR010 # callers nil-checking before flatten* functions that already handle nil - 244 findings, new in v0.8.0, to fix later
           AZG002:
             use: pointer.To # rather than the go1.26 new(<expr>) builtin
