@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -828,7 +827,7 @@ func resourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta inte
 
 	if model := resp.Model; model != nil {
 		if sku := model.Sku; sku != nil {
-			d.Set("sku_name", string(pointer.From(sku.Name)))
+			d.Set("sku_name", pointer.FromEnum(sku.Name))
 		}
 
 		if props := model.Properties; props != nil {
@@ -846,7 +845,7 @@ func resourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta inte
 
 			if policy := props.PolicySettings; policy != nil {
 				d.Set("enabled", pointer.From(policy.EnabledState) == waf.PolicyEnabledStateEnabled)
-				d.Set("mode", string(pointer.From(policy.Mode)))
+				d.Set("mode", pointer.FromEnum(policy.Mode))
 				d.Set("request_body_check_enabled", pointer.From(policy.RequestBodyCheck) == waf.PolicyRequestBodyCheckEnabled)
 				d.Set("redirect_url", policy.RedirectURL)
 				d.Set("custom_block_response_status_code", int(pointer.From(policy.CustomBlockResponseStatusCode)))
@@ -946,7 +945,7 @@ func expandCdnFrontDoorFirewallMatchConditions(input []interface{}) []waf.MatchC
 		matchVariable := match["match_variable"].(string)
 		selector := match["selector"].(string)
 		operator := match["operator"].(string)
-		matchValues := helpers.ExpandStringSlice(match["match_values"].([]interface{}))
+		matchValues := pluginsdk.ExpandStringSlice(match["match_values"].([]interface{}))
 		transforms := match["transforms"].([]interface{})
 
 		matchCondition := waf.MatchCondition{
@@ -1271,7 +1270,7 @@ func flattenCdnFrontDoorFirewallManagedRules(input *waf.ManagedRuleSetList) []in
 	for _, r := range *input.ManagedRuleSets {
 		ruleSetType := r.RuleSetType
 		ruleSetVersion := r.RuleSetVersion
-		ruleSetAction := string(pointer.From(r.RuleSetAction))
+		ruleSetAction := pointer.FromEnum(r.RuleSetAction)
 
 		results = append(results, map[string]interface{}{
 			"exclusion": flattenCdnFrontDoorFirewallExclusions(r.Exclusions),

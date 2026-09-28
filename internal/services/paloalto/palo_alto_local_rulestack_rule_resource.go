@@ -330,11 +330,11 @@ func (r LocalRuleStackRule) Read() sdk.ResourceFunc {
 			if model := existing.Model; model != nil {
 				props := model.Properties
 				state.Name = props.RuleName
-				state.Action = string(pointer.From(props.ActionType))
+				state.Action = pointer.FromEnum(props.ActionType)
 				state.Applications = pointer.From(props.Applications)
 				state.AuditComment = pointer.From(props.AuditComment)
 				state.Category = schema.FlattenCategory(props.Category)
-				state.DecryptionRuleType = string(pointer.From(props.DecryptionRuleType))
+				state.DecryptionRuleType = pointer.FromEnum(props.DecryptionRuleType)
 				state.Description = pointer.From(props.Description)
 				state.Destination = schema.FlattenDestination(props.Destination, *id)
 				state.LoggingEnabled = stateEnumAsBool(props.EnableLogging)

@@ -96,8 +96,8 @@ func (r NetAppVolumeBucketWithServerDataSource) Read() sdk.ResourceFunc {
 			if resp.Model != nil && resp.Model.Properties != nil {
 				props := resp.Model.Properties
 				state.Path = pointer.From(props.Path)
-				state.Permissions = string(pointer.From(props.Permissions))
-				state.Status = string(pointer.From(props.Status))
+				state.Permissions = pointer.FromEnum(props.Permissions)
+				state.Status = pointer.FromEnum(props.Status)
 
 				if props.FileSystemUser != nil {
 					state.FileSystemNfsUser = flattenNetAppBucketNfsUser(props.FileSystemUser.NfsUser)

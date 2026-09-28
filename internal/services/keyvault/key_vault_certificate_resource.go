@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
@@ -933,7 +932,7 @@ func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*kv.Certificate
 		cert := v.(map[string]interface{})
 
 		ekus := cert["extended_key_usage"].([]interface{})
-		extendedKeyUsage := helpers.ExpandStringSlice(ekus)
+		extendedKeyUsage := pluginsdk.ExpandStringSlice(ekus)
 
 		keyUsage := make([]kv.KeyUsageType, 0)
 		keys := cert["key_usage"].(*pluginsdk.Set).List()
@@ -949,17 +948,17 @@ func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*kv.Certificate
 
 					emails := san["emails"].(*pluginsdk.Set).List()
 					if len(emails) > 0 {
-						subjectAlternativeNames.Emails = helpers.ExpandStringSlice(emails)
+						subjectAlternativeNames.Emails = pluginsdk.ExpandStringSlice(emails)
 					}
 
 					dnsNames := san["dns_names"].(*pluginsdk.Set).List()
 					if len(dnsNames) > 0 {
-						subjectAlternativeNames.DNSNames = helpers.ExpandStringSlice(dnsNames)
+						subjectAlternativeNames.DNSNames = pluginsdk.ExpandStringSlice(dnsNames)
 					}
 
 					upns := san["upns"].(*pluginsdk.Set).List()
 					if len(upns) > 0 {
-						subjectAlternativeNames.Upns = helpers.ExpandStringSlice(upns)
+						subjectAlternativeNames.Upns = pluginsdk.ExpandStringSlice(upns)
 					}
 				}
 			}

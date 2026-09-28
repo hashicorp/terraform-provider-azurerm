@@ -156,7 +156,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 						state.Password = metadata.ResourceData.Get("password").(string)
 					}
 
-					state.ProvisioningAction = string(pointer.From(props.ProvisioningAction))
+					state.ProvisioningAction = pointer.FromEnum(props.ProvisioningAction)
 				}
 			}
 

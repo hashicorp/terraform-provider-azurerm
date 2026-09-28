@@ -10,8 +10,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/expressrouteports"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/expressrouteportauthorizations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressrouteportauthorizations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressrouteports"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -130,7 +130,7 @@ func resourceExpressRoutePortAuthorizationRead(d *pluginsdk.ResourceData, meta i
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("authorization_key", props.AuthorizationKey)
-			d.Set("authorization_use_status", string(pointer.From(props.AuthorizationUseStatus)))
+			d.Set("authorization_use_status", pointer.FromEnum(props.AuthorizationUseStatus))
 		}
 	}
 

@@ -1374,8 +1374,8 @@ func FlattenAuthSettings(auth *webapps.SiteAuthSettings) []AuthSettings {
 	props := *auth.Properties
 
 	result := AuthSettings{
-		DefaultProvider:             string(pointer.From(props.DefaultProvider)),
-		UnauthenticatedClientAction: string(pointer.From(props.UnauthenticatedClientAction)),
+		DefaultProvider:             pointer.FromEnum(props.DefaultProvider),
+		UnauthenticatedClientAction: pointer.FromEnum(props.UnauthenticatedClientAction),
 	}
 
 	if props.Enabled != nil {

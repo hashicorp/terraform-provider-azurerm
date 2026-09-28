@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -16,10 +17,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func AzureProvider() *schema.Provider {
@@ -36,52 +37,18 @@ func AzureProviderWithTestName(testName string) *schema.Provider {
 	return azureProvider(false, testName)
 }
 
-// lintignore:V013 // false positive - this validates a UUID with an optional pid- prefix/suffix; the string comparison checks for empty values
+// ValidatePartnerID checks if partner_id is any of the following:
+//   - empty
+//   - a valid UUID - a "pid-" prefix will be added to the ID if it is not already present
+//   - a valid UUID prefixed with "pid-"
+//   - a valid UUID prefixed with "pid-" and suffixed with "-partnercenter"
 func ValidatePartnerID(i interface{}, k string) ([]string, []error) {
-	// ValidatePartnerID checks if partner_id is any of the following:
-	//  * a valid UUID - will add "pid-" prefix to the ID if it is not already present
-	//  * a valid UUID prefixed with "pid-"
-	//  * a valid UUID prefixed with "pid-" and suffixed with "-partnercenter"
-
-	v, ok := i.(string)
-	if !ok {
-		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
-	}
-
-	if v == "" {
-		return nil, nil
-	}
-
-	// Check for pid=<guid>-partnercenter format
-	if strings.HasPrefix(v, "pid-") && strings.HasSuffix(v, "-partnercenter") {
-		g := strings.TrimPrefix(v, "pid-")
-		g = strings.TrimSuffix(g, "-partnercenter")
-
-		if _, err := validation.IsUUID(g, ""); err != nil {
-			return nil, []error{fmt.Errorf("expected %q to contain a valid UUID", v)}
-		}
-
-		logEntry("[DEBUG] %q partner_id matches pid-<GUID>-partnercenter...", v)
-		return nil, nil
-	}
-
-	// Check for pid=<guid> (without the -partnercenter suffix)
-	if strings.HasPrefix(v, "pid-") && !strings.HasSuffix(v, "-partnercenter") {
-		if _, err := validation.IsUUID(strings.TrimPrefix(v, "pid-"), ""); err != nil {
-			return nil, []error{fmt.Errorf("expected %q to be a valid UUID", k)}
-		}
-
-		logEntry("[DEBUG] %q partner_id matches pid-<GUID>...", v)
-		return nil, nil
-	}
-
-	// Check for straight UUID
-	if _, err := validation.IsUUID(v, ""); err != nil {
-		return nil, []error{fmt.Errorf("expected %q to be a valid UUID", k)}
-	} else {
-		logEntry("[DEBUG] %q partner_id is an un-prefixed UUID...", v)
-		return nil, nil
-	}
+	uuid := `[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}`
+	return validation.Any(
+		validation.StringIsEmpty,
+		validation.StringMatch(regexp.MustCompile(`^(pid-)?`+uuid+`$`), "expected a valid UUID with an optional `pid-` prefix"),
+		validation.StringMatch(regexp.MustCompile(`^pid-`+uuid+`-partnercenter$`), "expected a valid UUID with a `pid-` prefix and `-partnercenter` suffix"),
+	)(i, k)
 }
 
 func azureProvider(supportLegacyTestSuite bool, testName string) *schema.Provider {
@@ -396,7 +363,7 @@ func providerConfigure(p *schema.Provider, testName string) schema.ConfigureCont
 
 		var auxTenants []string
 		if v, ok := d.Get("auxiliary_tenant_ids").([]interface{}); ok && len(v) > 0 {
-			auxTenants = *helpers.ExpandStringSlice(v)
+			auxTenants = *pluginsdk.ExpandStringSlice(v)
 		} else if v := os.Getenv("ARM_AUXILIARY_TENANT_IDS"); v != "" {
 			auxTenants = strings.Split(v, ";")
 		}
