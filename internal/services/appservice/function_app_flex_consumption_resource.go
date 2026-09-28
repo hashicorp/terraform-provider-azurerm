@@ -865,7 +865,7 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 								if storageAuthType == string(webapps.AuthenticationTypeStorageAccountConnectionString) {
 									_, state.StorageAccessKey = helpers.ParseWebJobsStorageString(deploymentSaConStr)
 								}
-								state.StorageAuthType = string(storageAuthType)
+								state.StorageAuthType = storageAuthType
 								state.StorageUserAssignedIdentityID = deploymentStorage.UserAssignedIdentityId
 							}
 						}
