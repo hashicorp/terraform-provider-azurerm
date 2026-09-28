@@ -48,10 +48,10 @@ func resourceVirtualDesktopApplication() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.All(
-					validation.StringIsNotEmpty,
+					validation.StringLenBetween(3, 24),
 					validation.StringMatch(
-						regexp.MustCompile("^[-a-zA-Z0-9]{1,260}$"),
-						"Virtual desktop application name must be 1 - 260 characters long, contain only letters, numbers and hyphens.",
+						regexp.MustCompile("^[A-Za-z0-9@.\\-_ ]*$"),
+						"Virtual desktop application name must be 3 - 24 characters long and may only contain letters, numbers, spaces, periods, underscores, hyphens, and @.",
 					),
 				),
 			},
