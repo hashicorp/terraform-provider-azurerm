@@ -73,7 +73,7 @@ In addition to the Arguments listed above the following Attributes are exported:
 
 * `lifecycle_details` - Information about the current lifecycle state.
 
-* `local_adg_auto_failover_max_data_loss_limit_in_seconds` - The maximum data loss limit in seconds for local ADG automatic failover.
+* `local_adg_auto_failover_maximum_data_loss_limit_in_seconds` - The maximum data loss limit in seconds for local ADG automatic failover.
 
 * `local_data_guard_enabled` - Indicates whether local (in-region) Data Guard is enabled.
 
@@ -113,7 +113,7 @@ In addition to the Arguments listed above the following Attributes are exported:
 
 * `service_console_url` - The URL of the service console.
 
-* `source` - The source type used for the Cross Region Disaster Recovery Autonomous Database.
+* `source_type` - The source type used for the Cross Region Disaster Recovery Autonomous Database.
 
 * `source_autonomous_database_id` - The ID of the source (primary) Autonomous Database.
 

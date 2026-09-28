@@ -32,7 +32,7 @@ func TestAccAutonomousDatabaseCrossRegionDisasterRecoveryDataSource_basic(t *tes
 				check.That(data.ResourceName).Key("database_version").HasValue("19c"),
 				check.That(data.ResourceName).Key("database_workload").HasValue("DW"),
 				check.That(data.ResourceName).Key("license_model").HasValue("LicenseIncluded"),
-				check.That(data.ResourceName).Key("local_adg_auto_failover_max_data_loss_limit_in_seconds").Exists(),
+				check.That(data.ResourceName).Key("local_adg_auto_failover_maximum_data_loss_limit_in_seconds").Exists(),
 				check.That(data.ResourceName).Key("national_character_set").HasValue("AL16UTF16"),
 				check.That(data.ResourceName).Key("remote_disaster_recovery_type").HasValue("Adg"),
 				check.That(data.ResourceName).Key("source_autonomous_database_id").Exists(),
