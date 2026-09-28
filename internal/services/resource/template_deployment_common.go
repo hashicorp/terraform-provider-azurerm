@@ -111,7 +111,7 @@ func filterOutTemplateDeploymentParameters(input interface{}) interface{} {
 			"dnsLabelPrefix": {
 				"reference": {
 					"keyvault": {
-						"id": "/some/id/that/doesnt/matter/right/now"
+						"id": "/some/id/that/does-not/matter/right/now"
 					},
 					"secretName": "some-name"
 				}

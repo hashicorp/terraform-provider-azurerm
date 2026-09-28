@@ -240,7 +240,7 @@ func (r LocalRulestackFQDNList) Update() sdk.ResourceFunc {
 
 			existing, err := client.FqdnListLocalRulestackGet(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("retreiving %s: %+v", *id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			fqdnList := *existing.Model

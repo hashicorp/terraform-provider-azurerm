@@ -351,7 +351,7 @@ func resourceDataFactoryIntegrationRuntimeAzureRead(d *pluginsdk.ResourceData, m
 			d.Set("location", location.NormalizeNilable(computeProps.Location))
 
 			if dataFlowProps := computeProps.DataFlowProperties; dataFlowProps != nil {
-				d.Set("compute_type", string(pointer.From(dataFlowProps.ComputeType)))
+				d.Set("compute_type", pointer.FromEnum(dataFlowProps.ComputeType))
 				d.Set("core_count", dataFlowProps.CoreCount)
 				d.Set("time_to_live_min", dataFlowProps.TimeToLive)
 				d.Set("cleanup_enabled", dataFlowProps.Cleanup)

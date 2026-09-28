@@ -105,6 +105,8 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Is the Function App enabled? Defaults to `true`.
 
+* `end_to_end_tls_encryption_enabled` - (Optional) Whether to enable end-to-end TLS encryption. Defaults to `false`.
+
 * `content_share_force_disabled` - (Optional) Should the settings for linking the Function App to storage be suppressed.
 
 * `functions_extension_version` - (Optional) The runtime version associated with the Function App. Defaults to `~4`.

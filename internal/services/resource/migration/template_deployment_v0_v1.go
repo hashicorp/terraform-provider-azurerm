@@ -9,7 +9,6 @@ import (
 	"log"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/deployments"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -35,7 +34,7 @@ func (t TemplateDeploymentV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Type:      pluginsdk.TypeString,
 			Optional:  true,
 			Computed:  true,
-			StateFunc: helpers.NormalizeJson,
+			StateFunc: pluginsdk.NormalizeJson,
 		},
 
 		"parameters": {
@@ -50,7 +49,7 @@ func (t TemplateDeploymentV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		"parameters_body": {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
-			StateFunc:     helpers.NormalizeJson,
+			StateFunc:     pluginsdk.NormalizeJson,
 			ConflictsWith: []string{"parameters"},
 		},
 

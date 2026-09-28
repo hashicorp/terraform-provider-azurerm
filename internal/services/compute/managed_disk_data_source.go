@@ -210,7 +210,7 @@ func dataSourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.Set("disk_size_gb", props.DiskSizeGB)
 			d.Set("disk_iops_read_write", props.DiskIOPSReadWrite)
 			d.Set("disk_mbps_read_write", props.DiskMBpsReadWrite)
-			d.Set("os_type", string(pointer.From(props.OsType)))
+			d.Set("os_type", pointer.FromEnum(props.OsType))
 
 			diskEncryptionSetId := ""
 			if props.Encryption != nil && props.Encryption.DiskEncryptionSetId != nil {

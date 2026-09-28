@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/scopemaps"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -101,7 +100,7 @@ func resourceContainerRegistryScopeMapCreate(d *pluginsdk.ResourceData, meta int
 	parameters := scopemaps.ScopeMap{
 		Properties: &scopemaps.ScopeMapProperties{
 			Description: pointer.To(d.Get("description").(string)),
-			Actions:     pointer.From(helpers.ExpandStringSlice(d.Get("actions").([]interface{}))),
+			Actions:     pointer.From(pluginsdk.ExpandStringSlice(d.Get("actions").([]interface{}))),
 		},
 	}
 
@@ -127,7 +126,7 @@ func resourceContainerRegistryScopeMapUpdate(d *pluginsdk.ResourceData, meta int
 	parameters := scopemaps.ScopeMapUpdateParameters{
 		Properties: &scopemaps.ScopeMapPropertiesUpdateParameters{
 			Description: pointer.To(d.Get("description").(string)),
-			Actions:     helpers.ExpandStringSlice(d.Get("actions").([]interface{})),
+			Actions:     pluginsdk.ExpandStringSlice(d.Get("actions").([]interface{})),
 		},
 	}
 
@@ -168,7 +167,7 @@ func resourceContainerRegistryScopeMapRead(d *pluginsdk.ResourceData, meta inter
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("description", pointer.From(props.Description))
-			d.Set("actions", helpers.FlattenStringSlice(&props.Actions))
+			d.Set("actions", pluginsdk.FlattenSlice(&props.Actions))
 		}
 	}
 	return nil

@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/disasterrecoveryconfigs"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespacesauthorizationrule"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/armdisasterrecoveries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespacesauthorizationrule"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -132,9 +132,9 @@ func waitForPairedNamespaceReplication(ctx context.Context, meta interface{}, id
 		}
 	}
 
-	disasterRecoveryClient := meta.(*clients.Client).ServiceBus.DisasterRecoveryConfigsClient
-	disasterRecoveryNamespaceId := disasterrecoveryconfigs.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
-	disasterRecoveryResponse, err := disasterRecoveryClient.List(ctx, disasterRecoveryNamespaceId)
+	disasterRecoveryClient := meta.(*clients.Client).ServiceBus.ArmDisasterRecoveriesClient
+	disasterRecoveryNamespaceId := armdisasterrecoveries.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
+	disasterRecoveryResponse, err := disasterRecoveryClient.DisasterRecoveryConfigsList(ctx, disasterRecoveryNamespaceId)
 
 	if disasterRecoveryResponse.Model == nil {
 		return err
@@ -146,21 +146,21 @@ func waitForPairedNamespaceReplication(ctx context.Context, meta interface{}, id
 
 	aliasName := (*disasterRecoveryResponse.Model)[0].Name
 
-	disasterRecoveryConfigId := disasterrecoveryconfigs.NewDisasterRecoveryConfigID(disasterRecoveryNamespaceId.SubscriptionId, disasterRecoveryNamespaceId.ResourceGroupName, disasterRecoveryNamespaceId.NamespaceName, *aliasName)
+	disasterRecoveryConfigId := armdisasterrecoveries.NewDisasterRecoveryConfigID(disasterRecoveryNamespaceId.SubscriptionId, disasterRecoveryNamespaceId.ResourceGroupName, disasterRecoveryNamespaceId.NamespaceName, *aliasName)
 
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{string(disasterrecoveryconfigs.ProvisioningStateDRAccepted)},
-		Target:     []string{string(disasterrecoveryconfigs.ProvisioningStateDRSucceeded)},
+		Pending:    []string{string(armdisasterrecoveries.ProvisioningStateDRAccepted)},
+		Target:     []string{string(armdisasterrecoveries.ProvisioningStateDRSucceeded)},
 		MinTimeout: 30 * time.Second,
 		Timeout:    timeout,
 		Refresh: func() (interface{}, string, error) {
-			resp, err := disasterRecoveryClient.Get(ctx, disasterRecoveryConfigId)
+			resp, err := disasterRecoveryClient.DisasterRecoveryConfigsGet(ctx, disasterRecoveryConfigId)
 			if err != nil {
 				return nil, "error", fmt.Errorf("wait read for %s: %v", disasterRecoveryConfigId, err)
 			}
 
 			if model := resp.Model; model != nil {
-				if *model.Properties.ProvisioningState == disasterrecoveryconfigs.ProvisioningStateDRFailed {
+				if *model.Properties.ProvisioningState == armdisasterrecoveries.ProvisioningStateDRFailed {
 					return resp, "failed", fmt.Errorf("replication for %s failed", disasterRecoveryConfigId)
 				}
 				return resp, string(*model.Properties.ProvisioningState), nil

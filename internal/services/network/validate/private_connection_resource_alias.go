@@ -4,20 +4,14 @@
 package validate
 
 import (
-	"fmt"
-	"strings"
+	"regexp"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func PrivateConnectionResourceAlias(input interface{}, key string) (warnings []string, errors []error) {
-	v, ok := input.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %q to be string", key))
-		return
-	}
-
-	if !strings.HasSuffix(v, ".azure.privatelinkservice") {
-		errors = append(errors, fmt.Errorf("expected %q to have suffix `.azure.privatelinkservice`", key))
-	}
-
-	return
+func PrivateConnectionResourceAlias(input interface{}, key string) ([]string, []error) {
+	return validation.StringMatch(
+		regexp.MustCompile(`\.azure\.privatelinkservice$`),
+		"expected to have suffix `.azure.privatelinkservice`",
+	)(input, key)
 }

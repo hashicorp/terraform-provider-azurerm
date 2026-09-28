@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
@@ -220,8 +219,8 @@ func resourceSpringCloudContainerDeploymentCreateUpdate(d *pluginsdk.ResourceDat
 				CustomContainer: &appplatform.CustomContainer{
 					Server:            pointer.To(d.Get("server").(string)),
 					ContainerImage:    pointer.To(d.Get("image").(string)),
-					Command:           helpers.ExpandStringSlice(d.Get("commands").([]interface{})),
-					Args:              helpers.ExpandStringSlice(d.Get("arguments").([]interface{})),
+					Command:           pluginsdk.ExpandStringSlice(d.Get("commands").([]interface{})),
+					Args:              pluginsdk.ExpandStringSlice(d.Get("arguments").([]interface{})),
 					LanguageFramework: pointer.To(d.Get("language_framework").(string)),
 				},
 			},
@@ -296,8 +295,8 @@ func resourceSpringCloudContainerDeploymentRead(d *pluginsdk.ResourceData, meta 
 			if container := source.CustomContainer; container != nil {
 				d.Set("server", container.Server)
 				d.Set("image", container.ContainerImage)
-				d.Set("arguments", helpers.FlattenStringSlice(container.Args))
-				d.Set("commands", helpers.FlattenStringSlice(container.Command))
+				d.Set("arguments", pluginsdk.FlattenSlice(container.Args))
+				d.Set("commands", pluginsdk.FlattenSlice(container.Command))
 				d.Set("language_framework", container.LanguageFramework)
 			}
 		}

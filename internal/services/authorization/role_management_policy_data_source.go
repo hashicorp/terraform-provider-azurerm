@@ -394,7 +394,7 @@ func (r RoleManagementPolicyDataSource) Read() sdk.ResourceFunc {
 											for ia, pa := range *primaryApprovers {
 												state.ActivationRules[0].ApprovalStages[0].PrimaryApprovers[ia] = RoleManagementPolicyDataSourceApprover{
 													ID:   pointer.From(pa.Id),
-													Type: string(pointer.From(pa.UserType)),
+													Type: pointer.FromEnum(pa.UserType),
 												}
 											}
 										}
@@ -514,7 +514,7 @@ func (r RoleManagementPolicyDataSource) Read() sdk.ResourceFunc {
 
 func flattenNotificationDataSourceSettings(rule rolemanagementpolicies.RoleManagementPolicyNotificationRule) *RoleManagementPolicyDataSourceNotificationSettings {
 	return &RoleManagementPolicyDataSourceNotificationSettings{
-		NotificationLevel:    string(pointer.From(rule.NotificationLevel)),
+		NotificationLevel:    pointer.FromEnum(rule.NotificationLevel),
 		DefaultRecipients:    pointer.From(rule.IsDefaultRecipientsEnabled),
 		AdditionalRecipients: pointer.From(rule.NotificationRecipients),
 	}

@@ -12,7 +12,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/pool"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -374,7 +373,7 @@ func flattenBatchPoolSecurityProfile(configProfile *pool.SecurityProfile) []inte
 	securityConfig := make(map[string]interface{})
 
 	securityConfig["host_encryption_enabled"] = pointer.From(configProfile.EncryptionAtHost)
-	securityConfig["security_type"] = string(pointer.From(configProfile.SecurityType))
+	securityConfig["security_type"] = pointer.FromEnum(configProfile.SecurityType)
 
 	if configProfile.UefiSettings != nil {
 		securityConfig["secure_boot_enabled"] = pointer.From(configProfile.UefiSettings.SecureBootEnabled)
@@ -483,7 +482,7 @@ func ExpandBatchPoolContainerConfiguration(list []interface{}) (*pool.ContainerC
 	obj := &pool.ContainerConfiguration{
 		Type:                pool.ContainerType(block["type"].(string)),
 		ContainerRegistries: containerRegistries,
-		ContainerImageNames: helpers.ExpandStringSlice(block["container_image_names"].(*pluginsdk.Set).List()),
+		ContainerImageNames: pluginsdk.ExpandStringSlice(block["container_image_names"].(*pluginsdk.Set).List()),
 	}
 
 	return obj, nil
@@ -842,7 +841,7 @@ func expandBatchPoolExtension(ref map[string]interface{}) (*pool.VmExtension, er
 	}
 
 	if tmpItem, ok := ref["provision_after_extensions"]; ok {
-		result.ProvisionAfterExtensions = helpers.ExpandStringSlice(tmpItem.(*pluginsdk.Set).List())
+		result.ProvisionAfterExtensions = pluginsdk.ExpandStringSlice(tmpItem.(*pluginsdk.Set).List())
 	}
 
 	return &result, nil
@@ -1095,7 +1094,7 @@ func ExpandBatchPoolNetworkConfiguration(list []interface{}) (*pool.NetworkConfi
 		}
 
 		publicIPsRaw := v.(*pluginsdk.Set).List()
-		networkConfiguration.PublicIPAddressConfiguration.IPAddressIds = helpers.ExpandStringSlice(publicIPsRaw)
+		networkConfiguration.PublicIPAddressConfiguration.IPAddressIds = pluginsdk.ExpandStringSlice(publicIPsRaw)
 	}
 
 	if v, ok := networkConfigValue["endpoint_configuration"]; ok {
@@ -1220,7 +1219,7 @@ func flattenBatchPoolNetworkConfiguration(input *pool.NetworkConfiguration) []in
 	publicIPAddressIds := make([]interface{}, 0)
 	publicAddressProvisioningType := ""
 	if config := input.PublicIPAddressConfiguration; config != nil {
-		publicIPAddressIds = helpers.FlattenStringSlice(config.IPAddressIds)
+		publicIPAddressIds = pluginsdk.FlattenSlice(config.IPAddressIds)
 		if config.Provision != nil {
 			publicAddressProvisioningType = string(*config.Provision)
 		}

@@ -395,7 +395,7 @@ func (r PimActiveRoleAssignmentResource) Read() sdk.ResourceFunc {
 				// A request is still present and was found, so populate from the request
 				state.Justification = pointer.From(request.Properties.Justification)
 				state.PrincipalId = request.Properties.PrincipalId
-				state.PrincipalType = string(pointer.From(request.Properties.PrincipalType))
+				state.PrincipalType = pointer.FromEnum(request.Properties.PrincipalType)
 				state.RoleDefinitionId = request.Properties.RoleDefinitionId
 
 				if ticketInfo := request.Properties.TicketInfo; ticketInfo != nil {
@@ -461,7 +461,7 @@ func (r PimActiveRoleAssignmentResource) Read() sdk.ResourceFunc {
 			} else if props := schedule.Properties; props != nil {
 				// The request has likely expired, so populate from the schedule (not all fields will be available)
 				state.PrincipalId = pointer.From(props.PrincipalId)
-				state.PrincipalType = string(pointer.From(props.PrincipalType))
+				state.PrincipalType = pointer.FromEnum(props.PrincipalType)
 				state.RoleDefinitionId = pointer.From(props.RoleDefinitionId)
 
 				if props.StartDateTime != nil {
