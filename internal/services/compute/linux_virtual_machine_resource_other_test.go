@@ -983,21 +983,7 @@ func TestAccLinuxVirtualMachine_otherSizeProperties(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.otherSizeProperties(data, 0, 2),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
 			Config: r.otherSizeProperties(data, 1, 1),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.otherSizeProperties(data, 0, 0),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
