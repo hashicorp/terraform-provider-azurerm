@@ -204,7 +204,7 @@ func resourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("frontend_ip_configuration_id", frontendIPConfigID)
 			d.Set("frontend_port", int(props.FrontendPort))
 			d.Set("idle_timeout_in_minutes", int(pointer.From(props.IdleTimeoutInMinutes)))
-			d.Set("load_distribution", string(pointer.From(props.LoadDistribution)))
+			d.Set("load_distribution", pointer.FromEnum(props.LoadDistribution))
 
 			probeId := ""
 			if props.Probe != nil {

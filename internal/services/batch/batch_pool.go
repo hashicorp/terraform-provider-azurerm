@@ -373,7 +373,7 @@ func flattenBatchPoolSecurityProfile(configProfile *pool.SecurityProfile) []inte
 	securityConfig := make(map[string]interface{})
 
 	securityConfig["host_encryption_enabled"] = pointer.From(configProfile.EncryptionAtHost)
-	securityConfig["security_type"] = string(pointer.From(configProfile.SecurityType))
+	securityConfig["security_type"] = pointer.FromEnum(configProfile.SecurityType)
 
 	if configProfile.UefiSettings != nil {
 		securityConfig["secure_boot_enabled"] = pointer.From(configProfile.UefiSettings.SecureBootEnabled)

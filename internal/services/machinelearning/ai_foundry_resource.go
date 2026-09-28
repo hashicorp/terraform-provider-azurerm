@@ -617,6 +617,6 @@ func flattenManagedNetwork(input *workspaces.ManagedNetworkSettings) []ManagedNe
 	}
 
 	return append(out, ManagedNetwork{
-		IsolationMode: string(pointer.From(input.IsolationMode)),
+		IsolationMode: pointer.FromEnum(input.IsolationMode),
 	})
 }

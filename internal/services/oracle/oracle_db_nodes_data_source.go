@@ -237,7 +237,7 @@ func (d DBNodesDataSource) Read() sdk.ResourceFunc {
 							Hostname:                   pointer.From(props.Hostname),
 							LifecycleDetails:           pointer.From(props.LifecycleDetails),
 							LifecycleState:             string(props.LifecycleState),
-							MaintenanceType:            string(pointer.From(props.MaintenanceType)),
+							MaintenanceType:            pointer.FromEnum(props.MaintenanceType),
 							MemorySizeInGbs:            pointer.From(props.MemorySizeInGbs),
 							Ocid:                       props.Ocid,
 							SoftwareStorageSizeInGb:    pointer.From(props.SoftwareStorageSizeInGb),

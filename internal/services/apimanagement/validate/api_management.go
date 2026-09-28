@@ -6,7 +6,8 @@ package validate
 import (
 	"fmt"
 	"regexp"
-	"strings"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 func ApiManagementChildName(v interface{}, k string) (warnings []string, errors []error) {
@@ -30,18 +31,12 @@ func ApiManagementServiceName(v interface{}, k string) (warnings []string, error
 	return warnings, errors
 }
 
-func ApiManagementUserName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	if strings.HasPrefix(value, "-") || strings.HasSuffix(value, "-") {
-		errors = append(errors, fmt.Errorf("%q may not start or end with '-' character", k))
-	}
-	// from the portal: `The field may contain only numbers, letters, and dash (-) sign when preceded and followed by number or a letter.`
-	if matched := regexp.MustCompile(`(^([a-zA-Z0-9-]{1,80})$)`).Match([]byte(value)); !matched {
-		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters and dashes up to 80 characters in length", k))
-	}
-
-	return warnings, errors
+// from the portal: `The field may contain only numbers, letters, and dash (-) sign when preceded and followed by number or a letter.`
+func ApiManagementUserName(v interface{}, k string) ([]string, []error) {
+	return validation.All(
+		validation.StringDoesNotMatch(regexp.MustCompile(`^-|-$`), "may not start or end with '-' character"),
+		validation.StringMatch(regexp.MustCompile(`(^([a-zA-Z0-9-]{1,80})$)`), "may only contain alphanumeric characters and dashes up to 80 characters in length"),
+	)(v, k)
 }
 
 func ApiManagementServicePublisherName(v interface{}, k string) (warnings []string, errors []error) {
@@ -54,14 +49,12 @@ func ApiManagementServicePublisherName(v interface{}, k string) (warnings []stri
 	return warnings, errors
 }
 
-func ApiManagementServicePublisherEmail(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	if matched := regexp.MustCompile(`^[\S*]{1,100}$`).Match([]byte(value)); !matched {
-		errors = append(errors, fmt.Errorf("%q may only be up to 100 characters in length", k))
-	}
-
-	return warnings, errors
+// despite the name this only validates length and the absence of whitespace, not that the value is an email address
+func ApiManagementServicePublisherEmail(v interface{}, k string) ([]string, []error) {
+	return validation.StringMatch(
+		regexp.MustCompile(`^[\S*]{1,100}$`),
+		"may only be up to 100 characters in length and must not contain whitespace",
+	)(v, k)
 }
 
 func ApiManagementApiName(v interface{}, k string) (ws []string, es []error) {

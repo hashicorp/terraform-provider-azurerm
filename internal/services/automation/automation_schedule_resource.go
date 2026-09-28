@@ -383,7 +383,7 @@ func resourceAutomationScheduleRead(d *pluginsdk.ResourceData, meta interface{})
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("frequency", string(pointer.From(props.Frequency)))
+			d.Set("frequency", pointer.FromEnum(props.Frequency))
 
 			startTime, err := props.GetStartTimeAsTime()
 			if err != nil {

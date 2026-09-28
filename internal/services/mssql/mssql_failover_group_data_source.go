@@ -191,7 +191,7 @@ func flattenPartnerServers(input []failovergroups.PartnerInfo) []PartnerServerDa
 	for _, partner := range input {
 		model := PartnerServerDataSourceModel{
 			Location: location.NormalizeNilable(partner.Location),
-			Role:     string(pointer.From(partner.ReplicationRole)),
+			Role:     pointer.FromEnum(partner.ReplicationRole),
 			ID:       partner.Id,
 		}
 

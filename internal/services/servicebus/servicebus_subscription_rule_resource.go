@@ -283,7 +283,7 @@ func resourceServiceBusSubscriptionRuleRead(d *pluginsdk.ResourceData, meta inte
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("filter_type", string(pointer.From(props.FilterType)))
+			d.Set("filter_type", pointer.FromEnum(props.FilterType))
 
 			if props.Action != nil {
 				d.Set("action", props.Action.SqlExpression)

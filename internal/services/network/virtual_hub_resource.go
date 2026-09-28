@@ -355,7 +355,7 @@ func resourceVirtualHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				return fmt.Errorf("setting `route`: %+v", err)
 			}
 
-			d.Set("hub_routing_preference", string(pointer.From(props.HubRoutingPreference)))
+			d.Set("hub_routing_preference", pointer.FromEnum(props.HubRoutingPreference))
 
 			var virtualWanId *string
 			if props.VirtualWAN != nil {

@@ -1045,10 +1045,10 @@ func resourceWindowsVirtualMachineFlatten(ctx context.Context, metaClient *clien
 
 						if patchSettings.AutomaticByPlatformSettings != nil {
 							bypassPlatformSafetyChecksOnUserScheduleEnabled = pointer.From(patchSettings.AutomaticByPlatformSettings.BypassPlatformSafetyChecksOnUserSchedule)
-							rebootSetting = string(pointer.From(patchSettings.AutomaticByPlatformSettings.RebootSetting))
+							rebootSetting = pointer.FromEnum(patchSettings.AutomaticByPlatformSettings.RebootSetting)
 						}
 						if patchSettings.AssessmentMode != nil {
-							assessmentMode = string(pointer.From(patchSettings.AssessmentMode))
+							assessmentMode = pointer.FromEnum(patchSettings.AssessmentMode)
 						}
 					}
 
@@ -1072,7 +1072,7 @@ func resourceWindowsVirtualMachineFlatten(ctx context.Context, metaClient *clien
 			// We need to treat "" as equal to "Regular" to allow migration azurerm_virtual_machine -> azurerm_linux_virtual_machine
 			priority := string(virtualmachines.VirtualMachinePriorityTypesRegular)
 			if props.Priority != nil && *props.Priority != "" {
-				priority = string(pointer.From(props.Priority))
+				priority = pointer.FromEnum(props.Priority)
 			}
 			d.Set("priority", priority)
 

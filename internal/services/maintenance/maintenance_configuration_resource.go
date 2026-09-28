@@ -384,8 +384,8 @@ func resourceMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta interf
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("scope", string(pointer.From(props.MaintenanceScope)))
-			d.Set("visibility", string(pointer.From(props.Visibility)))
+			d.Set("scope", pointer.FromEnum(props.MaintenanceScope))
+			d.Set("visibility", pointer.FromEnum(props.Visibility))
 
 			properties := flattenExtensionProperties(props.ExtensionProperties)
 			if properties["InGuestPatchMode"] != nil {

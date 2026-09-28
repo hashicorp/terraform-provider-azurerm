@@ -102,7 +102,7 @@ func dataSourceNatGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("location", location.NormalizeNilable(model.Location))
 		sku := ""
 		if model.Sku != nil {
-			sku = string(pointer.From(model.Sku.Name))
+			sku = pointer.FromEnum(model.Sku.Name)
 		}
 		d.Set("sku_name", sku)
 		d.Set("zones", zones.FlattenUntyped(model.Zones))
