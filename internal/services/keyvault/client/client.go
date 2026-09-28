@@ -6,7 +6,7 @@ package client
 import (
 	"fmt"
 
-	v7_4 "github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4" //azignore:AZG010 - package name does not match its path
+	v7_4 "github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4" // azignore:AZG010 - package name does not match its path
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/deletedvaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/vaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2015-11-01/resources"
