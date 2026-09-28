@@ -12,22 +12,22 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 func init() {
-	recaser.RegisterResourceId(&AccountId{})
+	recaser.RegisterResourceId(&SqlRoleAssignmentId{})
 }
 
-var _ resourceids.ResourceId = &AccountId{}
+var _ resourceids.ResourceId = &SqlRoleAssignmentId{}
 
-// AccountId is a struct representing the Resource ID for a Account
-type AccountId struct {
+// SqlRoleAssignmentId is a struct representing the Resource ID for a Sql Role Assignment
+type SqlRoleAssignmentId struct {
 	SubscriptionId      string
 	ResourceGroupName   string
 	DatabaseAccountName string
 	RoleAssignmentId    string
 }
 
-// NewAccountID returns a new AccountId struct
-func NewAccountID(subscriptionId string, resourceGroupName string, databaseAccountName string, roleAssignmentId string) AccountId {
-	return AccountId{
+// NewSqlRoleAssignmentID returns a new SqlRoleAssignmentId struct
+func NewSqlRoleAssignmentID(subscriptionId string, resourceGroupName string, databaseAccountName string, roleAssignmentId string) SqlRoleAssignmentId {
+	return SqlRoleAssignmentId{
 		SubscriptionId:      subscriptionId,
 		ResourceGroupName:   resourceGroupName,
 		DatabaseAccountName: databaseAccountName,
@@ -35,15 +35,15 @@ func NewAccountID(subscriptionId string, resourceGroupName string, databaseAccou
 	}
 }
 
-// ParseAccountID parses 'input' into a AccountId
-func ParseAccountID(input string) (*AccountId, error) {
-	parser := resourceids.NewParserFromResourceIdType(&AccountId{})
+// ParseSqlRoleAssignmentID parses 'input' into a SqlRoleAssignmentId
+func ParseSqlRoleAssignmentID(input string) (*SqlRoleAssignmentId, error) {
+	parser := resourceids.NewParserFromResourceIdType(&SqlRoleAssignmentId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	id := AccountId{}
+	id := SqlRoleAssignmentId{}
 	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
@@ -51,16 +51,16 @@ func ParseAccountID(input string) (*AccountId, error) {
 	return &id, nil
 }
 
-// ParseAccountIDInsensitively parses 'input' case-insensitively into a AccountId
+// ParseSqlRoleAssignmentIDInsensitively parses 'input' case-insensitively into a SqlRoleAssignmentId
 // note: this method should only be used for API response data and not user input
-func ParseAccountIDInsensitively(input string) (*AccountId, error) {
-	parser := resourceids.NewParserFromResourceIdType(&AccountId{})
+func ParseSqlRoleAssignmentIDInsensitively(input string) (*SqlRoleAssignmentId, error) {
+	parser := resourceids.NewParserFromResourceIdType(&SqlRoleAssignmentId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	id := AccountId{}
+	id := SqlRoleAssignmentId{}
 	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func ParseAccountIDInsensitively(input string) (*AccountId, error) {
 	return &id, nil
 }
 
-func (id *AccountId) FromParseResult(input resourceids.ParseResult) error {
+func (id *SqlRoleAssignmentId) FromParseResult(input resourceids.ParseResult) error {
 	var ok bool
 
 	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
@@ -90,29 +90,29 @@ func (id *AccountId) FromParseResult(input resourceids.ParseResult) error {
 	return nil
 }
 
-// ValidateAccountID checks that 'input' can be parsed as a Account ID
-func ValidateAccountID(input interface{}, key string) (warnings []string, errors []error) {
+// ValidateSqlRoleAssignmentID checks that 'input' can be parsed as a Sql Role Assignment ID
+func ValidateSqlRoleAssignmentID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
 		return
 	}
 
-	if _, err := ParseAccountID(v); err != nil {
+	if _, err := ParseSqlRoleAssignmentID(v); err != nil {
 		errors = append(errors, err)
 	}
 
 	return
 }
 
-// ID returns the formatted Account ID
-func (id AccountId) ID() string {
+// ID returns the formatted Sql Role Assignment ID
+func (id SqlRoleAssignmentId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/databaseAccounts/%s/sqlRoleAssignments/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName, strings.TrimPrefix(id.RoleAssignmentId, "/"))
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName, id.RoleAssignmentId)
 }
 
-// Segments returns a slice of Resource ID Segments which comprise this Account ID
-func (id AccountId) Segments() []resourceids.Segment {
+// Segments returns a slice of Resource ID Segments which comprise this Sql Role Assignment ID
+func (id SqlRoleAssignmentId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
 		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
@@ -123,17 +123,17 @@ func (id AccountId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticDatabaseAccounts", "databaseAccounts", "databaseAccounts"),
 		resourceids.UserSpecifiedSegment("databaseAccountName", "databaseAccountName"),
 		resourceids.StaticSegment("staticSqlRoleAssignments", "sqlRoleAssignments", "sqlRoleAssignments"),
-		resourceids.ScopeSegment("roleAssignmentId", "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group"),
+		resourceids.UserSpecifiedSegment("roleAssignmentId", "roleAssignmentId"),
 	}
 }
 
-// String returns a human-readable description of this Account ID
-func (id AccountId) String() string {
+// String returns a human-readable description of this Sql Role Assignment ID
+func (id SqlRoleAssignmentId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
 		fmt.Sprintf("Database Account Name: %q", id.DatabaseAccountName),
 		fmt.Sprintf("Role Assignment: %q", id.RoleAssignmentId),
 	}
-	return fmt.Sprintf("Account (%s)", strings.Join(components, "\n"))
+	return fmt.Sprintf("Sql Role Assignment (%s)", strings.Join(components, "\n"))
 }
