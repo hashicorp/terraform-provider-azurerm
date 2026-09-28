@@ -22,16 +22,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/webapplicationfirewallpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/applicationgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/applicationgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -42,7 +41,7 @@ import (
 func base64EncodedStateFunc(v interface{}) string {
 	switch s := v.(type) {
 	case string:
-		return helpers.Base64EncodeIfNot(s)
+		return base64.EncodeIfNot(s)
 	default:
 		return ""
 	}
@@ -154,7 +153,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Optional: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: validate.IPv4Address,
+								ValidateFunc: validation.IsIPv4Address,
 							},
 						},
 
@@ -189,7 +188,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"port": {
 							Type:         pluginsdk.TypeInt,
 							Required:     true,
-							ValidateFunc: validate.PortNumber,
+							ValidateFunc: validation.IsPortNumber,
 						},
 
 						"protocol": {
@@ -319,7 +318,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"port": {
 							Type:         pluginsdk.TypeInt,
 							Required:     true,
-							ValidateFunc: validate.PortNumber,
+							ValidateFunc: validation.IsPortNumber,
 						},
 
 						"protocol": {
@@ -444,7 +443,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"port": {
 							Type:         pluginsdk.TypeInt,
 							Required:     true,
-							ValidateFunc: validate.PortNumber,
+							ValidateFunc: validation.IsPortNumber,
 						},
 
 						"id": {
@@ -1161,7 +1160,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"port": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							ValidateFunc: validate.PortNumber,
+							ValidateFunc: validation.IsPortNumber,
 						},
 
 						"proxy_protocol_header_enabled": {
@@ -2323,7 +2322,7 @@ func expandApplicationGatewayTrustedRootCertificates(certs []interface{}) (*[]ap
 		case data != "" && kvsid != "":
 			return nil, fmt.Errorf("only one of `key_vault_secret_id` or `data` must be specified for the `trusted_root_certificate` block %q", name)
 		case data != "":
-			output.Properties.Data = pointer.To(helpers.Base64EncodeIfNot(data))
+			output.Properties.Data = pointer.To(base64.EncodeIfNot(data))
 		case kvsid != "":
 			output.Properties.KeyVaultSecretId = pointer.To(kvsid)
 		default:
@@ -2886,7 +2885,7 @@ func expandApplicationGatewayHTTPListeners(d *pluginsdk.ResourceData, gatewayID 
 		}
 
 		if len(hosts) > 0 {
-			listener.Properties.HostNames = helpers.ExpandStringSlice(hosts)
+			listener.Properties.HostNames = pluginsdk.ExpandStringSlice(hosts)
 		}
 
 		if sslCertName := v["ssl_certificate_name"].(string); sslCertName != "" {
@@ -2960,7 +2959,7 @@ func flattenApplicationGatewayHTTPListeners(input *[]applicationgateways.Applica
 			}
 
 			if hostnames := props.HostNames; hostnames != nil {
-				output["host_names"] = helpers.FlattenStringSlice(hostnames)
+				output["host_names"] = pluginsdk.FlattenSlice(hostnames)
 			}
 
 			output["protocol"] = props.Protocol
@@ -3030,7 +3029,7 @@ func expandApplicationGatewayListeners(input []interface{}, appGwID applicationg
 		}
 
 		if hosts := v["host_names"].(*pluginsdk.Set).List(); len(hosts) > 0 {
-			listener.Properties.HostNames = helpers.ExpandStringSlice(hosts)
+			listener.Properties.HostNames = pluginsdk.ExpandStringSlice(hosts)
 		}
 
 		if sslCertName := v["ssl_certificate_name"].(string); sslCertName != "" {
@@ -3350,7 +3349,7 @@ func flattenApplicationGatewayFrontendIPConfigurations(input *[]applicationgatew
 		}
 
 		if props := config.Properties; props != nil {
-			output["private_ip_address_allocation"] = string(pointer.From(props.PrivateIPAllocationMethod))
+			output["private_ip_address_allocation"] = pointer.FromEnum(props.PrivateIPAllocationMethod)
 
 			if props.Subnet != nil && props.Subnet.Id != nil {
 				output["subnet_id"] = *props.Subnet.Id
@@ -3458,7 +3457,7 @@ func flattenApplicationGatewayProbes(input *[]applicationgateways.ApplicationGat
 		}
 
 		if props := v.Properties; props != nil {
-			output["protocol"] = string(pointer.From(props.Protocol))
+			output["protocol"] = pointer.FromEnum(props.Protocol)
 
 			if host := props.Host; host != nil {
 				output["host"] = *host
@@ -3610,7 +3609,7 @@ func flattenApplicationGatewayPrivateLinkConfigurations(input *[]applicationgate
 					if ipConfigProps.PrivateIPAddress != nil {
 						ipConfigResult["private_ip_address"] = *ipConfigProps.PrivateIPAddress
 					}
-					ipConfigResult["private_ip_address_allocation"] = string(pointer.From(ipConfigProps.PrivateIPAllocationMethod))
+					ipConfigResult["private_ip_address_allocation"] = pointer.FromEnum(ipConfigProps.PrivateIPAllocationMethod)
 					if ipConfigProps.Primary != nil {
 						ipConfigResult["primary"] = *ipConfigProps.Primary
 					}
@@ -3722,7 +3721,7 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]applicationgateways.A
 	for _, config := range *input {
 		if props := config.Properties; props != nil {
 			output := map[string]interface{}{
-				"rule_type": string(pointer.From(props.RuleType)),
+				"rule_type": pointer.FromEnum(props.RuleType),
 			}
 
 			if config.Id != nil {
@@ -4182,7 +4181,7 @@ func flattenApplicationGatewayRedirectConfigurations(input *[]applicationgateway
 	for _, config := range *input {
 		if props := config.Properties; props != nil {
 			output := map[string]interface{}{
-				"redirect_type": string(pointer.From(props.RedirectType)),
+				"redirect_type": pointer.FromEnum(props.RedirectType),
 			}
 
 			if config.Id != nil {
@@ -4281,8 +4280,8 @@ func expandApplicationGatewaySku(d *pluginsdk.ResourceData) *applicationgateways
 func flattenApplicationGatewaySku(input *applicationgateways.ApplicationGatewaySku) []interface{} {
 	result := make(map[string]interface{})
 
-	result["name"] = string(pointer.From(input.Name))
-	result["tier"] = string(pointer.From(input.Tier))
+	result["name"] = pointer.FromEnum(input.Name)
+	result["tier"] = pointer.FromEnum(input.Tier)
 	if input.Capacity != nil {
 		result["capacity"] = int(*input.Capacity)
 	}
@@ -4313,7 +4312,7 @@ func expandApplicationGatewaySslCertificates(d *pluginsdk.ResourceData) (*[]appl
 			return nil, fmt.Errorf("only one of `key_vault_secret_id` or `data` must be specified for the `ssl_certificate` block %q", name)
 		} else if data != "" {
 			// data must be base64 encoded
-			output.Properties.Data = pointer.To(helpers.Base64EncodeIfNot(data))
+			output.Properties.Data = pointer.To(base64.EncodeIfNot(data))
 
 			output.Properties.Password = pointer.To(password)
 		} else if kvsid != "" {
@@ -4374,7 +4373,7 @@ func flattenApplicationGatewaySslCertificates(input *[]applicationgateways.Appli
 
 				if name == existingName {
 					if data := existingCerts["data"]; data != nil {
-						output["data"] = helpers.Base64EncodeIfNot(data.(string))
+						output["data"] = base64.EncodeIfNot(data.(string))
 					}
 
 					if password := existingCerts["password"]; password != nil {
@@ -4408,7 +4407,7 @@ func expandApplicationGatewayTrustedClientCertificates(d *pluginsdk.ResourceData
 		// nolint gocritic
 		if data != "" {
 			// data must be base64 encoded
-			output.Properties.Data = pointer.To(helpers.Base64EncodeIfNot(data))
+			output.Properties.Data = pointer.To(base64.EncodeIfNot(data))
 		} else {
 			return nil, fmt.Errorf("`data` must be specified for the `trusted_client_certificate` block %q", name)
 		}
@@ -4526,7 +4525,7 @@ func flattenApplicationGatewaySslProfiles(input *[]applicationgateways.Applicati
 			if props.ClientAuthConfiguration != nil {
 				verifyClientCertIssuerDn = pointer.From(props.ClientAuthConfiguration.VerifyClientCertIssuerDN)
 				if *props.ClientAuthConfiguration.VerifyClientRevocation != applicationgateways.ApplicationGatewayClientRevocationOptionsNone {
-					verifyClientCertificateRevocation = string(pointer.From(props.ClientAuthConfiguration.VerifyClientRevocation))
+					verifyClientCertificateRevocation = pointer.FromEnum(props.ClientAuthConfiguration.VerifyClientRevocation)
 				}
 			}
 

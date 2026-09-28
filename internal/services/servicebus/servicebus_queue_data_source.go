@@ -166,7 +166,7 @@ func dataSourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("maximum_message_size_in_kb", props.MaxMessageSizeInKilobytes)
 			d.Set("requires_duplicate_detection", props.RequiresDuplicateDetection)
 			d.Set("requires_session", props.RequiresSession)
-			d.Set("status", string(pointer.From(props.Status)))
+			d.Set("status", pointer.FromEnum(props.Status))
 
 			if apiMaxSizeInMegabytes := props.MaxSizeInMegabytes; apiMaxSizeInMegabytes != nil {
 				maxSizeInMegabytes := int(*apiMaxSizeInMegabytes)

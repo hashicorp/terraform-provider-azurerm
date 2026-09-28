@@ -13,9 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/storageinsights"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -89,11 +87,11 @@ func resourceLogAnalyticsStorageInsightsCreateUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	if _, ok := d.GetOk("table_names"); ok {
-		parameters.Properties.Tables = helpers.ExpandStringSlice(d.Get("table_names").(*pluginsdk.Set).List())
+		parameters.Properties.Tables = pluginsdk.ExpandStringSlice(d.Get("table_names").(*pluginsdk.Set).List())
 	}
 
 	if _, ok := d.GetOk("blob_container_names"); ok {
-		parameters.Properties.Containers = helpers.ExpandStringSlice(d.Get("blob_container_names").(*pluginsdk.Set).List())
+		parameters.Properties.Containers = pluginsdk.ExpandStringSlice(d.Get("blob_container_names").(*pluginsdk.Set).List())
 	}
 
 	if _, err := client.StorageInsightConfigsCreateOrUpdate(ctx, id, parameters); err != nil {
@@ -130,7 +128,7 @@ func resourceLogAnalyticsStorageInsightsRead(d *pluginsdk.ResourceData, meta int
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("blob_container_names", helpers.FlattenStringSlice(props.Containers))
+			d.Set("blob_container_names", pluginsdk.FlattenSlice(props.Containers))
 
 			storageAccountIdStr := ""
 			if props.StorageAccount.Id != "" {
@@ -142,7 +140,7 @@ func resourceLogAnalyticsStorageInsightsRead(d *pluginsdk.ResourceData, meta int
 			}
 			d.Set("storage_account_id", storageAccountIdStr)
 
-			d.Set("table_names", helpers.FlattenStringSlice(props.Tables))
+			d.Set("table_names", pluginsdk.FlattenSlice(props.Tables))
 		}
 	}
 
@@ -201,7 +199,7 @@ func resourceLogAnalyticsStorageInsightsSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,
-			ValidateFunc: azValidate.Base64EncodedString,
+			ValidateFunc: validation.StringIsBase64,
 		},
 
 		"blob_container_names": {

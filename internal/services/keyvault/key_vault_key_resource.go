@@ -30,7 +30,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/keys"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -175,7 +174,7 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 						"expire_after": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.ISO8601DurationBetween("P28D", "P100Y"),
+							ValidateFunc: validation.ISO8601DurationBetween("P28D", "P100Y"),
 							AtLeastOneOf: []string{
 								"rotation_policy.0.expire_after",
 								"rotation_policy.0.automatic",
@@ -190,7 +189,7 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 						"notify_before_expiry": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.ISO8601DurationBetween("P7D", "P36493D"),
+							ValidateFunc: validation.ISO8601DurationBetween("P7D", "P36493D"),
 							RequiredWith: []string{
 								"rotation_policy.0.expire_after",
 								"rotation_policy.0.notify_before_expiry",
@@ -206,7 +205,7 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 									"time_after_creation": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
-										ValidateFunc: validate.ISO8601Duration,
+										ValidateFunc: validation.ISO8601Duration,
 										AtLeastOneOf: []string{
 											"rotation_policy.0.automatic.0.time_after_creation",
 											"rotation_policy.0.automatic.0.time_before_expiry",
@@ -215,7 +214,7 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 									"time_before_expiry": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
-										ValidateFunc: validate.ISO8601Duration,
+										ValidateFunc: validation.ISO8601Duration,
 										AtLeastOneOf: []string{
 											"rotation_policy.0.automatic.0.time_after_creation",
 											"rotation_policy.0.automatic.0.time_before_expiry",
@@ -597,7 +596,7 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	if resp.Model != nil {
 		if key := resp.Model.Key; key != nil {
-			d.Set("key_type", string(pointer.From(key.Kty)))
+			d.Set("key_type", pointer.FromEnum(key.Kty))
 
 			if err := d.Set("key_opts", flattenKeyVaultKeyOptions(key.KeyOps)); err != nil {
 				return err
@@ -615,7 +614,7 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 				d.Set("key_size", len(nBytes)*8)
 			}
 
-			d.Set("curve", string(pointer.From(key.Crv)))
+			d.Set("curve", pointer.FromEnum(key.Crv))
 		}
 
 		data, err := flattenKeyVaultKeyReleasePolicy(resp.Model.ReleasePolicy)

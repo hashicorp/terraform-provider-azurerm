@@ -192,7 +192,7 @@ func resourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta interface{}
 
 	if model := resp.Model; model != nil {
 		if skuName := model.Sku.Name; skuName != nil {
-			d.Set("sku_name", string(pointer.From(skuName)))
+			d.Set("sku_name", pointer.FromEnum(skuName))
 		}
 
 		identity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
