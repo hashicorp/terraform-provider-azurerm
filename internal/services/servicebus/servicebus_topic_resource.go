@@ -9,12 +9,11 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/topics"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/topics"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -49,7 +48,7 @@ func resourceServiceBusTopicSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: azValidate.TopicName(),
+			ValidateFunc: validate.TopicName(),
 		},
 
 		// lintignore: S013
@@ -74,21 +73,21 @@ func resourceServiceBusTopicSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      "P10675199DT2H48M5.4775807S", // Never
-			ValidateFunc: validate.ISO8601Duration,
+			ValidateFunc: validation.ISO8601Duration,
 		},
 
 		"default_message_ttl": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      "P10675199DT2H48M5.4775807S", // Unbounded
-			ValidateFunc: validate.ISO8601Duration,
+			ValidateFunc: validation.ISO8601Duration,
 		},
 
 		"duplicate_detection_history_time_window": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      "PT10M", // 10 minutes
-			ValidateFunc: validate.ISO8601Duration,
+			ValidateFunc: validation.ISO8601Duration,
 		},
 
 		"batched_operations_enabled": {
@@ -107,12 +106,12 @@ func resourceServiceBusTopicSchema() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 		},
 
-		"max_message_size_in_kilobytes": {
+		"max_message_size_in_kilobytes": { // azignore:AZP003 - named `maximum_message_size_in_kb` in the data source to follow new naming conventions
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
 			// NOTE: O+C this gets a variable default based on the sku and can be updated without issues
 			Computed:     true,
-			ValidateFunc: azValidate.ServiceBusMaxMessageSizeInKilobytes(),
+			ValidateFunc: validate.ServiceBusMaxMessageSizeInKilobytes(),
 		},
 
 		"max_size_in_megabytes": {
@@ -120,7 +119,7 @@ func resourceServiceBusTopicSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 			// NOTE: O+C this gets a variable default based on the sku and can be updated without issues
 			Computed:     true,
-			ValidateFunc: azValidate.ServiceBusMaxSizeInMegabytes(),
+			ValidateFunc: validate.ServiceBusMaxSizeInMegabytes(),
 		},
 
 		"requires_duplicate_detection": {

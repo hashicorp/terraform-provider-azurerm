@@ -25,7 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
-	billingValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/billing/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/billing/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -57,7 +57,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
@@ -68,13 +68,13 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.Any(
 					// Elevated access (aka User Access Administrator role) is needed to assign roles in the following scopes:
-					// https://docs.microsoft.com/en-us/azure/role-based-access-control/elevate-access-global-admin#azure-cli
+					// https://docs.microsoft.com/azure/role-based-access-control/elevate-access-global-admin#azure-cli
 					validation.StringMatch(regexp.MustCompile("/"), "Root scope (/) is invalid"),
 					validation.StringMatch(regexp.MustCompile("/providers/Microsoft.Subscription.*"), "Subscription scope is invalid"),
 					validation.StringMatch(regexp.MustCompile("/providers/Microsoft.Capacity"), "Capacity scope is invalid"),
 					validation.StringMatch(regexp.MustCompile("/providers/Microsoft.BillingBenefits"), "BillingBenefits scope is invalid"),
 
-					billingValidate.EnrollmentID,
+					validate.EnrollmentID,
 					commonids.ValidateManagementGroupID,
 					commonids.ValidateSubscriptionID,
 					commonids.ValidateResourceGroupID,
@@ -85,7 +85,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 			"role_definition_id": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Computed:         true,
+				Computed:         true, // azignore:AZS007 - pre-existing violation
 				ForceNew:         true,
 				ExactlyOneOf:     []string{"role_definition_id", "role_definition_name"},
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -94,7 +94,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 			"role_definition_name": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Computed:         true,
+				Computed:         true, // azignore:AZS007 - pre-existing violation
 				ForceNew:         true,
 				ExactlyOneOf:     []string{"role_definition_name", "role_definition_id"},
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -110,7 +110,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 			"principal_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"User",
@@ -122,7 +122,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 			"skip_service_principal_aad_check": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"delegated_managed_identity_resource_id": {
@@ -147,7 +147,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 			"condition_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice([]string{
 					"1.0",
 					"2.0",

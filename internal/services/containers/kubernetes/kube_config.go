@@ -26,9 +26,9 @@ type userItem struct {
 }
 
 type user struct {
-	ClientCertificteData string `yaml:"client-certificate-data"`
-	Token                string `yaml:"token"`
-	ClientKeyData        string `yaml:"client-key-data"`
+	ClientCertificateData string `yaml:"client-certificate-data"`
+	Token                 string `yaml:"token"`
+	ClientKeyData         string `yaml:"client-key-data"`
 }
 
 type userItemAAD struct {
@@ -95,7 +95,7 @@ func ParseKubeConfig(config string) (*KubeConfig, error) {
 		return nil, fmt.Errorf("config %+v contains no valid clusters or users", kubeConfig)
 	}
 	u := kubeConfig.Users[0].User
-	if u.Token == "" && (u.ClientCertificteData == "" || u.ClientKeyData == "") {
+	if u.Token == "" && (u.ClientCertificateData == "" || u.ClientKeyData == "") {
 		return nil, fmt.Errorf("config requires either token or certificate auth for user %+v", u)
 	}
 	c := kubeConfig.Clusters[0].Cluster

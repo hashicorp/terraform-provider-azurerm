@@ -23,6 +23,8 @@ import (
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name batch_application -service-package-name batch -properties "name,resource_group_name,batch_account_name:account_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basicForResourceIdentity
 
+var azureBatchApplicationResourceName = "azurerm_batch_application"
+
 func resourceBatchApplication() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceBatchApplicationCreate,
@@ -145,11 +147,15 @@ func resourceBatchApplicationRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	return resourceBatchApplicationFlatten(d, id, resp.Model)
+}
+
+func resourceBatchApplicationFlatten(d *pluginsdk.ResourceData, id *application.ApplicationId, model *application.Application) error {
 	d.Set("name", id.ApplicationName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("account_name", id.BatchAccountName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("allow_updates", props.AllowUpdates)
 			d.Set("default_version", props.DefaultVersion)

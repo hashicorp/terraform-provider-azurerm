@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -23,12 +24,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/replications"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
-	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -64,7 +64,7 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: containerValidate.ContainerRegistryName,
+				ValidateFunc: validate.ContainerRegistryName,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -161,7 +161,7 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			"network_rule_set": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				// ConfigModeAttr ensures we can set this to an empty array for Premium -> Basic
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				MaxItems:   1,
@@ -177,7 +177,7 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 						"ip_rule": {
 							Type:       pluginsdk.TypeSet,
 							Optional:   true,
-							Computed:   true,
+							Computed:   true, // azignore:AZS007 - pre-existing violation
 							ConfigMode: pluginsdk.SchemaConfigModeAttr,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -189,7 +189,7 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 									"ip_range": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: validate.CIDR,
+										ValidateFunc: validation.IsCIDRIPv4,
 									},
 								},
 							},
@@ -285,10 +285,8 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				geoReplicationLocations = append(geoReplicationLocations, location.Normalize(v["location"].(string)))
 			}
 			location := location.Normalize(d.Get("location").(string))
-			for _, loc := range geoReplicationLocations {
-				if loc == location {
-					return errors.New("the `georeplications` list cannot contain the location where the Container Registry exists")
-				}
+			if slices.Contains(geoReplicationLocations, location) {
+				return errors.New("the `georeplications` list cannot contain the location where the Container Registry exists")
 			}
 
 			quarantinePolicyEnabled := d.Get("quarantine_policy_enabled").(bool)
@@ -479,7 +477,7 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if d.HasChange("network_rule_set") {
 		networkRuleSet := expandNetworkRuleSet(d.Get("network_rule_set").([]interface{}))
 		if networkRuleSet != nil && isBasicSku {
-			return fmt.Errorf("`network_rule_set` can only be specified for a Premium Sku. If you are reverting from a Premium to Basic SKU plese set network_rule_set = []")
+			return fmt.Errorf("`network_rule_set` can only be specified for a Premium Sku. If you are reverting from a Premium to Basic SKU please set network_rule_set = []")
 		}
 
 		payload.Properties.NetworkRuleSet = networkRuleSet
@@ -692,7 +690,7 @@ func applyGeoReplicationLocations(ctx context.Context, meta interface{}, registr
 		// Since the replications here are all derived from expand function, where we guaranteed
 		// each properties are non-nil. Whilst we are still doing nil check here in case.
 		if oprop, nprop := oldRepl.Properties, newRepl.Properties; oprop != nil && nprop != nil {
-			// zoneRedundency can't be updated in place
+			// zoneRedundancy can't be updated in place
 			if ov, nv := oprop.ZoneRedundancy, nprop.ZoneRedundancy; ov != nil && nv != nil && *ov != *nv {
 				needUpdate = true
 				needReplace = true
@@ -790,15 +788,14 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
-		d.Set("sku", string(pointer.From(model.Sku.Tier)))
+		d.Set("sku", pointer.FromEnum(model.Sku.Tier))
 
 		if props := model.Properties; props != nil {
 			d.Set("admin_enabled", props.AdminUserEnabled)
 			d.Set("login_server", props.LoginServer)
 			d.Set("public_network_access_enabled", *props.PublicNetworkAccess == registries.PublicNetworkAccessEnabled)
 
-			networkRuleSet := flattenNetworkRuleSet(props.NetworkRuleSet)
-			if err := d.Set("network_rule_set", networkRuleSet); err != nil {
+			if err := d.Set("network_rule_set", flattenNetworkRuleSet(props.NetworkRuleSet)); err != nil {
 				return fmt.Errorf("setting `network_rule_set`: %+v", err)
 			}
 
@@ -809,8 +806,8 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("anonymous_pull_enabled", props.AnonymousPullEnabled)
 			d.Set("data_endpoint_enabled", props.DataEndpointEnabled)
 			d.Set("data_endpoint_host_names", props.DataEndpointHostNames)
-			d.Set("network_rule_bypass_option", string(pointer.From(props.NetworkRuleBypassOptions)))
-			d.Set("role_assignment_mode", string(pointer.From(props.RoleAssignmentMode)))
+			d.Set("network_rule_bypass_option", pointer.FromEnum(props.NetworkRuleBypassOptions))
+			d.Set("role_assignment_mode", pointer.FromEnum(props.RoleAssignmentMode))
 			d.Set("network_rule_bypass_for_tasks_enabled", pointer.From(props.NetworkRuleBypassAllowedForTasks))
 
 			if policies := props.Policies; policies != nil {

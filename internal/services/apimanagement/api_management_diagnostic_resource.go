@@ -66,33 +66,33 @@ func resourceApiManagementDiagnostic() *pluginsdk.Resource {
 			"sampling_percentage": {
 				Type:         pluginsdk.TypeFloat,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.FloatBetween(0.0, 100.0),
 			},
 
 			"always_log_errors": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"verbosity": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice(diagnostic.PossibleValuesForVerbosity(), false),
 			},
 
 			"log_client_ip": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"http_correlation_protocol": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice(diagnostic.PossibleValuesForHTTPCorrelationProtocol(), false),
 			},
 
@@ -268,7 +268,7 @@ func resourceApiManagementDiagnosticRead(d *pluginsdk.ResourceData, meta interfa
 
 			format := ""
 			if props.OperationNameFormat != nil {
-				format = string(pointer.From(props.OperationNameFormat))
+				format = pointer.FromEnum(props.OperationNameFormat)
 			}
 			d.Set("operation_name_format", format)
 		}

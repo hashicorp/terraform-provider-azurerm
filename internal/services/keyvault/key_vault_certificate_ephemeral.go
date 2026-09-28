@@ -277,7 +277,7 @@ func (e *KeyVaultCertificateEphemeralResource) Open(ctx context.Context, req eph
 		return
 	}
 
-	certs := ""
+	var certs strings.Builder
 
 	for _, pemCert := range pemCerts {
 		certBlock := &pem.Block{
@@ -290,10 +290,10 @@ func (e *KeyVaultCertificateEphemeralResource) Open(ctx context.Context, req eph
 			sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("encoding PEM for %q", id.Name), err)
 			return
 		}
-		certs += certPEM.String()
+		certs.WriteString(certPEM.String())
 	}
 
-	data.Pem = types.StringValue(certs)
+	data.Pem = types.StringValue(certs.String())
 	data.Key = types.StringValue(keyPEM.String())
 	data.CertificateCount = types.Int64Value(int64(len(pemCerts)))
 

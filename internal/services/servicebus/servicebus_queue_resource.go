@@ -11,12 +11,11 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/queues"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/queues"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -51,7 +50,7 @@ func resourceServicebusQueueSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: azValidate.QueueName(),
+			ValidateFunc: validate.QueueName(),
 		},
 
 		// lintignore: S013
@@ -67,7 +66,7 @@ func resourceServicebusQueueSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 			// NOTE: O+C this gets a default except when using basic sku and can be updated without issues
 			Computed:     true,
-			ValidateFunc: validate.ISO8601Duration,
+			ValidateFunc: validation.ISO8601Duration,
 		},
 
 		"dead_lettering_on_message_expiration": {
@@ -81,14 +80,14 @@ func resourceServicebusQueueSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 			// NOTE: O+C this gets a default of "P10675199DT2H48M5.4775807S" (Unbounded) and "P14D" in Basic sku and can be updated without issues
 			Computed:     true,
-			ValidateFunc: validate.ISO8601Duration,
+			ValidateFunc: validation.ISO8601Duration,
 		},
 
 		"duplicate_detection_history_time_window": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      "PT10M", // 10 minutes
-			ValidateFunc: validate.ISO8601Duration,
+			ValidateFunc: validation.ISO8601Duration,
 		},
 
 		"batched_operations_enabled": {
@@ -113,13 +112,13 @@ func resourceServicebusQueueSchema() map[string]*pluginsdk.Schema {
 		"forward_dead_lettered_messages_to": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: azValidate.QueueName(),
+			ValidateFunc: validate.QueueName(),
 		},
 
 		"forward_to": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: azValidate.QueueName(),
+			ValidateFunc: validate.QueueName(),
 		},
 
 		"lock_duration": {
@@ -135,12 +134,12 @@ func resourceServicebusQueueSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.IntAtLeast(1),
 		},
 
-		"max_message_size_in_kilobytes": {
+		"max_message_size_in_kilobytes": { // azignore:AZP003 - named `maximum_message_size_in_kb` in the data source to follow new naming conventions
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
 			// NOTE: O+C this gets a variable default based on the sku and can be updated without issues
 			Computed:     true,
-			ValidateFunc: azValidate.ServiceBusMaxMessageSizeInKilobytes(),
+			ValidateFunc: validate.ServiceBusMaxMessageSizeInKilobytes(),
 		},
 
 		"max_size_in_megabytes": {
@@ -148,7 +147,7 @@ func resourceServicebusQueueSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 			// NOTE: O+C this gets a variable default based on the sku and can be updated without issues
 			Computed:     true,
-			ValidateFunc: azValidate.ServiceBusMaxSizeInMegabytes(),
+			ValidateFunc: validate.ServiceBusMaxSizeInMegabytes(),
 		},
 
 		"requires_duplicate_detection": {
@@ -316,7 +315,7 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		if isPremiumNamespacePartitioned && !enablePartitioning {
 			return fmt.Errorf("non-partitioned entities are not allowed in partitioned namespace")
 		} else if !isPremiumNamespacePartitioned && enablePartitioning {
-			return fmt.Errorf("the parent premium namespace is not partitioned and the partitioning for premium namespace is only available at the namepsace creation")
+			return fmt.Errorf("the parent premium namespace is not partitioned and the partitioning for premium namespace is only available at the namespace creation")
 		}
 	}
 
@@ -395,7 +394,7 @@ func resourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) er
 			d.Set("max_message_size_in_kilobytes", props.MaxMessageSizeInKilobytes)
 			d.Set("requires_duplicate_detection", props.RequiresDuplicateDetection)
 			d.Set("requires_session", props.RequiresSession)
-			d.Set("status", string(pointer.From(props.Status)))
+			d.Set("status", pointer.FromEnum(props.Status))
 
 			d.Set("batched_operations_enabled", props.EnableBatchedOperations)
 			d.Set("express_enabled", props.EnableExpress)

@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/migration"
@@ -85,13 +84,10 @@ func resourceBotWebApp() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(botservice.SkuNameF0),
-					string(botservice.SkuNameS1),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInEnumSlice(botservice.PossibleSkuNameValues(), false),
 			},
 
 			"microsoft_app_id": {
@@ -102,14 +98,10 @@ func resourceBotWebApp() *pluginsdk.Resource {
 			},
 
 			"microsoft_app_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(botservice.MsaAppTypeMultiTenant),
-					string(botservice.MsaAppTypeSingleTenant),
-					string(botservice.MsaAppTypeUserAssignedMSI),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInEnumSlice(botservice.PossibleMsaAppTypeValues(), false),
 			},
 
 			"microsoft_app_tenant_id": {
@@ -129,7 +121,7 @@ func resourceBotWebApp() *pluginsdk.Resource {
 			"display_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -213,7 +205,7 @@ func resourceBotWebAppCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 			DeveloperAppInsightKey:            pointer.To(d.Get("developer_app_insights_key").(string)),
 			DeveloperAppInsightsAPIKey:        pointer.To(d.Get("developer_app_insights_api_key").(string)),
 			DeveloperAppInsightsApplicationID: pointer.To(d.Get("developer_app_insights_application_id").(string)),
-			LuisAppIds:                        helpers.ExpandStringSlice(d.Get("luis_app_ids").([]interface{})),
+			LuisAppIds:                        pluginsdk.ExpandStringSlice(d.Get("luis_app_ids").([]interface{})),
 			LuisKey:                           pointer.To(d.Get("luis_key").(string)),
 		},
 		Location: pointer.To(d.Get("location").(string)),
@@ -308,7 +300,7 @@ func resourceBotWebAppUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 			DeveloperAppInsightKey:            pointer.To(d.Get("developer_app_insights_key").(string)),
 			DeveloperAppInsightsAPIKey:        pointer.To(d.Get("developer_app_insights_api_key").(string)),
 			DeveloperAppInsightsApplicationID: pointer.To(d.Get("developer_app_insights_application_id").(string)),
-			LuisAppIds:                        helpers.ExpandStringSlice(d.Get("luis_app_ids").([]interface{})),
+			LuisAppIds:                        pluginsdk.ExpandStringSlice(d.Get("luis_app_ids").([]interface{})),
 			LuisKey:                           pointer.To(d.Get("luis_key").(string)),
 		},
 		Location: pointer.To(d.Get("location").(string)),

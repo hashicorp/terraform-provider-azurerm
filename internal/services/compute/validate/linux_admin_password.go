@@ -38,7 +38,7 @@ func LinuxAdminPassword(i interface{}, k string) (warnings []string, errors []er
 		}
 	}
 
-	// adminPassword has to fulfill 3 out of these 4 conditions: Has lower characters, Has upper characters, Has a digit, Has a special character (Regex match [\W_])
+	// adminPassword has to fulfil 3 out of these 4 conditions: Has lower characters, Has upper characters, Has a digit, Has a special character (Regex match [\W_])
 	conditions := 0
 	tests := []string{"[a-z]", "[A-Z]", "[0-9]", "[^\\d\\w]"}
 	for _, test := range tests {
@@ -48,7 +48,7 @@ func LinuxAdminPassword(i interface{}, k string) (warnings []string, errors []er
 		}
 	}
 	if conditions < 3 {
-		errors = append(errors, fmt.Errorf("%q has to fulfill 3 out of these 4 conditions: Has lower characters, Has upper characters, Has a digit, Has a special character other than \"_\", fullfiled only %d conditions", k, conditions))
+		errors = append(errors, fmt.Errorf("%q has to fulfil 3 out of these 4 conditions: Has lower characters, Has upper characters, Has a digit, Has a special character other than \"_\", fulfilled only %d conditions", k, conditions))
 	}
 
 	return warnings, errors

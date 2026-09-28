@@ -57,13 +57,11 @@ func resourceSiteRecoveryReplicationPolicy() *pluginsdk.Resource {
 			"recovery_point_retention_in_minutes": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
-				ForceNew:     false,
 				ValidateFunc: validation.IntBetween(0, 365*24*60),
 			},
 			"application_consistent_snapshot_frequency_in_minutes": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
-				ForceNew:     false,
 				ValidateFunc: validation.IntBetween(0, 365*24*60),
 			},
 		},

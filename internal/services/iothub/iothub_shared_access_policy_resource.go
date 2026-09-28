@@ -22,7 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub"
+	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub" // azignore:AZG010 - package name does not match its path
 )
 
 func resourceIotHubSharedAccessPolicy() *pluginsdk.Resource {
@@ -121,10 +121,10 @@ func resourceIotHubSharedAccessPolicy() *pluginsdk.Resource {
 func iothubSharedAccessPolicyCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) (err error) {
 	registryRead, hasRegistryRead := d.GetOk("registry_read")
 	registryWrite, hasRegistryWrite := d.GetOk("registry_write")
-	serviceConnect, hasServieConnect := d.GetOk("service_connect")
+	serviceConnect, hasServiceConnect := d.GetOk("service_connect")
 	deviceConnect, hasDeviceConnect := d.GetOk("device_connect")
 
-	if !hasRegistryRead && !hasRegistryWrite && !hasServieConnect && !hasDeviceConnect {
+	if !hasRegistryRead && !hasRegistryWrite && !hasServiceConnect && !hasDeviceConnect {
 		return errors.New("one of `registry_read`, `registry_write`, `service_connect` or `device_connect` properties must be set")
 	}
 
@@ -342,16 +342,11 @@ func expandAccessRights(d *pluginsdk.ResourceData) string {
 }
 
 func flattenAccessRights(r devices.AccessRights) accessRights {
-	rights := accessRights{
-		registryRead:   false,
-		registryWrite:  false,
-		deviceConnect:  false,
-		serviceConnect: false,
-	}
+	rights := accessRights{}
 
-	actualAccessRights := strings.Split(string(r), ",")
+	actualAccessRights := strings.SplitSeq(string(r), ",")
 
-	for _, right := range actualAccessRights {
+	for right := range actualAccessRights {
 		switch strings.ToLower(strings.Trim(right, " ")) {
 		case "registrywrite":
 			rights.registryWrite = true

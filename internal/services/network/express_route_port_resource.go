@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/expressrouteports"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressrouteports"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -27,10 +27,10 @@ import (
 )
 
 var expressRoutePortSchema = &pluginsdk.Schema{
-	Type: pluginsdk.TypeList,
-	// Service will always create a pair of links automatically. Users can't add or remove link, but only manipulate existing ones.
-	// This is because the link is actually a map to the physical pair of ports on the MS edge device.
+	Type:     pluginsdk.TypeList,
 	Optional: true,
+	// Note: O+C because the service will always create a pair of links automatically. Users can't add or remove link, but only manipulate existing ones.
+	// This is because the link is actually a map to the physical pair of ports on the MS edge device.
 	Computed: true,
 	MinItems: 1,
 	MaxItems: 1,
@@ -348,8 +348,8 @@ func resourceArmExpressRoutePortRead(d *pluginsdk.ResourceData, meta interface{}
 		if props := model.Properties; props != nil {
 			d.Set("peering_location", props.PeeringLocation)
 			d.Set("bandwidth_in_gbps", props.BandwidthInGbps)
-			d.Set("encapsulation", string(pointer.From(props.Encapsulation)))
-			d.Set("billing_type", string(pointer.From(props.BillingType)))
+			d.Set("encapsulation", pointer.FromEnum(props.Encapsulation))
+			d.Set("billing_type", pointer.FromEnum(props.BillingType))
 			link1, link2, err := flattenExpressRoutePortLinks(props.Links)
 			if err != nil {
 				return fmt.Errorf("flattening links: %v", err)
@@ -445,7 +445,7 @@ func expandExpressRoutePortLink(idx int, input []interface{}) *expressrouteports
 
 func flattenExpressRoutePortLinks(links *[]expressrouteports.ExpressRouteLink) ([]interface{}, []interface{}, error) {
 	if links == nil {
-		return nil, nil, nil
+		return []interface{}{}, []interface{}{}, nil
 	}
 	length := len(*links)
 	if length != 2 {
@@ -482,7 +482,7 @@ func flattenExpressRoutePortLink(link expressrouteports.ExpressRouteLink) []inte
 		if props.RackId != nil {
 			rackId = *props.RackId
 		}
-		connectorType = string(pointer.From(props.ConnectorType))
+		connectorType = pointer.FromEnum(props.ConnectorType)
 		adminState = pointer.From(props.AdminState) == expressrouteports.ExpressRouteLinkAdminStateEnabled
 		sciState = pointer.From(props.MacSecConfig.SciState) == expressrouteports.ExpressRouteLinkMacSecSciStateEnabled
 		if cfg := props.MacSecConfig; cfg != nil {
@@ -492,7 +492,7 @@ func flattenExpressRoutePortLink(link expressrouteports.ExpressRouteLink) []inte
 			if cfg.CakSecretIdentifier != nil {
 				cakSecretId = *cfg.CakSecretIdentifier
 			}
-			cipher = string(pointer.From(cfg.Cipher))
+			cipher = pointer.FromEnum(cfg.Cipher)
 		}
 	}
 

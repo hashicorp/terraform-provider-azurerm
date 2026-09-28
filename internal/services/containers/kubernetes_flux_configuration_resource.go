@@ -821,7 +821,7 @@ func (r KubernetesFluxConfigurationResource) Read() sdk.ResourceFunc {
 					state.GitRepository = gitRepositoryValue
 					state.Kustomizations = flattenKustomizationDefinitionModel(properties.Kustomizations)
 					state.Namespace = pointer.From(properties.Namespace)
-					state.Scope = string(pointer.From(properties.Scope))
+					state.Scope = pointer.FromEnum(properties.Scope)
 					state.ContinuousReconciliationEnabled = !pointer.From(properties.Suspend)
 				}
 			}
@@ -1280,7 +1280,7 @@ func flattenGitRepositoryDefinitionModel(input *fluxconfiguration.GitRepositoryD
 		HttpsCACert:           pointer.From(input.HTTPSCACert),
 		HttpsUser:             pointer.From(input.HTTPSUser),
 		LocalAuthRef:          pointer.From(input.LocalAuthRef),
-		Provider:              string(pointer.From(input.Provider)),
+		Provider:              pointer.FromEnum(input.Provider),
 		SshKnownHosts:         pointer.From(input.SshKnownHosts),
 		SyncIntervalInSeconds: pointer.From(input.SyncIntervalInSeconds),
 		TimeoutInSeconds:      pointer.From(input.TimeoutInSeconds),

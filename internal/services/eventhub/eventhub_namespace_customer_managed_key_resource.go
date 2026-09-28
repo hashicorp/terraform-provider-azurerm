@@ -126,9 +126,8 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 	}
 
 	namespace := resp.Model
-	keySource := namespaces.KeySourceMicrosoftPointKeyVault
 	namespace.Properties.Encryption = &namespaces.Encryption{
-		KeySource: &keySource,
+		KeySource: pointer.To(namespaces.KeySourceMicrosoftPointKeyVault),
 	}
 
 	keyVaultProps, err := expandEventHubNamespaceKeyVaultKeyIds(d.Get("key_vault_key_ids").(*pluginsdk.Set).List())

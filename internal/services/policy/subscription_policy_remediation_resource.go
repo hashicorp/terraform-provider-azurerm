@@ -22,12 +22,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func resourceArmSubscriptionPolicyRemediation() *pluginsdk.Resource {
+func resourceSubscriptionPolicyRemediation() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmSubscriptionPolicyRemediationCreateUpdate,
-		Read:   resourceArmSubscriptionPolicyRemediationRead,
-		Update: resourceArmSubscriptionPolicyRemediationCreateUpdate,
-		Delete: resourceArmSubscriptionPolicyRemediationDelete,
+		Create: resourceSubscriptionPolicyRemediationCreateUpdate,
+		Read:   resourceSubscriptionPolicyRemediationRead,
+		Update: resourceSubscriptionPolicyRemediationCreateUpdate,
+		Delete: resourceSubscriptionPolicyRemediationDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := remediations.ParseRemediationID(id)
@@ -110,7 +110,7 @@ func resourceArmSubscriptionPolicyRemediation() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmSubscriptionPolicyRemediationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSubscriptionPolicyRemediationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.RemediationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -148,10 +148,10 @@ func resourceArmSubscriptionPolicyRemediationCreateUpdate(d *pluginsdk.ResourceD
 		d.SetId(id.ID())
 	}
 
-	return resourceArmSubscriptionPolicyRemediationRead(d, meta)
+	return resourceSubscriptionPolicyRemediationRead(d, meta)
 }
 
-func resourceArmSubscriptionPolicyRemediationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSubscriptionPolicyRemediationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.RemediationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -179,7 +179,7 @@ func resourceArmSubscriptionPolicyRemediationRead(d *pluginsdk.ResourceData, met
 	return setRemediationProperties(d, resp.Model.Properties)
 }
 
-func resourceArmSubscriptionPolicyRemediationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSubscriptionPolicyRemediationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.RemediationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -86,13 +86,10 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(botservice.SkuNameF0),
-					string(botservice.SkuNameS1),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInEnumSlice(botservice.PossibleSkuNameValues(), false),
 			},
 
 			"microsoft_app_id": {
@@ -103,14 +100,10 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 			},
 
 			"microsoft_app_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(botservice.MsaAppTypeMultiTenant),
-					string(botservice.MsaAppTypeSingleTenant),
-					string(botservice.MsaAppTypeUserAssignedMSI),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInEnumSlice(botservice.PossibleMsaAppTypeValues(), false),
 			},
 
 			"microsoft_app_tenant_id": {
@@ -142,7 +135,7 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 			"display_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 

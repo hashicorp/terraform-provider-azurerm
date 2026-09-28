@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
-	networkpoller "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/custompollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -117,7 +117,7 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnectionCreate(d *pluginsdk.Reso
 		return fmt.Errorf("creating association between %s and %s: %w", appSlotID, subnetID, err)
 	}
 
-	pollerType := networkpoller.NewVirtualNetworkAndSubnetProvisioningSucceededPoller(meta.(*clients.Client).Network, subnetID)
+	pollerType := custompollers.NewVirtualNetworkAndSubnetProvisioningSucceededPoller(meta.(*clients.Client).Network, subnetID)
 	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("polling for completion of association between %s and %s: %w", appSlotID, subnetID, err)
@@ -220,7 +220,7 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnectionUpdate(d *pluginsdk.Reso
 		return fmt.Errorf("updating association between %s and %s: %w", appSlotID, subnetID, err)
 	}
 
-	pollerType := networkpoller.NewVirtualNetworkAndSubnetProvisioningSucceededPoller(meta.(*clients.Client).Network, subnetID)
+	pollerType := custompollers.NewVirtualNetworkAndSubnetProvisioningSucceededPoller(meta.(*clients.Client).Network, subnetID)
 	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("polling for completion of association between %s and %s: %w", appSlotID, subnetID, err)

@@ -15,8 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/securitypolicies"
-	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2024-02-01/webapplicationfirewallpolicies"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2024-02-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -78,7 +77,7 @@ func resourceCdnFrontDoorSecurityPolicy() *pluginsdk.Resource {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ForceNew:     true,
-										ValidateFunc: waf.ValidateFrontDoorWebApplicationFirewallPolicyID,
+										ValidateFunc: webapplicationfirewallpolicies.ValidateFrontDoorWebApplicationFirewallPolicyID,
 									},
 
 									"association": {
@@ -351,7 +350,7 @@ func expandCdnFrontdoorFirewallPolicyParameters(input []interface{}, isStandardS
 
 		association := securitypolicies.SecurityPolicyWebApplicationFirewallAssociation{
 			Domains:         domains,
-			PatternsToMatch: helpers.ExpandStringSlice(v["patterns_to_match"].([]interface{})),
+			PatternsToMatch: pluginsdk.ExpandStringSlice(v["patterns_to_match"].([]interface{})),
 		}
 
 		associations = append(associations, association)
@@ -419,7 +418,7 @@ func flattenCdnFrontDoorSecurityPolicyResource(input securitypolicies.SecurityPo
 	wafPolicyId := ""
 
 	if wafParams.WafPolicy != nil {
-		parsedId, err := waf.ParseFrontDoorWebApplicationFirewallPolicyIDInsensitively(pointer.From(wafParams.WafPolicy.Id))
+		parsedId, err := webapplicationfirewallpolicies.ParseFrontDoorWebApplicationFirewallPolicyIDInsensitively(pointer.From(wafParams.WafPolicy.Id))
 		if err != nil {
 			return results, err
 		}
@@ -436,7 +435,7 @@ func flattenCdnFrontDoorSecurityPolicyResource(input securitypolicies.SecurityPo
 
 			associations = append(associations, map[string]interface{}{
 				"domain":            domain,
-				"patterns_to_match": helpers.FlattenStringSlice(item.PatternsToMatch),
+				"patterns_to_match": pluginsdk.FlattenSlice(item.PatternsToMatch),
 			})
 		}
 	}

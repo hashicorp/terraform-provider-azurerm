@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	authRuleParse "github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationrulesnamespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationrulesnamespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-05-01-preview/diagnosticsettings"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -75,7 +75,7 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 			"eventhub_authorization_rule_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: authRuleParse.ValidateAuthorizationRuleID,
+				ValidateFunc: authorizationrulesnamespaces.ValidateAuthorizationRuleID,
 				AtLeastOneOf: []string{"eventhub_authorization_rule_id", "log_analytics_workspace_id", "storage_account_id", "partner_solution_id"},
 			},
 
@@ -103,8 +103,7 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 			"log_analytics_destination_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				ForceNew: false,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice([]string{
 					"Dedicated",
 					"AzureDiagnostics", // Not documented in azure API, but some resource has skew. See: https://github.com/Azure/azure-rest-api-specs/issues/9281
@@ -408,7 +407,7 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 			eventhubAuthorizationRuleId := ""
 			if props.EventHubAuthorizationRuleId != nil && *props.EventHubAuthorizationRuleId != "" {
 				authRuleId := pointer.From(props.EventHubAuthorizationRuleId)
-				parsedId, err := authRuleParse.ParseAuthorizationRuleIDInsensitively(authRuleId)
+				parsedId, err := authorizationrulesnamespaces.ParseAuthorizationRuleIDInsensitively(authRuleId)
 				if err != nil {
 					return err
 				}
@@ -446,8 +445,7 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 			}
 			d.Set("log_analytics_destination_type", logAnalyticsDestinationType)
 
-			enabledLogs := flattenMonitorDiagnosticEnabledLogs(resp.Model.Properties.Logs)
-			if err = d.Set("enabled_log", enabledLogs); err != nil {
+			if err = d.Set("enabled_log", flattenMonitorDiagnosticEnabledLogs(resp.Model.Properties.Logs)); err != nil {
 				return fmt.Errorf("setting `enabled_log`: %+v", err)
 			}
 

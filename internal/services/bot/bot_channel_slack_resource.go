@@ -163,7 +163,7 @@ func resourceBotChannelSlackRead(d *pluginsdk.ResourceData, meta interface{}) er
 			return nil
 		}
 
-		return fmt.Errorf("retreving Slack Channel for Bot %q (Resource Group %q): %+v", id.BotServiceName, id.ResourceGroupName, err)
+		return fmt.Errorf("retrieving Slack Channel for Bot %q (Resource Group %q): %+v", id.BotServiceName, id.ResourceGroupName, err)
 	}
 
 	d.Set("bot_name", id.BotServiceName)

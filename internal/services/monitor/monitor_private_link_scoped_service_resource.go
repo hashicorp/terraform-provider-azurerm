@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2019-10-17-preview/privatelinkscopedresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
@@ -65,7 +65,7 @@ func resourceMonitorPrivateLinkScopedService() *pluginsdk.Resource {
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.Any(
-					components.ValidateComponentID,
+					componentsapis.ValidateComponentID,
 					workspaces.ValidateWorkspaceID,
 					datacollectionendpoints.ValidateDataCollectionEndpointID,
 				),
@@ -163,17 +163,17 @@ func normalizeLinkedResourceId(input *string) *string {
 		return input
 	}
 
-	if resourceId, err := components.ParseComponentIDInsensitively(*input); err == nil {
-		nomalizedId := resourceId.ID()
-		return &nomalizedId
+	if resourceId, err := componentsapis.ParseComponentIDInsensitively(*input); err == nil {
+		normalizedId := resourceId.ID()
+		return &normalizedId
 	}
 	if resourceId, err := workspaces.ParseWorkspaceIDInsensitively(*input); err == nil {
-		nomalizedId := resourceId.ID()
-		return &nomalizedId
+		normalizedId := resourceId.ID()
+		return &normalizedId
 	}
 	if resourceId, err := datacollectionendpoints.ParseDataCollectionEndpointIDInsensitively(*input); err == nil {
-		nomalizedId := resourceId.ID()
-		return &nomalizedId
+		normalizedId := resourceId.ID()
+		return &normalizedId
 	}
 
 	return input

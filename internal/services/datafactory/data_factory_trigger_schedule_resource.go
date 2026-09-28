@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
@@ -144,7 +143,7 @@ func resourceDataFactoryTriggerSchedule() *pluginsdk.Resource {
 			"start_time": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Computed:         true,
+				Computed:         true, // azignore:AZS007 - pre-existing violation
 				DiffSuppressFunc: suppress.RFC3339Time,
 				ValidateFunc:     validation.IsRFC3339Time, // times in the past just start immediately
 			},
@@ -194,7 +193,7 @@ func resourceDataFactoryTriggerSchedule() *pluginsdk.Resource {
 			"pipeline": {
 				Type:          pluginsdk.TypeList,
 				Optional:      true,
-				Computed:      true,
+				Computed:      true, // azignore:AZS007 - pre-existing violation
 				ConflictsWith: []string{"pipeline_parameters"},
 				ExactlyOneOf:  []string{"pipeline", "pipeline_name"},
 				Elem: &pluginsdk.Resource{
@@ -219,7 +218,7 @@ func resourceDataFactoryTriggerSchedule() *pluginsdk.Resource {
 			"pipeline_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ExactlyOneOf: []string{"pipeline", "pipeline_name"},
 				ValidateFunc: validate.DataFactoryPipelineAndTriggerName(),
 			},
@@ -227,7 +226,7 @@ func resourceDataFactoryTriggerSchedule() *pluginsdk.Resource {
 			"pipeline_parameters": {
 				Type:          pluginsdk.TypeMap,
 				Optional:      true,
-				Computed:      true,
+				Computed:      true, // azignore:AZS007 - pre-existing violation
 				ConflictsWith: []string{"pipeline"},
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
@@ -314,8 +313,7 @@ func resourceDataFactoryTriggerScheduleCreate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		scheduleProps.Annotations = &annotations
+		scheduleProps.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	trigger := datafactory.TriggerResource{
@@ -408,8 +406,7 @@ func resourceDataFactoryTriggerScheduleUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		scheduleProps.Annotations = &annotations
+		scheduleProps.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	trigger := datafactory.TriggerResource{
@@ -493,8 +490,7 @@ func resourceDataFactoryTriggerScheduleRead(d *pluginsdk.ResourceData, meta inte
 			}
 		}
 
-		annotations := flattenDataFactoryAnnotations(scheduleTriggerProps.Annotations)
-		if err := d.Set("annotations", annotations); err != nil {
+		if err := d.Set("annotations", flattenDataFactoryAnnotations(scheduleTriggerProps.Annotations)); err != nil {
 			return fmt.Errorf("setting `annotations`: %+v", err)
 		}
 
@@ -558,13 +554,13 @@ func expandDataFactorySchedule(input []interface{}) *datafactory.RecurrenceSched
 	}
 
 	if monthdays := value["days_of_month"].([]interface{}); len(monthdays) > 0 {
-		schedule.MonthDays = helpers.ExpandInt32Slice(monthdays)
+		schedule.MonthDays = pluginsdk.ExpandInt32Slice(monthdays)
 	}
 	if minutes := value["minutes"].([]interface{}); len(minutes) > 0 {
-		schedule.Minutes = helpers.ExpandInt32Slice(minutes)
+		schedule.Minutes = pluginsdk.ExpandInt32Slice(minutes)
 	}
 	if hours := value["hours"].([]interface{}); len(hours) > 0 {
-		schedule.Hours = helpers.ExpandInt32Slice(hours)
+		schedule.Hours = pluginsdk.ExpandInt32Slice(hours)
 	}
 
 	return &schedule
@@ -576,10 +572,10 @@ func flattenDataFactorySchedule(schedule *datafactory.RecurrenceSchedule) []inte
 	}
 	value := make(map[string]interface{})
 	if schedule.Minutes != nil {
-		value["minutes"] = helpers.FlattenInt32Slice(schedule.Minutes)
+		value["minutes"] = pluginsdk.FlattenSlice(schedule.Minutes)
 	}
 	if schedule.Hours != nil {
-		value["hours"] = helpers.FlattenInt32Slice(schedule.Hours)
+		value["hours"] = pluginsdk.FlattenSlice(schedule.Hours)
 	}
 	if schedule.WeekDays != nil {
 		weekDays := make([]interface{}, 0)
@@ -589,7 +585,7 @@ func flattenDataFactorySchedule(schedule *datafactory.RecurrenceSchedule) []inte
 		value["days_of_week"] = weekDays
 	}
 	if schedule.MonthDays != nil {
-		value["days_of_month"] = helpers.FlattenInt32Slice(schedule.MonthDays)
+		value["days_of_month"] = pluginsdk.FlattenSlice(schedule.MonthDays)
 	}
 	if schedule.MonthlyOccurrences != nil {
 		monthlyOccurrences := make([]interface{}, 0)

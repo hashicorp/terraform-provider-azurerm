@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/certificates"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	keyVaultSuppress "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/suppress"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -81,7 +81,7 @@ func resourceAppServiceCertificate() *pluginsdk.Resource {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				ForceNew:         true,
-				DiffSuppressFunc: keyVaultSuppress.DiffSuppressIgnoreKeyVaultKeyVersion,
+				DiffSuppressFunc: suppress.DiffSuppressIgnoreKeyVaultKeyVersion,
 				ValidateFunc:     keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny),
 				ConflictsWith:    []string{"pfx_blob", "password"},
 				ExactlyOneOf:     []string{"key_vault_secret_id", "pfx_blob"},

@@ -199,7 +199,7 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Read() sdk.ResourceFunc
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					state.Type = string(pointer.From(props.EndpointType))
+					state.Type = pointer.FromEnum(props.EndpointType)
 
 					if props.Members == nil || len(*props.Members) == 0 {
 						// if members list is nil or empty, this is an endpoint that was previously deleted
@@ -348,8 +348,7 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Update() sdk.ResourceFu
 
 			// the id has changed and needs to be updated
 			replicaEndpointId := virtualendpoints.NewVirtualEndpointID(replicaServerId.SubscriptionId, replicaServerId.ResourceGroupName, replicaServerId.FlexibleServerName, virtualEndpoint.Name)
-			endPointId := commonids.NewCompositeResourceID(&virtualEndpointId, &replicaEndpointId)
-			metadata.SetID(endPointId)
+			metadata.SetID(commonids.NewCompositeResourceID(&virtualEndpointId, &replicaEndpointId))
 
 			return nil
 		},

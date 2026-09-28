@@ -85,7 +85,7 @@ func dataSourceApiManagementGroupRead(d *pluginsdk.ResourceData, meta interface{
 			d.Set("display_name", props.DisplayName)
 			d.Set("description", pointer.From(props.Description))
 			d.Set("external_id", pointer.From(props.ExternalId))
-			d.Set("type", string(pointer.From(props.Type)))
+			d.Set("type", pointer.FromEnum(props.Type))
 		}
 	}
 

@@ -70,7 +70,7 @@ func resourceKustoDatabaseScript() *pluginsdk.Resource {
 			"force_an_update_when_value_changed": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 

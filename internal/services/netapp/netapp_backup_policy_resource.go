@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/backuppolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/backuppolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
-	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -27,7 +27,7 @@ type NetAppBackupPolicyResource struct{}
 var _ sdk.Resource = NetAppBackupPolicyResource{}
 
 func (r NetAppBackupPolicyResource) ModelObject() interface{} {
-	return &netAppModels.NetAppBackupPolicyModel{}
+	return &models.NetAppBackupPolicyModel{}
 }
 
 func (r NetAppBackupPolicyResource) ResourceType() string {
@@ -44,7 +44,7 @@ func (r NetAppBackupPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: netAppValidate.VolumeQuotaRuleName,
+			ValidateFunc: validate.VolumeQuotaRuleName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -55,7 +55,7 @@ func (r NetAppBackupPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: netAppValidate.AccountName,
+			ValidateFunc: validate.AccountName,
 		},
 
 		"tags": commonschema.Tags(),
@@ -102,7 +102,7 @@ func (r NetAppBackupPolicyResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.NetApp.BackupPolicyClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var model netAppModels.NetAppBackupPolicyModel
+			var model models.NetAppBackupPolicyModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -110,7 +110,7 @@ func (r NetAppBackupPolicyResource) Create() sdk.ResourceFunc {
 			id := backuppolicies.NewBackupPolicyID(subscriptionId, model.ResourceGroupName, model.AccountName, model.Name)
 
 			// Validations
-			if errorList := netAppValidate.ValidateNetAppBackupPolicyCombinedRetention(model.DailyBackupsToKeep, model.WeeklyBackupsToKeep, model.MonthlyBackupsToKeep); len(errorList) > 0 {
+			if errorList := validate.ValidateNetAppBackupPolicyCombinedRetention(model.DailyBackupsToKeep, model.WeeklyBackupsToKeep, model.MonthlyBackupsToKeep); len(errorList) > 0 {
 				return fmt.Errorf("one or more issues found while performing deeper validations for %s:\n%+v", id, errorList)
 			}
 
@@ -160,7 +160,7 @@ func (r NetAppBackupPolicyResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var state netAppModels.NetAppBackupPolicyModel
+			var state models.NetAppBackupPolicyModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -210,7 +210,7 @@ func (r NetAppBackupPolicyResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			var state netAppModels.NetAppBackupPolicyModel
+			var state models.NetAppBackupPolicyModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}

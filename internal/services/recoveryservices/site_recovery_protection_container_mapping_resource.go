@@ -100,7 +100,7 @@ func resourceSiteRecoveryProtectionContainerMapping() *pluginsdk.Resource {
 							Optional: true,
 							Default:  string(replicationprotectioncontainermappings.AutomationAccountAuthenticationTypeSystemAssignedIdentity),
 							// The Swagger definition defaults to `RunAsAccount` but it is deprecated.
-							// deprecation details: https://learn.microsoft.com/en-us/azure/automation/whats-new#support-for-run-as-accounts
+							// deprecation details: https://learn.microsoft.com/azure/automation/whats-new#support-for-run-as-accounts
 							ValidateFunc: validation.StringInSlice(replicationprotectioncontainermappings.PossibleValuesForAutomationAccountAuthenticationType(), false),
 						},
 					},
@@ -261,8 +261,6 @@ func resourceSiteRecoveryServicesContainerMappingDelete(d *pluginsdk.ResourceDat
 		return err
 	}
 
-	instanceType := "A2A"
-
 	client := meta.(*clients.Client).RecoveryServices.ContainerMappingClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -270,7 +268,7 @@ func resourceSiteRecoveryServicesContainerMappingDelete(d *pluginsdk.ResourceDat
 	input := replicationprotectioncontainermappings.RemoveProtectionContainerMappingInput{
 		Properties: &replicationprotectioncontainermappings.RemoveProtectionContainerMappingInputProperties{
 			ProviderSpecificInput: &replicationprotectioncontainermappings.ReplicationProviderContainerUnmappingInput{
-				InstanceType: &instanceType,
+				InstanceType: pointer.To("A2A"),
 			},
 		},
 	}

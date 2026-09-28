@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/backupvaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/backupvaults"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -27,7 +27,7 @@ func (r NetAppBackupVaultDataSource) ResourceType() string {
 }
 
 func (r NetAppBackupVaultDataSource) ModelObject() interface{} {
-	return &netAppModels.NetAppBackupVaultModel{}
+	return &models.NetAppBackupVaultModel{}
 }
 
 func (r NetAppBackupVaultDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -64,7 +64,7 @@ func (r NetAppBackupVaultDataSource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.NetApp.BackupVaultsClient
 
-			var state netAppModels.NetAppBackupVaultModel
+			var state models.NetAppBackupVaultModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}

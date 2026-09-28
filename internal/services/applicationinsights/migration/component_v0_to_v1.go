@@ -8,7 +8,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -27,7 +27,7 @@ func (ComponentUpgradeV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		// new:
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Insights/components/component1
 		oldIdRaw := rawState["id"].(string)
-		id, err := components.ParseComponentIDInsensitively(oldIdRaw)
+		id, err := componentsapis.ParseComponentIDInsensitively(oldIdRaw)
 		if err != nil {
 			return rawState, err
 		}

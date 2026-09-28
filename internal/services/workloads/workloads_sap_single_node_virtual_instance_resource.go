@@ -606,7 +606,7 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) flatten(metadata sdk.Reso
 
 		if props := model.Properties; props != nil {
 			state.Environment = string(props.Environment)
-			state.ManagedResourcesNetworkAccessType = string(pointer.From(props.ManagedResourcesNetworkAccessType))
+			state.ManagedResourcesNetworkAccessType = pointer.FromEnum(props.ManagedResourcesNetworkAccessType)
 			state.SapProduct = string(props.SapProduct)
 			state.Tags = pointer.From(model.Tags)
 
@@ -780,13 +780,11 @@ func expandSAPSingleNodeVirtualInstanceDiskVolumeConfigurations(input []SingleSe
 	result := make(map[string]sapvirtualinstances.DiskVolumeConfiguration, 0)
 
 	for _, v := range input {
-		skuName := sapvirtualinstances.DiskSkuName(v.SkuName)
-
 		result[v.VolumeName] = sapvirtualinstances.DiskVolumeConfiguration{
 			Count:  pointer.To(v.NumberOfDisks),
 			SizeGB: pointer.To(v.SizeGb),
 			Sku: &sapvirtualinstances.DiskSku{
-				Name: &skuName,
+				Name: pointer.ToEnum[sapvirtualinstances.DiskSkuName](v.SkuName),
 			},
 		}
 	}
@@ -815,8 +813,7 @@ func expandSingleServerConfiguration(input []SingleServerConfiguration) *sapvirt
 	}
 
 	if v := singleServerConfiguration.DatabaseType; v != "" {
-		dbType := sapvirtualinstances.SAPDatabaseType(v)
-		result.DatabaseType = &dbType
+		result.DatabaseType = pointer.ToEnum[sapvirtualinstances.SAPDatabaseType](v)
 	}
 
 	return result
@@ -836,7 +833,7 @@ func flattenSAPSingleNodeVirtualInstanceDiskVolumeConfigurations(input *sapvirtu
 		}
 
 		if sku := v.Sku; sku != nil {
-			diskVolumeConfiguration.SkuName = string(pointer.From(sku.Name))
+			diskVolumeConfiguration.SkuName = pointer.FromEnum(sku.Name)
 		}
 
 		result = append(result, diskVolumeConfiguration)
@@ -939,7 +936,7 @@ func flattenSingleServerConfiguration(input sapvirtualinstances.SingleServerConf
 
 	singleServerConfig := SingleServerConfiguration{
 		AppResourceGroupName:        input.AppResourceGroup,
-		DatabaseType:                string(pointer.From(input.DatabaseType)),
+		DatabaseType:                pointer.FromEnum(input.DatabaseType),
 		DiskVolumeConfigurations:    flattenSAPSingleNodeVirtualInstanceDiskVolumeConfigurations(input.DbDiskConfiguration),
 		SubnetId:                    input.SubnetId,
 		VirtualMachineConfiguration: flattenSAPSingleNodeVirtualInstanceVirtualMachineConfiguration(input.VirtualMachineConfiguration, d),
