@@ -515,12 +515,12 @@ func resourceSentinelAlertRuleScheduledRead(d *pluginsdk.ResourceData, meta inte
 					return fmt.Errorf("setting `incident`: %+v", err)
 				}
 
-				d.Set("severity", string(pointer.From(prop.Severity)))
+				d.Set("severity", pointer.FromEnum(prop.Severity))
 				d.Set("enabled", prop.Enabled)
 				d.Set("query", prop.Query)
 				d.Set("query_frequency", prop.QueryFrequency)
 				d.Set("query_period", prop.QueryPeriod)
-				d.Set("trigger_operator", string(pointer.From(prop.TriggerOperator)))
+				d.Set("trigger_operator", pointer.FromEnum(prop.TriggerOperator))
 				d.Set("trigger_threshold", int(pointer.From(prop.TriggerThreshold)))
 				d.Set("suppression_enabled", prop.SuppressionEnabled)
 				d.Set("suppression_duration", prop.SuppressionDuration)

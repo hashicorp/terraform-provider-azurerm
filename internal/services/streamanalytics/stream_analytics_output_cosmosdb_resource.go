@@ -216,7 +216,7 @@ func (r OutputCosmosDBResource) Read() sdk.ResourceFunc {
 
 					state.PartitionKey = pointer.From(output.Properties.PartitionKey)
 
-					state.AuthenticationMode = string(pointer.From(output.Properties.AuthenticationMode))
+					state.AuthenticationMode = pointer.FromEnum(output.Properties.AuthenticationMode)
 
 					return metadata.Encode(&state)
 				}

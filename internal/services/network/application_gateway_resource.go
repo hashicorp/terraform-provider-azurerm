@@ -3349,7 +3349,7 @@ func flattenApplicationGatewayFrontendIPConfigurations(input *[]applicationgatew
 		}
 
 		if props := config.Properties; props != nil {
-			output["private_ip_address_allocation"] = string(pointer.From(props.PrivateIPAllocationMethod))
+			output["private_ip_address_allocation"] = pointer.FromEnum(props.PrivateIPAllocationMethod)
 
 			if props.Subnet != nil && props.Subnet.Id != nil {
 				output["subnet_id"] = *props.Subnet.Id
@@ -3457,7 +3457,7 @@ func flattenApplicationGatewayProbes(input *[]applicationgateways.ApplicationGat
 		}
 
 		if props := v.Properties; props != nil {
-			output["protocol"] = string(pointer.From(props.Protocol))
+			output["protocol"] = pointer.FromEnum(props.Protocol)
 
 			if host := props.Host; host != nil {
 				output["host"] = *host
@@ -3609,7 +3609,7 @@ func flattenApplicationGatewayPrivateLinkConfigurations(input *[]applicationgate
 					if ipConfigProps.PrivateIPAddress != nil {
 						ipConfigResult["private_ip_address"] = *ipConfigProps.PrivateIPAddress
 					}
-					ipConfigResult["private_ip_address_allocation"] = string(pointer.From(ipConfigProps.PrivateIPAllocationMethod))
+					ipConfigResult["private_ip_address_allocation"] = pointer.FromEnum(ipConfigProps.PrivateIPAllocationMethod)
 					if ipConfigProps.Primary != nil {
 						ipConfigResult["primary"] = *ipConfigProps.Primary
 					}
@@ -3721,7 +3721,7 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]applicationgateways.A
 	for _, config := range *input {
 		if props := config.Properties; props != nil {
 			output := map[string]interface{}{
-				"rule_type": string(pointer.From(props.RuleType)),
+				"rule_type": pointer.FromEnum(props.RuleType),
 			}
 
 			if config.Id != nil {
@@ -4181,7 +4181,7 @@ func flattenApplicationGatewayRedirectConfigurations(input *[]applicationgateway
 	for _, config := range *input {
 		if props := config.Properties; props != nil {
 			output := map[string]interface{}{
-				"redirect_type": string(pointer.From(props.RedirectType)),
+				"redirect_type": pointer.FromEnum(props.RedirectType),
 			}
 
 			if config.Id != nil {
@@ -4280,8 +4280,8 @@ func expandApplicationGatewaySku(d *pluginsdk.ResourceData) *applicationgateways
 func flattenApplicationGatewaySku(input *applicationgateways.ApplicationGatewaySku) []interface{} {
 	result := make(map[string]interface{})
 
-	result["name"] = string(pointer.From(input.Name))
-	result["tier"] = string(pointer.From(input.Tier))
+	result["name"] = pointer.FromEnum(input.Name)
+	result["tier"] = pointer.FromEnum(input.Tier)
 	if input.Capacity != nil {
 		result["capacity"] = int(*input.Capacity)
 	}
@@ -4525,7 +4525,7 @@ func flattenApplicationGatewaySslProfiles(input *[]applicationgateways.Applicati
 			if props.ClientAuthConfiguration != nil {
 				verifyClientCertIssuerDn = pointer.From(props.ClientAuthConfiguration.VerifyClientCertIssuerDN)
 				if *props.ClientAuthConfiguration.VerifyClientRevocation != applicationgateways.ApplicationGatewayClientRevocationOptionsNone {
-					verifyClientCertificateRevocation = string(pointer.From(props.ClientAuthConfiguration.VerifyClientRevocation))
+					verifyClientCertificateRevocation = pointer.FromEnum(props.ClientAuthConfiguration.VerifyClientRevocation)
 				}
 			}
 

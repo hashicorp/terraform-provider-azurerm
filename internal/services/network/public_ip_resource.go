@@ -448,12 +448,12 @@ func resourcePublicIpFlatten(d *pluginsdk.ResourceData, id *commonids.PublicIPAd
 		d.Set("zones", zones.FlattenUntyped(model.Zones))
 
 		if sku := model.Sku; sku != nil {
-			d.Set("sku", string(pointer.From(sku.Name)))
-			d.Set("sku_tier", string(pointer.From(sku.Tier)))
+			d.Set("sku", pointer.FromEnum(sku.Name))
+			d.Set("sku_tier", pointer.FromEnum(sku.Tier))
 		}
 		if props := model.Properties; props != nil {
-			d.Set("allocation_method", string(pointer.From(props.PublicIPAllocationMethod)))
-			d.Set("ip_version", string(pointer.From(props.PublicIPAddressVersion)))
+			d.Set("allocation_method", pointer.FromEnum(props.PublicIPAllocationMethod))
+			d.Set("ip_version", pointer.FromEnum(props.PublicIPAddressVersion))
 
 			if publicIpPrefix := props.PublicIPPrefix; publicIpPrefix != nil {
 				d.Set("public_ip_prefix_id", publicIpPrefix.Id)
@@ -477,7 +477,7 @@ func resourcePublicIpFlatten(d *pluginsdk.ResourceData, id *commonids.PublicIPAd
 
 			ddosProtectionMode := string(publicipaddresses.DdosSettingsProtectionModeVirtualNetworkInherited)
 			if ddosSetting := props.DdosSettings; ddosSetting != nil {
-				ddosProtectionMode = string(pointer.From(ddosSetting.ProtectionMode))
+				ddosProtectionMode = pointer.FromEnum(ddosSetting.ProtectionMode)
 				if subResource := ddosSetting.DdosProtectionPlan; subResource != nil {
 					d.Set("ddos_protection_plan_id", subResource.Id)
 				}

@@ -19,6 +19,7 @@ func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 func (r Registration) Actions() []func() action.Action {
 	return []func() action.Action{
 		newDataProtectionBackupInstanceProtectAction,
+		newDataProtectionResourceGuardUnlockDeleteAction,
 	}
 }
 

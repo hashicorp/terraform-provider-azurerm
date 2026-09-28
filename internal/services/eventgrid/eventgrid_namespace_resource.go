@@ -407,7 +407,7 @@ func (r EventGridNamespaceResource) Read() sdk.ResourceFunc {
 				state.Location = location.Normalize(model.Location)
 
 				if model.Sku != nil {
-					state.Sku = string(pointer.From(model.Sku.Name))
+					state.Sku = pointer.FromEnum(model.Sku.Name)
 					state.Capacity = pointer.From(model.Sku.Capacity)
 				}
 				flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
@@ -424,7 +424,7 @@ func (r EventGridNamespaceResource) Read() sdk.ResourceFunc {
 					}
 					state.TopicSpacesConfiguration = topicSpacesConfig
 					state.InboundIpRules = flattenInboundIPRules(props.InboundIPRules)
-					state.PublicNetworkAccess = string(pointer.From(props.PublicNetworkAccess))
+					state.PublicNetworkAccess = pointer.FromEnum(props.PublicNetworkAccess)
 				}
 			}
 
@@ -482,7 +482,7 @@ func flattenInboundIPRules(ipRules *[]namespaces.InboundIPRule) []InboundIpRuleM
 	for _, v := range *ipRules {
 		output = append(output, InboundIpRuleModel{
 			IpMask: pointer.From(v.IPMask),
-			Action: string(pointer.From(v.Action)),
+			Action: pointer.FromEnum(v.Action),
 		})
 	}
 	return output

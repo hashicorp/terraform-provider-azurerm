@@ -3880,7 +3880,7 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 
 	networkDataPlane := string(managedclusters.NetworkDataplaneAzure)
 	if v := profile.NetworkDataplane; v != nil {
-		networkDataPlane = string(pointer.From(v))
+		networkDataPlane = pointer.FromEnum(v)
 	}
 
 	advancedNetworking := flattenKubernetesClusterAdvancedNetworking(profile.AdvancedNetworking)

@@ -352,7 +352,7 @@ func (r CognitiveDeploymentResource) flatten(metadata sdk.ResourceMetaData, id *
 
 		state.DynamicThrottlingEnabled = pointer.From(properties.DynamicThrottlingEnabled)
 		state.RaiPolicyName = pointer.From(properties.RaiPolicyName)
-		state.VersionUpgradeOption = string(pointer.From(properties.VersionUpgradeOption))
+		state.VersionUpgradeOption = pointer.FromEnum(properties.VersionUpgradeOption)
 	}
 	if sku := flattenDeploymentSkuModel(model.Sku); sku != nil {
 		state.Sku = sku

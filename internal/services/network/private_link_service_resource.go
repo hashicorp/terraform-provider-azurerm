@@ -484,7 +484,7 @@ func flattenPrivateLinkServiceIPConfiguration(input *[]privatelinkservices.Priva
 				privateIpAddress = *props.PrivateIPAddress
 			}
 
-			privateIpVersion = string(pointer.From(props.PrivateIPAddressVersion))
+			privateIpVersion = pointer.FromEnum(props.PrivateIPAddressVersion)
 
 			if props.Subnet != nil && props.Subnet.Id != nil {
 				subnetId = *props.Subnet.Id

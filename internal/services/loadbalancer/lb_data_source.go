@@ -129,7 +129,7 @@ func dataSourceArmLoadBalancerRead(d *pluginsdk.ResourceData, meta interface{}) 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 		if sku := model.Sku; sku != nil {
-			d.Set("sku", string(pointer.From(sku.Name)))
+			d.Set("sku", pointer.FromEnum(sku.Name))
 		}
 
 		privateIpAddress := ""
@@ -182,14 +182,14 @@ func flattenLoadBalancerDataSourceFrontendIpConfiguration(ipConfigs *[]loadbalan
 		publicIpAddressId := ""
 		subnetId := ""
 		if props := config.Properties; props != nil {
-			privateIpAddressAllocation = string(pointer.From(props.PrivateIPAllocationMethod))
+			privateIpAddressAllocation = pointer.FromEnum(props.PrivateIPAllocationMethod)
 
 			if subnet := props.Subnet; subnet != nil {
 				subnetId = pointer.From(subnet.Id)
 			}
 
 			privateIpAddress = pointer.From(props.PrivateIPAddress)
-			privateIpAddressVersion = string(pointer.From(props.PrivateIPAddressVersion))
+			privateIpAddressVersion = pointer.FromEnum(props.PrivateIPAddressVersion)
 
 			if pip := props.PublicIPAddress; pip != nil {
 				publicIpAddressId = pointer.From(pip.Id)

@@ -152,11 +152,11 @@ func (r ElasticSANVolumeGroupDataSource) Read() sdk.ResourceFunc {
 				state.Identity = *flattenedIdentity
 
 				if model.Properties != nil {
-					state.EncryptionType = string(pointer.From(model.Properties.Encryption))
+					state.EncryptionType = pointer.FromEnum(model.Properties.Encryption)
 					state.NetworkRule = FlattenVolumeGroupNetworkRules(model.Properties.NetworkAcls)
 
 					if model.Properties.ProtocolType != nil {
-						state.ProtocolType = string(pointer.From(model.Properties.ProtocolType))
+						state.ProtocolType = pointer.FromEnum(model.Properties.ProtocolType)
 					}
 
 					state.Encryption, err = FlattenVolumeGroupEncryption(model.Properties.EncryptionProperties)

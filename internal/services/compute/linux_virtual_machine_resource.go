@@ -1028,7 +1028,7 @@ func resourceLinuxVirtualMachineFlatten(ctx context.Context, clientsClient *clie
 						}
 						if patchSettings.AutomaticByPlatformSettings != nil {
 							bypassPlatformSafetyChecksOnUserScheduleEnabled = pointer.From(patchSettings.AutomaticByPlatformSettings.BypassPlatformSafetyChecksOnUserSchedule)
-							rebootSetting = string(pointer.From(patchSettings.AutomaticByPlatformSettings.RebootSetting))
+							rebootSetting = pointer.FromEnum(patchSettings.AutomaticByPlatformSettings.RebootSetting)
 						}
 					}
 				}
@@ -1057,7 +1057,7 @@ func resourceLinuxVirtualMachineFlatten(ctx context.Context, clientsClient *clie
 			d.Set("proximity_placement_group_id", proximityPlacementGroupId)
 
 			if profile := props.StorageProfile; profile != nil {
-				d.Set("disk_controller_type", string(pointer.From(props.StorageProfile.DiskControllerType)))
+				d.Set("disk_controller_type", pointer.FromEnum(props.StorageProfile.DiskControllerType))
 
 				if includeResource {
 					// the storage_account_type isn't returned so we need to look it up

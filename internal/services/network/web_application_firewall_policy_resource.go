@@ -982,7 +982,7 @@ func flattenWebApplicationFirewallPolicyPolicySettings(input *webapplicationfire
 	result := make(map[string]interface{})
 
 	result["enabled"] = pointer.From(input.State) == webapplicationfirewallpolicies.WebApplicationFirewallEnabledStateEnabled
-	result["mode"] = string(pointer.From(input.Mode))
+	result["mode"] = pointer.FromEnum(input.Mode)
 	result["request_body_check"] = input.RequestBodyCheck
 	result["request_body_enforcement"] = input.RequestBodyEnforcement
 	result["file_upload_enforcement"] = input.FileUploadEnforcement
@@ -1155,7 +1155,7 @@ func flattenWebApplicationFirewallPolicyOverrideRules(input *[]webapplicationfir
 
 		v["enabled"] = pointer.From(item.State) == webapplicationfirewallpolicies.ManagedRuleEnabledStateEnabled
 
-		v["action"] = string(pointer.From(item.Action))
+		v["action"] = pointer.FromEnum(item.Action)
 
 		results = append(results, v)
 	}
