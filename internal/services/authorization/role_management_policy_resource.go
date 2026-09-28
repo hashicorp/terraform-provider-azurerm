@@ -115,7 +115,7 @@ func (r RoleManagementPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew:    true,
 			ValidateFunc: validation.Any(
 				// Elevated access for a global admin is needed to assign roles in this scope:
-				// https://docs.microsoft.com/en-us/azure/role-based-access-control/elevate-access-global-admin#azure-cli
+				// https://docs.microsoft.com/azure/role-based-access-control/elevate-access-global-admin#azure-cli
 				// It seems only user account is allowed to be elevated access.
 				validation.StringMatch(regexp.MustCompile("/providers/Microsoft.Subscription.*"), "Subscription scope is invalid"),
 
@@ -484,7 +484,7 @@ func (r RoleManagementPolicyResource) Read() sdk.ResourceFunc {
 											for ia, pa := range *primaryApprovers {
 												state.ActivationRules[0].ApprovalStages[0].PrimaryApprovers[ia] = RoleManagementPolicyApprover{
 													ID:   pointer.From(pa.Id),
-													Type: string(pointer.From(pa.UserType)),
+													Type: pointer.FromEnum(pa.UserType),
 												}
 											}
 										}

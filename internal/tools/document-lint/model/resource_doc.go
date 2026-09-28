@@ -221,13 +221,13 @@ func (p Properties) FindAllSubBlock(name string) (res []*Field) {
 }
 
 type PossibleValue struct {
-	Valeus []string
+	Values []string
 	Field  *Field
 }
 
 func NewPossibleValue(values []string, f *Field) PossibleValue {
 	return PossibleValue{
-		Valeus: values,
+		Values: values,
 		Field:  f,
 	}
 }

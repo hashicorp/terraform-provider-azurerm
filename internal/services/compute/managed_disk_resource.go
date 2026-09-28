@@ -852,7 +852,7 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 				d.Set("logical_sector_size", creationData.LogicalSectorSize)
 			}
 
-			// imageReference is returned as well when galleryImageRefernece is used, only check imageReference when galleryImageReference is not returned
+			// imageReference is returned as well when galleryImageReference is used, only check imageReference when galleryImageReference is not returned
 			galleryImageReferenceId := ""
 			imageReferenceId := ""
 			if galleryImageReference := creationData.GalleryImageReference; galleryImageReference != nil && galleryImageReference.Id != nil {
@@ -875,11 +875,11 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			d.Set("disk_iops_read_only", props.DiskIOPSReadOnly)
 			d.Set("disk_mbps_read_only", props.DiskMBpsReadOnly)
 			d.Set("optimized_frequent_attach_enabled", props.OptimizedForFrequentAttach)
-			d.Set("os_type", string(pointer.From(props.OsType)))
+			d.Set("os_type", pointer.FromEnum(props.OsType))
 			d.Set("tier", props.Tier)
 			d.Set("max_shares", props.MaxShares)
-			d.Set("hyper_v_generation", string(pointer.From(props.HyperVGeneration)))
-			d.Set("network_access_policy", string(pointer.From(props.NetworkAccessPolicy)))
+			d.Set("hyper_v_generation", pointer.FromEnum(props.HyperVGeneration))
+			d.Set("network_access_policy", pointer.FromEnum(props.NetworkAccessPolicy))
 			d.Set("disk_access_id", props.DiskAccessId)
 			d.Set("public_network_access_enabled", *props.PublicNetworkAccess == disks.PublicNetworkAccessEnabled)
 

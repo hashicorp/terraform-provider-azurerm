@@ -20,15 +20,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/ddosprotectionplans"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networksecuritygroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/routetables"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/serviceendpointpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/subnets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/ipampools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/ddosprotectionplans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/ipampools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networksecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/routetables"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/serviceendpointpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/subnets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworks"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -357,7 +356,7 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 }
 
 func resourceVirtualNetworkCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.VirtualNetworksClient
+	client := meta.(*clients.Client).Network.VirtualNetworks
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -437,7 +436,7 @@ func resourceVirtualNetworkCreate(d *pluginsdk.ResourceData, meta interface{}) e
 }
 
 func resourceVirtualNetworkRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.VirtualNetworksClient
+	client := meta.(*clients.Client).Network.VirtualNetworks
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -473,7 +472,7 @@ func resourceVirtualNetworkFlatten(d *pluginsdk.ResourceData, id commonids.Virtu
 		if props := vnet.Properties; props != nil {
 			d.Set("guid", props.ResourceGuid)
 			d.Set("flow_timeout_in_minutes", props.FlowTimeoutInMinutes)
-			d.Set("private_endpoint_vnet_policies", string(pointer.From(props.PrivateEndpointVNetPolicies)))
+			d.Set("private_endpoint_vnet_policies", pointer.FromEnum(props.PrivateEndpointVNetPolicies))
 
 			if space := props.AddressSpace; space != nil {
 				if err := d.Set("address_space", space.AddressPrefixes); err != nil {
@@ -531,7 +530,7 @@ func resourceVirtualNetworkFlatten(d *pluginsdk.ResourceData, id commonids.Virtu
 }
 
 func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.VirtualNetworksClient
+	client := meta.(*clients.Client).Network.VirtualNetworks
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -559,7 +558,7 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			if payload.Properties.AddressSpace == nil {
 				payload.Properties.AddressSpace = &virtualnetworks.AddressSpace{}
 			}
-			payload.Properties.AddressSpace.AddressPrefixes = helpers.ExpandStringSlice(v)
+			payload.Properties.AddressSpace.AddressPrefixes = pluginsdk.ExpandStringSlice(v)
 		} else {
 			payload.Properties.AddressSpace.AddressPrefixes = nil
 		}
@@ -618,7 +617,7 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			payload.Properties.DhcpOptions = &virtualnetworks.DhcpOptions{}
 		}
 
-		payload.Properties.DhcpOptions.DnsServers = helpers.ExpandStringSlice(d.Get("dns_servers").([]interface{}))
+		payload.Properties.DhcpOptions.DnsServers = pluginsdk.ExpandStringSlice(d.Get("dns_servers").([]interface{}))
 	}
 
 	if d.HasChange("flow_timeout_in_minutes") {
@@ -690,7 +689,7 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{string(virtualnetworks.ProvisioningStateUpdating)},
 		Target:     []string{string(virtualnetworks.ProvisioningStateSucceeded)},
-		Refresh:    VirtualNetworkProvisioningStateRefreshFunc(ctx, meta.(*clients.Client).Network.VirtualNetworksClient, *id),
+		Refresh:    VirtualNetworkProvisioningStateRefreshFunc(ctx, meta.(*clients.Client).Network.VirtualNetworks, *id),
 		MinTimeout: 1 * time.Minute,
 		Timeout:    time.Until(timeout),
 	}
@@ -703,7 +702,7 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 }
 
 func resourceVirtualNetworkDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.VirtualNetworksClient
+	client := meta.(*clients.Client).Network.VirtualNetworks
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -919,14 +918,14 @@ func expandVirtualNetworkProperties(ctx context.Context, client virtualnetworks.
 	properties := &virtualnetworks.VirtualNetworkPropertiesFormat{
 		AddressSpace: &virtualnetworks.AddressSpace{},
 		DhcpOptions: &virtualnetworks.DhcpOptions{
-			DnsServers: helpers.ExpandStringSlice(d.Get("dns_servers").([]interface{})),
+			DnsServers: pluginsdk.ExpandStringSlice(d.Get("dns_servers").([]interface{})),
 		},
 		PrivateEndpointVNetPolicies: pointer.ToEnum[virtualnetworks.PrivateEndpointVNetPolicies](d.Get("private_endpoint_vnet_policies").(string)),
 		Subnets:                     &subnets,
 	}
 
 	if v, ok := d.GetOk("address_space"); ok {
-		properties.AddressSpace.AddressPrefixes = helpers.ExpandStringSlice(v.(*pluginsdk.Set).List())
+		properties.AddressSpace.AddressPrefixes = pluginsdk.ExpandStringSlice(v.(*pluginsdk.Set).List())
 	}
 
 	if v, ok := d.GetOk("ddos_protection_plan"); ok {
@@ -1094,8 +1093,8 @@ func flattenVirtualNetworkSubnets(input *[]virtualnetworks.Subnet) (*pluginsdk.S
 				}
 				output["delegation"] = flattenVirtualNetworkSubnetDelegation(props.Delegations)
 				output["default_outbound_access_enabled"] = pointer.From(props.DefaultOutboundAccess)
-				output["private_endpoint_network_policies"] = string(pointer.From(props.PrivateEndpointNetworkPolicies))
-				output["private_link_service_network_policies_enabled"] = strings.EqualFold(string(pointer.From(props.PrivateLinkServiceNetworkPolicies)), string(virtualnetworks.VirtualNetworkPrivateEndpointNetworkPoliciesEnabled))
+				output["private_endpoint_network_policies"] = pointer.FromEnum(props.PrivateEndpointNetworkPolicies)
+				output["private_link_service_network_policies_enabled"] = strings.EqualFold(pointer.FromEnum(props.PrivateLinkServiceNetworkPolicies), string(virtualnetworks.VirtualNetworkPrivateEndpointNetworkPoliciesEnabled))
 				routeTableId := ""
 				if props.RouteTable != nil && props.RouteTable.Id != nil {
 					id, err := routetables.ParseRouteTableID(*props.RouteTable.Id)
@@ -1346,7 +1345,7 @@ func VirtualNetworkProvisioningStateRefreshFunc(ctx context.Context, client *vir
 		}
 
 		if res.Model != nil && res.Model.Properties != nil {
-			return res, string(pointer.From(res.Model.Properties.ProvisioningState)), nil
+			return res, pointer.FromEnum(res.Model.Properties.ProvisioningState), nil
 		}
 		return res, "", fmt.Errorf("polling for %s: %+v", id, err)
 	}

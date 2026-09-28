@@ -140,7 +140,7 @@ func resourceDatadogSingleSignOnConfigurationsRead(d *pluginsdk.ResourceData, me
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			// per the create func
-			d.Set("single_sign_on", string(pointer.From(props.SingleSignOnState)))
+			d.Set("single_sign_on", pointer.FromEnum(props.SingleSignOnState))
 			d.Set("login_url", props.SingleSignOnURL)
 			d.Set("enterprise_application_id", props.EnterpriseAppId)
 		}

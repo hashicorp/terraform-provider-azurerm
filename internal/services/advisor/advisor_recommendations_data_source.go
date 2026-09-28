@@ -146,12 +146,12 @@ func dataSourceAdvisorRecommendationsRead(d *pluginsdk.ResourceData, meta interf
 		opts.Filter = pointer.To(strings.Join(filterList, " and "))
 	}
 
-	recomendations, err := client.RecommendationsListComplete(ctx, id, opts)
+	recommendations, err := client.RecommendationsListComplete(ctx, id, opts)
 	if err != nil {
 		return fmt.Errorf("loading Advisor Recommendation for %q: %+v", id, err)
 	}
 
-	if err := d.Set("recommendations", flattenAzureRmAdvisorRecommendations(recomendations.Items)); err != nil {
+	if err := d.Set("recommendations", flattenAzureRmAdvisorRecommendations(recommendations.Items)); err != nil {
 		return fmt.Errorf("setting `recommendations`: %+v", err)
 	}
 
@@ -182,10 +182,10 @@ func flattenAzureRmAdvisorRecommendations(recommends []getrecommendations.Resour
 		}
 
 		result = append(result, map[string]interface{}{
-			"category":               string(pointer.From(v.Category)),
+			"category":               pointer.FromEnum(v.Category),
 			"description":            description,
 			"id":                     pointer.From(r.Id),
-			"impact":                 string(pointer.From(v.Impact)),
+			"impact":                 pointer.FromEnum(v.Impact),
 			"recommendation_name":    pointer.From(r.Name),
 			"recommendation_type_id": pointer.From(v.RecommendationTypeId),
 			"resource_name":          pointer.From(v.ImpactedValue),

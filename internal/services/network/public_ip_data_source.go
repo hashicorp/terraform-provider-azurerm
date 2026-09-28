@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/publicipaddresses"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/publicipaddresses"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -40,7 +40,24 @@ func dataSourcePublicIP() *pluginsdk.Resource {
 
 			"location": commonschema.LocationComputed(),
 
+			"domain_name_label_scope": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"edge_zone": commonschema.EdgeZoneComputed(),
+
+			"public_ip_prefix_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"sku": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"sku_tier": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -125,10 +142,12 @@ func dataSourcePublicIPRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
+		d.Set("edge_zone", flattenEdgeZoneNew(model.ExtendedLocation))
 		d.Set("zones", zones.FlattenUntyped(model.Zones))
 		skuName := ""
 		if sku := model.Sku; sku != nil {
-			skuName = string(pointer.From(sku.Name))
+			skuName = pointer.FromEnum(sku.Name)
+			d.Set("sku_tier", pointer.FromEnum(sku.Tier))
 		}
 		d.Set("sku", skuName)
 
@@ -136,6 +155,7 @@ func dataSourcePublicIPRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			domainNameLabel := ""
 			fqdn := ""
 			reverseFqdn := ""
+			domainNameLabelScope := ""
 			if dnsSettings := props.DnsSettings; dnsSettings != nil {
 				if dnsSettings.DomainNameLabel != nil {
 					domainNameLabel = *dnsSettings.DomainNameLabel
@@ -146,22 +166,28 @@ func dataSourcePublicIPRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				if dnsSettings.ReverseFqdn != nil {
 					reverseFqdn = *dnsSettings.ReverseFqdn
 				}
+				domainNameLabelScope = pointer.FromEnum(dnsSettings.DomainNameLabelScope)
 			}
 
 			if ddosSetting := props.DdosSettings; ddosSetting != nil {
-				d.Set("ddos_protection_mode", string(pointer.From(ddosSetting.ProtectionMode)))
+				d.Set("ddos_protection_mode", pointer.FromEnum(ddosSetting.ProtectionMode))
 				if subResource := ddosSetting.DdosProtectionPlan; subResource != nil {
 					d.Set("ddos_protection_plan_id", subResource.Id)
 				}
 			}
 
+			if publicIpPrefix := props.PublicIPPrefix; publicIpPrefix != nil {
+				d.Set("public_ip_prefix_id", publicIpPrefix.Id)
+			}
+
 			d.Set("domain_name_label", domainNameLabel)
+			d.Set("domain_name_label_scope", domainNameLabelScope)
 			d.Set("fqdn", fqdn)
 			d.Set("reverse_fqdn", reverseFqdn)
 
-			d.Set("allocation_method", string(pointer.From(props.PublicIPAllocationMethod)))
+			d.Set("allocation_method", pointer.FromEnum(props.PublicIPAllocationMethod))
 			d.Set("ip_address", props.IPAddress)
-			d.Set("ip_version", string(pointer.From(props.PublicIPAddressVersion)))
+			d.Set("ip_version", pointer.FromEnum(props.PublicIPAddressVersion))
 			d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes)
 
 			d.Set("ip_tags", flattenPublicIpPropsIpTags(props.IPTags))

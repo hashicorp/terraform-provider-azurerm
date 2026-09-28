@@ -25,7 +25,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/redisresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -263,7 +262,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Default:      "PT5H",
-							ValidateFunc: azValidate.ISO8601Duration,
+							ValidateFunc: validation.ISO8601Duration,
 						},
 
 						"start_hour_utc": {
@@ -383,7 +382,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 			}),
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 				// Entra (AD) auth has to be set to disable access keys auth
-				// https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication
+				// https://learn.microsoft.com/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication
 
 				accessKeysAuthenticationEnabled := diff.Get("access_keys_authentication_enabled").(bool)
 				activeDirectoryAuthenticationEnabled := diff.Get("redis_configuration.0.active_directory_authentication_enabled").(bool)

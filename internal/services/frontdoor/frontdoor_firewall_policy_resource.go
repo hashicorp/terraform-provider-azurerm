@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2020-04-01/webapplicationfirewallpolicies"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -581,7 +580,7 @@ func expandFrontDoorFirewallMatchConditions(input []interface{}) []webapplicatio
 		matchCondition := webapplicationfirewallpolicies.MatchCondition{
 			Operator:        webapplicationfirewallpolicies.Operator(operator),
 			NegateCondition: pointer.To(match["negation_condition"].(bool)),
-			MatchValue:      *helpers.ExpandStringSlice(matchValues),
+			MatchValue:      *pluginsdk.ExpandStringSlice(matchValues),
 			Transforms:      expandFrontDoorFirewallTransforms(transforms),
 		}
 
