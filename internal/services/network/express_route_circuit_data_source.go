@@ -155,7 +155,7 @@ func dataSourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface
 			}
 
 			d.Set("service_key", props.ServiceKey)
-			d.Set("service_provider_provisioning_state", string(pointer.From(props.ServiceProviderProvisioningState)))
+			d.Set("service_provider_provisioning_state", pointer.FromEnum(props.ServiceProviderProvisioningState))
 
 			if serviceProviderProperties := flattenExpressRouteCircuitServiceProviderProperties(props.ServiceProviderProperties); serviceProviderProperties != nil {
 				if err := d.Set("service_provider_properties", serviceProviderProperties); err != nil {
@@ -176,7 +176,7 @@ func flattenExpressRouteCircuitPeerings(input *[]expressroutecircuits.ExpressRou
 			props := peering.Properties
 			p := make(map[string]interface{})
 
-			p["peering_type"] = string(pointer.From(props.PeeringType))
+			p["peering_type"] = pointer.FromEnum(props.PeeringType)
 
 			if primaryPeerAddressPrefix := props.PrimaryPeerAddressPrefix; primaryPeerAddressPrefix != nil {
 				p["primary_peer_address_prefix"] = *primaryPeerAddressPrefix

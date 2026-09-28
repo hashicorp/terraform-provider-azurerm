@@ -199,7 +199,7 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Read() sdk.ResourceFunc
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					state.Type = string(pointer.From(props.EndpointType))
+					state.Type = pointer.FromEnum(props.EndpointType)
 
 					if props.Members == nil || len(*props.Members) == 0 {
 						// if members list is nil or empty, this is an endpoint that was previously deleted

@@ -729,7 +729,7 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 				allowedHostPorts = append(allowedHostPorts, agentpools.PortRange{
 					PortStart: allowedHostPortRaw.PortStart,
 					PortEnd:   allowedHostPortRaw.PortEnd,
-					Protocol:  pointer.ToEnum[agentpools.Protocol](string(pointer.From(allowedHostPortRaw.Protocol))),
+					Protocol:  pointer.ToEnum[agentpools.Protocol](pointer.FromEnum(allowedHostPortRaw.Protocol)),
 				})
 			}
 			networkProfile.AllowedHostPorts = &allowedHostPorts
@@ -1201,7 +1201,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 
 	gpuDriver := ""
 	if agentPool.GpuProfile != nil {
-		gpuDriver = string(pointer.From(agentPool.GpuProfile.Driver))
+		gpuDriver = pointer.FromEnum(agentPool.GpuProfile.Driver)
 	}
 
 	maxCount := 0

@@ -827,7 +827,7 @@ func resourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta inte
 
 	if model := resp.Model; model != nil {
 		if sku := model.Sku; sku != nil {
-			d.Set("sku_name", string(pointer.From(sku.Name)))
+			d.Set("sku_name", pointer.FromEnum(sku.Name))
 		}
 
 		if props := model.Properties; props != nil {
@@ -845,7 +845,7 @@ func resourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta inte
 
 			if policy := props.PolicySettings; policy != nil {
 				d.Set("enabled", pointer.From(policy.EnabledState) == waf.PolicyEnabledStateEnabled)
-				d.Set("mode", string(pointer.From(policy.Mode)))
+				d.Set("mode", pointer.FromEnum(policy.Mode))
 				d.Set("request_body_check_enabled", pointer.From(policy.RequestBodyCheck) == waf.PolicyRequestBodyCheckEnabled)
 				d.Set("redirect_url", policy.RedirectURL)
 				d.Set("custom_block_response_status_code", int(pointer.From(policy.CustomBlockResponseStatusCode)))
@@ -1270,7 +1270,7 @@ func flattenCdnFrontDoorFirewallManagedRules(input *waf.ManagedRuleSetList) []in
 	for _, r := range *input.ManagedRuleSets {
 		ruleSetType := r.RuleSetType
 		ruleSetVersion := r.RuleSetVersion
-		ruleSetAction := string(pointer.From(r.RuleSetAction))
+		ruleSetAction := pointer.FromEnum(r.RuleSetAction)
 
 		results = append(results, map[string]interface{}{
 			"exclusion": flattenCdnFrontDoorFirewallExclusions(r.Exclusions),

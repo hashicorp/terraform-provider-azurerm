@@ -207,8 +207,8 @@ func resourceVirtualNetworkGatewayNatRuleRead(d *pluginsdk.ResourceData, meta in
 			}
 
 			d.Set("ip_configuration_id", props.IPConfigurationId)
-			d.Set("mode", string(pointer.From(props.Mode)))
-			d.Set("type", string(pointer.From(props.Type)))
+			d.Set("mode", pointer.FromEnum(props.Mode))
+			d.Set("type", pointer.FromEnum(props.Type))
 		}
 	}
 	return nil

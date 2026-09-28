@@ -252,10 +252,10 @@ func (r StackHCIVirtualHardDiskResource) Read() sdk.ResourceFunc {
 
 				if props := model.Properties; props != nil {
 					schema.BlockSizeInBytes = pointer.From(props.BlockSizeBytes)
-					schema.DiskFileFormat = string(pointer.From(props.DiskFileFormat))
+					schema.DiskFileFormat = pointer.FromEnum(props.DiskFileFormat)
 					schema.DiskSizeInGB = pointer.From(props.DiskSizeGB)
 					schema.DynamicEnabled = pointer.From(props.Dynamic)
-					schema.HypervGeneration = string(pointer.From(props.HyperVGeneration))
+					schema.HypervGeneration = pointer.FromEnum(props.HyperVGeneration)
 					schema.LogicalSectorInBytes = pointer.From(props.LogicalSectorBytes)
 					schema.PhysicalSectorInBytes = pointer.From(props.PhysicalSectorBytes)
 					schema.StoragePathId = pointer.From(props.ContainerId)

@@ -438,7 +438,7 @@ func resourceFirewallSetFlatten(d *pluginsdk.ResourceData, id *azurefirewalls.Az
 				return fmt.Errorf("setting `management_ip_configuration`: %+v", err)
 			}
 
-			d.Set("threat_intel_mode", string(pointer.From(props.ThreatIntelMode)))
+			d.Set("threat_intel_mode", pointer.FromEnum(props.ThreatIntelMode))
 
 			dnsProxyEnabled, dnsServers := flattenFirewallAdditionalProperty(props.AdditionalProperties)
 			if err := d.Set("dns_proxy_enabled", dnsProxyEnabled); err != nil {
@@ -462,8 +462,8 @@ func resourceFirewallSetFlatten(d *pluginsdk.ResourceData, id *azurefirewalls.Az
 			d.Set("firewall_policy_id", firewallPolicyId)
 
 			if sku := props.Sku; sku != nil {
-				d.Set("sku_name", string(pointer.From(sku.Name)))
-				d.Set("sku_tier", string(pointer.From(sku.Tier)))
+				d.Set("sku_name", pointer.FromEnum(sku.Name))
+				d.Set("sku_tier", pointer.FromEnum(sku.Tier))
 			}
 
 			if err := d.Set("virtual_hub", flattenFirewallVirtualHubSetting(props)); err != nil {

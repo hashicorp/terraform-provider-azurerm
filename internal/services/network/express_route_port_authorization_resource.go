@@ -130,7 +130,7 @@ func resourceExpressRoutePortAuthorizationRead(d *pluginsdk.ResourceData, meta i
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("authorization_key", props.AuthorizationKey)
-			d.Set("authorization_use_status", string(pointer.From(props.AuthorizationUseStatus)))
+			d.Set("authorization_use_status", pointer.FromEnum(props.AuthorizationUseStatus))
 		}
 	}
 

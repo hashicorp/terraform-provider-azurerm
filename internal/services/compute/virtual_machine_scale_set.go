@@ -964,10 +964,10 @@ func FlattenVirtualMachineScaleSetNetworkInterface(input *[]virtualmachinescales
 		var dnsServers, ipConfigurations []interface{}
 		if props := v.Properties; props != nil {
 			if props.AuxiliaryMode != nil && *props.AuxiliaryMode != virtualmachinescalesets.NetworkInterfaceAuxiliaryModeNone {
-				auxiliaryMode = string(pointer.From(props.AuxiliaryMode))
+				auxiliaryMode = pointer.FromEnum(props.AuxiliaryMode)
 			}
 			if props.AuxiliarySku != nil && *props.AuxiliarySku != virtualmachinescalesets.NetworkInterfaceAuxiliarySkuNone {
-				auxiliarySku = string(pointer.From(props.AuxiliarySku))
+				auxiliarySku = pointer.FromEnum(props.AuxiliarySku)
 			}
 			if props.NetworkSecurityGroup != nil && props.NetworkSecurityGroup.Id != nil {
 				networkSecurityGroupId = *props.NetworkSecurityGroup.Id
@@ -1036,7 +1036,7 @@ func flattenVirtualMachineScaleSetIPConfiguration(input virtualmachinescalesets.
 			"primary":           primary,
 			"public_ip_address": publicIPAddresses,
 			"subnet_id":         subnetId,
-			"version":           string(pointer.From(props.PrivateIPAddressVersion)),
+			"version":           pointer.FromEnum(props.PrivateIPAddressVersion),
 			"application_gateway_backend_address_pool_ids": applicationGatewayBackendAddressPoolIds,
 			"application_security_group_ids":               applicationSecurityGroupIds,
 			"load_balancer_backend_address_pool_ids":       loadBalancerBackendAddressPoolIds,
@@ -1079,7 +1079,7 @@ func flattenVirtualMachineScaleSetPublicIPAddress(input virtualmachinescalesets.
 		}
 
 		if props.PublicIPAddressVersion != nil {
-			version = string(pointer.From(props.PublicIPAddressVersion))
+			version = pointer.FromEnum(props.PublicIPAddressVersion)
 		}
 
 		if props.IdleTimeoutInMinutes != nil {
@@ -1254,7 +1254,7 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]virtualmachinescalesets.Virt
 		storageAccountType := ""
 		diskEncryptionSetId := ""
 		if v.ManagedDisk != nil {
-			storageAccountType = string(pointer.From(v.ManagedDisk.StorageAccountType))
+			storageAccountType = pointer.FromEnum(v.ManagedDisk.StorageAccountType)
 			if v.ManagedDisk.DiskEncryptionSet != nil && v.ManagedDisk.DiskEncryptionSet.Id != nil {
 				diskEncryptionSetId = *v.ManagedDisk.DiskEncryptionSet.Id
 			}
@@ -1477,8 +1477,8 @@ func FlattenVirtualMachineScaleSetOSDisk(input *virtualmachinescalesets.VirtualM
 	diffDiskSettings := make([]interface{}, 0)
 	if input.DiffDiskSettings != nil {
 		diffDiskSettings = append(diffDiskSettings, map[string]interface{}{
-			"option":    string(pointer.From(input.DiffDiskSettings.Option)),
-			"placement": string(pointer.From(input.DiffDiskSettings.Placement)),
+			"option":    pointer.FromEnum(input.DiffDiskSettings.Option),
+			"placement": pointer.FromEnum(input.DiffDiskSettings.Placement),
 		})
 	}
 
@@ -1492,13 +1492,13 @@ func FlattenVirtualMachineScaleSetOSDisk(input *virtualmachinescalesets.VirtualM
 	secureVMDiskEncryptionSetId := ""
 	securityEncryptionType := ""
 	if input.ManagedDisk != nil {
-		storageAccountType = string(pointer.From(input.ManagedDisk.StorageAccountType))
+		storageAccountType = pointer.FromEnum(input.ManagedDisk.StorageAccountType)
 		if input.ManagedDisk.DiskEncryptionSet != nil && input.ManagedDisk.DiskEncryptionSet.Id != nil {
 			diskEncryptionSetId = *input.ManagedDisk.DiskEncryptionSet.Id
 		}
 
 		if securityProfile := input.ManagedDisk.SecurityProfile; securityProfile != nil {
-			securityEncryptionType = string(pointer.From(securityProfile.SecurityEncryptionType))
+			securityEncryptionType = pointer.FromEnum(securityProfile.SecurityEncryptionType)
 			if securityProfile.DiskEncryptionSet != nil && securityProfile.DiskEncryptionSet.Id != nil {
 				secureVMDiskEncryptionSetId = *securityProfile.DiskEncryptionSet.Id
 			}
@@ -1509,7 +1509,7 @@ func FlattenVirtualMachineScaleSetOSDisk(input *virtualmachinescalesets.VirtualM
 
 	return []interface{}{
 		map[string]interface{}{
-			"caching":                          string(pointer.From(input.Caching)),
+			"caching":                          pointer.FromEnum(input.Caching),
 			"disk_size_gb":                     diskSizeGb,
 			"diff_disk_settings":               diffDiskSettings,
 			"storage_account_type":             storageAccountType,

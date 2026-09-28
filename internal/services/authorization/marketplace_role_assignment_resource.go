@@ -290,7 +290,7 @@ func (r RoleAssignmentMarketplaceResource) Read() sdk.ResourceFunc {
 					state.ConditionVersion = pointer.From(props.ConditionVersion)
 
 					if props.PrincipalType != nil {
-						state.PrincipalType = string(pointer.From(props.PrincipalType))
+						state.PrincipalType = pointer.FromEnum(props.PrincipalType)
 					}
 
 					// allows for import when role name is used (also if the role name changes a plan will show a diff)

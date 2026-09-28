@@ -296,7 +296,7 @@ func resourceRouteServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			if props.VirtualRouterAsn != nil {
 				d.Set("virtual_router_asn", props.VirtualRouterAsn)
 			}
-			d.Set("routing_state", string(pointer.From(props.RoutingState)))
+			d.Set("routing_state", pointer.FromEnum(props.RoutingState))
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
@@ -392,7 +392,7 @@ func routeServerCreateRefreshFunc(ctx context.Context, client *virtualwans.Virtu
 		}
 
 		if resp.Model != nil && resp.Model.Properties != nil {
-			return resp, string(pointer.From(resp.Model.Properties.ProvisioningState)), nil
+			return resp, pointer.FromEnum(resp.Model.Properties.ProvisioningState), nil
 		}
 		return nil, "", fmt.Errorf("unable to read the provisioning state of this %s", id)
 	}

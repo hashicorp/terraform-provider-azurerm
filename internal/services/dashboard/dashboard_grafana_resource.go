@@ -687,7 +687,7 @@ func flattenSMTPConfigurationModel(input *managedgrafanas.Smtp, data *schema.Res
 	}
 
 	if input.StartTLSPolicy != nil {
-		output.StartTLSPolicy = string(pointer.From(input.StartTLSPolicy))
+		output.StartTLSPolicy = pointer.FromEnum(input.StartTLSPolicy)
 	}
 
 	output.Password = data.Get("smtp.0.password").(string)

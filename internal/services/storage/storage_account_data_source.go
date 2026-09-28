@@ -583,7 +583,7 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(model.Location))
-		d.Set("account_kind", string(pointer.From(model.Kind)))
+		d.Set("account_kind", pointer.FromEnum(model.Kind))
 
 		// NOTE: we should expose EdgeZone in the future
 

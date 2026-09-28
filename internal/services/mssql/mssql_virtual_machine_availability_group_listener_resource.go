@@ -573,10 +573,10 @@ func flattenMsSqlVirtualMachineAvailabilityGroupListenerReplicas(input *[]availa
 
 		v := ReplicaMsSqlVirtualMachineAvailabilityGroupListener{
 			SqlVirtualMachineId: sqlVirtualMachineInstanceId,
-			Role:                string(pointer.From(replica.Role)),
-			Commit:              string(pointer.From(replica.Commit)),
-			FailoverMode:        string(pointer.From(replica.Failover)),
-			ReadableSecondary:   string(pointer.From(replica.ReadableSecondary)),
+			Role:                pointer.FromEnum(replica.Role),
+			Commit:              pointer.FromEnum(replica.Commit),
+			FailoverMode:        pointer.FromEnum(replica.Failover),
+			ReadableSecondary:   pointer.FromEnum(replica.ReadableSecondary),
 		}
 
 		results = append(results, v)

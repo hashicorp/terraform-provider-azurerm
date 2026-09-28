@@ -979,8 +979,8 @@ func resourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interfac
 
 			if profile := props.VirtualMachineProfile; profile != nil {
 				d.Set("license_type", profile.LicenseType)
-				d.Set("priority", string(pointer.From(profile.Priority)))
-				d.Set("eviction_policy", string(pointer.From(profile.EvictionPolicy)))
+				d.Set("priority", pointer.FromEnum(profile.Priority))
+				d.Set("eviction_policy", pointer.FromEnum(profile.EvictionPolicy))
 
 				if err := d.Set("os_profile", flattenAzureRMVirtualMachineScaleSetOsProfile(d, profile.OsProfile)); err != nil {
 					return fmt.Errorf("[DEBUG] setting `os_profile`: %#v", err)
@@ -1381,7 +1381,7 @@ func flattenAzureRmVirtualMachineScaleSetStorageProfileOSDisk(profile *virtualma
 	result["vhd_containers"] = pluginsdk.NewSet(pluginsdk.HashString, containers)
 
 	if profile.ManagedDisk != nil {
-		result["managed_disk_type"] = string(pointer.From(profile.ManagedDisk.StorageAccountType))
+		result["managed_disk_type"] = pointer.FromEnum(profile.ManagedDisk.StorageAccountType)
 	}
 
 	result["caching"] = profile.Caching
@@ -1396,11 +1396,11 @@ func flattenAzureRmVirtualMachineScaleSetStorageProfileDataDisk(disks *[]virtual
 	for i, disk := range *disks {
 		l := make(map[string]interface{})
 		if disk.ManagedDisk != nil {
-			l["managed_disk_type"] = string(pointer.From(disk.ManagedDisk.StorageAccountType))
+			l["managed_disk_type"] = pointer.FromEnum(disk.ManagedDisk.StorageAccountType)
 		}
 
 		l["create_option"] = disk.CreateOption
-		l["caching"] = string(pointer.From(disk.Caching))
+		l["caching"] = pointer.FromEnum(disk.Caching)
 		if disk.DiskSizeGB != nil {
 			l["disk_size_gb"] = *disk.DiskSizeGB
 		}

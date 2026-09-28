@@ -737,8 +737,8 @@ func resourceSubnetFlatten(d *pluginsdk.ResourceData, id commonids.SubnetId, sub
 				return fmt.Errorf("setting `ip_address_pool`: %+v", err)
 			}
 
-			d.Set("private_endpoint_network_policies", string(pointer.From(props.PrivateEndpointNetworkPolicies)))
-			d.Set("private_link_service_network_policies_enabled", flattenSubnetNetworkPolicy(string(pointer.From(props.PrivateLinkServiceNetworkPolicies))))
+			d.Set("private_endpoint_network_policies", pointer.FromEnum(props.PrivateEndpointNetworkPolicies))
+			d.Set("private_link_service_network_policies_enabled", flattenSubnetNetworkPolicy(pointer.FromEnum(props.PrivateLinkServiceNetworkPolicies)))
 			d.Set("sharing_scope", pointer.FromEnum(props.SharingScope))
 
 			if err := d.Set("service_endpoint", flattenSubnetServiceEndpoint(props.ServiceEndpoints)); err != nil {

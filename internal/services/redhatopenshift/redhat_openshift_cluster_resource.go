@@ -939,7 +939,7 @@ func flattenOpenShiftNetworkProfile(profile *openshiftclusters.NetworkProfile) [
 
 	return []NetworkProfile{
 		{
-			OutboundType:                             string(pointer.From(profile.OutboundType)),
+			OutboundType:                             pointer.FromEnum(profile.OutboundType),
 			PodCidr:                                  pointer.From(profile.PodCidr),
 			ServiceCidr:                              pointer.From(profile.ServiceCidr),
 			PreconfiguredNetworkSecurityGroupEnabled: preconfiguredNetworkSecurityGroupEnabled,
@@ -1142,7 +1142,7 @@ func flattenOpenShiftAPIServerProfile(profile *openshiftclusters.APIServerProfil
 
 	return []ApiServerProfile{
 		{
-			Visibility: string(pointer.From(profile.Visibility)),
+			Visibility: pointer.FromEnum(profile.Visibility),
 			Url:        pointer.From(profile.Url),
 			IpAddress:  pointer.From(profile.IP),
 		},
@@ -1175,7 +1175,7 @@ func flattenOpenShiftIngressProfiles(profiles *[]openshiftclusters.IngressProfil
 
 	for _, profile := range *profiles {
 		results = append(results, IngressProfile{
-			Visibility: string(pointer.From(profile.Visibility)),
+			Visibility: pointer.FromEnum(profile.Visibility),
 			IpAddress:  pointer.From(profile.IP),
 			Name:       pointer.From(profile.Name),
 		})
