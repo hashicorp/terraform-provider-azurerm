@@ -472,7 +472,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			"mongo_server_version": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice(openapis.PossibleValuesForServerVersion(), false),
 			},
 
@@ -525,7 +525,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 						"tier": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.StringInSlice(openapis.PossibleValuesForContinuousTier(), false),
 						},
 
