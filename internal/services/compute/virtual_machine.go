@@ -640,6 +640,7 @@ func virtualMachineSizePropertiesSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
+		// NOTE: O+C because Azure API returns the value even when it's not configured.
 		Computed: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
@@ -647,7 +648,7 @@ func virtualMachineSizePropertiesSchema() *pluginsdk.Schema {
 				"vcpu_available": {
 					Type:     pluginsdk.TypeInt,
 					Optional: true,
-					// NOTE: O+C because Azure API returns the value even when it's not configured..
+					// NOTE: O+C because Azure API returns the value even when it's not configured.
 					Computed:     true,
 					ValidateFunc: validation.IntPositive,
 				},
@@ -655,7 +656,7 @@ func virtualMachineSizePropertiesSchema() *pluginsdk.Schema {
 				"vcpu_per_core": {
 					Type:     pluginsdk.TypeInt,
 					Optional: true,
-					// NOTE: O+C because Azure API returns the value even when it's not configured..
+					// NOTE: O+C because Azure API returns the value even when it's not configured.
 					Computed:     true,
 					ValidateFunc: validation.IntPositive,
 				},

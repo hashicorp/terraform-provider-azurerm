@@ -374,6 +374,8 @@ A `size_properties` block supports the following:
 
 * `vcpu_per_core` - (Optional) The number of vCPUs per physical core for this Virtual Machine.
 
+~> **Note:** Modifying `vcpu_available` or `vcpu_per_core` on an existing Virtual Machine causes the Virtual Machine to be restarted, resulting in a brief period of downtime.
+
 ---
 
 The `source_image_reference` block supports the following:
