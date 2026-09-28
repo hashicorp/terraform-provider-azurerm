@@ -245,6 +245,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 * `create` - (Defaults to 30 minutes) Used when creating the Backup Instance Kubernetes Cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Backup Instance Kubernetes Cluster.
+* `update` - (Defaults to 1 hour) Used when updating the Backup Instance Kubernetes Cluster.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Backup Instance Kubernetes Cluster.
 
 ## Import
