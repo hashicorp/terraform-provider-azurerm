@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/endpoints"
+	sdkclient "github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -82,9 +83,12 @@ func TestStorageMoverLegacyEndpointOwnership(t *testing.T) {
 						}
 						return &http.Response{
 							StatusCode: responseStatus,
-							Header:     http.Header{"Content-Type": []string{"application/json"}},
-							Body:       io.NopCloser(strings.NewReader(responseBody)),
-							Request:    request,
+							Header: http.Header{
+								"Content-Type":                   []string{"application/json"},
+								sdkclient.SkipPollingDelayHeader: []string{"true"},
+							},
+							Body:    io.NopCloser(strings.NewReader(responseBody)),
+							Request: request,
 						}, nil
 					}))
 					metadata := sdk.NewResourceMetaData(&clients.Client{StorageMover: &moverclient.Client{EndpointsClient: client}}, test.resource)
