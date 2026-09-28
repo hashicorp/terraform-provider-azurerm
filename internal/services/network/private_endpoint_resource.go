@@ -304,6 +304,20 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+			rawConfig := d.GetRawConfig()
+			if d.Id() != "" && d.HasChange("ip_version_type") && rawConfig.IsKnown() && !rawConfig.IsNull() && rawConfig.GetAttr("ip_version_type").IsKnown() {
+				old, new := d.GetChange("ip_version_type")
+				current := old.(string)
+				if current == "" {
+					current = string(privateendpoints.PrivateEndpointIPVersionTypeIPvFour)
+				}
+				next := new.(string)
+				// Azure only supports updating the IP version type in place from IPv4 to DualStack.
+				if current != next && (current != string(privateendpoints.PrivateEndpointIPVersionTypeIPvFour) || next != string(privateendpoints.PrivateEndpointIPVersionTypeDualStack)) {
+					return d.ForceNew("ip_version_type")
+				}
+			}
+
 			privateServiceConnections := d.Get("private_service_connection").([]interface{})
 			for _, psc := range privateServiceConnections {
 				privateServiceConnection := psc.(map[string]interface{})

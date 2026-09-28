@@ -340,6 +340,13 @@ func TestAccPrivateEndpoint_ipVersionType(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.ipVersionType(data, "DualStack"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
