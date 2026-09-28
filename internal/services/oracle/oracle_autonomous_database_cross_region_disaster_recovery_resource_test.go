@@ -98,38 +98,15 @@ locals {
   crdr_dbname = "OFakeN%[2]d"
 }
 
-resource "azurerm_oracle_autonomous_database" "adbs_primary_for_crdr" {
-  name                             = "OFakeO%[2]d"
-  display_name                     = "OFakeO%[2]d"
-  resource_group_name              = azurerm_resource_group.crdr_rg.name
-  location                         = "%[3]s"
-  compute_model                    = "ECPU"
-  compute_count                    = 2
-  license_model                    = "LicenseIncluded"
-  backup_retention_period_in_days  = 12
-  auto_scaling_enabled             = false
-  auto_scaling_for_storage_enabled = false
-  mtls_connection_required         = true
-  data_storage_size_in_tbs         = 1
-  db_workload                      = "DW"
-  admin_password                   = "TestPass#2024#"
-  db_version                       = "19c"
-  character_set                    = "AL32UTF8"
-  national_character_set           = "AL16UTF16"
-  subnet_id                        = azurerm_subnet.iad_vnet_subnet_test.id
-  virtual_network_id               = azurerm_virtual_network.iad_vnet_test.id
-  customer_contacts                = ["test@test.com"]
-}
-
 resource "azurerm_oracle_autonomous_database_cross_region_disaster_recovery" "adbs_secondary_crdr" {
   name                          = local.crdr_dbname
-  display_name                  = local.crdr_dbname
-  location                      = "%[4]s"
+  display_name                  = "${local.crdr_dbname}d"
+  location                      = "%[3]s"
   resource_group_name           = azurerm_resource_group.crdr_rg.name
   subnet_id                     = azurerm_subnet.fra_vnet_subnet_test.id
   source_autonomous_database_id = azurerm_oracle_autonomous_database.adbs_primary_for_crdr.id
 }
-`, a.template(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, a.template(data), data.RandomInteger, data.Locations.Secondary)
 }
 
 func (a AdbsCrossRegionDisasterRecoveryResource) complete(data acceptance.TestData) string {
@@ -144,34 +121,11 @@ locals {
   crdr_dbname = "OFakeC%[2]d"
 }
 
-resource "azurerm_oracle_autonomous_database" "adbs_primary_for_crdr" {
-  name                             = "OFakeO%[2]d"
-  display_name                     = "OFakeO%[2]d"
-  resource_group_name              = azurerm_resource_group.crdr_rg.name
-  location                         = "%[3]s"
-  compute_model                    = "ECPU"
-  compute_count                    = 2
-  license_model                    = "LicenseIncluded"
-  backup_retention_period_in_days  = 12
-  auto_scaling_enabled             = false
-  auto_scaling_for_storage_enabled = false
-  mtls_connection_required         = true
-  data_storage_size_in_tbs         = 1
-  db_workload                      = "DW"
-  admin_password                   = "TestPass#2024#"
-  db_version                       = "19c"
-  character_set                    = "AL32UTF8"
-  national_character_set           = "AL16UTF16"
-  subnet_id                        = azurerm_subnet.iad_vnet_subnet_test.id
-  virtual_network_id               = azurerm_virtual_network.iad_vnet_test.id
-  customer_contacts                = ["test@test.com"]
-}
-
 resource "azurerm_oracle_autonomous_database_cross_region_disaster_recovery" "adbs_secondary_crdr" {
   name                          = local.crdr_dbname
   resource_group_name           = azurerm_resource_group.crdr_rg.name
-  display_name                  = local.crdr_dbname
-  location                      = "%[4]s"
+  display_name                  = "${local.crdr_dbname}d"
+  location                      = "%[3]s"
   source_autonomous_database_id = azurerm_oracle_autonomous_database.adbs_primary_for_crdr.id
   subnet_id                     = azurerm_subnet.fra_vnet_subnet_test.id
 
@@ -181,7 +135,7 @@ resource "azurerm_oracle_autonomous_database_cross_region_disaster_recovery" "ad
     Purpose = "basic-acceptance"
   }
 }
-`, a.template(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, a.template(data), data.RandomInteger, data.Locations.Secondary)
 }
 
 func (a AdbsCrossRegionDisasterRecoveryResource) requiresImport(data acceptance.TestData) string {
@@ -259,5 +213,27 @@ resource "azurerm_subnet" "fra_vnet_subnet_test" {
   }
 }
 
+resource "azurerm_oracle_autonomous_database" "adbs_primary_for_crdr" {
+  name                             = "OFakeO%[1]d"
+  display_name                     = "OFakeO%[1]d"
+  resource_group_name              = azurerm_resource_group.crdr_rg.name
+  location                         = "%[2]s"
+  compute_model                    = "ECPU"
+  compute_count                    = 2
+  license_model                    = "LicenseIncluded"
+  backup_retention_period_in_days  = 12
+  auto_scaling_enabled             = false
+  auto_scaling_for_storage_enabled = false
+  mtls_connection_required         = true
+  data_storage_size_in_tbs         = 1
+  db_workload                      = "DW"
+  admin_password                   = "TestPass#2024#"
+  db_version                       = "19c"
+  character_set                    = "AL32UTF8"
+  national_character_set           = "AL16UTF16"
+  subnet_id                        = azurerm_subnet.iad_vnet_subnet_test.id
+  virtual_network_id               = azurerm_virtual_network.iad_vnet_test.id
+  customer_contacts                = ["test@test.com"]
+}
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
