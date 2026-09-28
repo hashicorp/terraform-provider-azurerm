@@ -91,6 +91,7 @@ func (r Registration) Resources() []sdk.Resource {
 		AccountStaticWebsiteResource{},
 		AccountTablePropertiesResource{},
 		LocalUserResource{},
+		StorageActionsTaskDefinitionResource{},
 		StorageContainerImmutabilityPolicyResource{},
 		StorageDiscoveryWorkspaceResource{},
 		SyncServerEndpointResource{},
@@ -118,6 +119,7 @@ func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 		StorageAccountCustomerManagedKeyListResource{},
 		StorageAccountListResource{},
 		StorageAccountNetworkRulesListResource{},
+		StorageActionsTaskDefinitionListResource{},
 		StorageSyncListResource{},
 		SyncServerEndpointListResource{},
 	}
