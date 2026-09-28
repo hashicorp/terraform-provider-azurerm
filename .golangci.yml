@@ -123,6 +123,9 @@ linters:
             # only inline temporaries into calls whose other arguments are all basic literals
             # (e.g. d.Set("key", x)) - among identifier/expression siblings the name adds context
             only-when-literals: true
+          AZG010:
+            ignore:
+              - '^v\d{4}_\d{2}_\d{2}' # versioned SDK packages (v2021_03_01) keep their descriptive alias
           AZS004:
             # exact-match only: report hand-written lists that exactly match the enum (a pure
             # PossibleValuesFor<Enum>() swap); deliberate subsets/supersets are left alone

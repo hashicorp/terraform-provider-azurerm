@@ -6,21 +6,21 @@ package client
 import (
 	"fmt"
 
-	v2023_12_30 "github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30" //azignore:AZG010 - package name does not match its path
+	flexibleServers_v2023_12_30 "github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/azureadadministrators"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	FlexibleServers *v2023_12_30.Client
+	FlexibleServers *flexibleServers_v2023_12_30.Client
 
 	// TODO: port over to using the Meta Client (which involves bumping the API Version)
 	AzureADAdministratorsClient *azureadadministrators.AzureADAdministratorsClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	flexibleServersMetaClient, err := v2023_12_30.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+	flexibleServersMetaClient, err := flexibleServers_v2023_12_30.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
 	if err != nil {

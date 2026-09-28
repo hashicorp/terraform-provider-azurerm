@@ -6,13 +6,13 @@ package client
 import (
 	"fmt"
 
-	v2025_09_01 "github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01" //azignore:AZG010 - package name does not match its path
+	oracle "github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	OracleClient *v2025_09_01.Client
+	OracleClient *oracle.Client
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -21,7 +21,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	// We need each request to have a different correlationId. By disabling this, Azure will provide a unique correlationId instead.
 	tmpClientOptions := *o
 	tmpClientOptions.DisableCorrelationRequestID = true
-	oracleClient, err := v2025_09_01.NewClientWithBaseURI(tmpClientOptions.Environment.ResourceManager, func(c *resourcemanager.Client) {
+	oracleClient, err := oracle.NewClientWithBaseURI(tmpClientOptions.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		tmpClientOptions.Configure(c, tmpClientOptions.Authorizers.ResourceManager)
 	})
 	if err != nil {

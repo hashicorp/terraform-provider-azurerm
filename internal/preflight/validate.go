@@ -15,17 +15,17 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
-	preflightvalidation "github.com/hashicorp/terraform-provider-azurerm/internal/preflight/sdk" //azignore:AZG010 - package name does not match its path
+	preflightsdk "github.com/hashicorp/terraform-provider-azurerm/internal/preflight/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
 type ValidationRequest struct {
-	Location   *string                                               `json:"location"`
-	Provider   string                                                `json:"provider"`
-	ResourceId resourceids.ResourceId                                `json:"resourceId"`
-	Type       string                                                `json:"type"`
-	Resource   preflightvalidation.ResourceValidationRequestResource `json:"resource"`
-	Scope      string                                                `json:"scope"`
+	Location   *string                                        `json:"location"`
+	Provider   string                                         `json:"provider"`
+	ResourceId resourceids.ResourceId                         `json:"resourceId"`
+	Type       string                                         `json:"type"`
+	Resource   preflightsdk.ResourceValidationRequestResource `json:"resource"`
+	Scope      string                                         `json:"scope"`
 }
 
 // NewValidationRequest constructs a new ValidationRequest for use with the Azure Preflight
@@ -71,7 +71,7 @@ func buildValidationRequest(location *string, id resourceids.ResourceId, provide
 		ResourceId: id,
 		Type:       resourceType,
 		Scope:      scope,
-		Resource: preflightvalidation.ResourceValidationRequestResource{
+		Resource: preflightsdk.ResourceValidationRequestResource{
 			ApiVersion: apiVersion,
 			Name:       resourceName,
 			Type:       fmt.Sprintf("%s/%s", provider, resourceType),
@@ -83,13 +83,13 @@ func buildValidationRequest(location *string, id resourceids.ResourceId, provide
 func (v ValidationRequest) ValidateResource(ctx context.Context, metadata sdk.ResourceMetaData) error {
 	client := metadata.Client.Preflight.PreflightClient
 
-	input := preflightvalidation.ResourceValidationRequest{
+	input := preflightsdk.ResourceValidationRequest{
 		Location:       v.Location,
 		Provider:       v.Provider,
-		Resources:      []preflightvalidation.ResourceValidationRequestResource{v.Resource},
+		Resources:      []preflightsdk.ResourceValidationRequestResource{v.Resource},
 		Scope:          v.Scope,
 		Type:           v.Type,
-		ValidationType: pointer.To(preflightvalidation.ResourceValidationTypeArmFull),
+		ValidationType: pointer.To(preflightsdk.ResourceValidationTypeArmFull),
 	}
 
 	resp, err := client.ValidateResources(ctx, input)

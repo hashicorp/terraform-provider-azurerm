@@ -9,18 +9,18 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/validation"
-	v2021_04_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview"            //azignore:AZG010 - package name does not match its path
-	v2017_08_01 "github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01"                  //azignore:AZG010 - package name does not match its path
-	v2024_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01"                     //azignore:AZG010 - package name does not match its path
-	v2021_03_01 "github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01"                           //azignore:AZG010 - package name does not match its path
-	v2018_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01"                               //azignore:AZG010 - package name does not match its path
-	v2022_05_26 "github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26"                        //azignore:AZG010 - package name does not match its path
-	v2021_06_01 "github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01"                         //azignore:AZG010 - package name does not match its path
-	v2024_11_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview"             //azignore:AZG010 - package name does not match its path
-	v2025_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2025-01-01"                 //azignore:AZG010 - package name does not match its path
-	v2024_07_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01"                      //azignore:AZG010 - package name does not match its path
-	v2023_10_07 "github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07" //azignore:AZG010 - package name does not match its path
-	v2024_09_01 "github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01"                         //azignore:AZG010 - package name does not match its path
+	aadb2c_v2021_04_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview"
+	analysisservices_v2017_08_01 "github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01"
+	azurestackhci_v2024_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01"
+	datadog_v2021_03_01 "github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01"
+	dns_v2018_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01"
+	fluidrelay_2022_05_26 "github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26"
+	hdinsight_v2021_06_01 "github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01"
+	nginx_2024_11_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview"
+	servicenetworking_2025_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2025-01-01"
+	storagecache_2024_07_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01"
+	systemcentervirtualmachinemanager_2023_10_07 "github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07"
+	workloads_v2024_09_01 "github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	preflight "github.com/hashicorp/terraform-provider-azurerm/internal/preflight/client"
@@ -160,9 +160,9 @@ type Client struct {
 
 	Preflight *preflight.Client
 
-	AadB2c                            *v2021_04_01_preview.Client
+	AadB2c                            *aadb2c_v2021_04_01_preview.Client
 	Advisor                           *advisor.Client
-	AnalysisServices                  *v2017_08_01.Client
+	AnalysisServices                  *analysisservices_v2017_08_01.Client
 	ApiManagement                     *apiManagement.Client
 	AppConfiguration                  *appConfiguration.Client
 	AppInsights                       *applicationInsights.Client
@@ -174,7 +174,7 @@ type Client struct {
 	Authorization                     *authorization.Client
 	Automanage                        *automanage.Client
 	Automation                        *automation.Client
-	AzureStackHCI                     *v2024_01_01.Client
+	AzureStackHCI                     *azurestackhci_v2024_01_01.Client
 	Batch                             *batch.Client
 	Blueprints                        *blueprints.Client
 	Bot                               *bot.Client
@@ -195,14 +195,14 @@ type Client struct {
 	DatabaseMigration                 *datamigration.Client
 	DataBricks                        *databricks.Client
 	DataboxEdge                       *databoxedge.Client
-	Datadog                           *v2021_03_01.Client
+	Datadog                           *datadog_v2021_03_01.Client
 	DataFactory                       *datafactory.Client
 	DataProtection                    *dataprotection.Client
 	DataShare                         *datashare.Client
 	DesktopVirtualization             *desktopvirtualization.Client
 	DevTestLabs                       *devtestlabs.Client
 	DigitalTwins                      *digitaltwins.Client
-	Dns                               *v2018_05_01.Client
+	Dns                               *dns_v2018_05_01.Client
 	DomainServices                    *domainservices.Client
 	Dynatrace                         *dynatrace.Client
 	Elastic                           *elastic.Client
@@ -211,11 +211,11 @@ type Client struct {
 	Eventhub                          *eventhub.Client
 	ExtendedLocation                  *extendedlocation.Client
 	Fabric                            *fabric.Client
-	FluidRelay                        *v2022_05_26.Client
+	FluidRelay                        *fluidrelay_2022_05_26.Client
 	Frontdoor                         *frontdoor.Client
 	Graph                             *graph.Client
 	HSM                               *hsm.Client
-	HDInsight                         *v2021_06_01.Client
+	HDInsight                         *hdinsight_v2021_06_01.Client
 	HybridCompute                     *hybridcompute.Client
 	HealthCare                        *healthcare.Client
 	IoTCentral                        *iotcentral.Client
@@ -245,7 +245,7 @@ type Client struct {
 	Network                           *network.Client
 	NetworkFunction                   *networkfunction.Client
 	NewRelic                          *newrelic.Client
-	Nginx                             *v2024_11_01_preview.Client
+	Nginx                             *nginx_2024_11_01_preview.Client
 	NotificationHubs                  *notificationhub.Client
 	Oracle                            *oracle.Client
 	PaloAlto                          *paloalto.Client
@@ -269,20 +269,20 @@ type Client struct {
 	ServiceConnector                  *serviceConnector.Client
 	ServiceFabric                     *serviceFabric.Client
 	ServiceFabricManaged              *serviceFabricManaged.Client
-	ServiceNetworking                 *v2025_01_01.Client
+	ServiceNetworking                 *servicenetworking_2025_01_01.Client
 	SignalR                           *signalr.Client
 	Storage                           *storage.Client
-	StorageCache                      *v2024_07_01.Client
+	StorageCache                      *storagecache_2024_07_01.Client
 	StorageMover                      *storageMover.Client
 	StreamAnalytics                   *streamAnalytics.Client
 	Subscription                      *subscription.Client
 	Synapse                           *synapse.Client
-	SystemCenterVirtualMachineManager *v2023_10_07.Client
+	SystemCenterVirtualMachineManager *systemcentervirtualmachinemanager_2023_10_07.Client
 	TrafficManager                    *trafficManager.Client
 	VideoIndexer                      *videoindexer.Client
 	Vmware                            *vmware.Client
 	Web                               *web.Client
-	Workloads                         *v2024_09_01.Client
+	Workloads                         *workloads_v2024_09_01.Client
 }
 
 // NOTE: it should be possible for this method to become Private once the top level Client's removed

@@ -6,17 +6,17 @@ package client
 import (
 	"fmt"
 
-	v2025_10_08 "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08" //azignore:AZG010 - package name does not match its path
+	paloalto_2025_10_08 "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	*v2025_10_08.Client
+	*paloalto_2025_10_08.Client
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	client, err := v2025_10_08.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+	client, err := paloalto_2025_10_08.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
 	if err != nil {
