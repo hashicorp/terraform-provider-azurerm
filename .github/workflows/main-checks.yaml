@@ -52,9 +52,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
+          cache: false
       - name: Build Provider
         run: go build -v -o /dev/null main.go
 
@@ -62,18 +65,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
+          cache: false
       - run: make depscheck
 
   golangci-lint:
     runs-on: custom-linux-large
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
+          cache: false
       # The azproviderlint/tfproviderlint module plugins require a custom-built golangci-lint
       # binary (see .tools/.custom-gcl.yml); cache .tools/bin so it is only rebuilt when the
       # pins (.tools/go.mod for golangci-lint, .custom-gcl.yml for the plugins) change. make
@@ -82,6 +91,7 @@ jobs:
         with:
           path: .tools/bin
           key: golangci-with-modules-${{ hashFiles('.tools/go.mod', '.tools/go.sum', '.tools/.custom-gcl.yml') }}
+          lookup-only: true
       - name: Build golangci-lint with plugins
         run: make golangci-with-modules
       - name: Run golangci-lint
@@ -91,9 +101,12 @@ jobs:
     runs-on: custom-linux-large
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
+          cache: false
       - run: make gencheck
 
   unit-tests:
@@ -101,10 +114,13 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           cache-dependency-path: go.mod
           go-version-file: ./.go-version
+          cache: false
       - name: Build gotestsum (version pinned in .tools/go.mod)
         run: make .tools/bin/gotestsum
       - name: Run tests
@@ -121,49 +137,122 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
+          cache: false
       - run: go run internal/tools/preview-api-version-linter/main.go
+
+  copyright:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: ./.go-version
+          cache: false
+      # make builds the license-eye version pinned in .tools/go.mod
+      - run: make copyright
 
   shellcheck:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+        with:
+          persist-credentials: false
       - name: Run ShellCheck
         run: make shellcheck
+
+  typos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+        with:
+          persist-credentials: false
+      # make downloads the typos version pinned in GNUmakefile into .tools
+      - name: Run typos
+        run: make typos
+
+  zizmor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+        with:
+          persist-credentials: false
+      # make downloads the zizmor version pinned in GNUmakefile into .tools
+      - name: Run zizmor
+        run: make zizmor
+
+  actionlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: ./.go-version
+          cache: false
+      # make builds the actionlint version pinned in .tools/go.mod and downloads shellcheck
+      - name: Run actionlint
+        run: make actionlint
+
+  yamllint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+        with:
+          persist-credentials: false
+      # make installs the yamllint version pinned in GNUmakefile into a repo-local venv
+      - name: Run yamllint
+        run: make yamllint
 
   website-lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
+          cache: false
       - run: make website-lint
 
   document-validate:
     runs-on: custom-linux-large
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
+          cache: false
       - run: make document-validate
 
   validate-examples:
     runs-on: custom-linux-small
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
+          cache: false
       - run: make validate-examples
 
   teamcity-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
         with:
           distribution: zulu
@@ -175,4 +264,5 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
+          lookup-only: true
       - run: make teamcity-test

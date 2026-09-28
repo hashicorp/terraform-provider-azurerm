@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package loadtestservice
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -336,7 +339,7 @@ func (r LoadTestResource) mapLoadTestPropertiesToLoadTestResourceSchema(input lo
 			})
 
 			if encryptionIdentity.Type != nil {
-				output.Encryption[0].Identity[0].Type = string(pointer.From(encryptionIdentity.Type))
+				output.Encryption[0].Identity[0].Type = pointer.FromEnum(encryptionIdentity.Type)
 			}
 		}
 	}

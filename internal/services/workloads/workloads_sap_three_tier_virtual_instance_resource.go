@@ -1264,7 +1264,7 @@ func (WorkloadsSAPThreeTierVirtualInstanceResource) flatten(metadata sdk.Resourc
 
 		if props := model.Properties; props != nil {
 			state.Environment = string(props.Environment)
-			state.ManagedResourcesNetworkAccessType = string(pointer.From(props.ManagedResourcesNetworkAccessType))
+			state.ManagedResourcesNetworkAccessType = pointer.FromEnum(props.ManagedResourcesNetworkAccessType)
 			state.SapProduct = string(props.SapProduct)
 			state.Tags = pointer.From(model.Tags)
 
@@ -1843,7 +1843,7 @@ func flattenDiskVolumeConfigurations(input *sapvirtualinstances.DiskConfiguratio
 		}
 
 		if sku := v.Sku; sku != nil {
-			diskVolumeConfiguration.SkuName = string(pointer.From(sku.Name))
+			diskVolumeConfiguration.SkuName = pointer.FromEnum(sku.Name)
 		}
 
 		result = append(result, diskVolumeConfiguration)

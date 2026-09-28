@@ -20,6 +20,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
         with:
           fetch-depth: 0
+          persist-credentials: false
       - name: "Increment Milestone"
         shell: bash
-        run: bash ./scripts/automation/milestone-increment.sh -u https://api.github.com/repos/${{ github.repository }}/milestones -r ${{github.ref_name}} -t ${{secrets.GITHUB_TOKEN}}
+        run: bash ./scripts/automation/milestone-increment.sh -u https://api.github.com/repos/${{ github.repository }}/milestones -r "${GITHUB_REF_NAME}" -t ${{secrets.GITHUB_TOKEN}}

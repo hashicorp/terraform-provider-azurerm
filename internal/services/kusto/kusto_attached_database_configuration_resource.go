@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/attacheddatabaseconfigurations"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -339,14 +338,14 @@ func expandAttachedDatabaseConfigurationTableLevelSharingProperties(input []inte
 	}
 	v := input[0].(map[string]interface{})
 	return &attacheddatabaseconfigurations.TableLevelSharingProperties{
-		TablesToInclude:            helpers.ExpandStringSlice(v["tables_to_include"].(*pluginsdk.Set).List()),
-		TablesToExclude:            helpers.ExpandStringSlice(v["tables_to_exclude"].(*pluginsdk.Set).List()),
-		ExternalTablesToInclude:    helpers.ExpandStringSlice(v["external_tables_to_include"].(*pluginsdk.Set).List()),
-		ExternalTablesToExclude:    helpers.ExpandStringSlice(v["external_tables_to_exclude"].(*pluginsdk.Set).List()),
-		FunctionsToInclude:         helpers.ExpandStringSlice(v["functions_to_include"].(*pluginsdk.Set).List()),
-		FunctionsToExclude:         helpers.ExpandStringSlice(v["functions_to_exclude"].(*pluginsdk.Set).List()),
-		MaterializedViewsToInclude: helpers.ExpandStringSlice(v["materialized_views_to_include"].(*pluginsdk.Set).List()),
-		MaterializedViewsToExclude: helpers.ExpandStringSlice(v["materialized_views_to_exclude"].(*pluginsdk.Set).List()),
+		TablesToInclude:            pluginsdk.ExpandStringSlice(v["tables_to_include"].(*pluginsdk.Set).List()),
+		TablesToExclude:            pluginsdk.ExpandStringSlice(v["tables_to_exclude"].(*pluginsdk.Set).List()),
+		ExternalTablesToInclude:    pluginsdk.ExpandStringSlice(v["external_tables_to_include"].(*pluginsdk.Set).List()),
+		ExternalTablesToExclude:    pluginsdk.ExpandStringSlice(v["external_tables_to_exclude"].(*pluginsdk.Set).List()),
+		FunctionsToInclude:         pluginsdk.ExpandStringSlice(v["functions_to_include"].(*pluginsdk.Set).List()),
+		FunctionsToExclude:         pluginsdk.ExpandStringSlice(v["functions_to_exclude"].(*pluginsdk.Set).List()),
+		MaterializedViewsToInclude: pluginsdk.ExpandStringSlice(v["materialized_views_to_include"].(*pluginsdk.Set).List()),
+		MaterializedViewsToExclude: pluginsdk.ExpandStringSlice(v["materialized_views_to_exclude"].(*pluginsdk.Set).List()),
 	}
 }
 
@@ -357,14 +356,14 @@ func flattenAttachedDatabaseConfigurationTableLevelSharingProperties(input *atta
 
 	return []interface{}{
 		map[string]interface{}{
-			"external_tables_to_exclude":    helpers.FlattenStringSlice(input.ExternalTablesToExclude),
-			"external_tables_to_include":    helpers.FlattenStringSlice(input.ExternalTablesToInclude),
-			"functions_to_exclude":          helpers.FlattenStringSlice(input.FunctionsToExclude),
-			"functions_to_include":          helpers.FlattenStringSlice(input.FunctionsToInclude),
-			"materialized_views_to_exclude": helpers.FlattenStringSlice(input.MaterializedViewsToExclude),
-			"materialized_views_to_include": helpers.FlattenStringSlice(input.MaterializedViewsToInclude),
-			"tables_to_exclude":             helpers.FlattenStringSlice(input.TablesToExclude),
-			"tables_to_include":             helpers.FlattenStringSlice(input.TablesToInclude),
+			"external_tables_to_exclude":    pluginsdk.FlattenSlice(input.ExternalTablesToExclude),
+			"external_tables_to_include":    pluginsdk.FlattenSlice(input.ExternalTablesToInclude),
+			"functions_to_exclude":          pluginsdk.FlattenSlice(input.FunctionsToExclude),
+			"functions_to_include":          pluginsdk.FlattenSlice(input.FunctionsToInclude),
+			"materialized_views_to_exclude": pluginsdk.FlattenSlice(input.MaterializedViewsToExclude),
+			"materialized_views_to_include": pluginsdk.FlattenSlice(input.MaterializedViewsToInclude),
+			"tables_to_exclude":             pluginsdk.FlattenSlice(input.TablesToExclude),
+			"tables_to_include":             pluginsdk.FlattenSlice(input.TablesToInclude),
 		},
 	}
 }

@@ -130,7 +130,7 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 							Optional: true,
 						},
 
-						// Returned value of the `virtual_network_rule` array does not honor the input order,
+						// Returned value of the `virtual_network_rule` array does not honour the input order,
 						// possibly a service design, thus changed to TypeSet
 						"virtual_network_rule": {
 							Type:       pluginsdk.TypeSet,
@@ -530,7 +530,7 @@ func resourceEventHubNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) 
 				publicNetworkAccess = false
 			}
 			d.Set("public_network_access_enabled", publicNetworkAccess)
-			d.Set("minimum_tls_version", string(pointer.From(props.MinimumTlsVersion)))
+			d.Set("minimum_tls_version", pointer.FromEnum(props.MinimumTlsVersion))
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {

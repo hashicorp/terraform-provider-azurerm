@@ -101,7 +101,7 @@ func dataSourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta in
 		d.Set("name", id.FrontDoorWebApplicationFirewallPolicyName)
 		d.Set("resource_group_name", id.ResourceGroupName)
 		if sku := model.Sku; sku != nil {
-			d.Set("sku_name", string(pointer.From(sku.Name)))
+			d.Set("sku_name", pointer.FromEnum(sku.Name))
 		}
 
 		if props := model.Properties; props != nil {

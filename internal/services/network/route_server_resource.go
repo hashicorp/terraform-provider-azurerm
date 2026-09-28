@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -296,7 +296,7 @@ func resourceRouteServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			if props.VirtualRouterAsn != nil {
 				d.Set("virtual_router_asn", props.VirtualRouterAsn)
 			}
-			d.Set("routing_state", string(pointer.From(props.RoutingState)))
+			d.Set("routing_state", pointer.FromEnum(props.RoutingState))
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
@@ -392,7 +392,7 @@ func routeServerCreateRefreshFunc(ctx context.Context, client *virtualwans.Virtu
 		}
 
 		if resp.Model != nil && resp.Model.Properties != nil {
-			return resp, string(pointer.From(resp.Model.Properties.ProvisioningState)), nil
+			return resp, pointer.FromEnum(resp.Model.Properties.ProvisioningState), nil
 		}
 		return nil, "", fmt.Errorf("unable to read the provisioning state of this %s", id)
 	}
