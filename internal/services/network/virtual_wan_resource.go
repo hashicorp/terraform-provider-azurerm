@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -65,15 +65,10 @@ func resourceVirtualWan() *pluginsdk.Resource {
 			},
 
 			"office365_local_breakout_category": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualwans.OfficeTrafficCategoryAll),
-					string(virtualwans.OfficeTrafficCategoryNone),
-					string(virtualwans.OfficeTrafficCategoryOptimize),
-					string(virtualwans.OfficeTrafficCategoryOptimizeAndAllow),
-				}, false),
-				Default: string(virtualwans.OfficeTrafficCategoryNone),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForOfficeTrafficCategory(), false),
+				Default:      string(virtualwans.OfficeTrafficCategoryNone),
 			},
 
 			"type": {

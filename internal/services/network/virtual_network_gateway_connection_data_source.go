@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworkgatewayconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworkgatewayconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -240,7 +240,7 @@ func dataSourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, me
 		d.Set("express_route_gateway_bypass", props.ExpressRouteGatewayBypass)
 		d.Set("private_link_fast_path_enabled", props.EnablePrivateLinkFastPath)
 		d.Set("type", string(props.ConnectionType))
-		d.Set("connection_protocol", string(pointer.From(props.ConnectionProtocol)))
+		d.Set("connection_protocol", pointer.FromEnum(props.ConnectionProtocol))
 		d.Set("routing_weight", props.RoutingWeight)
 
 		d.Set("virtual_network_gateway_id", props.VirtualNetworkGateway1.Id)
@@ -267,13 +267,11 @@ func dataSourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, me
 
 		d.Set("resource_guid", props.ResourceGuid)
 
-		ipsecPoliciesSettingsFlat := flattenVirtualNetworkGatewayConnectionDataSourceIpsecPolicies(props.IPsecPolicies)
-		if err := d.Set("ipsec_policy", ipsecPoliciesSettingsFlat); err != nil {
+		if err := d.Set("ipsec_policy", flattenVirtualNetworkGatewayConnectionDataSourceIpsecPolicies(props.IPsecPolicies)); err != nil {
 			return fmt.Errorf("setting `ipsec_policy`: %+v", err)
 		}
 
-		trafficSelectorsPolicyFlat := flattenVirtualNetworkGatewayConnectionDataSourcePolicyTrafficSelectors(props.TrafficSelectorPolicies)
-		if err := d.Set("traffic_selector_policy", trafficSelectorsPolicyFlat); err != nil {
+		if err := d.Set("traffic_selector_policy", flattenVirtualNetworkGatewayConnectionDataSourcePolicyTrafficSelectors(props.TrafficSelectorPolicies)); err != nil {
 			return fmt.Errorf("setting `traffic_selector_policy`: %+v", err)
 		}
 	}

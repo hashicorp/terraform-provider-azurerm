@@ -9,6 +9,7 @@ import (
 )
 
 // ClientID validates the ClientID is valid for a Kubernetes Cluster
+// lintignore:V013 // the "msi" check returns a specific remediation message, not a generic not-in-slice error
 func ClientID(i interface{}, k string) ([]string, []error) {
 	v, ok := i.(string)
 	if !ok {

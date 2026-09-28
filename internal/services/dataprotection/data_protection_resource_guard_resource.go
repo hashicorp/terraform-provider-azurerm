@@ -14,10 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/resourceguardresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -49,7 +47,7 @@ func resourceDataProtectionResourceGuard() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ResourceGuardName,
+				ValidateFunc: validation.StringLenBetween(1, 260),
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -95,7 +93,7 @@ func resourceDataProtectionResourceGuardCreateUpdate(d *pluginsdk.ResourceData, 
 	parameters := resourceguardresources.ResourceGuardResource{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &resourceguardresources.ResourceGuard{
-			VaultCriticalOperationExclusionList: helpers.ExpandStringSlice(d.Get("vault_critical_operation_exclusion_list").([]interface{})),
+			VaultCriticalOperationExclusionList: pluginsdk.ExpandStringSlice(d.Get("vault_critical_operation_exclusion_list").([]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -141,7 +139,7 @@ func resourceDataProtectionResourceGuardRead(d *pluginsdk.ResourceData, meta int
 		d.Set("location", location.Normalize(model.Location))
 
 		props := model.Properties
-		d.Set("vault_critical_operation_exclusion_list", helpers.FlattenStringSlice(props.VaultCriticalOperationExclusionList))
+		d.Set("vault_critical_operation_exclusion_list", pluginsdk.FlattenSlice(props.VaultCriticalOperationExclusionList))
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err

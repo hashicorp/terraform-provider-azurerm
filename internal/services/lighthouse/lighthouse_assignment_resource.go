@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -17,6 +18,7 @@ import (
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -45,7 +47,7 @@ func resourceLighthouseAssignment() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.IsUUID,
 			},
 
@@ -163,34 +165,16 @@ func resourceLighthouseAssignmentDelete(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{"Deleting"},
-		Target:     []string{"Deleted"},
-		Refresh:    lighthouseAssignmentDeleteRefreshFunc(ctx, client, *id),
-		MinTimeout: 15 * time.Second,
-		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	poller := custompollers.NewEventualConsistencyPoller(1, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.Get(pollerCtx, *id, registrationassignments.GetOperationOptions{ExpandRegistrationDefinition: pointer.To(true)})
+		return resp.HttpResponse, err
+	}, &custompollers.EventualConsistencyPollerOptions{
+		Interval:         15 * time.Second,
+		TargetStatusCode: pointer.To(http.StatusNotFound),
+	})
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return err
 	}
 
 	return nil
-}
-
-func lighthouseAssignmentDeleteRefreshFunc(ctx context.Context, client *registrationassignments.RegistrationAssignmentsClient, id registrationassignments.ScopedRegistrationAssignmentId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		options := registrationassignments.GetOperationOptions{
-			ExpandRegistrationDefinition: pointer.To(true),
-		}
-		resp, err := client.Get(ctx, id, options)
-		if err != nil {
-			if response.WasNotFound(resp.HttpResponse) {
-				return resp, "Deleted", nil
-			}
-			return nil, "Error", fmt.Errorf("polling to check the deletion of %s: %+v", id, err)
-		}
-
-		return resp, "Deleting", nil
-	}
 }

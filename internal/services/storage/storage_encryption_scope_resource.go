@@ -60,12 +60,9 @@ func resourceStorageEncryptionScope() *pluginsdk.Resource {
 			},
 
 			"source": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(encryptionscopes.EncryptionScopeSourceMicrosoftPointKeyVault),
-					string(encryptionscopes.EncryptionScopeSourceMicrosoftPointStorage),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(encryptionscopes.PossibleValuesForEncryptionScopeSource(), false),
 			},
 
 			"key_vault_key_id": {
@@ -218,7 +215,7 @@ func resourceStorageEncryptionScopeRead(d *pluginsdk.ResourceData, meta interfac
 			}
 
 			d.Set("infrastructure_encryption_required", props.RequireInfrastructureEncryption)
-			d.Set("source", string(pointer.From(props.Source)))
+			d.Set("source", pointer.FromEnum(props.Source))
 
 			keyVaultKeyUri := ""
 			if props.KeyVaultProperties != nil {

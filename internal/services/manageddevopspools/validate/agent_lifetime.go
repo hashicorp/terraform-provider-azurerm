@@ -9,6 +9,7 @@ import (
 	"strings"
 )
 
+// lintignore:V012 // false positive - this validates a timespan string, not an int; the int comparisons here check the parsed hours/minutes/seconds components
 func AgentLifetime(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
@@ -44,13 +45,13 @@ func parseTimeSpan(s string) (days, hours, minutes, seconds int, err error) {
 	timePart := s
 
 	// Check for "dd.hh:mm:ss" format
-	if dotIdx := strings.IndexByte(s, '.'); dotIdx >= 0 {
-		days, err = strconv.Atoi(s[:dotIdx])
+	if before, after, ok := strings.Cut(s, "."); ok {
+		days, err = strconv.Atoi(before)
 		if err != nil || days < 0 {
 			err = fmt.Errorf("value %q has invalid days component", s)
 			return
 		}
-		timePart = s[dotIdx+1:]
+		timePart = after
 	}
 
 	parts := strings.Split(timePart, ":")

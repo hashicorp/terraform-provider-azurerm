@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2019-09-01/querypackqueries"
 	"github.com/hashicorp/go-uuid"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -55,7 +54,7 @@ func (r LogAnalyticsQueryPackQueryResource) Arguments() map[string]*pluginsdk.Sc
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validation.IsUUID,
 		},
@@ -111,7 +110,7 @@ func (r LogAnalyticsQueryPackQueryResource) Arguments() map[string]*pluginsdk.Sc
 		"additional_settings_json": {
 			Type:      pluginsdk.TypeString,
 			Optional:  true,
-			StateFunc: helpers.NormalizeJson,
+			StateFunc: pluginsdk.NormalizeJson,
 		},
 
 		"resource_types": {
@@ -586,7 +585,7 @@ func expandLogAnalyticsQueryPackQueryTags(input map[string]string) *map[string][
 
 func flattenLogAnalyticsQueryPackQueryTags(input map[string][]string) map[string]string {
 	if input == nil {
-		return nil
+		return map[string]string{}
 	}
 
 	results := make(map[string]string)

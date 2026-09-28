@@ -231,9 +231,8 @@ func expandAzureRmPrivateDnsARecords(d *pluginsdk.ResourceData) *[]privatedns.AR
 	records := make([]privatedns.ARecord, len(recordStrings))
 
 	for i, v := range recordStrings {
-		ipv4 := v.(string)
 		records[i] = privatedns.ARecord{
-			IPv4Address: &ipv4,
+			IPv4Address: pointer.To(v.(string)),
 		}
 	}
 

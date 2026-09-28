@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflows"
@@ -23,7 +24,7 @@ import (
 // NOTE: this file is not a recommended way of developing Terraform resources; this exists to work around the fact that this API is dynamic (by its nature)
 func flattenLogicAppActionRunAfter(input map[string]interface{}) []interface{} {
 	if len(input) == 0 {
-		return nil
+		return []interface{}{}
 	}
 	output := []interface{}{}
 	for k, v := range input {
@@ -309,6 +310,5 @@ func retrieveLogicAppComponent(d *pluginsdk.ResourceData, meta interface{}, kind
 		return nil, nil, nil
 	}
 
-	result := v.(map[string]interface{})
-	return &result, read.Model, nil
+	return pointer.To(v.(map[string]interface{})), read.Model, nil
 }

@@ -192,7 +192,7 @@ func resourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta interface{}
 
 	if model := resp.Model; model != nil {
 		if skuName := model.Sku.Name; skuName != nil {
-			d.Set("sku_name", string(pointer.From(skuName)))
+			d.Set("sku_name", pointer.FromEnum(skuName))
 		}
 
 		identity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
@@ -307,7 +307,6 @@ func expandCdnFrontDoorProfileLogScrubbingRules(input []interface{}) *[]profiles
 
 		item := profiles.ProfileScrubbingRules{
 			MatchVariable:         profiles.ScrubbingRuleEntryMatchVariable(v["match_variable"].(string)),
-			Selector:              nil,
 			SelectorMatchOperator: profiles.ScrubbingRuleEntryMatchOperatorEqualsAny, // EqualsAny is the only valid SelectorMatchOperator for log scrubbing in the Profile API
 			State:                 pointer.To(profiles.ScrubbingRuleEntryStateEnabled),
 		}

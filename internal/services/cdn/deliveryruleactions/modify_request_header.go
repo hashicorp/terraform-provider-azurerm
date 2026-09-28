@@ -16,13 +16,9 @@ func ModifyRequestHeader() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"action": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cdn.HeaderActionAppend),
-					string(cdn.HeaderActionDelete),
-					string(cdn.HeaderActionOverwrite),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInEnumSlice(cdn.PossibleHeaderActionValues(), false),
 			},
 
 			"name": {

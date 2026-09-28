@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/buckets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/buckets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
@@ -105,7 +105,6 @@ func (r NetAppVolumeBucketWithServerResource) Create() sdk.ResourceFunc {
 
 			id := buckets.NewBucketID(subscriptionId, volumeID.ResourceGroupName, volumeID.NetAppAccountName, volumeID.CapacityPoolName, volumeID.VolumeName, model.Name)
 
-			metadata.Logger.Infof("Import check for %s", id)
 			existing, err := client.Get(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
@@ -175,8 +174,8 @@ func (r NetAppVolumeBucketWithServerResource) flatten(metadata sdk.ResourceMetaD
 		props := bucket.Properties
 
 		model.Path = pointer.From(props.Path)
-		model.Permissions = string(pointer.From(props.Permissions))
-		model.Status = string(pointer.From(props.Status))
+		model.Permissions = pointer.FromEnum(props.Permissions)
+		model.Status = pointer.FromEnum(props.Status)
 
 		if props.FileSystemUser != nil {
 			model.FileSystemNfsUser = flattenNetAppBucketNfsUser(props.FileSystemUser.NfsUser)

@@ -118,12 +118,9 @@ func resourceArmDevTestVirtualNetwork() *pluginsdk.Resource {
 												},
 
 												"transport_protocol": {
-													Type:     pluginsdk.TypeString,
-													Optional: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(virtualnetworks.TransportProtocolTcp),
-														string(virtualnetworks.TransportProtocolUdp),
-													}, false),
+													Type:         pluginsdk.TypeString,
+													Optional:     true,
+													ValidateFunc: validation.StringInSlice(virtualnetworks.PossibleValuesForTransportProtocol(), false),
 												},
 											},
 										},
@@ -216,8 +213,7 @@ func resourceArmDevTestVirtualNetworkRead(d *pluginsdk.ResourceData, meta interf
 		props := model.Properties
 		d.Set("description", props.Description)
 
-		flattenedSubnets := flattenDevTestVirtualNetworkSubnets(props.SubnetOverrides)
-		if err := d.Set("subnet", flattenedSubnets); err != nil {
+		if err := d.Set("subnet", flattenDevTestVirtualNetworkSubnets(props.SubnetOverrides)); err != nil {
 			return fmt.Errorf("setting `subnet`: %+v", err)
 		}
 

@@ -20,7 +20,7 @@ var (
 
 type API struct {
 	Name     string
-	URL      string // TODO: not currently used, Resource-manager apis: https://learn.microsoft.com/en-us/rest/api/<Name> -- pattern does not work for all
+	URL      string // TODO: not currently used, Resource-manager apis: https://learn.microsoft.com/rest/api/<Name> -- pattern does not work for all
 	Versions []string
 }
 

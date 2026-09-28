@@ -59,7 +59,7 @@ func dataSourceElasticsearch() *pluginsdk.Resource {
 			"logs": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"filtering_tag": {

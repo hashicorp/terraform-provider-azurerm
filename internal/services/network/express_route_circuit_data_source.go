@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/expressroutecircuits"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressroutecircuits"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -146,18 +146,16 @@ func dataSourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
-		sku := flattenExpressRouteCircuitSku(model.Sku)
-		if err := d.Set("sku", sku); err != nil {
+		if err := d.Set("sku", flattenExpressRouteCircuitSku(model.Sku)); err != nil {
 			return fmt.Errorf("setting `sku`: %+v", err)
 		}
 		if props := model.Properties; props != nil {
-			peerings := flattenExpressRouteCircuitPeerings(props.Peerings)
-			if err := d.Set("peerings", peerings); err != nil {
+			if err := d.Set("peerings", flattenExpressRouteCircuitPeerings(props.Peerings)); err != nil {
 				return err
 			}
 
 			d.Set("service_key", props.ServiceKey)
-			d.Set("service_provider_provisioning_state", string(pointer.From(props.ServiceProviderProvisioningState)))
+			d.Set("service_provider_provisioning_state", pointer.FromEnum(props.ServiceProviderProvisioningState))
 
 			if serviceProviderProperties := flattenExpressRouteCircuitServiceProviderProperties(props.ServiceProviderProperties); serviceProviderProperties != nil {
 				if err := d.Set("service_provider_properties", serviceProviderProperties); err != nil {
@@ -178,7 +176,7 @@ func flattenExpressRouteCircuitPeerings(input *[]expressroutecircuits.ExpressRou
 			props := peering.Properties
 			p := make(map[string]interface{})
 
-			p["peering_type"] = string(pointer.From(props.PeeringType))
+			p["peering_type"] = pointer.FromEnum(props.PeeringType)
 
 			if primaryPeerAddressPrefix := props.PrimaryPeerAddressPrefix; primaryPeerAddressPrefix != nil {
 				p["primary_peer_address_prefix"] = *primaryPeerAddressPrefix

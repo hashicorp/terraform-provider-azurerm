@@ -46,7 +46,7 @@ func flattenIdentity(input *identity.LegacySystemAndUserAssignedMap) (*[]interfa
 		if input.PrincipalId != "" {
 			config.PrincipalId = input.PrincipalId
 		}
-		if input.TenantId != "nil" {
+		if input.TenantId != "" {
 			config.TenantId = input.TenantId
 		}
 		identityIds := make(map[string]identity.UserAssignedIdentityDetails)

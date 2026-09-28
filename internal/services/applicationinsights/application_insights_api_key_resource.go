@@ -185,14 +185,12 @@ func resourceApplicationInsightsAPIKeyRead(d *pluginsdk.ResourceData, meta inter
 	if model := result.Model; model != nil {
 		d.Set("name", model.Name)
 		if props := model.LinkedReadProperties; props != nil {
-			readProps := flattenApplicationInsightsAPIKeyLinkedProperties(props)
-			if err := d.Set("read_permissions", readProps); err != nil {
+			if err := d.Set("read_permissions", flattenApplicationInsightsAPIKeyLinkedProperties(props)); err != nil {
 				return fmt.Errorf("flattening `read_permissions `: %s", err)
 			}
 		}
 		if props := model.LinkedWriteProperties; props != nil {
-			writeProps := flattenApplicationInsightsAPIKeyLinkedProperties(props)
-			if err := d.Set("write_permissions", writeProps); err != nil {
+			if err := d.Set("write_permissions", flattenApplicationInsightsAPIKeyLinkedProperties(props)); err != nil {
 				return fmt.Errorf("flattening `write_permissions `: %s", err)
 			}
 		}
