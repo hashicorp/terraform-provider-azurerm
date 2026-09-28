@@ -76,9 +76,21 @@ func TestAccStorageMoverSmbMountEndpoint_update(t *testing.T) {
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("description").HasValue("Updated SMB Mount Endpoint Description"),
+				check.That(data.ResourceName).Key("username_key_vault_secret_id").MatchesOtherKey(check.That("azurerm_key_vault_secret.username").Key("id")),
 			),
 		},
 		data.ImportStep("password_key_vault_secret_id"),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("description").HasValue(""),
+				check.That(data.ResourceName).Key("username_key_vault_secret_id").HasValue(""),
+				check.That(data.ResourceName).Key("password_key_vault_secret_id").HasValue(""),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -253,8 +265,8 @@ resource "azurerm_storage_mover_smb_mount_endpoint" "test" {
   storage_mover_id             = azurerm_storage_mover.test.id
   host                         = "192.168.0.1"
   share_name                   = "testshare"
-  username_key_vault_secret_id = azurerm_key_vault_secret.username.versionless_id
-  password_key_vault_secret_id = azurerm_key_vault_secret.password.versionless_id
+  username_key_vault_secret_id = azurerm_key_vault_secret.username.id
+  password_key_vault_secret_id = azurerm_key_vault_secret.password.id
   description                  = "Updated SMB Mount Endpoint Description"
 }
 `, template, data.RandomString, data.RandomInteger)
