@@ -10,9 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -205,7 +204,7 @@ func resourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("frontend_ip_configuration_id", frontendIPConfigID)
 			d.Set("frontend_port", int(props.FrontendPort))
 			d.Set("idle_timeout_in_minutes", int(pointer.From(props.IdleTimeoutInMinutes)))
-			d.Set("load_distribution", string(pointer.From(props.LoadDistribution)))
+			d.Set("load_distribution", pointer.FromEnum(props.LoadDistribution))
 
 			probeId := ""
 			if props.Probe != nil {
@@ -382,13 +381,13 @@ func resourceArmLoadBalancerRuleSchema() map[string]*pluginsdk.Schema {
 		"frontend_port": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
-			ValidateFunc: validate.PortNumberOrZero,
+			ValidateFunc: validation.IsPortNumberOrZero,
 		},
 
 		"backend_port": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
-			ValidateFunc: validate.PortNumberOrZero,
+			ValidateFunc: validation.IsPortNumberOrZero,
 		},
 
 		"probe_id": {

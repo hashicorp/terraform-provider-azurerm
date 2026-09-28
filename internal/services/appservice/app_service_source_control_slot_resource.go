@@ -257,7 +257,7 @@ func (r SourceControlSlotResource) Read() sdk.ResourceFunc {
 
 			state := SourceControlSlotModel{
 				SlotID:                    id.ID(),
-				SCMType:                   string(pointer.From(siteConfig.Model.Properties.ScmType)),
+				SCMType:                   pointer.FromEnum(siteConfig.Model.Properties.ScmType),
 				RepoURL:                   pointer.From(props.RepoURL),
 				Branch:                    pointer.From(props.Branch),
 				ManualIntegration:         pointer.From(props.IsManualIntegration),

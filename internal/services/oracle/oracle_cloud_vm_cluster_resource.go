@@ -513,7 +513,7 @@ func (CloudVmClusterResource) Read() sdk.ResourceFunc {
 					state.GiVersion = props.GiVersion
 					state.Hostname = removeHostnameSuffix(props.Hostname)
 					state.HostnameActual = props.Hostname
-					state.LicenseModel = string(pointer.From(props.LicenseModel))
+					state.LicenseModel = pointer.FromEnum(props.LicenseModel)
 					state.MemorySizeInGbs = pointer.From(props.MemorySizeInGbs)
 					state.SshPublicKeys = props.SshPublicKeys
 					tmp := make([]string, 0)

@@ -15,7 +15,6 @@ import (
 	sentinelmetadata "github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/metadata"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -238,13 +237,13 @@ func (a MetadataResource) Arguments() map[string]*pluginsdk.Schema {
 		"first_publish_date": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validate.ISO8601DateTime,
+			ValidateFunc: validation.ISO8601DateTime,
 		},
 
 		"last_publish_date": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validate.ISO8601DateTime,
+			ValidateFunc: validation.ISO8601DateTime,
 		},
 
 		"content_schema_version": {

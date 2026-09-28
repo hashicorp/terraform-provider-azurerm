@@ -180,7 +180,7 @@ func (r ContainerAppDataSource) Read() sdk.ResourceFunc {
 					if config := props.Configuration; config != nil {
 						if config.ActiveRevisionsMode != nil {
 							if config.ActiveRevisionsMode != nil {
-								containerApp.RevisionMode = string(pointer.From(config.ActiveRevisionsMode))
+								containerApp.RevisionMode = pointer.FromEnum(config.ActiveRevisionsMode)
 							}
 							containerApp.Ingress = helpers.FlattenContainerAppIngress(config.Ingress, id.ContainerAppName)
 							containerApp.Registries = helpers.FlattenContainerAppRegistries(config.Registries)

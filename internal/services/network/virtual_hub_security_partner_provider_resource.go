@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/virtualwans"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/securitypartnerproviders"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/securitypartnerproviders"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -143,7 +143,7 @@ func resourceVirtualHubSecurityPartnerProviderRead(d *pluginsdk.ResourceData, me
 		d.Set("location", location.NormalizeNilable(model.Location))
 
 		if props := model.Properties; props != nil {
-			d.Set("security_provider_name", string(pointer.From(props.SecurityProviderName)))
+			d.Set("security_provider_name", pointer.FromEnum(props.SecurityProviderName))
 
 			if props.VirtualHub != nil && props.VirtualHub.Id != nil {
 				d.Set("virtual_hub_id", props.VirtualHub.Id)

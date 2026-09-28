@@ -237,7 +237,7 @@ func resourceAksInferenceClusterRead(d *pluginsdk.ResourceData, meta interface{}
 	d.Set("kubernetes_cluster_id", aksId.ID())
 	clusterPurpose := ""
 	if aksComputeProperties.Properties != nil {
-		clusterPurpose = string(pointer.From(aksComputeProperties.Properties.ClusterPurpose))
+		clusterPurpose = pointer.FromEnum(aksComputeProperties.Properties.ClusterPurpose)
 	}
 	d.Set("cluster_purpose", clusterPurpose)
 	d.Set("description", aksComputeProperties.Description)

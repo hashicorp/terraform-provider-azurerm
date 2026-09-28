@@ -11,7 +11,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -135,7 +134,7 @@ func resourceIotHubRouteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		Name:          &id.Name,
 		Source:        source,
 		Condition:     &condition,
-		EndpointNames: helpers.ExpandStringSlice(endpointNamesRaw),
+		EndpointNames: pluginsdk.ExpandStringSlice(endpointNamesRaw),
 		IsEnabled:     &isEnabled,
 	}
 

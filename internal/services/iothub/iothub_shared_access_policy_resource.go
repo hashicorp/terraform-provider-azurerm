@@ -121,10 +121,10 @@ func resourceIotHubSharedAccessPolicy() *pluginsdk.Resource {
 func iothubSharedAccessPolicyCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) (err error) {
 	registryRead, hasRegistryRead := d.GetOk("registry_read")
 	registryWrite, hasRegistryWrite := d.GetOk("registry_write")
-	serviceConnect, hasServieConnect := d.GetOk("service_connect")
+	serviceConnect, hasServiceConnect := d.GetOk("service_connect")
 	deviceConnect, hasDeviceConnect := d.GetOk("device_connect")
 
-	if !hasRegistryRead && !hasRegistryWrite && !hasServieConnect && !hasDeviceConnect {
+	if !hasRegistryRead && !hasRegistryWrite && !hasServiceConnect && !hasDeviceConnect {
 		return errors.New("one of `registry_read`, `registry_write`, `service_connect` or `device_connect` properties must be set")
 	}
 

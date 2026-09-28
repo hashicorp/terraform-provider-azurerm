@@ -280,6 +280,29 @@ func TestAccAzureRMServiceBusNamespace_networkRuleSet(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMServiceBusNamespace_minimumTLSUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
+	r := ServicebusNamespaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("minimum_tls_version").HasValue("1.2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.minimumTLS(data, "1.3"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("minimum_tls_version").HasValue("1.3"),
+			),
+		},
+	})
+}
+
 func (t ServicebusNamespaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := namespaces.ParseNamespaceID(state.ID)
 	if err != nil {
@@ -802,4 +825,25 @@ resource "azurerm_servicebus_namespace" "test" {
   network_rule_set {}
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (ServicebusNamespaceResource) minimumTLS(data acceptance.TestData, tlsVersion string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+  name                = "acctestservicebusnamespace-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Basic"
+  minimum_tls_version = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, tlsVersion)
 }

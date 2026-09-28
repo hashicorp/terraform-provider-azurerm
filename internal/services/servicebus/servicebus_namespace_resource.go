@@ -146,6 +146,7 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 				Default:  string(namespaces.TlsVersionOnePointTwo),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(namespaces.TlsVersionOnePointTwo),
+					string(namespaces.TlsVersionOnePointThree),
 				}, false),
 			},
 
@@ -524,7 +525,7 @@ func resourceServiceBusNamespaceFlatten(ctx context.Context, d *pluginsdk.Resour
 				d.Set("public_network_access_enabled", publicNetworkAccess)
 
 				if props.MinimumTlsVersion != nil {
-					d.Set("minimum_tls_version", string(pointer.From(props.MinimumTlsVersion)))
+					d.Set("minimum_tls_version", pointer.FromEnum(props.MinimumTlsVersion))
 				}
 
 				d.Set("endpoint", props.ServiceBusEndpoint)

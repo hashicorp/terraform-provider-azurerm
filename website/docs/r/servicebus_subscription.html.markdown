@@ -85,7 +85,7 @@ A `client_scoped_subscription` block supports the following:
 
 * `client_id` - (Optional) Specifies the Client ID of the application that created the client-scoped subscription. Changing this forces a new resource to be created.
 
-~> **Note:** Client ID can be null or empty, but it must match the client ID set on the JMS client application. From the Azure Service Bus perspective, a null client ID and an empty client id have the same behavior. If the client ID is set to null or empty, it is only accessible to client applications whose client ID is also set to null or empty.
+~> **Note:** Client ID can be null or empty, but it must match the client ID set on the JMS client application. From the Azure Service Bus perspective, a null client ID and an empty client id have the same behaviour. If the client ID is set to null or empty, it is only accessible to client applications whose client ID is also set to null or empty.
 
 * `is_client_scoped_subscription_shareable` - (Optional) Whether the client scoped subscription is shareable. Defaults to `true` Changing this forces a new resource to be created.
 

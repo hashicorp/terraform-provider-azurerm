@@ -27,15 +27,19 @@ jobs:
           echo "gha_url=https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}" >> "$GITHUB_ENV"
       - name: Add failure to unified build comment
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        env:
+          WORKFLOW_NAME: ${{ inputs.check_name || github.workflow }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          GHA_URL: ${{ env.gha_url }}
         with:
           result-encoding: string
           retries: 3
           script: |
-            const workflowName = '${{ inputs.check_name || github.workflow }}';
-            const sha = '${{ github.event.pull_request.head.sha }}';
+            const workflowName = process.env.WORKFLOW_NAME;
+            const sha = process.env.HEAD_SHA;
             const shortSha = sha.substring(0, 7);
-            const runUrl = '${{ env.gha_url }}';
-            const prNumber = ${{ github.event.number }};
+            const runUrl = process.env.GHA_URL;
+            const prNumber = context.issue.number;
 
             console.log(`=== Comment Failure: "${workflowName}" ===`);
             console.log(`PR #${prNumber}, commit ${shortSha} (${sha})`);
@@ -51,13 +55,14 @@ jobs:
               'GoLang Compilation': 'Run `go build` or `make build` locally to reproduce and fix compilation errors.',
               'Unit Tests': 'Run `make test` locally to reproduce and fix the failing unit tests.',
               'ShellCheck Scripts': 'Run `make shellcheck` locally to check shell scripts for issues and fix any warnings or errors.',
+              'Typos': 'Run `make typos` locally to find spelling errors in code, docs and examples, and `make typos-fix` to fix them. Add false positives (Azure names, API enum values) to `.typos.toml`.',
               'Validate Examples': 'Run `make validate-examples` locally to check that your example Terraform configurations under `examples/` are valid.',
               'Provider Tests': 'Run `make testacc TEST=./internal/provider TESTARGS="-run \'^TestAcc\'"` locally to reproduce and fix the failing provider tests.',
               'Check for new usages of deprecated functionality': 'Your changes introduce new usages of deprecated functions or patterns. Please use the recommended replacements instead.',
               'Preview ARM API Version Linter': 'Your changes reference Azure ARM API versions that are in preview. Please update the API version references to use GA (stable) versions.',
             };
 
-            const commitUrl = `https://github.com/${{ github.repository }}/commit/${sha}`;
+            const commitUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/commit/${sha}`;
             const marker = `CI Build Failures for <a href="${commitUrl}"><code>${shortSha}</code></a>`;
             const guideText = guidance[workflowName] || 'Check the logs for details on the failure.';
             const failureLine = `- ❌ <b>${workflowName}</b> — ${guideText} (<a href="${runUrl}">logs</a>)`;
@@ -66,7 +71,7 @@ jobs:
               console.log(`⚠️  No guidance text found for workflow "${workflowName}", using default`);
             }
 
-            const footer = `\n\nFor more information, please refer to our <a href="https://github.com/${{ github.repository }}/blob/main/contributing/README.md">Contributing Guide</a>.`;
+            const footer = `\n\nFor more information, please refer to our <a href="https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/contributing/README.md">Contributing Guide</a>.`;
 
             // Find existing unified comment for this commit
             console.log(`Searching for existing unified comment with marker: "${marker}"`);
