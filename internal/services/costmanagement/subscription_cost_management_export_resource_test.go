@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package costmanagement_test
@@ -9,12 +9,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/exports"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SubscriptionCostManagementExport struct{}
@@ -93,7 +93,7 @@ func (t SubscriptionCostManagementExport) Exists(ctx context.Context, clients *c
 		return nil, fmt.Errorf("retrieving (%s): %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (SubscriptionCostManagementExport) basic(data acceptance.TestData) string {
@@ -122,8 +122,8 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_container" "test" {
-  name                 = "acctestcontainer%s"
-  storage_account_name = azurerm_storage_account.test.name
+  name               = "acctestcontainer%s"
+  storage_account_id = azurerm_storage_account.test.id
 }
 
 resource "azurerm_subscription_cost_management_export" "test" {
@@ -143,7 +143,7 @@ resource "azurerm_subscription_cost_management_export" "test" {
     time_frame = "TheLastMonth"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, start, end)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, start, end)
 }
 
 func (SubscriptionCostManagementExport) update(data acceptance.TestData) string {
@@ -172,8 +172,8 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_container" "test" {
-  name                 = "acctestcontainer%s"
-  storage_account_name = azurerm_storage_account.test.name
+  name               = "acctestcontainer%s"
+  storage_account_id = azurerm_storage_account.test.id
 }
 
 resource "azurerm_subscription_cost_management_export" "test" {
@@ -193,7 +193,7 @@ resource "azurerm_subscription_cost_management_export" "test" {
     time_frame = "WeekToDate"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, start, end)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, start, end)
 }
 
 func (SubscriptionCostManagementExport) requiresImport(data acceptance.TestData) string {

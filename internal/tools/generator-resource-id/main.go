@@ -1,9 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -15,7 +16,9 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 var packagesUsingAlias = map[string]struct{}{
@@ -128,8 +131,7 @@ func parseServicePackageName(relativePath string) (*string, error) {
 		return nil, fmt.Errorf("not enough segments")
 	}
 
-	servicePackageName := segments[serviceIndex+1]
-	return &servicePackageName, nil
+	return pointer.To(segments[serviceIndex+1]), nil
 }
 
 func convertToSnakeCase(input string) string {
@@ -217,7 +219,7 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 			toCamelCase := func(input string) string {
 				// lazy but it works
 				out := make([]rune, 0)
-				for i, char := range azure.TitleCase(input) {
+				for i, char := range cases.Title(language.English, cases.NoLower).String(input) {
 					if i == 0 {
 						out = append(out, unicode.ToLower(char))
 						continue
@@ -230,7 +232,7 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 
 			rewritten := fmt.Sprintf("%sName", key)
 			segment := ResourceIdSegment{
-				FieldName:    azure.TitleCase(rewritten),
+				FieldName:    cases.Title(language.English, cases.NoLower).String(rewritten),
 				ArgumentName: toCamelCase(rewritten),
 				SegmentKey:   key,
 				SegmentValue: value,
@@ -252,8 +254,8 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 				// TODO: in time this could be worth a series of overrides
 
 				// handles "GallerieName" and `DataFactoriesName`
-				if strings.HasSuffix(key, "ies") {
-					key = strings.TrimSuffix(key, "ies")
+				if before, ok := strings.CutSuffix(key, "ies"); ok {
+					key = before
 					key = fmt.Sprintf("%sy", key)
 				}
 				switch {
@@ -275,7 +277,7 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 				} else {
 					// remove {Thing}s and make that {Thing}Name
 					rewritten = fmt.Sprintf("%sName", key)
-					segment.FieldName = azure.TitleCase(rewritten)
+					segment.FieldName = cases.Title(language.English, cases.NoLower).String(rewritten)
 					segment.ArgumentName = toCamelCase(rewritten)
 				}
 			}
@@ -337,7 +339,7 @@ type ResourceIdGenerator struct {
 
 func (id ResourceIdGenerator) Code() string {
 	return fmt.Sprintf(`
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -580,7 +582,7 @@ func (id ResourceIdGenerator) TestCode() string {
 	}
 
 	return fmt.Sprintf(`
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse%s
@@ -600,6 +602,23 @@ import (
 `, id.TestPackageSuffix, importLine, id.testCodeForFormatter(), id.testCodeForParser(), id.testCodeForParserInsensitive())
 }
 
+// lintIgnoreAT003 emits a lintignore directive for generated test functions whose name collides
+// with tfproviderlint's acceptance test naming checks: a Type Name beginning with `Acc`
+// (e.g. AccessPolicyApplication) produces test names like `TestAccessPolicyApplicationID`, which
+// start with `TestAcc` and are therefore mistaken by AT003 for acceptance test names — these are
+// plain unit tests, so the finding is a false positive.
+//
+// TODO: remove this in favour of renaming the generated tests to `TestParse<Name>*` (parse) and
+// `TestValidate<Name>*` (validate) in a separate PR — that rename regenerates ~550 test files and
+// collides with the hand-written `TestValidateAppServiceID` in `web/validate/app_service_test.go`,
+// so it needs its own review rather than riding along with a lint-config change.
+func (id ResourceIdGenerator) lintIgnoreAT003() string {
+	if !strings.HasPrefix(id.TypeName, "Acc") {
+		return ""
+	}
+	return "// lintignore:AT003 // unit test for a generated Resource ID whose Type Name begins with `Acc`\n"
+}
+
 func (id ResourceIdGenerator) testCodeForFormatter() string {
 	arguments := make([]string, 0)
 	for _, segment := range id.Segments {
@@ -610,27 +629,27 @@ func (id ResourceIdGenerator) testCodeForFormatter() string {
 		return fmt.Sprintf(`
 var _ resourceids.Id = %[1]sId{}
 
-func Test%[1]sIDFormatter(t *testing.T) {
+%[4]sfunc Test%[1]sIDFormatter(t *testing.T) {
 	actual := New%[1]sID(%[2]s).ID()
 	expected := %[3]q
 	if actual != expected {
 		t.Fatalf("Expected %%q but got %%q", expected, actual)
 	}
 }
-`, id.TypeName, argumentsStr, id.IDRaw)
+`, id.TypeName, argumentsStr, id.IDRaw, id.lintIgnoreAT003())
 	}
 
 	return fmt.Sprintf(`
 var _ resourceid.Formatter = parse.%[1]sId{}
 
-func Test%[1]sIDFormatter(t *testing.T) {
+%[4]sfunc Test%[1]sIDFormatter(t *testing.T) {
 	actual := parse.New%[1]sID(%[2]s).ID()
 	expected := %[3]q
 	if actual != expected {
 		t.Fatalf("Expected %%q but got %%q", expected, actual)
 	}
 }
-`, id.TypeName, argumentsStr, id.IDRaw)
+`, id.TypeName, argumentsStr, id.IDRaw, id.lintIgnoreAT003())
 }
 
 func (id ResourceIdGenerator) testCodeForParser() string {
@@ -696,7 +715,7 @@ func (id ResourceIdGenerator) testCodeForParser() string {
 
 	if id.TestPackageSuffix == "" {
 		return fmt.Sprintf(`
-func Test%[1]sID(t *testing.T) {
+%[4]sfunc Test%[1]sID(t *testing.T) {
 	testData := []struct {
 		Input  string
 		Error  bool
@@ -722,11 +741,11 @@ func Test%[1]sID(t *testing.T) {
 %[3]s
 	}
 }
-`, id.TypeName, testCasesStr, assignmentCheckStr)
+`, id.TypeName, testCasesStr, assignmentCheckStr, id.lintIgnoreAT003())
 	}
 
 	return fmt.Sprintf(`
-func Test%[1]sID(t *testing.T) {
+%[4]sfunc Test%[1]sID(t *testing.T) {
 	testData := []struct {
 		Input  string
 		Error  bool
@@ -752,7 +771,7 @@ func Test%[1]sID(t *testing.T) {
 %[3]s
 	}
 }
-`, id.TypeName, testCasesStr, assignmentCheckStr)
+`, id.TypeName, testCasesStr, assignmentCheckStr, id.lintIgnoreAT003())
 }
 
 func (id ResourceIdGenerator) testCodeForParserInsensitive() string {
@@ -851,7 +870,7 @@ func (id ResourceIdGenerator) testCodeForParserInsensitive() string {
 
 	if id.TestPackageSuffix == "" {
 		return fmt.Sprintf(`
-func Test%[1]sIDInsensitively(t *testing.T) {
+%[4]sfunc Test%[1]sIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input  string
 		Error  bool
@@ -877,11 +896,11 @@ func Test%[1]sIDInsensitively(t *testing.T) {
 %[3]s
 	}
 }
-`, id.TypeName, testCasesStr, assignmentCheckStr)
+`, id.TypeName, testCasesStr, assignmentCheckStr, id.lintIgnoreAT003())
 	}
 
 	return fmt.Sprintf(`
-func Test%[1]sIDInsensitively(t *testing.T) {
+%[4]sfunc Test%[1]sIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input  string
 		Error  bool
@@ -907,12 +926,12 @@ func Test%[1]sIDInsensitively(t *testing.T) {
 %[3]s
 	}
 }
-`, id.TypeName, testCasesStr, assignmentCheckStr)
+`, id.TypeName, testCasesStr, assignmentCheckStr, id.lintIgnoreAT003())
 }
 
 func (id ResourceIdGenerator) ValidatorCode() string {
 	return fmt.Sprintf(`
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -989,7 +1008,7 @@ func (id ResourceIdGenerator) ValidatorTestCode() string {
 
 	if id.TestPackageSuffix == "" {
 		return fmt.Sprintf(`
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -998,7 +1017,7 @@ package validate
 
 import "testing"
 
-func Test%[1]sID(t *testing.T) {
+%[3]sfunc Test%[1]sID(t *testing.T) {
 	cases := []struct {
 		Input    string
 		Valid bool
@@ -1014,10 +1033,10 @@ func Test%[1]sID(t *testing.T) {
 		}
 	}
 }
-`, id.TypeName, testCasesStr)
+`, id.TypeName, testCasesStr, id.lintIgnoreAT003())
 	}
 
-	return fmt.Sprintf(`// Copyright (c) HashiCorp, Inc.
+	return fmt.Sprintf(`// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate%[1]s
@@ -1030,7 +1049,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/%[4]s/validate"
 )
 
-func Test%[2]sID(t *testing.T) {
+%[5]sfunc Test%[2]sID(t *testing.T) {
 	cases := []struct {
 		Input    string
 		Valid bool
@@ -1046,7 +1065,7 @@ func Test%[2]sID(t *testing.T) {
 		}
 	}
 }
-`, id.TestPackageSuffix, id.TypeName, testCasesStr, id.ServicePackageName)
+`, id.TestPackageSuffix, id.TypeName, testCasesStr, id.ServicePackageName, id.lintIgnoreAT003())
 }
 
 func goFmtAndWriteToFile(filePath, fileContents string) error {
@@ -1090,14 +1109,14 @@ func (f GolangCodeFormatter) Format(input string) (*string, error) {
 }
 
 func (f GolangCodeFormatter) runGoFmt(filePath string) {
-	cmd := exec.Command("gofmt", "-w", filePath)
+	cmd := exec.CommandContext(context.Background(), "gofmt", "-w", filePath)
 	// intentionally not using these errors since the exit codes are kinda uninteresting
 	_ = cmd.Start()
 	_ = cmd.Wait()
 }
 
 func (f GolangCodeFormatter) runGoImports(filePath string) {
-	cmd := exec.Command("goimports", "-w", filePath)
+	cmd := exec.CommandContext(context.Background(), "goimports", "-w", filePath)
 	// intentionally not using these errors since the exit codes are kinda uninteresting
 	_ = cmd.Start()
 	_ = cmd.Wait()
@@ -1109,6 +1128,5 @@ func (f GolangCodeFormatter) readFileContents(filePath string) (*string, error) 
 		return nil, err
 	}
 
-	contents := string(data)
-	return &contents, nil
+	return pointer.To(string(data)), nil
 }

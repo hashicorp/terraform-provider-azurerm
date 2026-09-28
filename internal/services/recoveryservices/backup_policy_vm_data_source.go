@@ -1,11 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -36,8 +35,6 @@ func dataSourceBackupPolicyVmRead(d *pluginsdk.ResourceData, meta interface{}) e
 	defer cancel()
 
 	id := protectionpolicies.NewBackupPolicyID(subscriptionid, d.Get("resource_group_name").(string), d.Get("recovery_vault_name").(string), d.Get("name").(string))
-
-	log.Printf("[DEBUG] Reading %s", id)
 
 	protectionPolicy, err := client.Get(ctx, id)
 	if err != nil {

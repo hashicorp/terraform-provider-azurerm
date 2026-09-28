@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package applicationinsights_test
@@ -9,13 +9,13 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	workbooks "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-04-01/workbooksapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ApplicationInsightsWorkbookResource struct{}
@@ -122,14 +122,14 @@ func (r ApplicationInsightsWorkbookResource) Exists(ctx context.Context, clients
 	}
 
 	client := clients.AppInsights.WorkbookClient
-	resp, err := client.WorkbooksGet(ctx, *id, workbooks.WorkbooksGetOperationOptions{CanFetchContent: utils.Bool(true)})
+	resp, err := client.WorkbooksGet(ctx, *id, workbooks.WorkbooksGetOperationOptions{CanFetchContent: pointer.To(true)})
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r ApplicationInsightsWorkbookResource) template(data acceptance.TestData) string {
@@ -175,8 +175,11 @@ resource "azurerm_application_insights_workbook" "test" {
 `, template, intValue)
 }
 
+func (r ApplicationInsightsWorkbookResource) basicForResourceIdentity(data acceptance.TestData) string {
+	return r.basic(data, data.RandomInteger)
+}
+
 func (r ApplicationInsightsWorkbookResource) hiddenTitleInTags(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -205,11 +208,10 @@ resource "azurerm_application_insights_workbook" "test" {
     hidden-title = "Test Display Name"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r ApplicationInsightsWorkbookResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data, data.RandomInteger)
 	return fmt.Sprintf(`
 			%s
 
@@ -222,13 +224,12 @@ resource "azurerm_application_insights_workbook" "import" {
   source_id           = azurerm_application_insights_workbook.test.source_id
   data_json           = azurerm_application_insights_workbook.test.data_json
 }
-`, config)
+`, r.basic(data, data.RandomInteger))
 }
 
 func (r ApplicationInsightsWorkbookResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
-			%s
+				%s
 
 resource "azurerm_user_assigned_identity" "test" {
   name                = "acctestUAI-%d"
@@ -246,7 +247,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "test"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -297,13 +298,12 @@ resource "azurerm_application_insights_workbook" "test" {
     azurerm_role_assignment.test,
   ]
 }
-`, template, data.RandomInteger, data.RandomString)
+`, r.template(data), data.RandomInteger, data.RandomString)
 }
 
 func (r ApplicationInsightsWorkbookResource) update(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
-			%s
+				%s
 
 resource "azurerm_user_assigned_identity" "test" {
   name                = "acctestUAI-%d"
@@ -321,7 +321,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "test"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -372,5 +372,5 @@ resource "azurerm_application_insights_workbook" "test" {
     azurerm_role_assignment.test,
   ]
 }
-`, template, data.RandomInteger, data.RandomString)
+`, r.template(data), data.RandomInteger, data.RandomString)
 }

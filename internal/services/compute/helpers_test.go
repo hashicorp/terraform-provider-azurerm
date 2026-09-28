@@ -1,15 +1,46 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-07-03/galleryimageversions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 )
+
+func TestExpandVirtualMachineScaleSetAutomaticUpgradePolicy(t *testing.T) {
+	input := []interface{}{
+		map[string]interface{}{
+			"automatic_rollback_enabled":   false,
+			"automatic_os_upgrade_enabled": true,
+		},
+	}
+
+	for _, useRollingUpgradePolicy := range []bool{false, true} {
+		t.Run(fmt.Sprintf("UseRollingUpgradePolicy-%t", useRollingUpgradePolicy), func(t *testing.T) {
+			actual := ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(input, useRollingUpgradePolicy)
+			if pointer.From(actual.UseRollingUpgradePolicy) != useRollingUpgradePolicy {
+				t.Fatalf("expected useRollingUpgradePolicy to be %t", useRollingUpgradePolicy)
+			}
+		})
+	}
+}
+
+func TestFlattenVirtualMachineScaleSetRollingUpgradePolicy(t *testing.T) {
+	input := &virtualmachinescalesets.RollingUpgradePolicy{
+		MaxBatchInstancePercent: pointer.To(int64(20)),
+	}
+
+	actual := FlattenVirtualMachineScaleSetRollingUpgradePolicy(input)
+	if len(actual) != 1 {
+		t.Fatalf("expected 1 rolling upgrade policy block, got %d", len(actual))
+	}
+}
 
 func TestSortVersions_valid(t *testing.T) {
 	testData := []struct {

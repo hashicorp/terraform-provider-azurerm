@@ -1,19 +1,14 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
 
 import (
-	"fmt"
 	"regexp"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func FilePath(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	if !regexp.MustCompile(`^(.)+.cap$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("%s must end with extension name '.cap'", k))
-	}
-
-	return warnings, errors
+func FilePath(v interface{}, k string) ([]string, []error) {
+	return validation.StringMatch(regexp.MustCompile(`^(.)+.cap$`), "must end with extension name '.cap'")(v, k)
 }

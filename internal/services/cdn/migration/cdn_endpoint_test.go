@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -7,10 +7,10 @@ import (
 	"context"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 )
 
-func TestCdnEndpointV1ToV2(t *testing.T) {
+func TestCdnEndpointV0ToV1(t *testing.T) {
 	testData := []struct {
 		name     string
 		input    map[string]interface{}
@@ -28,14 +28,14 @@ func TestCdnEndpointV1ToV2(t *testing.T) {
 			input: map[string]interface{}{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourcegroups/group1/providers/Microsoft.Cdn/profiles/profile1/endpoints/endpoint1",
 			},
-			expected: utils.String("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Cdn/profiles/profile1/endpoints/endpoint1"),
+			expected: pointer.To("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Cdn/profiles/profile1/endpoints/endpoint1"),
 		},
 		{
 			name: "new id",
 			input: map[string]interface{}{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Cdn/profiles/profile1/endpoints/endpoint1",
 			},
-			expected: utils.String("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Cdn/profiles/profile1/endpoints/endpoint1"),
+			expected: pointer.To("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Cdn/profiles/profile1/endpoints/endpoint1"),
 		},
 	}
 	for _, test := range testData {
@@ -49,6 +49,41 @@ func TestCdnEndpointV1ToV2(t *testing.T) {
 			} else if err != nil && test.expected != nil {
 				t.Fatalf("Expected no error but got: %+v", err)
 			}
+		}
+
+		actualId := result["id"].(string)
+		if *test.expected != actualId {
+			t.Fatalf("expected %q but got %q!", *test.expected, actualId)
+		}
+	}
+}
+
+func TestCdnEndpointV1ToV2(t *testing.T) {
+	testData := []struct {
+		name     string
+		input    map[string]interface{}
+		expected *string
+	}{
+		{
+			name: "legacy-cased id from an import",
+			input: map[string]interface{}{
+				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourcegroups/group1/providers/microsoft.cdn/profiles/profile1/endpoints/endpoint1",
+			},
+			expected: pointer.To("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Cdn/profiles/profile1/endpoints/endpoint1"),
+		},
+		{
+			name: "canonical id",
+			input: map[string]interface{}{
+				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Cdn/profiles/profile1/endpoints/endpoint1",
+			},
+			expected: pointer.To("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Cdn/profiles/profile1/endpoints/endpoint1"),
+		},
+	}
+	for _, test := range testData {
+		t.Logf("Testing %q..", test.name)
+		result, err := CdnEndpointV1ToV2{}.UpgradeFunc()(context.TODO(), test.input, nil)
+		if err != nil {
+			t.Fatalf("Expected no error but got: %+v", err)
 		}
 
 		actualId := result["id"].(string)

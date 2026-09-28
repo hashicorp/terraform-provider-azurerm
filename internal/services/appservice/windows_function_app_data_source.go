@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -315,7 +315,7 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 					}
 					functionApp.ServicePlanId = servicePlanId.ID()
 					functionApp.Enabled = pointer.From(props.Enabled)
-					functionApp.ClientCertMode = string(pointer.From(props.ClientCertMode))
+					functionApp.ClientCertMode = pointer.FromEnum(props.ClientCertMode)
 					functionApp.ClientCertExclusionPaths = pointer.From(props.ClientCertExclusionPaths)
 					functionApp.DailyMemoryTimeQuota = pointer.From(props.DailyMemoryTimeQuota)
 					functionApp.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
@@ -462,7 +462,7 @@ func (m *WindowsFunctionAppDataSourceModel) unpackWindowsFunctionAppSettings(inp
 	for k, v := range *input.Properties {
 		switch k {
 		case "FUNCTIONS_EXTENSION_VERSION":
-			m.FunctionExtensionsVersion = (v)
+			m.FunctionExtensionsVersion = v
 
 		case "WEBSITE_NODE_DEFAULT_VERSION": // Note - This is only set if it's not the default of 12, but we collect it from WindowsFxVersion so can discard it here
 		case "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING":
@@ -490,8 +490,7 @@ func (m *WindowsFunctionAppDataSourceModel) unpackWindowsFunctionAppSettings(inp
 
 		case "AzureWebJobsStorage":
 			if strings.HasPrefix(v, "@Microsoft.KeyVault") {
-				trimmed := strings.TrimPrefix(strings.TrimSuffix(v, ")"), "@Microsoft.KeyVault(")
-				m.StorageKeyVaultSecretID = trimmed
+				m.StorageKeyVaultSecretID = strings.TrimPrefix(strings.TrimSuffix(v, ")"), "@Microsoft.KeyVault(")
 			} else {
 				m.StorageAccountName, m.StorageAccountKey = helpers.ParseWebJobsStorageString(v)
 			}

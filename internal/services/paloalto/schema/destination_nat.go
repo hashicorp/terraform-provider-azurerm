@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package schema
@@ -8,8 +8,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-05-23/firewalls"
-	helpersValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	firewalls "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -92,7 +91,7 @@ func BackendEndpointSchema() *pluginsdk.Schema {
 				"public_ip_address": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ValidateFunc: helpersValidate.IPv4Address,
+					ValidateFunc: validation.IsIPv4Address,
 				},
 
 				"port": {

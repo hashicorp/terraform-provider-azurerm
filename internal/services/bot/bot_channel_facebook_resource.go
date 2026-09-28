@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package bot
@@ -8,18 +8,18 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
@@ -31,8 +31,15 @@ func resourceBotChannelFacebook() *pluginsdk.Resource {
 		Update: resourceBotChannelFacebookUpdate,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.BotChannelID(id)
+			_, err := commonids.ParseBotServiceChannelID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			// v0 -> v1 normalises the casing of IDs imported while this resource parsed them with the
+			// case-insensitive legacy parser, so they can be parsed with the case-sensitive SDK parser
+			0: migration.BotChannelFacebookV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -97,15 +104,15 @@ func resourceBotChannelFacebookCreate(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewBotChannelID(subscriptionId, d.Get("resource_group_name").(string), d.Get("bot_name").(string), string(botservice.ChannelNameFacebookChannel))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, id.ChannelName)
+	id := commonids.NewBotServiceChannelID(subscriptionId, d.Get("resource_group_name").(string), d.Get("bot_name").(string), string(botservice.ChannelNameFacebookChannel))
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id.ResourceGroupName, id.BotServiceName, id.ChannelType)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return fmt.Errorf("checking for presence of %s: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.Response.Response) {
 			return tf.ImportAsExistsError("azurerm_bot_channel_facebook", id.ID())
 		}
 	}
@@ -113,18 +120,18 @@ func resourceBotChannelFacebookCreate(d *pluginsdk.ResourceData, meta interface{
 	channel := botservice.BotChannel{
 		Properties: botservice.FacebookChannel{
 			Properties: &botservice.FacebookChannelProperties{
-				AppID:     utils.String(d.Get("facebook_application_id").(string)),
-				AppSecret: utils.String(d.Get("facebook_application_secret").(string)),
+				AppID:     pointer.To(d.Get("facebook_application_id").(string)),
+				AppSecret: pointer.To(d.Get("facebook_application_secret").(string)),
 				Pages:     expandFacebookPage(d.Get("page").(*pluginsdk.Set).List()),
-				IsEnabled: utils.Bool(true),
+				IsEnabled: pointer.To(true),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameFacebookChannel,
 		},
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
 	}
 
-	if _, err := client.Create(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameFacebookChannel, channel); err != nil {
+	if _, err := client.Create(ctx, id.ResourceGroupName, id.BotServiceName, botservice.ChannelNameFacebookChannel, channel); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -137,14 +144,14 @@ func resourceBotChannelFacebookRead(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BotChannelID(d.Id())
+	id, err := commonids.ParseBotServiceChannelID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameFacebookChannel))
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.BotServiceName, string(botservice.ChannelNameFacebookChannel))
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] %s was not found - removing from state", id)
 			d.SetId("")
 			return nil
@@ -153,13 +160,13 @@ func resourceBotChannelFacebookRead(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	channelsResp, err := client.ListWithKeys(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameFacebookChannel)
+	channelsResp, err := client.ListWithKeys(ctx, id.ResourceGroupName, id.BotServiceName, botservice.ChannelNameFacebookChannel)
 	if err != nil {
 		return fmt.Errorf("listing keys for %s: %+v", *id, err)
 	}
 
 	d.Set("bot_name", id.BotServiceName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := channelsResp.Properties; props != nil {
@@ -183,7 +190,7 @@ func resourceBotChannelFacebookUpdate(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BotChannelID(d.Id())
+	id, err := commonids.ParseBotServiceChannelID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -191,18 +198,18 @@ func resourceBotChannelFacebookUpdate(d *pluginsdk.ResourceData, meta interface{
 	channel := botservice.BotChannel{
 		Properties: botservice.FacebookChannel{
 			Properties: &botservice.FacebookChannelProperties{
-				AppID:     utils.String(d.Get("facebook_application_id").(string)),
-				AppSecret: utils.String(d.Get("facebook_application_secret").(string)),
+				AppID:     pointer.To(d.Get("facebook_application_id").(string)),
+				AppSecret: pointer.To(d.Get("facebook_application_secret").(string)),
 				Pages:     expandFacebookPage(d.Get("page").(*pluginsdk.Set).List()),
-				IsEnabled: utils.Bool(true),
+				IsEnabled: pointer.To(true),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameFacebookChannel,
 		},
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
 	}
 
-	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameFacebookChannel, channel); err != nil {
+	if _, err := client.Update(ctx, id.ResourceGroupName, id.BotServiceName, botservice.ChannelNameFacebookChannel, channel); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -214,12 +221,12 @@ func resourceBotChannelFacebookDelete(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BotChannelID(d.Id())
+	id, err := commonids.ParseBotServiceChannelID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameFacebookChannel))
+	resp, err := client.Delete(ctx, id.ResourceGroupName, id.BotServiceName, string(botservice.ChannelNameFacebookChannel))
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
 			return fmt.Errorf("deleting %s: %+v", id, err)
@@ -236,8 +243,8 @@ func expandFacebookPage(input []interface{}) *[]botservice.FacebookPage {
 		v := item.(map[string]interface{})
 
 		result := botservice.FacebookPage{
-			AccessToken: utils.String(v["access_token"].(string)),
-			ID:          utils.String(v["id"].(string)),
+			AccessToken: pointer.To(v["access_token"].(string)),
+			ID:          pointer.To(v["id"].(string)),
 		}
 
 		results = append(results, result)
@@ -253,19 +260,9 @@ func flattenFacebookPage(input *[]botservice.FacebookPage) []interface{} {
 	}
 
 	for _, item := range *input {
-		var id string
-		if item.ID != nil {
-			id = *item.ID
-		}
-
-		var accessToken string
-		if item.AccessToken != nil {
-			accessToken = *item.AccessToken
-		}
-
 		results = append(results, map[string]interface{}{
-			"id":           id,
-			"access_token": accessToken,
+			"id":           pointer.From(item.ID),
+			"access_token": pointer.From(item.AccessToken),
 		})
 	}
 

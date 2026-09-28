@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package client
@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2019-01-01-preview/automations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2021-06-01/assessmentsmetadata"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2022-05-01/settings"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2022-12-01-preview/defenderforstorage"
-	pricings_v2023_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/security/2023-01-01/pricings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2023-01-01/pricings"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2023-05-01/servervulnerabilityassessmentssettings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2025-06-01/defenderforstorage"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -22,10 +22,9 @@ type Client struct {
 	ContactsClient                             *security.ContactsClient
 	DeviceSecurityGroupsClient                 *security.DeviceSecurityGroupsClient
 	IotSecuritySolutionClient                  *security.IotSecuritySolutionClient
-	PricingClient                              *pricings_v2023_01_01.PricingsClient
+	PricingClient                              *pricings.PricingsClient
 	WorkspaceClient                            *security.WorkspaceSettingsClient
 	AdvancedThreatProtectionClient             *security.AdvancedThreatProtectionClient
-	AutoProvisioningClient                     *security.AutoProvisioningSettingsClient
 	SettingClient                              *settings.SettingsClient
 	AutomationsClient                          *automations.AutomationsClient
 	ServerVulnerabilityAssessmentClient        *security.ServerVulnerabilityAssessmentClient
@@ -54,7 +53,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	IotSecuritySolutionClient := security.NewIotSecuritySolutionClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
 	o.ConfigureClient(&IotSecuritySolutionClient.Client, o.ResourceManagerAuthorizer)
 
-	PricingClient, err := pricings_v2023_01_01.NewPricingsClientWithBaseURI(o.Environment.ResourceManager)
+	PricingClient, err := pricings.NewPricingsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Pricing client : %+v", err)
 	}
@@ -65,9 +64,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	AdvancedThreatProtectionClient := security.NewAdvancedThreatProtectionClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
 	o.ConfigureClient(&AdvancedThreatProtectionClient.Client, o.ResourceManagerAuthorizer)
-
-	AutoProvisioningClient := security.NewAutoProvisioningSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
-	o.ConfigureClient(&AutoProvisioningClient.Client, o.ResourceManagerAuthorizer)
 
 	SettingClient, err := settings.NewSettingsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -105,7 +101,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		PricingClient:                              PricingClient,
 		WorkspaceClient:                            &WorkspaceClient,
 		AdvancedThreatProtectionClient:             &AdvancedThreatProtectionClient,
-		AutoProvisioningClient:                     &AutoProvisioningClient,
 		SettingClient:                              SettingClient,
 		AutomationsClient:                          AutomationsClient,
 		ServerVulnerabilityAssessmentClient:        &ServerVulnerabilityAssessmentClient,

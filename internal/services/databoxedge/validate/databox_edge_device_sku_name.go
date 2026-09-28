@@ -1,14 +1,14 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2022-03-01/devices"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 )
 
 func DataboxEdgeDeviceSkuName(v interface{}, k string) (warnings []string, errors []error) {
@@ -26,28 +26,22 @@ func DataboxEdgeDeviceSkuName(v interface{}, k string) (warnings []string, error
 	validTiers := devices.PossibleValuesForSkuTier()
 
 	// Validate the SKU Name section
-	for _, str := range validSkus {
-		if skuParts[0] == str {
-			validSku = true
-			break
-		}
+	if slices.Contains(validSkus, skuParts[0]) {
+		validSku = true
 	}
 
 	if len(skuParts) > 1 {
 		// Validate the SKU Tier section
-		for _, str := range validTiers {
-			if skuParts[1] == str {
-				validTier = true
-				break
-			}
+		if slices.Contains(validTiers, skuParts[1]) {
+			validTier = true
 		}
 	}
 
 	if !validSku {
-		errors = append(errors, fmt.Errorf("expected %q %q segment to be one of [%s], got %q", k, "name", azure.QuotedStringSlice(validSkus), value))
+		errors = append(errors, fmt.Errorf("expected %q %q segment to be one of %q, got %q", k, "name", validSkus, value))
 	}
 	if !validTier {
-		errors = append(errors, fmt.Errorf("expected %q %q segment to be one of [%s], got %q", k, "tier", azure.QuotedStringSlice(validTiers), value))
+		errors = append(errors, fmt.Errorf("expected %q %q segment to be one of %q, got %q", k, "tier", validTiers, value))
 	}
 
 	return warnings, errors

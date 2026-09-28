@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package kubernetes
@@ -75,8 +75,8 @@ func TestParseKubeConfig(t *testing.T) {
 					{
 						Name: "test-user",
 						User: user{
-							ClientCertificteData: "test-client-certificate-data",
-							ClientKeyData:        "test-client-key-data",
+							ClientCertificateData: "test-client-certificate-data",
+							ClientKeyData:         "test-client-key-data",
 						},
 					},
 				},
@@ -117,9 +117,9 @@ func TestParseKubeConfig(t *testing.T) {
 					{
 						Name: "test-user",
 						User: user{
-							ClientCertificteData: "test-client-certificate-data",
-							ClientKeyData:        "test-client-key-data",
-							Token:                "test-token",
+							ClientCertificateData: "test-client-certificate-data",
+							ClientKeyData:         "test-client-key-data",
+							Token:                 "test-token",
 						},
 					},
 				},

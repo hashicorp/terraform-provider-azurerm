@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package schemaz
@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // not in service package as migrate package required this
@@ -284,15 +283,14 @@ func ExpandApiManagementOperationParameterContract(d *pluginsdk.ResourceData, sc
 		}
 
 		output := apioperation.ParameterContract{
-			Name:         name,
-			Description:  pointer.To(description),
-			Type:         paramType,
-			Required:     pointer.To(required),
-			DefaultValue: nil,
-			Values:       utils.ExpandStringSlice(valuesRaw),
-			SchemaId:     pointer.To(schemaId),
-			TypeName:     pointer.To(typeName),
-			Examples:     pointer.To(examples),
+			Name:        name,
+			Description: pointer.To(description),
+			Type:        paramType,
+			Required:    pointer.To(required),
+			Values:      pluginsdk.ExpandStringSlice(valuesRaw),
+			SchemaId:    pointer.To(schemaId),
+			TypeName:    pointer.To(typeName),
+			Examples:    pointer.To(examples),
 		}
 
 		// DefaultValue must be included in Values, else it returns error
@@ -321,7 +319,7 @@ func FlattenApiManagementOperationParameterContract(input *[]apioperation.Parame
 		output["type"] = v.Type
 		output["required"] = pointer.From(v.Required)
 		output["default_value"] = pointer.From(v.DefaultValue)
-		output["values"] = pluginsdk.NewSet(pluginsdk.HashString, utils.FlattenStringSlice(v.Values))
+		output["values"] = pluginsdk.NewSet(pluginsdk.HashString, pluginsdk.FlattenSlice(v.Values))
 
 		if v.Examples != nil {
 			example, err := FlattenApiManagementOperationParameterExampleContract(*v.Examples)

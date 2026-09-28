@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package iothub
@@ -8,11 +8,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/deviceupdate/2022-10-01/deviceupdates"
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -33,8 +35,9 @@ type IotHubDeviceUpdateInstanceModel struct {
 }
 
 type DiagnosticStorageAccountModel struct {
-	ConnectionString string `tfschema:"connection_string"`
-	Id               string `tfschema:"id"`
+	ConnectionString          string `tfschema:"connection_string"`
+	ConnectionStringWOVersion int64  `tfschema:"connection_string_wo_version"`
+	Id                        string `tfschema:"id"`
 }
 
 func (r IotHubDeviceUpdateInstanceResource) Arguments() map[string]*pluginsdk.Schema {
@@ -66,17 +69,34 @@ func (r IotHubDeviceUpdateInstanceResource) Arguments() map[string]*pluginsdk.Sc
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"connection_string": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						Sensitive:    true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
 					"id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: commonids.ValidateStorageAccountID,
+					},
+
+					"connection_string": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Sensitive:    true,
+						ValidateFunc: validation.StringIsNotEmpty,
+						ExactlyOneOf: []string{"diagnostic_storage_account.0.connection_string_wo"},
+					},
+
+					"connection_string_wo": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						WriteOnly:    true,
+						ValidateFunc: validation.StringIsNotEmpty,
+						ExactlyOneOf: []string{"diagnostic_storage_account.0.connection_string"},
+						RequiredWith: []string{"diagnostic_storage_account.0.connection_string_wo_version"},
+					},
+
+					"connection_string_wo_version": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.IntAtLeast(1),
+						RequiredWith: []string{"diagnostic_storage_account.0.connection_string_wo"},
 					},
 				},
 			},
@@ -124,13 +144,16 @@ func (r IotHubDeviceUpdateInstanceResource) Create() sdk.ResourceFunc {
 			}
 
 			id := deviceupdates.NewInstanceID(deviceUpdateAccountId.SubscriptionId, deviceUpdateAccountId.ResourceGroupName, deviceUpdateAccountId.AccountName, model.Name)
-			existing, err := client.InstancesGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.InstancesGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			deviceUpdateAccount, err := client.AccountsGet(ctx, *deviceUpdateAccountId)
@@ -142,11 +165,16 @@ func (r IotHubDeviceUpdateInstanceResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", *deviceUpdateAccountId)
 			}
 
+			expandedStorageProps, err := expandDiagnosticStorageAccount(metadata, model.DiagnosticStorageAccount)
+			if err != nil {
+				return fmt.Errorf("expanding `diagnostic_storage_account`: %w", err)
+			}
+
 			properties := &deviceupdates.Instance{
 				Location: location.Normalize(deviceUpdateAccount.Model.Location),
 				Properties: deviceupdates.InstanceProperties{
 					AccountName:                 &deviceUpdateAccountId.AccountName,
-					DiagnosticStorageProperties: expandDiagnosticStorageAccount(model.DiagnosticStorageAccount),
+					DiagnosticStorageProperties: expandedStorageProps,
 					EnableDiagnostics:           &model.DiagnosticEnabled,
 					IotHubs: &[]deviceupdates.IotHubSettings{
 						{
@@ -157,7 +185,7 @@ func (r IotHubDeviceUpdateInstanceResource) Create() sdk.ResourceFunc {
 				Tags: &model.Tags,
 			}
 
-			if err := client.InstancesCreateThenPoll(ctx, id, *properties); err != nil {
+			if err := client.InstancesCreateCallbackThenPoll(ctx, id, *properties, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -205,11 +233,7 @@ func (r IotHubDeviceUpdateInstanceResource) Read() sdk.ResourceFunc {
 
 			state.DiagnosticStorageAccount = flattenDiagnosticStorageAccount(properties.DiagnosticStorageProperties, metadata)
 
-			diagnosticEnabled := false
-			if properties.EnableDiagnostics != nil {
-				diagnosticEnabled = *properties.EnableDiagnostics
-			}
-			state.DiagnosticEnabled = diagnosticEnabled
+			state.DiagnosticEnabled = pointer.From(properties.EnableDiagnostics)
 
 			if model.Tags != nil {
 				state.Tags = *model.Tags
@@ -247,7 +271,11 @@ func (r IotHubDeviceUpdateInstanceResource) Update() sdk.ResourceFunc {
 			}
 
 			// connectionString is not returned by API, so always expands DiagnosticStorageAccount
-			existing.Properties.DiagnosticStorageProperties = expandDiagnosticStorageAccount(model.DiagnosticStorageAccount)
+			expandedStorageProps, err := expandDiagnosticStorageAccount(metadata, model.DiagnosticStorageAccount)
+			if err != nil {
+				return fmt.Errorf("expanding `diagnostic_storage_account`: %w", err)
+			}
+			existing.Properties.DiagnosticStorageProperties = expandedStorageProps
 
 			if metadata.ResourceData.HasChange("diagnostic_enabled") {
 				existing.Properties.EnableDiagnostics = &model.DiagnosticEnabled
@@ -286,9 +314,14 @@ func (r IotHubDeviceUpdateInstanceResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandDiagnosticStorageAccount(inputList []DiagnosticStorageAccountModel) *deviceupdates.DiagnosticStorageProperties {
+func expandDiagnosticStorageAccount(rmd sdk.ResourceMetaData, inputList []DiagnosticStorageAccountModel) (*deviceupdates.DiagnosticStorageProperties, error) {
 	if len(inputList) == 0 {
-		return nil
+		return nil, nil
+	}
+
+	woConnectionString, err := pluginsdk.GetWriteOnly(rmd.ResourceData, "diagnostic_storage_account.0.connection_string_wo", cty.String)
+	if err != nil {
+		return nil, err
 	}
 
 	input := inputList[0]
@@ -298,17 +331,22 @@ func expandDiagnosticStorageAccount(inputList []DiagnosticStorageAccountModel) *
 		ResourceId:         input.Id,
 	}
 
-	return &output
+	if !woConnectionString.IsNull() {
+		output.ConnectionString = pointer.To(woConnectionString.AsString())
+	}
+
+	return &output, nil
 }
 
 func flattenDiagnosticStorageAccount(input *deviceupdates.DiagnosticStorageProperties, metadata sdk.ResourceMetaData) []DiagnosticStorageAccountModel {
 	var outputList []DiagnosticStorageAccountModel
 	if input == nil {
-		return outputList
+		return []DiagnosticStorageAccountModel{}
 	}
 
 	output := DiagnosticStorageAccountModel{
-		Id: input.ResourceId,
+		Id:                        input.ResourceId,
+		ConnectionStringWOVersion: int64(metadata.ResourceData.Get("diagnostic_storage_account.0.connection_string_wo_version").(int)),
 	}
 
 	// connectionString is not returned by API

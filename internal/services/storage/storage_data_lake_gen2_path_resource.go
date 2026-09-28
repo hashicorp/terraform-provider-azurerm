@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -9,6 +9,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -109,21 +110,21 @@ func resourceStorageDataLakeGen2Path() *pluginsdk.Resource {
 			"owner": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.Any(validation.IsUUID, validation.StringInSlice([]string{"$superuser"}, false)),
 			},
 
 			"group": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.Any(validation.IsUUID, validation.StringInSlice([]string{"$superuser"}, false)),
 			},
 
 			"ace": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"scope": {
@@ -198,14 +199,16 @@ func resourceStorageDataLakeGen2PathCreate(d *pluginsdk.ResourceData, meta inter
 
 	id := paths.NewPathID(*accountId, filesystemName, path)
 
-	resp, err := dataPlanePathsClient.GetProperties(ctx, filesystemName, path, paths.GetPropertiesInput{Action: paths.GetPropertiesActionGetStatus})
-	if err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("checking for existence of existing Path %q in File System %q in %s: %v", path, filesystemName, accountResourceManagerId, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		resp, err := dataPlanePathsClient.GetProperties(ctx, filesystemName, path, paths.GetPropertiesInput{Action: paths.GetPropertiesActionGetStatus})
+		if err != nil {
+			if !response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("checking for existence of existing Path %q in File System %q in %s: %v", path, filesystemName, accountResourceManagerId, err)
+			}
 		}
-	}
-	if !response.WasNotFound(resp.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_storage_data_lake_gen2_path", id.ID())
+		if !response.WasNotFound(resp.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_storage_data_lake_gen2_path", id.ID())
+		}
 	}
 
 	resourceString := d.Get("resource").(string)
@@ -224,16 +227,13 @@ func resourceStorageDataLakeGen2PathCreate(d *pluginsdk.ResourceData, meta inter
 
 	var owner *string
 	if v, ok := d.GetOk("owner"); ok {
-		sv := v.(string)
-		owner = &sv
+		owner = pointer.To(v.(string))
 	}
 	var group *string
 	if v, ok := d.GetOk("group"); ok {
-		sv := v.(string)
-		group = &sv
+		group = pointer.To(v.(string))
 	}
 
-	log.Printf("[INFO] Creating %s...", id)
 	input := paths.CreateInput{
 		Resource: resource,
 	}
@@ -241,6 +241,7 @@ func resourceStorageDataLakeGen2PathCreate(d *pluginsdk.ResourceData, meta inter
 	if _, err = dataPlanePathsClient.Create(ctx, filesystemName, path, input); err != nil {
 		return fmt.Errorf("creating %s: %v", id, err)
 	}
+	d.SetId(id.ID())
 
 	if acl != nil || owner != nil || group != nil {
 		var aclString *string
@@ -257,8 +258,6 @@ func resourceStorageDataLakeGen2PathCreate(d *pluginsdk.ResourceData, meta inter
 			return fmt.Errorf("setting access control for %s: %+v", id, err)
 		}
 	}
-
-	d.SetId(id.ID())
 
 	return resourceStorageDataLakeGen2PathRead(d, meta)
 }
@@ -299,13 +298,11 @@ func resourceStorageDataLakeGen2PathUpdate(d *pluginsdk.ResourceData, meta inter
 
 	var owner *string
 	if v, ok := d.GetOk("owner"); ok {
-		sv := v.(string)
-		owner = &sv
+		owner = pointer.To(v.(string))
 	}
 	var group *string
 	if v, ok := d.GetOk("group"); ok {
-		sv := v.(string)
-		group = &sv
+		group = pointer.To(v.(string))
 	}
 
 	if acl != nil || owner != nil || group != nil {

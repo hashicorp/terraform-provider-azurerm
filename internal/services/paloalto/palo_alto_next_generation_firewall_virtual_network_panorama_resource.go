@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package paloalto
@@ -13,9 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-05-23/firewalls"
-	helpersValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	firewalls "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
@@ -46,7 +44,7 @@ func (r NextGenerationFirewallVNetPanoramaResource) ModelObject() interface{} {
 }
 
 func (r NextGenerationFirewallVNetPanoramaResource) Arguments() map[string]*pluginsdk.Schema {
-	args := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -61,7 +59,7 @@ func (r NextGenerationFirewallVNetPanoramaResource) Arguments() map[string]*plug
 		"panorama_base64_config": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: helpersValidate.Base64EncodedString,
+			ValidateFunc: validation.StringIsBase64,
 		},
 
 		"network_profile": schema.VnetNetworkProfileSchema(),
@@ -88,12 +86,6 @@ func (r NextGenerationFirewallVNetPanoramaResource) Arguments() map[string]*plug
 
 		"tags": commonschema.Tags(),
 	}
-
-	if !features.FivePointOh() {
-		args["plan_id"].Default = "panw-cloud-ngfw-payg"
-	}
-
-	return args
 }
 
 func (r NextGenerationFirewallVNetPanoramaResource) Attributes() map[string]*pluginsdk.Schema {
@@ -110,7 +102,7 @@ func (r NextGenerationFirewallVNetPanoramaResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.PaloAltoClient_v2025_05_23.Firewalls
+			client := metadata.Client.PaloAlto.FirewallResources
 
 			var model NextGenerationFirewallVnetPanoramaModel
 
@@ -120,14 +112,16 @@ func (r NextGenerationFirewallVNetPanoramaResource) Create() sdk.ResourceFunc {
 
 			id := firewalls.NewFirewallID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.FirewallsGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			firewall := firewalls.FirewallResource{
@@ -152,10 +146,9 @@ func (r NextGenerationFirewallVNetPanoramaResource) Create() sdk.ResourceFunc {
 				Tags: tags.Expand(model.Tags),
 			}
 
-			if err = client.CreateOrUpdateThenPoll(ctx, id, firewall); err != nil {
+			if err := client.FirewallsCreateOrUpdateCallbackThenPoll(ctx, id, firewall, metadata.SetIDCallback(&id)); err != nil {
 				return err
 			}
-
 			metadata.SetID(id)
 
 			return nil
@@ -167,7 +160,7 @@ func (r NextGenerationFirewallVNetPanoramaResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.PaloAltoClient_v2025_05_23.Firewalls
+			client := metadata.Client.PaloAlto.FirewallResources
 
 			id, err := firewalls.ParseFirewallID(metadata.ResourceData.Id())
 			if err != nil {
@@ -176,7 +169,7 @@ func (r NextGenerationFirewallVNetPanoramaResource) Read() sdk.ResourceFunc {
 
 			var state NextGenerationFirewallVnetPanoramaModel
 
-			existing, err := client.Get(ctx, *id)
+			existing, err := client.FirewallsGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -225,14 +218,14 @@ func (r NextGenerationFirewallVNetPanoramaResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.PaloAltoClient_v2025_05_23.Firewalls
+			client := metadata.Client.PaloAlto.FirewallResources
 
 			id, err := firewalls.ParseFirewallID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			if err = client.DeleteThenPoll(ctx, *id); err != nil {
+			if err = client.FirewallsDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -249,7 +242,7 @@ func (r NextGenerationFirewallVNetPanoramaResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.PaloAltoClient_v2025_05_23.Firewalls
+			client := metadata.Client.PaloAlto.FirewallResources
 
 			id, err := firewalls.ParseFirewallID(metadata.ResourceData.Id())
 			if err != nil {
@@ -262,9 +255,9 @@ func (r NextGenerationFirewallVNetPanoramaResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			existing, err := client.Get(ctx, *id)
+			existing, err := client.FirewallsGet(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("retreiving %s: %+v", *id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			firewall := *existing.Model
@@ -296,7 +289,7 @@ func (r NextGenerationFirewallVNetPanoramaResource) Update() sdk.ResourceFunc {
 				firewall.Tags = tags.Expand(model.Tags)
 			}
 
-			if err = client.CreateOrUpdateThenPoll(ctx, *id, firewall); err != nil {
+			if err = client.FirewallsCreateOrUpdateThenPoll(ctx, *id, firewall); err != nil {
 				return err
 			}
 

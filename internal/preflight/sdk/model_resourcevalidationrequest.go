@@ -1,0 +1,17 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package preflightvalidation
+
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+type ResourceValidationRequest struct {
+	Location                              *string                             `json:"location,omitempty"`
+	PerformPreflightWithoutRbacWriteCheck *bool                               `json:"performPreflightWithoutRbacWriteCheck,omitempty"`
+	Provider                              string                              `json:"provider"`
+	Resources                             []ResourceValidationRequestResource `json:"resources"`
+	Scope                                 string                              `json:"scope"`
+	Type                                  string                              `json:"type"`
+	ValidationType                        *ResourceValidationType             `json:"validationType,omitempty"`
+}

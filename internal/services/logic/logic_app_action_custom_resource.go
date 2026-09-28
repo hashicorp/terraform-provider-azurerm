@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package logic
@@ -124,8 +124,7 @@ func resourceLogicAppActionCustomDelete(d *pluginsdk.ResourceData, meta interfac
 
 	workflowId := workflows.NewWorkflowID(id.SubscriptionId, id.ResourceGroup, id.WorkflowName)
 
-	err = resourceLogicAppActionRemove(d, meta, workflowId, id.Name)
-	if err != nil {
+	if err = resourceLogicAppActionRemove(d, meta, workflowId, id.Name); err != nil {
 		return fmt.Errorf("removing Action %s: %+v", id, err)
 	}
 

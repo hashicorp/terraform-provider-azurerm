@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement_test
@@ -30,6 +30,49 @@ func TestAccApiManagementBackend_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("protocol").HasValue("http"),
 				check.That(data.ResourceName).Key("url").HasValue("https://acctest"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagementBackend_circuitBreakerRule(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
+	r := ApiManagementAuthorizationBackendResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.circuitBreakerRuleComplete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.circuitBreakerRuleCompleteUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.circuitBreakerRuleBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.circuitBreakerRuleComplete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data, "circuitbreaker"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -249,6 +292,95 @@ resource "azurerm_api_management_backend" "test" {
   url                 = "https://acctest"
 }
 `, r.template(data, testName), data.RandomInteger)
+}
+
+func (r ApiManagementAuthorizationBackendResource) circuitBreakerRuleBasic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_api_management_backend" "test" {
+  name                = "acctestapi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  protocol            = "http"
+  url                 = "https://acctest"
+  description         = "Test backend with circuit breaker rule"
+
+  circuit_breaker_rule {
+    name          = "test-circuit-breaker"
+    trip_duration = "PT30S"
+    failure_condition {
+      count             = 5
+      interval_duration = "PT1M"
+      status_code_range {
+        min = 200
+        max = 299
+      }
+    }
+  }
+}
+`, r.template(data, "circuitbreaker"), data.RandomInteger)
+}
+
+func (r ApiManagementAuthorizationBackendResource) circuitBreakerRuleComplete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_api_management_backend" "test" {
+  name                = "acctestapi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  protocol            = "http"
+  url                 = "https://acctest"
+  description         = "Test backend with circuit breaker rule"
+
+  circuit_breaker_rule {
+    name                       = "test-circuit-breaker"
+    trip_duration              = "PT30S"
+    accept_retry_after_enabled = true
+    failure_condition {
+      count             = 5
+      interval_duration = "PT1M"
+      status_code_range {
+        min = 200
+        max = 299
+      }
+      status_code_range {
+        min = 300
+        max = 399
+      }
+      error_reasons = ["SubscriptionKeyInvalid", "ClientConnectionFailure", "OperationNotFound"]
+    }
+  }
+}
+`, r.template(data, "circuitbreaker"), data.RandomInteger)
+}
+
+func (r ApiManagementAuthorizationBackendResource) circuitBreakerRuleCompleteUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_api_management_backend" "test" {
+  name                = "acctestapi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  protocol            = "http"
+  url                 = "https://acctest"
+  description         = "Test backend with circuit breaker rule"
+
+  circuit_breaker_rule {
+    name                       = "test-circuit-breaker-update"
+    trip_duration              = "PT40S"
+    accept_retry_after_enabled = false
+    failure_condition {
+      percentage        = 2
+      interval_duration = "PT2M"
+      status_code_range {
+        min = 300
+        max = 399
+      }
+      error_reasons = ["BackendConnectionFailure"]
+    }
+  }
+}
+`, r.template(data, "circuitbreaker"), data.RandomInteger)
 }
 
 func (r ApiManagementAuthorizationBackendResource) update(data acceptance.TestData) string {

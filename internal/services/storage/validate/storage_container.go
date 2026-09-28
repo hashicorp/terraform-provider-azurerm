@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -12,23 +12,12 @@ import (
 	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/containers"
 )
 
-func StorageContainerName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	if !regexp.MustCompile(`^\$root$|^\$web$|^[0-9a-z-]+$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"only lowercase alphanumeric characters and hyphens allowed in %q: %q",
-			k, value))
-	}
-	if len(value) < 3 || len(value) > 63 {
-		errors = append(errors, fmt.Errorf(
-			"%q must be between 3 and 63 characters: %q", k, value))
-	}
-	if regexp.MustCompile(`^-`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"%q cannot begin with a hyphen: %q", k, value))
-	}
-	return warnings, errors
+func StorageContainerName(v interface{}, k string) ([]string, []error) {
+	return validation.All(
+		validation.StringMatch(regexp.MustCompile(`^\$root$|^\$web$|^[0-9a-z-]+$`), "only lowercase alphanumeric characters and hyphens allowed"),
+		validation.StringLenBetween(3, 63),
+		validation.StringDoesNotMatch(regexp.MustCompile(`^-`), "cannot begin with a hyphen"),
+	)(v, k)
 }
 
 func StorageContainerDataPlaneID(input interface{}, key string) (warnings []string, errors []error) {

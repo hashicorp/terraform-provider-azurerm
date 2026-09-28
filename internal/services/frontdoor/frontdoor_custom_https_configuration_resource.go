@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package frontdoor
@@ -9,16 +9,16 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2020-05-01/frontdoors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceFrontDoorCustomHTTPSConfiguration() *pluginsdk.Resource {
@@ -67,7 +67,7 @@ func resourceFrontDoorCustomHTTPSConfiguration() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FrontendEndpointID,
+				ValidateFunc: validation.AsGeneratedID(frontdoors.ParseFrontendEndpointIDInsensitively),
 			},
 
 			"custom_https_provisioning_enabled": {
@@ -201,7 +201,6 @@ func resourceFrontDoorCustomHTTPSConfigurationDelete(d *pluginsdk.ResourceData, 
 		input := customHttpsConfigurationUpdateInput{
 			customHttpsConfigurationCurrent: props.CustomHTTPSConfiguration,
 			customHttpsConfigurationNew:     make([]interface{}, 0),
-			customHttpsProvisioningEnabled:  false,
 			frontendEndpointId:              *id,
 		}
 
@@ -298,16 +297,15 @@ func makeCustomHTTPSConfiguration(customHttpsConfiguration map[string]interface{
 		customHTTPSConfigurationUpdate.CertificateSource = frontdoors.FrontDoorCertificateSourceAzureKeyVault
 		customHTTPSConfigurationUpdate.KeyVaultCertificateSourceParameters = &frontdoors.KeyVaultCertificateSourceParameters{
 			Vault: &frontdoors.KeyVaultCertificateSourceParametersVault{
-				Id: utils.String(vaultId),
+				Id: pointer.To(vaultId),
 			},
-			SecretName:    utils.String(vaultSecret),
-			SecretVersion: utils.String(vaultVersion),
+			SecretName:    pointer.To(vaultSecret),
+			SecretVersion: pointer.To(vaultVersion),
 		}
 	} else {
 		customHTTPSConfigurationUpdate.CertificateSource = frontdoors.FrontDoorCertificateSourceFrontDoor
-		certificateType := frontdoors.FrontDoorCertificateTypeDedicated
 		customHTTPSConfigurationUpdate.FrontDoorCertificateSourceParameters = &frontdoors.FrontDoorCertificateSourceParameters{
-			CertificateType: &certificateType,
+			CertificateType: pointer.To(frontdoors.FrontDoorCertificateTypeDedicated),
 		}
 	}
 

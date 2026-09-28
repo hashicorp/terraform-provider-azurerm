@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package oracle
@@ -85,7 +85,7 @@ func (d GiVersionsDataSource) Read() sdk.ResourceFunc {
 
 			options := giversions.ListByLocationOperationOptions{}
 			if state.Shape != "" {
-				options.Shape = pointer.To(giversions.SystemShapes(state.Shape))
+				options.Shape = pointer.ToEnum[giversions.SystemShapes](state.Shape)
 			}
 			if state.Zone != "" {
 				options.Zone = &state.Zone

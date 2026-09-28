@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices
@@ -8,18 +8,17 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2024-01-01/vaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2025-08-01/vaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationprotectioncontainermappings"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationprotectioncontainers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationvaultsetting"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 const SiteRecoveryReplicationPolicyVMWareAssociationTargetContainerId string = "Microsoft Azure"
@@ -85,8 +84,7 @@ func (s VMWareReplicationPolicyAssociationResource) Create() sdk.ResourceFunc {
 			containerClient := metadata.Client.RecoveryServices.ProtectionContainerClient
 			settingsClient := metadata.Client.RecoveryServices.VaultsSettingsClient
 
-			err = validateReplicationPolicyAssociationVaultConfig(ctx, settingsClient, model.RecoveryVaultId)
-			if err != nil {
+			if err = validateReplicationPolicyAssociationVaultConfig(ctx, settingsClient, model.RecoveryVaultId); err != nil {
 				return fmt.Errorf("validating %s: %+v", model.RecoveryVaultId, err)
 			}
 
@@ -103,30 +101,30 @@ func (s VMWareReplicationPolicyAssociationResource) Create() sdk.ResourceFunc {
 
 			id := replicationprotectioncontainermappings.NewReplicationProtectionContainerMappingID(parsedContainerId.SubscriptionId, parsedContainerId.ResourceGroupName, parsedContainerId.VaultName, parsedContainerId.ReplicationFabricName, parsedContainerId.ReplicationProtectionContainerName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing site recovery protection container mapping (%s): %+v", parsedContainerId, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing site recovery protection container mapping (%s): %+v", parsedContainerId, err)
+					}
 				}
-			}
 
-			if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
-				return tf.ImportAsExistsError("azurerm_site_recovery_replication_policy_vmware_association", *existing.Model.Id)
+				if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
+					return tf.ImportAsExistsError("azurerm_site_recovery_replication_policy_vmware_association", *existing.Model.Id)
+				}
 			}
 
 			parameters := replicationprotectioncontainermappings.CreateProtectionContainerMappingInput{
 				Properties: &replicationprotectioncontainermappings.CreateProtectionContainerMappingInputProperties{
-					TargetProtectionContainerId: utils.String(SiteRecoveryReplicationPolicyVMWareAssociationTargetContainerId),
+					TargetProtectionContainerId: pointer.To(SiteRecoveryReplicationPolicyVMWareAssociationTargetContainerId),
 					PolicyId:                    &model.RecoveryReplicationPolicyId,
 					ProviderSpecificInput:       replicationprotectioncontainermappings.BaseReplicationProviderSpecificContainerMappingInputImpl{},
 				},
 			}
 
-			err = client.CreateThenPoll(ctx, id, parameters)
-			if err != nil {
+			if err := client.CreateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
 
 			return nil
@@ -197,8 +195,7 @@ func (s VMWareReplicationPolicyAssociationResource) Delete() sdk.ResourceFunc {
 				},
 			}
 
-			err = client.DeleteThenPoll(ctx, *id, input)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, *id, input); err != nil {
 				return fmt.Errorf("deleting %s : %+v", id.String(), err)
 			}
 
@@ -208,7 +205,7 @@ func (s VMWareReplicationPolicyAssociationResource) Delete() sdk.ResourceFunc {
 }
 
 func (s VMWareReplicationPolicyAssociationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ReplicationProtectionContainerMappingsID
+	return replicationprotectioncontainermappings.ValidateReplicationProtectionContainerMappingID
 }
 
 func validateReplicationPolicyAssociationVaultConfig(ctx context.Context, settingsClient *replicationvaultsetting.ReplicationVaultSettingClient, vaultId string) error {

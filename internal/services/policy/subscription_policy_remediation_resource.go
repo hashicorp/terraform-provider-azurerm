@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package policy
@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -23,15 +22,15 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func resourceArmSubscriptionPolicyRemediation() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
-		Create: resourceArmSubscriptionPolicyRemediationCreateUpdate,
-		Read:   resourceArmSubscriptionPolicyRemediationRead,
-		Update: resourceArmSubscriptionPolicyRemediationCreateUpdate,
-		Delete: resourceArmSubscriptionPolicyRemediationDelete,
+func resourceSubscriptionPolicyRemediation() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceSubscriptionPolicyRemediationCreateUpdate,
+		Read:   resourceSubscriptionPolicyRemediationRead,
+		Update: resourceSubscriptionPolicyRemediationCreateUpdate,
+		Delete: resourceSubscriptionPolicyRemediationDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.SubscriptionPolicyRemediationID(id)
+			_, err := remediations.ParseRemediationID(id)
 			return err
 		}),
 
@@ -102,21 +101,16 @@ func resourceArmSubscriptionPolicyRemediation() *pluginsdk.Resource {
 			},
 
 			"resource_discovery_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(remediations.ResourceDiscoveryModeExistingNonCompliant),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(remediations.ResourceDiscoveryModeExistingNonCompliant),
-					string(remediations.ResourceDiscoveryModeReEvaluateCompliance),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(remediations.ResourceDiscoveryModeExistingNonCompliant),
+				ValidateFunc: validation.StringInSlice(remediations.PossibleValuesForResourceDiscoveryMode(), false),
 			},
 		},
 	}
-
-	return resource
 }
 
-func resourceArmSubscriptionPolicyRemediationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSubscriptionPolicyRemediationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.RemediationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -129,14 +123,16 @@ func resourceArmSubscriptionPolicyRemediationCreateUpdate(d *pluginsdk.ResourceD
 	id := remediations.NewRemediationID(subscriptionId.SubscriptionId, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.GetAtSubscription(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id.ID(), err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.GetAtSubscription(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id.ID(), err)
+				}
 			}
-		}
-		if existing.Model != nil {
-			return tf.ImportAsExistsError("azurerm_subscription_policy_remediation", id.ID())
+			if existing.Model != nil {
+				return tf.ImportAsExistsError("azurerm_subscription_policy_remediation", id.ID())
+			}
 		}
 	}
 
@@ -148,12 +144,14 @@ func resourceArmSubscriptionPolicyRemediationCreateUpdate(d *pluginsdk.ResourceD
 		return fmt.Errorf("creating/updating %s: %+v", id.ID(), err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
 
-	return resourceArmSubscriptionPolicyRemediationRead(d, meta)
+	return resourceSubscriptionPolicyRemediationRead(d, meta)
 }
 
-func resourceArmSubscriptionPolicyRemediationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSubscriptionPolicyRemediationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.RemediationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -181,7 +179,7 @@ func resourceArmSubscriptionPolicyRemediationRead(d *pluginsdk.ResourceData, met
 	return setRemediationProperties(d, resp.Model.Properties)
 }
 
-func resourceArmSubscriptionPolicyRemediationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSubscriptionPolicyRemediationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.RemediationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -201,7 +199,8 @@ func resourceArmSubscriptionPolicyRemediationDelete(d *pluginsdk.ResourceData, m
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if err := waitForRemediationToDelete(ctx, existing.Model.Properties, id.ID(), d.Timeout(pluginsdk.TimeoutDelete),
+	if err := waitForRemediationToDelete(
+		ctx, existing.Model.Properties, id.ID(), d.Timeout(pluginsdk.TimeoutDelete),
 		func() error {
 			_, err := client.CancelAtSubscription(ctx, *id)
 			return err

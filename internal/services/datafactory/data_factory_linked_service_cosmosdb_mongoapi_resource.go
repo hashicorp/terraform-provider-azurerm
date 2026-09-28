@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory
@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -15,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
@@ -126,30 +127,31 @@ func resourceDataFactoryLinkedServiceCosmosDbMongoAPICreateUpdate(d *pluginsdk.R
 	id := parse.NewLinkedServiceID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Data Factory Linked Service CosmosDb %q (Data Factory %q / Resource Group %q): %+v", id.Name, id.FactoryName, id.ResourceGroup, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
+			if err != nil {
+				if !response.WasNotFound(existing.Response.Response) {
+					return fmt.Errorf("checking for presence of existing Data Factory Linked Service CosmosDb %q (Data Factory %q / Resource Group %q): %+v", id.Name, id.FactoryName, id.ResourceGroup, err)
+				}
 			}
-		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_data_factory_linked_service_cosmosdb", id.ID())
+			if !response.WasNotFound(existing.Response.Response) {
+				return tf.ImportAsExistsError("azurerm_data_factory_linked_service_cosmosdb", id.ID())
+			}
 		}
 	}
 
 	cosmosdbProperties := &datafactory.CosmosDbMongoDbAPILinkedServiceTypeProperties{}
 
-	connectionStringSecureString := datafactory.SecureString{
-		Value: utils.String(d.Get("connection_string").(string)),
+	cosmosdbProperties.ConnectionString = datafactory.SecureString{
+		Value: pointer.To(d.Get("connection_string").(string)),
 		Type:  datafactory.TypeSecureString,
 	}
-	cosmosdbProperties.ConnectionString = connectionStringSecureString
 	cosmosdbProperties.Database = d.Get("database").(string)
 	cosmosdbProperties.IsServerVersionAbove32 = d.Get("server_version_is_32_or_higher").(bool)
 
 	cosmosdbLinkedService := &datafactory.CosmosDbMongoDbAPILinkedService{
-		Description: utils.String(d.Get("description").(string)),
+		Description: pointer.To(d.Get("description").(string)),
 		CosmosDbMongoDbAPILinkedServiceTypeProperties: cosmosdbProperties,
 		Type: datafactory.TypeBasicLinkedServiceTypeCosmosDbMongoDbAPI,
 	}
@@ -167,8 +169,7 @@ func resourceDataFactoryLinkedServiceCosmosDbMongoAPICreateUpdate(d *pluginsdk.R
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		cosmosdbLinkedService.Annotations = &annotations
+		cosmosdbLinkedService.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -198,7 +199,7 @@ func resourceDataFactoryLinkedServiceCosmosDbMongoAPIRead(d *pluginsdk.ResourceD
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -217,13 +218,11 @@ func resourceDataFactoryLinkedServiceCosmosDbMongoAPIRead(d *pluginsdk.ResourceD
 	d.Set("additional_properties", cosmosdb.AdditionalProperties)
 	d.Set("description", cosmosdb.Description)
 
-	annotations := flattenDataFactoryAnnotations(cosmosdb.Annotations)
-	if err := d.Set("annotations", annotations); err != nil {
+	if err := d.Set("annotations", flattenDataFactoryAnnotations(cosmosdb.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
-	parameters := flattenLinkedServiceParameters(cosmosdb.Parameters)
-	if err := d.Set("parameters", parameters); err != nil {
+	if err := d.Set("parameters", flattenLinkedServiceParameters(cosmosdb.Parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 
@@ -233,11 +232,9 @@ func resourceDataFactoryLinkedServiceCosmosDbMongoAPIRead(d *pluginsdk.ResourceD
 		}
 	}
 
-	databaseName := cosmosdb.Database
-	d.Set("database", databaseName)
+	d.Set("database", cosmosdb.Database)
 
-	versionAbove32 := cosmosdb.IsServerVersionAbove32
-	d.Set("server_version_is_32_or_higher", versionAbove32)
+	d.Set("server_version_is_32_or_higher", cosmosdb.IsServerVersionAbove32)
 
 	return nil
 }
@@ -252,9 +249,9 @@ func resourceDataFactoryLinkedServiceCosmosDbMongoAPIDelete(d *pluginsdk.Resourc
 		return err
 	}
 
-	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
-		if !utils.ResponseWasNotFound(response) {
+		if !response.WasNotFound(resp.Response) {
 			return fmt.Errorf("deleting Data Factory Linked Service CosmosDb %q (Data Factory %q / Resource Group %q): %+v", id.Name, id.FactoryName, id.ResourceGroup, err)
 		}
 	}

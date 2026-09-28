@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package batch
@@ -113,7 +113,7 @@ func dataSourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(model.Location))
+		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
 			d.Set("account_endpoint", props.AccountEndpoint)
@@ -121,7 +121,7 @@ func dataSourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			if autoStorage := props.AutoStorage; autoStorage != nil {
 				d.Set("storage_account_id", autoStorage.StorageAccountId)
 			}
-			d.Set("pool_allocation_mode", string(pointer.From(props.PoolAllocationMode)))
+			d.Set("pool_allocation_mode", pointer.FromEnum(props.PoolAllocationMode))
 			poolAllocationMode := d.Get("pool_allocation_mode").(string)
 
 			if encryption := props.Encryption; encryption != nil {

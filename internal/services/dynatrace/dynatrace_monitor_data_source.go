@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dynatrace
@@ -202,7 +202,7 @@ func (d MonitorsDataSource) Read() sdk.ResourceFunc {
 					ResourceGroup:                 id.ResourceGroupName,
 					Location:                      model.Location,
 					MonitoringStatus:              monitoringStatus,
-					MarketplaceSubscriptionStatus: string(pointer.From(props.MarketplaceSubscriptionStatus)),
+					MarketplaceSubscriptionStatus: pointer.FromEnum(props.MarketplaceSubscriptionStatus),
 					Identity:                      identityProps,
 					EnvironmentProperties:         FlattenDynatraceEnvironmentProperties(props.DynatraceEnvironmentProperties),
 					PlanData:                      FlattenDynatracePlanData(props.PlanData),

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managementgroup
@@ -7,21 +7,24 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
+	"slices"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/managementgroups/2020-05-01/managementgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/management/2020-05-01/managementgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var managementGroupCacheControl = "no-cache"
@@ -49,7 +52,7 @@ func resourceManagementGroup() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ForceNew:     true,
 				ValidateFunc: validate.ManagementGroupName,
 			},
@@ -57,7 +60,7 @@ func resourceManagementGroup() *pluginsdk.Resource {
 			"display_name": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"tenant_scoped_id": {
@@ -68,14 +71,14 @@ func resourceManagementGroup() *pluginsdk.Resource {
 			"parent_management_group_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: commonids.ValidateManagementGroupID,
 			},
 
 			"subscription_ids": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.IsUUID,
@@ -115,62 +118,69 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	recurse := false
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, managementgroups.GetOperationOptions{
-			CacheControl: &managementGroupCacheControl,
-			Expand:       pointer.To(managementgroups.ExpandChildren),
-			Recurse:      &recurse,
-		})
-		if err != nil {
-			// 403 is returned if group does not exist, bug tracked at: https://github.com/Azure/azure-rest-api-specs/issues/9549
-			if !response.WasNotFound(existing.HttpResponse) && !response.WasForbidden(existing.HttpResponse) {
-				return fmt.Errorf("unable to check for presence of existing Management Group %q: %s", groupName, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id, managementgroups.GetOperationOptions{
+				CacheControl: &managementGroupCacheControl,
+				Expand:       pointer.To(managementgroups.ExpandChildren),
+				Recurse:      &recurse,
+			})
+			if err != nil {
+				// 403 is returned if group does not exist, bug tracked at: https://github.com/Azure/azure-rest-api-specs/issues/9549
+				if !response.WasNotFound(existing.HttpResponse) && !response.WasForbidden(existing.HttpResponse) {
+					return fmt.Errorf("unable to check for presence of existing Management Group %q: %s", groupName, err)
+				}
 			}
-		}
-		if !response.WasNotFound(existing.HttpResponse) && !response.WasForbidden(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_management_group", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) && !response.WasForbidden(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_management_group", id.ID())
+			}
 		}
 	}
 
-	log.Printf("[INFO] Creating Management Group %q", groupName)
-
 	properties := managementgroups.CreateManagementGroupRequest{
-		Name: utils.String(groupName),
+		Name: pointer.To(groupName),
 		Properties: &managementgroups.CreateManagementGroupProperties{
-			TenantId: utils.String(armTenantID),
+			TenantId: pointer.To(armTenantID),
 			Details: &managementgroups.CreateManagementGroupDetails{
 				Parent: &managementgroups.CreateParentGroupInfo{
-					Id: utils.String(parentManagementGroupId),
+					Id: pointer.To(parentManagementGroupId),
 				},
 			},
 		},
 	}
 
 	if v := d.Get("display_name"); v != "" {
-		properties.Properties.DisplayName = utils.String(v.(string))
+		properties.Properties.DisplayName = pointer.To(v.(string))
 	}
 
-	err := client.CreateOrUpdateThenPoll(ctx, id, properties, managementgroups.CreateOrUpdateOperationOptions{
+	opts := managementgroups.CreateOrUpdateOperationOptions{
 		CacheControl: &managementGroupCacheControl,
-	})
-	if err != nil {
-		return fmt.Errorf("unable to create Management Group %q: %+v", groupName, err)
+	}
+
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, properties, opts, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, properties, opts); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
 	// We have a potential race condition / consistency issue whereby the implicit role assignment for the SP may not be
 	// completed before the read-back here or an eventually consistent read is creating a temporary 403 error.
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending: []string{
-			"pending",
-		},
-		Target: []string{
-			"succeeded",
-		},
-		Refresh:                   managementGroupCreateStateRefreshFunc(ctx, client, id),
-		Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
-		ContinuousTargetOccurence: 5,
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	poller := custompollers.NewEventualConsistencyPoller(5, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.Get(pollerCtx, id, managementgroups.GetOperationOptions{
+			CacheControl: &managementGroupCacheControl,
+			Expand:       pointer.To(managementgroups.ExpandChildren),
+			Recurse:      pointer.To(true),
+		})
+		return resp.HttpResponse, err
+	}, &custompollers.EventualConsistencyPollerOptions{
+		Interval:              10 * time.Second,
+		RetryErrorStatusCodes: []int{http.StatusForbidden},
+	})
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("failed waiting for read on Managementgroup %q", groupName)
 	}
 
@@ -183,8 +193,6 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	if err != nil {
 		return fmt.Errorf("unable to retrieve Management Group %q: %+v", groupName, err)
 	}
-
-	d.SetId(id.ID())
 
 	subscriptionIds := expandManagementGroupSubscriptionIds(d.Get("subscription_ids").(*pluginsdk.Set))
 
@@ -214,7 +222,6 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	// then add the new ones
-	log.Printf("[DEBUG] Preparing to assign Subscriptions to Management Group %q", groupName)
 	for _, subscriptionId := range subscriptionIds {
 		log.Printf("[DEBUG] Assigning Subscription ID %q to management group %q", subscriptionId, groupName)
 		if _, err := client.SubscriptionsCreate(ctx, managementgroups.NewSubscriptionID(groupName, subscriptionId), managementgroups.SubscriptionsCreateOperationOptions{
@@ -242,7 +249,7 @@ func resourceManagementGroupRead(d *pluginsdk.ResourceData, meta interface{}) er
 	tenantScopedID := parse.NewTenantScopedManagementGroupID(tenantID, id.GroupId)
 	d.Set("tenant_scoped_id", tenantScopedID.TenantScopedID())
 
-	recurse := pointer.FromBool(true)
+	recurse := pointer.To(true)
 	resp, err := client.Get(ctx, *id, managementgroups.GetOperationOptions{
 		CacheControl: &managementGroupCacheControl,
 		Filter:       pointer.To("children.childType eq Subscription"),
@@ -296,12 +303,11 @@ func resourceManagementGroupDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
-	recurse := true
 	group, err := client.Get(ctx, *id, managementgroups.GetOperationOptions{
 		CacheControl: &managementGroupCacheControl,
 		Filter:       pointer.To("children.childType eq Subscription"),
 		Expand:       pointer.To(managementgroups.ExpandChildren),
-		Recurse:      &recurse,
+		Recurse:      pointer.To(true),
 	})
 	if err != nil {
 		if response.WasNotFound(group.HttpResponse) || response.WasForbidden(group.HttpResponse) {
@@ -342,10 +348,9 @@ func resourceManagementGroupDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	err = client.DeleteThenPoll(ctx, *id, managementgroups.DeleteOperationOptions{
+	if err = client.DeleteThenPoll(ctx, *id, managementgroups.DeleteOperationOptions{
 		CacheControl: &managementGroupCacheControl,
-	})
-	if err != nil {
+	}); err != nil {
 		return fmt.Errorf("unable to delete Management Group %q: %+v", id.GroupId, err)
 	}
 
@@ -409,13 +414,7 @@ func determineManagementGroupSubscriptionsIdsToRemove(existing *[]managementgrou
 			continue
 		}
 
-		found := false
-		for _, subId := range updated {
-			if id.SubscriptionId == subId {
-				found = true
-				break
-			}
-		}
+		found := slices.Contains(updated, id.SubscriptionId)
 
 		if !found {
 			subscriptionIdsToRemove = append(subscriptionIdsToRemove, id.SubscriptionId)
@@ -423,22 +422,4 @@ func determineManagementGroupSubscriptionsIdsToRemove(existing *[]managementgrou
 	}
 
 	return &subscriptionIdsToRemove, nil
-}
-
-func managementGroupCreateStateRefreshFunc(ctx context.Context, client *managementgroups.ManagementGroupsClient, id commonids.ManagementGroupId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		resp, err := client.Get(ctx, id, managementgroups.GetOperationOptions{
-			CacheControl: &managementGroupCacheControl,
-			Expand:       pointer.To(managementgroups.ExpandChildren),
-			Recurse:      pointer.FromBool(true),
-		})
-		if err != nil {
-			if response.WasForbidden(resp.HttpResponse) {
-				return resp, "pending", nil
-			}
-			return resp, "failed", err
-		}
-
-		return resp, "succeeded", nil
-	}
 }

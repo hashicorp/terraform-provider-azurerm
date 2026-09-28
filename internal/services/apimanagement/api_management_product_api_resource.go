@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -54,15 +54,17 @@ func resourceApiManagementProductApiCreate(d *pluginsdk.ResourceData, meta inter
 
 	id := productapi.NewProductApiID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("product_id").(string), d.Get("api_name").(string))
 
-	exists, err := client.CheckEntityExists(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(exists.HttpResponse) {
-			return fmt.Errorf("checking for present of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		exists, err := client.CheckEntityExists(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(exists.HttpResponse) {
+				return fmt.Errorf("checking for present of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(exists.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_api_management_product_api", id.ID())
+		if !response.WasNotFound(exists.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_api_management_product_api", id.ID())
+		}
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id); err != nil {

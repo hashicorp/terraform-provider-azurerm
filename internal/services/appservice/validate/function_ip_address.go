@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -20,7 +20,7 @@ func IsIpOrCIDRRangeList(i interface{}, k string) ([]string, []error) {
 		return allWarnings, allErrors
 	}
 	validator := validation.Any(validation.IsCIDR, validation.IsIPAddress)
-	for _, elem := range strings.Split(v, ",") {
+	for elem := range strings.SplitSeq(v, ",") {
 		warnings, errors := validator(elem, k)
 		if len(warnings) > 0 {
 			allWarnings = append(allWarnings, warnings...)

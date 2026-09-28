@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package signalr
@@ -62,7 +62,7 @@ func dataSourceWebPubsubPrivateLinkResourceRead(d *pluginsdk.ResourceData, meta 
 
 	resourceList, err := privateLinkResourceClient.PrivateLinkResourcesListComplete(ctx, *webPubSubId)
 	if err != nil {
-		return fmt.Errorf("retrieving Private Link Resourcse for %s: %+v", *webPubSubId, err)
+		return fmt.Errorf("retrieving Private Link Resources for %s: %+v", *webPubSubId, err)
 	}
 
 	if resourceList.Items == nil {

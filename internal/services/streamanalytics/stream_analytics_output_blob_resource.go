@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics
@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceStreamAnalyticsOutputBlob() *pluginsdk.Resource {
@@ -141,15 +140,17 @@ func resourceStreamAnalyticsOutputBlobCreateUpdate(d *pluginsdk.ResourceData, me
 	id := outputs.NewOutputID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_stream_analytics_output_blob", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_stream_analytics_output_blob", id.ID())
+			}
 		}
 	}
 
@@ -180,8 +181,8 @@ func resourceStreamAnalyticsOutputBlobCreateUpdate(d *pluginsdk.ResourceData, me
 					DateFormat:         pointer.To(dateFormat),
 					PathPattern:        pointer.To(pathPattern),
 					TimeFormat:         pointer.To(timeFormat),
-					AuthenticationMode: pointer.To(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
-					BlobWriteMode:      pointer.To(outputs.BlobWriteMode(d.Get("blob_write_mode").(string))),
+					AuthenticationMode: pointer.ToEnum[outputs.AuthenticationMode](d.Get("authentication_mode").(string)),
+					BlobWriteMode:      pointer.ToEnum[outputs.BlobWriteMode](d.Get("blob_write_mode").(string)),
 				},
 			},
 			Serialization: serialization,
@@ -193,7 +194,7 @@ func resourceStreamAnalyticsOutputBlobCreateUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	if batchMinRows, ok := d.GetOk("batch_min_rows"); ok {
-		props.Properties.SizeWindow = utils.Int64(int64(batchMinRows.(int)))
+		props.Properties.SizeWindow = pointer.To(int64(batchMinRows.(int)))
 	}
 
 	// timeWindow and sizeWindow must be set for Parquet serialization
@@ -249,29 +250,13 @@ func resourceStreamAnalyticsOutputBlobRead(d *pluginsdk.ResourceData, meta inter
 				return fmt.Errorf("converting %s to a Blob Output", *id)
 			}
 
-			dateFormat := ""
-			if v := output.Properties.DateFormat; v != nil {
-				dateFormat = *v
-			}
-			d.Set("date_format", dateFormat)
+			d.Set("date_format", pointer.From(output.Properties.DateFormat))
 
-			pathPattern := ""
-			if v := output.Properties.PathPattern; v != nil {
-				pathPattern = *v
-			}
-			d.Set("path_pattern", pathPattern)
+			d.Set("path_pattern", pointer.From(output.Properties.PathPattern))
 
-			containerName := ""
-			if v := output.Properties.Container; v != nil {
-				containerName = *v
-			}
-			d.Set("storage_container_name", containerName)
+			d.Set("storage_container_name", pointer.From(output.Properties.Container))
 
-			timeFormat := ""
-			if v := output.Properties.TimeFormat; v != nil {
-				timeFormat = *v
-			}
-			d.Set("time_format", timeFormat)
+			d.Set("time_format", pointer.From(output.Properties.TimeFormat))
 
 			authenticationMode := ""
 			if v := output.Properties.AuthenticationMode; v != nil {

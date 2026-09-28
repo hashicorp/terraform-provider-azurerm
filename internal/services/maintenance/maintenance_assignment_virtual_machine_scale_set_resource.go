@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package maintenance
@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -19,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceArmMaintenanceAssignmentVirtualMachineScaleSet() *pluginsdk.Resource {
@@ -56,19 +56,20 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSet() *pluginsdk.Resourc
 			"location": commonschema.Location(),
 
 			"maintenance_configuration_id": {
-				Type:             pluginsdk.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				ValidateFunc:     maintenanceconfigurations.ValidateMaintenanceConfigurationID,
-				DiffSuppressFunc: suppress.CaseDifference, // TODO remove in 4.0 with a work around or when https://github.com/Azure/azure-rest-api-specs/issues/8653 is fixed
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: maintenanceconfigurations.ValidateMaintenanceConfigurationID,
+				// this is required because of an API issue https://github.com/Azure/azure-rest-api-specs/issues/8653
+				// it can be removed when the API is fixed. Still an issue as of 2026-07-15.
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"virtual_machine_scale_set_id": {
-				Type:             pluginsdk.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				ValidateFunc:     commonids.ValidateVirtualMachineScaleSetID,
-				DiffSuppressFunc: suppress.CaseDifference, // TODO remove in 4.0
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: commonids.ValidateVirtualMachineScaleSetID,
 			},
 		},
 	}
@@ -91,27 +92,28 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSetCreate(d *pluginsdk.R
 
 	id := configurationassignments.NewScopedConfigurationAssignmentID(virtualMachineScaleSetId.ID(), maintenanceConfigurationId.MaintenanceConfigurationName)
 
-	resp, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		resp, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(resp.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_maintenance_assignment_virtual_machine_scale_set", id.ID())
+		if !response.WasNotFound(resp.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_maintenance_assignment_virtual_machine_scale_set", id.ID())
+		}
 	}
 
 	configurationAssignment := configurationassignments.ConfigurationAssignment{
-		Name:     utils.String(maintenanceConfigurationId.MaintenanceConfigurationName),
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
+		Name:     pointer.To(maintenanceConfigurationId.MaintenanceConfigurationName),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &configurationassignments.ConfigurationAssignmentProperties{
-			MaintenanceConfigurationId: utils.String(maintenanceConfigurationId.ID()),
-			ResourceId:                 utils.String(virtualMachineScaleSetId.ID()),
+			MaintenanceConfigurationId: pointer.To(maintenanceConfigurationId.ID()),
+			ResourceId:                 pointer.To(virtualMachineScaleSetId.ID()),
 		},
 	}
 
-	_, err = client.CreateOrUpdate(ctx, id, configurationAssignment)
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, id, configurationAssignment); err != nil {
 		return err
 	}
 

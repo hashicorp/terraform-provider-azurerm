@@ -1,23 +1,12 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
 
 import (
-	"fmt"
-	"strings"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func ImportPrefix(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return
-	}
-
-	if !strings.HasPrefix(v, "/") {
-		errors = append(errors, fmt.Errorf("%q must start with /", k))
-	}
-
-	return warnings, errors
+func ImportPrefix(i interface{}, k string) ([]string, []error) {
+	return validation.StringStartsWithOneOf("/")(i, k)
 }

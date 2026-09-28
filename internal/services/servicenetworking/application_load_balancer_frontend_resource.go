@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package servicenetworking
@@ -103,15 +103,18 @@ func (f FrontendsResource) Create() sdk.ResourceFunc {
 			loc := controller.Model.Location
 
 			id := frontendsinterface.NewFrontendID(trafficControllerId.SubscriptionId, trafficControllerId.ResourceGroupName, trafficControllerId.TrafficControllerName, config.Name)
-			resp, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(resp.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-				}
-			}
 
-			if !response.WasNotFound(resp.HttpResponse) {
-				return tf.ImportAsExistsError(f.ResourceType(), id.ID())
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				resp, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(resp.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
+				}
+
+				if !response.WasNotFound(resp.HttpResponse) {
+					return tf.ImportAsExistsError(f.ResourceType(), id.ID())
+				}
 			}
 
 			frontend := frontendsinterface.Frontend{
@@ -120,11 +123,11 @@ func (f FrontendsResource) Create() sdk.ResourceFunc {
 				Tags:       tags.Expand(config.Tags),
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, frontend); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, frontend, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package eventhub
@@ -11,9 +11,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/eventhub"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 const (
@@ -45,7 +45,7 @@ func (EventHubSharedAccessSignatureDataSource) Arguments() map[string]*pluginsdk
 		"expiry": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.ISO8601DateTime,
+			ValidateFunc: validation.ISO8601DateTime,
 		},
 	}
 }

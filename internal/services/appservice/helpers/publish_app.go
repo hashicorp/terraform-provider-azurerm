@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
@@ -139,7 +139,7 @@ func PublishZipDeployLocalFileKuduPush(ctx context.Context, host string, user st
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusAccepted {
 		if resp.StatusCode == http.StatusConflict {
-			return fmt.Errorf("publising Zip Deployment failed with %s - Another operation is in progress or your application is not configured for Zip deployments", resp.Status)
+			return fmt.Errorf("publishing Zip Deployment failed with %s - Another operation is in progress or your application is not configured for Zip deployments", resp.Status)
 		}
 		return fmt.Errorf("publishing failed with status code %s", resp.Status)
 	}
@@ -187,8 +187,7 @@ func checkZipDeploymentStatusRefresh(r *http.Request) pluginsdk.StateRefreshFunc
 		}
 
 		body := make(map[string]interface{})
-		err = json.Unmarshal(respBody, &body)
-		if err != nil {
+		if err = json.Unmarshal(respBody, &body); err != nil {
 			return nil, "", fmt.Errorf("could not parse status response for Zip Deploy")
 		}
 

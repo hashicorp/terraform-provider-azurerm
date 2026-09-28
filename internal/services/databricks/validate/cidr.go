@@ -1,24 +1,13 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
 
 import (
-	"fmt"
-	"net"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 // Evaluates if the passed CIDR is a valid IPv4 or IPv6 CIDR.
-func CIDRIsIPv4OrIPv6(input interface{}, key string) (warnings []string, errors []error) {
-	v, ok := input.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-		return
-	}
-
-	if _, _, err := net.ParseCIDR(v); err != nil {
-		errors = append(errors, err)
-	}
-
-	return
+func CIDRIsIPv4OrIPv6(input interface{}, key string) ([]string, []error) {
+	return validation.IsCIDR(input, key)
 }

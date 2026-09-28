@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package azurestackhci
@@ -157,12 +157,14 @@ func (r StackHCIExtensionResource) Create() sdk.ResourceFunc {
 
 			id := extensions.NewExtensionID(arcSettingId.SubscriptionId, arcSettingId.ResourceGroupName, arcSettingId.ClusterName, arcSettingId.ArcSettingName, config.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			input := extensions.Extension{
@@ -198,7 +200,7 @@ func (r StackHCIExtensionResource) Create() sdk.ResourceFunc {
 				input.Properties.ExtensionParameters.ProtectedSettings = pointer.To(interface{}(expandedSetting))
 			}
 
-			if err := client.CreateThenPoll(ctx, id, input); err != nil {
+			if err := client.CreateCallbackThenPoll(ctx, id, input, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -227,7 +229,7 @@ func (r StackHCIExtensionResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			// protected_settingss is not returned in the response, so we read it from the state
+			// protected_settings is not returned in the response, so we read it from the state
 			var extension, config StackHCIExtensionResourceModel
 
 			if err := metadata.Decode(&config); err != nil {
@@ -251,7 +253,7 @@ func (r StackHCIExtensionResource) Read() sdk.ResourceFunc {
 					if param.Settings != nil {
 						setting, err = pluginsdk.FlattenJsonToString((*param.Settings).(map[string]interface{}))
 						if err != nil {
-							return fmt.Errorf("flatenning `settings`: %+v", err)
+							return fmt.Errorf("flattening `settings`: %+v", err)
 						}
 					}
 					extension.Settings = setting

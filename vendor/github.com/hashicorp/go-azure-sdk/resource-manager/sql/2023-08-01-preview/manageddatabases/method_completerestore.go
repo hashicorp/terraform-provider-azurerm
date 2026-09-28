@@ -62,9 +62,20 @@ func (c ManagedDatabasesClient) CompleteRestore(ctx context.Context, id commonid
 
 // CompleteRestoreThenPoll performs CompleteRestore then polls until it's completed
 func (c ManagedDatabasesClient) CompleteRestoreThenPoll(ctx context.Context, id commonids.SqlManagedInstanceDatabaseId, input CompleteDatabaseRestoreDefinition) error {
+	return c.CompleteRestoreCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CompleteRestoreCallbackThenPoll performs CompleteRestore, runs the optional callback function, then polls until it's completed
+func (c ManagedDatabasesClient) CompleteRestoreCallbackThenPoll(ctx context.Context, id commonids.SqlManagedInstanceDatabaseId, input CompleteDatabaseRestoreDefinition, callback func() error) error {
 	result, err := c.CompleteRestore(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CompleteRestore: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

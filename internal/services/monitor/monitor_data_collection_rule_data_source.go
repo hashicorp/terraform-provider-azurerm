@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -11,10 +11,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionrules"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -95,8 +95,7 @@ func (d DataCollectionRuleDataSource) Attributes() map[string]*pluginsdk.Schema 
 				Schema: map[string]*schema.Schema{
 					"event_hub": {
 						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
+						Computed: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"event_hub_id": {
@@ -112,8 +111,7 @@ func (d DataCollectionRuleDataSource) Attributes() map[string]*pluginsdk.Schema 
 					},
 					"event_hub_direct": {
 						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
+						Computed: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"event_hub_id": {
@@ -330,7 +328,7 @@ func (d DataCollectionRuleDataSource) Attributes() map[string]*pluginsdk.Schema 
 					},
 					"log_file": {
 						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Computed: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
@@ -410,7 +408,7 @@ func (d DataCollectionRuleDataSource) Attributes() map[string]*pluginsdk.Schema 
 					},
 					"platform_telemetry": {
 						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Computed: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
@@ -606,7 +604,6 @@ func (d DataCollectionRuleDataSource) Read() sdk.ResourceFunc {
 			}
 
 			id := datacollectionrules.NewDataCollectionRuleID(subscriptionId, state.ResourceGroupName, state.Name)
-			metadata.Logger.Infof("retrieving %s", id)
 			resp, err := client.Get(ctx, id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
@@ -615,7 +612,7 @@ func (d DataCollectionRuleDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			var dataCollectionEndpointId, description, immutableId, kind, location string
+			var dataCollectionEndpointId, description, immutableId, kind, loc string
 			var tag map[string]interface{}
 			var dataFlows []DataFlow
 			var dataSources []DataSource
@@ -624,7 +621,7 @@ func (d DataCollectionRuleDataSource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				kind = flattenDataCollectionRuleKind(model.Kind)
-				location = azure.NormalizeLocation(model.Location)
+				loc = location.Normalize(model.Location)
 				tag = tags.Flatten(model.Tags)
 
 				identityValue, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
@@ -659,7 +656,7 @@ func (d DataCollectionRuleDataSource) Read() sdk.ResourceFunc {
 				Destinations:             destinations,
 				ImmutableId:              immutableId,
 				Kind:                     kind,
-				Location:                 location,
+				Location:                 loc,
 				StreamDeclaration:        streamDeclaration,
 				Tags:                     tag,
 			})

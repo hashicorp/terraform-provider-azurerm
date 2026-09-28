@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -12,13 +12,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/emailtemplates"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 func resourceApiManagementEmailTemplate() *pluginsdk.Resource {
@@ -50,20 +51,20 @@ func resourceApiManagementEmailTemplate() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					azure.TitleCase(string(emailtemplates.TemplateNameAccountClosedDeveloper)),
-					azure.TitleCase(string(emailtemplates.TemplateNameApplicationApprovedNotificationMessage)),
-					azure.TitleCase(string(emailtemplates.TemplateNameConfirmSignUpIdentityDefault)),
-					azure.TitleCase(string(emailtemplates.TemplateNameEmailChangeIdentityDefault)),
-					azure.TitleCase(string(emailtemplates.TemplateNameInviteUserNotificationMessage)),
-					azure.TitleCase(string(emailtemplates.TemplateNameNewCommentNotificationMessage)),
-					azure.TitleCase(string(emailtemplates.TemplateNameNewDeveloperNotificationMessage)),
-					azure.TitleCase(string(emailtemplates.TemplateNameNewIssueNotificationMessage)),
-					azure.TitleCase(string(emailtemplates.TemplateNamePasswordResetByAdminNotificationMessage)),
-					azure.TitleCase(string(emailtemplates.TemplateNamePasswordResetIdentityDefault)),
-					azure.TitleCase(string(emailtemplates.TemplateNamePurchaseDeveloperNotificationMessage)),
-					azure.TitleCase(string(emailtemplates.TemplateNameQuotaLimitApproachingDeveloperNotificationMessage)),
-					azure.TitleCase(string(emailtemplates.TemplateNameRejectDeveloperNotificationMessage)),
-					azure.TitleCase(string(emailtemplates.TemplateNameRequestDeveloperNotificationMessage)),
+					titleCase(string(emailtemplates.TemplateNameAccountClosedDeveloper)),
+					titleCase(string(emailtemplates.TemplateNameApplicationApprovedNotificationMessage)),
+					titleCase(string(emailtemplates.TemplateNameConfirmSignUpIdentityDefault)),
+					titleCase(string(emailtemplates.TemplateNameEmailChangeIdentityDefault)),
+					titleCase(string(emailtemplates.TemplateNameInviteUserNotificationMessage)),
+					titleCase(string(emailtemplates.TemplateNameNewCommentNotificationMessage)),
+					titleCase(string(emailtemplates.TemplateNameNewDeveloperNotificationMessage)),
+					titleCase(string(emailtemplates.TemplateNameNewIssueNotificationMessage)),
+					titleCase(string(emailtemplates.TemplateNamePasswordResetByAdminNotificationMessage)),
+					titleCase(string(emailtemplates.TemplateNamePasswordResetIdentityDefault)),
+					titleCase(string(emailtemplates.TemplateNamePurchaseDeveloperNotificationMessage)),
+					titleCase(string(emailtemplates.TemplateNameQuotaLimitApproachingDeveloperNotificationMessage)),
+					titleCase(string(emailtemplates.TemplateNameRejectDeveloperNotificationMessage)),
+					titleCase(string(emailtemplates.TemplateNameRequestDeveloperNotificationMessage)),
 				}, false),
 			},
 			"body": {
@@ -96,17 +97,19 @@ func resourceApiManagementEmailTemplateCreateUpdate(d *pluginsdk.ResourceData, m
 
 	id := emailtemplates.NewTemplateID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), emailtemplates.TemplateName(d.Get("template_name").(string)))
 	if d.IsNewResource() {
-		existing, err := client.EmailTemplateGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.EmailTemplateGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		// in case the template has been edited (is not default anymore) this errors and the resource should be imported manually into the state (terraform import).
-		if !response.WasNotFound(existing.HttpResponse) {
-			if model := existing.Model; model != nil && model.Properties != nil && model.Properties.IsDefault != nil && !*model.Properties.IsDefault {
-				return tf.ImportAsExistsError("azurerm_api_management_email_template", id.ID())
+			// in case the template has been edited (is not default anymore) this errors and the resource should be imported manually into the state (terraform import).
+			if !response.WasNotFound(existing.HttpResponse) {
+				if model := existing.Model; model != nil && model.Properties != nil && model.Properties.IsDefault != nil && !*model.Properties.IsDefault {
+					return tf.ImportAsExistsError("azurerm_api_management_email_template", id.ID())
+				}
 			}
 		}
 	}
@@ -140,7 +143,7 @@ func resourceApiManagementEmailTemplateRead(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
-	templateName := emailtemplates.TemplateName(azure.TitleCase(string(id.TemplateName)))
+	templateName := emailtemplates.TemplateName(titleCase(string(id.TemplateName)))
 	newId := emailtemplates.NewTemplateID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, templateName)
 	resp, err := client.EmailTemplateGet(ctx, newId)
 	if err != nil {
@@ -178,7 +181,7 @@ func resourceApiManagementEmailTemplateDelete(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
-	templateName := emailtemplates.TemplateName(azure.TitleCase(string(id.TemplateName)))
+	templateName := emailtemplates.TemplateName(titleCase(string(id.TemplateName)))
 	newId := emailtemplates.NewTemplateID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, templateName)
 
 	if resp, err := client.EmailTemplateDelete(ctx, newId, emailtemplates.EmailTemplateDeleteOperationOptions{}); err != nil {
@@ -188,4 +191,10 @@ func resourceApiManagementEmailTemplateDelete(d *pluginsdk.ResourceData, meta in
 	}
 
 	return nil
+}
+
+// titleCase upper-cases the first letter and leaves the rest alone, which is
+// how the API spells the template names (see the issue linked in the schema).
+func titleCase(input string) string {
+	return cases.Title(language.English, cases.NoLower).String(input)
 }

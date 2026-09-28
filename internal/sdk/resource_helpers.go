@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sdk
@@ -37,9 +37,7 @@ func parseStructTags(input reflect.StructTag) (*decodedStructTags, error) {
 	components := strings.Split(tag, ",")
 	output := &decodedStructTags{
 		// NOTE: `hclPath` has to be the first item in the struct tag
-		hclPath:                   strings.TrimSpace(components[0]),
-		addedInNextMajorVersion:   false,
-		removedInNextMajorVersion: false,
+		hclPath: strings.TrimSpace(components[0]),
 	}
 	if output.hclPath == "" {
 		return nil, fmt.Errorf("hclPath was empty")

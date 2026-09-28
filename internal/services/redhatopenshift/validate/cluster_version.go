@@ -1,23 +1,14 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
 
 import (
-	"fmt"
 	"regexp"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 func ClusterVersion(i interface{}, k string) ([]string, []error) {
-	v, ok := i.(string)
-	if !ok {
-		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
-	}
-
-	var errors []error
-	if matched := regexp.MustCompile(`^\d+\.\d+\.\d+$`).Match([]byte(v)); !matched {
-		errors = append(errors, fmt.Errorf("%q should be in the format `X.Y.Z` (e.g. `4.13.23`)", k))
-	}
-
-	return nil, errors
+	return validation.StringMatch(regexp.MustCompile(`^\d+\.\d+\.\d+$`), "should be in the format `X.Y.Z` (e.g. `4.13.23`)")(i, k)
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package applicationinsights
@@ -100,24 +100,26 @@ func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta int
 
 	name := d.Get("name").(string)
 
-	var existingAPIKeyList apikeys.APIKeysListOperationResponse
-	var existingAPIKeyId *apikeys.ApiKeyId
-	existingAPIKeyList, err = client.APIKeysList(ctx, *appInsightsId)
-	if err != nil {
-		if !response.WasNotFound(existingAPIKeyList.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing Application Insights API key list for %s: %+v", appInsightsId, err)
-		}
-	}
-
-	if existingAPIKeyList.Model != nil && len(existingAPIKeyList.Model.Value) > 0 {
-		for _, existingAPIKey := range existingAPIKeyList.Model.Value {
-			existingAPIKeyId, err = apikeys.ParseApiKeyIDInsensitively(*existingAPIKey.Id)
-			if err != nil {
-				return err
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		var existingAPIKeyList apikeys.APIKeysListOperationResponse
+		var existingAPIKeyId *apikeys.ApiKeyId
+		existingAPIKeyList, err = client.APIKeysList(ctx, *appInsightsId)
+		if err != nil {
+			if !response.WasNotFound(existingAPIKeyList.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing Application Insights API key list for %s: %+v", appInsightsId, err)
 			}
+		}
 
-			if name == *existingAPIKey.Name {
-				return tf.ImportAsExistsError("azurerm_application_insights_api_key", existingAPIKeyId.ID())
+		if existingAPIKeyList.Model != nil && len(existingAPIKeyList.Model.Value) > 0 {
+			for _, existingAPIKey := range existingAPIKeyList.Model.Value {
+				existingAPIKeyId, err = apikeys.ParseApiKeyIDInsensitively(*existingAPIKey.Id)
+				if err != nil {
+					return err
+				}
+
+				if name == *existingAPIKey.Name {
+					return tf.ImportAsExistsError("azurerm_application_insights_api_key", existingAPIKeyId.ID())
+				}
 			}
 		}
 	}
@@ -183,14 +185,12 @@ func resourceApplicationInsightsAPIKeyRead(d *pluginsdk.ResourceData, meta inter
 	if model := result.Model; model != nil {
 		d.Set("name", model.Name)
 		if props := model.LinkedReadProperties; props != nil {
-			readProps := flattenApplicationInsightsAPIKeyLinkedProperties(props)
-			if err := d.Set("read_permissions", readProps); err != nil {
+			if err := d.Set("read_permissions", flattenApplicationInsightsAPIKeyLinkedProperties(props)); err != nil {
 				return fmt.Errorf("flattening `read_permissions `: %s", err)
 			}
 		}
 		if props := model.LinkedWriteProperties; props != nil {
-			writeProps := flattenApplicationInsightsAPIKeyLinkedProperties(props)
-			if err := d.Set("write_permissions", writeProps); err != nil {
+			if err := d.Set("write_permissions", flattenApplicationInsightsAPIKeyLinkedProperties(props)); err != nil {
 				return fmt.Errorf("flattening `write_permissions `: %s", err)
 			}
 		}

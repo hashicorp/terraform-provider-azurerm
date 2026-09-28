@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package arcresourcebridge
@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resourceconnector/2022-10-27/appliances"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -55,31 +54,25 @@ func (r ArcResourceBridgeApplianceResource) Arguments() map[string]*schema.Schem
 		"location": commonschema.Location(),
 
 		"distro": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(appliances.DistroAKSEdge),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(appliances.PossibleValuesForDistro(), false),
 		},
 
 		"identity": commonschema.SystemAssignedIdentityRequiredForceNew(),
 
 		"infrastructure_provider": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(appliances.ProviderHCI),
-				string(appliances.ProviderSCVMM),
-				string(appliances.ProviderVMWare),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(appliances.PossibleValuesForProvider(), false),
 		},
 
 		"public_key_base64": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.Base64EncodedString,
+			ValidateFunc: validation.StringIsBase64,
 		},
 
 		"tags": commonschema.Tags(),
@@ -111,12 +104,15 @@ func (r ArcResourceBridgeApplianceResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := appliances.NewApplianceID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			identity, err := identity.ExpandSystemAssignedFromModel(model.Identity)
@@ -137,9 +133,11 @@ func (r ArcResourceBridgeApplianceResource) Create() sdk.ResourceFunc {
 
 			parameters.Identity = identity
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
+
+			metadata.SetID(id)
 
 			// since the public key could not be set during creation, update after creation
 			if model.PublicKeyBase64 != "" {
@@ -150,7 +148,6 @@ func (r ArcResourceBridgeApplianceResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			metadata.SetID(id)
 			return nil
 		},
 	}
@@ -167,7 +164,6 @@ func (r ArcResourceBridgeApplianceResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", *id)
 			var model ApplianceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)

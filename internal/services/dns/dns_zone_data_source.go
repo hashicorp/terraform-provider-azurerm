@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dns
@@ -44,7 +44,7 @@ func (DnsZoneDataResource) Arguments() map[string]*pluginsdk.Schema {
 			// TODO: we need a CommonSchema type for this which doesn't have ForceNew
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 		},
 	}
 }

@@ -1,10 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
 
 import "errors"
 
+// lintignore:V012 // error message intentionally documents the standard vs dedicated cluster limits
 func ValidateEventHubPartitionCount(v interface{}, _ string) (warnings []string, errs []error) {
 	value := v.(int)
 

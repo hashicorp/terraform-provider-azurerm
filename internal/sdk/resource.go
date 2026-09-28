@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sdk
@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -227,4 +228,14 @@ func (rmd ResourceMetaData) MarkAsGone(idFormatter resourceids.Id) error {
 func (rmd ResourceMetaData) ResourceRequiresImport(resourceName string, idFormatter resourceids.Id) error {
 	resourceId := idFormatter.ID()
 	return tf.ImportAsExistsError(resourceName, resourceId)
+}
+
+// NewResourceMetaData returns the metadata for a Typed Resource as if it came from a plugin sdk v2 resource
+func NewResourceMetaData(clients *clients.Client, resource Resource) ResourceMetaData {
+	return ResourceMetaData{
+		Client:                   clients,
+		ResourceData:             WrappedResource(resource).Data(&terraform.InstanceState{}),
+		Logger:                   ConsoleLogger{},
+		serializationDebugLogger: NullLogger{},
+	}
 }

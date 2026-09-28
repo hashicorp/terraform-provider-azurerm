@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package servicebus
@@ -8,16 +8,15 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/topics"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/topicsauthorizationrule"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/topics"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceServiceBusTopicAuthorizationRule() *pluginsdk.Resource {
@@ -28,7 +27,7 @@ func resourceServiceBusTopicAuthorizationRule() *pluginsdk.Resource {
 		Delete: resourceServiceBusTopicAuthorizationRuleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := topicsauthorizationrule.ParseTopicAuthorizationRuleID(id)
+			_, err := topics.ParseTopicAuthorizationRuleID(id)
 			return err
 		}),
 
@@ -65,45 +64,48 @@ func resourceServiceBusTopicAuthorizationRuleSchema() map[string]*pluginsdk.Sche
 }
 
 func resourceServiceBusTopicAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ServiceBus.TopicsAuthClient
+	client := meta.(*clients.Client).ServiceBus.TopicsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for AzureRM ServiceBus Topic Authorization Rule creation.")
 
-	var id topicsauthorizationrule.TopicAuthorizationRuleId
+	var id topics.TopicAuthorizationRuleId
 	if topicIdLit := d.Get("topic_id").(string); topicIdLit != "" {
-		topicId, err := topicsauthorizationrule.ParseTopicID(topicIdLit)
+		topicId, err := topics.ParseTopicID(topicIdLit)
 		if err != nil {
 			return err
 		}
-		id = topicsauthorizationrule.NewTopicAuthorizationRuleID(topicId.SubscriptionId, topicId.ResourceGroupName, topicId.NamespaceName, topicId.TopicName, d.Get("name").(string))
+		id = topics.NewTopicAuthorizationRuleID(topicId.SubscriptionId, topicId.ResourceGroupName, topicId.NamespaceName, topicId.TopicName, d.Get("name").(string))
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.TopicsGetAuthorizationRule(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.GetAuthorizationRule(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_servicebus_topic_authorization_rule", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_servicebus_topic_authorization_rule", id.ID())
+			}
 		}
 	}
 
-	parameters := topicsauthorizationrule.SBAuthorizationRule{
-		Name: utils.String(id.AuthorizationRuleName),
-		Properties: &topicsauthorizationrule.SBAuthorizationRuleProperties{
+	parameters := topics.SBAuthorizationRule{
+		Name: pointer.To(id.AuthorizationRuleName),
+		Properties: &topics.SBAuthorizationRuleProperties{
 			Rights: *expandTopicAuthorizationRuleRights(d),
 		},
 	}
 
-	if _, err := client.TopicsCreateOrUpdateAuthorizationRule(ctx, id, parameters); err != nil {
+	if _, err := client.CreateOrUpdateAuthorizationRule(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
 
 	namespaceId := namespaces.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
 	if err := waitForPairedNamespaceReplication(ctx, meta, namespaceId, d.Timeout(pluginsdk.TimeoutUpdate)); err != nil {
@@ -114,16 +116,16 @@ func resourceServiceBusTopicAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceD
 }
 
 func resourceServiceBusTopicAuthorizationRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ServiceBus.TopicsAuthClient
+	client := meta.(*clients.Client).ServiceBus.TopicsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := topicsauthorizationrule.ParseTopicAuthorizationRuleID(d.Id())
+	id, err := topics.ParseTopicAuthorizationRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.TopicsGetAuthorizationRule(ctx, *id)
+	resp, err := client.GetAuthorizationRule(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
@@ -133,7 +135,7 @@ func resourceServiceBusTopicAuthorizationRuleRead(d *pluginsdk.ResourceData, met
 	}
 
 	d.Set("name", id.AuthorizationRuleName)
-	d.Set("topic_id", topicsauthorizationrule.NewTopicID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.TopicName).ID())
+	d.Set("topic_id", topics.NewTopicID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.TopicName).ID())
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
@@ -144,7 +146,7 @@ func resourceServiceBusTopicAuthorizationRuleRead(d *pluginsdk.ResourceData, met
 		}
 	}
 
-	keysResp, err := client.TopicsListKeys(ctx, *id)
+	keysResp, err := client.ListKeys(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("listing keys for %s: %+v", id, err)
 	}
@@ -162,16 +164,16 @@ func resourceServiceBusTopicAuthorizationRuleRead(d *pluginsdk.ResourceData, met
 }
 
 func resourceServiceBusTopicAuthorizationRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ServiceBus.TopicsAuthClient
+	client := meta.(*clients.Client).ServiceBus.TopicsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := topicsauthorizationrule.ParseTopicAuthorizationRuleID(d.Id())
+	id, err := topics.ParseTopicAuthorizationRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err = client.TopicsDeleteAuthorizationRule(ctx, *id); err != nil {
+	if _, err = client.DeleteAuthorizationRule(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
@@ -184,33 +186,33 @@ func resourceServiceBusTopicAuthorizationRuleDelete(d *pluginsdk.ResourceData, m
 	return nil
 }
 
-func expandTopicAuthorizationRuleRights(d *pluginsdk.ResourceData) *[]topicsauthorizationrule.AccessRights {
-	rights := make([]topicsauthorizationrule.AccessRights, 0)
+func expandTopicAuthorizationRuleRights(d *pluginsdk.ResourceData) *[]topics.AccessRights {
+	rights := make([]topics.AccessRights, 0)
 
 	if d.Get("listen").(bool) {
-		rights = append(rights, topicsauthorizationrule.AccessRightsListen)
+		rights = append(rights, topics.AccessRightsListen)
 	}
 
 	if d.Get("send").(bool) {
-		rights = append(rights, topicsauthorizationrule.AccessRightsSend)
+		rights = append(rights, topics.AccessRightsSend)
 	}
 
 	if d.Get("manage").(bool) {
-		rights = append(rights, topicsauthorizationrule.AccessRightsManage)
+		rights = append(rights, topics.AccessRightsManage)
 	}
 
 	return &rights
 }
 
-func flattenTopicAuthorizationRuleRights(rights *[]topicsauthorizationrule.AccessRights) (listen, send, manage bool) {
+func flattenTopicAuthorizationRuleRights(rights *[]topics.AccessRights) (listen, send, manage bool) {
 	if rights != nil {
 		for _, right := range *rights {
 			switch right {
-			case topicsauthorizationrule.AccessRightsListen:
+			case topics.AccessRightsListen:
 				listen = true
-			case topicsauthorizationrule.AccessRightsSend:
+			case topics.AccessRightsSend:
 				send = true
-			case topicsauthorizationrule.AccessRightsManage:
+			case topics.AccessRightsManage:
 				manage = true
 			default:
 				log.Printf("[DEBUG] Unknown Authorization Rule Right '%s'", right)

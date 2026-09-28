@@ -1,23 +1,14 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
 
 import (
-	"fmt"
 	"regexp"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 func TemplateDeploymentName(i interface{}, k string) ([]string, []error) {
-	v, ok := i.(string)
-	if !ok {
-		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
-	}
-
-	var errors []error
-	if matched := regexp.MustCompile(`^([a-zA-Z0-9-._\(\)]){1,}?$`).Match([]byte(v)); !matched {
-		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters, dashes, full-stops and underscores", k))
-	}
-
-	return nil, errors
+	return validation.StringMatch(regexp.MustCompile(`^([a-zA-Z0-9-._\(\)]){1,}?$`), "may only contain alphanumeric characters, dashes, full-stops and underscores")(i, k)
 }

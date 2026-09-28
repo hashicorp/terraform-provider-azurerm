@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sdk
@@ -49,12 +49,10 @@ func combineSchema(arguments map[string]*schema.Schema, attributes map[string]*s
 
 func runArgs(d *schema.ResourceData, meta interface{}, logger Logger) ResourceMetaData {
 	client := meta.(*clients.Client)
-	metaData := ResourceMetaData{
+	return ResourceMetaData{
 		Client:                   client,
 		Logger:                   logger,
 		ResourceData:             d,
 		serializationDebugLogger: NullLogger{},
 	}
-
-	return metaData
 }

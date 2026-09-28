@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package loganalytics
@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/savedsearches"
@@ -18,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceLogAnalyticsSavedSearch() *pluginsdk.Resource {
@@ -91,7 +91,7 @@ func resourceLogAnalyticsSavedSearch() *pluginsdk.Resource {
 				ForceNew: true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
-					// https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/functions/user-defined-functions
+					// https://learn.microsoft.com/azure/data-explorer/kusto/query/functions/user-defined-functions
 					ValidateFunc: validation.StringMatch(
 						regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9-_]*:([a-z]+(=[^,\n]+)?|\(\*\)|(\([a-zA-Z_][a-zA-Z0-9-_]*:[a-z]+(,[a-zA-Z_][a-zA-Z0-9-_]*:([a-z]+))*\)))(,\s*[a-zA-Z_][a-zA-Z0-9-_]*:([a-z]+(=[^,\n]+)?|\(\*\)|(\([a-zA-Z_][a-zA-Z0-9-_]*:[a-z]+(,\s*[a-zA-Z_][a-zA-Z0-9-_]*:([a-z]+))*\))))*$`),
 						"Log Analytics Saved Search Function Parameters must be in the following format: param-name1:type1=default_value1 OR param-name1:type1 OR param-name1:string='string goes here'",
@@ -115,7 +115,7 @@ func resourceLogAnalyticsSavedSearchCreate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	id := savedsearches.NewSavedSearchID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, d.Get("name").(string))
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -133,7 +133,7 @@ func resourceLogAnalyticsSavedSearchCreate(d *pluginsdk.ResourceData, meta inter
 			Category:      d.Get("category").(string),
 			DisplayName:   d.Get("display_name").(string),
 			Query:         d.Get("query").(string),
-			FunctionAlias: utils.String(d.Get("function_alias").(string)),
+			FunctionAlias: pointer.To(d.Get("function_alias").(string)),
 			Tags:          expandSavedSearchTag(d.Get("tags").(map[string]interface{})), // expand tags because it's defined as object set in service
 		},
 	}
@@ -146,7 +146,7 @@ func resourceLogAnalyticsSavedSearchCreate(d *pluginsdk.ResourceData, meta inter
 				result = append(result, item.(string))
 			}
 		}
-		parameters.Properties.FunctionParameters = utils.String(strings.Join(result, ", "))
+		parameters.Properties.FunctionParameters = pointer.To(strings.Join(result, ", "))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
@@ -185,11 +185,7 @@ func resourceLogAnalyticsSavedSearchRead(d *pluginsdk.ResourceData, meta interfa
 		d.Set("category", props.Category)
 		d.Set("query", props.Query)
 
-		functionAlias := ""
-		if props.FunctionAlias != nil {
-			functionAlias = *props.FunctionAlias
-		}
-		d.Set("function_alias", functionAlias)
+		d.Set("function_alias", pointer.From(props.FunctionAlias))
 
 		functionParams := make([]string, 0)
 		if props.FunctionParameters != nil {

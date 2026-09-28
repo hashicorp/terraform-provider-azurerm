@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dashboard
@@ -214,11 +214,6 @@ func dataSourceDashboardGrafanaRead(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	return nil
-}
-
-// AzureMonitorWorkspaceIntegration represents a struct for Azure Monitor Workspace Integration
-type AzureMonitorWorkspaceIntegration struct {
-	AzureMonitorWorkspaceResourceId *string `json:"azureMonitorWorkspaceResourceId,omitempty"`
 }
 
 func flattenAzureMonitorWorkspaceIntegrations(integrations []managedgrafanas.AzureMonitorWorkspaceIntegration) []interface{} {

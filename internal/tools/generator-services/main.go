@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package main
@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 
@@ -130,7 +131,8 @@ func (githubLabelsGenerator) run(outputFileName string, _ map[string]struct{}) e
 	}
 	sort.Strings(sortedLabels)
 
-	output := strings.TrimSpace(githubLabelsTemplate)
+	var output strings.Builder
+	output.WriteString(strings.TrimSpace(githubLabelsTemplate))
 	for _, labelName := range sortedLabels {
 		pkgs := labelsToPackages[labelName]
 
@@ -148,10 +150,10 @@ func (githubLabelsGenerator) run(outputFileName string, _ map[string]struct{}) e
 		}
 
 		out = append(out, "")
-		output += fmt.Sprintf("\n%s", strings.Join(out, "\n"))
+		fmt.Fprintf(&output, "\n%s", strings.Join(out, "\n"))
 	}
 
-	return writeToFile(outputFileName, output)
+	return writeToFile(outputFileName, output.String())
 }
 
 type teamCityServicesListGenerator struct{}
@@ -161,7 +163,7 @@ func (teamCityServicesListGenerator) outputPath(rootDirectory string) string {
 }
 
 func (teamCityServicesListGenerator) run(outputFileName string, packagesToSkip map[string]struct{}) error {
-	template := `// Copyright (c) HashiCorp, Inc.
+	template := `// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 // NOTE: this is Generated from the Service Definitions - manual changes will be lost
 //       to re-generate this file, run 'make generate' in the root of the repository
@@ -177,7 +179,6 @@ var services = mapOf(
 	for _, service := range provider.SupportedTypedServices() {
 		info := reflect.TypeOf(service)
 		packageSegments := strings.Split(info.PkgPath(), "/")
-		packageName := packageSegments[len(packageSegments)-1]
 		serviceName := service.Name()
 
 		// Service Registrations are reused across Typed and Untyped Services now
@@ -185,13 +186,12 @@ var services = mapOf(
 			continue
 		}
 
-		services[serviceName] = packageName
+		services[serviceName] = packageSegments[len(packageSegments)-1]
 		serviceNames = append(serviceNames, serviceName)
 	}
 	for _, service := range provider.SupportedUntypedServices() {
 		info := reflect.TypeOf(service)
 		packageSegments := strings.Split(info.PkgPath(), "/")
-		packageName := packageSegments[len(packageSegments)-1]
 		serviceName := service.Name()
 
 		// Service Registrations are reused across Typed and Untyped Services now
@@ -199,7 +199,7 @@ var services = mapOf(
 			continue
 		}
 
-		services[serviceName] = packageName
+		services[serviceName] = packageSegments[len(packageSegments)-1]
 		serviceNames = append(serviceNames, serviceName)
 	}
 
@@ -256,19 +256,8 @@ func (websiteCategoriesGenerator) run(outputFileName string, _ map[string]struct
 	return writeToFile(outputFileName, fileContents)
 }
 
-const githubIssueLabelsTemplate = `# NOTE: this file is generated via 'make generate'
-bug:
-  - 'panic:'
-crash:
-  - 'panic:'
-v/1.x (legacy):
-  - '### AzureRM Provider Version\s+(|azurerm |AzureRM )(|v|V)1\.\d+'
-v/2.x (legacy):
-  - '### AzureRM Provider Version\s+(|azurerm |AzureRM )(|v|V)2\.\d+'
-v/3.x:
-  - '### AzureRM Provider Version\s+(|azurerm |AzureRM )(|v|V)3\.\d+'
-v/4.x:
-  - '### AzureRM Provider Version\s+(|azurerm |AzureRM )(|v|V)4\.\d+'
+const githubIssueLabelsTemplate = `# NOTE: this file is generated from the Service Registrations via 'make generate' - manual changes will be lost
+# static triage labels live in labeler-issue-triage.yml
 `
 
 const azurerm = "azurerm_"
@@ -276,7 +265,7 @@ const azurerm = "azurerm_"
 type githubIssueLabelsGenerator struct{}
 
 func (g githubIssueLabelsGenerator) outputPath(rootDirectory string) string {
-	return fmt.Sprintf("%s/.github/labeler-issue-triage.yml", rootDirectory)
+	return fmt.Sprintf("%s/.github/labeler-issue-triage-generated.yml", rootDirectory)
 }
 
 type Prefix struct {
@@ -340,7 +329,8 @@ func (githubIssueLabelsGenerator) run(outputFileName string, _ map[string]struct
 	}
 	sort.Strings(sortedLabels)
 
-	output := strings.TrimSpace(githubIssueLabelsTemplate)
+	var output strings.Builder
+	output.WriteString(strings.TrimSpace(githubIssueLabelsTemplate))
 
 	labelToPrefixes := make(map[string][]Prefix)
 
@@ -396,11 +386,11 @@ func (githubIssueLabelsGenerator) run(outputFileName string, _ map[string]struct
 				out = append(out, fmt.Sprintf("  - '### (|New or )Affected Resource\\(s\\)\\/Data Source\\(s\\)((.|\\n)*)azurerm_%s((.|\\n)*)###'", prefixes[0]))
 			}
 			out = append(out, "")
-			output += fmt.Sprintf("\n%s", strings.Join(out, "\n"))
+			fmt.Fprintf(&output, "\n%s", strings.Join(out, "\n"))
 		}
 	}
 
-	return writeToFile(outputFileName, output)
+	return writeToFile(outputFileName, output.String())
 }
 
 func writeToFile(filePath string, contents string) error {
@@ -429,13 +419,7 @@ func writeToFile(filePath string, contents string) error {
 }
 
 func contains(input []string, value string) bool {
-	for _, v := range input {
-		if v == value {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(input, value)
 }
 
 func appendToSliceWithinMap(sliceMap map[string][]string, slice []string, key string) map[string][]string {
@@ -448,7 +432,7 @@ func appendToSliceWithinMap(sliceMap map[string][]string, slice []string, key st
 }
 
 func longestCommonPrefix(names []string) string {
-	longestPrefix := ""
+	var longestPrefix strings.Builder
 	end := false
 
 	if len(names) > 0 {
@@ -458,14 +442,14 @@ func longestCommonPrefix(names []string) string {
 
 		for i := 0; i < len(first); i++ {
 			if !end && string(last[i]) == string(first[i]) {
-				longestPrefix += string(last[i])
+				longestPrefix.WriteString(string(last[i]))
 			} else {
 				end = true
 			}
 		}
 	}
 
-	return longestPrefix
+	return longestPrefix.String()
 }
 
 func commonPrefixGroups(names []string) [][]string {

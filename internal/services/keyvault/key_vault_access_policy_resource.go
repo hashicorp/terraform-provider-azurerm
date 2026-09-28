@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package keyvault
@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-02-01/vaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/vaults"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceKeyVaultAccessPolicy() *pluginsdk.Resource {
@@ -111,13 +110,11 @@ func resourceKeyVaultAccessPolicyCreate(d *pluginsdk.ResourceData, meta interfac
 				tenantIdMatches := policy.TenantId == tenantId
 				objectIdMatches := policy.ObjectId == objectId
 
-				appId := ""
-				if policy.ApplicationId != nil {
-					appId = *policy.ApplicationId
-				}
-				applicationIdMatches := appId == applicationId
+				applicationIdMatches := pointer.From(policy.ApplicationId) == applicationId
 				if tenantIdMatches && objectIdMatches && applicationIdMatches {
-					return tf.ImportAsExistsError("azurerm_key_vault_access_policy", id.ID())
+					if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+						return tf.ImportAsExistsError("azurerm_key_vault_access_policy", id.ID())
+					}
 				}
 			}
 		}
@@ -152,7 +149,7 @@ func resourceKeyVaultAccessPolicyCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	parameters := vaults.VaultAccessPolicyParameters{
-		Name: utils.String(keyVaultId.VaultName),
+		Name: pointer.To(keyVaultId.VaultName),
 		Properties: vaults.VaultAccessPolicyProperties{
 			AccessPolicies: []vaults.AccessPolicyEntry{
 				accessPolicy,
@@ -226,7 +223,7 @@ func resourceKeyVaultAccessPolicyUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	parameters := vaults.VaultAccessPolicyParameters{
-		Name: utils.String(keyVaultId.VaultName),
+		Name: pointer.To(keyVaultId.VaultName),
 		Properties: vaults.VaultAccessPolicyProperties{
 			AccessPolicies: []vaults.AccessPolicyEntry{
 				accessPolicy,
@@ -294,23 +291,19 @@ func resourceKeyVaultAccessPolicyRead(d *pluginsdk.ResourceData, meta interface{
 	d.Set("object_id", id.ObjectID())
 	d.Set("tenant_id", accessPolicy.TenantId)
 
-	certificatePermissions := flattenCertificatePermissions(accessPolicy.Permissions.Certificates)
-	if err := d.Set("certificate_permissions", certificatePermissions); err != nil {
+	if err := d.Set("certificate_permissions", flattenCertificatePermissions(accessPolicy.Permissions.Certificates)); err != nil {
 		return fmt.Errorf("setting `certificate_permissions`: %+v", err)
 	}
 
-	keyPermissions := flattenKeyPermissions(accessPolicy.Permissions.Keys)
-	if err := d.Set("key_permissions", keyPermissions); err != nil {
+	if err := d.Set("key_permissions", flattenKeyPermissions(accessPolicy.Permissions.Keys)); err != nil {
 		return fmt.Errorf("setting `key_permissions`: %+v", err)
 	}
 
-	secretPermissions := flattenSecretPermissions(accessPolicy.Permissions.Secrets)
-	if err := d.Set("secret_permissions", secretPermissions); err != nil {
+	if err := d.Set("secret_permissions", flattenSecretPermissions(accessPolicy.Permissions.Secrets)); err != nil {
 		return fmt.Errorf("setting `secret_permissions`: %+v", err)
 	}
 
-	storagePermissions := flattenStoragePermissions(accessPolicy.Permissions.Storage)
-	if err := d.Set("storage_permissions", storagePermissions); err != nil {
+	if err := d.Set("storage_permissions", flattenStoragePermissions(accessPolicy.Permissions.Storage)); err != nil {
 		return fmt.Errorf("setting `storage_permissions`: %+v", err)
 	}
 
@@ -352,7 +345,7 @@ func resourceKeyVaultAccessPolicyDelete(d *pluginsdk.ResourceData, meta interfac
 		accessPolicy.ApplicationId = pointer.To(id.ApplicationId())
 	}
 	parameters := vaults.VaultAccessPolicyParameters{
-		Name: utils.String(vaultId.VaultName),
+		Name: pointer.To(vaultId.VaultName),
 		Properties: vaults.VaultAccessPolicyProperties{
 			AccessPolicies: []vaults.AccessPolicyEntry{
 				accessPolicy,
@@ -391,10 +384,7 @@ func findKeyVaultAccessPolicy(policies *[]vaults.AccessPolicyEntry, objectId str
 
 	for _, policy := range *policies {
 		if strings.EqualFold(policy.ObjectId, objectId) {
-			aid := ""
-			if policy.ApplicationId != nil {
-				aid = *policy.ApplicationId
-			}
+			aid := pointer.From(policy.ApplicationId)
 
 			if strings.EqualFold(aid, applicationId) {
 				return &policy

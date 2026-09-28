@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -7,6 +7,8 @@ import (
 	"fmt"
 )
 
+// intentionally not validation.StringInSlice: its error enumerates every allowed value,
+// which for this ~1200-entry collation list would make the failure message unusable
 func PostgresqlFlexibleServerDatabaseCollation(v interface{}, k string) (warnings []string, errors []error) {
 	value, ok := v.(string)
 	if !ok {
