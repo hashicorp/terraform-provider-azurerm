@@ -125,7 +125,7 @@ data "azurerm_client_config" "current" {}
 
 # Fixed multi-tenant app ID for the Custom Locations RP; its per-tenant service principal
 # object ID is required to enable Custom Locations on the Arc agent.
-# https://learn.microsoft.com/en-us/azure/azure-arc/kubernetes/custom-locations#enable-custom-locations-on-your-cluster
+# https://learn.microsoft.com/azure/azure-arc/kubernetes/custom-locations#enable-custom-locations-on-your-cluster
 data "azuread_service_principal" "custom_locations" {
   client_id = "bc313c14-388c-4e7d-a58e-70017303ee3b"
 }
