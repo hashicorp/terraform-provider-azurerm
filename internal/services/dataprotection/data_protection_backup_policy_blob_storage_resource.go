@@ -25,6 +25,11 @@ import (
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_policy_blob_storage -service-package-name dataprotection -properties "name" -compare-values "subscription_id:vault_id,resource_group_name:vault_id,backup_vault_name:vault_id"
 
+const (
+	blobStorageOperationalDefaultRetentionRuleName = "Default_OperationalStore"
+	blobStorageVaultDefaultRetentionRuleName       = "Default"
+)
+
 func resourceDataProtectionBackupPolicyBlobStorage() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceDataProtectionBackupPolicyBlobStorageCreate,
@@ -356,7 +361,7 @@ func expandBackupPolicyBlobStorageTaggingCriteriaArray(input []interface{}) (*[]
 			TaggingPriority: 99,
 			TagInfo: basebackuppolicyresources.RetentionTag{
 				Id:      pointer.To("Default_"),
-				TagName: "Default",
+				TagName: blobStorageVaultDefaultRetentionRuleName,
 			},
 		},
 	}
@@ -473,9 +478,9 @@ func expandBackupPolicyBlobStorageAzureBackupRuleArray(input []interface{}, time
 }
 
 func expandBackupPolicyBlobStorageDefaultRetentionRuleArray(input interface{}, dataStoreType basebackuppolicyresources.DataStoreTypes) basebackuppolicyresources.BasePolicyRule {
-	name := "Default"
+	name := blobStorageVaultDefaultRetentionRuleName
 	if dataStoreType == basebackuppolicyresources.DataStoreTypesOperationalStore {
-		name = "Default_OperationalStore"
+		name = blobStorageOperationalDefaultRetentionRuleName
 	}
 
 	return basebackuppolicyresources.AzureRetentionRule{
