@@ -21,52 +21,32 @@ func AutonomousDatabaseName(i interface{}, k string) ([]string, []error) {
 	)(i, k)
 }
 
-// lintignore:V011 // the length check is combined with password complexity rules
-func AutonomousDatabasePassword(i interface{}, k string) (warnings []string, errors []error) {
+// AutonomousDatabasePassword checks the password rules one at a time and never puts the value
+// itself in an error, since validation errors end up in logs.
+func AutonomousDatabasePassword(i interface{}, k string) ([]string, []error) {
 	v, ok := i.(string)
 	if !ok {
-		return []string{}, append(errors, fmt.Errorf("expected type of %s to be string", k))
+		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
 	}
 
-	if len(v) < 12 || len(v) > 30 {
-		return []string{}, append(errors, fmt.Errorf("%v must be 12 to 30 characters", k))
+	rules := []struct {
+		ok  bool
+		msg string
+	}{
+		{len(v) >= 12 && len(v) <= 30, "must be 12 to 30 characters"},
+		{!strings.Contains(v, `"`), `must not contain the double quote (") character`},
+		{strings.ContainsFunc(v, unicode.IsUpper), "must contain at least one uppercase letter"},
+		{strings.ContainsFunc(v, unicode.IsLower), "must contain at least one lowercase letter"},
+		{strings.ContainsFunc(v, unicode.IsNumber), "must contain at least one number"},
+		{!strings.Contains(v, "admin"), `must not contain the username "admin"`},
+	}
+	for _, r := range rules {
+		if !r.ok {
+			return nil, []error{fmt.Errorf("%q %s", k, r.msg)}
+		}
 	}
 
-	hasUpper := false
-	hasLower := false
-	hasNumber := false
-	hasDoubleQuote := false
-	for _, r := range v {
-		if r == '"' {
-			hasDoubleQuote = true
-		}
-		if unicode.IsUpper(r) {
-			hasUpper = true
-		}
-		if unicode.IsLower(r) {
-			hasLower = true
-		}
-		if unicode.IsNumber(r) {
-			hasNumber = true
-		}
-	}
-	if hasDoubleQuote {
-		return []string{}, append(errors, fmt.Errorf("%v must not contain the double quote (\") character", k))
-	}
-	if !hasUpper {
-		return []string{}, append(errors, fmt.Errorf("%v must contain at least one uppercase letter", k))
-	}
-	if !hasLower {
-		return []string{}, append(errors, fmt.Errorf("%v must contain at least one lowercase letter", k))
-	}
-	if !hasNumber {
-		return []string{}, append(errors, fmt.Errorf("%v must contain at least one number", k))
-	}
-	if strings.Contains(v, "admin") {
-		return []string{}, append(errors, fmt.Errorf("%v must not contain the username \"admin\"", k))
-	}
-
-	return []string{}, []error{}
+	return nil, nil
 }
 
 func AdbsComputeModel(i interface{}, k string) (warnings []string, errors []error) {

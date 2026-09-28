@@ -309,9 +309,7 @@ func resourceStreamAnalyticsJobCreate(d *pluginsdk.ResourceData, meta interface{
 				Id: pointer.To(streamAnalyticsCluster.(string)),
 			}
 		} else {
-			props.Properties.Cluster = &streamingjobs.ClusterInfo{
-				Id: nil,
-			}
+			props.Properties.Cluster = &streamingjobs.ClusterInfo{}
 		}
 	}
 
@@ -388,7 +386,7 @@ func resourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{})
 
 			sku := ""
 			if props.Sku != nil {
-				sku = string(pointer.From(props.Sku.Name))
+				sku = pointer.FromEnum(props.Sku.Name)
 			}
 			d.Set("sku_name", sku)
 			d.Set("content_storage_policy", pointer.From(props.ContentStoragePolicy))

@@ -258,7 +258,7 @@ func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		if sku.Capacity == nil {
 			return fmt.Errorf("sku.capacity could not be empty")
 		}
-		// Ensure that requested Capcity is always between min and max to support updating to not overlapping autoscale ranges
+		// Ensure that requested Capacity is always between min and max to support updating to not overlapping autoscale ranges
 		if *sku.Capacity < optimizedAutoScale.Minimum {
 			sku.Capacity = pointer.To(optimizedAutoScale.Minimum)
 		}
@@ -376,7 +376,7 @@ func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 			if sku.Capacity == nil {
 				return fmt.Errorf("sku.capacity cannot be empty")
 			}
-			// Ensure that requested Capcity is always between min and max to support updating to not overlapping autoscale ranges
+			// Ensure that requested Capacity is always between min and max to support updating to not overlapping autoscale ranges
 			if *sku.Capacity < optimizedAutoScale.Minimum {
 				sku.Capacity = pointer.To(optimizedAutoScale.Minimum)
 			}
@@ -551,7 +551,7 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 			d.Set("purge_enabled", props.EnablePurge)
 			d.Set("uri", props.Uri)
 			d.Set("data_ingestion_uri", props.DataIngestionUri)
-			d.Set("public_ip_type", string(pointer.From(props.PublicIPType)))
+			d.Set("public_ip_type", pointer.FromEnum(props.PublicIPType))
 
 			d.Set("language_extension", flattenKustoClusterLanguageExtensionList(props.LanguageExtensions))
 		}
@@ -626,7 +626,7 @@ func expandKustoClusterSku(input []interface{}) (*clusters.AzureSku, error) {
 		"Standard":    "Standard",
 	}
 
-	skuNamePrefix := strings.Split(sku["name"].(string), "_")[0]
+	skuNamePrefix, _, _ := strings.Cut(sku["name"].(string), "_")
 	tier, ok := skuNamePrefixToTier[skuNamePrefix]
 	if !ok {
 		return nil, fmt.Errorf("sku name begins with invalid tier, possible are Dev(No SLA) and Standard but is: %q", skuNamePrefix)

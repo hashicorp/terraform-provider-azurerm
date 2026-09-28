@@ -407,7 +407,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			}
 
 			// NOTE: This call does not return a future it returns a response, but you will get a future back if the status code is 202...
-			// https://learn.microsoft.com/en-us/rest/api/sql/server-azure-ad-only-authentications/delete?view=rest-sql-2023-05-01-preview&tabs=HTTP
+			// https://learn.microsoft.com/rest/api/sql/server-azure-ad-only-authentications/delete?view=rest-sql-2023-05-01-preview&tabs=HTTP
 			if response.WasStatusCode(resp.HttpResponse, 202) {
 				// NOTE: It was accepted but not completed, it is now an async operation...
 				// create a custom poller and wait for it to complete as 'Succeeded'...
@@ -574,7 +574,7 @@ func resourceMssqlServerSetFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 			if v := props.MinimalTlsVersion; v == nil || *v == "None" {
 				d.Set("minimum_tls_version", "Disabled")
 			} else {
-				d.Set("minimum_tls_version", string(pointer.From(props.MinimalTlsVersion)))
+				d.Set("minimum_tls_version", pointer.FromEnum(props.MinimalTlsVersion))
 			}
 
 			d.Set("public_network_access_enabled", pointer.From(props.PublicNetworkAccess) == servers.ServerPublicNetworkAccessFlagEnabled)

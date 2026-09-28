@@ -388,7 +388,6 @@ func (r AlertRuleAnomalyDuplicateResource) Create() sdk.ResourceFunc {
 					Techniques:             builtInAnomalyRuleProps.Techniques,
 					AnomalyVersion:         builtInAnomalyRuleProps.AnomalyVersion,
 					Frequency:              builtInAnomalyRuleProps.Frequency,
-					IsDefaultSettings:      false, // for duplicate one, it's not default settings.
 					AnomalySettingsVersion: builtInAnomalyRuleProps.AnomalySettingsVersion,
 					SettingsDefinitionId:   builtInAnomalyRuleProps.SettingsDefinitionId,
 					Enabled:                config.Enabled,

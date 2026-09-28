@@ -561,8 +561,7 @@ func flattenGalleryApplicationVersionTargetRegion(input *[]galleryapplicationver
 
 	for _, item := range *input {
 		obj := TargetRegion{
-			Name:              location.Normalize(item.Name),
-			ExcludeFromLatest: false,
+			Name: location.Normalize(item.Name),
 		}
 
 		if item.ExcludeFromLatest != nil {

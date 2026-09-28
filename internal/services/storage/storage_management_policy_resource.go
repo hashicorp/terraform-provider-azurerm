@@ -315,7 +315,7 @@ func resourceStorageManagementPolicyCreateOrUpdate(d *pluginsdk.ResourceData, me
 		return err
 	}
 
-	// The name of the Storage Account Management Policy. It should always be 'default' (from https://docs.microsoft.com/en-us/rest/api/storagerp/managementpolicies/createorupdate)
+	// The name of the Storage Account Management Policy. It should always be 'default' (from https://docs.microsoft.com/rest/api/storagerp/managementpolicies/createorupdate)
 	mgmtPolicyId := parse.NewStorageAccountManagementPolicyID(rid.SubscriptionId, rid.ResourceGroupName, rid.StorageAccountName, "default")
 
 	if d.IsNewResource() {
@@ -819,8 +819,8 @@ func flattenStorageManagementPolicyRules(armRules []managementpolicies.Managemen
 			}
 		}
 
-		armActionSnaphost := armAction.Snapshot
-		if armActionSnaphost != nil {
+		armActionSnapshot := armAction.Snapshot
+		if armActionSnapshot != nil {
 			var (
 				deleteAfterCreation        = -1
 				archiveAfterCreation       = -1
@@ -828,21 +828,21 @@ func flattenStorageManagementPolicyRules(armRules []managementpolicies.Managemen
 				coolAfterCreation          = -1
 				tierToColdSinceCreate      = -1
 			)
-			if armActionSnaphost.Delete != nil {
-				deleteAfterCreation = int(armActionSnaphost.Delete.DaysAfterCreationGreaterThan)
+			if armActionSnapshot.Delete != nil {
+				deleteAfterCreation = int(armActionSnapshot.Delete.DaysAfterCreationGreaterThan)
 			}
-			if armActionSnaphost.TierToArchive != nil {
-				archiveAfterCreation = int(armActionSnaphost.TierToArchive.DaysAfterCreationGreaterThan)
+			if armActionSnapshot.TierToArchive != nil {
+				archiveAfterCreation = int(armActionSnapshot.TierToArchive.DaysAfterCreationGreaterThan)
 
-				if v := armActionSnaphost.TierToArchive.DaysAfterLastTierChangeGreaterThan; v != nil {
+				if v := armActionSnapshot.TierToArchive.DaysAfterLastTierChangeGreaterThan; v != nil {
 					archiveAfterLastTierChange = int(*v)
 				}
 			}
-			if armActionSnaphost.TierToCold != nil {
-				tierToColdSinceCreate = int(armActionSnaphost.TierToCold.DaysAfterCreationGreaterThan)
+			if armActionSnapshot.TierToCold != nil {
+				tierToColdSinceCreate = int(armActionSnapshot.TierToCold.DaysAfterCreationGreaterThan)
 			}
-			if armActionSnaphost.TierToCool != nil {
-				coolAfterCreation = int(armActionSnaphost.TierToCool.DaysAfterCreationGreaterThan)
+			if armActionSnapshot.TierToCool != nil {
+				coolAfterCreation = int(armActionSnapshot.TierToCool.DaysAfterCreationGreaterThan)
 			}
 			action["snapshot"] = []interface{}{map[string]interface{}{
 				"delete_after_days_since_creation_greater_than":                  deleteAfterCreation,

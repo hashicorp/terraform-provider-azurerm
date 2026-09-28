@@ -538,7 +538,7 @@ func (r NetAppVolumeGroupOracleResource) Update() sdk.ResourceFunc {
 
 							if dataProtectionReplication != nil &&
 								dataProtectionReplication.EndpointType != nil &&
-								strings.EqualFold(string(pointer.From(dataProtectionReplication.EndpointType)), string(volumegroups.EndpointTypeDst)) {
+								strings.EqualFold(pointer.FromEnum(dataProtectionReplication.EndpointType), string(volumegroups.EndpointTypeDst)) {
 								return fmt.Errorf("snapshot policy cannot be enabled on a data protection volume, %s", volumeId)
 							}
 

@@ -210,7 +210,7 @@ func (r NetAppBackupVaultResource) Delete() sdk.ResourceFunc {
 			}
 
 			// Attempt to delete backup vault with retries
-			for retries := 0; retries < 5; retries++ {
+			for range 5 {
 				// Delete backups
 				if err := deleteBackupsFromVault(ctx, id, backupClient, metadata.Client.Features.NetApp.DeleteBackupsOnBackupVaultDestroy); err != nil {
 					return err
@@ -329,7 +329,7 @@ func deleteBackupsFromVault(ctx context.Context, id *backupvaults.BackupVaultId,
 
 func retryBackupDelete(ctx context.Context, client *backups.BackupsClient, id backups.BackupId, retryAttempts, retryIntervalSec int) error {
 	var lastErr error
-	for attempt := 0; attempt < retryAttempts; attempt++ {
+	for range retryAttempts {
 		if err := client.DeleteThenPoll(ctx, id); err == nil {
 			if err := waitForBackupDeletion(ctx, client, id); err != nil {
 				return fmt.Errorf("waiting for deletion of %s: %w", id.ID(), err)

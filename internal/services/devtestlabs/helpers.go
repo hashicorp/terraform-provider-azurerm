@@ -6,7 +6,6 @@ package devtestlabs
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/virtualmachines"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -29,7 +28,7 @@ func schemaDevTestVirtualMachineInboundNatRule() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: validate.PortNumber,
+					ValidateFunc: validation.IsPortNumber,
 				},
 
 				"frontend_port": {

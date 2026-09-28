@@ -144,11 +144,10 @@ func parseDiffPath(root, p string) string {
 // parseHunkNewStart extracts the new-side start line from a hunk header such as
 // "@@ -1,0 +23,4 @@".
 func parseHunkNewStart(line string) (int, bool) {
-	plus := strings.IndexByte(line, '+')
-	if plus < 0 {
+	_, rest, ok := strings.Cut(line, "+")
+	if !ok {
 		return 0, false
 	}
-	rest := line[plus+1:]
 	end := strings.IndexAny(rest, ", ")
 	if end >= 0 {
 		rest = rest[:end]

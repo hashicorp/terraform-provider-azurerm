@@ -5,6 +5,7 @@ package resourceproviders
 
 import (
 	"fmt"
+	"maps"
 	"strings"
 )
 
@@ -17,7 +18,7 @@ import (
 //
 // Note that resource providers are case-sensitive.
 //
-// Official Docs: https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/azure-services-resource-providers
+// Official Docs: https://learn.microsoft.com/azure/azure-resource-manager/management/azure-services-resource-providers
 
 type ResourceProviders map[string]struct{}
 
@@ -36,9 +37,7 @@ func (r ResourceProviders) Add(providers ...string) {
 }
 
 func (r ResourceProviders) Merge(a ResourceProviders) ResourceProviders {
-	for k, v := range a {
-		r[k] = v
-	}
+	maps.Copy(r, a)
 	return r
 }
 

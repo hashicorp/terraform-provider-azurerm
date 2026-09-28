@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2020-04-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2020-05-01/frontdoors"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/migration"
@@ -1471,8 +1470,8 @@ func flattenFrontDoorRoutingRule(input *[]frontdoors.RoutingRule, oldBlocks inte
 
 	if len(explicitOrder) > 0 {
 		orderedRule := explicitOrder[0].(map[string]interface{})
-		orderedRountingRuleIds := orderedRule["routing_rule_ids"].([]interface{})
-		combinedRoutingRules, err := combineRoutingRules(*input, oldBlocks, orderedRountingRuleIds, frontDoorId)
+		orderedRoutingRuleIds := orderedRule["routing_rule_ids"].([]interface{})
+		combinedRoutingRules, err := combineRoutingRules(*input, oldBlocks, orderedRoutingRuleIds, frontDoorId)
 		if err != nil {
 			return nil, err
 		}
@@ -1843,7 +1842,7 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 								"cache_duration": {
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
-									ValidateFunc: validate.ISO8601DurationBetween("PT1S", "P365D"),
+									ValidateFunc: validation.ISO8601DurationBetween("PT1S", "P365D"),
 								},
 								"custom_forwarding_path": {
 									Type:     pluginsdk.TypeString,

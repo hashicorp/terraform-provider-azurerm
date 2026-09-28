@@ -250,8 +250,8 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta inter
 		props := model.Properties
 
 		if len(props.StorageSettings) > 0 {
-			d.Set("datastore_type", string(pointer.From(props.StorageSettings[0].DatastoreType)))
-			d.Set("redundancy", string(pointer.From(props.StorageSettings[0].Type)))
+			d.Set("datastore_type", pointer.FromEnum(props.StorageSettings[0].DatastoreType))
+			d.Set("redundancy", pointer.FromEnum(props.StorageSettings[0].Type))
 		}
 
 		immutability := backupvaultresources.ImmutabilityStateDisabled
@@ -262,7 +262,7 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta inter
 				}
 			}
 			if softDelete := securitySetting.SoftDeleteSettings; softDelete != nil {
-				d.Set("soft_delete", string(pointer.From(softDelete.State)))
+				d.Set("soft_delete", pointer.FromEnum(softDelete.State))
 				d.Set("retention_duration_in_days", pointer.From(softDelete.RetentionDurationInDays))
 			}
 		}

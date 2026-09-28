@@ -295,7 +295,7 @@ func resourceSharedImageGalleryDelete(d *pluginsdk.ResourceData, meta interface{
 					OperationType: gallerysharingupdate.SharingUpdateOperationTypesReset,
 				}
 				if err = gallerySharingUpdateClient.GallerySharingProfileUpdateThenPoll(ctx, *id, updatePayload); err != nil {
-					return fmt.Errorf("reseting community sharing of %s: %+v", id, err)
+					return fmt.Errorf("resetting community sharing of %s: %+v", id, err)
 				}
 			}
 		}
@@ -336,7 +336,7 @@ func flattenSharedImageGallerySharing(input *galleries.SharingProfile) []interfa
 
 	permission := ""
 	if v := input.Permissions; v != nil {
-		permission = string(pointer.From(v))
+		permission = pointer.FromEnum(v)
 	}
 
 	return []interface{}{

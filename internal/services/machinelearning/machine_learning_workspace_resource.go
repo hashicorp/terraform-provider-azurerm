@@ -700,9 +700,7 @@ func expandMachineLearningWorkspaceEncryption(input []interface{}) *workspaces.E
 
 	raw := input[0].(map[string]interface{})
 	out := workspaces.EncryptionProperty{
-		Identity: &workspaces.IdentityForCmk{
-			UserAssignedIdentity: nil,
-		},
+		Identity: &workspaces.IdentityForCmk{},
 		KeyVaultProperties: workspaces.EncryptionKeyVaultProperties{
 			KeyVaultArmId: raw["key_vault_id"].(string),
 			KeyIdentifier: raw["key_id"].(string),

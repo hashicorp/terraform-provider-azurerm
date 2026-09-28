@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/migration"
@@ -73,7 +72,7 @@ func resourceIotHubFallbackRoute() *pluginsdk.Resource {
 
 			"condition": {
 				// The condition is a string value representing device-to-cloud message routes query expression
-				// https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-query-language#device-to-cloud-message-routes-query-expressions
+				// https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language#device-to-cloud-message-routes-query-expressions
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  "true",
@@ -130,7 +129,7 @@ func resourceIotHubFallbackRouteCreateUpdate(d *pluginsdk.ResourceData, meta int
 	routing.FallbackRoute = &devices.FallbackRouteProperties{
 		Source:        pointer.To(d.Get("source").(string)),
 		Condition:     pointer.To(d.Get("condition").(string)),
-		EndpointNames: helpers.ExpandStringSlice(d.Get("endpoint_names").([]interface{})),
+		EndpointNames: pluginsdk.ExpandStringSlice(d.Get("endpoint_names").([]interface{})),
 		IsEnabled:     pointer.To(d.Get("enabled").(bool)),
 	}
 
