@@ -258,7 +258,6 @@ func resourceStorageContainerRead(d *pluginsdk.ResourceData, meta any) error {
 	return resourceStorageContainerFlatten(ctx, d, id, existing.Model, meta, true)
 }
 
-// resourceStorageContainerFlatten sets a returned blob container into state, used by both the resource and the list resource.
 // Note: when adding new properties, ensure the `(StorageContainerListResource).listItemToBlobContainer` function is updated as well.
 func resourceStorageContainerFlatten(ctx context.Context, d *pluginsdk.ResourceData, id *commonids.StorageContainerId, model *blobcontainers.BlobContainer, meta any, includeResource bool) error {
 	d.Set("name", id.ContainerName)
