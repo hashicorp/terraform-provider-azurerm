@@ -90,7 +90,18 @@ func (r DataProtectionBackupVaultResourceGuardAssociationListResource) List(ctx 
 			rmd := sdk.NewResourceMetaData(metadata.Client, association)
 			rmd.SetID(id)
 
-			if err := association.flatten(rmd, *id, &proxy); err != nil {
+			state, err := association.flatten(*id, &proxy)
+			if err != nil {
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("flattening `%s` resource data", dataProtectionBackupVaultResourceGuardAssociationResourceType), err)
+				return
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(rmd.ResourceData, id); err != nil {
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("setting `%s` resource identity", dataProtectionBackupVaultResourceGuardAssociationResourceType), err)
+				return
+			}
+
+			if err := rmd.Encode(state); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", dataProtectionBackupVaultResourceGuardAssociationResourceType), err)
 				return
 			}

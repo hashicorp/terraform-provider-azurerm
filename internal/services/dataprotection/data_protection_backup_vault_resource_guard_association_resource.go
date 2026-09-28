@@ -140,7 +140,16 @@ func (r DataProtectionBackupVaultResourceGuardAssociationResource) Read() sdk.Re
 				return fmt.Errorf("retrieving %s: model was nil", *id)
 			}
 
-			return r.flatten(metadata, *id, resp.Model)
+			state, err := r.flatten(*id, resp.Model)
+			if err != nil {
+				return err
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
+
+			return metadata.Encode(state)
 		},
 	}
 }
@@ -184,23 +193,19 @@ func (r DataProtectionBackupVaultResourceGuardAssociationResource) Delete() sdk.
 	}
 }
 
-func (DataProtectionBackupVaultResourceGuardAssociationResource) flatten(metadata sdk.ResourceMetaData, id resourceguardproxy.BackupResourceGuardProxyId, model *resourceguardproxy.ResourceGuardProxyBaseResource) error {
+func (DataProtectionBackupVaultResourceGuardAssociationResource) flatten(id resourceguardproxy.BackupResourceGuardProxyId, model *resourceguardproxy.ResourceGuardProxyBaseResource) (*DataProtectionBackupVaultResourceGuardAssociationModel, error) {
 	vaultId := backupvaultresources.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.BackupVaultName)
-	state := DataProtectionBackupVaultResourceGuardAssociationModel{
+	state := &DataProtectionBackupVaultResourceGuardAssociationModel{
 		DataProtectionBackupVaultId: vaultId.ID(),
 	}
 
 	if model != nil && model.Properties != nil && model.Properties.ResourceGuardResourceId != nil {
 		guardId, err := resourceguardresources.ParseResourceGuardIDInsensitively(*model.Properties.ResourceGuardResourceId)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		state.DataProtectionResourceGuardId = guardId.ID()
 	}
 
-	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
-		return err
-	}
-
-	return metadata.Encode(&state)
+	return state, nil
 }
