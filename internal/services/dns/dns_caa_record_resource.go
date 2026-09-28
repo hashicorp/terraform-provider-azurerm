@@ -238,14 +238,10 @@ func expandAzureRmDnsCaaRecords(d *pluginsdk.ResourceData) *[]recordsets.CaaReco
 	for _, v := range recordStrings {
 		record := v.(map[string]interface{})
 
-		flags := int64(record["flags"].(int))
-		tag := record["tag"].(string)
-		value := record["value"].(string)
-
 		records = append(records, recordsets.CaaRecord{
-			Flags: &flags,
-			Tag:   &tag,
-			Value: &value,
+			Flags: pointer.To(int64(record["flags"].(int))),
+			Tag:   pointer.To(record["tag"].(string)),
+			Value: pointer.To(record["value"].(string)),
 		})
 	}
 

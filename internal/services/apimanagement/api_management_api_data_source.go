@@ -143,8 +143,7 @@ func dataSourceApiManagementApiRead(d *pluginsdk.ResourceData, meta interface{})
 	d.SetId(id.ID())
 
 	d.Set("api_management_name", id.ServiceName)
-	name := getApiName(id.ApiId)
-	d.Set("name", name)
+	d.Set("name", getApiName(id.ApiId))
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {

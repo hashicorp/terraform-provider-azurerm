@@ -89,9 +89,10 @@ func resourceStorageContainer() *pluginsdk.Resource {
 			},
 
 			"default_encryption_scope": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true, // needed because a dummy value is returned when unspecified
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// Note: O+C because needed because a dummy value is returned when unspecified
+				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.StorageEncryptionScopeName,
 			},
@@ -242,7 +243,7 @@ func resourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if props := model.Properties; props != nil {
 			d.Set("name", id.ContainerName)
 			d.Set("storage_account_id", commonids.NewStorageAccountID(id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName).ID())
-			d.Set("container_access_type", containerAccessTypeConversionMap[string(pointer.From(props.PublicAccess))])
+			d.Set("container_access_type", containerAccessTypeConversionMap[pointer.FromEnum(props.PublicAccess)])
 			d.Set("default_encryption_scope", props.DefaultEncryptionScope)
 			d.Set("encryption_scope_override_enabled", !pointer.From(props.DenyEncryptionScopeOverride))
 			d.Set("metadata", FlattenMetaData(pointer.From(props.Metadata)))

@@ -71,12 +71,10 @@ func (EventGridPartnerNamespaceResource) Arguments() map[string]*pluginsdk.Schem
 						ValidateFunc: validation.IsCIDR,
 					},
 					"action": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  string(partnernamespaces.IPActionTypeAllow),
-						ValidateFunc: validation.StringInSlice([]string{
-							string(partnernamespaces.IPActionTypeAllow),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      string(partnernamespaces.IPActionTypeAllow),
+						ValidateFunc: validation.StringInSlice(partnernamespaces.PossibleValuesForIPActionType(), false),
 					},
 				},
 			},
@@ -94,13 +92,10 @@ func (EventGridPartnerNamespaceResource) Arguments() map[string]*pluginsdk.Schem
 			Default:      string(partnernamespaces.PartnerTopicRoutingModeChannelNameHeader),
 		},
 		"public_network_access": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(partnernamespaces.PublicNetworkAccessEnabled),
-				string(partnernamespaces.PublicNetworkAccessDisabled),
-			}, false),
-			Default: string(partnernamespaces.PublicNetworkAccessEnabled),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(partnernamespaces.PossibleValuesForPublicNetworkAccess(), false),
+			Default:      string(partnernamespaces.PublicNetworkAccessEnabled),
 		},
 		"tags": commonschema.Tags(),
 	}

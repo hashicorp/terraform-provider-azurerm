@@ -72,7 +72,7 @@ func resourcePurviewAccount() *pluginsdk.Resource {
 			"managed_resource_group_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ForceNew:     true,
 				ValidateFunc: resourcegroups.ValidateName,
 			},

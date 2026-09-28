@@ -27,6 +27,7 @@ func EnhancedValidate(i interface{}, k string) ([]string, []error) {
 	return enhancedValidation(i, k)
 }
 
+// lintignore:V013 // this validates against a list of Resource Providers cached at runtime, not a static list
 func enhancedValidation(i interface{}, k string) ([]string, []error) {
 	v, ok := i.(string)
 	if !ok {

@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkwatchers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/packetcaptures"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkwatchers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/packetcaptures"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -235,13 +235,11 @@ func resourceVirtualMachinePacketCaptureRead(d *pluginsdk.ResourceData, meta int
 			d.Set("maximum_bytes_per_session", int(*props.TotalBytesPerSession))
 			d.Set("maximum_capture_duration_in_seconds", int(*props.TimeLimitInSeconds))
 
-			location := flattenVirtualMachinePacketCaptureStorageLocation(props.StorageLocation)
-			if err := d.Set("storage_location", location); err != nil {
+			if err := d.Set("storage_location", flattenVirtualMachinePacketCaptureStorageLocation(props.StorageLocation)); err != nil {
 				return fmt.Errorf("setting `storage_location`: %+v", err)
 			}
 
-			filters := flattenVirtualMachinePacketCaptureFilters(props.Filters)
-			if err := d.Set("filter", filters); err != nil {
+			if err := d.Set("filter", flattenVirtualMachinePacketCaptureFilters(props.Filters)); err != nil {
 				return fmt.Errorf("setting `filter`: %+v", err)
 			}
 		}

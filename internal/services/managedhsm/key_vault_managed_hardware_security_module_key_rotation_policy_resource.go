@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	validate2 "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
@@ -55,14 +55,14 @@ func (r KeyVaultMHSMKeyRotationPolicyResource) Arguments() map[string]*pluginsdk
 		"expire_after": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate2.ISO8601DurationBetween("P28D", "P100Y"),
+			ValidateFunc: validation.ISO8601DurationBetween("P28D", "P100Y"),
 		},
 
 		// notify not supported in HSM Key, only rotate is supported
 		"time_after_creation": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validate2.ISO8601DurationBetween("P28D", "P100Y"),
+			ValidateFunc: validation.ISO8601DurationBetween("P28D", "P100Y"),
 			ExactlyOneOf: []string{
 				"time_after_creation",
 				"time_before_expiry",
@@ -72,7 +72,7 @@ func (r KeyVaultMHSMKeyRotationPolicyResource) Arguments() map[string]*pluginsdk
 		"time_before_expiry": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validate2.ISO8601Duration,
+			ValidateFunc: validation.ISO8601Duration,
 			ExactlyOneOf: []string{
 				"time_after_creation",
 				"time_before_expiry",

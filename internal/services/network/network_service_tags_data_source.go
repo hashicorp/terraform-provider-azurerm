@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/servicetags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -68,12 +68,12 @@ func dataSourceNetworkServiceTags() *pluginsdk.Resource {
 }
 
 func dataSourceNetworkServiceTagsRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ServiceTags
+	client := meta.(*clients.Client).Network.VirtualNetworks
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	locationId := servicetags.NewLocationID(subscriptionId, location.Normalize(d.Get("location").(string)))
+	locationId := virtualnetworks.NewLocationID(subscriptionId, location.Normalize(d.Get("location").(string)))
 	resp, err := client.ServiceTagsList(ctx, locationId)
 	if err != nil {
 		return fmt.Errorf("listing network service tags: %+v", err)

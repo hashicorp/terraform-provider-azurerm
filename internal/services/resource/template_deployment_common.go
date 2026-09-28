@@ -111,7 +111,7 @@ func filterOutTemplateDeploymentParameters(input interface{}) interface{} {
 			"dnsLabelPrefix": {
 				"reference": {
 					"keyvault": {
-						"id": "/some/id/that/doesnt/matter/right/now"
+						"id": "/some/id/that/does-not/matter/right/now"
 					},
 					"secretName": "some-name"
 				}
@@ -301,8 +301,7 @@ func findApiVersionForResourceType(resourceType string, availableResourceTypes [
 		isPrefixMatch := strings.HasPrefix(strings.ToLower(resourceType), strings.ToLower(*item.ResourceType))
 		if isExactMatch || isPrefixMatch {
 			apiVersions := *item.ApiVersions
-			apiVersion := apiVersions[0]
-			return &apiVersion
+			return pointer.To(apiVersions[0])
 		}
 	}
 

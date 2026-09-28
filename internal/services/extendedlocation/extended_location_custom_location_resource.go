@@ -87,12 +87,10 @@ func (r ExtendedLocationCustomLocationResource) Arguments() map[string]*pluginsd
 		},
 
 		"host_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(customlocations.HostTypeKubernetes),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(customlocations.PossibleValuesForHostType(), false),
 		},
 
 		"display_name": {
@@ -218,7 +216,7 @@ func (r ExtendedLocationCustomLocationResource) Read() sdk.ResourceFunc {
 					ClusterExtensionIds: pointer.From(props.ClusterExtensionIds),
 					DisplayName:         pointer.From(props.DisplayName),
 					HostResourceId:      pointer.From(props.HostResourceId),
-					HostType:            string(pointer.From(props.HostType)),
+					HostType:            pointer.FromEnum(props.HostType),
 					Namespace:           pointer.From(props.Namespace),
 				}
 

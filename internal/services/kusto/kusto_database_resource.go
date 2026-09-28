@@ -14,12 +14,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
 	kustoValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
@@ -69,13 +69,13 @@ func resourceKustoDatabase() *pluginsdk.Resource {
 			"soft_delete_period": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.ISO8601Duration,
+				ValidateFunc: validation.ISO8601Duration,
 			},
 
 			"hot_cache_period": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.ISO8601Duration,
+				ValidateFunc: validation.ISO8601Duration,
 			},
 
 			"size": {

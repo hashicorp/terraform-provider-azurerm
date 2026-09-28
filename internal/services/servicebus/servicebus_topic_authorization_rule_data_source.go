@@ -9,8 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/topics"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/topicsauthorizationrule"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/topics"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -122,7 +121,7 @@ func dataSourceServiceBusTopicAuthorizationRule() *pluginsdk.Resource {
 }
 
 func dataSourceServiceBusTopicAuthorizationRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ServiceBus.TopicsAuthClient
+	client := meta.(*clients.Client).ServiceBus.TopicsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -131,7 +130,7 @@ func dataSourceServiceBusTopicAuthorizationRuleRead(d *pluginsdk.ResourceData, m
 	var nsName string
 	var topicName string
 	if v, ok := d.Get("topic_id").(string); ok && v != "" {
-		topicId, err := topicsauthorizationrule.ParseTopicID(v)
+		topicId, err := topics.ParseTopicID(v)
 		if err != nil {
 			return fmt.Errorf("parsing topic ID %q: %+v", v, err)
 		}
@@ -144,8 +143,8 @@ func dataSourceServiceBusTopicAuthorizationRuleRead(d *pluginsdk.ResourceData, m
 		topicName = d.Get("topic_name").(string)
 	}
 
-	id := topicsauthorizationrule.NewTopicAuthorizationRuleID(subscriptionId, rgName, nsName, topicName, d.Get("name").(string))
-	resp, err := client.TopicsGetAuthorizationRule(ctx, id)
+	id := topics.NewTopicAuthorizationRuleID(subscriptionId, rgName, nsName, topicName, d.Get("name").(string))
+	resp, err := client.GetAuthorizationRule(ctx, id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
@@ -153,7 +152,7 @@ func dataSourceServiceBusTopicAuthorizationRuleRead(d *pluginsdk.ResourceData, m
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	keysResp, err := client.TopicsListKeys(ctx, id)
+	keysResp, err := client.ListKeys(ctx, id)
 	if err != nil {
 		return fmt.Errorf("listing keys for %s: %+v", id, err)
 	}

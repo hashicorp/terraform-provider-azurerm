@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -143,15 +143,9 @@ func (r RouteMapResource) Arguments() map[string]*pluginsdk.Schema {
 								},
 
 								"type": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(virtualwans.RouteMapActionTypeAdd),
-										string(virtualwans.RouteMapActionTypeDrop),
-										string(virtualwans.RouteMapActionTypeRemove),
-										string(virtualwans.RouteMapActionTypeReplace),
-										string(virtualwans.RouteMapActionTypeUnknown),
-									}, false),
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForRouteMapActionType(), false),
 								},
 							},
 						},
@@ -163,15 +157,9 @@ func (r RouteMapResource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"match_condition": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(virtualwans.RouteMapMatchConditionContains),
-										string(virtualwans.RouteMapMatchConditionEquals),
-										string(virtualwans.RouteMapMatchConditionNotContains),
-										string(virtualwans.RouteMapMatchConditionNotEquals),
-										string(virtualwans.RouteMapMatchConditionUnknown),
-									}, false),
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForRouteMapMatchCondition(), false),
 								},
 
 								"as_path": {
@@ -205,14 +193,10 @@ func (r RouteMapResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"next_step_if_matched": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  string(virtualwans.NextStepUnknown),
-						ValidateFunc: validation.StringInSlice([]string{
-							string(virtualwans.NextStepContinue),
-							string(virtualwans.NextStepTerminate),
-							string(virtualwans.NextStepUnknown),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      string(virtualwans.NextStepUnknown),
+						ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForNextStep(), false),
 					},
 				},
 			},

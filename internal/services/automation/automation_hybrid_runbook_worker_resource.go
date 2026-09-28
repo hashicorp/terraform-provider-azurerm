@@ -125,7 +125,7 @@ func (m HybridRunbookWorkerResource) Create() sdk.ResourceFunc {
 				existing, err := client.Get(ctx, id)
 				if !response.WasNotFound(existing.HttpResponse) {
 					if err != nil {
-						return fmt.Errorf("retreiving %s: %v", id, err)
+						return fmt.Errorf("retrieving %s: %v", id, err)
 					}
 					return metadata.ResourceRequiresImport(m.ResourceType(), id)
 				}
@@ -201,7 +201,6 @@ func (m HybridRunbookWorkerResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			meta.Logger.Infof("deleting %s", id)
 			client := meta.Client.Automation.HybridRunbookWorker
 			if _, err = client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", id, err)

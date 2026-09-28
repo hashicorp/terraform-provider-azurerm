@@ -53,7 +53,7 @@ func resourceAppServiceSlotCustomHostnameBinding() *pluginsdk.Resource {
 			"ssl_state": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(webapps.SslStateIPBasedEnabled),
@@ -64,7 +64,7 @@ func resourceAppServiceSlotCustomHostnameBinding() *pluginsdk.Resource {
 			"thumbprint": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
