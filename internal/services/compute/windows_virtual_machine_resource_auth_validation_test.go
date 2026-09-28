@@ -22,6 +22,8 @@ func TestWindowsVirtualMachineWriteOnlyPasswordVersion(t *testing.T) {
 		wantError bool
 	}{
 		{"ordinary password without version", cty.NullVal(cty.Number), false, false},
+		{"write-only password without version", cty.NullVal(cty.Number), true, true},
+		{"version without write-only password", cty.NumberIntVal(1), false, true},
 		{"negative version", cty.NumberIntVal(-1), true, true},
 		{"zero version", cty.NumberIntVal(0), true, true},
 		{"initial version", cty.NumberIntVal(1), true, false},

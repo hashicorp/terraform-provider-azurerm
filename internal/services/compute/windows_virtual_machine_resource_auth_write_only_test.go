@@ -11,8 +11,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 	"testing"
@@ -114,24 +116,87 @@ func TestAccWindowsVirtualMachine_authPasswordWriteOnlyTransitions(t *testing.T)
 	})
 }
 
+func TestAccWindowsVirtualMachine_authPasswordWriteOnlyImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
+	password := "P@ss-" + rand.Text()
+	var resourceID, machineID string
+
+	step := func(label string, action plancheck.ResourceActionType) acceptance.TestStep {
+		resourceName := data.ResourceType + "." + label
+		return acceptance.TestStep{
+			Config:          r.authPasswordSourceNamed(data, label, true, 1),
+			ConfigVariables: config.Variables{"password": config.StringVariable(password)},
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(resourceName, action),
+				},
+			},
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(resourceName).ExistsInAzure(r),
+				resource.TestCheckResourceAttrWith(resourceName, "id", func(value string) error {
+					if value == "" {
+						return errors.New("VM resource ID is empty")
+					}
+					if resourceID != "" && resourceID != value {
+						return errors.New("replacement changed the test-owned VM resource address")
+					}
+					resourceID = value
+					return nil
+				}),
+				resource.TestCheckResourceAttr(resourceName, "admin_password_wo_version", "1"),
+				windowsVMPasswordSourceState(resourceName, ""),
+				windowsVMPasswordMachineID(resourceName, &machineID, action == plancheck.ResourceActionReplace),
+			),
+		}
+	}
+	importStep := data.ImportStep("admin_password", "admin_password_wo_version")
+	importStep.ConfigVariables = config.Variables{"password": config.StringVariable(password)}
+
+	persistedImport := importStep
+	persistedImport.Config = r.authPasswordSource(data, true, 1)
+	persistedImport.ImportStatePersist = true
+	persistedImport.ImportStateIdFunc = func(_ *terraform.State) (string, error) {
+		if resourceID == "" {
+			return "", errors.New("test-owned VM resource ID was not recorded")
+		}
+		return resourceID, nil
+	}
+	persistedImport.ImportStateCheck = windowsVMPasswordImportedState(&resourceID, &machineID)
+
+	replaceStep := step("test", plancheck.ResourceActionReplace)
+	// Retain the setup address until import succeeds so a failed import can still destroy the VM.
+	replaceStep.Config += `
+removed {
+  from = azurerm_windows_virtual_machine.before_import
+  lifecycle {
+    destroy = false
+  }
+}
+`
+	replaceStep.Check = acceptance.ComposeTestCheckFunc(replaceStep.Check, func(state *terraform.State) error {
+		if _, ok := state.RootModule().Resources[data.ResourceType+".before_import"]; ok {
+			return errors.New("setup VM address was not removed from managed state")
+		}
+		return nil
+	})
+
+	runWindowsVMWriteOnlyPasswordTest(t, data, []string{password}, []acceptance.TestStep{
+		step("before_import", plancheck.ResourceActionCreate),
+		persistedImport,
+		// Reapply the original password and version: only import reset the version.
+		replaceStep,
+		importStep,
+	})
+}
+
 func runWindowsVMWriteOnlyPasswordTest(t *testing.T, data acceptance.TestData, passwords []string, steps []acceptance.TestStep) {
 	t.Helper()
 	if os.Getenv(resource.EnvTfAcc) == "" {
 		t.Skip("acceptance test requires TF_ACC")
 	}
 
-	workingDir, err := filepath.Abs(".acctest-password-" + data.RandomString)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := os.Mkdir(workingDir, 0o700); err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() {
-		if err := os.RemoveAll(workingDir); err != nil {
-			t.Error(err)
-		}
-	})
+	workingDir := windowsVMPasswordTestDirectory(t)
 
 	checkStateFiles := func(importing bool) error {
 		paths, err := filepath.Glob(filepath.Join(workingDir, "work*", "terraform.tfstate"))
@@ -165,9 +230,7 @@ func runWindowsVMWriteOnlyPasswordTest(t *testing.T, data acceptance.TestData, p
 	var verifiedSteps []acceptance.TestStep
 	for i := range steps {
 		if steps[i].ImportState {
-			steps[i].ImportStateCheck = func(_ []*terraform.InstanceState) error {
-				return checkStateFiles(true)
-			}
+			steps[i].ImportStateCheck = windowsVMPasswordImportStateCheck(steps[i].ImportStateCheck, steps[i].ImportStatePersist, checkStateFiles)
 		} else {
 			steps[i].Check = acceptance.ComposeTestCheckFunc(steps[i].Check, func(_ *terraform.State) error {
 				return checkStateFiles(false)
@@ -195,7 +258,8 @@ func runWindowsVMWriteOnlyPasswordTest(t *testing.T, data acceptance.TestData, p
 	defer testclient.UnregisterTestT()
 
 	// The acceptance wrapper replaces PreApply checks and does not expose WorkingDir.
-	resource.ParallelTest(t, resource.TestCase{
+	// Process-wide temporary-directory overrides require a serial test.
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acceptance.PreCheck(t) },
 		TerraformVersionChecks:   []tfversion.TerraformVersionCheck{tfversion.SkipBelow(tfversion.Version1_11_0)},
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInitWithTestName(context.Background(), t.Name(), "azurerm"),
@@ -209,6 +273,142 @@ func runWindowsVMWriteOnlyPasswordTest(t *testing.T, data acceptance.TestData, p
 		},
 		Steps: verifiedSteps,
 	})
+}
+
+func windowsVMPasswordImportStateCheck(importCheck resource.ImportStateCheckFunc, persisted bool, checkStateFiles func(bool) error) resource.ImportStateCheckFunc {
+	return func(states []*terraform.InstanceState) error {
+		var importErr error
+		if importCheck != nil {
+			importErr = importCheck(states)
+		}
+		return errors.Join(importErr, checkStateFiles(!persisted))
+	}
+}
+
+func TestWindowsVMPasswordImportStateCheck(t *testing.T) {
+	importErr := errors.New("import check failed")
+	stateErr := errors.New("state check failed")
+	for _, persisted := range []bool{false, true} {
+		for name, test := range map[string]struct {
+			customCheck bool
+			importError error
+			stateError  error
+		}{
+			"privacy only": {stateError: stateErr},
+			"valid":        {customCheck: true},
+			"import error": {customCheck: true, importError: importErr},
+			"state error":  {customCheck: true, stateError: stateErr},
+			"both errors":  {customCheck: true, importError: importErr, stateError: stateErr},
+		} {
+			t.Run(fmt.Sprintf("persisted=%t/%s", persisted, name), func(t *testing.T) {
+				states := []*terraform.InstanceState{{ID: "test-owned-resource"}}
+				importCalled, stateCalled := false, false
+				var importCheck resource.ImportStateCheckFunc
+				if test.customCheck {
+					importCheck = func(actual []*terraform.InstanceState) error {
+						importCalled = true
+						if len(actual) != 1 || actual[0] != states[0] {
+							t.Error("import check did not receive the imported state")
+						}
+						return test.importError
+					}
+				}
+				err := windowsVMPasswordImportStateCheck(importCheck, persisted, func(separate bool) error {
+					stateCalled = true
+					if separate == persisted {
+						t.Error("incorrect separate import state requirement")
+					}
+					return test.stateError
+				})(states)
+				if importCalled != test.customCheck || !stateCalled {
+					t.Error("import or privacy check was not executed")
+				}
+				if errors.Is(err, importErr) != (test.importError != nil) || errors.Is(err, stateErr) != (test.stateError != nil) {
+					t.Error("import or privacy check failure was lost")
+				}
+				if (err == nil) != (test.importError == nil && test.stateError == nil) {
+					t.Error("unexpected import check error status")
+				}
+			})
+		}
+	}
+}
+
+func windowsVMPasswordTestDirectory(t *testing.T) string {
+	t.Helper()
+	checkout, err := filepath.Abs(".")
+	if err != nil {
+		t.Fatal(err)
+	}
+	workingDir, err := os.MkdirTemp(checkout, ".acctest-password-")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if err := os.RemoveAll(workingDir); err != nil {
+			t.Error(err)
+		}
+	})
+	for _, name := range []string{"TMPDIR", "TMP", "TEMP", "GOTMPDIR", "TF_ACC_TEMP_DIR"} {
+		t.Setenv(name, workingDir)
+	}
+	return workingDir
+}
+
+func TestWindowsVMPasswordTestDirectory(t *testing.T) {
+	previous := make(map[string]string)
+	wasSet := make(map[string]bool)
+	for _, name := range []string{"TMPDIR", "TMP", "TEMP", "GOTMPDIR", "TF_ACC_TEMP_DIR"} {
+		previous[name], wasSet[name] = os.LookupEnv(name)
+	}
+	var directory string
+	t.Run("contained", func(t *testing.T) {
+		directory = windowsVMPasswordTestDirectory(t)
+		checkout, err := os.Getwd()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if filepath.Dir(directory) != checkout {
+			t.Fatal("password test directory must be inside the checkout")
+		}
+		info, err := os.Stat(directory)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if runtime.GOOS != "windows" && info.Mode().Perm() != 0o700 {
+			t.Fatal("password test directory must be private")
+		}
+		for _, name := range []string{"TMPDIR", "TMP", "TEMP", "GOTMPDIR", "TF_ACC_TEMP_DIR"} {
+			if os.Getenv(name) != directory {
+				t.Errorf("%s must point to the private password test directory", name)
+			}
+		}
+		file, err := os.CreateTemp("", "containment-check-")
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(func() {
+			if err := os.Remove(file.Name()); err != nil {
+				t.Error(err)
+			}
+		})
+		if err := file.Close(); err != nil {
+			t.Fatal(err)
+		}
+		relative, err := filepath.Rel(directory, file.Name())
+		if err != nil || relative == ".." || strings.HasPrefix(relative, ".."+string(filepath.Separator)) {
+			t.Fatal("temporary file escaped the private password test directory")
+		}
+	})
+	if _, err := os.Stat(directory); !errors.Is(err, os.ErrNotExist) {
+		t.Fatal("password test directory was not removed")
+	}
+	for name, expected := range previous {
+		value, set := os.LookupEnv(name)
+		if value != expected || set != wasSet[name] {
+			t.Errorf("%s was not restored after the password test", name)
+		}
+	}
 }
 
 func windowsVMPasswordSourceState(resourceName, expected string) resource.TestCheckFunc {
@@ -235,6 +435,71 @@ func windowsVMPasswordMachineID(resourceName string, previous *string, replaceme
 		*previous = value
 		return nil
 	})
+}
+
+func windowsVMPasswordImportedState(resourceID, machineID *string) resource.ImportStateCheckFunc {
+	return func(states []*terraform.InstanceState) error {
+		if *resourceID == "" || *machineID == "" {
+			return errors.New("test-owned VM identity was not recorded")
+		}
+		for _, state := range states {
+			if state == nil || state.ID != *resourceID || state.Attributes["admin_password_wo_version"] != "0" {
+				continue
+			}
+			if state.Attributes["virtual_machine_id"] != *machineID {
+				return errors.New("import changed the Azure VM unique ID")
+			}
+			if state.Attributes["admin_password"] != "" || state.Attributes["admin_password_wo"] != "" {
+				return errors.New("imported VM state contains a password")
+			}
+			return nil
+		}
+		return errors.New("test-owned VM with a reset write-only password version was not found in imported state")
+	}
+}
+
+func TestWindowsVMPasswordImportedState(t *testing.T) {
+	const password = "sentinel-<secret>&"
+	for name, change := range map[string]map[string]string{
+		"imported":          {},
+		"imported first":    {},
+		"managed version":   {"admin_password_wo_version": "1"},
+		"missing version":   {"admin_password_wo_version": ""},
+		"different VM":      {"virtual_machine_id": "different-vm"},
+		"ordinary password": {"admin_password": password},
+		"write-only value":  {"admin_password_wo": password},
+		"missing VM":        {"id": "different-resource"},
+		"missing identity":  {},
+	} {
+		t.Run(name, func(t *testing.T) {
+			resourceID, machineID := "test-owned-resource", "test-owned-vm"
+			attributes := map[string]string{
+				"id":                        resourceID,
+				"virtual_machine_id":        machineID,
+				"admin_password_wo_version": "0",
+			}
+			maps.Copy(attributes, change)
+			if name == "missing identity" {
+				machineID = ""
+			}
+			states := []*terraform.InstanceState{
+				nil,
+				{ID: "test-owned-sibling"},
+				{ID: resourceID, Attributes: map[string]string{"virtual_machine_id": machineID, "admin_password_wo_version": "1"}},
+				{ID: attributes["id"], Attributes: attributes},
+			}
+			if name == "imported first" {
+				slices.Reverse(states)
+			}
+			err := windowsVMPasswordImportedState(&resourceID, &machineID)(states)
+			if (err == nil) != (name == "imported" || name == "imported first") {
+				t.Fatal("imported password state check returned an unexpected result")
+			}
+			if err != nil && strings.Contains(err.Error(), password) {
+				t.Fatal("import check exposed the sentinel in its diagnostic")
+			}
+		})
+	}
 }
 
 // Read the raw state, not terraform show's projection, to include outputs, other
@@ -313,6 +578,10 @@ func TestWindowsVMPasswordAbsentFromState(t *testing.T) {
 }
 
 func (r WindowsVirtualMachineResource) authPasswordSource(data acceptance.TestData, writeOnly bool, version int) string {
+	return r.authPasswordSourceNamed(data, "test", writeOnly, version)
+}
+
+func (r WindowsVirtualMachineResource) authPasswordSourceNamed(data acceptance.TestData, label string, writeOnly bool, version int) string {
 	password := "admin_password = var.password"
 	if writeOnly {
 		password = fmt.Sprintf("admin_password_wo = var.password\n  admin_password_wo_version = %d", version)
@@ -326,7 +595,7 @@ variable "password" {
   ephemeral = %t
 }
 
-resource "azurerm_windows_virtual_machine" "test" {
+resource "azurerm_windows_virtual_machine" %q {
   name                = local.vm_name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -349,5 +618,5 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, r.template(data), writeOnly, password)
+`, r.template(data), writeOnly, label, password)
 }
