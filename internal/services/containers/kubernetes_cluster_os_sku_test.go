@@ -113,13 +113,34 @@ func TestKubernetesClusterOSSKUConfigurations(t *testing.T) {
 						}
 						clusters++
 						content, _, diags := block.Body.PartialContent(&hcl.BodySchema{
-							Blocks: []hcl.BlockHeaderSchema{{Type: "node_provisioning_profile"}},
+							Blocks: []hcl.BlockHeaderSchema{
+								{Type: "node_provisioning_profile"},
+								{Type: "default_node_pool"},
+							},
 						})
 						if diags.HasErrors() {
 							t.Fatalf("reading node_provisioning_profile: %s", diags)
 						}
-						if got := len(content.Blocks); got != profile.MaxItems {
-							t.Errorf("node_provisioning_profile block count = %d; required singleton schema allows %d", got, profile.MaxItems)
+						provisioningProfiles, defaultPools := 0, 0
+						for _, nested := range content.Blocks {
+							if nested.Type == "node_provisioning_profile" {
+								provisioningProfiles++
+								continue
+							}
+							defaultPools++
+							pool, _, diags := nested.Body.PartialContent(&hcl.BodySchema{
+								Attributes: []hcl.AttributeSchema{{Name: "node_count", Required: true}},
+							})
+							if diags.HasErrors() {
+								t.Fatalf("reading default pool node_count: %s", diags)
+							}
+							count, diags := pool.Attributes["node_count"].Expr.Value(nil)
+							if diags.HasErrors() || !count.RawEquals(cty.NumberIntVal(1)) {
+								t.Fatalf("default OS SKU fixture must provision one node, got %s: %s", count.GoString(), diags)
+							}
+						}
+						if provisioningProfiles != profile.MaxItems || defaultPools != 1 {
+							t.Errorf("expected one provisioning profile and one default pool, got %d and %d", provisioningProfiles, defaultPools)
 						}
 					}
 					if clusters != 1 {
