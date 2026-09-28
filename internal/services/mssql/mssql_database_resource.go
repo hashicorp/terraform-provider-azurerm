@@ -316,7 +316,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 		if elasticPool.Model != nil {
 			if elasticPool.Model.Properties != nil && elasticPool.Model.Properties.PreferredEnclaveType != nil {
-				elasticEnclaveType := string(pointer.From(elasticPool.Model.Properties.PreferredEnclaveType))
+				elasticEnclaveType := pointer.FromEnum(elasticPool.Model.Properties.PreferredEnclaveType)
 				databaseEnclaveType := string(enclaveType)
 
 				if !strings.EqualFold(elasticEnclaveType, databaseEnclaveType) {
@@ -520,7 +520,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			}
 
 			if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.Status != nil {
-				return resp, string(pointer.From(resp.Model.Properties.Status)), nil
+				return resp, pointer.FromEnum(resp.Model.Properties.Status), nil
 			}
 
 			return resp, "", nil
@@ -985,7 +985,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					return resp, string(pointer.From(props.Status)), nil
+					return resp, pointer.FromEnum(props.Status), nil
 				}
 			}
 
@@ -1212,7 +1212,7 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 			}
 
 			if props.LicenseType != nil {
-				d.Set("license_type", string(pointer.From(props.LicenseType)))
+				d.Set("license_type", pointer.FromEnum(props.LicenseType))
 			} else {
 				// value not returned, try to set from state
 				d.Set("license_type", d.Get("license_type").(string))
@@ -1240,7 +1240,7 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 			// NOTE: Always set the PreferredEnclaveType to an empty string
 			// if not in the properties that were returned from Azure...
 			if v := props.PreferredEnclaveType; v != nil {
-				enclaveType = string(pointer.From(v))
+				enclaveType = pointer.FromEnum(v)
 			}
 
 			configurationName := ""

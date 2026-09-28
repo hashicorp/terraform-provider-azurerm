@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/azurefirewalls"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/azurefirewalls"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -217,7 +217,7 @@ func resourceFirewallApplicationRuleCollectionCreateUpdate(d *pluginsdk.Resource
 	firewall.Model.Properties.ApplicationRuleCollections = &ruleCollections
 
 	// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
-	if err = client.CreateOrUpdateThenPoll(ctx, firewallId, *firewall.Model); err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, firewallId, *firewall.Model, azurefirewalls.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("creating/updating Application Rule Collection %q in %s: %+v", name, firewallId, err)
 	}
 
@@ -313,7 +313,7 @@ func resourceFirewallApplicationRuleCollectionRead(d *pluginsdk.ResourceData, me
 
 	if props := rule.Properties; props != nil {
 		if action := props.Action; action != nil {
-			d.Set("action", string(pointer.From(action.Type)))
+			d.Set("action", pointer.FromEnum(action.Type))
 		}
 
 		if priority := props.Priority; priority != nil {
@@ -377,7 +377,7 @@ func resourceFirewallApplicationRuleCollectionDelete(d *pluginsdk.ResourceData, 
 	}
 	props.ApplicationRuleCollections = &applicationRules
 
-	if err := client.CreateOrUpdateThenPoll(ctx, firewallId, *firewall.Model); err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, firewallId, *firewall.Model, azurefirewalls.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("deleting Application Rule Collection %q from Firewall %q (Resource Group %q): %+v", id.ApplicationRuleCollectionName, id.AzureFirewallName, id.ResourceGroup, err)
 	}
 
@@ -465,7 +465,7 @@ func flattenFirewallApplicationRuleCollectionRules(rules *[]azurefirewalls.Azure
 				if port := p.Port; port != nil {
 					protocol["port"] = int(*port)
 				}
-				protocol["type"] = string(pointer.From(p.ProtocolType))
+				protocol["type"] = pointer.FromEnum(p.ProtocolType)
 				protocols = append(protocols, protocol)
 			}
 		}

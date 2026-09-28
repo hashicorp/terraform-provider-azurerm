@@ -324,6 +324,6 @@ func dataProtectionBackupInstanceMySQLFlexibleServerStateRefreshFunc(ctx context
 			return nil, "", fmt.Errorf("polling for %s: `properties` was nil", id)
 		}
 
-		return resp, string(pointer.From(resp.Model.Properties.CurrentProtectionState)), nil
+		return resp, pointer.FromEnum(resp.Model.Properties.CurrentProtectionState), nil
 	}
 }

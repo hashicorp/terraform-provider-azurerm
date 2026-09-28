@@ -202,7 +202,7 @@ func (d MonitorsDataSource) Read() sdk.ResourceFunc {
 					ResourceGroup:                 id.ResourceGroupName,
 					Location:                      model.Location,
 					MonitoringStatus:              monitoringStatus,
-					MarketplaceSubscriptionStatus: string(pointer.From(props.MarketplaceSubscriptionStatus)),
+					MarketplaceSubscriptionStatus: pointer.FromEnum(props.MarketplaceSubscriptionStatus),
 					Identity:                      identityProps,
 					EnvironmentProperties:         FlattenDynatraceEnvironmentProperties(props.DynatraceEnvironmentProperties),
 					PlanData:                      FlattenDynatracePlanData(props.PlanData),

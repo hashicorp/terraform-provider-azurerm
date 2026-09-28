@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/appserviceenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -464,7 +464,7 @@ func (r AppServiceEnvironmentV3Resource) Read() sdk.ResourceFunc {
 				state.Location = location.Normalize(model.Location)
 				if props := model.Properties; props != nil {
 					state.SubnetId = props.VirtualNetwork.Id
-					state.InternalLoadBalancingMode = string(pointer.From(props.InternalLoadBalancingMode))
+					state.InternalLoadBalancingMode = pointer.FromEnum(props.InternalLoadBalancingMode)
 					state.DedicatedHostCount = pointer.From(props.DedicatedHostCount)
 					state.PricingTier = pointer.From(props.MultiSize)
 					state.ClusterSetting = flattenClusterSettingsModel(props.ClusterSettings)

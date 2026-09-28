@@ -127,8 +127,8 @@ func dataSourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interfa
 				d.Set("daily_quota_gb", pointer.To(-1))
 			}
 
-			d.Set("internet_ingestion_access_type", string(pointer.From(props.PublicNetworkAccessForIngestion)))
-			d.Set("internet_query_access_type", string(pointer.From(props.PublicNetworkAccessForQuery)))
+			d.Set("internet_ingestion_access_type", pointer.FromEnum(props.PublicNetworkAccessForIngestion))
+			d.Set("internet_query_access_type", pointer.FromEnum(props.PublicNetworkAccessForQuery))
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {

@@ -20,8 +20,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/agentpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/snapshots"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/applicationsecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/publicipprefixes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -181,6 +181,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 							string(agentpools.OSSKUUbuntuTwoFourZeroFour),
 							string(agentpools.OSSKUWindowsTwoZeroOneNine),
 							string(agentpools.OSSKUWindowsTwoZeroTwoTwo),
+							string(agentpools.OSSKUWindowsTwoZeroTwoFive),
 						}, false),
 					},
 
@@ -727,7 +728,7 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 				allowedHostPorts = append(allowedHostPorts, agentpools.PortRange{
 					PortStart: allowedHostPortRaw.PortStart,
 					PortEnd:   allowedHostPortRaw.PortEnd,
-					Protocol:  pointer.ToEnum[agentpools.Protocol](string(pointer.From(allowedHostPortRaw.Protocol))),
+					Protocol:  pointer.ToEnum[agentpools.Protocol](pointer.FromEnum(allowedHostPortRaw.Protocol)),
 				})
 			}
 			networkProfile.AllowedHostPorts = &allowedHostPorts
@@ -1199,7 +1200,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 
 	gpuDriver := ""
 	if agentPool.GpuProfile != nil {
-		gpuDriver = string(pointer.From(agentPool.GpuProfile.Driver))
+		gpuDriver = pointer.FromEnum(agentPool.GpuProfile.Driver)
 	}
 
 	maxCount := 0

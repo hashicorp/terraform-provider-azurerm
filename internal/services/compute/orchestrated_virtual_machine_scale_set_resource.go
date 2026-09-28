@@ -1522,7 +1522,7 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 				d.Set("user_data_base64", profile.UserData)
 
 				if policy := props.UpgradePolicy; policy != nil {
-					upgradeMode = string(pointer.From(policy.Mode))
+					upgradeMode = pointer.FromEnum(policy.Mode)
 					if err := d.Set("rolling_upgrade_policy", FlattenVirtualMachineScaleSetRollingUpgradePolicy(policy.RollingUpgradePolicy)); err != nil {
 						return fmt.Errorf("setting `rolling_upgrade_policy`: %w", err)
 					}
@@ -1632,7 +1632,7 @@ func flattenOrchestratedVirtualMachineScaleSetSkuProfile(input *virtualmachinesc
 	}
 
 	result := map[string]interface{}{
-		"allocation_strategy": string(pointer.From(input.AllocationStrategy)),
+		"allocation_strategy": pointer.FromEnum(input.AllocationStrategy),
 	}
 
 	output := make([]interface{}, 0)
@@ -1706,8 +1706,8 @@ func expandOrchestratedVirtualMachineScaleSetPublicIPSku(input string) *virtualm
 func flattenOrchestratedVirtualMachineScaleSetPublicIPSku(input *virtualmachinescalesets.PublicIPAddressSku) string {
 	var skuName string
 	if input != nil {
-		name := string(pointer.From(input.Name))
-		tier := string(pointer.From(input.Tier))
+		name := pointer.FromEnum(input.Name)
+		tier := pointer.FromEnum(input.Tier)
 		if name != "" && tier != "" {
 			skuName = fmt.Sprintf("%s_%s", name, tier)
 		}
