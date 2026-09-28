@@ -3351,6 +3351,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_D2s_v3"
+  node_count            = 1
   workload_runtime      = "%s"
   upgrade_settings {
     max_surge = "10%%"
@@ -3396,6 +3397,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_D4s_v3"
   os_sku                = "AzureLinux"
+  node_count            = 1
   workload_runtime      = "KataVmIsolation"
   upgrade_settings {
     max_surge = "10%%"
