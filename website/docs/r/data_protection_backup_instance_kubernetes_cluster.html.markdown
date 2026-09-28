@@ -205,31 +205,31 @@ The following arguments are supported:
 
 * `vault_id` - (Required) The ID of the Backup Vault within which the Backup Instance Kubernetes Cluster should exist. Changing this forces a new resource to be created.
 
-* `backup_policy_id` - (Required) The ID of the Backup Policy. Changing this forces a new resource to be created.
+* `backup_policy_id` - (Required) The ID of the Backup Policy.
 
 * `kubernetes_cluster_id` - (Required) The ID of the Kubernetes Cluster. Changing this forces a new resource to be created.
 
 * `snapshot_resource_group_name` - (Required) The name of the Resource Group where snapshots are stored. Changing this forces a new resource to be created.
 
-* `backup_datasource_parameters` - (Optional) A `backup_datasource_parameters` block as defined below. Changing this forces a new resource to be created.
+* `backup_datasource_parameters` - (Optional) A `backup_datasource_parameters` block as defined below.
 
 ---
 
 A `backup_datasource_parameters` block supports the following:
 
-* `excluded_namespaces` - (Optional) Specifies the namespaces to be excluded during backup. Changing this forces a new resource to be created.
+* `excluded_namespaces` - (Optional) Specifies the namespaces to be excluded during backup.
 
-* `excluded_resource_types` - (Optional) Specifies the resource types to be excluded during backup. Changing this forces a new resource to be created.
+* `excluded_resource_types` - (Optional) Specifies the resource types to be excluded during backup.
 
-* `cluster_scoped_resources_enabled` - (Optional) Whether to include cluster scope resources during backup. Default to `false`. Changing this forces a new resource to be created.
+* `cluster_scoped_resources_enabled` - (Optional) Whether to include cluster scope resources during backup. Default to `false`.
 
-* `included_namespaces` - (Optional) Specifies the namespaces to be included during backup. Changing this forces a new resource to be created.
+* `included_namespaces` - (Optional) Specifies the namespaces to be included during backup.
 
-* `included_resource_types` - (Optional) Specifies the resource types to be included during backup. Changing this forces a new resource to be created.
+* `included_resource_types` - (Optional) Specifies the resource types to be included during backup.
 
-* `label_selectors` - (Optional) Specifies the resources with such label selectors to be included during backup. Changing this forces a new resource to be created.
+* `label_selectors` - (Optional) Specifies the resources with such label selectors to be included during backup.
 
-* `volume_snapshot_enabled` - (Optional) Whether to take volume snapshots during backup. Default to `false`. Changing this forces a new resource to be created.
+* `volume_snapshot_enabled` - (Optional) Whether to take volume snapshots during backup. Default to `false`.
 
 ## Attributes Reference
 

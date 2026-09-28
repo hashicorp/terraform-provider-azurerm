@@ -61,6 +61,27 @@ func TestAccDataProtectionBackupInstanceKubernetesCluster_complete(t *testing.T)
 	})
 }
 
+func TestAccDataProtectionBackupInstanceKubernetesCluster_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_kubernetes_cluster", "test")
+	r := DataProtectionBackupInstanceKubernetesClusterResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r DataProtectionBackupInstanceKubernetesClusterResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := backupinstanceresources.ParseBackupInstanceID(state.ID)
 	if err != nil {
@@ -251,6 +272,31 @@ resource "azurerm_data_protection_backup_policy_kubernetes_cluster" "test" {
     azurerm_role_assignment.test_vault_data_contributor_on_storage,
   ]
 }
+
+resource "azurerm_data_protection_backup_policy_kubernetes_cluster" "update" {
+  name                = "acctest-paks2-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  vault_name          = azurerm_data_protection_backup_vault.test.name
+
+  backup_repeating_time_intervals = ["R/2021-05-23T06:30:00+00:00/P1W"]
+
+  default_retention_rule {
+    life_cycle {
+      duration        = "P7D"
+      data_store_type = "OperationalStore"
+    }
+  }
+
+  depends_on = [
+    azurerm_role_assignment.test_extension_and_storage_account_permission,
+    azurerm_role_assignment.test_vault_msi_read_on_cluster,
+    azurerm_role_assignment.test_vault_msi_read_on_snap_rg,
+    azurerm_role_assignment.test_cluster_msi_contributor_on_snap_rg,
+    azurerm_role_assignment.test_vault_msi_snapshot_contributor_on_snap_rg,
+    azurerm_role_assignment.test_vault_data_operator_on_snap_rg,
+    azurerm_role_assignment.test_vault_data_contributor_on_storage,
+  ]
+}
 	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
@@ -305,8 +351,44 @@ resource "azurerm_data_protection_backup_instance_kubernetes_cluster" "test" {
     cluster_scoped_resources_enabled = true
     included_namespaces              = ["test-included-namespaces"]
     included_resource_types          = ["involumesnapshotcontents.snapshot.storage.k8s.io"]
-    label_selectors                  = ["kubernetes.io/metadata.name:test"]
+    label_selectors                  = ["kubernetes.io/metadata.name=test"]
     volume_snapshot_enabled          = false
+  }
+
+  depends_on = [
+    azurerm_role_assignment.test_extension_and_storage_account_permission,
+    azurerm_role_assignment.test_vault_msi_read_on_cluster,
+    azurerm_role_assignment.test_vault_msi_read_on_snap_rg,
+    azurerm_role_assignment.test_cluster_msi_contributor_on_snap_rg,
+    azurerm_role_assignment.test_vault_msi_snapshot_contributor_on_snap_rg,
+    azurerm_role_assignment.test_vault_data_operator_on_snap_rg,
+    azurerm_role_assignment.test_vault_data_contributor_on_storage,
+  ]
+}
+`, template, data.RandomInteger)
+}
+
+func (r DataProtectionBackupInstanceKubernetesClusterResource) update(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_data_protection_backup_instance_kubernetes_cluster" "test" {
+  name                         = "acctest-iaks-%[2]d"
+  location                     = azurerm_resource_group.test.location
+  vault_id                     = azurerm_data_protection_backup_vault.test.id
+  backup_policy_id             = azurerm_data_protection_backup_policy_kubernetes_cluster.update.id
+  kubernetes_cluster_id        = azurerm_kubernetes_cluster.test.id
+  snapshot_resource_group_name = azurerm_resource_group.snap.name
+
+  backup_datasource_parameters {
+    excluded_namespaces              = ["test-excluded-namespaces-2"]
+    excluded_resource_types          = ["exvolumesnapshotcontents2.snapshot.storage.k8s.io"]
+    cluster_scoped_resources_enabled = false
+    included_namespaces              = ["test-included-namespaces", "test-included-namespaces-2"]
+    included_resource_types          = ["involumesnapshotcontents2.snapshot.storage.k8s.io"]
+    label_selectors                  = ["kubernetes.io/metadata.name=test2"]
+    volume_snapshot_enabled          = true
   }
 
   depends_on = [
