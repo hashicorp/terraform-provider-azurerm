@@ -76,6 +76,15 @@ func TestAccStorageMoverNfsFileShareTargetEndpoint_update(t *testing.T) {
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("description").HasValue("Updated NFS File Share Endpoint Description"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("description").HasValue(""),
 			),
 		},
 		data.ImportStep(),
