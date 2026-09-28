@@ -149,8 +149,8 @@ type PipelineCertificateSourceModel struct {
 }
 
 type PipelineTlsCertificateModel struct {
-	Certificate []PipelineCertificateSourceModel `tfschema:"certificate"`
-	PrivateKey  []PipelinePrivateKeySourceModel  `tfschema:"private_key"`
+	Certificate      []PipelineCertificateSourceModel `tfschema:"certificate"`
+	PrivateKeySource []PipelinePrivateKeySourceModel  `tfschema:"private_key_source"`
 }
 
 type PipelineSchemaMapModel struct {
@@ -580,7 +580,7 @@ func (r MonitorPipelineResource) Arguments() map[string]*pluginsdk.Schema {
 									Elem:     pipelineCertificateSourceSchema(),
 								},
 
-								"private_key": {
+								"private_key_source": {
 									Type:     pluginsdk.TypeList,
 									Required: true,
 									MaxItems: 1,
@@ -1529,10 +1529,10 @@ func expandPipelineTlsConfigurations(input []PipelineTlsConfigurationModel) *[]p
 			if len(certificate.Certificate) > 0 {
 				certificateWithKey.Certificate = *expandPipelineCertificateSource(certificate.Certificate[0])
 			}
-			if len(certificate.PrivateKey) > 0 {
+			if len(certificate.PrivateKeySource) > 0 {
 				certificateWithKey.PrivateKey = pipelinegroups.PrivateKeySource{
-					Location:    certificate.PrivateKey[0].Location,
-					SubLocation: certificate.PrivateKey[0].SubLocation,
+					Location:    certificate.PrivateKeySource[0].Location,
+					SubLocation: certificate.PrivateKeySource[0].SubLocation,
 					Type:        pipelinegroups.PrivateKeySourceTypeKubernetesSecret,
 				}
 			}
@@ -1572,7 +1572,7 @@ func flattenPipelineTlsConfigurations(input *[]pipelinegroups.TlsConfiguration) 
 		if v.TlsCertificate != nil {
 			tlsConfiguration.TlsCertificate = []PipelineTlsCertificateModel{{
 				Certificate: flattenPipelineCertificateSource(&v.TlsCertificate.Certificate),
-				PrivateKey: []PipelinePrivateKeySourceModel{{
+				PrivateKeySource: []PipelinePrivateKeySourceModel{{
 					Location:    v.TlsCertificate.PrivateKey.Location,
 					SubLocation: v.TlsCertificate.PrivateKey.SubLocation,
 				}},

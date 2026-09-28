@@ -407,7 +407,7 @@ resource "azurerm_monitor_pipeline" "example" {
         sub_location = "tls.crt"
         type         = "kubernetesSecret"
       }
-      private_key {
+      private_key_source {
         location     = "pipeline-tls-cert"
         sub_location = "tls.key"
       }
@@ -424,7 +424,7 @@ resource "azurerm_monitor_pipeline" "example" {
         sub_location = "tls.crt"
         type         = "kubernetesSecret"
       }
-      private_key {
+      private_key_source {
         location     = "pipeline-tls-cert"
         sub_location = "tls.key"
       }

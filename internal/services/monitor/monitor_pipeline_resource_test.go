@@ -717,7 +717,7 @@ resource "azurerm_monitor_pipeline" "test" {
         sub_location = "tls.crt"
         type         = "kubernetesSecret"
       }
-      private_key {
+      private_key_source {
         location     = "pipeline-tls-cert"
         sub_location = "tls.key"
       }
@@ -734,7 +734,7 @@ resource "azurerm_monitor_pipeline" "test" {
         sub_location = "tls.crt"
         type         = "kubernetesSecret"
       }
-      private_key {
+      private_key_source {
         location     = "pipeline-tls-cert"
         sub_location = "tls.key"
       }
@@ -904,7 +904,7 @@ resource "azurerm_monitor_pipeline" "test" {
         sub_location = "tls.crt"
         type         = "kubernetesSecret"
       }
-      private_key {
+      private_key_source {
         location     = "pipeline-tls-cert"
         sub_location = "tls.key"
       }
@@ -927,7 +927,7 @@ resource "azurerm_monitor_pipeline" "test" {
         sub_location = "tls-updated.crt"
         type         = "kubernetesConfigMap"
       }
-      private_key {
+      private_key_source {
         location     = "server-tls-key-updated"
         sub_location = "tls-updated.key"
       }
