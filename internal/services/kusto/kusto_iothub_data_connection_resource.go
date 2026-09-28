@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	iotHubParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
@@ -209,7 +209,7 @@ func resourceKustoIotHubDataConnectionRead(d *pluginsdk.ResourceData, meta inter
 			d.Set("location", location.NormalizeNilable(dataConnection.Location))
 			if props := dataConnection.Properties; props != nil {
 				iotHubId := ""
-				if parsedIoTHubId, err := iotHubParse.IotHubIDInsensitively(props.IotHubResourceId); err == nil {
+				if parsedIoTHubId, err := parse.IotHubIDInsensitively(props.IotHubResourceId); err == nil {
 					iotHubId = parsedIoTHubId.ID()
 				}
 				d.Set("iothub_id", iotHubId)

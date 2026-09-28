@@ -6,13 +6,13 @@ package client
 import (
 	"fmt"
 
-	fluidrelay_2022_05_26 "github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26"
+	v2022_05_26 "github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26" //azignore:AZG010 - package name does not match its path
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
-func NewClient(o *common.ClientOptions) (*fluidrelay_2022_05_26.Client, error) {
-	client, err := fluidrelay_2022_05_26.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+func NewClient(o *common.ClientOptions) (*v2022_05_26.Client, error) {
+	client, err := v2022_05_26.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
 	if err != nil {

@@ -6,7 +6,7 @@ package client
 import (
 	"fmt"
 
-	storage "github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01"
+	v2025_08_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01" //azignore:AZG010 - package name does not match its path
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagediscovery/2025-09-01/storagediscoveryworkspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/cloudendpointresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/registeredserverresource"
@@ -24,7 +24,7 @@ var StorageDomainSuffix *string
 type Client struct {
 	StorageDomainSuffix string
 
-	ResourceManager                  *storage.Client
+	ResourceManager                  *v2025_08_01.Client
 	StorageDiscoveryWorkspacesClient *storagediscoveryworkspaces.StorageDiscoveryWorkspacesClient
 	// TODO: import the Storage Sync Meta Client and use that
 	SyncCloudEndpointsClient   *cloudendpointresource.CloudEndpointResourceClient
@@ -47,7 +47,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	// Set global variable for post-configure validation
 	StorageDomainSuffix = storageSuffix
 
-	resourceManager, err := storage.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+	resourceManager, err := v2025_08_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
 	if err != nil {

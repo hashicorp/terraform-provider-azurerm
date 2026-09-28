@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/topics"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -48,7 +48,7 @@ func resourceServiceBusTopicSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: azValidate.TopicName(),
+			ValidateFunc: validate.TopicName(),
 		},
 
 		// lintignore: S013
@@ -111,7 +111,7 @@ func resourceServiceBusTopicSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 			// NOTE: O+C this gets a variable default based on the sku and can be updated without issues
 			Computed:     true,
-			ValidateFunc: azValidate.ServiceBusMaxMessageSizeInKilobytes(),
+			ValidateFunc: validate.ServiceBusMaxMessageSizeInKilobytes(),
 		},
 
 		"max_size_in_megabytes": {
@@ -119,7 +119,7 @@ func resourceServiceBusTopicSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 			// NOTE: O+C this gets a variable default based on the sku and can be updated without issues
 			Computed:     true,
-			ValidateFunc: azValidate.ServiceBusMaxSizeInMegabytes(),
+			ValidateFunc: validate.ServiceBusMaxSizeInMegabytes(),
 		},
 
 		"requires_duplicate_detection": {

@@ -107,7 +107,6 @@ linters:
         type: module
         settings:
           disable:
-            - AZG010 # import aliases that are not needed - new in v0.11.0, enabled in a follow up commit
             - AZG008 # pointer dereferences (*props.Status) must have a reachable nil guard - ~1398 findings to fix later
             - AZR002 # split create and update: ~350 todo over time
             - AZT002 # tests should not obtain credentials via os.Getenv - investigate in a later pr

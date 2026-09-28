@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	arckubernetes "github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2024-01-01/connectedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2024-01-01/connectedclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -37,7 +37,7 @@ func resourceArcKubernetesCluster() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := arckubernetes.ParseConnectedClusterID(id)
+			_, err := connectedclusters.ParseConnectedClusterID(id)
 			return err
 		}),
 
@@ -111,7 +111,7 @@ func resourceArcKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := arckubernetes.NewConnectedClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := connectedclusters.NewConnectedClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.ConnectedClusterGet(ctx, id)
@@ -132,10 +132,10 @@ func resourceArcKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	location := location.Normalize(d.Get("location").(string))
-	props := arckubernetes.ConnectedCluster{
+	props := connectedclusters.ConnectedCluster{
 		Identity: *identityValue,
 		Location: location,
-		Properties: arckubernetes.ConnectedClusterProperties{
+		Properties: connectedclusters.ConnectedClusterProperties{
 			AgentPublicKeyCertificate: d.Get("agent_public_key_certificate").(string),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -154,7 +154,7 @@ func resourceArcKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := arckubernetes.ParseConnectedClusterID(d.Id())
+	id, err := connectedclusters.ParseConnectedClusterID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -200,12 +200,12 @@ func resourceArcKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := arckubernetes.ParseConnectedClusterID(d.Id())
+	id, err := connectedclusters.ParseConnectedClusterID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	props := arckubernetes.ConnectedClusterPatch{
+	props := connectedclusters.ConnectedClusterPatch{
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
@@ -221,7 +221,7 @@ func resourceArcKubernetesClusterDelete(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := arckubernetes.ParseConnectedClusterID(d.Id())
+	id, err := connectedclusters.ParseConnectedClusterID(d.Id())
 	if err != nil {
 		return err
 	}

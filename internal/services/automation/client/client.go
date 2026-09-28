@@ -10,13 +10,13 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/agentregistrationinformation"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/watcher"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/module"
-	automation_2024_10_23 "github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23"
+	v2024_10_23 "github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23" //azignore:AZG010 - package name does not match its path
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	*automation_2024_10_23.Client
+	*v2024_10_23.Client
 
 	// Legacy module client for PowerShell72Module resources, which is deprecated in the latest API version
 	// Should look into deprecate PowerShell72Module resource
@@ -29,7 +29,7 @@ type Client struct {
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
 	// Latest version client for most resources
-	metaClient, err := automation_2024_10_23.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+	metaClient, err := v2024_10_23.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
 	if err != nil {

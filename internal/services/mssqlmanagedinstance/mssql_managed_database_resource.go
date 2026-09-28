@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstances"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	miParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -220,7 +220,7 @@ func (r MsSqlManagedDatabaseResource) Create() sdk.ResourceFunc {
 				parameters.Properties.CreateMode = pointer.To(manageddatabases.ManagedDatabaseCreateModePointInTimeRestore)
 				parameters.Properties.RestorePointInTime = &restorePointInTime.RestorePointInTime
 
-				if _, err := miParse.RestorableDroppedDatabaseID(restorePointInTime.SourceDatabaseId); err == nil {
+				if _, err := parse.RestorableDroppedDatabaseID(restorePointInTime.SourceDatabaseId); err == nil {
 					parameters.Properties.RestorableDroppedDatabaseId = pointer.To(restorePointInTime.SourceDatabaseId)
 				} else {
 					parameters.Properties.SourceDatabaseId = pointer.To(restorePointInTime.SourceDatabaseId)

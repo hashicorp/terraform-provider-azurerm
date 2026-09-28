@@ -26,7 +26,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/agentpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/maintenanceconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/managedclusters"
-	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -35,7 +35,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
-	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	keyVaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -319,7 +319,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Default:      "15m",
-							ValidateFunc: containerValidate.Duration,
+							ValidateFunc: validate.Duration,
 						},
 
 						"max_unready_nodes": {
@@ -340,49 +340,49 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true, // azignore:AZS007 - pre-existing violation
-							ValidateFunc: containerValidate.Duration,
+							ValidateFunc: validate.Duration,
 						},
 
 						"scan_interval": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true, // azignore:AZS007 - pre-existing violation
-							ValidateFunc: containerValidate.Duration,
+							ValidateFunc: validate.Duration,
 						},
 
 						"scale_down_delay_after_add": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true, // azignore:AZS007 - pre-existing violation
-							ValidateFunc: containerValidate.Duration,
+							ValidateFunc: validate.Duration,
 						},
 
 						"scale_down_delay_after_delete": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true, // azignore:AZS007 - pre-existing violation
-							ValidateFunc: containerValidate.Duration,
+							ValidateFunc: validate.Duration,
 						},
 
 						"scale_down_delay_after_failure": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true, // azignore:AZS007 - pre-existing violation
-							ValidateFunc: containerValidate.Duration,
+							ValidateFunc: validate.Duration,
 						},
 
 						"scale_down_unneeded": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true, // azignore:AZS007 - pre-existing violation
-							ValidateFunc: containerValidate.Duration,
+							ValidateFunc: validate.Duration,
 						},
 
 						"scale_down_unready": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true, // azignore:AZS007 - pre-existing violation
-							ValidateFunc: containerValidate.Duration,
+							ValidateFunc: validate.Duration,
 						},
 
 						"scale_down_utilization_threshold": {
@@ -479,7 +479,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				ExactlyOneOf: []string{"dns_prefix", "dns_prefix_private_cluster"},
-				ValidateFunc: containerValidate.KubernetesDNSPrefix,
+				ValidateFunc: validate.KubernetesDNSPrefix,
 			},
 
 			"dns_prefix_private_cluster": {
@@ -551,7 +551,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 								ValidateFunc: validation.Any(
-									dnsValidate.ValidateDnsZoneID,
+									zones.ValidateDnsZoneID,
 									privatezones.ValidatePrivateDnsZoneID,
 									validation.StringIsEmpty,
 								),
@@ -748,7 +748,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: containerValidate.KubernetesAdminUserName,
+							ValidateFunc: validate.KubernetesAdminUserName,
 						},
 						"ssh_key": {
 							Type:     pluginsdk.TypeList,
@@ -1514,7 +1514,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"client_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: containerValidate.ClientID,
+							ValidateFunc: validate.ClientID,
 						},
 
 						"client_secret": {

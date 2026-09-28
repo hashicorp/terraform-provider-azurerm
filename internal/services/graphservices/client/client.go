@@ -6,17 +6,17 @@ package client
 import (
 	"fmt"
 
-	graphservicesV20230413 "github.com/hashicorp/go-azure-sdk/resource-manager/graphservices/2023-04-13"
+	v2023_04_13 "github.com/hashicorp/go-azure-sdk/resource-manager/graphservices/2023-04-13" //azignore:AZG010 - package name does not match its path
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	V20230413 *graphservicesV20230413.Client
+	V20230413 *v2023_04_13.Client
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	v20230413Client, err := graphservicesV20230413.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+	v20230413Client, err := v2023_04_13.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
 	if err != nil {

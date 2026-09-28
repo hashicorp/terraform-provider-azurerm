@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/providerjson"
-	schema_rules "github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/schema-rules"
+	schema_rules "github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/schema-rules" //azignore:AZG010 - package name does not match its path
 )
 
 type Differ struct {

@@ -18,8 +18,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
-	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
-	webtests "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	tfbase64 "github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -119,7 +119,7 @@ func (ApplicationInsightsStandardWebTestResource) Arguments() map[string]*plugin
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: components.ValidateComponentID,
+			ValidateFunc: componentsapis.ValidateComponentID,
 		},
 
 		"location": commonschema.Location(),
@@ -309,7 +309,7 @@ func (ApplicationInsightsStandardWebTestResource) ResourceType() string {
 }
 
 func (ApplicationInsightsStandardWebTestResource) Identity() resourceids.ResourceId {
-	return &webtests.WebTestId{}
+	return &webtestsapis.WebTestId{}
 }
 
 func (r ApplicationInsightsStandardWebTestResource) Create() sdk.ResourceFunc {
@@ -326,7 +326,7 @@ func (r ApplicationInsightsStandardWebTestResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			id := webtests.NewWebTestID(subscriptionId, model.ResourceGroupName, model.Name)
+			id := webtestsapis.NewWebTestID(subscriptionId, model.ResourceGroupName, model.Name)
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.WebTestsGet(ctx, id)
@@ -340,7 +340,7 @@ func (r ApplicationInsightsStandardWebTestResource) Create() sdk.ResourceFunc {
 
 			validations := expandApplicationInsightsStandardWebTestValidations(model.ValidationRules)
 
-			appInsightsId, err := webtests.ParseComponentID(model.ApplicationInsightsID)
+			appInsightsId, err := webtestsapis.ParseComponentID(model.ApplicationInsightsID)
 			if err != nil {
 				return err
 			}
@@ -351,11 +351,11 @@ func (r ApplicationInsightsStandardWebTestResource) Create() sdk.ResourceFunc {
 
 			model.Tags[fmt.Sprintf("hidden-link:%s", appInsightsId.ID())] = "Resource"
 
-			props := webtests.WebTestProperties{
+			props := webtestsapis.WebTestProperties{
 				Name:               id.WebTestName, // API requires this to be specified despite ARM spec guidance that it should come from the ID
 				Enabled:            pointer.To(model.Enabled),
 				Frequency:          pointer.To(model.Frequency),
-				Kind:               webtests.WebTestKindStandard,
+				Kind:               webtestsapis.WebTestKindStandard,
 				SyntheticMonitorId: id.WebTestName,
 				RetryEnabled:       pointer.To(model.Retry),
 				Timeout:            pointer.To(model.Timeout),
@@ -368,8 +368,8 @@ func (r ApplicationInsightsStandardWebTestResource) Create() sdk.ResourceFunc {
 				props.Description = pointer.To(model.Description)
 			}
 
-			param := webtests.WebTest{
-				Kind:       pointer.To(webtests.WebTestKindStandard),
+			param := webtestsapis.WebTest{
+				Kind:       pointer.To(webtestsapis.WebTestKindStandard),
 				Location:   location.Normalize(model.Location),
 				Properties: &props,
 				Tags:       pointer.To(model.Tags),
@@ -394,7 +394,7 @@ func (r ApplicationInsightsStandardWebTestResource) Update() sdk.ResourceFunc {
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppInsights.StandardWebTestsClient
-			id, err := webtests.ParseWebTestID(metadata.ResourceData.Id())
+			id, err := webtestsapis.ParseWebTestID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -442,7 +442,7 @@ func (r ApplicationInsightsStandardWebTestResource) Update() sdk.ResourceFunc {
 
 			existing.Model.Properties = &props
 
-			appInsightsId, err := webtests.ParseComponentID(metadata.ResourceData.Get("application_insights_id").(string))
+			appInsightsId, err := webtestsapis.ParseComponentID(metadata.ResourceData.Get("application_insights_id").(string))
 			if err != nil {
 				return err
 			}
@@ -470,7 +470,7 @@ func (r ApplicationInsightsStandardWebTestResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppInsights.StandardWebTestsClient
 
-			id, err := webtests.ParseWebTestID(metadata.ResourceData.Id())
+			id, err := webtestsapis.ParseWebTestID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -489,7 +489,7 @@ func (r ApplicationInsightsStandardWebTestResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r ApplicationInsightsStandardWebTestResource) flatten(metadata sdk.ResourceMetaData, id *webtests.WebTestId, model *webtests.WebTest) error {
+func (r ApplicationInsightsStandardWebTestResource) flatten(metadata sdk.ResourceMetaData, id *webtestsapis.WebTestId, model *webtestsapis.WebTest) error {
 	state := ApplicationInsightsStandardWebTestResourceModel{
 		Name:              id.WebTestName,
 		ResourceGroupName: id.ResourceGroupName,
@@ -501,7 +501,7 @@ func (r ApplicationInsightsStandardWebTestResource) flatten(metadata sdk.Resourc
 			if strings.HasPrefix(i, "hidden-link") {
 				appInsightsId := strings.Split(i, ":")[1]
 
-				parsedAppInsightsId, err := webtests.ParseComponentIDInsensitively(appInsightsId)
+				parsedAppInsightsId, err := webtestsapis.ParseComponentIDInsensitively(appInsightsId)
 				if err != nil {
 					// there might be more than one hidden-link https://github.com/hashicorp/terraform-provider-azurerm/issues/27994
 					log.Printf("[DEBUG] Error parsing hidden-link id: %+v", err)
@@ -547,7 +547,7 @@ func (ApplicationInsightsStandardWebTestResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppInsights.StandardWebTestsClient
 
-			id, err := webtests.ParseWebTestID(metadata.ResourceData.Id())
+			id, err := webtestsapis.ParseWebTestID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -562,16 +562,16 @@ func (ApplicationInsightsStandardWebTestResource) Delete() sdk.ResourceFunc {
 }
 
 func (ApplicationInsightsStandardWebTestResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return webtests.ValidateWebTestID
+	return webtestsapis.ValidateWebTestID
 }
 
-func expandApplicationInsightsStandardWebTestRequest(input []RequestModel) (request *webtests.WebTestPropertiesRequest) {
+func expandApplicationInsightsStandardWebTestRequest(input []RequestModel) (request *webtestsapis.WebTestPropertiesRequest) {
 	if len(input) == 0 {
 		return nil
 	}
 	requestInput := input[0]
 
-	request = &webtests.WebTestPropertiesRequest{
+	request = &webtestsapis.WebTestPropertiesRequest{
 		FollowRedirects:        pointer.To(requestInput.FollowRedirects),
 		HTTPVerb:               pointer.To(requestInput.HTTPVerb),
 		ParseDependentRequests: pointer.To(requestInput.ParseDependentRequests),
@@ -590,15 +590,15 @@ func expandApplicationInsightsStandardWebTestRequest(input []RequestModel) (requ
 	return request
 }
 
-func expandApplicationInsightsStandardWebTestRequestHeaders(input []HeaderModel) *[]webtests.HeaderField {
+func expandApplicationInsightsStandardWebTestRequestHeaders(input []HeaderModel) *[]webtestsapis.HeaderField {
 	if len(input) == 0 {
 		return nil
 	}
 
-	headers := make([]webtests.HeaderField, 0)
+	headers := make([]webtestsapis.HeaderField, 0)
 
 	for _, v := range input {
-		h := webtests.HeaderField{
+		h := webtestsapis.HeaderField{
 			Key:   pointer.To(v.Name),
 			Value: pointer.To(v.Value),
 		}
@@ -608,7 +608,7 @@ func expandApplicationInsightsStandardWebTestRequestHeaders(input []HeaderModel)
 	return &headers
 }
 
-func flattenApplicationInsightsStandardWebTestRequest(input *webtests.WebTestPropertiesRequest) ([]RequestModel, error) {
+func flattenApplicationInsightsStandardWebTestRequest(input *webtestsapis.WebTestPropertiesRequest) ([]RequestModel, error) {
 	if input == nil {
 		return []RequestModel{}, nil
 	}
@@ -634,7 +634,7 @@ func flattenApplicationInsightsStandardWebTestRequest(input *webtests.WebTestPro
 	return []RequestModel{result}, nil
 }
 
-func flattenApplicationInsightsStandardWebTestRequestHeaders(input *[]webtests.HeaderField) []HeaderModel {
+func flattenApplicationInsightsStandardWebTestRequestHeaders(input *[]webtestsapis.HeaderField) []HeaderModel {
 	if input == nil || len(*input) == 0 {
 		return []HeaderModel{}
 	}
@@ -654,7 +654,7 @@ func flattenApplicationInsightsStandardWebTestRequestHeaders(input *[]webtests.H
 	return result
 }
 
-func flattenApplicationInsightsStandardWebTestValidations(input *webtests.WebTestPropertiesValidationRules) []ValidationRuleModel {
+func flattenApplicationInsightsStandardWebTestValidations(input *webtestsapis.WebTestPropertiesValidationRules) []ValidationRuleModel {
 	if input == nil {
 		return []ValidationRuleModel{}
 	}
@@ -676,7 +676,7 @@ func flattenApplicationInsightsStandardWebTestValidations(input *webtests.WebTes
 	return []ValidationRuleModel{result}
 }
 
-func flattenApplicationInsightsStandardWebTestContentValidations(input *webtests.WebTestPropertiesValidationRulesContentValidation) []ContentModel {
+func flattenApplicationInsightsStandardWebTestContentValidations(input *webtestsapis.WebTestPropertiesValidationRulesContentValidation) []ContentModel {
 	if input == nil {
 		return []ContentModel{}
 	}
@@ -690,8 +690,8 @@ func flattenApplicationInsightsStandardWebTestContentValidations(input *webtests
 	return []ContentModel{result}
 }
 
-func expandApplicationInsightsStandardWebTestValidations(input []ValidationRuleModel) webtests.WebTestPropertiesValidationRules {
-	rules := webtests.WebTestPropertiesValidationRules{
+func expandApplicationInsightsStandardWebTestValidations(input []ValidationRuleModel) webtestsapis.WebTestPropertiesValidationRules {
+	rules := webtestsapis.WebTestPropertiesValidationRules{
 		SSLCheck: pointer.To(false),
 	}
 
@@ -713,14 +713,14 @@ func expandApplicationInsightsStandardWebTestValidations(input []ValidationRuleM
 	return rules
 }
 
-func expandApplicationInsightsStandardWebTestContentValidations(input []ContentModel) *webtests.WebTestPropertiesValidationRulesContentValidation {
+func expandApplicationInsightsStandardWebTestContentValidations(input []ContentModel) *webtestsapis.WebTestPropertiesValidationRulesContentValidation {
 	if len(input) == 0 {
 		return nil
 	}
 
 	contentInput := input[0]
 
-	content := webtests.WebTestPropertiesValidationRulesContentValidation{
+	content := webtestsapis.WebTestPropertiesValidationRulesContentValidation{
 		ContentMatch:    pointer.To(contentInput.ContentMatch),
 		IgnoreCase:      pointer.To(contentInput.IgnoreCase),
 		PassIfTextFound: pointer.To(contentInput.PassIfTextFound),
@@ -729,15 +729,15 @@ func expandApplicationInsightsStandardWebTestContentValidations(input []ContentM
 	return &content
 }
 
-func expandApplicationInsightsStandardWebTestGeoLocations(input []string) []webtests.WebTestGeolocation {
+func expandApplicationInsightsStandardWebTestGeoLocations(input []string) []webtestsapis.WebTestGeolocation {
 	if len(input) == 0 {
-		return []webtests.WebTestGeolocation{}
+		return []webtestsapis.WebTestGeolocation{}
 	}
 
-	locations := make([]webtests.WebTestGeolocation, 0)
+	locations := make([]webtestsapis.WebTestGeolocation, 0)
 
 	for _, v := range input {
-		loc := webtests.WebTestGeolocation{
+		loc := webtestsapis.WebTestGeolocation{
 			Id: pointer.To(v),
 		}
 		locations = append(locations, loc)
@@ -746,7 +746,7 @@ func expandApplicationInsightsStandardWebTestGeoLocations(input []string) []webt
 	return locations
 }
 
-func flattenApplicationInsightsStandardWebTestGeoLocations(input []webtests.WebTestGeolocation) []string {
+func flattenApplicationInsightsStandardWebTestGeoLocations(input []webtestsapis.WebTestGeolocation) []string {
 	results := make([]string, 0)
 	if input == nil {
 		return results

@@ -10,13 +10,13 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/machines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/privateendpointconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/privatelinkscopes"
-	hybridcompute_v2024_07_10 "github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2024-07-10"
+	v2024_07_10 "github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2024-07-10" //azignore:AZG010 - package name does not match its path
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	HybridComputeClient_v2024_07_10  *hybridcompute_v2024_07_10.Client
+	HybridComputeClient_v2024_07_10  *v2024_07_10.Client
 	MachineExtensionsClient          *machineextensions.MachineExtensionsClient
 	MachinesClient                   *machines.MachinesClient
 	PrivateEndpointConnectionsClient *privateendpointconnections.PrivateEndpointConnectionsClient
@@ -24,7 +24,7 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	hybridComputeClient_v2024_07_10, err := hybridcompute_v2024_07_10.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+	hybridComputeClient_v2024_07_10, err := v2024_07_10.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
 	if err != nil {

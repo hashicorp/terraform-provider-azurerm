@@ -6,13 +6,13 @@ package client
 import (
 	"fmt"
 
-	storagecache_2024_07_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01"
+	v2024_07_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01" //azignore:AZG010 - package name does not match its path
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
-func NewClient(o *common.ClientOptions) (*storagecache_2024_07_01.Client, error) {
-	client, err := storagecache_2024_07_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+func NewClient(o *common.ClientOptions) (*v2024_07_01.Client, error) {
+	client, err := v2024_07_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
 	if err != nil {

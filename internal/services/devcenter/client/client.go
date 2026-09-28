@@ -6,17 +6,17 @@ package client
 import (
 	"fmt"
 
-	devcenterV20250201 "github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01"
+	v2025_02_01 "github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01" //azignore:AZG010 - package name does not match its path
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type AutoClient struct {
-	V20250201 devcenterV20250201.Client
+	V20250201 v2025_02_01.Client
 }
 
 func NewClient(o *common.ClientOptions) (*AutoClient, error) {
-	v20250201Client, err := devcenterV20250201.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+	v20250201Client, err := v2025_02_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
 	if err != nil {

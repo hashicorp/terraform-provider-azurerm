@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"strings"
 
-	tfjson "github.com/hashicorp/terraform-json"
+	tfjson "github.com/hashicorp/terraform-json" //azignore:AZG010 - package name does not match its path
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 )

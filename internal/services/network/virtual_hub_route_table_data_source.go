@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -28,7 +28,7 @@ func dataSourceVirtualHubRouteTable() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: networkValidate.HubRouteTableName,
+				ValidateFunc: validate.HubRouteTableName,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
@@ -36,7 +36,7 @@ func dataSourceVirtualHubRouteTable() *pluginsdk.Resource {
 			"virtual_hub_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: networkValidate.VirtualHubName,
+				ValidateFunc: validate.VirtualHubName,
 			},
 
 			"virtual_hub_id": {

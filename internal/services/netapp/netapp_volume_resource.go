@@ -22,7 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -59,7 +59,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: netAppValidate.VolumeName,
+				ValidateFunc: validate.VolumeName,
 			},
 
 			"location": commonschema.Location(),
@@ -70,20 +70,20 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: netAppValidate.AccountName,
+				ValidateFunc: validate.AccountName,
 			},
 
 			"pool_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: netAppValidate.PoolName,
+				ValidateFunc: validate.PoolName,
 			},
 
 			"volume_path": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: netAppValidate.VolumePath,
+				ValidateFunc: validate.VolumePath,
 			},
 
 			"service_level": {
@@ -571,7 +571,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				// Always use the new configuration when protocols are changing to ensure validation against intended state
 				exportPolicyRules := d.Get("export_policy_rule").([]interface{})
 
-				validationErrors := netAppValidate.ValidateNetAppVolumeProtocolConversion(oldProtocolsStr, newProtocolsStr, kerberosEnabled, dataReplication, exportPolicyRules)
+				validationErrors := validate.ValidateNetAppVolumeProtocolConversion(oldProtocolsStr, newProtocolsStr, kerberosEnabled, dataReplication, exportPolicyRules)
 				for _, err := range validationErrors {
 					return err
 				}

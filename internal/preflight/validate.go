@@ -15,7 +15,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
-	preflightvalidation "github.com/hashicorp/terraform-provider-azurerm/internal/preflight/sdk"
+	preflightvalidation "github.com/hashicorp/terraform-provider-azurerm/internal/preflight/sdk" //azignore:AZG010 - package name does not match its path
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 

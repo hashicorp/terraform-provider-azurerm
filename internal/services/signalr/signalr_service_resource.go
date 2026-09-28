@@ -25,7 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/migration"
-	signalrValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -988,7 +988,7 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 					"url_template": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: signalrValidate.UrlTemplate,
+						ValidateFunc: validate.UrlTemplate,
 					},
 
 					"user_assigned_identity_id": {
