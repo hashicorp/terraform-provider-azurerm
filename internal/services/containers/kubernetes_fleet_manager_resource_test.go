@@ -76,6 +76,42 @@ func TestAccKubernetesFleetManager_complete(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesFleetManager_hubProfileDefaults(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_fleet_manager", "test")
+	r := KubernetesFleetManagerTestResource{}
+
+	hubCheck := acceptance.ComposeTestCheckFunc(
+		check.That(data.ResourceName).ExistsInAzure(r),
+		check.That(data.ResourceName).Key("hub_profile.#").HasValue("1"),
+		check.That(data.ResourceName).Key("hub_profile.0.fqdn").Exists(),
+		check.That(data.ResourceName).Key("hub_profile.0.kubernetes_version").Exists(),
+		check.That(data.ResourceName).Key("hub_profile.0.portal_fqdn").Exists(),
+	)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.hubProfileDefaults(data, "initial"),
+			Check: acceptance.ComposeTestCheckFunc(
+				hubCheck,
+				check.That(data.ResourceName).Key("tags.phase").HasValue("initial"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config:   r.hubProfileDefaults(data, "initial"),
+			PlanOnly: true,
+		},
+		{
+			Config: r.hubProfileDefaults(data, "updated"),
+			Check: acceptance.ComposeTestCheckFunc(
+				hubCheck,
+				check.That(data.ResourceName).Key("tags.phase").HasValue("updated"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesFleetManager_privateHub(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_fleet_manager", "test")
 	r := KubernetesFleetManagerTestResource{}
@@ -231,6 +267,46 @@ func TestKubernetesFleetManagerPrivateHubConfig(t *testing.T) {
 	}
 }
 
+func TestKubernetesFleetManagerHubProfileDefaultsConfig(t *testing.T) {
+	data := acceptance.TestData{RandomInteger: 123, RandomString: "abcde"}
+	data.Locations.Primary = "eastus"
+	r := KubernetesFleetManagerTestResource{}
+
+	for _, phase := range []string{"initial", "updated"} {
+		t.Run(phase, func(t *testing.T) {
+			config := r.hubProfileDefaults(data, phase)
+			for _, block := range []string{
+				`provider "azurerm"`,
+				`resource "azurerm_resource_group" "test"`,
+				`resource "azurerm_kubernetes_fleet_manager" "test"`,
+				"hub_profile",
+			} {
+				if count := strings.Count(config, block); count != 1 {
+					t.Errorf("expected one %s block, got %d", block, count)
+				}
+			}
+			if !strings.Contains(config, "hub_profile {}") {
+				t.Error("default hub configuration must contain an empty hub_profile block")
+			}
+			for _, field := range []string{"agent_profile", "api_server_access_profile", "dns_prefix"} {
+				if strings.Contains(config, field) {
+					t.Errorf("default hub configuration must omit %s", field)
+				}
+			}
+			tag := fmt.Sprintf("phase = %q", phase)
+			if count := strings.Count(config, tag); count != 1 {
+				t.Errorf("expected one %s tag, got %d", tag, count)
+			}
+			if strings.Replace(config, tag, `phase = "initial"`, 1) != r.hubProfileDefaults(data, "initial") {
+				t.Error("update configuration must change only the phase tag")
+			}
+			if strings.Contains(config, "%!") {
+				t.Error("configuration contains an unresolved formatting directive")
+			}
+		})
+	}
+}
+
 func (KubernetesFleetManagerTestResource) preCheckPrivateHub(t *testing.T) string {
 	t.Helper()
 	subnetId := os.Getenv("ARM_TEST_FLEET_SUBNET_ID")
@@ -336,6 +412,26 @@ resource "azurerm_kubernetes_fleet_manager" "test" {
   }
 }
 `, r.template(data))
+}
+
+func (r KubernetesFleetManagerTestResource) hubProfileDefaults(data acceptance.TestData, phase string) string {
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_kubernetes_fleet_manager" "test" {
+  location            = azurerm_resource_group.test.location
+  name                = "acctestkfm-${var.random_string}"
+  resource_group_name = azurerm_resource_group.test.name
+  tags = {
+    phase = %q
+  }
+  hub_profile {}
+}
+`, r.template(data), phase)
 }
 
 func (r KubernetesFleetManagerTestResource) privateHub(data acceptance.TestData, subnetId string, configureProfiles bool, phase string) string {
