@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/basebackuppolicyresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/resourceguardresources"
 	backupinstanceresources20260601 "github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-06-01/backupinstanceresources"
-	backupinstances20260601 "github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-06-01/backupinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-06-01/backupinstances"
 	basebackuppolicyresources20260601 "github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-06-01/basebackuppolicyresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
@@ -24,7 +24,7 @@ type Client struct {
 
 	BackupPolicyClient20260601    *basebackuppolicyresources20260601.BaseBackupPolicyResourcesClient
 	BackupInstanceClient20260601  *backupinstanceresources20260601.BackupInstanceResourcesClient
-	BackupInstancesClient20260601 *backupinstances20260601.BackupInstancesClient
+	BackupInstancesClient20260601 *backupinstances.BackupInstancesClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -64,7 +64,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(backupInstanceClient20260601.Client, o.Authorizers.ResourceManager)
 
-	backupInstancesClient20260601, err := backupinstances20260601.NewBackupInstancesClientWithBaseURI(o.Environment.ResourceManager)
+	backupInstancesClient20260601, err := backupinstances.NewBackupInstancesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building 2026-06-01 BackupInstances client: %+v", err)
 	}
