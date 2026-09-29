@@ -346,9 +346,8 @@ func expandConsumptionBudgetNotificationsFromModel(input []ConsumptionBudgetNoti
 	notifications := make(map[string]budgets.Notification)
 	for _, n := range input {
 		notification := budgets.Notification{
-			Enabled:  n.Enabled,
-			Operator: budgets.OperatorType(n.Operator),
-			//nolint:gosec
+			Enabled:   n.Enabled,
+			Operator:  budgets.OperatorType(n.Operator),
 			Threshold: float64(n.Threshold),
 		}
 

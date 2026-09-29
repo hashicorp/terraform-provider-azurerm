@@ -872,5 +872,5 @@ func testCheckProvider(provider *schema.Provider) (errs []error) {
 		errs = append(errs, fmt.Errorf("client.Account.TenantId was empty"))
 	}
 
-	return //nolint:nakedret
+	return
 }
