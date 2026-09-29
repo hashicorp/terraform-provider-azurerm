@@ -25,6 +25,16 @@ import (
 
 type KubernetesClusterNodePoolResource struct{}
 
+func TestAccKubernetesClusterNodePool_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccKubernetesClusterNodePool_autoScale(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
@@ -1487,6 +1497,22 @@ func TestAccKubernetesClusterNodePool_VMSizeOmitted(t *testing.T) {
 		},
 		data.ImportStep("vm_size"),
 	})
+}
+
+func (r KubernetesClusterNodePoolResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_B2als_v2"
+}
+`, r.templateConfig(data))
 }
 
 func (r KubernetesClusterNodePoolResource) autoScaleConfig(data acceptance.TestData) string {
@@ -4256,7 +4282,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
     max_surge = "10%%"
   }
 
-  local_dns_profile {
+  local_dns {
     mode = "Preferred"
 
     kube_dns_override {
@@ -4287,10 +4313,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
     max_surge = "10%%"
   }
 
-  local_dns_profile {
+  local_dns {
     mode = "Preferred"
 
-    vnet_dns_override {
+    virtual_network_dns_override {
       domain      = "."
       protocol    = "ForceTCP"
       serve_stale = "Immediate"
@@ -4369,7 +4395,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
     max_surge = "10%%"
   }
 
-  local_dns_profile {
+  local_dns {
     mode = "Required"
 
     kube_dns_override {
@@ -4377,7 +4403,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
       cache_duration_in_seconds       = 60
       forward_destination             = "ClusterCoreDNS"
       forward_policy                  = "Random"
-      max_concurrent                  = 100
+      maximum_concurrent              = 100
       protocol                        = "ForceTCP"
       query_logging                   = "Log"
       serve_stale                     = "Immediate"
@@ -4390,19 +4416,19 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
       cache_duration_in_seconds       = 60
       forward_destination             = "ClusterCoreDNS"
       forward_policy                  = "Random"
-      max_concurrent                  = 100
+      maximum_concurrent              = 100
       protocol                        = "ForceTCP"
       query_logging                   = "Log"
       serve_stale                     = "Immediate"
       serve_stale_duration_in_seconds = 120
     }
 
-    vnet_dns_override {
+    virtual_network_dns_override {
       domain                          = "."
       cache_duration_in_seconds       = 60
       forward_destination             = "VnetDNS"
       forward_policy                  = "Random"
-      max_concurrent                  = 100
+      maximum_concurrent              = 100
       protocol                        = "PreferUDP"
       query_logging                   = "Error"
       serve_stale                     = "Verify"
@@ -4410,12 +4436,12 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
     }
 
 
-    vnet_dns_override {
+    virtual_network_dns_override {
       domain                          = "cluster.local"
       cache_duration_in_seconds       = 60
       forward_destination             = "ClusterCoreDNS"
       forward_policy                  = "Random"
-      max_concurrent                  = 100
+      maximum_concurrent              = 100
       protocol                        = "PreferUDP"
       query_logging                   = "Error"
       serve_stale                     = "Verify"
@@ -4444,7 +4470,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
     max_surge = "10%%"
   }
 
-  local_dns_profile {
+  local_dns {
     mode = "Preferred"
 
     kube_dns_override {
@@ -4452,7 +4478,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
       cache_duration_in_seconds       = 120
       forward_destination             = "ClusterCoreDNS"
       forward_policy                  = "RoundRobin"
-      max_concurrent                  = 200
+      maximum_concurrent              = 200
       protocol                        = "PreferUDP"
       query_logging                   = "Error"
       serve_stale                     = "Disable"
@@ -4464,31 +4490,31 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
       cache_duration_in_seconds       = 60
       forward_destination             = "ClusterCoreDNS"
       forward_policy                  = "Sequential"
-      max_concurrent                  = 150
+      maximum_concurrent              = 150
       protocol                        = "ForceTCP"
       query_logging                   = "Log"
       serve_stale                     = "Immediate"
       serve_stale_duration_in_seconds = 240
     }
 
-    vnet_dns_override {
+    virtual_network_dns_override {
       domain                          = "."
       cache_duration_in_seconds       = 120
       forward_destination             = "VnetDNS"
       forward_policy                  = "RoundRobin"
-      max_concurrent                  = 200
+      maximum_concurrent              = 200
       protocol                        = "ForceTCP"
       query_logging                   = "Log"
       serve_stale                     = "Disable"
       serve_stale_duration_in_seconds = 60
     }
 
-    vnet_dns_override {
+    virtual_network_dns_override {
       domain                          = "cluster.local"
       cache_duration_in_seconds       = 60
       forward_destination             = "ClusterCoreDNS"
       forward_policy                  = "Sequential"
-      max_concurrent                  = 150
+      maximum_concurrent              = 150
       protocol                        = "PreferUDP"
       query_logging                   = "Error"
       serve_stale                     = "Immediate"

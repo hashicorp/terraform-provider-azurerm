@@ -206,6 +206,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				}
 				return nil
 			},
+			validateLocalDNSProfileOverrides("default_node_pool.0."),
 		),
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
