@@ -53,7 +53,7 @@ The following arguments are supported:
 
 -> **Note:** The interval must use the ISO 8601 repeating time interval format with a weekly recurrence of `P1W`. When `incremental_backup_enabled` is `true`, Incremental backups are scheduled automatically at 24-hour intervals on each of the following six days.
 
-* `incremental_backup_enabled` - (Optional) Whether `incremental backup` is enabled. Defaults to `true`. Changing this forces a new resource to be created.
+* `incremental_backup_enabled` - (Optional) Whether Incremental backups are attempted on the days when the weekly Full backup is not scheduled. Defaults to `true`. Changing this forces a new resource to be created.
 
 * `retention_rule` - (Optional) One or more `retention_rule` blocks as defined below. Changing this forces a new resource to be created.
 
@@ -73,7 +73,9 @@ A `retention_rule` block supports the following:
 
 * `absolute_criteria` - (Optional) The absolute criterion used to identify retained backups. Possible values are `AllBackup`, `FirstOfDay`, `FirstOfMonth`, `FirstOfWeek`, and `FirstOfYear`. Changing this forces a new resource to be created.
 
-* `days_of_week` - (Optional) A set containing the day of the week on which backups are retained. Possible values are `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday`, and `Sunday`. Changing this forces a new resource to be created.
+* `days_of_week` - (Optional) A set containing one day of the week on which backups are retained. Possible values are `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday`, and `Sunday`. Changing this forces a new resource to be created.
+
+~> **Note:** The value specified for `days_of_week` must match the day of the week in `full_backup_schedule`.
 
 * `months_of_year` - (Optional) A set of months in which backups are retained. Possible values are `January`, `February`, `March`, `April`, `May`, `June`, `July`, `August`, `September`, `October`, `November`, and `December`. Changing this forces a new resource to be created.
 
@@ -84,6 +86,8 @@ A `retention_rule` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Data Protection Backup Policy for Cosmos DB Database Accounts.
+
+* `incremental_backup_schedule` - A list of the automatically generated Incremental backup schedules in ISO 8601 repeating time interval format.
 
 ## Timeouts
 
