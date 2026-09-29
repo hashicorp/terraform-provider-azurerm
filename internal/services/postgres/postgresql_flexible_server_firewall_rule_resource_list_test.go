@@ -35,7 +35,7 @@ func TestAccPostgresqlFlexibleServerFirewallRule_listByFlexibleServerID(t *testi
 				Query:  true,
 				Config: r.basicQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast("azurerm_postgresql_flexible_server_firewall_rule.list", 3),
+					querycheck.ExpectLength("azurerm_postgresql_flexible_server_firewall_rule.list", 3),
 					querycheck.ExpectIdentity(
 						"azurerm_postgresql_flexible_server_firewall_rule.list",
 						map[string]knownvalue.Check{
