@@ -263,7 +263,6 @@ func resourceServiceBusSubscriptionRuleCreateUpdate(d *pluginsdk.ResourceData, m
 		if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
 			return err
 		}
-
 	}
 
 	return resourceServiceBusSubscriptionRuleRead(d, meta)
