@@ -1495,21 +1495,21 @@ func TestAccKubernetesCluster_localDNSProfile_update(t *testing.T) {
 	r := KubernetesClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		// {
-		// 	Config: r.localDNSProfileRemoved(data, currentKubernetesVersion),
-		// 	Check: acceptance.ComposeTestCheckFunc(
-		// 		check.That(data.ResourceName).ExistsInAzure(r),
-		// 	),
-		// },
-		// data.ImportStep(),
-		//
-		// {
-		// 	Config: r.localDNSProfileKubeDNS(data, currentKubernetesVersion),
-		// 	Check: acceptance.ComposeTestCheckFunc(
-		// 		check.That(data.ResourceName).ExistsInAzure(r),
-		// 	),
-		// },
-		// data.ImportStep(),
+		{
+			Config: r.localDNSProfileRemoved(data, currentKubernetesVersion),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+
+		{
+			Config: r.localDNSProfileKubeDNS(data, currentKubernetesVersion),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 		{
 			Config: r.localDNSProfileComplete(data, currentKubernetesVersion),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -1531,13 +1531,13 @@ func TestAccKubernetesCluster_localDNSProfile_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		// {
-		// 	Config: r.localDNSProfileRemoved(data, currentKubernetesVersion),
-		// 	Check: acceptance.ComposeTestCheckFunc(
-		// 		check.That(data.ResourceName).ExistsInAzure(r),
-		// 	),
-		// },
-		// data.ImportStep(),
+		{
+			Config: r.localDNSProfileRemoved(data, currentKubernetesVersion),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
