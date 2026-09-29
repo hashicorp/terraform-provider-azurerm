@@ -1421,9 +1421,7 @@ func flattenAgentPoolLocalDNSProfile(input *agentpools.LocalDNSProfile) []interf
 
 	values := make(map[string]interface{})
 
-	if input.Mode != nil {
-		values["mode"] = pointer.From(input.Mode)
-	}
+	values["mode"] = pointer.From(input.Mode)
 
 	if input.KubeDNSOverrides != nil && len(*input.KubeDNSOverrides) > 0 {
 		overrides := make([]any, 0, len(*input.KubeDNSOverrides))
