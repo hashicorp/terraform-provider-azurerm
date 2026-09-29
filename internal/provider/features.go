@@ -220,6 +220,13 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 						Optional:    true,
 						Default:     true,
 					},
+
+					"set_value_wo_version_on_import": {
+						Description: "When enabled `value_wo_version` of `azurerm_key_vault_secret` resources will be set to 1 on import",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
+					},
 				},
 			},
 		},
@@ -627,6 +634,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			}
 			if v, ok := keyVaultRaw["recover_soft_deleted_hardware_security_module_keys"]; ok {
 				featuresMap.KeyVault.RecoverSoftDeletedHSMKeys = v.(bool)
+			}
+			if v, ok := keyVaultRaw["set_value_wo_version_on_import"]; ok {
+				featuresMap.KeyVault.SetValueWoVersionOnImport = v.(bool)
 			}
 		}
 	}

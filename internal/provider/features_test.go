@@ -55,6 +55,7 @@ func TestExpandFeatures(t *testing.T) {
 					RecoverSoftDeletedKeyVaults:      true,
 					RecoverSoftDeletedSecrets:        true,
 					RecoverSoftDeletedHSMKeys:        true,
+					SetValueWoVersionOnImport:        false,
 				},
 				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
 					PermanentlyDeleteOnDestroy: false,
@@ -149,6 +150,7 @@ func TestExpandFeatures(t *testing.T) {
 							"recover_soft_deleted_key_vaults":                             true,
 							"recover_soft_deleted_secrets":                                true,
 							"recover_soft_deleted_hardware_security_module_keys":          true,
+							"set_value_wo_version_on_import":                              true,
 						},
 					},
 					"log_analytics_workspace": []interface{}{
@@ -274,6 +276,7 @@ func TestExpandFeatures(t *testing.T) {
 					RecoverSoftDeletedKeyVaults:      true,
 					RecoverSoftDeletedSecrets:        true,
 					RecoverSoftDeletedHSMKeys:        true,
+					SetValueWoVersionOnImport:        true,
 				},
 				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
 					PermanentlyDeleteOnDestroy: true,
@@ -368,6 +371,7 @@ func TestExpandFeatures(t *testing.T) {
 							"recover_soft_deleted_key_vaults":                             false,
 							"recover_soft_deleted_secrets":                                false,
 							"recover_soft_deleted_hardware_security_module_keys":          false,
+							"set_value_wo_version_on_import":                              false,
 						},
 					},
 					"log_analytics_workspace": []interface{}{
@@ -493,6 +497,7 @@ func TestExpandFeatures(t *testing.T) {
 					RecoverSoftDeletedKeyVaults:      false,
 					RecoverSoftDeletedSecrets:        false,
 					RecoverSoftDeletedHSMKeys:        false,
+					SetValueWoVersionOnImport:        false,
 				},
 				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
 					PermanentlyDeleteOnDestroy: false,
@@ -854,11 +859,12 @@ func TestExpandFeaturesKeyVault(t *testing.T) {
 					RecoverSoftDeletedKeyVaults:      true,
 					RecoverSoftDeletedSecrets:        true,
 					RecoverSoftDeletedHSMKeys:        true,
+					SetValueWoVersionOnImport:        false,
 				},
 			},
 		},
 		{
-			Name: "Purge Soft Delete On Destroy and Recover Soft Deleted Key Vaults Enabled",
+			Name: "Purge Soft Delete On Destroy, Recover Soft Deleted Key Vaults Enabled, and Set value_wo_version On Import Enabled",
 			Input: []interface{}{
 				map[string]interface{}{
 					"key_vault": []interface{}{
@@ -874,6 +880,7 @@ func TestExpandFeaturesKeyVault(t *testing.T) {
 							"recover_soft_deleted_key_vaults":                             true,
 							"recover_soft_deleted_secrets":                                true,
 							"recover_soft_deleted_hardware_security_module_keys":          true,
+							"set_value_wo_version_on_import":                              true,
 						},
 					},
 				},
@@ -891,11 +898,12 @@ func TestExpandFeaturesKeyVault(t *testing.T) {
 					RecoverSoftDeletedKeyVaults:      true,
 					RecoverSoftDeletedSecrets:        true,
 					RecoverSoftDeletedHSMKeys:        true,
+					SetValueWoVersionOnImport:        true,
 				},
 			},
 		},
 		{
-			Name: "Purge Soft Delete On Destroy and Recover Soft Deleted Key Vaults Disabled",
+			Name: "Purge Soft Delete On Destroy, Recover Soft Deleted Key Vaults, and Set value_wo_version On Import Disabled",
 			Input: []interface{}{
 				map[string]interface{}{
 					"key_vault": []interface{}{
@@ -911,6 +919,7 @@ func TestExpandFeaturesKeyVault(t *testing.T) {
 							"recover_soft_deleted_key_vaults":                             false,
 							"recover_soft_deleted_secrets":                                false,
 							"recover_soft_deleted_hardware_security_module_keys":          false,
+							"set_value_wo_version_on_import":                              false,
 						},
 					},
 				},
@@ -928,6 +937,7 @@ func TestExpandFeaturesKeyVault(t *testing.T) {
 					RecoverSoftDeletedKeys:           false,
 					RecoverSoftDeletedSecrets:        false,
 					RecoverSoftDeletedHSMKeys:        false,
+					SetValueWoVersionOnImport:        false,
 				},
 			},
 		},
