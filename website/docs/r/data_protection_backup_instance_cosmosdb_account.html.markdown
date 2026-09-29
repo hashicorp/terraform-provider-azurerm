@@ -52,18 +52,12 @@ resource "azurerm_data_protection_backup_vault" "example" {
   }
 }
 
-resource "azurerm_data_protection_backup_policy_cosmosdb_database_account" "example" {
-  name                            = "example-data-protection-backup-policy-cosmosdb-database-account"
-  vault_id                        = azurerm_data_protection_backup_vault.example.id
-  backup_repeating_time_intervals = ["R/2026-02-08T10:00:00+00:00/P1W"]
+resource "azurerm_data_protection_backup_policy_cosmosdb_account" "example" {
+  name                            = "example-data-protection-backup-policy-cosmosdb-account"
+  data_protection_backup_vault_id = azurerm_data_protection_backup_vault.example.id
+  default_retention_duration      = "P10Y"
+  full_backup_schedule            = "R/2026-02-08T10:00:00+00:00/P1W"
   time_zone                       = "UTC"
-
-  default_retention_rule {
-    life_cycle {
-      duration        = "P10Y"
-      data_store_type = "VaultStore"
-    }
-  }
 }
 
 resource "azurerm_role_assignment" "reader" {
@@ -82,7 +76,7 @@ resource "azurerm_data_protection_backup_instance_cosmosdb_account" "example" {
   name                              = "example-data-protection-backup-instance-cosmosdb-account"
   location                          = azurerm_resource_group.example.location
   data_protection_backup_vault_id   = azurerm_data_protection_backup_vault.example.id
-  backup_policy_cosmosdb_account_id = azurerm_data_protection_backup_policy_cosmosdb_database_account.example.id
+  backup_policy_cosmosdb_account_id = azurerm_data_protection_backup_policy_cosmosdb_account.example.id
   cosmosdb_account_id               = azurerm_cosmosdb_account.example.id
 
   depends_on = [

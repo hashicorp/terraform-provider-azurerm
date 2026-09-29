@@ -44,6 +44,7 @@ func BackupPolicyCosmosdbAccountTimeZone() pluginsdk.SchemaValidateFunc {
 		"Central Standard Time (Mexico)",
 		"Chatham Islands Standard Time",
 		"China Standard Time",
+		"Coordinated Universal Time",
 		"Cuba Standard Time",
 		"Dateline Standard Time",
 		"E. Africa Standard Time",

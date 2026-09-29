@@ -126,9 +126,8 @@ resource "azurerm_cosmosdb_account" "test" {
 resource "azurerm_data_protection_backup_policy_cosmosdb_account" "another" {
   name                            = "acctest-dbp-cosmos-other-%d"
   data_protection_backup_vault_id = azurerm_data_protection_backup_vault.test.id
-  backup_schedule                 = ["R/2026-02-09T10:00:00+00:00/P1W"]
   default_retention_duration      = "P5Y"
-  time_zone                       = "UTC"
+  full_backup_schedule            = "R/2026-02-09T10:00:00+00:00/P1W"
 }
 
 resource "azurerm_role_assignment" "reader" {

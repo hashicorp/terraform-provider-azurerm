@@ -45,18 +45,16 @@ resource "azurerm_data_protection_backup_policy_data_lake_storage" "example" {
   }
 
   retention_rule {
-    name                   = "thursday"
-    duration               = "P1W"
-    days_of_week           = ["Thursday"]
-    scheduled_backup_times = ["2021-05-23T02:30:00Z"]
+    name         = "thursday"
+    duration     = "P1W"
+    days_of_week = ["Thursday"]
   }
 
   retention_rule {
-    name                   = "monthly"
-    duration               = "P1D"
-    weeks_of_month         = ["First", "Last"]
-    days_of_week           = ["Tuesday"]
-    scheduled_backup_times = ["2021-05-23T02:30:00Z"]
+    name           = "monthly"
+    duration       = "P1D"
+    weeks_of_month = ["First", "Last"]
+    days_of_week   = ["Tuesday"]
   }
 }
 ```
@@ -92,8 +90,6 @@ A `retention_rule` block supports the following:
 * `weeks_of_month` - (Optional) Specifies a list of weeks of the month on which the retention rule applies. Possible values include `First`, `Second`, `Third`, `Fourth`, and `Last`. Changing this forces a new resource to be created.
 
 * `months_of_year` - (Optional) Specifies a list of months of the year on which the retention rule applies. Possible values include `January`, `February`, `March`, `April`, `May`, `June`, `July`, `August`, `September`, `October`, `November`, and `December`. Changing this forces a new resource to be created.
-
-* `scheduled_backup_times` - (Optional) Specifies a list of backup times for backup in the `RFC3339` format. Changing this forces a new resource to be created.
 
 ~> **Note:** At least one of `absolute_criteria` or `days_of_week` must be specified. `weeks_of_month` and `months_of_year` are optional and can be supplied together. Multiple intervals may be set using multiple `retention_rule` blocks.
 

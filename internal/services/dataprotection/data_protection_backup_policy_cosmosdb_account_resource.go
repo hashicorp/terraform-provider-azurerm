@@ -7,9 +7,11 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 
+	"github.com/btubbs/datetime"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -26,20 +28,20 @@ import (
 type BackupPolicyCosmosdbAccountModel struct {
 	Name                        string                                     `tfschema:"name"`
 	DataProtectionBackupVaultId string                                     `tfschema:"data_protection_backup_vault_id"`
-	BackupSchedule              []string                                   `tfschema:"backup_schedule"`
+	IncrementalBackupEnabled    bool                                       `tfschema:"incremental_backup_enabled"`
 	DefaultRetentionDuration    string                                     `tfschema:"default_retention_duration"`
+	FullBackupSchedule          string                                     `tfschema:"full_backup_schedule"`
 	RetentionRules              []BackupPolicyCosmosdbAccountRetentionRule `tfschema:"retention_rule"`
 	TimeZone                    string                                     `tfschema:"time_zone"`
 }
 
 type BackupPolicyCosmosdbAccountRetentionRule struct {
-	Name                 string   `tfschema:"name"`
-	Duration             string   `tfschema:"duration"`
-	AbsoluteCriteria     string   `tfschema:"absolute_criteria"`
-	DaysOfWeek           []string `tfschema:"days_of_week"`
-	MonthsOfYear         []string `tfschema:"months_of_year"`
-	ScheduledBackupTimes []string `tfschema:"scheduled_backup_times"`
-	WeeksOfMonth         []string `tfschema:"weeks_of_month"`
+	Name             string   `tfschema:"name"`
+	Duration         string   `tfschema:"duration"`
+	AbsoluteCriteria string   `tfschema:"absolute_criteria"`
+	DaysOfWeek       []string `tfschema:"days_of_week"`
+	MonthsOfYear     []string `tfschema:"months_of_year"`
+	WeeksOfMonth     []string `tfschema:"weeks_of_month"`
 }
 
 type DataProtectionBackupPolicyCosmosdbAccountResource struct{}
@@ -79,16 +81,21 @@ func (r DataProtectionBackupPolicyCosmosdbAccountResource) Arguments() map[strin
 
 		"data_protection_backup_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(pointer.To(basebackuppolicyresources.BackupVaultId{})),
 
-		// check maxItems
-		"backup_schedule": {
-			Type:     pluginsdk.TypeList,
+		"full_backup_schedule": {
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
-			MinItems: 1,
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.ISO8601RepeatingTime,
-			},
+			ValidateFunc: validation.All(
+				validation.ISO8601RepeatingTime,
+				validation.StringMatch(regexp.MustCompile(`/P1W$`), "the repeating time interval must use a weekly recurrence"),
+			),
+		},
+
+		"incremental_backup_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+			ForceNew: true,
 		},
 
 		"default_retention_duration": {
@@ -125,11 +132,13 @@ func (r DataProtectionBackupPolicyCosmosdbAccountResource) Arguments() map[strin
 						ValidateFunc: validation.StringInSlice(basebackuppolicyresources.PossibleValuesForAbsoluteMarker(), false),
 					},
 
+					// This has to be the day when the full backup has be chosen
 					"days_of_week": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
 						ForceNew: true,
 						MinItems: 1,
+						MaxItems: 1,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice(basebackuppolicyresources.PossibleValuesForDayOfWeek(), false),
@@ -141,20 +150,10 @@ func (r DataProtectionBackupPolicyCosmosdbAccountResource) Arguments() map[strin
 						Optional: true,
 						ForceNew: true,
 						MinItems: 1,
+						MaxItems: 12,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice(basebackuppolicyresources.PossibleValuesForMonth(), false),
-						},
-					},
-
-					"scheduled_backup_times": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
-						ForceNew: true,
-						MinItems: 1,
-						Elem: &pluginsdk.Schema{
-							Type:         pluginsdk.TypeString,
-							ValidateFunc: validation.IsRFC3339Time,
 						},
 					},
 
@@ -163,6 +162,7 @@ func (r DataProtectionBackupPolicyCosmosdbAccountResource) Arguments() map[strin
 						Optional: true,
 						ForceNew: true,
 						MinItems: 1,
+						MaxItems: 5,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice(basebackuppolicyresources.PossibleValuesForWeekNumber(), false),
@@ -225,7 +225,11 @@ func (r DataProtectionBackupPolicyCosmosdbAccountResource) Create() sdk.Resource
 			policyRules := make([]basebackuppolicyresources.BasePolicyRule, 0)
 			policyRules = append(policyRules, expandBackupPolicyCosmosdbAccountRetentionRules(model.RetentionRules)...)
 			policyRules = append(policyRules, expandBackupPolicyCosmosdbAccountDefaultRetentionRule(model.DefaultRetentionDuration))
-			policyRules = append(policyRules, expandBackupPolicyCosmosdbAccountBackupRules(model.BackupSchedule, model.TimeZone, expandBackupPolicyCosmosdbAccountTaggingCriteria(model.RetentionRules))...)
+			backupRules, err := expandBackupPolicyCosmosdbAccountBackupRules(model.FullBackupSchedule, model.IncrementalBackupEnabled, model.TimeZone, expandBackupPolicyCosmosdbAccountTaggingCriteria(model.RetentionRules))
+			if err != nil {
+				return fmt.Errorf("expanding backup schedule: %+v", err)
+			}
+			policyRules = append(policyRules, backupRules...)
 
 			parameters := basebackuppolicyresources.BaseBackupPolicyResource{
 				Properties: &basebackuppolicyresources.BackupPolicy{
@@ -270,7 +274,7 @@ func (r DataProtectionBackupPolicyCosmosdbAccountResource) Read() sdk.ResourceFu
 
 			if model := resp.Model; model != nil {
 				if properties, ok := model.Properties.(basebackuppolicyresources.BackupPolicy); ok {
-					state.DefaultRetentionDuration, state.RetentionRules, state.BackupSchedule, state.TimeZone = flattenBackupPolicyCosmosdbAccountPolicyRules(properties.PolicyRules)
+					state.DefaultRetentionDuration, state.RetentionRules, state.FullBackupSchedule, state.IncrementalBackupEnabled, state.TimeZone = flattenBackupPolicyCosmosdbAccountPolicyRules(properties.PolicyRules)
 				}
 			}
 
@@ -321,28 +325,83 @@ func expandBackupPolicyCosmosdbAccountDefaultRetentionRule(duration string) base
 	}
 }
 
-func expandBackupPolicyCosmosdbAccountBackupRules(input []string, timeZone string, taggingCriteria []basebackuppolicyresources.TaggingCriteria) []basebackuppolicyresources.BasePolicyRule {
-	results := make([]basebackuppolicyresources.BasePolicyRule, 0)
+func expandBackupPolicyCosmosdbAccountBackupRules(fullBackupSchedule string, incrementalBackupEnabled bool, timeZone string, taggingCriteria []basebackuppolicyresources.TaggingCriteria) ([]basebackuppolicyresources.BasePolicyRule, error) {
+	results := []basebackuppolicyresources.BasePolicyRule{
+		basebackuppolicyresources.AzureBackupRule{
+			Name: "BackupWeekly",
+			DataStore: basebackuppolicyresources.DataStoreInfoBase{
+				DataStoreType: basebackuppolicyresources.DataStoreTypesVaultStore,
+				ObjectType:    "DataStoreInfoBase",
+			},
+			BackupParameters: basebackuppolicyresources.AzureBackupParams{
+				BackupType: "Full",
+			},
+			Trigger: basebackuppolicyresources.ScheduleBasedTriggerContext{
+				Schedule: basebackuppolicyresources.BackupSchedule{
+					RepeatingTimeIntervals: []string{fullBackupSchedule},
+					TimeZone:               pointer.To(timeZone),
+				},
+				TaggingCriteria: taggingCriteria,
+			},
+		},
+	}
+
+	if !incrementalBackupEnabled {
+		return results, nil
+	}
+
+	incrementalBackupSchedule, err := generateBackupPolicyCosmosdbAccountIncrementalSchedules(fullBackupSchedule)
+	if err != nil {
+		return nil, err
+	}
 
 	results = append(results, basebackuppolicyresources.AzureBackupRule{
-		Name: "BackupRule",
+		Name: "BackupWeeklyIncremental",
 		DataStore: basebackuppolicyresources.DataStoreInfoBase{
 			DataStoreType: basebackuppolicyresources.DataStoreTypesVaultStore,
 			ObjectType:    "DataStoreInfoBase",
 		},
 		BackupParameters: basebackuppolicyresources.AzureBackupParams{
-			BackupType: "full",
+			BackupType: "Incremental",
 		},
 		Trigger: basebackuppolicyresources.ScheduleBasedTriggerContext{
 			Schedule: basebackuppolicyresources.BackupSchedule{
-				RepeatingTimeIntervals: input,
+				RepeatingTimeIntervals: incrementalBackupSchedule,
 				TimeZone:               pointer.To(timeZone),
 			},
-			TaggingCriteria: taggingCriteria,
+			TaggingCriteria: []basebackuppolicyresources.TaggingCriteria{
+				expandBackupPolicyCosmosdbAccountDefaultTaggingCriteria(),
+			},
 		},
 	})
 
-	return results
+	return results, nil
+}
+
+func generateBackupPolicyCosmosdbAccountIncrementalSchedules(fullBackupSchedule string) ([]string, error) {
+	const (
+		recurrencePrefix = "R/"
+		recurrenceSuffix = "/P1W"
+		timeFormat       = "2006-01-02T15:04:05-07:00"
+	)
+
+	if !strings.HasPrefix(fullBackupSchedule, recurrencePrefix) || !strings.HasSuffix(fullBackupSchedule, recurrenceSuffix) {
+		return nil, fmt.Errorf("parsing `full_backup_schedule` value `%s`: expected `R/<timestamp>/P1W`", fullBackupSchedule)
+	}
+
+	timestamp := strings.TrimSuffix(strings.TrimPrefix(fullBackupSchedule, recurrencePrefix), recurrenceSuffix)
+	fullBackupTime, err := datetime.Parse(timestamp, time.UTC)
+	if err != nil {
+		return nil, fmt.Errorf("parsing timestamp in `full_backup_schedule` value `%s`: %+v", fullBackupSchedule, err)
+	}
+
+	results := make([]string, 0, 6)
+	for day := 1; day <= 6; day++ {
+		incrementalBackupTime := fullBackupTime.Add(time.Duration(day) * 24 * time.Hour)
+		results = append(results, fmt.Sprintf("%s%s%s", recurrencePrefix, incrementalBackupTime.Format(timeFormat), recurrenceSuffix))
+	}
+
+	return results, nil
 }
 
 func expandBackupPolicyCosmosdbAccountLifeCycle(duration string) []basebackuppolicyresources.SourceLifeCycle {
@@ -364,17 +423,15 @@ func expandBackupPolicyCosmosdbAccountLifeCycle(duration string) []basebackuppol
 
 func expandBackupPolicyCosmosdbAccountTaggingCriteria(input []BackupPolicyCosmosdbAccountRetentionRule) []basebackuppolicyresources.TaggingCriteria {
 	results := []basebackuppolicyresources.TaggingCriteria{
-		{
-			IsDefault:       true,
-			TaggingPriority: 99,
-			TagInfo: basebackuppolicyresources.RetentionTag{
-				Id:      pointer.To("Default_"),
-				TagName: "Default",
-			},
-		},
+		expandBackupPolicyCosmosdbAccountDefaultTaggingCriteria(),
 	}
 
-	for i, item := range input {
+	retentionRules := append([]BackupPolicyCosmosdbAccountRetentionRule(nil), input...)
+	sort.SliceStable(retentionRules, func(i, j int) bool {
+		return backupPolicyCosmosdbAccountRetentionRuleOrder(retentionRules[i]) < backupPolicyCosmosdbAccountRetentionRuleOrder(retentionRules[j])
+	})
+
+	for i, item := range retentionRules {
 		result := basebackuppolicyresources.TaggingCriteria{
 			Criteria:        expandBackupPolicyCosmosdbAccountRetentionRuleCriteria(item),
 			TaggingPriority: int64(i + 1),
@@ -388,6 +445,33 @@ func expandBackupPolicyCosmosdbAccountTaggingCriteria(input []BackupPolicyCosmos
 	}
 
 	return results
+}
+
+func backupPolicyCosmosdbAccountRetentionRuleOrder(input BackupPolicyCosmosdbAccountRetentionRule) int {
+	if input.AbsoluteCriteria == string(basebackuppolicyresources.AbsoluteMarkerFirstOfYear) || len(input.MonthsOfYear) > 0 {
+		return 1
+	}
+	if input.AbsoluteCriteria == string(basebackuppolicyresources.AbsoluteMarkerFirstOfMonth) || len(input.WeeksOfMonth) > 0 {
+		return 2
+	}
+	if input.AbsoluteCriteria == string(basebackuppolicyresources.AbsoluteMarkerFirstOfWeek) || len(input.DaysOfWeek) > 0 && len(input.DaysOfWeek) < 7 {
+		return 3
+	}
+	if input.AbsoluteCriteria == string(basebackuppolicyresources.AbsoluteMarkerFirstOfDay) || len(input.DaysOfWeek) == 7 {
+		return 4
+	}
+	return 5
+}
+
+func expandBackupPolicyCosmosdbAccountDefaultTaggingCriteria() basebackuppolicyresources.TaggingCriteria {
+	return basebackuppolicyresources.TaggingCriteria{
+		IsDefault:       true,
+		TaggingPriority: 99,
+		TagInfo: basebackuppolicyresources.RetentionTag{
+			Id:      pointer.To("Default_"),
+			TagName: "Default",
+		},
+	}
 }
 
 func expandBackupPolicyCosmosdbAccountRetentionRuleCriteria(input BackupPolicyCosmosdbAccountRetentionRule) *[]basebackuppolicyresources.BackupCriteria {
@@ -420,12 +504,7 @@ func expandBackupPolicyCosmosdbAccountRetentionRuleCriteria(input BackupPolicyCo
 		}
 	}
 
-	var scheduleTimes []string
-	if len(input.ScheduledBackupTimes) > 0 {
-		scheduleTimes = input.ScheduledBackupTimes
-	}
-
-	if len(absoluteCriteria) == 0 && len(daysOfWeek) == 0 && len(monthsOfYear) == 0 && len(weeksOfMonth) == 0 && len(scheduleTimes) == 0 {
+	if len(absoluteCriteria) == 0 && len(daysOfWeek) == 0 && len(monthsOfYear) == 0 && len(weeksOfMonth) == 0 {
 		return nil
 	}
 
@@ -434,16 +513,16 @@ func expandBackupPolicyCosmosdbAccountRetentionRuleCriteria(input BackupPolicyCo
 			AbsoluteCriteria: pointer.To(absoluteCriteria),
 			DaysOfTheWeek:    pointer.To(daysOfWeek),
 			MonthsOfYear:     pointer.To(monthsOfYear),
-			ScheduleTimes:    pointer.To(scheduleTimes),
 			WeeksOfTheMonth:  pointer.To(weeksOfMonth),
 		},
 	}
 }
 
-func flattenBackupPolicyCosmosdbAccountPolicyRules(input []basebackuppolicyresources.BasePolicyRule) (string, []BackupPolicyCosmosdbAccountRetentionRule, []string, string) {
+func flattenBackupPolicyCosmosdbAccountPolicyRules(input []basebackuppolicyresources.BasePolicyRule) (string, []BackupPolicyCosmosdbAccountRetentionRule, string, bool, string) {
 	var taggingCriteria []basebackuppolicyresources.TaggingCriteria
 	var nonDefaultRetentionRules []basebackuppolicyresources.AzureRetentionRule
-	var backupSchedule []string
+	var incrementalBackupEnabled bool
+	var fullBackupSchedule string
 	var timeZone string
 	var defaultRetentionDuration string
 	retentionRules := make([]BackupPolicyCosmosdbAccountRetentionRule, 0)
@@ -452,9 +531,21 @@ func flattenBackupPolicyCosmosdbAccountPolicyRules(input []basebackuppolicyresou
 		switch rule := item.(type) {
 		case basebackuppolicyresources.AzureBackupRule:
 			if trigger, ok := rule.Trigger.(basebackuppolicyresources.ScheduleBasedTriggerContext); ok {
-				backupSchedule = trigger.Schedule.RepeatingTimeIntervals
-				timeZone = pointer.From(trigger.Schedule.TimeZone)
-				taggingCriteria = trigger.TaggingCriteria
+				if timeZone == "" {
+					timeZone = pointer.From(trigger.Schedule.TimeZone)
+				}
+
+				if parameters, ok := rule.BackupParameters.(basebackuppolicyresources.AzureBackupParams); ok {
+					switch {
+					case strings.EqualFold(parameters.BackupType, "Full"):
+						if len(trigger.Schedule.RepeatingTimeIntervals) > 0 {
+							fullBackupSchedule = trigger.Schedule.RepeatingTimeIntervals[0]
+						}
+						taggingCriteria = trigger.TaggingCriteria
+					case strings.EqualFold(parameters.BackupType, "Incremental"):
+						incrementalBackupEnabled = true
+					}
+				}
 			}
 		case basebackuppolicyresources.AzureRetentionRule:
 			if pointer.From(rule.IsDefault) {
@@ -490,7 +581,7 @@ func flattenBackupPolicyCosmosdbAccountPolicyRules(input []basebackuppolicyresou
 		retentionRules = append(retentionRules, result)
 	}
 
-	return defaultRetentionDuration, retentionRules, backupSchedule, timeZone
+	return defaultRetentionDuration, retentionRules, fullBackupSchedule, incrementalBackupEnabled, timeZone
 }
 
 func flattenBackupPolicyCosmosdbAccountCriteriaIntoRule(input *[]basebackuppolicyresources.BackupCriteria, rule *BackupPolicyCosmosdbAccountRetentionRule) {
@@ -526,12 +617,6 @@ func flattenBackupPolicyCosmosdbAccountCriteriaIntoRule(input *[]basebackuppolic
 					weeksOfMonth = append(weeksOfMonth, string(item))
 				}
 				rule.WeeksOfMonth = weeksOfMonth
-			}
-
-			if criteria.ScheduleTimes != nil {
-				scheduleTimes := make([]string, 0)
-				scheduleTimes = append(scheduleTimes, pointer.From(criteria.ScheduleTimes)...)
-				rule.ScheduledBackupTimes = scheduleTimes
 			}
 		}
 	}
