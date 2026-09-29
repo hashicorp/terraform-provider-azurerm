@@ -365,6 +365,8 @@ func (r ContainerAppJobResource) Read() sdk.ResourceFunc {
 						}
 					}
 					state.WorkloadProfileName = pointer.From(props.WorkloadProfileName)
+					state.EventStreamEndpoint = pointer.From(props.EventStreamEndpoint)
+					state.OutboundIPAddresses = pointer.From(props.OutboundIPAddresses)
 				}
 			}
 
