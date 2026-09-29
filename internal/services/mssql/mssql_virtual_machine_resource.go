@@ -1243,6 +1243,7 @@ func expandSqlVirtualMachineDataStorageSettings(input []interface{}) *sqlvirtual
 	return &sqlvirtualmachines.SQLStorageSettings{
 		Luns:            expandSqlVirtualMachineStorageSettingsLuns(dataStorageSettings["luns"].([]interface{})),
 		DefaultFilePath: pointer.To(dataStorageSettings["default_file_path"].(string)),
+		UseStoragePool:  pointer.To(dataStorageSettings["use_storage_pool"].(bool)),
 	}
 }
 
@@ -1271,6 +1272,10 @@ func flattenSqlVirtualMachineStorageSettings(input *sqlvirtualmachines.SQLStorag
 		attrs["default_file_path"] = *input.DefaultFilePath
 	}
 
+	if input.UseStoragePool != nil {
+		attrs["use_storage_pool"] = *input.UseStoragePool
+	}
+
 	return []interface{}{attrs}
 }
 
@@ -1288,6 +1293,7 @@ func expandSqlVirtualMachineTempDbSettings(input []interface{}) *sqlvirtualmachi
 		DataGrowth:      pointer.To(int64(tempDbSettings["data_file_growth_in_mb"].(int))),
 		LogFileSize:     pointer.To(int64(tempDbSettings["log_file_size_mb"].(int))),
 		LogGrowth:       pointer.To(int64(tempDbSettings["log_file_growth_mb"].(int))),
+		UseStoragePool:  pointer.To(tempDbSettings["use_storage_pool"].(bool)),
 	}
 }
 
@@ -1323,6 +1329,10 @@ func flattenSqlVirtualMachineTempDbSettings(input *sqlvirtualmachines.SQLTempDbS
 
 	if input.LogGrowth != nil {
 		attrs["log_file_growth_mb"] = *input.LogGrowth
+	}
+
+	if input.UseStoragePool != nil {
+		attrs["use_storage_pool"] = *input.UseStoragePool
 	}
 
 	return []interface{}{attrs}
