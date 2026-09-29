@@ -88,6 +88,27 @@ func resourceWebpubsubNetworkACL() *pluginsdk.Resource {
 				},
 			},
 
+			"ip_rule": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 30,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"action": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(webpubsub.PossibleValuesForACLAction(), false),
+						},
+
+						"ip_range": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
 			"private_endpoint": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -163,6 +184,7 @@ func resourceWebPubsubNetworkACLCreateUpdate(d *pluginsdk.ResourceData, meta int
 		DefaultAction:    &defaultAction,
 		PublicNetwork:    expandWebpubsubPublicNetwork(d.Get("public_network").([]interface{})),
 		PrivateEndpoints: expandWebpubsubPrivateEndpoint(d.Get("private_endpoint").(*pluginsdk.Set).List(), payload.Properties.PrivateEndpointConnections),
+		IPRules:          expandWebpubsubIPRules(d.Get("ip_rule").([]interface{})),
 	}
 
 	if defaultAction == webpubsub.ACLActionAllow && networkACL.PublicNetwork.Allow != nil && len(*networkACL.PublicNetwork.Allow) != 0 {
@@ -186,7 +208,7 @@ func resourceWebPubsubNetworkACLCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 	payload.Properties.NetworkACLs = &networkACL
 
-	if err := client.UpdateCallbackThenPoll(ctx, *id, payload, sdk.SetIDCallback(meta, id, d)); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, *id, payload, sdk.SetIDCallback(meta, id, d)); err != nil {
 		return fmt.Errorf("updating Network ACL configuration for %q: %+v", id, err)
 	}
 	d.SetId(id.ID())
@@ -229,6 +251,10 @@ func resourceWebPubsubNetworkACLRead(d *pluginsdk.ResourceData, meta interface{}
 					return fmt.Errorf("setting `public_network`: %+v", err)
 				}
 
+				if err := d.Set("ip_rule", flattenWebpubsubIPRules(props.NetworkACLs.IPRules)); err != nil {
+					return fmt.Errorf("setting `ip_rule`: %+v", err)
+				}
+
 				if err := d.Set("private_endpoint", flattenWebpubsubPrivateEndpoint(props.NetworkACLs.PrivateEndpoints, props.PrivateEndpointConnections)); err != nil {
 					return fmt.Errorf("setting `private_endpoint`: %+v", err)
 				}
@@ -249,6 +275,9 @@ func resourceWebpubsubNetworkACLDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
+	locks.ByName(id.WebPubSubName, "azurerm_web_pubsub")
+	defer locks.UnlockByName(id.WebPubSubName, "azurerm_web_pubsub")
+
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving %q: %+v", id, err)
@@ -261,6 +290,9 @@ func resourceWebpubsubNetworkACLDelete(d *pluginsdk.ResourceData, meta interface
 			Allow: &defaultRequestTypes,
 			Deny:  &denyRequestTypes,
 		},
+		// IPRules must be an explicit empty slice so the PUT sends `[]` and clears existing rules;
+		// a nil slice is omitted from the request and Azure retains the stored `ip_rule` entries
+		IPRules: &[]webpubsub.IPRule{},
 	}
 
 	if resp.Model == nil {
@@ -284,7 +316,7 @@ func resourceWebpubsubNetworkACLDelete(d *pluginsdk.ResourceData, meta interface
 
 	payload.Properties.NetworkACLs = networkACL
 
-	if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, payload); err != nil {
 		return fmt.Errorf("resetting the default Network ACL configuration for %q: %+v", id, err)
 	}
 
@@ -342,6 +374,36 @@ func flattenWebpubsubPublicNetwork(input *webpubsub.NetworkACL) []interface{} {
 			"denied_request_types":  deny,
 		},
 	}
+}
+
+func expandWebpubsubIPRules(input []interface{}) *[]webpubsub.IPRule {
+	results := make([]webpubsub.IPRule, 0, len(input))
+
+	for _, item := range input {
+		v := item.(map[string]interface{})
+		results = append(results, webpubsub.IPRule{
+			Action: pointer.ToEnum[webpubsub.ACLAction](v["action"].(string)),
+			Value:  pointer.To(v["ip_range"].(string)),
+		})
+	}
+
+	return &results
+}
+
+func flattenWebpubsubIPRules(input *[]webpubsub.IPRule) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		results = append(results, map[string]interface{}{
+			"action":   string(pointer.From(item.Action)),
+			"ip_range": pointer.From(item.Value),
+		})
+	}
+
+	return results
 }
 
 func expandWebpubsubPrivateEndpoint(input []interface{}, privateEndpointConnections *[]webpubsub.PrivateEndpointConnection) *[]webpubsub.PrivateEndpointACL {
