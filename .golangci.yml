@@ -61,7 +61,6 @@ linters:
     paths:
       - vendor$
       - internal/services/.*/.*_gen.go$
-      - /sdk/
       - third_party$
       - builtin$
       - examples$
@@ -71,6 +70,10 @@ linters:
       # them to the *Context variants is a mechanical pr of its own; until then keep SA1019 quiet for just these.
       - linters: [staticcheck]
         text: '/(pluginsdk|schema)\.Resource\)\.(Create|Read|Update|Delete) is deprecated: Use'
+      # the sdk's own tests use int model fields on purpose, to check the encoder/decoder still handles them
+      - linters: [azproviderlint]
+        path: internal/sdk/.*_test\.go$
+        text: '^AZS001:'
 
   settings:
     errcheck:
@@ -174,7 +177,6 @@ formatters:
     paths:
       - vendor$
       - internal/services/.*/.*_gen.go$
-      - /sdk/
       - third_party$
       - builtin$
       - examples$

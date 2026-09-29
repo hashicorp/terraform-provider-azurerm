@@ -31,24 +31,19 @@ func (s *ResourceValidationType) UnmarshalJSON(bytes []byte) error {
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)
 	}
-	out, err := parseResourceValidationType(decoded)
-	if err != nil {
-		return fmt.Errorf("parsing %q: %+v", decoded, err)
-	}
-	*s = *out
+	*s = parseResourceValidationType(decoded)
 	return nil
 }
 
-func parseResourceValidationType(input string) (*ResourceValidationType, error) {
+func parseResourceValidationType(input string) ResourceValidationType {
 	vals := map[string]ResourceValidationType{
 		"armfull":    ResourceValidationTypeArmFull,
 		"armpartial": ResourceValidationTypeArmPartial,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
-		return &v, nil
+		return v
 	}
 
 	// otherwise presume it's an undefined value and best-effort it
-	out := ResourceValidationType(input)
-	return &out, nil
+	return ResourceValidationType(input)
 }

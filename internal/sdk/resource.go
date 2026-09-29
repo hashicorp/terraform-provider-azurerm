@@ -34,7 +34,7 @@ type resourceBase interface {
 	resourceWithPluginSdkSchema
 
 	// ModelObject is an instance of the object the Schema is decoded/encoded into
-	ModelObject() interface{}
+	ModelObject() any
 
 	// ResourceType is the exposed name of this resource (e.g. `azurerm_example`)
 	ResourceType() string
@@ -59,7 +59,6 @@ type DataSource interface {
 type DataSourceWithDeprecationReplacedBy interface {
 	DataSource
 
-	//nolint:gocritic
 	// DeprecatedInFavourOfDataSource returns the name of the resource that this has been deprecated in favour of
 	// NOTE: this must return a non-empty string
 	DeprecatedInFavourOfDataSource() string
@@ -144,7 +143,6 @@ type ResourceWithUpdate interface {
 type ResourceWithDeprecationReplacedBy interface {
 	Resource
 
-	//nolint:gocritic
 	// DeprecatedInFavourOfResource returns the name of the resource that this has been deprecated in favour of
 	// NOTE: this must return a non-empty string
 	DeprecatedInFavourOfResource() string
@@ -154,8 +152,6 @@ type ResourceWithDeprecationReplacedBy interface {
 //
 // Resources implementing this interface will be marked as Deprecated
 // and output the DeprecationMessage during Terraform operations.
-//
-//nolint:gocritic
 type ResourceWithDeprecationAndNoReplacement interface {
 	Resource
 
