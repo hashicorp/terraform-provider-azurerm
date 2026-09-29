@@ -622,31 +622,31 @@ func localDNSOverrideSetHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if val, ok := m["domain"].(string); ok && val != "" {
-		buf.WriteString(fmt.Sprintf("%s-", val))
+		fmt.Fprintf(&buf, "%s-", val)
 	}
 	if val, ok := m["cache_duration_in_seconds"].(int); ok && val != 0 {
-		buf.WriteString(fmt.Sprintf("%d-", val))
+		fmt.Fprintf(&buf, "%d-", val)
 	}
 	if val, ok := m["forward_destination"].(string); ok && val != "" {
-		buf.WriteString(fmt.Sprintf("%s-", val))
+		fmt.Fprintf(&buf, "%s-", val)
 	}
 	if val, ok := m["forward_policy"].(string); ok && val != "" {
-		buf.WriteString(fmt.Sprintf("%s-", val))
+		fmt.Fprintf(&buf, "%s-", val)
 	}
 	if val, ok := m["maximum_concurrent"].(int); ok && val != 0 {
-		buf.WriteString(fmt.Sprintf("%d-", val))
+		fmt.Fprintf(&buf, "%d-", val)
 	}
 	if val, ok := m["protocol"].(string); ok && val != "" {
-		buf.WriteString(fmt.Sprintf("%s-", val))
+		fmt.Fprintf(&buf, "%s-", val)
 	}
 	if val, ok := m["query_logging"].(string); ok && val != "" {
-		buf.WriteString(fmt.Sprintf("%s-", val))
+		fmt.Fprintf(&buf, "%s-", val)
 	}
 	if val, ok := m["serve_stale"].(string); ok && val != "" {
-		buf.WriteString(fmt.Sprintf("%s-", val))
+		fmt.Fprintf(&buf, "%s-", val)
 	}
 	if val, ok := m["serve_stale_duration_in_seconds"].(int); ok && val != 0 {
-		buf.WriteString(fmt.Sprintf("%d-", val))
+		fmt.Fprintf(&buf, "%d-", val)
 	}
 
 	return pluginsdk.HashString(buf.String())
