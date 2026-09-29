@@ -349,7 +349,6 @@ func resourceSubnet() *pluginsdk.Resource {
 		serviceDelegation.Schema["actions"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeSet,
 			Optional:   true,
-			Computed:   true,
 			Deprecated: "`actions` has been deprecated and will become read-only in v6.0 of the AzureRM Provider, since this property is read-only in the Azure API and any configured value is ignored",
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
