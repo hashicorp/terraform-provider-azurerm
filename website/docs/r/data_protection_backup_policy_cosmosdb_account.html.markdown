@@ -71,7 +71,7 @@ A `retention_rule` block supports the following:
 
 * `name` - (Required) The name of the retention rule. Changing this forces a new resource to be created.
 
-* `absolute_criteria` - (Optional) The absolute criterion used to identify retained backups. Possible values are `AllBackup`, `FirstOfDay`, `FirstOfMonth`, `FirstOfWeek`, and `FirstOfYear`. Changing this forces a new resource to be created.
+* `absolute_criteria` - (Optional) The absolute criterion used to identify retained backups. Possible values are `FirstOfMonth`, `FirstOfWeek`, and `FirstOfYear`. Changing this forces a new resource to be created.
 
 * `days_of_week` - (Optional) A set containing one day of the week on which backups are retained. Possible values are `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday`, and `Sunday`. Changing this forces a new resource to be created.
 
@@ -87,7 +87,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Data Protection Backup Policy for Cosmos DB Database Accounts.
 
-* `incremental_backup_schedule` - A list of the automatically generated Incremental backup schedules in ISO 8601 repeating time interval format.
+* `incremental_backup_schedules` - A list of ISO 8601 repeating time intervals indicating the days of the week when Incremental backups are attempted.
 
 ## Timeouts
 

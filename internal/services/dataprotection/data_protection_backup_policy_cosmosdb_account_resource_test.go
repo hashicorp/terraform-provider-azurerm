@@ -27,8 +27,8 @@ func TestAccDataProtectionBackupPolicyCosmosdbAccount_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("incremental_backup_schedule.#").HasValue("6"),
-				check.That(data.ResourceName).Key("incremental_backup_schedule.0").HasValue("R/2026-02-09T10:00:00+00:00/P1W"),
+				check.That(data.ResourceName).Key("incremental_backup_schedules.#").HasValue("6"),
+				check.That(data.ResourceName).Key("incremental_backup_schedules.0").HasValue("R/2026-02-09T10:00:00+00:00/P1W"),
 			),
 		},
 		data.ImportStep(),
@@ -57,7 +57,7 @@ func TestAccDataProtectionBackupPolicyCosmosdbAccount_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("incremental_backup_schedule.#").HasValue("0"),
+				check.That(data.ResourceName).Key("incremental_backup_schedules.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
