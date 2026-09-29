@@ -178,6 +178,8 @@ The following arguments are supported:
 
 * `immutability_policy` - (Optional) An `immutability_policy` block as defined below. Changing this forces a new resource to be created.
 
+* `key_policy` - (Optional) A `key_policy` block as defined below.
+
 * `sas_policy` - (Optional) A `sas_policy` block as defined below.
 
 * `allowed_copy_scope` - (Optional) The permitted scope for copy operations between storage accounts. Possible values are `AAD`, `PrivateLink` and `All`.
@@ -368,6 +370,12 @@ A `routing` block supports the following:
 * `publish_microsoft_endpoints` - (Optional) Should Microsoft routing storage endpoints be published? Defaults to `false`.
 
 * `choice` - (Optional) Specifies the kind of network routing opted by the user. Possible values are `InternetRouting` and `MicrosoftRouting`. Defaults to `MicrosoftRouting`.
+
+---
+
+A `key_policy` block supports the following:
+
+* `expiration_period_in_days` - (Required) The expiration period in days for the storage account keys.
 
 ---
 
