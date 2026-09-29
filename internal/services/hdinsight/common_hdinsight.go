@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"maps"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -95,8 +96,7 @@ func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) plu
 				}
 
 				if newEdgeNodeInt != 0 {
-					err = createHDInsightEdgeNodes(ctx, applicationsClient, applicationId, edgeNodeConfig)
-					if err != nil {
+					if err = createHDInsightEdgeNodes(ctx, applicationsClient, applicationId, edgeNodeConfig); err != nil {
 						return err
 					}
 				}
@@ -270,14 +270,12 @@ func flattenHDInsightRoles(d *pluginsdk.ResourceData, input *clusters.ComputePro
 
 	if definition.EdgeNodeDef != nil {
 		edgeNode := FindHDInsightRole(input.Roles, "edgenode")
-		edgeNodes := FlattenHDInsightNodeDefinition(edgeNode, existingEdgeNodes, *definition.EdgeNodeDef)
-		result["edge_node"] = edgeNodes
+		result["edge_node"] = FlattenHDInsightNodeDefinition(edgeNode, existingEdgeNodes, *definition.EdgeNodeDef)
 	}
 
 	if definition.KafkaManagementNodeDef != nil {
 		kafkaManagementNode := FindHDInsightRole(input.Roles, "kafkamanagementnode")
-		kafkaManagementNodes := FlattenHDInsightNodeDefinition(kafkaManagementNode, existingKafkaManagementNodes, *definition.KafkaManagementNodeDef)
-		result["kafka_management_node"] = kafkaManagementNodes
+		result["kafka_management_node"] = FlattenHDInsightNodeDefinition(kafkaManagementNode, existingKafkaManagementNodes, *definition.KafkaManagementNodeDef)
 	}
 
 	return []interface{}{
@@ -305,13 +303,11 @@ func createHDInsightEdgeNodes(ctx context.Context, client *applications.Applicat
 	}
 
 	if v, ok := input["https_endpoints"]; ok {
-		httpsEndpoints := expandHDInsightApplicationEdgeNodeHttpsEndpoints(v.([]interface{}))
-		payload.Properties.HTTPSEndpoints = httpsEndpoints
+		payload.Properties.HTTPSEndpoints = expandHDInsightApplicationEdgeNodeHttpsEndpoints(v.([]interface{}))
 	}
 
 	if v, ok := input["uninstall_script_actions"]; ok {
-		uninstallScriptActions := expandHDInsightApplicationEdgeNodeUninstallScriptActions(v.([]interface{}))
-		payload.Properties.UninstallScriptActions = uninstallScriptActions
+		payload.Properties.UninstallScriptActions = expandHDInsightApplicationEdgeNodeUninstallScriptActions(v.([]interface{}))
 	}
 
 	if err := client.CreateThenPoll(ctx, applicationId, payload); err != nil {
@@ -330,21 +326,15 @@ func expandHDInsightsMetastore(input []interface{}) map[string]interface{} {
 	config := map[string]interface{}{}
 
 	if hiveRaw, ok := v["hive"]; ok {
-		for k, val := range ExpandHDInsightsHiveMetastore(hiveRaw.([]interface{})) {
-			config[k] = val
-		}
+		maps.Copy(config, ExpandHDInsightsHiveMetastore(hiveRaw.([]interface{})))
 	}
 
 	if oozieRaw, ok := v["oozie"]; ok {
-		for k, val := range ExpandHDInsightsOozieMetastore(oozieRaw.([]interface{})) {
-			config[k] = val
-		}
+		maps.Copy(config, ExpandHDInsightsOozieMetastore(oozieRaw.([]interface{})))
 	}
 
 	if ambariRaw, ok := v["ambari"]; ok {
-		for k, val := range ExpandHDInsightsAmbariMetastore(ambariRaw.([]interface{})) {
-			config[k] = val
-		}
+		maps.Copy(config, ExpandHDInsightsAmbariMetastore(ambariRaw.([]interface{})))
 	}
 
 	return config

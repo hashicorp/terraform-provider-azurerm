@@ -292,7 +292,7 @@ func expandBackupProtectionPolicyFileShareSchedule(d *pluginsdk.ResourceData, ti
 		}
 
 		if v, ok := block["frequency"].(string); ok {
-			schedule.ScheduleRunFrequency = pointer.To(protectionpolicies.ScheduleRunType(v))
+			schedule.ScheduleRunFrequency = pointer.ToEnum[protectionpolicies.ScheduleRunType](v)
 		}
 
 		if v, ok := block["hourly"].([]interface{}); ok && len(v) > 0 {
@@ -481,7 +481,7 @@ func expandBackupProtectionPolicyFileShareRetentionDailyFormat(block map[string]
 func flattenBackupProtectionPolicyFileShareSchedule(schedule protectionpolicies.SimpleSchedulePolicy) ([]interface{}, error) {
 	block := map[string]interface{}{}
 
-	block["frequency"] = string(pointer.From(schedule.ScheduleRunFrequency))
+	block["frequency"] = pointer.FromEnum(schedule.ScheduleRunFrequency)
 
 	if times := schedule.ScheduleRunTimes; times != nil && len(*times) > 0 {
 		policyTime, _ := time.Parse(time.RFC3339, (*times)[0])

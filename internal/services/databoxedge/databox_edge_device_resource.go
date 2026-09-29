@@ -319,8 +319,8 @@ func expandDeviceSku(input string) *devices.Sku {
 	}
 
 	return &devices.Sku{
-		Name: pointer.To(devices.SkuName(v.Name)),
-		Tier: pointer.To(devices.SkuTier(v.Tier)),
+		Name: pointer.ToEnum[devices.SkuName](v.Name),
+		Tier: pointer.ToEnum[devices.SkuTier](v.Tier),
 	}
 }
 
@@ -420,7 +420,5 @@ func flattenDeviceSku(input *devices.Sku) string {
 		tier = devices.SkuTierStandard
 	}
 
-	skuName := fmt.Sprintf("%s-%s", name, tier)
-
-	return skuName
+	return fmt.Sprintf("%s-%s", name, tier)
 }

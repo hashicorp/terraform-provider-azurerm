@@ -5,6 +5,7 @@ package managedapplications
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -15,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/managedapplications/2021-07-01/applicationdefinitions"
@@ -23,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications/validate"
-	resourcesParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -48,12 +49,25 @@ func resourceManagedApplication() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.CustomizeDiffShim(resourceManagedApplicationCustomizeDiff),
+		),
+
 		Schema: resourceManagedApplicationSchema(),
 	}
 }
 
+func resourceManagedApplicationCustomizeDiff(ctx context.Context, diff *pluginsdk.ResourceDiff, meta interface{}) error {
+	oldVal, newVal := diff.GetChange("identity.#")
+	if oldVal.(int) == 1 && newVal.(int) == 0 {
+		return diff.ForceNew("identity")
+	}
+
+	return nil
+}
+
 func resourceManagedApplicationSchema() map[string]*pluginsdk.Schema {
-	schema := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -86,7 +100,7 @@ func resourceManagedApplicationSchema() map[string]*pluginsdk.Schema {
 		"parameter_values": {
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
-			Computed:         true,
+			Computed:         true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc:     validation.StringIsJSON,
 			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 		},
@@ -132,6 +146,8 @@ func resourceManagedApplicationSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
 		"tags": commonschema.Tags(),
 
 		"outputs": {
@@ -142,8 +158,6 @@ func resourceManagedApplicationSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 	}
-
-	return schema
 }
 
 func resourceManagedApplicationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -187,6 +201,14 @@ func resourceManagedApplicationCreate(d *pluginsdk.ResourceData, meta interface{
 		parameters.Plan = expandManagedApplicationPlan(v.([]interface{}))
 	}
 
+	if _, ok := d.GetOk("identity"); ok {
+		managedApplicationIdentity, err := expandManagedApplicationIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		parameters.Identity = managedApplicationIdentity
+	}
+
 	params, err := expandManagedApplicationParameters(d)
 	if err != nil {
 		return fmt.Errorf("expanding `parameter_values`: %+v", err)
@@ -222,6 +244,14 @@ func resourceManagedApplicationUpdate(d *pluginsdk.ResourceData, meta interface{
 		payload.Properties.ApplicationDefinitionId = pointer.To(d.Get("application_definition_id").(string))
 	}
 
+	if d.HasChange("identity") {
+		managedApplicationIdentity, err := expandManagedApplicationIdentity(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		payload.Identity = managedApplicationIdentity
+	}
+
 	if d.HasChange("tags") {
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
@@ -232,8 +262,7 @@ func resourceManagedApplicationUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 	payload.Properties.Parameters = pointer.To(interface{}(params))
 
-	err = client.CreateOrUpdateThenPoll(ctx, *id, *payload)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -272,12 +301,12 @@ func resourceManagedApplicationRead(d *pluginsdk.ResourceData, meta interface{})
 			return fmt.Errorf("setting `plan`: %+v", err)
 		}
 
-		id, err := resourcesParse.ResourceGroupIDInsensitively(pointer.From(p.ManagedResourceGroupId))
+		id, err := commonids.ParseResourceGroupIDInsensitively(pointer.From(p.ManagedResourceGroupId))
 		if err != nil {
 			return err
 		}
 
-		d.Set("managed_resource_group_name", id.ResourceGroup)
+		d.Set("managed_resource_group_name", id.ResourceGroupName)
 		d.Set("application_definition_id", p.ApplicationDefinitionId)
 
 		expendedParams, err := expandManagedApplicationParameters(d)
@@ -290,6 +319,12 @@ func resourceManagedApplicationRead(d *pluginsdk.ResourceData, meta interface{})
 			return fmt.Errorf("serializing JSON from `parameter_values`: %+v", err)
 		}
 		d.Set("parameter_values", parameterValues)
+
+		managedApplicationIdentity, err := flattenManagedApplicationIdentity(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		d.Set("identity", managedApplicationIdentity)
 
 		outputs, err := flattenManagedApplicationOutputs(p.Outputs)
 		if err != nil {
@@ -460,4 +495,68 @@ func compactParameterOrOutputValue(v interface{}) (string, error) {
 		return "", err
 	}
 	return compactJson.String(), nil
+}
+
+func expandManagedApplicationIdentity(input []interface{}) (*applications.Identity, error) {
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
+	if err != nil {
+		return nil, err
+	}
+
+	out := &applications.Identity{
+		Type: pointer.ToEnum[applications.ResourceIdentityType](string(expanded.Type)),
+	}
+
+	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
+		userAssignedIdentities := make(map[string]applications.UserAssignedResourceIdentity)
+		for k := range expanded.IdentityIds {
+			userAssignedIdentities[k] = applications.UserAssignedResourceIdentity{}
+		}
+
+		out.UserAssignedIdentities = &userAssignedIdentities
+	}
+
+	return out, nil
+}
+
+func flattenManagedApplicationIdentity(input *applications.Identity) ([]interface{}, error) {
+	var config *identity.SystemAndUserAssignedMap
+
+	if input != nil {
+		identityType := identity.TypeNone
+		if input.Type != nil {
+			identityType = identity.Type(*input.Type)
+		}
+
+		config = &identity.SystemAndUserAssignedMap{
+			Type:        identityType,
+			IdentityIds: nil,
+		}
+
+		if input.PrincipalId != nil {
+			config.PrincipalId = *input.PrincipalId
+		}
+
+		if input.TenantId != nil {
+			config.TenantId = *input.TenantId
+		}
+
+		identityIds := make(map[string]identity.UserAssignedIdentityDetails)
+		if input.UserAssignedIdentities != nil {
+			for k, v := range *input.UserAssignedIdentities {
+				identityIds[k] = identity.UserAssignedIdentityDetails{
+					PrincipalId: v.PrincipalId,
+				}
+			}
+		}
+
+		config.IdentityIds = identityIds
+	}
+
+	result, err := identity.FlattenSystemAndUserAssignedMap(config)
+	if err != nil {
+		return nil, err
+	}
+
+	return *result, nil
 }

@@ -189,8 +189,7 @@ func findUntypedSSAFunc(pkg pkg, e ast.Expr) *ssa.Function {
 		if !ok {
 			return nil
 		}
-		ssaFn := findResourceFunc(pkg.ssa.Prog, pkg.pkg, pkg.ssa, pkg.ssa.Func(fn.Name))
-		return ssaFn
+		return findResourceFunc(pkg.ssa.Prog, pkg.pkg, pkg.ssa, pkg.ssa.Func(fn.Name))
 	}
 
 	return nil
@@ -281,9 +280,7 @@ func findAPIsForUntypedResources(d packageData, s *Service) map[string][]API {
 		})
 
 		sdkMethods := usedMethods(d.fset, servicePackage.pkg, util.MapKeys2Slice(filenames))
-		apis := methodsToAPIs(sdkMethods)
-
-		result[resourceFileName] = apis
+		result[resourceFileName] = methodsToAPIs(sdkMethods)
 	}
 
 	return result
@@ -345,9 +342,7 @@ func findAPIsForTypedResources(d packageData, s *Service) map[string][]API {
 		}
 
 		sdkMethods := usedMethods(d.fset, servicePackage.pkg, util.MapKeys2Slice(filenames))
-		apis := methodsToAPIs(sdkMethods)
-
-		result[resourceFileName] = apis
+		result[resourceFileName] = methodsToAPIs(sdkMethods)
 	}
 	return result
 }

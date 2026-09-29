@@ -11,17 +11,17 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/endpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceCdnEndpoint() *pluginsdk.Resource {
@@ -31,9 +31,12 @@ func resourceCdnEndpoint() *pluginsdk.Resource {
 		Update: resourceCdnEndpointUpdate,
 		Delete: resourceCdnEndpointDelete,
 
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.CdnEndpointV0ToV1{},
+			// v1 -> v2 normalises the casing of IDs imported while this resource parsed them with the
+			// case-insensitive legacy parser, so they can be parsed with the case-sensitive SDK parser
+			1: migration.CdnEndpointV1ToV2{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -44,7 +47,7 @@ func resourceCdnEndpoint() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.EndpointID(id)
+			_, err := endpoints.ParseEndpointID(id)
 			return err
 		}),
 
@@ -123,15 +126,10 @@ func resourceCdnEndpoint() *pluginsdk.Resource {
 			},
 
 			"querystring_caching_behaviour": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(cdn.QueryStringCachingBehaviorIgnoreQueryString),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cdn.QueryStringCachingBehaviorBypassCaching),
-					string(cdn.QueryStringCachingBehaviorIgnoreQueryString),
-					string(cdn.QueryStringCachingBehaviorNotSet),
-					string(cdn.QueryStringCachingBehaviorUseQueryString),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(cdn.QueryStringCachingBehaviorIgnoreQueryString),
+				ValidateFunc: validation.StringInEnumSlice(cdn.PossibleQueryStringCachingBehaviorValues(), false),
 			},
 
 			"content_types_to_compress": {
@@ -182,15 +180,9 @@ func resourceCdnEndpoint() *pluginsdk.Resource {
 			},
 
 			"optimization_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cdn.OptimizationTypeDynamicSiteAcceleration),
-					string(cdn.OptimizationTypeGeneralMediaStreaming),
-					string(cdn.OptimizationTypeGeneralWebDelivery),
-					string(cdn.OptimizationTypeLargeFileDownload),
-					string(cdn.OptimizationTypeVideoOnDemandMediaStreaming),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInEnumSlice(cdn.PossibleOptimizationTypeValues(), false),
 			},
 
 			"fqdn": {
@@ -226,17 +218,17 @@ func resourceCdnEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewEndpointID(subscriptionId, d.Get("resource_group_name").(string), d.Get("profile_name").(string), d.Get("name").(string))
+	id := endpoints.NewEndpointID(subscriptionId, d.Get("resource_group_name").(string), d.Get("profile_name").(string), d.Get("name").(string))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-		existing, err := endpointsClient.Get(ctx, id.ResourceGroup, id.ProfileName, id.Name)
+		existing, err := endpointsClient.Get(ctx, id.ResourceGroupName, id.ProfileName, id.EndpointName)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.Response.Response) {
 			return tf.ImportAsExistsError("azurerm_cdn_endpoint", id.ID())
 		}
 	}
@@ -270,8 +262,7 @@ func resourceCdnEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if _, ok := d.GetOk("geo_filter"); ok {
-		geoFilters := expandCdnEndpointGeoFilters(d)
-		endpoint.GeoFilters = geoFilters
+		endpoint.GeoFilters = expandCdnEndpointGeoFilters(d)
 	}
 
 	if v, ok := d.GetOk("is_compression_enabled"); ok {
@@ -295,7 +286,7 @@ func resourceCdnEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		endpoint.Origins = &origins
 	}
 
-	profile, err := profilesClient.Get(ctx, id.ResourceGroup, id.ProfileName)
+	profile, err := profilesClient.Get(ctx, id.ResourceGroupName, id.ProfileName)
 	if err != nil {
 		return fmt.Errorf("retrieving parent CDN Profile for %s: %+v", id, err)
 	}
@@ -317,7 +308,7 @@ func resourceCdnEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
-	future, err := endpointsClient.Create(ctx, id.ResourceGroup, id.ProfileName, id.Name, endpoint)
+	future, err := endpointsClient.Create(ctx, id.ResourceGroupName, id.ProfileName, id.EndpointName, endpoint)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -336,7 +327,7 @@ func resourceCdnEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EndpointID(d.Id())
+	id, err := endpoints.ParseEndpointID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -369,7 +360,7 @@ func resourceCdnEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			Tags:                               tags.Expand(t),
 		}
 
-		future, err := endpointsClient.Update(ctx, id.ResourceGroup, id.ProfileName, id.Name, endpoint)
+		future, err := endpointsClient.Update(ctx, id.ResourceGroupName, id.ProfileName, id.EndpointName, endpoint)
 		if err != nil {
 			return fmt.Errorf("updating %s: %+v", *id, err)
 		}
@@ -400,8 +391,7 @@ func resourceCdnEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 
 		if _, ok := d.GetOk("geo_filter"); ok {
-			geoFilters := expandCdnEndpointGeoFilters(d)
-			endpoint.GeoFilters = geoFilters
+			endpoint.GeoFilters = expandCdnEndpointGeoFilters(d)
 		}
 
 		if v, ok := d.GetOk("is_compression_enabled"); ok {
@@ -425,7 +415,7 @@ func resourceCdnEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			endpoint.Origins = &origins
 		}
 
-		profile, err := profilesClient.Get(ctx, id.ResourceGroup, id.ProfileName)
+		profile, err := profilesClient.Get(ctx, id.ResourceGroupName, id.ProfileName)
 		if err != nil {
 			return fmt.Errorf("retrieving parent CDN Profile for %s: %+v", id, err)
 		}
@@ -447,7 +437,7 @@ func resourceCdnEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			}
 		}
 
-		future, err := endpointsClient.Create(ctx, id.ResourceGroup, id.ProfileName, id.Name, endpoint)
+		future, err := endpointsClient.Create(ctx, id.ResourceGroupName, id.ProfileName, id.EndpointName, endpoint)
 		if err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
@@ -465,14 +455,14 @@ func resourceCdnEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EndpointID(d.Id())
+	id, err := endpoints.ParseEndpointID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.ProfileName, id.EndpointName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -480,8 +470,8 @@ func resourceCdnEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.EndpointName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("profile_name", id.ProfileName)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
@@ -495,24 +485,17 @@ func resourceCdnEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("probe_path", props.ProbePath)
 		d.Set("optimization_type", string(props.OptimizationType))
 
-		compressionEnabled := false
-		if v := props.IsCompressionEnabled; v != nil {
-			compressionEnabled = *v
-		}
-		d.Set("is_compression_enabled", compressionEnabled)
+		d.Set("is_compression_enabled", pointer.From(props.IsCompressionEnabled))
 
-		contentTypes := flattenAzureRMCdnEndpointContentTypes(props.ContentTypesToCompress)
-		if err := d.Set("content_types_to_compress", contentTypes); err != nil {
+		if err := d.Set("content_types_to_compress", flattenAzureRMCdnEndpointContentTypes(props.ContentTypesToCompress)); err != nil {
 			return fmt.Errorf("setting `content_types_to_compress`: %+v", err)
 		}
 
-		geoFilters := flattenCdnEndpointGeoFilters(props.GeoFilters)
-		if err := d.Set("geo_filter", geoFilters); err != nil {
+		if err := d.Set("geo_filter", flattenCdnEndpointGeoFilters(props.GeoFilters)); err != nil {
 			return fmt.Errorf("setting `geo_filter`: %+v", err)
 		}
 
-		origins := flattenAzureRMCdnEndpointOrigin(props.Origins)
-		if err := d.Set("origin", origins); err != nil {
+		if err := d.Set("origin", flattenAzureRMCdnEndpointOrigin(props.Origins)); err != nil {
 			return fmt.Errorf("setting `origin`: %+v", err)
 		}
 
@@ -536,12 +519,12 @@ func resourceCdnEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EndpointID(d.Id())
+	id, err := endpoints.ParseEndpointID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.ProfileName, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroupName, id.ProfileName, id.EndpointName)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
@@ -588,11 +571,6 @@ func flattenCdnEndpointGeoFilters(input *[]cdn.GeoFilter) []interface{} {
 
 	if filters := input; filters != nil {
 		for _, filter := range *filters {
-			relativePath := ""
-			if filter.RelativePath != nil {
-				relativePath = *filter.RelativePath
-			}
-
 			outputCodes := make([]interface{}, 0)
 			if codes := filter.CountryCodes; codes != nil {
 				for _, code := range *codes {
@@ -603,7 +581,7 @@ func flattenCdnEndpointGeoFilters(input *[]cdn.GeoFilter) []interface{} {
 			results = append(results, map[string]interface{}{
 				"action":        string(filter.Action),
 				"country_codes": outputCodes,
-				"relative_path": relativePath,
+				"relative_path": pointer.From(filter.RelativePath),
 			})
 		}
 	}
@@ -673,11 +651,6 @@ func flattenAzureRMCdnEndpointOrigin(input *[]cdn.DeepCreatedOrigin) []interface
 
 	if list := input; list != nil {
 		for _, i := range *list {
-			name := ""
-			if i.Name != nil {
-				name = *i.Name
-			}
-
 			hostName := ""
 			httpPort := 80
 			httpsPort := 443
@@ -694,7 +667,7 @@ func flattenAzureRMCdnEndpointOrigin(input *[]cdn.DeepCreatedOrigin) []interface
 			}
 
 			results = append(results, map[string]interface{}{
-				"name":       name,
+				"name":       pointer.From(i.Name),
 				"host_name":  hostName,
 				"http_port":  httpPort,
 				"https_port": httpsPort,

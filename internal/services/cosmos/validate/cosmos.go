@@ -4,69 +4,24 @@
 package validate
 
 import (
-	"fmt"
 	"regexp"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func CosmosAccountName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	// Portal: The value must contain only alphanumeric characters or the following: -
-	if matched := regexp.MustCompile("^[-a-z0-9]{3,50}$").Match([]byte(value)); !matched {
-		errors = append(errors, fmt.Errorf("%s name must be 3 - 50 characters long, contain only letters, numbers and hyphens", k))
-	}
-
-	return warnings, errors
+// Portal: The value must contain only alphanumeric characters or the following: -
+func CosmosAccountName(v interface{}, k string) ([]string, []error) {
+	return validation.StringMatch(regexp.MustCompile("^[-a-z0-9]{3,50}$"), "must be 3 - 50 characters long, and contain only letters, numbers and hyphens")(v, k)
 }
 
-func CosmosEntityName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	if len(value) < 1 || len(value) > 255 {
-		errors = append(errors, fmt.Errorf(
-			"%q must be between 1 and 255 characters: %q", k, value,
-		))
-	}
-
-	return warnings, errors
+func CosmosEntityName(v interface{}, k string) ([]string, []error) {
+	return validation.StringLenBetween(1, 255)(v, k)
 }
 
-func CosmosThroughput(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(int)
-
-	if value < 400 {
-		errors = append(errors, fmt.Errorf(
-			"%s must be a minimum of 400", k,
-		))
-	}
-
-	if value%100 != 0 {
-		errors = append(errors, fmt.Errorf(
-			"%q must be set in increments of 100", k,
-		))
-	}
-
-	return warnings, errors
+func CosmosThroughput(v interface{}, k string) ([]string, []error) {
+	return validation.All(validation.IntAtLeast(400), validation.IntDivisibleBy(100))(v, k)
 }
 
-func CosmosMaxThroughput(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(int)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %q to be int", k))
-		return
-	}
-
-	if v < 1000 {
-		errors = append(errors, fmt.Errorf(
-			"%s must be a minimum of 1000", k,
-		))
-	}
-
-	if v%1000 != 0 {
-		errors = append(errors, fmt.Errorf(
-			"%q must be set in increments of 1000", k,
-		))
-	}
-
-	return warnings, errors
+func CosmosMaxThroughput(i interface{}, k string) ([]string, []error) {
+	return validation.All(validation.IntAtLeast(1000), validation.IntDivisibleBy(1000))(i, k)
 }

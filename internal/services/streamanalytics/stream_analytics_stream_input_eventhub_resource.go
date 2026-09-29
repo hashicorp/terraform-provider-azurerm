@@ -145,7 +145,7 @@ func resourceStreamAnalyticsStreamInputEventHubCreateUpdate(d *pluginsdk.Resourc
 		EventHubName:        pointer.To(d.Get("eventhub_name").(string)),
 		ServiceBusNamespace: pointer.To(d.Get("servicebus_namespace").(string)),
 		ConsumerGroupName:   pointer.To(d.Get("eventhub_consumer_group_name").(string)),
-		AuthenticationMode:  pointer.To(inputs.AuthenticationMode(d.Get("authentication_mode").(string))),
+		AuthenticationMode:  pointer.ToEnum[inputs.AuthenticationMode](d.Get("authentication_mode").(string)),
 	}
 
 	if v, ok := d.GetOk("shared_access_policy_key"); ok {
@@ -220,17 +220,9 @@ func resourceStreamAnalyticsStreamInputEventHubRead(d *pluginsdk.ResourceData, m
 			}
 
 			if streamEventHubInputProps := streamEventHubInput.Properties; streamEventHubInputProps != nil {
-				eventHubName := ""
-				if v := streamEventHubInputProps.EventHubName; v != nil {
-					eventHubName = *v
-				}
-				d.Set("eventhub_name", eventHubName)
+				d.Set("eventhub_name", pointer.From(streamEventHubInputProps.EventHubName))
 
-				serviceBusNameSpace := ""
-				if v := streamEventHubInputProps.ServiceBusNamespace; v != nil {
-					serviceBusNameSpace = *v
-				}
-				d.Set("servicebus_namespace", serviceBusNameSpace)
+				d.Set("servicebus_namespace", pointer.From(streamEventHubInputProps.ServiceBusNamespace))
 
 				authMode := ""
 				if v := streamEventHubInputProps.AuthenticationMode; v != nil {
@@ -238,23 +230,11 @@ func resourceStreamAnalyticsStreamInputEventHubRead(d *pluginsdk.ResourceData, m
 				}
 				d.Set("authentication_mode", authMode)
 
-				consumerGroupName := ""
-				if v := streamEventHubInputProps.ConsumerGroupName; v != nil {
-					consumerGroupName = *v
-				}
-				d.Set("eventhub_consumer_group_name", consumerGroupName)
+				d.Set("eventhub_consumer_group_name", pointer.From(streamEventHubInputProps.ConsumerGroupName))
 
-				sharedAccessPolicyName := ""
-				if v := streamEventHubInputProps.SharedAccessPolicyName; v != nil {
-					sharedAccessPolicyName = *v
-				}
-				d.Set("shared_access_policy_name", sharedAccessPolicyName)
+				d.Set("shared_access_policy_name", pointer.From(streamEventHubInputProps.SharedAccessPolicyName))
 
-				partitionKey := ""
-				if v := streamInput.PartitionKey; v != nil {
-					partitionKey = *v
-				}
-				d.Set("partition_key", partitionKey)
+				d.Set("partition_key", pointer.From(streamInput.PartitionKey))
 
 				if err := d.Set("serialization", flattenStreamAnalyticsStreamInputSerialization(streamInput.Serialization)); err != nil {
 					return fmt.Errorf("setting `serialization`: %+v", err)

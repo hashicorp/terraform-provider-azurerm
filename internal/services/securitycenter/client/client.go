@@ -25,7 +25,6 @@ type Client struct {
 	PricingClient                              *pricings.PricingsClient
 	WorkspaceClient                            *security.WorkspaceSettingsClient
 	AdvancedThreatProtectionClient             *security.AdvancedThreatProtectionClient
-	AutoProvisioningClient                     *security.AutoProvisioningSettingsClient
 	SettingClient                              *settings.SettingsClient
 	AutomationsClient                          *automations.AutomationsClient
 	ServerVulnerabilityAssessmentClient        *security.ServerVulnerabilityAssessmentClient
@@ -66,9 +65,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	AdvancedThreatProtectionClient := security.NewAdvancedThreatProtectionClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
 	o.ConfigureClient(&AdvancedThreatProtectionClient.Client, o.ResourceManagerAuthorizer)
 
-	AutoProvisioningClient := security.NewAutoProvisioningSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
-	o.ConfigureClient(&AutoProvisioningClient.Client, o.ResourceManagerAuthorizer)
-
 	SettingClient, err := settings.NewSettingsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Setting client : %+v", err)
@@ -105,7 +101,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		PricingClient:                              PricingClient,
 		WorkspaceClient:                            &WorkspaceClient,
 		AdvancedThreatProtectionClient:             &AdvancedThreatProtectionClient,
-		AutoProvisioningClient:                     &AutoProvisioningClient,
 		SettingClient:                              SettingClient,
 		AutomationsClient:                          AutomationsClient,
 		ServerVulnerabilityAssessmentClient:        &ServerVulnerabilityAssessmentClient,

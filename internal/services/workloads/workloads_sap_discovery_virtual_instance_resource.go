@@ -163,7 +163,7 @@ func (r WorkloadsSAPDiscoveryVirtualInstanceResource) Create() sdk.ResourceFunc 
 				Properties: &sapvirtualinstances.SAPVirtualInstanceProperties{
 					Environment:                       sapvirtualinstances.SAPEnvironmentType(model.Environment),
 					SapProduct:                        sapvirtualinstances.SAPProductType(model.SapProduct),
-					ManagedResourcesNetworkAccessType: pointer.To(sapvirtualinstances.ManagedResourcesNetworkAccessType(model.ManagedResourcesNetworkAccessType)),
+					ManagedResourcesNetworkAccessType: pointer.ToEnum[sapvirtualinstances.ManagedResourcesNetworkAccessType](model.ManagedResourcesNetworkAccessType),
 				},
 				Tags: &model.Tags,
 			}
@@ -226,7 +226,7 @@ func (r WorkloadsSAPDiscoveryVirtualInstanceResource) Update() sdk.ResourceFunc 
 			}
 
 			if metadata.ResourceData.HasChange("managed_resources_network_access_type") {
-				parameters.Properties.ManagedResourcesNetworkAccessType = pointer.To(sapvirtualinstances.ManagedResourcesNetworkAccessType(model.ManagedResourcesNetworkAccessType))
+				parameters.Properties.ManagedResourcesNetworkAccessType = pointer.ToEnum[sapvirtualinstances.ManagedResourcesNetworkAccessType](model.ManagedResourcesNetworkAccessType)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -284,7 +284,7 @@ func (WorkloadsSAPDiscoveryVirtualInstanceResource) flatten(metadata sdk.Resourc
 
 		if props := model.Properties; props != nil {
 			state.Environment = string(props.Environment)
-			state.ManagedResourcesNetworkAccessType = string(pointer.From(props.ManagedResourcesNetworkAccessType))
+			state.ManagedResourcesNetworkAccessType = pointer.FromEnum(props.ManagedResourcesNetworkAccessType)
 			state.SapProduct = string(props.SapProduct)
 			state.Tags = pointer.From(model.Tags)
 

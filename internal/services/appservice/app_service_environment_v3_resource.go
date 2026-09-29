@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/appserviceenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -57,7 +57,7 @@ type AppServiceV3InboundDependencies struct {
 	Ports       []string `tfschema:"ports"`
 }
 
-// (@jackofallops) - Important property missing from the SDK / Swagger that will need to be added later: `upgrade_preference` https://docs.microsoft.com/en-us/azure/app-service/environment/using#upgrade-preference
+// (@jackofallops) - Important property missing from the SDK / Swagger that will need to be added later: `upgrade_preference` https://docs.microsoft.com/azure/app-service/environment/using#upgrade-preference
 
 type AppServiceEnvironmentV3Resource struct{}
 
@@ -94,7 +94,7 @@ func (r AppServiceEnvironmentV3Resource) Arguments() map[string]*pluginsdk.Schem
 		"cluster_setting": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -343,7 +343,7 @@ func expandCreateForAppServiceEnvironmentV3(model AppServiceEnvironmentV3Model, 
 		Properties: &appserviceenvironments.AppServiceEnvironment{
 			DedicatedHostCount:        pointer.To(model.DedicatedHostCount),
 			ClusterSettings:           expandClusterSettingsModel(model.ClusterSetting),
-			InternalLoadBalancingMode: pointer.To(appserviceenvironments.LoadBalancingMode(model.InternalLoadBalancingMode)),
+			InternalLoadBalancingMode: pointer.ToEnum[appserviceenvironments.LoadBalancingMode](model.InternalLoadBalancingMode),
 			VirtualNetwork: appserviceenvironments.VirtualNetworkProfile{
 				Id: model.SubnetId,
 			},
@@ -464,7 +464,7 @@ func (r AppServiceEnvironmentV3Resource) Read() sdk.ResourceFunc {
 				state.Location = location.Normalize(model.Location)
 				if props := model.Properties; props != nil {
 					state.SubnetId = props.VirtualNetwork.Id
-					state.InternalLoadBalancingMode = string(pointer.From(props.InternalLoadBalancingMode))
+					state.InternalLoadBalancingMode = pointer.FromEnum(props.InternalLoadBalancingMode)
 					state.DedicatedHostCount = pointer.From(props.DedicatedHostCount)
 					state.PricingTier = pointer.From(props.MultiSize)
 					state.ClusterSetting = flattenClusterSettingsModel(props.ClusterSettings)

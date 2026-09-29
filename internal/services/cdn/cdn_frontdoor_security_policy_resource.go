@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/securitypolicies"
 	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2024-02-01/webapplicationfirewallpolicies"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -289,8 +288,7 @@ func resourceCdnFrontdoorSecurityPolicyUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	// Using 'Create' for update because it is a PUT operation
-	err = client.CreateThenPoll(ctx, id, props)
-	if err != nil {
+	if err = client.CreateThenPoll(ctx, id, props); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -307,8 +305,7 @@ func resourceCdnFrontdoorSecurityPolicyDelete(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, pointer.From(id))
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, pointer.From(id)); err != nil {
 		return fmt.Errorf("deleting %s: %+v", pointer.From(id), err)
 	}
 
@@ -353,7 +350,7 @@ func expandCdnFrontdoorFirewallPolicyParameters(input []interface{}, isStandardS
 
 		association := securitypolicies.SecurityPolicyWebApplicationFirewallAssociation{
 			Domains:         domains,
-			PatternsToMatch: helpers.ExpandStringSlice(v["patterns_to_match"].([]interface{})),
+			PatternsToMatch: pluginsdk.ExpandStringSlice(v["patterns_to_match"].([]interface{})),
 		}
 
 		associations = append(associations, association)
@@ -438,7 +435,7 @@ func flattenCdnFrontDoorSecurityPolicyResource(input securitypolicies.SecurityPo
 
 			associations = append(associations, map[string]interface{}{
 				"domain":            domain,
-				"patterns_to_match": helpers.FlattenStringSlice(item.PatternsToMatch),
+				"patterns_to_match": pluginsdk.FlattenSlice(item.PatternsToMatch),
 			})
 		}
 	}

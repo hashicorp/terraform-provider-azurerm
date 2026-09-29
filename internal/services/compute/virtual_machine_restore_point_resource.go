@@ -164,7 +164,7 @@ func (r VirtualMachineRestorePointResource) Read() sdk.ResourceFunc {
 				schema.VirtualMachineRestorePointCollectionId = restorepointcollections.NewRestorePointCollectionID(id.SubscriptionId, id.ResourceGroupName, id.RestorePointCollectionName).ID()
 
 				if props := model.Properties; props != nil {
-					schema.CrashConsistencyModeEnabled = strings.EqualFold(string(pointer.From(props.ConsistencyMode)), string(restorepoints.ConsistencyModeTypesCrashConsistent))
+					schema.CrashConsistencyModeEnabled = strings.EqualFold(pointer.FromEnum(props.ConsistencyMode), string(restorepoints.ConsistencyModeTypesCrashConsistent))
 
 					excludedDisksConfig := make([]string, 0)
 					if excludedDisks := props.ExcludeDisks; excludedDisks != nil {

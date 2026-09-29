@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -44,26 +43,7 @@ func TestAccSiteRecoveryReplicatedVm_withTFOSettings(t *testing.T) {
 			Config: r.withTFOSettings(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_interface.0.ip_configuration.0.failover_test_subnet_name").HasValue("snet3"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccSiteRecoveryReplicatedVm_withDeprecatedTFOSettings(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skipf("The `network_interface.target_*` properties have been deprecated in favor of `network_interface.ip_configuration.*`, this test case is replaced by `TestAccSiteRecoveryReplicatedVm_withFivePointOhTFOSettings` .")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replicated_vm", "test")
-	r := SiteRecoveryReplicatedVmResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.withDeprecatedTFOSettings(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_interface.0.failover_test_subnet_name").HasValue("snet3"),
+				check.That(data.ResourceName).Key("network_interface.0.ip_configuration.0.failover_test_subnet_name").HasValue(fmt.Sprintf("acctest-snet3-%d", data.RandomInteger)),
 			),
 		},
 		data.ImportStep(),
@@ -146,27 +126,13 @@ func TestAccSiteRecoveryReplicatedVm_withMultiVmGroup(t *testing.T) {
 }
 
 func TestAccSiteRecoveryReplicatedVm_withEdgeZones(t *testing.T) {
+	t.Skip("edgezone support fault with subscription - cannot resolve so skipping for now")
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replicated_vm", "test")
 	r := SiteRecoveryReplicatedVmResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withTargetEdgeZone(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccSiteRecoveryReplicatedVm_withUnManagedDisks(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replicated_vm", "test")
-	r := SiteRecoveryReplicatedVmResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.withUnManagedVmDisks(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -202,7 +168,7 @@ func TestAccSiteRecoveryReplicatedVm_zone2zone(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_interface.0.ip_configuration.#").HasValue("1"),
 				check.That(data.ResourceName).Key("network_interface.0.ip_configuration.0.name").HasValue(fmt.Sprintf("vm-%d", data.RandomInteger)),
-				check.That(data.ResourceName).Key("network_interface.0.ip_configuration.0.target_subnet_name").HasValue(fmt.Sprintf("snet-%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("network_interface.0.ip_configuration.0.target_subnet_name").HasValue(fmt.Sprintf("acctest-snet-%d", data.RandomInteger)),
 			),
 		},
 		data.ImportStep(),
@@ -327,12 +293,12 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-recovery-%[1]d-1"
-  location = "%[2]s"
+  location = "%[3]s"
 }
 
 resource "azurerm_resource_group" "test2" {
   name     = "acctestRG-recovery-%[1]d-2"
-  location = "%[3]s"
+  location = "%[4]s"
 }
 
 resource "azurerm_recovery_services_vault" "test" {
@@ -386,32 +352,32 @@ resource "azurerm_site_recovery_protection_container_mapping" "test" {
   recovery_source_protection_container_name = azurerm_site_recovery_protection_container.test1.name
   recovery_target_protection_container_id   = azurerm_site_recovery_protection_container.test2.id
   recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.test.id
-  name                                      = "mapping-%[1]d"
+  name                                      = "acctest-mapping-%[1]d"
 }
 
 resource "azurerm_virtual_network" "test1" {
-  name                = "net-%[1]d"
+  name                = "acctest-net-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   address_space       = ["192.168.1.0/24"]
   location            = azurerm_site_recovery_fabric.test1.location
 }
 
 resource "azurerm_subnet" "test1" {
-  name                 = "snet-%[1]d"
+  name                 = "acctest-snet-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test1.name
   address_prefixes     = ["192.168.1.0/24"]
 }
 
 resource "azurerm_virtual_network" "test2" {
-  name                = "net2-%[1]d"
+  name                = "acctest-net2-%[1]d"
   resource_group_name = azurerm_resource_group.test2.name
   address_space       = ["192.168.2.0/24"]
   location            = azurerm_site_recovery_fabric.test2.location
 }
 
 resource "azurerm_subnet" "test2" {
-  name                 = "snet-%[1]d_2"
+  name                 = "acctest-snet-%[1]d-2"
   resource_group_name  = azurerm_resource_group.test2.name
   virtual_network_name = azurerm_virtual_network.test2.name
   address_prefixes     = ["192.168.2.0/24"]
@@ -420,7 +386,7 @@ resource "azurerm_subnet" "test2" {
 resource "azurerm_site_recovery_network_mapping" "test" {
   resource_group_name         = azurerm_resource_group.test2.name
   recovery_vault_name         = azurerm_recovery_services_vault.test.name
-  name                        = "mapping-%[1]d"
+  name                        = "acctest-mapping-%[1]d"
   source_recovery_fabric_name = azurerm_site_recovery_fabric.test1.name
   target_recovery_fabric_name = azurerm_site_recovery_fabric.test2.name
   source_network_id           = azurerm_virtual_network.test1.id
@@ -428,7 +394,7 @@ resource "azurerm_site_recovery_network_mapping" "test" {
 }
 
 resource "azurerm_network_interface" "test" {
-  name                = "vm-%[1]d"
+  name                = "acctest-ni-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -441,7 +407,7 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_virtual_machine" "test" {
-  name                = "vm-%[1]d"
+  name                = "acctest-vm-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -457,7 +423,7 @@ resource "azurerm_virtual_machine" "test" {
   }
 
   storage_os_disk {
-    name              = "disk-%[1]d"
+    name              = "acctest-disk-%[1]d"
     os_type           = "Linux"
     caching           = "ReadWrite"
     create_option     = "FromImage"
@@ -478,7 +444,7 @@ resource "azurerm_virtual_machine" "test" {
 }
 
 resource "azurerm_public_ip" "test-source" {
-  name                = "pubip%[1]d-source"
+  name                = "acctest-pubip%[1]d-source"
   allocation_method   = "Static"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -486,7 +452,7 @@ resource "azurerm_public_ip" "test-source" {
 }
 
 resource "azurerm_public_ip" "test-recovery" {
-  name                = "pubip%[1]d-recovery"
+  name                = "acctest-pubip%[1]d-recovery"
   allocation_method   = "Static"
   location            = azurerm_resource_group.test2.location
   resource_group_name = azurerm_resource_group.test2.name
@@ -494,7 +460,7 @@ resource "azurerm_public_ip" "test-recovery" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
+  name                     = "acctestsa%[2]s"
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
@@ -504,7 +470,7 @@ resource "azurerm_storage_account" "test" {
     environment = "staging"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, data.RandomInteger, data.RandomString, data.Locations.Primary, data.Locations.Secondary)
 }
 
 func (SiteRecoveryReplicatedVmResource) vmSizeTemplate(data acceptance.TestData, vmSize string) string {
@@ -578,32 +544,32 @@ resource "azurerm_site_recovery_protection_container_mapping" "test" {
   recovery_source_protection_container_name = azurerm_site_recovery_protection_container.test1.name
   recovery_target_protection_container_id   = azurerm_site_recovery_protection_container.test2.id
   recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.test.id
-  name                                      = "mapping-%[1]d"
+  name                                      = "acctest-mapping-%[1]d"
 }
 
 resource "azurerm_virtual_network" "test1" {
-  name                = "net-%[1]d"
+  name                = "acctest-net-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   address_space       = ["192.168.1.0/24"]
   location            = azurerm_site_recovery_fabric.test1.location
 }
 
 resource "azurerm_subnet" "test1" {
-  name                 = "snet-%[1]d"
+  name                 = "acctest-snet-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test1.name
   address_prefixes     = ["192.168.1.0/24"]
 }
 
 resource "azurerm_virtual_network" "test2" {
-  name                = "net2-%[1]d"
+  name                = "acctest-net2-%[1]d"
   resource_group_name = azurerm_resource_group.test2.name
   address_space       = ["192.168.2.0/24"]
   location            = azurerm_site_recovery_fabric.test2.location
 }
 
 resource "azurerm_subnet" "test2" {
-  name                 = "snet-%[1]d_2"
+  name                 = "acctest-snet-%[1]d_2"
   resource_group_name  = azurerm_resource_group.test2.name
   virtual_network_name = azurerm_virtual_network.test2.name
   address_prefixes     = ["192.168.2.0/24"]
@@ -612,7 +578,7 @@ resource "azurerm_subnet" "test2" {
 resource "azurerm_site_recovery_network_mapping" "test" {
   resource_group_name         = azurerm_resource_group.test2.name
   recovery_vault_name         = azurerm_recovery_services_vault.test.name
-  name                        = "mapping-%[1]d"
+  name                        = "acctest-mapping-%[1]d"
   source_recovery_fabric_name = azurerm_site_recovery_fabric.test1.name
   target_recovery_fabric_name = azurerm_site_recovery_fabric.test2.name
   source_network_id           = azurerm_virtual_network.test1.id
@@ -620,7 +586,7 @@ resource "azurerm_site_recovery_network_mapping" "test" {
 }
 
 resource "azurerm_network_interface" "test" {
-  name                = "vm-%[1]d"
+  name                = "acctest-ni-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -633,7 +599,7 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_virtual_machine" "test" {
-  name                = "vm-%[1]d"
+  name                = "acctest-vm-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -649,7 +615,7 @@ resource "azurerm_virtual_machine" "test" {
   }
 
   storage_os_disk {
-    name              = "disk-%[1]d"
+    name              = "acctest-disk-%[1]d"
     os_type           = "Linux"
     caching           = "ReadWrite"
     create_option     = "FromImage"
@@ -670,7 +636,7 @@ resource "azurerm_virtual_machine" "test" {
 }
 
 resource "azurerm_public_ip" "test-source" {
-  name                = "pubip%[1]d-source"
+  name                = "acctest-pubip%[1]d-source"
   allocation_method   = "Static"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -678,7 +644,7 @@ resource "azurerm_public_ip" "test-source" {
 }
 
 resource "azurerm_public_ip" "test-recovery" {
-  name                = "pubip%[1]d-recovery"
+  name                = "acctest-pubip%[1]d-recovery"
   allocation_method   = "Static"
   location            = azurerm_resource_group.test2.location
   resource_group_name = azurerm_resource_group.test2.name
@@ -686,7 +652,7 @@ resource "azurerm_public_ip" "test-recovery" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
+  name                     = "acctestsa%[5]s"
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
@@ -696,7 +662,7 @@ resource "azurerm_storage_account" "test" {
     environment = "staging"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, vmSize)
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, vmSize, data.RandomString)
 }
 
 func (SiteRecoveryReplicatedVmResource) multipleIPTemplate(data acceptance.TestData) string {
@@ -770,32 +736,32 @@ resource "azurerm_site_recovery_protection_container_mapping" "test" {
   recovery_source_protection_container_name = azurerm_site_recovery_protection_container.source.name
   recovery_target_protection_container_id   = azurerm_site_recovery_protection_container.recovery.id
   recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.test.id
-  name                                      = "mapping-%[1]d"
+  name                                      = "acctest-mapping-%[1]d"
 }
 
 resource "azurerm_virtual_network" "source" {
-  name                = "net-%[1]d"
+  name                = "acctest-net-%[1]d"
   resource_group_name = azurerm_resource_group.source.name
   address_space       = ["192.168.0.0/16"]
   location            = azurerm_site_recovery_fabric.source.location
 }
 
 resource "azurerm_subnet" "source" {
-  name                 = "snet-%[1]d"
+  name                 = "acctest-snet-%[1]d"
   resource_group_name  = azurerm_resource_group.source.name
   virtual_network_name = azurerm_virtual_network.source.name
   address_prefixes     = ["192.168.1.0/24"]
 }
 
 resource "azurerm_virtual_network" "recovery" {
-  name                = "net2-%[1]d"
+  name                = "acctest-net2-%[1]d"
   resource_group_name = azurerm_resource_group.recovery.name
   address_space       = ["192.168.0.0/16"]
   location            = azurerm_site_recovery_fabric.recovery.location
 }
 
 resource "azurerm_subnet" "recovery" {
-  name                 = "snet-%[1]d_2"
+  name                 = "acctest-snet-%[1]d_2"
   resource_group_name  = azurerm_resource_group.recovery.name
   virtual_network_name = azurerm_virtual_network.recovery.name
   address_prefixes     = ["192.168.2.0/24"]
@@ -804,7 +770,7 @@ resource "azurerm_subnet" "recovery" {
 resource "azurerm_site_recovery_network_mapping" "test" {
   resource_group_name         = azurerm_resource_group.recovery.name
   recovery_vault_name         = azurerm_recovery_services_vault.test.name
-  name                        = "mapping-%[1]d"
+  name                        = "acctest-mapping-%[1]d"
   source_recovery_fabric_name = azurerm_site_recovery_fabric.source.name
   target_recovery_fabric_name = azurerm_site_recovery_fabric.recovery.name
   source_network_id           = azurerm_virtual_network.source.id
@@ -812,7 +778,7 @@ resource "azurerm_site_recovery_network_mapping" "test" {
 }
 
 resource "azurerm_network_interface" "test" {
-  name                = "vm-%[1]d"
+  name                = "acctest-ni-%[1]d"
   location            = azurerm_resource_group.source.location
   resource_group_name = azurerm_resource_group.source.name
 
@@ -833,7 +799,7 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_virtual_machine" "test" {
-  name                = "vm-%[1]d"
+  name                = "acctest-vm-%[1]d"
   location            = azurerm_resource_group.source.location
   resource_group_name = azurerm_resource_group.source.name
 
@@ -849,7 +815,7 @@ resource "azurerm_virtual_machine" "test" {
   }
 
   storage_os_disk {
-    name              = "disk-%[1]d"
+    name              = "acctest-disk-%[1]d"
     os_type           = "Linux"
     caching           = "ReadWrite"
     create_option     = "FromImage"
@@ -870,7 +836,7 @@ resource "azurerm_virtual_machine" "test" {
 }
 
 resource "azurerm_public_ip" "test-source" {
-  name                = "pubip%[1]d-source"
+  name                = "acctest-pubip%[1]d-source"
   allocation_method   = "Static"
   location            = azurerm_resource_group.source.location
   resource_group_name = azurerm_resource_group.source.name
@@ -878,7 +844,7 @@ resource "azurerm_public_ip" "test-source" {
 }
 
 resource "azurerm_public_ip" "test-source-2" {
-  name                = "pubip%[1]d-source-2"
+  name                = "acctest-pubip%[1]d-source-2"
   allocation_method   = "Static"
   location            = azurerm_resource_group.source.location
   resource_group_name = azurerm_resource_group.source.name
@@ -886,7 +852,7 @@ resource "azurerm_public_ip" "test-source-2" {
 }
 
 resource "azurerm_public_ip" "test-recovery" {
-  name                = "pubip%[1]d-recovery"
+  name                = "acctest-pubip%[1]d-recovery"
   allocation_method   = "Static"
   location            = azurerm_resource_group.recovery.location
   resource_group_name = azurerm_resource_group.recovery.name
@@ -894,7 +860,7 @@ resource "azurerm_public_ip" "test-recovery" {
 }
 
 resource "azurerm_public_ip" "test-recovery-2" {
-  name                = "pubip%[1]d-recovery-2"
+  name                = "acctest-pubip%[1]d-recovery-2"
   allocation_method   = "Static"
   location            = azurerm_resource_group.recovery.location
   resource_group_name = azurerm_resource_group.recovery.name
@@ -903,7 +869,7 @@ resource "azurerm_public_ip" "test-recovery-2" {
 
 
 resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
+  name                     = "acctestsa%[4]s"
   resource_group_name      = azurerm_resource_group.source.name
   location                 = azurerm_resource_group.source.location
   account_tier             = "Standard"
@@ -913,7 +879,7 @@ resource "azurerm_storage_account" "test" {
     environment = "staging"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, data.RandomString)
 }
 
 func (r SiteRecoveryReplicatedVmResource) basic(data acceptance.TestData) string {
@@ -921,7 +887,7 @@ func (r SiteRecoveryReplicatedVmResource) basic(data acceptance.TestData) string
 %s
 
 resource "azurerm_site_recovery_replicated_vm" "test" {
-  name                                      = "repl-%[2]d"
+  name                                      = "acctest-repl-%[2]d"
   resource_group_name                       = azurerm_resource_group.test2.name
   recovery_vault_name                       = azurerm_recovery_services_vault.test.name
   source_vm_id                              = azurerm_virtual_machine.test.id
@@ -939,70 +905,6 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
     target_resource_group_id   = azurerm_resource_group.test2.id
     target_disk_type           = "Premium_LRS"
     target_replica_disk_type   = "Premium_LRS"
-  }
-
-  depends_on = [
-    azurerm_site_recovery_protection_container_mapping.test,
-    azurerm_site_recovery_network_mapping.test,
-  ]
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r SiteRecoveryReplicatedVmResource) withDeprecatedTFOSettings(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_virtual_network" "tfo" {
-  name                = "net3-%[2]d"
-  resource_group_name = azurerm_resource_group.test2.name
-  address_space       = ["192.168.2.0/24"]
-  location            = azurerm_site_recovery_fabric.test2.location
-}
-
-resource "azurerm_subnet" "tfo" {
-  name                 = "snet3"
-  resource_group_name  = azurerm_resource_group.test2.name
-  virtual_network_name = azurerm_virtual_network.tfo.name
-  address_prefixes     = ["192.168.2.0/24"]
-}
-
-resource "azurerm_public_ip" "tfo" {
-  name                = "pubip%[2]d-tfo"
-  allocation_method   = "Static"
-  location            = azurerm_resource_group.test2.location
-  resource_group_name = azurerm_resource_group.test2.name
-  sku                 = "Standard"
-}
-
-resource "azurerm_site_recovery_replicated_vm" "test" {
-  name                                      = "repl-%[2]d"
-  resource_group_name                       = azurerm_resource_group.test2.name
-  recovery_vault_name                       = azurerm_recovery_services_vault.test.name
-  source_vm_id                              = azurerm_virtual_machine.test.id
-  source_recovery_fabric_name               = azurerm_site_recovery_fabric.test1.name
-  recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.test.id
-  source_recovery_protection_container_name = azurerm_site_recovery_protection_container.test1.name
-
-  target_resource_group_id                = azurerm_resource_group.test2.id
-  target_recovery_fabric_id               = azurerm_site_recovery_fabric.test2.id
-  target_recovery_protection_container_id = azurerm_site_recovery_protection_container.test2.id
-  test_network_id                         = azurerm_virtual_network.tfo.id
-
-  managed_disk {
-    disk_id                    = azurerm_virtual_machine.test.storage_os_disk[0].managed_disk_id
-    staging_storage_account_id = azurerm_storage_account.test.id
-    target_resource_group_id   = azurerm_resource_group.test2.id
-    target_disk_type           = "Premium_LRS"
-    target_replica_disk_type   = "Premium_LRS"
-  }
-
-  network_interface {
-    source_network_interface_id        = azurerm_network_interface.test.id
-    target_subnet_name                 = azurerm_subnet.test2.name
-    recovery_public_ip_address_id      = azurerm_public_ip.test-recovery.id
-    failover_test_subnet_name          = azurerm_subnet.tfo.name
-    failover_test_public_ip_address_id = azurerm_public_ip.tfo.id
   }
 
   depends_on = [
@@ -1018,21 +920,21 @@ func (r SiteRecoveryReplicatedVmResource) withTFOSettings(data acceptance.TestDa
 %s
 
 resource "azurerm_virtual_network" "tfo" {
-  name                = "net3-%[2]d"
+  name                = "acctest-net3-%[2]d"
   resource_group_name = azurerm_resource_group.test2.name
   address_space       = ["192.168.2.0/24"]
   location            = azurerm_site_recovery_fabric.test2.location
 }
 
 resource "azurerm_subnet" "tfo" {
-  name                 = "snet3"
+  name                 = "acctest-snet3-%[2]d"
   resource_group_name  = azurerm_resource_group.test2.name
   virtual_network_name = azurerm_virtual_network.tfo.name
   address_prefixes     = ["192.168.2.0/24"]
 }
 
 resource "azurerm_public_ip" "tfo" {
-  name                = "pubip%[2]d-tfo"
+  name                = "acctest-pubip%[2]d-tfo"
   allocation_method   = "Static"
   location            = azurerm_resource_group.test2.location
   resource_group_name = azurerm_resource_group.test2.name
@@ -1040,7 +942,7 @@ resource "azurerm_public_ip" "tfo" {
 }
 
 resource "azurerm_site_recovery_replicated_vm" "test" {
-  name                                      = "repl-%[2]d"
+  name                                      = "acctest-repl-%[2]d"
   resource_group_name                       = azurerm_resource_group.test2.name
   recovery_vault_name                       = azurerm_recovery_services_vault.test.name
   source_vm_id                              = azurerm_virtual_machine.test.id
@@ -1064,7 +966,6 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   network_interface {
     source_network_interface_id = azurerm_network_interface.test.id
     ip_configuration {
-      name                               = azurerm_network_interface.test.name
       recovery_public_ip_address_id      = azurerm_public_ip.test-recovery.id
       target_subnet_name                 = azurerm_subnet.test2.name
       failover_test_subnet_name          = azurerm_subnet.tfo.name
@@ -1084,10 +985,6 @@ func (SiteRecoveryReplicatedVmResource) des(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
-    key_vault {
-      purge_soft_delete_on_destroy       = false
-      purge_soft_deleted_keys_on_destroy = false
-    }
     resource_group {
       prevent_deletion_if_contains_resources = false
     }
@@ -1115,7 +1012,7 @@ resource "azurerm_key_vault" "test" {
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "standard"
   enabled_for_disk_encryption = true
-  purge_protection_enabled    = true
+  purge_protection_enabled    = false
   soft_delete_retention_days  = 7
 }
 
@@ -1160,7 +1057,7 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_disk_encryption_set" "test" {
-  name                = "acctestdes-%[1]d"
+  name                = "acctest-des-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   key_vault_key_id    = azurerm_key_vault_key.test.id
@@ -1191,7 +1088,7 @@ resource "azurerm_role_assignment" "disk-encryption-read-keyvault" {
 }
 
 resource "azurerm_managed_disk" "test" {
-  name                   = "acctestd-%[1]d"
+  name                   = "acctest-d-%[1]d"
   location               = azurerm_resource_group.test.location
   resource_group_name    = azurerm_resource_group.test.name
   storage_account_type   = "Standard_LRS"
@@ -1206,21 +1103,21 @@ resource "azurerm_managed_disk" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%[1]d"
+  name                = "acctest-vn-%[1]d"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%[1]d"
+  name                 = "acctest-sub-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {
-  name                = "acctni-%[1]d"
+  name                = "acctest-ni-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -1233,7 +1130,7 @@ resource "azurerm_network_interface" "test" {
 
 
 resource "azurerm_virtual_machine" "test" {
-  name                  = "acctvm-%[1]d"
+  name                  = "acctest-vm-%[1]d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.test.id]
@@ -1250,7 +1147,7 @@ resource "azurerm_virtual_machine" "test" {
   }
 
   storage_os_disk {
-    name              = "osd-%[1]d"
+    name              = "acctest-osd-%[1]d"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     disk_size_gb      = "50"
@@ -1258,7 +1155,7 @@ resource "azurerm_virtual_machine" "test" {
   }
 
   storage_data_disk {
-    name              = "acctmd-%[1]d"
+    name              = "acctest-md-%[1]d"
     create_option     = "Empty"
     disk_size_gb      = "1"
     lun               = 0
@@ -1340,20 +1237,27 @@ resource "azurerm_site_recovery_protection_container_mapping" "test" {
   recovery_source_protection_container_name = azurerm_site_recovery_protection_container.test1.name
   recovery_target_protection_container_id   = azurerm_site_recovery_protection_container.test2.id
   recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.test.id
-  name                                      = "mapping-%[1]d"
+  name                                      = "acctest-mapping-%[1]d"
 }
 
 resource "azurerm_virtual_network" "test2" {
-  name                = "net-%[1]d-2"
+  name                = "acctest-net-%[1]d-2"
   resource_group_name = azurerm_resource_group.test2.name
   address_space       = ["192.168.2.0/24"]
   location            = azurerm_site_recovery_fabric.test2.location
 }
 
+resource "azurerm_subnet" "test2" {
+  name                 = "acctest-snet-%[1]d-2"
+  resource_group_name  = azurerm_resource_group.test2.name
+  virtual_network_name = azurerm_virtual_network.test2.name
+  address_prefixes     = ["192.168.2.0/24"]
+}
+
 resource "azurerm_site_recovery_network_mapping" "test" {
   resource_group_name         = azurerm_resource_group.test2.name
   recovery_vault_name         = azurerm_recovery_services_vault.test.name
-  name                        = "mapping-%[1]d"
+  name                        = "acctest-mapping-%[1]d"
   source_recovery_fabric_name = azurerm_site_recovery_fabric.test1.name
   target_recovery_fabric_name = azurerm_site_recovery_fabric.test2.name
   source_network_id           = azurerm_virtual_network.test.id
@@ -1361,7 +1265,7 @@ resource "azurerm_site_recovery_network_mapping" "test" {
 }
 
 resource "azurerm_public_ip" "test-recovery" {
-  name                = "pubip%[1]d-recovery"
+  name                = "acctest-pubip%[1]d-recovery"
   allocation_method   = "Static"
   location            = azurerm_resource_group.test2.location
   resource_group_name = azurerm_resource_group.test2.name
@@ -1369,14 +1273,15 @@ resource "azurerm_public_ip" "test-recovery" {
 }
 
 resource "azurerm_key_vault" "test2" {
-  name                        = "kv%[1]d2"
+  name                        = "acctestkv%[4]s2"
   location                    = azurerm_resource_group.test2.location
   resource_group_name         = azurerm_resource_group.test2.name
   rbac_authorization_enabled  = false
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "standard"
   enabled_for_disk_encryption = true
-  purge_protection_enabled    = true
+  purge_protection_enabled    = false
+  soft_delete_retention_days  = 7
 }
 
 resource "azurerm_key_vault_access_policy" "service-principal2" {
@@ -1419,7 +1324,7 @@ resource "azurerm_key_vault_key" "test2" {
 }
 
 resource "azurerm_disk_encryption_set" "test2" {
-  name                = "acctestdes-%[1]d2"
+  name                = "acctest-des-%[1]d2"
   resource_group_name = azurerm_resource_group.test2.name
   location            = azurerm_resource_group.test2.location
   key_vault_key_id    = azurerm_key_vault_key.test2.id
@@ -1444,7 +1349,7 @@ resource "azurerm_key_vault_access_policy" "disk-encryption2" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acct%[1]d"
+  name                     = "acctest%[4]s"
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
@@ -1452,7 +1357,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_site_recovery_replicated_vm" "test" {
-  name                                      = "repl-%[1]d"
+  name                                      = "acctest-repl-%[1]d"
   resource_group_name                       = azurerm_resource_group.test2.name
   recovery_vault_name                       = azurerm_recovery_services_vault.test.name
   source_vm_id                              = azurerm_virtual_machine.test.id
@@ -1476,7 +1381,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   network_interface {
     source_network_interface_id = azurerm_network_interface.test.id
     ip_configuration {
-      target_subnet_name = "snet-%[1]d"
+      target_subnet_name = azurerm_subnet.test2.name
     }
   }
 
@@ -1533,7 +1438,7 @@ resource "azurerm_site_recovery_protection_container" "test2" {
   resource_group_name  = azurerm_resource_group.test2.name
   recovery_vault_name  = azurerm_recovery_services_vault.test.name
   recovery_fabric_name = azurerm_site_recovery_fabric.test1.name
-  name                 = "acctest-protection-cont2-t-%[1]d"
+  name                 = "acctest-protection-cont2-%[1]d"
 }
 
 resource "azurerm_site_recovery_replication_policy" "test" {
@@ -1551,32 +1456,32 @@ resource "azurerm_site_recovery_protection_container_mapping" "test" {
   recovery_source_protection_container_name = azurerm_site_recovery_protection_container.test1.name
   recovery_target_protection_container_id   = azurerm_site_recovery_protection_container.test2.id
   recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.test.id
-  name                                      = "mapping-%[1]d"
+  name                                      = "acctest-mapping-%[1]d"
 }
 
 resource "azurerm_virtual_network" "test1" {
-  name                = "net-%[1]d"
+  name                = "acctest-net-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   address_space       = ["192.168.1.0/24"]
   location            = azurerm_site_recovery_fabric.test1.location
 }
 
 resource "azurerm_subnet" "test1" {
-  name                 = "snet-%[1]d"
+  name                 = "acctest-snet-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test1.name
   address_prefixes     = ["192.168.1.0/24"]
 }
 
 resource "azurerm_virtual_network" "test2" {
-  name                = "net-%[1]d"
+  name                = "acctest-net-%[1]d-2"
   resource_group_name = azurerm_resource_group.test2.name
   address_space       = ["192.168.2.0/24"]
   location            = azurerm_site_recovery_fabric.test1.location
 }
 
 resource "azurerm_network_interface" "test" {
-  name                = "vm-%[1]d"
+  name                = "acctest-ni-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -1588,7 +1493,7 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_virtual_machine" "test" {
-  name                = "vm-%[1]d"
+  name                = "acctest-vm-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -1604,7 +1509,7 @@ resource "azurerm_virtual_machine" "test" {
   }
 
   storage_os_disk {
-    name              = "disk-%[1]d"
+    name              = "acctest-disk-%[1]d"
     os_type           = "Linux"
     caching           = "ReadWrite"
     create_option     = "FromImage"
@@ -1624,7 +1529,7 @@ resource "azurerm_virtual_machine" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acct%[1]d"
+  name                     = "acctest%[4]s"
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
@@ -1632,7 +1537,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_site_recovery_replicated_vm" "test" {
-  name                                      = "repl-%[1]d"
+  name                                      = "acctest-repl-%[1]d"
   resource_group_name                       = azurerm_resource_group.test2.name
   recovery_vault_name                       = azurerm_recovery_services_vault.test.name
   source_vm_id                              = azurerm_virtual_machine.test.id
@@ -1666,7 +1571,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
     azurerm_site_recovery_protection_container_mapping.test,
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, data.RandomString)
 }
 
 func (SiteRecoveryReplicatedVmResource) zone2zoneWithLoadBalancerBackendPool(data acceptance.TestData) string {
@@ -1690,7 +1595,7 @@ resource "azurerm_resource_group" "test2" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acct%[1]d"
+  name                     = "acctest%[3]s"
   location                 = azurerm_resource_group.test1.location
   resource_group_name      = azurerm_resource_group.test1.name
   account_tier             = "Standard"
@@ -1698,35 +1603,35 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_virtual_network" "test1" {
-  name                = "vnet-%[1]d-1"
+  name                = "acctest-vnet-%[1]d-1"
   resource_group_name = azurerm_resource_group.test1.name
   address_space       = ["192.168.1.0/24"]
   location            = azurerm_resource_group.test1.location
 }
 
 resource "azurerm_virtual_network" "test2" {
-  name                = "vnet-%[1]d-2"
+  name                = "acctest-vnet-%[1]d-2"
   resource_group_name = azurerm_resource_group.test2.name
   address_space       = ["192.168.2.0/24"]
   location            = azurerm_resource_group.test2.location
 }
 
 resource "azurerm_subnet" "test1" {
-  name                 = "subnet-%[1]d-1"
+  name                 = "acctest-subnet-%[1]d-1"
   resource_group_name  = azurerm_resource_group.test1.name
   virtual_network_name = azurerm_virtual_network.test1.name
   address_prefixes     = ["192.168.1.0/24"]
 }
 
 resource "azurerm_subnet" "test2" {
-  name                 = "subnet-%[1]d-1"
+  name                 = "acctest-subnet-%[1]d-1"
   resource_group_name  = azurerm_resource_group.test2.name
   virtual_network_name = azurerm_virtual_network.test2.name
   address_prefixes     = ["192.168.2.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
-  name                = "public-ip-%[1]d"
+  name                = "acctest-public-ip-%[1]d"
   allocation_method   = "Static"
   location            = azurerm_resource_group.test1.location
   resource_group_name = azurerm_resource_group.test1.name
@@ -1735,7 +1640,7 @@ resource "azurerm_public_ip" "test" {
 }
 
 resource "azurerm_nat_gateway" "test" {
-  name                    = "nat-gateway-%[1]d"
+  name                    = "acctest-nat-gateway-%[1]d"
   location                = azurerm_resource_group.test1.location
   resource_group_name     = azurerm_resource_group.test1.name
   sku_name                = "Standard"
@@ -1753,7 +1658,7 @@ resource "azurerm_subnet_nat_gateway_association" "test" {
 }
 
 resource "azurerm_lb" "test" {
-  name                = "lb-%[1]d"
+  name                = "acctest-lb-%[1]d"
   location            = azurerm_resource_group.test1.location
   resource_group_name = azurerm_resource_group.test1.name
   sku                 = "Standard"
@@ -1766,12 +1671,12 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name            = "lb-backend-address-pool-%[1]d"
+  name            = "acctest-lb-backend-pool-%[1]d"
   loadbalancer_id = azurerm_lb.test.id
 }
 
 resource "azurerm_network_interface" "test" {
-  name                = "vm-nic-%[1]d"
+  name                = "acctest-vm-nic-%[1]d"
   location            = azurerm_resource_group.test1.location
   resource_group_name = azurerm_resource_group.test1.name
 
@@ -1789,7 +1694,7 @@ resource "azurerm_network_interface_backend_address_pool_association" "test" {
 }
 
 resource "azurerm_virtual_machine" "test" {
-  name                  = "vm-%[1]d"
+  name                  = "acctest-vm-%[1]d"
   location              = azurerm_resource_group.test1.location
   resource_group_name   = azurerm_resource_group.test1.name
   vm_size               = "Standard_B1s"
@@ -1804,7 +1709,7 @@ resource "azurerm_virtual_machine" "test" {
   }
 
   storage_os_disk {
-    name              = "disk-%[1]d"
+    name              = "acctest-disk-%[1]d"
     os_type           = "Linux"
     caching           = "ReadWrite"
     create_option     = "FromImage"
@@ -1823,35 +1728,35 @@ resource "azurerm_virtual_machine" "test" {
 }
 
 resource "azurerm_recovery_services_vault" "test" {
-  name                = "recovery-vault-%[1]d"
+  name                = "acctest-recovery-vault-%[1]d"
   location            = azurerm_resource_group.test2.location
   resource_group_name = azurerm_resource_group.test2.name
   sku                 = "Standard"
 }
 
 resource "azurerm_site_recovery_fabric" "test" {
-  name                = "fabric-%[1]d"
+  name                = "acctest-fabric-%[1]d"
   resource_group_name = azurerm_resource_group.test2.name
   recovery_vault_name = azurerm_recovery_services_vault.test.name
   location            = azurerm_resource_group.test1.location
 }
 
 resource "azurerm_site_recovery_protection_container" "test1" {
-  name                 = "protection-container-%[1]d-1"
+  name                 = "acctest-protection-cont1-%[1]d"
   resource_group_name  = azurerm_resource_group.test2.name
   recovery_vault_name  = azurerm_recovery_services_vault.test.name
   recovery_fabric_name = azurerm_site_recovery_fabric.test.name
 }
 
 resource "azurerm_site_recovery_protection_container" "test2" {
-  name                 = "protection-container-%[1]d-2"
+  name                 = "acctest-protection-cont2-%[1]d"
   resource_group_name  = azurerm_resource_group.test2.name
   recovery_vault_name  = azurerm_recovery_services_vault.test.name
   recovery_fabric_name = azurerm_site_recovery_fabric.test.name
 }
 
 resource "azurerm_site_recovery_replication_policy" "test" {
-  name                                                 = "policy-%[1]d"
+  name                                                 = "acctest-policy-%[1]d"
   resource_group_name                                  = azurerm_resource_group.test2.name
   recovery_vault_name                                  = azurerm_recovery_services_vault.test.name
   recovery_point_retention_in_minutes                  = 24 * 60
@@ -1859,7 +1764,7 @@ resource "azurerm_site_recovery_replication_policy" "test" {
 }
 
 resource "azurerm_site_recovery_protection_container_mapping" "test" {
-  name                                      = "container-mapping-%[1]d"
+  name                                      = "acctest-container-mapping-%[1]d"
   resource_group_name                       = azurerm_resource_group.test2.name
   recovery_vault_name                       = azurerm_recovery_services_vault.test.name
   recovery_fabric_name                      = azurerm_site_recovery_fabric.test.name
@@ -1869,7 +1774,7 @@ resource "azurerm_site_recovery_protection_container_mapping" "test" {
 }
 
 resource "azurerm_site_recovery_replicated_vm" "test" {
-  name                                      = "vm-replication-%[1]d"
+  name                                      = "acctest-vm-replication-%[1]d"
   resource_group_name                       = azurerm_resource_group.test2.name
   recovery_vault_name                       = azurerm_recovery_services_vault.test.name
   source_recovery_fabric_name               = azurerm_site_recovery_fabric.test.name
@@ -1909,18 +1814,13 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
     azurerm_nat_gateway_public_ip_association.test,
   ]
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (SiteRecoveryReplicatedVmResource) targetDiskEncryption(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
-    key_vault {
-      purge_soft_delete_on_destroy          = false
-      purge_soft_deleted_keys_on_destroy    = false
-      purge_soft_deleted_secrets_on_destroy = false
-    }
     resource_group {
       prevent_deletion_if_contains_resources = false
     }
@@ -1939,14 +1839,14 @@ resource "azurerm_resource_group" "test2" {
 }
 
 resource "azurerm_key_vault" "test1" {
-  name                        = "acctest-%[4]s"
+  name                        = "acctest%[4]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
   rbac_authorization_enabled  = false
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "premium"
   enabled_for_disk_encryption = true
-  purge_protection_enabled    = true
+  purge_protection_enabled    = false
   soft_delete_retention_days  = 7
 }
 
@@ -1959,6 +1859,7 @@ resource "azurerm_key_vault_access_policy" "service-principal" {
     "Create",
     "Delete",
     "Get",
+    "Purge",
     "Update",
     "GetRotationPolicy",
   ]
@@ -2015,7 +1916,7 @@ resource "azurerm_site_recovery_protection_container" "test2" {
   resource_group_name  = azurerm_resource_group.test2.name
   recovery_vault_name  = azurerm_recovery_services_vault.test.name
   recovery_fabric_name = azurerm_site_recovery_fabric.test1.name
-  name                 = "acctest-protection-cont2-t-%[1]d"
+  name                 = "acctest-protection-cont2-%[1]d"
 }
 
 resource "azurerm_site_recovery_replication_policy" "test" {
@@ -2033,25 +1934,25 @@ resource "azurerm_site_recovery_protection_container_mapping" "test" {
   recovery_source_protection_container_name = azurerm_site_recovery_protection_container.test1.name
   recovery_target_protection_container_id   = azurerm_site_recovery_protection_container.test2.id
   recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.test.id
-  name                                      = "mapping-%[1]d"
+  name                                      = "acctest-mapping-%[1]d"
 }
 
 resource "azurerm_virtual_network" "test1" {
-  name                = "net-%[1]d"
+  name                = "acctest-net-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   address_space       = ["192.168.1.0/24"]
   location            = azurerm_site_recovery_fabric.test1.location
 }
 
 resource "azurerm_subnet" "test1" {
-  name                 = "snet-%[1]d"
+  name                 = "acctest-snet-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test1.name
   address_prefixes     = ["192.168.1.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {
-  name                = "vm-%[1]d"
+  name                = "acctest-ni-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   ip_configuration {
@@ -2062,7 +1963,8 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_windows_virtual_machine" "vm" {
-  name                = "acctvm%[4]s"
+  name                = "acctest-vm-%[4]s"
+  computer_name       = "vm-%[4]s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   size                = "Standard_D2s_v3"
@@ -2108,7 +2010,7 @@ SETTINGS
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acct%[1]d"
+  name                     = "acctest%[4]s"
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
@@ -2126,7 +2028,7 @@ data "azurerm_managed_disk" "test" {
 
 // Use snapshot as a workaround of encryption_settings not yet supported on managed_disk
 resource "azurerm_snapshot" "test" {
-  name                = "snapshot-%[1]d"
+  name                = "acctest-snapshot-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   create_option       = "Copy"
@@ -2144,7 +2046,7 @@ data "azurerm_snapshot" "test" {
 }
 
 resource "azurerm_site_recovery_replicated_vm" "test" {
-  name                                      = "repl-%[1]d"
+  name                                      = "acctest-repl-%[1]d"
   resource_group_name                       = azurerm_resource_group.test2.name
   recovery_vault_name                       = azurerm_recovery_services_vault.test.name
   source_vm_id                              = azurerm_windows_virtual_machine.vm.id
@@ -2202,7 +2104,7 @@ resource "azurerm_proximity_placement_group" "test" {
 }
 
 resource "azurerm_site_recovery_replicated_vm" "test" {
-  name                                      = "repl-%[2]d"
+  name                                      = "acctest-repl-%[2]d"
   resource_group_name                       = azurerm_resource_group.test2.name
   recovery_vault_name                       = azurerm_recovery_services_vault.test.name
   source_vm_id                              = azurerm_virtual_machine.test.id
@@ -2238,7 +2140,7 @@ func (r SiteRecoveryReplicatedVmResource) withBootDiagStorageAccount(data accept
 %s
 
 resource "azurerm_storage_account" "test2" {
-  name                     = "acctre%[2]d"
+  name                     = "acctestre%[5]s"
   location                 = azurerm_resource_group.test2.location
   resource_group_name      = azurerm_resource_group.test2.name
   account_tier             = "Standard"
@@ -2246,7 +2148,7 @@ resource "azurerm_storage_account" "test2" {
 }
 
 resource "azurerm_site_recovery_replicated_vm" "test" {
-  name                                      = "repl-%[2]d"
+  name                                      = "acctest-repl-%[2]d"
   resource_group_name                       = azurerm_resource_group.test2.name
   recovery_vault_name                       = azurerm_recovery_services_vault.test.name
   source_vm_id                              = azurerm_virtual_machine.test.id
@@ -2273,473 +2175,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
     azurerm_site_recovery_network_mapping.test,
   ]
 }
-
-
-
-
-`, r.template(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
-}
-
-func (r SiteRecoveryReplicatedVmResource) withUnManagedVmDisks(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {
-    key_vault {
-      purge_soft_delete_on_destroy       = false
-      purge_soft_deleted_keys_on_destroy = false
-    }
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
-}
-
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-recovery-%[1]d-1"
-  location = "%[2]s"
-}
-
-resource "azurerm_resource_group" "test2" {
-  name     = "acctestRG-recovery-%[1]d-2"
-  location = "%[3]s"
-}
-
-resource "azurerm_managed_disk" "test" {
-  name                 = "acctestd-%[1]d"
-  location             = azurerm_resource_group.test.location
-  resource_group_name  = azurerm_resource_group.test.name
-  storage_account_type = "Standard_LRS"
-  create_option        = "Empty"
-  disk_size_gb         = 1
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-}
-
-resource "azurerm_network_interface" "test" {
-  name                = "acctni-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  ip_configuration {
-    name                          = "testconfiguration1"
-    subnet_id                     = azurerm_subnet.test.id
-    private_ip_address_allocation = "Dynamic"
-  }
-}
-
-
-resource "azurerm_virtual_machine" "test" {
-  name                  = "acctvm-%[1]d"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  network_interface_ids = [azurerm_network_interface.test.id]
-  vm_size               = "Standard_D1_v2"
-
-  delete_os_disk_on_termination    = true
-  delete_data_disks_on_termination = true
-
-  storage_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-focal"
-    sku       = "20_04-lts"
-    version   = "latest"
-  }
-
-  storage_os_disk {
-    name          = "myosdisk1"
-    vhd_uri       = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    caching       = "ReadWrite"
-    create_option = "FromImage"
-  }
-
-  os_profile {
-    computer_name  = "hn%[1]d"
-    admin_username = "testadmin"
-    admin_password = "Password1234!"
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
-  }
-
-  tags = {
-    environment = "Production"
-    cost-center = "Ops"
-  }
-}
-
-resource "azurerm_recovery_services_vault" "test" {
-  name                = "acctest-vault-%[1]d"
-  location            = azurerm_resource_group.test2.location
-  resource_group_name = azurerm_resource_group.test2.name
-  sku                 = "Standard"
-}
-
-resource "azurerm_site_recovery_fabric" "test1" {
-  resource_group_name = azurerm_resource_group.test2.name
-  recovery_vault_name = azurerm_recovery_services_vault.test.name
-  name                = "acctest-fabric1-%[1]d"
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_site_recovery_fabric" "test2" {
-  resource_group_name = azurerm_resource_group.test2.name
-  recovery_vault_name = azurerm_recovery_services_vault.test.name
-  name                = "acctest-fabric2-%[1]d"
-  location            = azurerm_resource_group.test2.location
-  depends_on          = [azurerm_site_recovery_fabric.test1]
-}
-
-resource "azurerm_site_recovery_protection_container" "test1" {
-  resource_group_name  = azurerm_resource_group.test2.name
-  recovery_vault_name  = azurerm_recovery_services_vault.test.name
-  recovery_fabric_name = azurerm_site_recovery_fabric.test1.name
-  name                 = "acctest-protection-cont1-%[1]d"
-}
-
-resource "azurerm_site_recovery_protection_container" "test2" {
-  resource_group_name  = azurerm_resource_group.test2.name
-  recovery_vault_name  = azurerm_recovery_services_vault.test.name
-  recovery_fabric_name = azurerm_site_recovery_fabric.test2.name
-  name                 = "acctest-protection-cont2-%[1]d"
-}
-
-resource "azurerm_site_recovery_replication_policy" "test" {
-  resource_group_name                                  = azurerm_resource_group.test2.name
-  recovery_vault_name                                  = azurerm_recovery_services_vault.test.name
-  name                                                 = "acctest-policy-%[1]d"
-  recovery_point_retention_in_minutes                  = 24 * 60
-  application_consistent_snapshot_frequency_in_minutes = 4 * 60
-}
-
-resource "azurerm_site_recovery_protection_container_mapping" "test" {
-  resource_group_name                       = azurerm_resource_group.test2.name
-  recovery_vault_name                       = azurerm_recovery_services_vault.test.name
-  recovery_fabric_name                      = azurerm_site_recovery_fabric.test1.name
-  recovery_source_protection_container_name = azurerm_site_recovery_protection_container.test1.name
-  recovery_target_protection_container_id   = azurerm_site_recovery_protection_container.test2.id
-  recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.test.id
-  name                                      = "mapping-%[1]d"
-}
-
-resource "azurerm_virtual_network" "test2" {
-  name                = "net-%[1]d-2"
-  resource_group_name = azurerm_resource_group.test2.name
-  address_space       = ["192.168.2.0/24"]
-  location            = azurerm_site_recovery_fabric.test2.location
-}
-
-resource "azurerm_site_recovery_network_mapping" "test" {
-  resource_group_name         = azurerm_resource_group.test2.name
-  recovery_vault_name         = azurerm_recovery_services_vault.test.name
-  name                        = "mapping-%[1]d"
-  source_recovery_fabric_name = azurerm_site_recovery_fabric.test1.name
-  target_recovery_fabric_name = azurerm_site_recovery_fabric.test2.name
-  source_network_id           = azurerm_virtual_network.test.id
-  target_network_id           = azurerm_virtual_network.test2.id
-}
-
-resource "azurerm_public_ip" "test-recovery" {
-  name                = "pubip%[1]d-recovery"
-  allocation_method   = "Static"
-  location            = azurerm_resource_group.test2.location
-  resource_group_name = azurerm_resource_group.test2.name
-  sku                 = "Standard"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acct%[1]d"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_id    = azurerm_storage_account.test.id
-  container_access_type = "blob"
-}
-
-resource "azurerm_storage_account" "test2" {
-  name                     = "acctre%[1]d"
-  location                 = azurerm_resource_group.test2.location
-  resource_group_name      = azurerm_resource_group.test.name
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-
-resource "azurerm_site_recovery_replicated_vm" "test" {
-  name                                      = "repl-%[1]d"
-  resource_group_name                       = azurerm_resource_group.test2.name
-  recovery_vault_name                       = azurerm_recovery_services_vault.test.name
-  source_vm_id                              = azurerm_virtual_machine.test.id
-  source_recovery_fabric_name               = azurerm_site_recovery_fabric.test1.name
-  recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.test.id
-  source_recovery_protection_container_name = azurerm_site_recovery_protection_container.test1.name
-
-  target_resource_group_id                = azurerm_resource_group.test2.id
-  target_recovery_fabric_id               = azurerm_site_recovery_fabric.test2.id
-  target_recovery_protection_container_id = azurerm_site_recovery_protection_container.test2.id
-
-  unmanaged_disk {
-    disk_uri                   = azurerm_virtual_machine.test.storage_os_disk[0].vhd_uri
-    staging_storage_account_id = azurerm_storage_account.test.id
-    target_storage_account_id  = azurerm_storage_account.test2.id
-  }
-
-  depends_on = [
-    azurerm_site_recovery_protection_container_mapping.test,
-    azurerm_site_recovery_network_mapping.test,
-  ]
-}
-		`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
-	}
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {
-    key_vault {
-      purge_soft_delete_on_destroy       = false
-      purge_soft_deleted_keys_on_destroy = false
-    }
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
-}
-
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-recovery-%[1]d-1"
-  location = "%[2]s"
-}
-
-resource "azurerm_resource_group" "test2" {
-  name     = "acctestRG-recovery-%[1]d-2"
-  location = "%[3]s"
-}
-
-resource "azurerm_managed_disk" "test" {
-  name                 = "acctestd-%[1]d"
-  location             = azurerm_resource_group.test.location
-  resource_group_name  = azurerm_resource_group.test.name
-  storage_account_type = "Standard_LRS"
-  create_option        = "Empty"
-  disk_size_gb         = 1
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-}
-
-resource "azurerm_network_interface" "test" {
-  name                = "acctni-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  ip_configuration {
-    name                          = "testconfiguration1"
-    subnet_id                     = azurerm_subnet.test.id
-    private_ip_address_allocation = "Dynamic"
-  }
-}
-
-
-resource "azurerm_virtual_machine" "test" {
-  name                  = "acctvm-%[1]d"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  network_interface_ids = [azurerm_network_interface.test.id]
-  vm_size               = "Standard_D1_v2"
-
-  delete_os_disk_on_termination    = true
-  delete_data_disks_on_termination = true
-
-  storage_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-focal"
-    sku       = "20_04-lts"
-    version   = "latest"
-  }
-
-  storage_os_disk {
-    name          = "myosdisk1"
-    vhd_uri       = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    caching       = "ReadWrite"
-    create_option = "FromImage"
-  }
-
-  os_profile {
-    computer_name  = "hn%[1]d"
-    admin_username = "testadmin"
-    admin_password = "Password1234!"
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
-  }
-
-  tags = {
-    environment = "Production"
-    cost-center = "Ops"
-  }
-}
-
-resource "azurerm_recovery_services_vault" "test" {
-  name                = "acctest-vault-%[1]d"
-  location            = azurerm_resource_group.test2.location
-  resource_group_name = azurerm_resource_group.test2.name
-  sku                 = "Standard"
-}
-
-resource "azurerm_site_recovery_fabric" "test1" {
-  resource_group_name = azurerm_resource_group.test2.name
-  recovery_vault_name = azurerm_recovery_services_vault.test.name
-  name                = "acctest-fabric1-%[1]d"
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_site_recovery_fabric" "test2" {
-  resource_group_name = azurerm_resource_group.test2.name
-  recovery_vault_name = azurerm_recovery_services_vault.test.name
-  name                = "acctest-fabric2-%[1]d"
-  location            = azurerm_resource_group.test2.location
-  depends_on          = [azurerm_site_recovery_fabric.test1]
-}
-
-resource "azurerm_site_recovery_protection_container" "test1" {
-  resource_group_name  = azurerm_resource_group.test2.name
-  recovery_vault_name  = azurerm_recovery_services_vault.test.name
-  recovery_fabric_name = azurerm_site_recovery_fabric.test1.name
-  name                 = "acctest-protection-cont1-%[1]d"
-}
-
-resource "azurerm_site_recovery_protection_container" "test2" {
-  resource_group_name  = azurerm_resource_group.test2.name
-  recovery_vault_name  = azurerm_recovery_services_vault.test.name
-  recovery_fabric_name = azurerm_site_recovery_fabric.test2.name
-  name                 = "acctest-protection-cont2-%[1]d"
-}
-
-resource "azurerm_site_recovery_replication_policy" "test" {
-  resource_group_name                                  = azurerm_resource_group.test2.name
-  recovery_vault_name                                  = azurerm_recovery_services_vault.test.name
-  name                                                 = "acctest-policy-%[1]d"
-  recovery_point_retention_in_minutes                  = 24 * 60
-  application_consistent_snapshot_frequency_in_minutes = 4 * 60
-}
-
-resource "azurerm_site_recovery_protection_container_mapping" "test" {
-  resource_group_name                       = azurerm_resource_group.test2.name
-  recovery_vault_name                       = azurerm_recovery_services_vault.test.name
-  recovery_fabric_name                      = azurerm_site_recovery_fabric.test1.name
-  recovery_source_protection_container_name = azurerm_site_recovery_protection_container.test1.name
-  recovery_target_protection_container_id   = azurerm_site_recovery_protection_container.test2.id
-  recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.test.id
-  name                                      = "mapping-%[1]d"
-}
-
-resource "azurerm_virtual_network" "test2" {
-  name                = "net-%[1]d-2"
-  resource_group_name = azurerm_resource_group.test2.name
-  address_space       = ["192.168.2.0/24"]
-  location            = azurerm_site_recovery_fabric.test2.location
-}
-
-resource "azurerm_site_recovery_network_mapping" "test" {
-  resource_group_name         = azurerm_resource_group.test2.name
-  recovery_vault_name         = azurerm_recovery_services_vault.test.name
-  name                        = "mapping-%[1]d"
-  source_recovery_fabric_name = azurerm_site_recovery_fabric.test1.name
-  target_recovery_fabric_name = azurerm_site_recovery_fabric.test2.name
-  source_network_id           = azurerm_virtual_network.test.id
-  target_network_id           = azurerm_virtual_network.test2.id
-}
-
-resource "azurerm_public_ip" "test-recovery" {
-  name                = "pubip%[1]d-recovery"
-  allocation_method   = "Static"
-  location            = azurerm_resource_group.test2.location
-  resource_group_name = azurerm_resource_group.test2.name
-  sku                 = "Standard"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                            = "acct%[1]d"
-  location                        = azurerm_resource_group.test.location
-  resource_group_name             = azurerm_resource_group.test.name
-  account_tier                    = "Standard"
-  account_replication_type        = "LRS"
-  allow_nested_items_to_be_public = true
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_id    = azurerm_storage_account.test.id
-  container_access_type = "blob"
-}
-
-resource "azurerm_storage_account" "test2" {
-  name                     = "acctre%[1]d"
-  location                 = azurerm_resource_group.test2.location
-  resource_group_name      = azurerm_resource_group.test.name
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-
-resource "azurerm_site_recovery_replicated_vm" "test" {
-  name                                      = "repl-%[1]d"
-  resource_group_name                       = azurerm_resource_group.test2.name
-  recovery_vault_name                       = azurerm_recovery_services_vault.test.name
-  source_vm_id                              = azurerm_virtual_machine.test.id
-  source_recovery_fabric_name               = azurerm_site_recovery_fabric.test1.name
-  recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.test.id
-  source_recovery_protection_container_name = azurerm_site_recovery_protection_container.test1.name
-
-  target_resource_group_id                = azurerm_resource_group.test2.id
-  target_recovery_fabric_id               = azurerm_site_recovery_fabric.test2.id
-  target_recovery_protection_container_id = azurerm_site_recovery_protection_container.test2.id
-
-  unmanaged_disk {
-    disk_uri                   = azurerm_virtual_machine.test.storage_os_disk[0].vhd_uri
-    staging_storage_account_id = azurerm_storage_account.test.id
-    target_storage_account_id  = azurerm_storage_account.test2.id
-  }
-
-  depends_on = [
-    azurerm_site_recovery_protection_container_mapping.test,
-    azurerm_site_recovery_network_mapping.test,
-  ]
-}
-	`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, r.template(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, data.RandomString)
 }
 
 func (r SiteRecoveryReplicatedVmResource) withCapacityReservationGroup(data acceptance.TestData) string {
@@ -2763,7 +2199,7 @@ resource "azurerm_capacity_reservation" "test" {
 }
 
 resource "azurerm_site_recovery_replicated_vm" "test" {
-  name                                      = "repl-%[2]d"
+  name                                      = "acctest-repl-%[2]d"
   resource_group_name                       = azurerm_resource_group.test2.name
   recovery_vault_name                       = azurerm_recovery_services_vault.test.name
   source_vm_id                              = azurerm_virtual_machine.test.id
@@ -2849,7 +2285,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 }
 
 resource "azurerm_site_recovery_replicated_vm" "test" {
-  name                                      = "repl-%[2]d"
+  name                                      = "acctest-repl-%[2]d"
   resource_group_name                       = azurerm_resource_group.test2.name
   recovery_vault_name                       = azurerm_recovery_services_vault.test.name
   source_vm_id                              = azurerm_virtual_machine.test.id
@@ -2886,7 +2322,7 @@ func (r SiteRecoveryReplicatedVmResource) withMultiVmGroup(data acceptance.TestD
 %s
 
 resource "azurerm_site_recovery_replicated_vm" "test" {
-  name                                      = "repl-%[2]d"
+  name                                      = "acctest-repl-%[2]d"
   resource_group_name                       = azurerm_resource_group.test2.name
   recovery_vault_name                       = azurerm_recovery_services_vault.test.name
   source_vm_id                              = azurerm_virtual_machine.test.id
@@ -2928,7 +2364,7 @@ data "azurerm_extended_locations" "test" {
 }
 
 resource "azurerm_site_recovery_replicated_vm" "test" {
-  name                                      = "repl-%[2]d"
+  name                                      = "acctest-repl-%[2]d"
   resource_group_name                       = azurerm_resource_group.test2.name
   recovery_vault_name                       = azurerm_recovery_services_vault.test.name
   source_vm_id                              = azurerm_virtual_machine.test.id
@@ -2970,7 +2406,7 @@ resource "azurerm_availability_set" "test" {
 }
 
 resource "azurerm_site_recovery_replicated_vm" "test" {
-  name                                      = "repl-%[2]d"
+  name                                      = "acctest-repl-%[2]d"
   resource_group_name                       = azurerm_resource_group.test2.name
   recovery_vault_name                       = azurerm_recovery_services_vault.test.name
   source_vm_id                              = azurerm_virtual_machine.test.id
@@ -3005,7 +2441,7 @@ func (r SiteRecoveryReplicatedVmResource) targetVirtualMachineSize(data acceptan
 %s
 
 resource "azurerm_site_recovery_replicated_vm" "test" {
-  name                                      = "repl-%[2]d"
+  name                                      = "acctest-repl-%[2]d"
   resource_group_name                       = azurerm_resource_group.test2.name
   recovery_vault_name                       = azurerm_recovery_services_vault.test.name
   source_vm_id                              = azurerm_virtual_machine.test.id
@@ -3039,7 +2475,7 @@ func (r SiteRecoveryReplicatedVmResource) targetVirtualMachineSizeUpdated(data a
 %s
 
 resource "azurerm_site_recovery_replicated_vm" "test" {
-  name                                      = "repl-%[2]d"
+  name                                      = "acctest-repl-%[2]d"
   resource_group_name                       = azurerm_resource_group.test2.name
   recovery_vault_name                       = azurerm_recovery_services_vault.test.name
   source_vm_id                              = azurerm_virtual_machine.test.id
@@ -3080,14 +2516,14 @@ func (r SiteRecoveryReplicatedVmResource) ipConfigList(data acceptance.TestData,
 %s
 
 resource "azurerm_subnet" "tfo" {
-  name                 = "snet4"
+  name                 = "acctest-snet4-%[2]d"
   resource_group_name  = azurerm_resource_group.recovery.name
   virtual_network_name = azurerm_virtual_network.recovery.name
   address_prefixes     = ["192.168.3.0/24"]
 }
 
 resource "azurerm_public_ip" "tfo" {
-  name                = "pubip%[2]d-tfo"
+  name                = "acctest-pubip%[2]d-tfo"
   allocation_method   = "Static"
   location            = azurerm_resource_group.recovery.location
   resource_group_name = azurerm_resource_group.recovery.name
@@ -3096,7 +2532,7 @@ resource "azurerm_public_ip" "tfo" {
 
 
 resource "azurerm_site_recovery_replicated_vm" "test" {
-  name                                      = "repl-%[2]d"
+  name                                      = "acctest-repl-%[2]d"
   resource_group_name                       = azurerm_resource_group.recovery.name
   recovery_vault_name                       = azurerm_recovery_services_vault.test.name
   source_vm_id                              = azurerm_virtual_machine.test.id

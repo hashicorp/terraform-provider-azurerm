@@ -434,14 +434,12 @@ func flattenEncryption(encryption *automationaccount.EncryptionProperties) []int
 			}
 		}
 	}
-	flattened := []interface{}{
+	return []interface{}{
 		map[string]interface{}{
 			"key_vault_key_id":          keyVaultKeyId,
 			"user_assigned_identity_id": userAssignedIdentityId,
 		},
 	}
-
-	return flattened
 }
 
 func flattenPrivateEndpointConnections(input *[]automationaccount.PrivateEndpointConnection) []interface{} {

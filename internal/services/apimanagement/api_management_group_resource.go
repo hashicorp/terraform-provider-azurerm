@@ -63,15 +63,11 @@ func resourceApiManagementGroup() *pluginsdk.Resource {
 			},
 
 			"type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(group.GroupTypeCustom),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(group.GroupTypeCustom),
-					string(group.GroupTypeExternal),
-					string(group.GroupTypeSystem),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(group.GroupTypeCustom),
+				ValidateFunc: validation.StringInSlice(group.PossibleValuesForGroupType(), false),
 			},
 		},
 	}
@@ -110,7 +106,7 @@ func resourceApiManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			DisplayName: displayName,
 			Description: pointer.To(description),
 			ExternalId:  pointer.To(externalID),
-			Type:        pointer.To(group.GroupType(groupType)),
+			Type:        pointer.ToEnum[group.GroupType](groupType),
 		},
 	}
 
@@ -152,7 +148,7 @@ func resourceApiManagementGroupRead(d *pluginsdk.ResourceData, meta interface{})
 			d.Set("display_name", properties.DisplayName)
 			d.Set("description", properties.Description)
 			d.Set("external_id", properties.ExternalId)
-			d.Set("type", string(pointer.From(properties.Type)))
+			d.Set("type", pointer.FromEnum(properties.Type))
 		}
 	}
 

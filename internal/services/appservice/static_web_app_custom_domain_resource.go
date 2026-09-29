@@ -148,7 +148,7 @@ func (r StaticWebAppCustomDomainResource) Create() sdk.ResourceFunc {
 						if domain.Model == nil || domain.Model.Properties == nil {
 							return nil, "Failed", fmt.Errorf("`properties` was missing from the response")
 						}
-						return domain, string(pointer.From(domain.Model.Properties.Status)), nil
+						return domain, pointer.FromEnum(domain.Model.Properties.Status), nil
 					},
 				}
 
@@ -165,7 +165,7 @@ func (r StaticWebAppCustomDomainResource) Create() sdk.ResourceFunc {
 			if m := domain.Model; m != nil {
 				if m.Properties != nil {
 					if err = metadata.ResourceData.Set("validation_token", m.Properties.ValidationToken); err != nil {
-						return fmt.Errorf("setting validation_toekn value for %s: %+v", id, err)
+						return fmt.Errorf("setting validation_token value for %s: %+v", id, err)
 					}
 				}
 			}

@@ -89,9 +89,10 @@ func resourceStorageContainer() *pluginsdk.Resource {
 			},
 
 			"default_encryption_scope": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true, // needed because a dummy value is returned when unspecified
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// Note: O+C because needed because a dummy value is returned when unspecified
+				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.StorageEncryptionScopeName,
 			},
@@ -156,7 +157,7 @@ func resourceStorageContainerCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	payload := blobcontainers.BlobContainer{
 		Properties: &blobcontainers.ContainerProperties{
-			PublicAccess: pointer.To(blobcontainers.PublicAccess(containerAccessTypeConversionMap[accessLevelRaw])),
+			PublicAccess: pointer.ToEnum[blobcontainers.PublicAccess](containerAccessTypeConversionMap[accessLevelRaw]),
 			Metadata:     pointer.To(metaData),
 		},
 	}
@@ -203,7 +204,7 @@ func resourceStorageContainerUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	if d.HasChange("container_access_type") {
 		accessLevelRaw := d.Get("container_access_type").(string)
-		update.Properties.PublicAccess = pointer.To(blobcontainers.PublicAccess(containerAccessTypeConversionMap[accessLevelRaw]))
+		update.Properties.PublicAccess = pointer.ToEnum[blobcontainers.PublicAccess](containerAccessTypeConversionMap[accessLevelRaw])
 	}
 
 	if d.HasChange("metadata") {
@@ -242,7 +243,7 @@ func resourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if props := model.Properties; props != nil {
 			d.Set("name", id.ContainerName)
 			d.Set("storage_account_id", commonids.NewStorageAccountID(id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName).ID())
-			d.Set("container_access_type", containerAccessTypeConversionMap[string(pointer.From(props.PublicAccess))])
+			d.Set("container_access_type", containerAccessTypeConversionMap[pointer.FromEnum(props.PublicAccess)])
 			d.Set("default_encryption_scope", props.DefaultEncryptionScope)
 			d.Set("encryption_scope_override_enabled", !pointer.From(props.DenyEncryptionScopeOverride))
 			d.Set("metadata", FlattenMetaData(pointer.From(props.Metadata)))

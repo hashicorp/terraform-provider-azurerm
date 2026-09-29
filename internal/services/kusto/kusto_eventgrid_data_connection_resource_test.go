@@ -8,11 +8,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/dataconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -55,26 +55,6 @@ func TestAccKustoEventGridDataConnection_complete(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("database_routing_type").HasValue("Multi"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccKustoEventGridDataConnection_eventgridResourceId(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip()
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_kusto_eventgrid_data_connection", "test")
-	r := KustoEventGridDataConnectionResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.eventgridResourceId(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("database_routing_type").HasValue("Multi"),
@@ -128,41 +108,6 @@ func TestAccKustoEventGridDataConnection_systemAssignedIdentity(t *testing.T) {
 	})
 }
 
-func TestAccKustoEventGridDataConnection_userAssignedIdentityResourceId(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip()
-	}
-	data := acceptance.BuildTestData(t, "azurerm_kusto_eventgrid_data_connection", "test")
-	r := KustoEventGridDataConnectionResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.userAssignedIdentityResourceId(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccKustoEventGridDataConnection_systemAssignedIdentityResourceId(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip()
-	}
-	data := acceptance.BuildTestData(t, "azurerm_kusto_eventgrid_data_connection", "test")
-	r := KustoEventGridDataConnectionResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.systemAssignedIdentityResourceId(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (KustoEventGridDataConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := dataconnections.ParseDataConnectionID(state.ID)
 	if err != nil {
@@ -180,9 +125,7 @@ func (KustoEventGridDataConnectionResource) Exists(ctx context.Context, clients 
 			return nil, fmt.Errorf("%s is not an Event Grid Data Connection", id.String())
 		}
 
-		exists := value.Properties != nil
-
-		return &exists, nil
+		return pointer.To(value.Properties != nil), nil
 	} else {
 		return nil, fmt.Errorf("response model is empty")
 	}
@@ -249,31 +192,6 @@ resource "azurerm_kusto_eventgrid_data_connection" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r KustoEventGridDataConnectionResource) eventgridResourceId(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_kusto_eventgrid_data_connection" "test" {
-  name                         = "acctestkrgdc-%d"
-  resource_group_name          = azurerm_resource_group.test.name
-  location                     = azurerm_resource_group.test.location
-  cluster_name                 = azurerm_kusto_cluster.test.name
-  database_name                = azurerm_kusto_database.test.name
-  storage_account_id           = azurerm_storage_account.test.id
-  eventhub_id                  = azurerm_eventhub.test.id
-  eventhub_consumer_group_name = azurerm_eventhub_consumer_group.test.name
-
-  blob_storage_event_type = "Microsoft.Storage.BlobRenamed"
-  skip_first_record       = true
-
-  database_routing_type = "Multi"
-  eventgrid_resource_id = azurerm_eventgrid_event_subscription.test.id
-
-  depends_on = [azurerm_eventgrid_event_subscription.test]
-}
-`, r.template(data), data.RandomInteger)
-}
-
 func (r KustoEventGridDataConnectionResource) mappingRule(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -330,42 +248,6 @@ resource "azurerm_kusto_eventgrid_data_connection" "test" {
   eventhub_id                  = azurerm_eventhub.test.id
   eventhub_consumer_group_name = azurerm_eventhub_consumer_group.test.name
   managed_identity_id          = azurerm_kusto_cluster.test.id
-  depends_on                   = [azurerm_eventgrid_event_subscription.test]
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r KustoEventGridDataConnectionResource) userAssignedIdentityResourceId(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-resource "azurerm_kusto_eventgrid_data_connection" "test" {
-  name                         = "acctestkrgdc-%d"
-  resource_group_name          = azurerm_resource_group.test.name
-  location                     = azurerm_resource_group.test.location
-  cluster_name                 = azurerm_kusto_cluster.test.name
-  database_name                = azurerm_kusto_database.test.name
-  storage_account_id           = azurerm_storage_account.test.id
-  eventhub_id                  = azurerm_eventhub.test.id
-  eventhub_consumer_group_name = azurerm_eventhub_consumer_group.test.name
-  managed_identity_resource_id = azurerm_user_assigned_identity.test.id
-  depends_on                   = [azurerm_eventgrid_event_subscription.test]
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r KustoEventGridDataConnectionResource) systemAssignedIdentityResourceId(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-resource "azurerm_kusto_eventgrid_data_connection" "test" {
-  name                         = "acctestkrgdc-%d"
-  resource_group_name          = azurerm_resource_group.test.name
-  location                     = azurerm_resource_group.test.location
-  cluster_name                 = azurerm_kusto_cluster.test.name
-  database_name                = azurerm_kusto_database.test.name
-  storage_account_id           = azurerm_storage_account.test.id
-  eventhub_id                  = azurerm_eventhub.test.id
-  eventhub_consumer_group_name = azurerm_eventhub_consumer_group.test.name
-  managed_identity_resource_id = azurerm_kusto_cluster.test.id
   depends_on                   = [azurerm_eventgrid_event_subscription.test]
 }
 `, r.template(data), data.RandomInteger)

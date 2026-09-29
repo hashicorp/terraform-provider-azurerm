@@ -57,13 +57,11 @@ func resourceSiteRecoveryReplicationPolicy() *pluginsdk.Resource {
 			"recovery_point_retention_in_minutes": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
-				ForceNew:     false,
 				ValidateFunc: validation.IntBetween(0, 365*24*60),
 			},
 			"application_consistent_snapshot_frequency_in_minutes": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
-				ForceNew:     false,
 				ValidateFunc: validation.IntBetween(0, 365*24*60),
 			},
 		},
@@ -146,8 +144,7 @@ func resourceSiteRecoveryReplicationPolicyUpdate(d *pluginsdk.ResourceData, meta
 			},
 		},
 	}
-	err := client.UpdateThenPoll(ctx, id, parameters)
-	if err != nil {
+	if err := client.UpdateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("updating site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
 	}
 
@@ -196,8 +193,7 @@ func resourceSiteRecoveryReplicationPolicyDelete(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting site recovery replication policy %s : %+v", id.String(), err)
 	}
 

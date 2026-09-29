@@ -148,7 +148,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
 * `disable_password_authentication` - (Optional) Should Password Authentication be disabled on this Virtual Machine Scale Set? Defaults to `true`.
 
--> **Note:** In general we'd recommend using SSH Keys for authentication rather than Passwords - but there's tradeoff's to each - please [see this thread for more information](https://security.stackexchange.com/questions/69407/why-is-using-an-ssh-key-more-secure-than-using-passwords).
+-> **Note:** In general we'd recommend using SSH Keys for authentication rather than Passwords - but there's tradeoff's to each - please [see here for more information](https://learn.microsoft.com/azure/virtual-machines/linux/create-ssh-keys-detailed#ssh-keys-use-and-benefits).
 
 -> **Note:** When a `admin_password` is specified `disable_password_authentication` must be set to `false`.
 
@@ -344,7 +344,7 @@ A `diff_disk_settings` block supports the following:
 
 * `option` - (Required) Specifies the Ephemeral Disk Settings for the OS Disk. At this time the only possible value is `Local`. Changing this forces a new resource to be created.
 
-* `placement` - (Optional) Specifies where to store the Ephemeral Disk. Possible values are `CacheDisk` and `ResourceDisk`. Defaults to `CacheDisk`. Changing this forces a new resource to be created.
+* `placement` - (Optional) Specifies where to store the Ephemeral Disk. Possible values are `CacheDisk`, `ResourceDisk` and `NvmeDisk`. Defaults to `CacheDisk`. Changing this forces a new resource to be created.
 
 ---
 

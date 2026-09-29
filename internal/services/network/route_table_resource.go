@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/routetables"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/routetables"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -64,7 +64,7 @@ func resourceRouteTable() *pluginsdk.Resource {
 				Type:       pluginsdk.TypeSet,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Optional:   true,
-				Computed:   true,
+				Computed:   true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -80,15 +80,9 @@ func resourceRouteTable() *pluginsdk.Resource {
 						},
 
 						"next_hop_type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(routetables.RouteNextHopTypeVirtualNetworkGateway),
-								string(routetables.RouteNextHopTypeVnetLocal),
-								string(routetables.RouteNextHopTypeInternet),
-								string(routetables.RouteNextHopTypeVirtualAppliance),
-								string(routetables.RouteNextHopTypeNone),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(routetables.PossibleValuesForRouteNextHopType(), false),
 						},
 
 						"next_hop_in_ip_address": {

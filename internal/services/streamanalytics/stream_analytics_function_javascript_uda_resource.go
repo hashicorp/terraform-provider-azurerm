@@ -206,11 +206,7 @@ func resourceStreamAnalyticsFunctionUDARead(d *pluginsdk.ResourceData, meta inte
 
 			binding := function.Properties.Binding.(functions.JavaScriptFunctionBinding)
 
-			script := ""
-			if v := binding.Properties.Script; v != nil {
-				script = *v
-			}
-			d.Set("script", script)
+			d.Set("script", pointer.From(binding.Properties.Script))
 
 			if err := d.Set("input", flattenStreamAnalyticsFunctionUDAInputs(function.Properties.Inputs)); err != nil {
 				return fmt.Errorf("flattening `input`: %+v", err)
@@ -298,15 +294,9 @@ func flattenStreamAnalyticsFunctionUDAInputs(input *[]functions.FunctionInput) [
 	outputs := make([]interface{}, 0)
 
 	for _, v := range *input {
-		var variableType string
-		if v.DataType != nil {
-			variableType = *v.DataType
-		}
+		variableType := pointer.From(v.DataType)
 
-		var isConfigurationParameter bool
-		if v.IsConfigurationParameter != nil {
-			isConfigurationParameter = *v.IsConfigurationParameter
-		}
+		isConfigurationParameter := pointer.From(v.IsConfigurationParameter)
 
 		outputs = append(outputs, map[string]interface{}{
 			"type":                    variableType,
@@ -331,10 +321,7 @@ func flattenStreamAnalyticsFunctionUDAOutput(input *functions.FunctionOutput) []
 		return []interface{}{}
 	}
 
-	var variableType string
-	if input.DataType != nil {
-		variableType = *input.DataType
-	}
+	variableType := pointer.From(input.DataType)
 
 	return []interface{}{
 		map[string]interface{}{

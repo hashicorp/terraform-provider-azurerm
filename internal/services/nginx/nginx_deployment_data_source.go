@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxdeployment"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -25,14 +24,11 @@ type DeploymentDataSourceModel struct {
 	NginxVersion           string                                     `tfschema:"nginx_version"`
 	Identity               []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	Sku                    string                                     `tfschema:"sku"`
-	ManagedResourceGroup   string                                     `tfschema:"managed_resource_group,removedInNextMajorVersion"`
 	Location               string                                     `tfschema:"location"`
 	Capacity               int64                                      `tfschema:"capacity"`
 	AutoScaleProfile       []AutoScaleProfile                         `tfschema:"auto_scale_profile"`
-	DiagnoseSupportEnabled bool                                       `tfschema:"diagnose_support_enabled, removedInNextMajorVersion"`
 	Email                  string                                     `tfschema:"email"`
 	IpAddress              string                                     `tfschema:"ip_address"`
-	LoggingStorageAccount  []LoggingStorageAccount                    `tfschema:"logging_storage_account,removedInNextMajorVersion"`
 	FrontendPublic         []FrontendPublic                           `tfschema:"frontend_public"`
 	FrontendPrivate        []FrontendPrivate                          `tfschema:"frontend_private"`
 	NetworkInterface       []NetworkInterface                         `tfschema:"network_interface"`
@@ -59,7 +55,7 @@ func (m DeploymentDataSource) Arguments() map[string]*pluginsdk.Schema {
 }
 
 func (m DeploymentDataSource) Attributes() map[string]*pluginsdk.Schema {
-	dataSource := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"nginx_version": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -201,40 +197,6 @@ func (m DeploymentDataSource) Attributes() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.TagsDataSource(),
 	}
-
-	if !features.FivePointOh() {
-		dataSource["managed_resource_group"] = &pluginsdk.Schema{
-			Deprecated: "The `managed_resource_group` field isn't supported by the API anymore and has been deprecated and will be removed in v5.0 of the AzureRM Provider.",
-			Type:       pluginsdk.TypeString,
-			Computed:   true,
-		}
-
-		dataSource["logging_storage_account"] = &pluginsdk.Schema{
-			Deprecated: "The `logging_storage_account` block has been deprecated and will be removed in v5.0 of the AzureRM Provider.",
-			Type:       pluginsdk.TypeList,
-			Computed:   true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"container_name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
-			},
-		}
-
-		dataSource["diagnose_support_enabled"] = &pluginsdk.Schema{
-			Deprecated: "this property is deprecated and will be removed in v5.0, metrics are enabled by default.",
-			Type:       pluginsdk.TypeBool,
-			Computed:   true,
-		}
-	}
-	return dataSource
 }
 
 func webApplicationFirewallPackageComputed() *pluginsdk.Schema {
@@ -324,18 +286,6 @@ func (m DeploymentDataSource) Read() sdk.ResourceFunc {
 					output.IpAddress = pointer.From(props.IPAddress)
 					output.NginxVersion = pointer.From(props.NginxVersion)
 					output.DataplaneAPIEndpoint = pointer.From(props.DataplaneApiEndpoint)
-
-					if !features.FivePointOh() {
-						if props.Logging != nil && props.Logging.StorageAccount != nil {
-							output.LoggingStorageAccount = []LoggingStorageAccount{
-								{
-									Name:          pointer.From(props.Logging.StorageAccount.AccountName),
-									ContainerName: pointer.From(props.Logging.StorageAccount.ContainerName),
-								},
-							}
-						}
-						output.DiagnoseSupportEnabled = pointer.From(props.EnableDiagnosticsSupport)
-					}
 
 					if profile := props.NetworkProfile; profile != nil {
 						if frontend := profile.FrontEndIPConfiguration; frontend != nil {

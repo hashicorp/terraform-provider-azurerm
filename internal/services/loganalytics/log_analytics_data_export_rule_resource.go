@@ -211,11 +211,7 @@ func resourceOperationalinsightsDataExportRead(d *pluginsdk.ResourceData, meta i
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			dataExportId := ""
-			if props.DataExportId != nil {
-				dataExportId = *props.DataExportId
-			}
-			d.Set("export_rule_id", dataExportId)
+			d.Set("export_rule_id", pointer.From(props.DataExportId))
 
 			destinationId, err := flattenDataExportDestination(props.Destination)
 			if err != nil {
@@ -223,11 +219,7 @@ func resourceOperationalinsightsDataExportRead(d *pluginsdk.ResourceData, meta i
 			}
 			d.Set("destination_resource_id", destinationId)
 
-			enabled := false
-			if props.Enable != nil {
-				enabled = *props.Enable
-			}
-			d.Set("enabled", enabled)
+			d.Set("enabled", pointer.From(props.Enable))
 			d.Set("table_names", props.TableNames)
 		}
 	}

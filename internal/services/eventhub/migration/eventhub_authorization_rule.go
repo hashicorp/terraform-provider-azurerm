@@ -16,7 +16,7 @@ var _ pluginsdk.StateUpgrade = EventHubAuthorizationRuleV0ToV1{}
 type EventHubAuthorizationRuleV0ToV1 struct{}
 
 func (EventHubAuthorizationRuleV0ToV1) Schema() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -41,7 +41,6 @@ func (EventHubAuthorizationRuleV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 		},
 	}
-	return s
 }
 
 func (EventHubAuthorizationRuleV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
