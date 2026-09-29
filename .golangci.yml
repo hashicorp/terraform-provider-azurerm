@@ -38,6 +38,7 @@ linters:
     - nilerr                    # finds code that returns nil after it checks that the error is not nil
     - nilnesserr                # finds code that checks one error but mistakenly returns a different nil error
     - noctx                     # finds http requests and exec commands made without a context.Context
+    - nolintlint                # checks nolint comments are well formed, name a linter and still suppress something - see settings below
     - nosprintfhostport         # checks for misuse of Sprintf to construct host:port in a URL
     - predeclared               # find code that shadows one of Go's predeclared identifiers
     - reassign                  # checks that package variables are not reassigned
@@ -89,6 +90,8 @@ linters:
     modernize:
       disable:
         - newexpr # flags pointer.To(x) -> new(x), azurerm standardises on pointer.To (see AZG002 below)
+    nolintlint:
+      require-specific: true # a nolint that names no linter switches off every linter for the code below it
     predeclared:
       ignore: # widely used as ordinary variable/parameter names across the provider (old/new in diffs, min/max in validation)
         - new
