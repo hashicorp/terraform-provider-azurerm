@@ -59,11 +59,7 @@ linters:
       - legacy
       - std-error-handling
     paths:
-      - vendor$
       - internal/services/.*/.*_gen.go$
-      - third_party$
-      - builtin$
-      - examples$
     rules:
       # staticcheck 0.8 (golangci-lint v2.13) started reporting deprecated struct fields set in composite literals,
       # which flags the legacy Create/Read/Update/Delete funcs on every untyped resource (~2900 sites). Migrating
@@ -175,8 +171,4 @@ formatters:
   exclusions:
     generated: lax
     paths:
-      - vendor$
       - internal/services/.*/.*_gen.go$
-      - third_party$
-      - builtin$
-      - examples$
