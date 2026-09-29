@@ -59,11 +59,11 @@ func QueryString() *pluginsdk.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointConditionQueryString(input []interface{}) []cdn.BasicDeliveryRuleCondition {
+func ExpandArmCdnEndpointConditionQueryString(input []any) []cdn.BasicDeliveryRuleCondition {
 	output := make([]cdn.BasicDeliveryRuleCondition, 0)
 
 	for _, v := range input {
-		item := v.(map[string]interface{})
+		item := v.(map[string]any)
 
 		queryStringCondition := cdn.DeliveryRuleQueryStringCondition{
 			Name: cdn.NameQueryString,
@@ -75,7 +75,7 @@ func ExpandArmCdnEndpointConditionQueryString(input []interface{}) []cdn.BasicDe
 			},
 		}
 
-		if rawTransforms := item["transforms"].([]interface{}); len(rawTransforms) != 0 {
+		if rawTransforms := item["transforms"].([]any); len(rawTransforms) != 0 {
 			transforms := make([]cdn.Transform, 0)
 			for _, t := range rawTransforms {
 				transforms = append(transforms, cdn.Transform(t.(string)))
@@ -89,14 +89,14 @@ func ExpandArmCdnEndpointConditionQueryString(input []interface{}) []cdn.BasicDe
 	return output
 }
 
-func FlattenArmCdnEndpointConditionQueryString(input cdn.BasicDeliveryRuleCondition) (*map[string]interface{}, error) {
+func FlattenArmCdnEndpointConditionQueryString(input cdn.BasicDeliveryRuleCondition) (*map[string]any, error) {
 	condition, ok := input.AsDeliveryRuleQueryStringCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule query string condition")
 	}
 
 	operator := ""
-	matchValues := make([]interface{}, 0)
+	matchValues := make([]any, 0)
 	negateCondition := false
 	transforms := make([]string, 0)
 	if params := condition.Parameters; params != nil {
@@ -117,7 +117,7 @@ func FlattenArmCdnEndpointConditionQueryString(input cdn.BasicDeliveryRuleCondit
 		}
 	}
 
-	return &map[string]interface{}{
+	return &map[string]any{
 		"operator":         operator,
 		"match_values":     pluginsdk.NewSet(pluginsdk.HashString, matchValues),
 		"negate_condition": negateCondition,

@@ -88,7 +88,6 @@ linters:
         - exportfs
     modernize:
       disable:
-        - any # interface{} -> any: ~15k findings across ~2500 files, to be flipped on in a dedicated mechanical pr
         - newexpr # flags pointer.To(x) -> new(x), azurerm standardises on pointer.To (see AZG002 below)
     predeclared:
       ignore: # widely used as ordinary variable/parameter names across the provider (old/new in diffs, min/max in validation)

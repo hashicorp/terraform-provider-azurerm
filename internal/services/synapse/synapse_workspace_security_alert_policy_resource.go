@@ -106,7 +106,7 @@ func resourceSynapseWorkspaceSecurityAlertPolicy() *pluginsdk.Resource {
 	}
 }
 
-func resourceSynapseWorkspaceSecurityAlertPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseWorkspaceSecurityAlertPolicyCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceSecurityAlertPolicyClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -140,7 +140,7 @@ func resourceSynapseWorkspaceSecurityAlertPolicyCreateUpdate(d *pluginsdk.Resour
 	return resourceSynapseWorkspaceSecurityAlertPolicyRead(d, meta)
 }
 
-func resourceSynapseWorkspaceSecurityAlertPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseWorkspaceSecurityAlertPolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceSecurityAlertPolicyClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -168,7 +168,7 @@ func resourceSynapseWorkspaceSecurityAlertPolicyRead(d *pluginsdk.ResourceData, 
 		d.Set("policy_state", string(props.State))
 
 		if props.DisabledAlerts != nil {
-			disabledAlerts := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
+			disabledAlerts := pluginsdk.NewSet(pluginsdk.HashString, []any{})
 			for _, v := range *props.DisabledAlerts {
 				if v != "" {
 					disabledAlerts.Add(v)
@@ -183,7 +183,7 @@ func resourceSynapseWorkspaceSecurityAlertPolicyRead(d *pluginsdk.ResourceData, 
 		}
 
 		if props.EmailAddresses != nil {
-			emailAddresses := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
+			emailAddresses := pluginsdk.NewSet(pluginsdk.HashString, []any{})
 			for _, v := range *props.EmailAddresses {
 				if v != "" {
 					emailAddresses.Add(v)
@@ -209,7 +209,7 @@ func resourceSynapseWorkspaceSecurityAlertPolicyRead(d *pluginsdk.ResourceData, 
 	return nil
 }
 
-func resourceSynapseWorkspaceSecurityAlertPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseWorkspaceSecurityAlertPolicyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceSecurityAlertPolicyClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -64,7 +64,7 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnection() *pluginsdk.Resource {
 	}
 }
 
-func resourceAppServiceSlotVirtualNetworkSwiftConnectionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceSlotVirtualNetworkSwiftConnectionCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.WebAppsClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -143,7 +143,7 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnectionCreate(d *pluginsdk.Reso
 	return resourceAppServiceSlotVirtualNetworkSwiftConnectionRead(d, meta)
 }
 
-func resourceAppServiceSlotVirtualNetworkSwiftConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceSlotVirtualNetworkSwiftConnectionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.WebAppsClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -184,7 +184,7 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnectionRead(d *pluginsdk.Resour
 	return nil
 }
 
-func resourceAppServiceSlotVirtualNetworkSwiftConnectionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceSlotVirtualNetworkSwiftConnectionUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.WebAppsClient
 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -229,7 +229,7 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnectionUpdate(d *pluginsdk.Reso
 	return resourceAppServiceSlotVirtualNetworkSwiftConnectionRead(d, meta)
 }
 
-func resourceAppServiceSlotVirtualNetworkSwiftConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceSlotVirtualNetworkSwiftConnectionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.WebAppsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

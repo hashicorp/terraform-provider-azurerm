@@ -76,7 +76,7 @@ func resourceSynapseFirewallRule() *pluginsdk.Resource {
 	}
 }
 
-func resourceSynapseFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.FirewallRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -133,7 +133,7 @@ func resourceSynapseFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 	stateChangeConf := &pluginsdk.StateChangeConf{
 		Pending: []string{string(synapse.ProvisioningStateProvisioning)},
 		Target:  []string{string(synapse.ProvisioningStateSucceeded)},
-		Refresh: func() (result interface{}, state string, err error) {
+		Refresh: func() (result any, state string, err error) {
 			resp, err := client.Get(ctx, id.ResourceGroupName, id.WorkspaceName, id.FirewallRuleName)
 			if err != nil {
 				return nil, "Error", err
@@ -152,7 +152,7 @@ func resourceSynapseFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 	return resourceSynapseFirewallRuleRead(d, meta)
 }
 
-func resourceSynapseFirewallRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseFirewallRuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.FirewallRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -184,7 +184,7 @@ func resourceSynapseFirewallRuleRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceSynapseFirewallRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseFirewallRuleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.FirewallRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -102,7 +102,7 @@ func resourceCdnFrontDoorSecret() *pluginsdk.Resource {
 	}
 }
 
-func resourceCdnFrontDoorSecretCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorSecretCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorSecretsClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -128,7 +128,7 @@ func resourceCdnFrontDoorSecretCreate(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
-	secretParams, err := expandCdnFrontDoorSecretParameters(ctx, d.Get("secret").([]interface{}), meta.(*clients.Client))
+	secretParams, err := expandCdnFrontDoorSecretParameters(ctx, d.Get("secret").([]any), meta.(*clients.Client))
 	if err != nil {
 		return fmt.Errorf("expanding `secret`: %+v", err)
 	}
@@ -147,7 +147,7 @@ func resourceCdnFrontDoorSecretCreate(d *pluginsdk.ResourceData, meta interface{
 	return resourceCdnFrontDoorSecretRead(d, meta)
 }
 
-func resourceCdnFrontDoorSecretRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorSecretRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorSecretsClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -187,7 +187,7 @@ func resourceCdnFrontDoorSecretRead(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceCdnFrontDoorSecretDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorSecretDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorSecretsClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -205,11 +205,11 @@ func resourceCdnFrontDoorSecretDelete(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func expandCdnFrontDoorSecretParameters(ctx context.Context, input []interface{}, clients *clients.Client) (secrets.SecretParameters, error) {
-	v := input[0].(map[string]interface{})
+func expandCdnFrontDoorSecretParameters(ctx context.Context, input []any, clients *clients.Client) (secrets.SecretParameters, error) {
+	v := input[0].(map[string]any)
 
-	cc := v["customer_certificate"].([]interface{})
-	cc0 := cc[0].(map[string]interface{})
+	cc := v["customer_certificate"].([]any)
+	cc0 := cc[0].(map[string]any)
 
 	certificateId, err := keyvault.ParseNestedItemID(cc0["key_vault_certificate_id"].(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeCertificate)
 	if err != nil {
@@ -246,15 +246,15 @@ func expandCdnFrontDoorSecretParameters(ctx context.Context, input []interface{}
 	return customerCertificate, nil
 }
 
-func flattenCdnFrontDoorSecretParameters(ctx context.Context, input secrets.SecretParameters, meta interface{}) ([]interface{}, error) {
+func flattenCdnFrontDoorSecretParameters(ctx context.Context, input secrets.SecretParameters, meta any) ([]any, error) {
 	client := meta.(*clients.Client).KeyVault
 
-	results := make([]interface{}, 0)
+	results := make([]any, 0)
 	if input == nil {
 		return results, nil
 	}
 
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 
 	customerCertificate, ok := input.(secrets.CustomerCertificateParameters)
 	if !ok {
@@ -282,8 +282,8 @@ func flattenCdnFrontDoorSecretParameters(ctx context.Context, input secrets.Secr
 		certificateID = keyVaultCertificateId.VersionlessID()
 	}
 
-	result["customer_certificate"] = []interface{}{
-		map[string]interface{}{
+	result["customer_certificate"] = []any{
+		map[string]any{
 			"expiration_date":           pointer.From(customerCertificate.ExpirationDate),
 			"key_vault_certificate_id":  certificateID,
 			"subject_alternative_names": pluginsdk.FlattenSlice(customerCertificate.SubjectAlternativeNames),

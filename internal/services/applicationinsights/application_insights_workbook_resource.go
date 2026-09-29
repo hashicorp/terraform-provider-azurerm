@@ -47,7 +47,7 @@ func (r ApplicationInsightsWorkbookResource) ResourceType() string {
 	return "azurerm_application_insights_workbook"
 }
 
-func (r ApplicationInsightsWorkbookResource) ModelObject() interface{} {
+func (r ApplicationInsightsWorkbookResource) ModelObject() any {
 	return &ApplicationInsightsWorkbookModel{}
 }
 
@@ -159,7 +159,7 @@ func (r ApplicationInsightsWorkbookResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			identityValue, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+			identityValue, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]any))
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}

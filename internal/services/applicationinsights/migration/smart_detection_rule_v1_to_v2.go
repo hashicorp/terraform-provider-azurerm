@@ -21,7 +21,7 @@ func (SmartDetectionRuleUpgradeV1ToV2) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (SmartDetectionRuleUpgradeV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		// old:
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/microsoft.insights/components/component1/SmartDetectionRule/rule1
 		// new:

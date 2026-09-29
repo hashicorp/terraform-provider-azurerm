@@ -245,7 +245,7 @@ func dataSourceVirtualNetworkGateway() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualNetworkGateways
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -310,13 +310,13 @@ func dataSourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interfa
 	return nil
 }
 
-func flattenVirtualNetworkGatewayDataSourceIPConfigurations(ipConfigs *[]virtualnetworkgateways.VirtualNetworkGatewayIPConfiguration) []interface{} {
-	flat := make([]interface{}, 0)
+func flattenVirtualNetworkGatewayDataSourceIPConfigurations(ipConfigs *[]virtualnetworkgateways.VirtualNetworkGatewayIPConfiguration) []any {
+	flat := make([]any, 0)
 
 	if ipConfigs != nil {
 		for _, cfg := range *ipConfigs {
 			props := cfg.Properties
-			v := make(map[string]interface{})
+			v := make(map[string]any)
 			v["private_ip_address"] = pointer.From(props.PrivateIPAddress)
 
 			if id := cfg.Id; id != nil {
@@ -347,26 +347,26 @@ func flattenVirtualNetworkGatewayDataSourceIPConfigurations(ipConfigs *[]virtual
 	return flat
 }
 
-func flattenVirtualNetworkGatewayDataSourceVpnClientConfig(cfg *virtualnetworkgateways.VpnClientConfiguration) []interface{} {
+func flattenVirtualNetworkGatewayDataSourceVpnClientConfig(cfg *virtualnetworkgateways.VpnClientConfiguration) []any {
 	if cfg == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	flat := make(map[string]interface{})
+	flat := make(map[string]any)
 
 	if pool := cfg.VpnClientAddressPool; pool != nil {
 		flat["address_space"] = pluginsdk.FlattenSlice(pool.AddressPrefixes)
 	} else {
-		flat["address_space"] = []interface{}{}
+		flat["address_space"] = []any{}
 	}
 
-	rootCerts := make([]interface{}, 0)
+	rootCerts := make([]any, 0)
 	if certs := cfg.VpnClientRootCertificates; certs != nil {
 		for _, cert := range *certs {
 			if cert.Name == nil {
 				continue
 			}
-			v := map[string]interface{}{
+			v := map[string]any{
 				"name":             *cert.Name,
 				"public_cert_data": cert.Properties.PublicCertData,
 			}
@@ -375,13 +375,13 @@ func flattenVirtualNetworkGatewayDataSourceVpnClientConfig(cfg *virtualnetworkga
 	}
 	flat["root_certificate"] = rootCerts
 
-	revokedCerts := make([]interface{}, 0)
+	revokedCerts := make([]any, 0)
 	if certs := cfg.VpnClientRevokedCertificates; certs != nil {
 		for _, cert := range *certs {
 			if cert.Name == nil || cert.Properties == nil || cert.Properties.Thumbprint == nil {
 				continue
 			}
-			v := map[string]interface{}{
+			v := map[string]any{
 				"name":       *cert.Name,
 				"thumbprint": *cert.Properties.Thumbprint,
 			}
@@ -390,7 +390,7 @@ func flattenVirtualNetworkGatewayDataSourceVpnClientConfig(cfg *virtualnetworkga
 	}
 	flat["revoked_certificate"] = revokedCerts
 
-	vpnClientProtocols := make([]interface{}, 0)
+	vpnClientProtocols := make([]any, 0)
 	if vpnProtocols := cfg.VpnClientProtocols; vpnProtocols != nil {
 		for _, protocol := range *vpnProtocols {
 			vpnClientProtocols = append(vpnClientProtocols, string(protocol))
@@ -406,14 +406,14 @@ func flattenVirtualNetworkGatewayDataSourceVpnClientConfig(cfg *virtualnetworkga
 		flat["radius_server_secret"] = *v
 	}
 
-	return []interface{}{flat}
+	return []any{flat}
 }
 
-func flattenVirtualNetworkGatewayDataSourceBgpSettings(settings *virtualnetworkgateways.BgpSettings) []interface{} {
-	output := make([]interface{}, 0)
+func flattenVirtualNetworkGatewayDataSourceBgpSettings(settings *virtualnetworkgateways.BgpSettings) []any {
+	output := make([]any, 0)
 
 	if settings != nil {
-		flat := make(map[string]interface{})
+		flat := make(map[string]any)
 
 		if asn := settings.Asn; asn != nil {
 			flat["asn"] = int(*asn)

@@ -12,7 +12,7 @@ import (
 	"github.com/rickb777/date/period"
 )
 
-func ISO8601Duration(i interface{}, k string) (warnings []string, errors []error) {
+func ISO8601Duration(i any, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
@@ -25,13 +25,13 @@ func ISO8601Duration(i interface{}, k string) (warnings []string, errors []error
 	return warnings, errors
 }
 
-func ISO8601DurationBetween(min string, max string) func(i interface{}, k string) (warnings []string, errors []error) {
+func ISO8601DurationBetween(min string, max string) func(i any, k string) (warnings []string, errors []error) {
 	minDuration := period.MustParse(min).DurationApprox()
 	maxDuration := period.MustParse(max).DurationApprox()
 	if minDuration >= maxDuration {
 		panic(fmt.Sprintf("min duration (%v) >= max duration (%v)", minDuration, maxDuration))
 	}
-	return func(i interface{}, k string) (warnings []string, errors []error) {
+	return func(i any, k string) (warnings []string, errors []error) {
 		v, ok := i.(string)
 		if !ok {
 			return nil, []error{fmt.Errorf("expected type of %s to be string", k)}
@@ -51,7 +51,7 @@ func ISO8601DurationBetween(min string, max string) func(i interface{}, k string
 	}
 }
 
-func ISO8601DateTime(i interface{}, k string) (warnings []string, errors []error) {
+func ISO8601DateTime(i any, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
@@ -65,7 +65,7 @@ func ISO8601DateTime(i interface{}, k string) (warnings []string, errors []error
 	return warnings, errors
 }
 
-func ISO8601RepeatingTime(i interface{}, k string) (warnings []string, errors []error) {
+func ISO8601RepeatingTime(i any, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))

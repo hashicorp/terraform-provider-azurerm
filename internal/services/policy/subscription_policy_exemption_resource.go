@@ -103,7 +103,7 @@ func resourceSubscriptionPolicyExemption() *pluginsdk.Resource {
 	}
 }
 
-func resourceSubscriptionPolicyExemptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSubscriptionPolicyExemptionCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Policy.ExemptionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -131,7 +131,7 @@ func resourceSubscriptionPolicyExemptionCreateUpdate(d *pluginsdk.ResourceData, 
 	exemption := policy.Exemption{
 		ExemptionProperties: &policy.ExemptionProperties{
 			PolicyAssignmentID:           pointer.To(d.Get("policy_assignment_id").(string)),
-			PolicyDefinitionReferenceIds: pluginsdk.ExpandStringSlice(d.Get("policy_definition_reference_ids").([]interface{})),
+			PolicyDefinitionReferenceIds: pluginsdk.ExpandStringSlice(d.Get("policy_definition_reference_ids").([]any)),
 			ExemptionCategory:            policy.ExemptionCategory(d.Get("exemption_category").(string)),
 		},
 	}
@@ -171,7 +171,7 @@ func resourceSubscriptionPolicyExemptionCreateUpdate(d *pluginsdk.ResourceData, 
 	return resourceSubscriptionPolicyExemptionRead(d, meta)
 }
 
-func resourceSubscriptionPolicyExemptionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSubscriptionPolicyExemptionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Policy.ExemptionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -220,7 +220,7 @@ func resourceSubscriptionPolicyExemptionRead(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func resourceSubscriptionPolicyExemptionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSubscriptionPolicyExemptionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Policy.ExemptionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

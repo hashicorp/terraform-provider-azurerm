@@ -25,17 +25,17 @@ var _ sdk.Resource = DataFactoryDatasetAzureSQLTableResource{}
 type DataFactoryDatasetAzureSQLTableResource struct{}
 
 type DataFactoryDatasetAzureSQLTableResourceSchema struct {
-	Name                 string                 `tfschema:"name"`
-	DataFactoryId        string                 `tfschema:"data_factory_id"`
-	LinkedServiceId      string                 `tfschema:"linked_service_id"`
-	Schema               string                 `tfschema:"schema"`
-	Table                string                 `tfschema:"table"`
-	Parameters           map[string]interface{} `tfschema:"parameters"`
-	Description          string                 `tfschema:"description"`
-	Annotations          []string               `tfschema:"annotations"`
-	Folder               string                 `tfschema:"folder"`
-	AdditionalProperties map[string]interface{} `tfschema:"additional_properties"`
-	SchemaColumn         []DatasetColumn        `tfschema:"schema_column"`
+	Name                 string          `tfschema:"name"`
+	DataFactoryId        string          `tfschema:"data_factory_id"`
+	LinkedServiceId      string          `tfschema:"linked_service_id"`
+	Schema               string          `tfschema:"schema"`
+	Table                string          `tfschema:"table"`
+	Parameters           map[string]any  `tfschema:"parameters"`
+	Description          string          `tfschema:"description"`
+	Annotations          []string        `tfschema:"annotations"`
+	Folder               string          `tfschema:"folder"`
+	AdditionalProperties map[string]any  `tfschema:"additional_properties"`
+	SchemaColumn         []DatasetColumn `tfschema:"schema_column"`
 }
 
 func (DataFactoryDatasetAzureSQLTableResource) Arguments() map[string]*pluginsdk.Schema {
@@ -154,7 +154,7 @@ func (DataFactoryDatasetAzureSQLTableResource) Attributes() map[string]*pluginsd
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (DataFactoryDatasetAzureSQLTableResource) ModelObject() interface{} {
+func (DataFactoryDatasetAzureSQLTableResource) ModelObject() any {
 	return &DataFactoryDatasetAzureSQLTableResourceSchema{}
 }
 
@@ -226,7 +226,7 @@ func (r DataFactoryDatasetAzureSQLTableResource) Create() sdk.ResourceFunc {
 			}
 
 			if len(data.Annotations) > 0 {
-				annotations := make([]interface{}, len(data.Annotations))
+				annotations := make([]any, len(data.Annotations))
 				for i, v := range data.Annotations {
 					annotations[i] = v
 				}
@@ -328,7 +328,7 @@ func (r DataFactoryDatasetAzureSQLTableResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("annotations") {
 				if len(data.Annotations) > 0 {
-					annotations := make([]interface{}, len(data.Annotations))
+					annotations := make([]any, len(data.Annotations))
 					for i, v := range data.Annotations {
 						annotations[i] = v
 					}

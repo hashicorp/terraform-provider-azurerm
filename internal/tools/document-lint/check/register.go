@@ -12,7 +12,7 @@ import (
 
 type resource struct {
 	name   string
-	schema interface{}
+	schema any
 }
 
 type Resources struct {

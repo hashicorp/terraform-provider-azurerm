@@ -28,7 +28,7 @@ type NetAppAccountEncryptionResource struct{}
 
 var _ sdk.Resource = NetAppAccountEncryptionResource{}
 
-func (r NetAppAccountEncryptionResource) ModelObject() interface{} {
+func (r NetAppAccountEncryptionResource) ModelObject() any {
 	return &models.NetAppAccountEncryption{}
 }
 

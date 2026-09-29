@@ -9,31 +9,31 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func NextGenerationFirewallName(input interface{}, k string) (warnings []string, errors []error) {
+func NextGenerationFirewallName(input any, k string) (warnings []string, errors []error) {
 	return paloAltoNameValidation(input, k)
 }
 
-func LocalRuleStackName(input interface{}, k string) (warnings []string, errors []error) {
+func LocalRuleStackName(input any, k string) (warnings []string, errors []error) {
 	return paloAltoNameValidation(input, k)
 }
 
-func LocalRuleStackCertificateName(input interface{}, k string) (warnings []string, errors []error) {
+func LocalRuleStackCertificateName(input any, k string) (warnings []string, errors []error) {
 	return paloAltoNameValidation(input, k)
 }
 
-func LocalRuleStackFQDNListName(input interface{}, k string) (warnings []string, errors []error) {
+func LocalRuleStackFQDNListName(input any, k string) (warnings []string, errors []error) {
 	return paloAltoNameValidation(input, k)
 }
 
-func LocalRuleStackRuleName(input interface{}, k string) (warnings []string, errors []error) {
+func LocalRuleStackRuleName(input any, k string) (warnings []string, errors []error) {
 	return paloAltoNameValidation(input, k)
 }
 
-func DestinationNATName(input interface{}, k string) (warnings []string, errors []error) {
+func DestinationNATName(input any, k string) (warnings []string, errors []error) {
 	return paloAltoNameValidation(input, k)
 }
 
-func paloAltoNameValidation(input interface{}, k string) (warnings []string, errors []error) {
+func paloAltoNameValidation(input any, k string) (warnings []string, errors []error) {
 	return validation.All(
 		// regex pulled from https://docs.microsoft.com/rest/api/resources/resourcegroups/createorupdate
 		validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9-]{1,128}$`), "may only contain alphanumeric characters and dashes, and must be between 1 and 128 characters in length"),

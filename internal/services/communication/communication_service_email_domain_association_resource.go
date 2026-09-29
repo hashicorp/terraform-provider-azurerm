@@ -50,7 +50,7 @@ func (EmailDomainAssociationResource) Attributes() map[string]*pluginsdk.Schema 
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (EmailDomainAssociationResource) ModelObject() interface{} {
+func (EmailDomainAssociationResource) ModelObject() any {
 	return &EmailDomainAssociationResourceModel{}
 }
 
@@ -330,7 +330,7 @@ func (EmailDomainAssociationResource) Delete() sdk.ResourceFunc {
 }
 
 func (EmailDomainAssociationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return func(input interface{}, key string) (warnings []string, errors []error) {
+	return func(input any, key string) (warnings []string, errors []error) {
 		v, ok := input.(string)
 		if !ok {
 			errors = append(errors, fmt.Errorf("expected %q to be a string", key))

@@ -59,11 +59,11 @@ func RequestURI() *pluginsdk.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointConditionRequestURI(input []interface{}) []cdn.BasicDeliveryRuleCondition {
+func ExpandArmCdnEndpointConditionRequestURI(input []any) []cdn.BasicDeliveryRuleCondition {
 	output := make([]cdn.BasicDeliveryRuleCondition, 0)
 
 	for _, v := range input {
-		item := v.(map[string]interface{})
+		item := v.(map[string]any)
 		requestURICondition := cdn.DeliveryRuleRequestURICondition{
 			Name: cdn.NameRequestURI,
 			Parameters: &cdn.RequestURIMatchConditionParameters{
@@ -74,7 +74,7 @@ func ExpandArmCdnEndpointConditionRequestURI(input []interface{}) []cdn.BasicDel
 			},
 		}
 
-		if rawTransforms := item["transforms"].([]interface{}); len(rawTransforms) != 0 {
+		if rawTransforms := item["transforms"].([]any); len(rawTransforms) != 0 {
 			transforms := make([]cdn.Transform, 0)
 			for _, t := range rawTransforms {
 				transforms = append(transforms, cdn.Transform(t.(string)))
@@ -88,13 +88,13 @@ func ExpandArmCdnEndpointConditionRequestURI(input []interface{}) []cdn.BasicDel
 	return output
 }
 
-func FlattenArmCdnEndpointConditionRequestURI(input cdn.BasicDeliveryRuleCondition) (*map[string]interface{}, error) {
+func FlattenArmCdnEndpointConditionRequestURI(input cdn.BasicDeliveryRuleCondition) (*map[string]any, error) {
 	condition, ok := input.AsDeliveryRuleRequestURICondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule request uri condition")
 	}
 
-	matchValues := make([]interface{}, 0)
+	matchValues := make([]any, 0)
 	negateCondition := false
 	operator := ""
 	transforms := make([]string, 0)
@@ -116,7 +116,7 @@ func FlattenArmCdnEndpointConditionRequestURI(input cdn.BasicDeliveryRuleConditi
 		}
 	}
 
-	return &map[string]interface{}{
+	return &map[string]any{
 		"match_values":     pluginsdk.NewSet(pluginsdk.HashString, matchValues),
 		"negate_condition": negateCondition,
 		"operator":         operator,

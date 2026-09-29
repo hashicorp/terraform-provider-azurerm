@@ -118,7 +118,7 @@ func resourceArmLoadBalancerProbe() *pluginsdk.Resource {
 	}
 }
 
-func loadBalancerProbeResourceImporter(_ context.Context, d *pluginsdk.ResourceData, _ interface{}) ([]*pluginsdk.ResourceData, error) {
+func loadBalancerProbeResourceImporter(_ context.Context, d *pluginsdk.ResourceData, _ any) ([]*pluginsdk.ResourceData, error) {
 	id, err := loadbalancers.ParseProbeID(d.Id())
 	if err != nil {
 		return nil, err
@@ -130,7 +130,7 @@ func loadBalancerProbeResourceImporter(_ context.Context, d *pluginsdk.ResourceD
 	return []*pluginsdk.ResourceData{d}, nil
 }
 
-func resourceArmLoadBalancerProbeCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerProbeCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -192,7 +192,7 @@ func resourceArmLoadBalancerProbeCreateUpdate(d *pluginsdk.ResourceData, meta in
 	return resourceArmLoadBalancerProbeRead(d, meta)
 }
 
-func resourceArmLoadBalancerProbeRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerProbeRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -257,7 +257,7 @@ func resourceArmLoadBalancerProbeFlatten(d *pluginsdk.ResourceData, id *loadbala
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceArmLoadBalancerProbeDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerProbeDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

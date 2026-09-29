@@ -176,7 +176,7 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 	}
 }
 
-func resourceApplicationInsightsCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppInsights.ComponentsClient
 	ruleClient := meta.(*clients.Client).Monitor.SmartDetectorAlertRulesClient
 	billingClient := meta.(*clients.Client).AppInsights.BillingClient
@@ -234,7 +234,7 @@ func resourceApplicationInsightsCreate(d *pluginsdk.ResourceData, meta interface
 		Location:   location.Normalize(d.Get("location").(string)),
 		Kind:       d.Get("application_type").(string),
 		Properties: &applicationInsightsComponentProperties,
-		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:       tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if _, err := client.ComponentsCreateOrUpdate(ctx, id, insightProperties); err != nil {
@@ -329,7 +329,7 @@ func resourceApplicationInsightsCreate(d *pluginsdk.ResourceData, meta interface
 	return resourceApplicationInsightsRead(d, meta)
 }
 
-func resourceApplicationInsightsRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppInsights.ComponentsClient
 	billingClient := meta.(*clients.Client).AppInsights.BillingClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -410,7 +410,7 @@ func resourceApplicationInsightsRead(d *pluginsdk.ResourceData, meta interface{}
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceApplicationInsightsUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppInsights.ComponentsClient
 	billingClient := meta.(*clients.Client).AppInsights.BillingClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -482,7 +482,7 @@ func resourceApplicationInsightsUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("tags") {
-		component.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		component.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if _, err = client.ComponentsCreateOrUpdate(ctx, *id, *component); err != nil {
@@ -534,7 +534,7 @@ func resourceApplicationInsightsUpdate(d *pluginsdk.ResourceData, meta interface
 	return resourceApplicationInsightsRead(d, meta)
 }
 
-func resourceApplicationInsightsDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppInsights.ComponentsClient
 	ruleClient := meta.(*clients.Client).Monitor.SmartDetectorAlertRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)

@@ -36,11 +36,11 @@ func URLRewrite() *pluginsdk.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointActionURLRewrite(input []interface{}) (*[]cdn.BasicDeliveryRuleAction, error) {
+func ExpandArmCdnEndpointActionURLRewrite(input []any) (*[]cdn.BasicDeliveryRuleAction, error) {
 	output := make([]cdn.BasicDeliveryRuleAction, 0)
 
 	for _, v := range input {
-		item := v.(map[string]interface{})
+		item := v.(map[string]any)
 
 		output = append(output, cdn.URLRewriteAction{
 			Name: cdn.NameBasicDeliveryRuleActionNameURLRewrite,
@@ -56,7 +56,7 @@ func ExpandArmCdnEndpointActionURLRewrite(input []interface{}) (*[]cdn.BasicDeli
 	return &output, nil
 }
 
-func FlattenArmCdnEndpointActionURLRewrite(input cdn.BasicDeliveryRuleAction) (*map[string]interface{}, error) {
+func FlattenArmCdnEndpointActionURLRewrite(input cdn.BasicDeliveryRuleAction) (*map[string]any, error) {
 	action, ok := input.AsURLRewriteAction()
 	if !ok {
 		return nil, errors.New("expected a delivery rule url rewrite action")
@@ -79,7 +79,7 @@ func FlattenArmCdnEndpointActionURLRewrite(input cdn.BasicDeliveryRuleAction) (*
 		}
 	}
 
-	return &map[string]interface{}{
+	return &map[string]any{
 		"destination":             destination,
 		"preserve_unmatched_path": preserveUnmatchedPath,
 		"source_pattern":          sourcePattern,

@@ -88,7 +88,7 @@ func (r LocalRuleStackCertificate) Attributes() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r LocalRuleStackCertificate) ModelObject() interface{} {
+func (r LocalRuleStackCertificate) ModelObject() any {
 	return &LocalRuleStackCertificateModel{}
 }
 

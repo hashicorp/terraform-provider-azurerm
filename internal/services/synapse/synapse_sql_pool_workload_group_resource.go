@@ -94,7 +94,7 @@ func resourceSynapseSQLPoolWorkloadGroup() *pluginsdk.Resource {
 	}
 }
 
-func resourceSynapseSQLPoolWorkloadGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseSQLPoolWorkloadGroupCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.SQLPoolWorkloadGroupClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -149,7 +149,7 @@ func resourceSynapseSQLPoolWorkloadGroupCreateUpdate(d *pluginsdk.ResourceData, 
 	return resourceSynapseSQLPoolWorkloadGroupRead(d, meta)
 }
 
-func resourceSynapseSQLPoolWorkloadGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseSQLPoolWorkloadGroupRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.SQLPoolWorkloadGroupClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -181,7 +181,7 @@ func resourceSynapseSQLPoolWorkloadGroupRead(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func resourceSynapseSQLPoolWorkloadGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseSQLPoolWorkloadGroupDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.SQLPoolWorkloadGroupClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

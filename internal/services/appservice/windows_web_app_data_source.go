@@ -64,7 +64,7 @@ type WindowsWebAppDataSourceModel struct {
 
 var _ sdk.DataSource = WindowsWebAppDataSource{}
 
-func (d WindowsWebAppDataSource) ModelObject() interface{} {
+func (d WindowsWebAppDataSource) ModelObject() any {
 	return &WindowsWebAppDataSourceModel{}
 }
 

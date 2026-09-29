@@ -130,7 +130,7 @@ func resourceDataFactoryLinkedServiceAzureFunction() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryLinkedServiceAzureFunctionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceAzureFunctionCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -170,11 +170,11 @@ func resourceDataFactoryLinkedServiceAzureFunctionCreateUpdate(d *pluginsdk.Reso
 	}
 
 	if v, ok := d.GetOk("key_vault_key"); ok {
-		azureFunctionLinkedService.FunctionKey = expandAzureKeyVaultSecretReference(v.([]interface{}))
+		azureFunctionLinkedService.FunctionKey = expandAzureKeyVaultSecretReference(v.([]any))
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		azureFunctionLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]interface{}))
+		azureFunctionLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
@@ -182,11 +182,11 @@ func resourceDataFactoryLinkedServiceAzureFunctionCreateUpdate(d *pluginsdk.Reso
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		azureFunctionLinkedService.AdditionalProperties = v.(map[string]interface{})
+		azureFunctionLinkedService.AdditionalProperties = v.(map[string]any)
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		azureFunctionLinkedService.Annotations = pointer.To(v.([]interface{}))
+		azureFunctionLinkedService.Annotations = pointer.To(v.([]any))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -202,7 +202,7 @@ func resourceDataFactoryLinkedServiceAzureFunctionCreateUpdate(d *pluginsdk.Reso
 	return resourceDataFactoryLinkedServiceAzureFunctionRead(d, meta)
 }
 
-func resourceDataFactoryLinkedServiceAzureFunctionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceAzureFunctionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -262,7 +262,7 @@ func resourceDataFactoryLinkedServiceAzureFunctionRead(d *pluginsdk.ResourceData
 	return nil
 }
 
-func resourceDataFactoryLinkedServiceAzureFunctionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceAzureFunctionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

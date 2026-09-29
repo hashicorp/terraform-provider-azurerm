@@ -75,7 +75,7 @@ type SiteRecoveryReplicatedVmVMwareModel struct {
 
 type VMWareReplicatedVmResource struct{}
 
-func (r VMWareReplicatedVmResource) ModelObject() interface{} {
+func (r VMWareReplicatedVmResource) ModelObject() any {
 	return &SiteRecoveryReplicatedVmVMwareModel{}
 }
 
@@ -291,8 +291,8 @@ func (r VMWareReplicatedVmResource) CustomizeDiff() sdk.ResourceFunc {
 			_, newDiskType := diff.GetChange("default_recovery_disk_type")
 			_, newDes := diff.GetChange("default_target_disk_encryption_set_id")
 			oldDisks, newDisks := diff.GetChange("managed_disk")
-			for _, disk := range oldDisks.([]interface{}) {
-				disk := disk.(map[string]interface{})
+			for _, disk := range oldDisks.([]any) {
+				disk := disk.(map[string]any)
 				if newStorageAcc.(string) != "" && disk["log_storage_account_id"] != newStorageAcc.(string) {
 					metadata.ResourceDiff.ForceNew("default_log_storage_account_id")
 				}
@@ -307,7 +307,7 @@ func (r VMWareReplicatedVmResource) CustomizeDiff() sdk.ResourceFunc {
 			if diff.HasChanges("managed_disk") {
 				// if user has specified `managed_disk`, it forces new.
 				// or it acts as an optional field.
-				if len(newDisks.([]interface{})) != 0 {
+				if len(newDisks.([]any)) != 0 {
 					metadata.ResourceDiff.ForceNew("managed_disk")
 				}
 			}
@@ -484,7 +484,7 @@ func (r VMWareReplicatedVmResource) Create() sdk.ResourceFunc {
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending: []string{"Pending"},
 				Target:  []string{"Protected"},
-				Refresh: func() (result interface{}, state string, err error) {
+				Refresh: func() (result any, state string, err error) {
 					resp, err := client.Get(ctx, id)
 					if err != nil {
 						return nil, "error", fmt.Errorf("retrieving %s: %+v", id, err)

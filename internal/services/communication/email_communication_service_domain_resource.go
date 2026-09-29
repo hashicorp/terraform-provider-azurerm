@@ -113,7 +113,7 @@ func (EmailCommunicationServiceDomainResource) Attributes() map[string]*pluginsd
 	}
 }
 
-func (EmailCommunicationServiceDomainResource) ModelObject() interface{} {
+func (EmailCommunicationServiceDomainResource) ModelObject() any {
 	return &EmailCommunicationServiceDomainResourceModel{}
 }
 

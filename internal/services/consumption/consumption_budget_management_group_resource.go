@@ -115,7 +115,7 @@ func (r ManagementGroupConsumptionBudget) Attributes() map[string]*pluginsdk.Sch
 	return r.base.attributes()
 }
 
-func (r ManagementGroupConsumptionBudget) ModelObject() interface{} {
+func (r ManagementGroupConsumptionBudget) ModelObject() any {
 	return &ManagementGroupConsumptionBudgetModel{}
 }
 

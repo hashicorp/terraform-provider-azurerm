@@ -21,7 +21,7 @@ func (ComponentUpgradeV0ToV1) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (ComponentUpgradeV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		// old:
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/microsoft.insights/components/component1
 		// new:

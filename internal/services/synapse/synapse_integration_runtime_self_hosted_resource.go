@@ -83,7 +83,7 @@ func resourceSynapseIntegrationRuntimeSelfHosted() *pluginsdk.Resource {
 	}
 }
 
-func resourceSynapseIntegrationRuntimeSelfHostedCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseIntegrationRuntimeSelfHostedCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.IntegrationRuntimesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -134,7 +134,7 @@ func resourceSynapseIntegrationRuntimeSelfHostedCreateUpdate(d *pluginsdk.Resour
 	return resourceSynapseIntegrationRuntimeSelfHostedRead(d, meta)
 }
 
-func resourceSynapseIntegrationRuntimeSelfHostedRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseIntegrationRuntimeSelfHostedRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.IntegrationRuntimesClient
 	authKeysClient := meta.(*clients.Client).Synapse.IntegrationRuntimeAuthKeysClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -182,7 +182,7 @@ func resourceSynapseIntegrationRuntimeSelfHostedRead(d *pluginsdk.ResourceData, 
 	return nil
 }
 
-func resourceSynapseIntegrationRuntimeSelfHostedDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseIntegrationRuntimeSelfHostedDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.IntegrationRuntimesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

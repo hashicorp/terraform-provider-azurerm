@@ -34,11 +34,11 @@ func ModifyRequestHeader() *pluginsdk.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointActionModifyRequestHeader(input []interface{}) (*[]cdn.BasicDeliveryRuleAction, error) {
+func ExpandArmCdnEndpointActionModifyRequestHeader(input []any) (*[]cdn.BasicDeliveryRuleAction, error) {
 	output := make([]cdn.BasicDeliveryRuleAction, 0)
 
 	for _, v := range input {
-		item := v.(map[string]interface{})
+		item := v.(map[string]any)
 
 		requestHeaderAction := cdn.DeliveryRuleRequestHeaderAction{
 			Name: cdn.NameBasicDeliveryRuleActionNameModifyRequestHeader,
@@ -59,7 +59,7 @@ func ExpandArmCdnEndpointActionModifyRequestHeader(input []interface{}) (*[]cdn.
 	return &output, nil
 }
 
-func FlattenArmCdnEndpointActionModifyRequestHeader(input cdn.BasicDeliveryRuleAction) (*map[string]interface{}, error) {
+func FlattenArmCdnEndpointActionModifyRequestHeader(input cdn.BasicDeliveryRuleAction) (*map[string]any, error) {
 	action, ok := input.AsDeliveryRuleRequestHeaderAction()
 	if !ok {
 		return nil, errors.New("expected a delivery rule request header action")
@@ -80,7 +80,7 @@ func FlattenArmCdnEndpointActionModifyRequestHeader(input cdn.BasicDeliveryRuleA
 		}
 	}
 
-	return &map[string]interface{}{
+	return &map[string]any{
 		"action": headerAction,
 		"name":   headerName,
 		"value":  value,

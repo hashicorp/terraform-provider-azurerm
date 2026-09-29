@@ -64,7 +64,7 @@ func resourceExpressRouteCircuitAuthorization() *pluginsdk.Resource {
 	}
 }
 
-func resourceExpressRouteCircuitAuthorizationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitAuthorizationCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRouteCircuitAuthorizations
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -101,7 +101,7 @@ func resourceExpressRouteCircuitAuthorizationCreate(d *pluginsdk.ResourceData, m
 	return resourceExpressRouteCircuitAuthorizationRead(d, meta)
 }
 
-func resourceExpressRouteCircuitAuthorizationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitAuthorizationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRouteCircuitAuthorizations
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -134,7 +134,7 @@ func resourceExpressRouteCircuitAuthorizationRead(d *pluginsdk.ResourceData, met
 	return nil
 }
 
-func resourceExpressRouteCircuitAuthorizationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitAuthorizationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRouteCircuitAuthorizations
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

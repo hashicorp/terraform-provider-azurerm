@@ -85,7 +85,7 @@ func resourceMysqlFlexibleDatabaseAliasDiffSuppress(firstAlias, secondAlias stri
 	}
 }
 
-func resourceMySqlFlexibleDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMySqlFlexibleDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MySQL.FlexibleServers.Databases
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -124,7 +124,7 @@ func resourceMySqlFlexibleDatabaseCreate(d *pluginsdk.ResourceData, meta interfa
 	return resourceMySqlFlexibleDatabaseRead(d, meta)
 }
 
-func resourceMySqlFlexibleDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMySqlFlexibleDatabaseRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MySQL.FlexibleServers.Databases
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -161,7 +161,7 @@ func resourceMySqlFlexibleDatabaseFlatten(d *pluginsdk.ResourceData, id *databas
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceMySqlFlexibleDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMySqlFlexibleDatabaseDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MySQL.FlexibleServers.Databases
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

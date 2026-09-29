@@ -105,7 +105,7 @@ func resourceArcKubernetesCluster() *pluginsdk.Resource {
 	}
 }
 
-func resourceArcKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArcKubernetesClusterCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ArcKubernetes.ArcKubernetesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -126,7 +126,7 @@ func resourceArcKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interfac
 		}
 	}
 
-	identityValue, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
+	identityValue, err := identity.ExpandSystemAssigned(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -138,7 +138,7 @@ func resourceArcKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interfac
 		Properties: connectedclusters.ConnectedClusterProperties{
 			AgentPublicKeyCertificate: d.Get("agent_public_key_certificate").(string),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if err := client.ConnectedClusterCreateCallbackThenPoll(ctx, id, props, sdk.SetIDCallback(meta, &id, d)); err != nil {
@@ -149,7 +149,7 @@ func resourceArcKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interfac
 	return resourceArcKubernetesClusterRead(d, meta)
 }
 
-func resourceArcKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArcKubernetesClusterRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ArcKubernetes.ArcKubernetesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -195,7 +195,7 @@ func resourceArcKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func resourceArcKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArcKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ArcKubernetes.ArcKubernetesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -206,7 +206,7 @@ func resourceArcKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	props := connectedclusters.ConnectedClusterPatch{
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if _, err := client.ConnectedClusterUpdate(ctx, *id, props); err != nil {
@@ -216,7 +216,7 @@ func resourceArcKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interfac
 	return resourceArcKubernetesClusterRead(d, meta)
 }
 
-func resourceArcKubernetesClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArcKubernetesClusterDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ArcKubernetes.ArcKubernetesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

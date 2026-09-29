@@ -31,7 +31,7 @@ func (ManagerIpamPoolStaticCidrResource) ResourceType() string {
 	return "azurerm_network_manager_ipam_pool_static_cidr"
 }
 
-func (ManagerIpamPoolStaticCidrResource) ModelObject() interface{} {
+func (ManagerIpamPoolStaticCidrResource) ModelObject() any {
 	return &ManagerIpamPoolStaticCidrResourceModel{}
 }
 

@@ -15,7 +15,7 @@ import (
 )
 
 func importDataFactoryLinkedService(expectType datafactory.TypeBasicLinkedService) pluginsdk.ImporterFunc {
-	return func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) (data []*pluginsdk.ResourceData, err error) {
+	return func(ctx context.Context, d *pluginsdk.ResourceData, meta any) (data []*pluginsdk.ResourceData, err error) {
 		id, err := parse.LinkedServiceID(d.Id())
 		if err != nil {
 			return nil, err

@@ -784,7 +784,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 	return resource
 }
 
-func resourceBatchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBatchCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Batch.PoolClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -826,7 +826,7 @@ func resourceBatchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 	parameters.Properties.TaskSchedulingPolicy = taskSchedulingPolicy
 
-	identityResult, err := identity.ExpandUserAssignedMap(d.Get("identity").([]interface{}))
+	identityResult, err := identity.ExpandUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf(`expanding "identity": %v`, err)
 	}
@@ -840,7 +840,7 @@ func resourceBatchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	parameters.Properties.ScaleSettings = scaleSettings
 
 	if startTaskValue, startTaskOk := d.GetOk("start_task"); startTaskOk {
-		startTaskList := startTaskValue.([]interface{})
+		startTaskList := startTaskValue.([]any)
 		startTask, startTaskErr := ExpandBatchPoolStartTask(startTaskList)
 
 		if startTaskErr != nil {
@@ -867,7 +867,7 @@ func resourceBatchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	metaDataRaw := d.Get("metadata").(map[string]interface{})
+	metaDataRaw := d.Get("metadata").(map[string]any)
 	parameters.Properties.Metadata = ExpandBatchMetaData(metaDataRaw)
 
 	mountConfiguration, err := ExpandBatchPoolMountConfigurations(d)
@@ -876,7 +876,7 @@ func resourceBatchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 	parameters.Properties.MountConfiguration = mountConfiguration
 
-	networkConfiguration := d.Get("network_configuration").([]interface{})
+	networkConfiguration := d.Get("network_configuration").([]any)
 	parameters.Properties.NetworkConfiguration, err = ExpandBatchPoolNetworkConfiguration(networkConfiguration)
 	if err != nil {
 		return fmt.Errorf("expanding `network_configuration`: %+v", err)
@@ -912,7 +912,7 @@ func resourceBatchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	return resourceBatchPoolRead(d, meta)
 }
 
-func resourceBatchUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBatchUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Batch.PoolClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -951,7 +951,7 @@ func resourceBatchUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		Properties: &pool.PoolProperties{},
 	}
 
-	identity, err := identity.ExpandUserAssignedMap(d.Get("identity").([]interface{}))
+	identity, err := identity.ExpandUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf(`expanding "identity": %v`, err)
 	}
@@ -977,7 +977,7 @@ func resourceBatchUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	parameters.Properties.UserAccounts = userAccounts
 
 	if startTaskValue, startTaskOk := d.GetOk("start_task"); startTaskOk {
-		startTaskList := startTaskValue.([]interface{})
+		startTaskList := startTaskValue.([]any)
 		startTask, startTaskErr := ExpandBatchPoolStartTask(startTaskList)
 
 		if startTaskErr != nil {
@@ -996,7 +996,7 @@ func resourceBatchUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			// when updating `data_disks`, it has to include additional properties such as `NodeAgentSkuId`, `ImageReference` and `OsDisk`, otherwise API request will fail.
 			parameters.Properties.DeploymentConfiguration = props.DeploymentConfiguration
 			if d.HasChange("data_disks") {
-				parameters.Properties.DeploymentConfiguration.VirtualMachineConfiguration.DataDisks = expandBatchPoolDataDisks(d.Get("data_disks").([]interface{}))
+				parameters.Properties.DeploymentConfiguration.VirtualMachineConfiguration.DataDisks = expandBatchPoolDataDisks(d.Get("data_disks").([]any))
 			}
 		}
 	}
@@ -1006,7 +1006,7 @@ func resourceBatchUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("metadata") {
-		metaDataRaw := d.Get("metadata").(map[string]interface{})
+		metaDataRaw := d.Get("metadata").(map[string]any)
 
 		parameters.Properties.Metadata = ExpandBatchMetaData(metaDataRaw)
 	}
@@ -1038,7 +1038,7 @@ func resourceBatchUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	return resourceBatchPoolRead(d, meta)
 }
 
-func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Batch.PoolClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1086,15 +1086,15 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 
 			if props.TaskSchedulingPolicy != nil && props.TaskSchedulingPolicy.NodeFillType != "" {
-				taskSchedulingPolicy := make([]interface{}, 0)
-				nodeFillType := make(map[string]interface{})
+				taskSchedulingPolicy := make([]any, 0)
+				nodeFillType := make(map[string]any)
 				nodeFillType["node_fill_type"] = string(props.TaskSchedulingPolicy.NodeFillType)
 				taskSchedulingPolicy = append(taskSchedulingPolicy, nodeFillType)
 				d.Set("task_scheduling_policy", taskSchedulingPolicy)
 			}
 
 			if props.UserAccounts != nil {
-				userAccounts := make([]interface{}, 0)
+				userAccounts := make([]any, 0)
 				for _, userAccount := range *props.UserAccounts {
 					userAccounts = append(userAccounts, flattenBatchPoolUserAccount(d, &userAccount))
 				}
@@ -1110,9 +1110,9 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 						d.Set("container_configuration", flattenBatchPoolContainerConfiguration(d, config.ContainerConfiguration))
 					}
 					if config.DataDisks != nil {
-						dataDisks := make([]interface{}, 0)
+						dataDisks := make([]any, 0)
 						for _, item := range *config.DataDisks {
-							dataDisk := make(map[string]interface{})
+							dataDisk := make(map[string]any)
 							dataDisk["lun"] = item.Lun
 							dataDisk["disk_size_gb"] = item.DiskSizeGB
 
@@ -1133,10 +1133,10 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 						d.Set("data_disks", dataDisks)
 					}
 					if config.DiskEncryptionConfiguration != nil {
-						diskEncryptionConfiguration := make([]interface{}, 0)
+						diskEncryptionConfiguration := make([]any, 0)
 						if config.DiskEncryptionConfiguration.Targets != nil {
 							for _, item := range *config.DiskEncryptionConfiguration.Targets {
-								target := make(map[string]interface{})
+								target := make(map[string]any)
 								target["disk_encryption_target"] = string(item)
 								diskEncryptionConfiguration = append(diskEncryptionConfiguration, target)
 							}
@@ -1144,10 +1144,10 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 						d.Set("disk_encryption", diskEncryptionConfiguration)
 					}
 					if config.Extensions != nil {
-						extensions := make([]interface{}, 0)
+						extensions := make([]any, 0)
 						n := len(*config.Extensions)
 						for _, item := range *config.Extensions {
-							extension := make(map[string]interface{})
+							extension := make(map[string]any)
 							extension["name"] = item.Name
 							extension["publisher"] = item.Publisher
 							extension["type"] = item.Type
@@ -1161,7 +1161,7 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 								extension["automatic_upgrade_enabled"] = *item.EnableAutomaticUpgrade
 							}
 							if item.Settings != nil {
-								settingValue, err := json.Marshal((*item.Settings).(map[string]interface{}))
+								settingValue, err := json.Marshal((*item.Settings).(map[string]any))
 								if err != nil {
 									return fmt.Errorf("flattening `settings_json`: %+v", err)
 								}
@@ -1188,8 +1188,8 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 					d.Set("node_agent_sku_id", config.NodeAgentSkuId)
 
 					if config.NodePlacementConfiguration != nil {
-						nodePlacementConfiguration := make([]interface{}, 0)
-						nodePlacementConfig := make(map[string]interface{})
+						nodePlacementConfiguration := make([]any, 0)
+						nodePlacementConfig := make(map[string]any)
 						nodePlacementConfig["policy"] = string(*config.NodePlacementConfiguration.Policy)
 						nodePlacementConfiguration = append(nodePlacementConfiguration, nodePlacementConfig)
 						d.Set("node_placement", nodePlacementConfiguration)
@@ -1206,8 +1206,8 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 					}
 
 					if config.WindowsConfiguration != nil {
-						windowsConfig := []interface{}{
-							map[string]interface{}{
+						windowsConfig := []any{
+							map[string]any{
 								"enable_automatic_updates": *config.WindowsConfiguration.EnableAutomaticUpdates,
 							},
 						}
@@ -1220,7 +1220,7 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("metadata", FlattenBatchMetaData(props.Metadata))
 
 			if props.MountConfiguration != nil {
-				mountConfigs := make([]interface{}, 0)
+				mountConfigs := make([]any, 0)
 				for _, mountConfig := range *props.MountConfiguration {
 					mountConfigs = append(mountConfigs, flattenBatchPoolMountConfig(d, &mountConfig))
 				}
@@ -1242,7 +1242,7 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceBatchPoolDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBatchPoolDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Batch.PoolClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1274,12 +1274,12 @@ func expandBatchPoolScaleSettings(d *pluginsdk.ResourceData) (*pool.ScaleSetting
 	}
 
 	if autoScaleOk {
-		autoScale := autoScaleValue.([]interface{})
+		autoScale := autoScaleValue.([]any)
 		if len(autoScale) == 0 {
 			return nil, fmt.Errorf("when scale mode is Auto, auto_scale block is required")
 		}
 
-		autoScaleSettings := autoScale[0].(map[string]interface{})
+		autoScaleSettings := autoScale[0].(map[string]any)
 
 		autoScaleFormula := autoScaleSettings["formula"].(string)
 
@@ -1288,12 +1288,12 @@ func expandBatchPoolScaleSettings(d *pluginsdk.ResourceData) (*pool.ScaleSetting
 			Formula:            autoScaleFormula,
 		}
 	} else if fixedScaleOk {
-		fixedScale := fixedScaleValue.([]interface{})
+		fixedScale := fixedScaleValue.([]any)
 		if len(fixedScale) == 0 {
 			return nil, fmt.Errorf("when scale mode is Fixed, fixed_scale block is required")
 		}
 
-		fixedScaleSettings := fixedScale[0].(map[string]interface{})
+		fixedScaleSettings := fixedScale[0].(map[string]any)
 		targetDedicatedNodes := int32(fixedScaleSettings["target_dedicated_nodes"].(int))
 		targetLowPriorityNodes := int32(fixedScaleSettings["target_low_priority_nodes"].(int))
 

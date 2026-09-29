@@ -45,7 +45,7 @@ func resourcePolicyDefinition() *pluginsdk.Resource {
 
 		Schema: resourcePolicyDefinitionSchema(),
 
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v any) error {
 			// `parameters` cannot have values removed so we'll ForceNew if there are less parameters between Terraform runs
 			if d.HasChange("parameters") {
 				oldParametersRaw, newParametersRaw := d.GetChange("parameters")
@@ -76,7 +76,7 @@ func resourcePolicyDefinition() *pluginsdk.Resource {
 	}
 }
 
-func resourcePolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Policy.DefinitionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -191,7 +191,7 @@ func resourcePolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	return resourcePolicyDefinitionRead(d, meta)
 }
 
-func resourcePolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePolicyDefinitionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Policy.DefinitionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -252,7 +252,7 @@ func resourcePolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourcePolicyDefinitionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePolicyDefinitionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Policy.DefinitionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -286,12 +286,12 @@ func resourcePolicyDefinitionDelete(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func flattenJSON(stringMap interface{}) string {
+func flattenJSON(stringMap any) string {
 	if stringMap != nil {
-		if v, ok := stringMap.(*interface{}); ok {
+		if v, ok := stringMap.(*any); ok {
 			stringMap = *v
 		}
-		value := stringMap.(map[string]interface{})
+		value := stringMap.(map[string]any)
 		jsonString, err := pluginsdk.FlattenJsonToString(value)
 		if err == nil {
 			return jsonString

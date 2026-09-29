@@ -300,7 +300,7 @@ func (ApplicationInsightsStandardWebTestResource) Attributes() map[string]*plugi
 	}
 }
 
-func (ApplicationInsightsStandardWebTestResource) ModelObject() interface{} {
+func (ApplicationInsightsStandardWebTestResource) ModelObject() any {
 	return &ApplicationInsightsStandardWebTestResourceModel{}
 }
 

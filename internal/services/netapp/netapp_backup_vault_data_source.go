@@ -26,7 +26,7 @@ func (r NetAppBackupVaultDataSource) ResourceType() string {
 	return "azurerm_netapp_backup_vault"
 }
 
-func (r NetAppBackupVaultDataSource) ModelObject() interface{} {
+func (r NetAppBackupVaultDataSource) ModelObject() any {
 	return &models.NetAppBackupVaultModel{}
 }
 

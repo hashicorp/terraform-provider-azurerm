@@ -29,11 +29,11 @@ func CacheKeyQueryString() *pluginsdk.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointActionCacheKeyQueryString(input []interface{}) (*[]cdn.BasicDeliveryRuleAction, error) {
+func ExpandArmCdnEndpointActionCacheKeyQueryString(input []any) (*[]cdn.BasicDeliveryRuleAction, error) {
 	output := make([]cdn.BasicDeliveryRuleAction, 0)
 
 	for _, v := range input {
-		item := v.(map[string]interface{})
+		item := v.(map[string]any)
 
 		cacheKeyQueryStringAction := cdn.DeliveryRuleCacheKeyQueryStringAction{
 			Name: cdn.NameBasicDeliveryRuleActionNameCacheKeyQueryString,
@@ -57,7 +57,7 @@ func ExpandArmCdnEndpointActionCacheKeyQueryString(input []interface{}) (*[]cdn.
 	return &output, nil
 }
 
-func FlattenArmCdnEndpointActionCacheKeyQueryString(input cdn.BasicDeliveryRuleAction) (*map[string]interface{}, error) {
+func FlattenArmCdnEndpointActionCacheKeyQueryString(input cdn.BasicDeliveryRuleAction) (*map[string]any, error) {
 	action, ok := input.AsDeliveryRuleCacheKeyQueryStringAction()
 	if !ok {
 		return nil, errors.New("expected a delivery rule cache key query string action")
@@ -73,7 +73,7 @@ func FlattenArmCdnEndpointActionCacheKeyQueryString(input cdn.BasicDeliveryRuleA
 		}
 	}
 
-	return &map[string]interface{}{
+	return &map[string]any{
 		"behavior":   behaviour,
 		"parameters": parameters,
 	}, nil

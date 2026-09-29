@@ -128,7 +128,7 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 			},
 		},
 
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v any) error {
 			if IsCdnFullyRetired() {
 				return fmt.Errorf("%s", FullyRetiredMessage)
 			}
@@ -142,7 +142,7 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmCdnEndpointCustomDomainCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmCdnEndpointCustomDomainCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.CustomDomainsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -204,12 +204,12 @@ func resourceArmCdnEndpointCustomDomainCreate(d *pluginsdk.ResourceData, meta in
 		if cdnEndpointResp.Sku != nil && !supportedSku[cdnEndpointResp.Sku.Name] {
 			return fmt.Errorf("user managed HTTPS certificate is only available for Azure CDN from Microsoft or Azure CDN from Verizon profiles")
 		}
-		params, err = expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx, v.([]interface{}), meta.(*clients.Client))
+		params, err = expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx, v.([]any), meta.(*clients.Client))
 		if err != nil {
 			return err
 		}
 	} else if v, ok := d.GetOk("cdn_managed_https"); ok {
-		params = expandArmCdnEndpointCustomDomainCdnManagedHttpsSettings(v.([]interface{}))
+		params = expandArmCdnEndpointCustomDomainCdnManagedHttpsSettings(v.([]any))
 	}
 
 	if params != nil {
@@ -221,7 +221,7 @@ func resourceArmCdnEndpointCustomDomainCreate(d *pluginsdk.ResourceData, meta in
 	return resourceArmCdnEndpointCustomDomainRead(d, meta)
 }
 
-func resourceArmCdnEndpointCustomDomainUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmCdnEndpointCustomDomainUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.CustomDomainsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -257,7 +257,7 @@ func resourceArmCdnEndpointCustomDomainUpdate(d *pluginsdk.ResourceData, meta in
 			return fmt.Errorf("unexpected nil of `CustomDomainProperties` in response")
 		}
 
-		cdnManagedHTTPSParams = expandArmCdnEndpointCustomDomainCdnManagedHttpsSettings(d.Get("cdn_managed_https").([]interface{}))
+		cdnManagedHTTPSParams = expandArmCdnEndpointCustomDomainCdnManagedHttpsSettings(d.Get("cdn_managed_https").([]any))
 
 		if props.CustomHTTPSParameters == nil {
 			cdnManagedHTTPSStatus = turnOn
@@ -277,7 +277,7 @@ func resourceArmCdnEndpointCustomDomainUpdate(d *pluginsdk.ResourceData, meta in
 		}
 
 		var err error
-		userManagedHTTPSParams, err = expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx, d.Get("user_managed_https").([]interface{}), meta.(*clients.Client))
+		userManagedHTTPSParams, err = expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx, d.Get("user_managed_https").([]any), meta.(*clients.Client))
 		if err != nil {
 			return err
 		}
@@ -329,7 +329,7 @@ func resourceArmCdnEndpointCustomDomainUpdate(d *pluginsdk.ResourceData, meta in
 	return resourceArmCdnEndpointCustomDomainRead(d, meta)
 }
 
-func resourceArmCdnEndpointCustomDomainRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmCdnEndpointCustomDomainRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.CustomDomainsClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -365,8 +365,8 @@ func resourceArmCdnEndpointCustomDomainRead(d *pluginsdk.ResourceData, meta inte
 			}
 		case cdn.UserManagedHTTPSParameters:
 			var isVersioned bool
-			if b := d.Get("user_managed_https").([]interface{}); len(b) == 1 {
-				b := b[0].(map[string]interface{})
+			if b := d.Get("user_managed_https").([]any); len(b) == 1 {
+				b := b[0].(map[string]any)
 
 				secretIdRaw := b["key_vault_secret_id"].(string)
 				if secretIdRaw != "" {
@@ -393,7 +393,7 @@ func resourceArmCdnEndpointCustomDomainRead(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func resourceArmCdnEndpointCustomDomainDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmCdnEndpointCustomDomainDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.CustomDomainsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -414,12 +414,12 @@ func resourceArmCdnEndpointCustomDomainDelete(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func expandArmCdnEndpointCustomDomainCdnManagedHttpsSettings(input []interface{}) cdn.BasicCustomDomainHTTPSParameters {
+func expandArmCdnEndpointCustomDomainCdnManagedHttpsSettings(input []any) cdn.BasicCustomDomainHTTPSParameters {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 	return &cdn.ManagedHTTPSParameters{
 		CertificateSourceParameters: &cdn.CertificateSourceParameters{
 			OdataType:       pointer.To("#Microsoft.Azure.Cdn.Models.CdnCertificateSourceParameters"),
@@ -431,12 +431,12 @@ func expandArmCdnEndpointCustomDomainCdnManagedHttpsSettings(input []interface{}
 	}
 }
 
-func expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Context, input []interface{}, clients *clients.Client) (cdn.BasicCustomDomainHTTPSParameters, error) {
+func expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Context, input []any, clients *clients.Client) (cdn.BasicCustomDomainHTTPSParameters, error) {
 	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
 
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 
 	idLiteral := raw["key_vault_secret_id"].(string)
 
@@ -483,14 +483,14 @@ func expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Contex
 	return output, nil
 }
 
-func flattenArmCdnEndpointCustomDomainCdnManagedHttpsSettings(input cdn.ManagedHTTPSParameters) []interface{} {
+func flattenArmCdnEndpointCustomDomainCdnManagedHttpsSettings(input cdn.ManagedHTTPSParameters) []any {
 	certificateType := ""
 	if params := input.CertificateSourceParameters; params != nil {
 		certificateType = string(params.CertificateType)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"certificate_type": certificateType,
 			"protocol_type":    string(input.ProtocolType),
 			"tls_version":      string(input.MinimumTLSVersion),
@@ -498,7 +498,7 @@ func flattenArmCdnEndpointCustomDomainCdnManagedHttpsSettings(input cdn.ManagedH
 	}
 }
 
-func flattenArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Context, input cdn.UserManagedHTTPSParameters, keyVaultsClient *keyvaultClient.Client, isVersioned bool) ([]interface{}, error) {
+func flattenArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Context, input cdn.UserManagedHTTPSParameters, keyVaultsClient *keyvaultClient.Client, isVersioned bool) ([]any, error) {
 	params := input.CertificateSourceParameters
 	if params == nil {
 		return nil, fmt.Errorf("unexpected nil Certificate Source Parameters from API")
@@ -551,7 +551,7 @@ func flattenArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Conte
 		secretIdLiteral = secretId.VersionlessID()
 	}
 
-	return []interface{}{map[string]interface{}{
+	return []any{map[string]any{
 		"key_vault_secret_id": secretIdLiteral,
 		"tls_version":         string(input.MinimumTLSVersion),
 	}}, nil

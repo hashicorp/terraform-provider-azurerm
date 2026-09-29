@@ -112,7 +112,7 @@ func subscriptionTemplateDeploymentResource() *pluginsdk.Resource {
 	}
 }
 
-func subscriptionTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func subscriptionTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Resource.LegacyDeploymentsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -139,7 +139,7 @@ func subscriptionTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, met
 			DebugSetting: expandTemplateDeploymentDebugSetting(d.Get("debug_level").(string)),
 			Mode:         resources.DeploymentModeIncremental,
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if templateRaw, ok := d.GetOk("template_content"); ok {
@@ -186,7 +186,7 @@ func subscriptionTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, met
 	return subscriptionTemplateDeploymentResourceRead(d, meta)
 }
 
-func subscriptionTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func subscriptionTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Resource.LegacyDeploymentsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -252,7 +252,7 @@ func subscriptionTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	if d.HasChange("tags") {
-		deployment.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		deployment.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	log.Printf("[DEBUG] Running validation of Subscription Template Deployment %q..", id.DeploymentName)
@@ -275,7 +275,7 @@ func subscriptionTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, met
 	return subscriptionTemplateDeploymentResourceRead(d, meta)
 }
 
-func subscriptionTemplateDeploymentResourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func subscriptionTemplateDeploymentResourceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Resource.LegacyDeploymentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -338,7 +338,7 @@ func subscriptionTemplateDeploymentResourceRead(d *pluginsdk.ResourceData, meta 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func subscriptionTemplateDeploymentResourceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func subscriptionTemplateDeploymentResourceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Resource.LegacyDeploymentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

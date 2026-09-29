@@ -40,11 +40,11 @@ func RemoteAddress() *pluginsdk.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointConditionRemoteAddress(input []interface{}) []cdn.BasicDeliveryRuleCondition {
+func ExpandArmCdnEndpointConditionRemoteAddress(input []any) []cdn.BasicDeliveryRuleCondition {
 	output := make([]cdn.BasicDeliveryRuleCondition, 0)
 
 	for _, v := range input {
-		item := v.(map[string]interface{})
+		item := v.(map[string]any)
 
 		output = append(output, cdn.DeliveryRuleRemoteAddressCondition{
 			Name: cdn.NameRemoteAddress,
@@ -60,7 +60,7 @@ func ExpandArmCdnEndpointConditionRemoteAddress(input []interface{}) []cdn.Basic
 	return output
 }
 
-func FlattenArmCdnEndpointConditionRemoteAddress(input cdn.BasicDeliveryRuleCondition) (*map[string]interface{}, error) {
+func FlattenArmCdnEndpointConditionRemoteAddress(input cdn.BasicDeliveryRuleCondition) (*map[string]any, error) {
 	condition, ok := input.AsDeliveryRuleRemoteAddressCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule address condition")
@@ -68,7 +68,7 @@ func FlattenArmCdnEndpointConditionRemoteAddress(input cdn.BasicDeliveryRuleCond
 
 	operator := ""
 	negateCondition := false
-	matchValues := make([]interface{}, 0)
+	matchValues := make([]any, 0)
 	if params := condition.Parameters; params != nil {
 		operator = string(params.Operator)
 
@@ -81,7 +81,7 @@ func FlattenArmCdnEndpointConditionRemoteAddress(input cdn.BasicDeliveryRuleCond
 		}
 	}
 
-	return &map[string]interface{}{
+	return &map[string]any{
 		"operator":         operator,
 		"match_values":     pluginsdk.NewSet(pluginsdk.HashString, matchValues),
 		"negate_condition": negateCondition,

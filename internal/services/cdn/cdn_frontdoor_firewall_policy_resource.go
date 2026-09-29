@@ -461,15 +461,15 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v any) error {
 				currentSku := diff.Get("sku_name").(string)
 				standardSku := string(webapplicationfirewallpolicies.SkuNameStandardAzureFrontDoor)
 				oldSku, _ := diff.GetChange("sku_name")
 
 				if currentSku == standardSku {
 					premiumSku := string(webapplicationfirewallpolicies.SkuNamePremiumAzureFrontDoor)
-					managedRules := diff.Get("managed_rule").([]interface{})
-					customRules := expandCdnFrontDoorFirewallCustomRules(diff.Get("custom_rule").([]interface{}))
+					managedRules := diff.Get("managed_rule").([]any)
+					customRules := expandCdnFrontDoorFirewallCustomRules(diff.Get("custom_rule").([]any))
 
 					// Verify that they are not downgrading the service from Premium SKU -> Standard SKU...
 					if oldSku != "" {
@@ -509,9 +509,9 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 			}),
 
 			// Verify that the scrubbing_rule's are valid...
-			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v any) error {
 				if v, ok := diff.GetOk("log_scrubbing"); ok {
-					if _, err := expandCdnFrontDoorFirewallLogScrubbingPolicy(v.([]interface{})); err != nil {
+					if _, err := expandCdnFrontDoorFirewallLogScrubbingPolicy(v.([]any)); err != nil {
 						return err
 					}
 				}
@@ -519,7 +519,7 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 			}),
 
 			// Handle default value reset when field is removed from the configuration
-			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v any) error {
 				rawConfig := diff.GetRawConfig()
 
 				if diff.Get("sku_name").(string) == string(webapplicationfirewallpolicies.SkuNamePremiumAzureFrontDoor) {
@@ -548,7 +548,7 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 	}
 }
 
-func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorFirewallPoliciesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -589,14 +589,14 @@ func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 	redirectUrl := d.Get("redirect_url").(string)
 	customBlockResponseStatusCode := d.Get("custom_block_response_status_code").(int)
 	customBlockResponseBody := d.Get("custom_block_response_body").(string)
-	customRules := d.Get("custom_rule").([]interface{})
+	customRules := d.Get("custom_rule").([]any)
 
-	managedRules, err := expandCdnFrontDoorFirewallManagedRules(d.Get("managed_rule").([]interface{}))
+	managedRules, err := expandCdnFrontDoorFirewallManagedRules(d.Get("managed_rule").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding 'managed_rule': %+v", err)
 	}
 
-	logScrubbingRules, err := expandCdnFrontDoorFirewallLogScrubbingPolicy(d.Get("log_scrubbing").([]interface{}))
+	logScrubbingRules, err := expandCdnFrontDoorFirewallLogScrubbingPolicy(d.Get("log_scrubbing").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding 'log_scrubbing': %+v", err)
 	}
@@ -618,7 +618,7 @@ func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 			},
 			CustomRules: expandCdnFrontDoorFirewallCustomRules(customRules),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	// NOTE: CAPTCHA and JS Challenge Expiration policy is enabled by default on Premium SKU's with a default of
@@ -669,7 +669,7 @@ func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 	return resourceCdnFrontDoorFirewallPolicyRead(d, meta)
 }
 
-func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorFirewallPoliciesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -757,7 +757,7 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if d.HasChange("custom_rule") {
-		props.CustomRules = expandCdnFrontDoorFirewallCustomRules(d.Get("custom_rule").([]interface{}))
+		props.CustomRules = expandCdnFrontDoorFirewallCustomRules(d.Get("custom_rule").([]any))
 	}
 
 	if d.HasChange("managed_rule") {
@@ -765,7 +765,7 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 			return fmt.Errorf("retrieving %s: 'model.Sku' was nil", *id)
 		}
 
-		managedRules, err := expandCdnFrontDoorFirewallManagedRules(d.Get("managed_rule").([]interface{}))
+		managedRules, err := expandCdnFrontDoorFirewallManagedRules(d.Get("managed_rule").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding managed_rule: %+v", err)
 		}
@@ -780,7 +780,7 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if d.HasChange("log_scrubbing") {
-		logScrubbingPolicy, err := expandCdnFrontDoorFirewallLogScrubbingPolicy(d.Get("log_scrubbing").([]interface{}))
+		logScrubbingPolicy, err := expandCdnFrontDoorFirewallLogScrubbingPolicy(d.Get("log_scrubbing").([]any))
 		if err != nil {
 			return err
 		}
@@ -791,7 +791,7 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if d.HasChange("tags") {
-		model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		model.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	model.Properties = pointer.To(props)
@@ -803,7 +803,7 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 	return resourceCdnFrontDoorFirewallPolicyRead(d, meta)
 }
 
-func resourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorFirewallPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -876,7 +876,7 @@ func resourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func resourceCdnFrontDoorFirewallPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorFirewallPolicyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorFirewallPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -893,7 +893,7 @@ func resourceCdnFrontDoorFirewallPolicyDelete(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func expandCdnFrontDoorFirewallCustomRules(input []interface{}) *webapplicationfirewallpolicies.CustomRuleList {
+func expandCdnFrontDoorFirewallCustomRules(input []any) *webapplicationfirewallpolicies.CustomRuleList {
 	if len(input) == 0 {
 		return nil
 	}
@@ -901,7 +901,7 @@ func expandCdnFrontDoorFirewallCustomRules(input []interface{}) *webapplicationf
 	output := make([]webapplicationfirewallpolicies.CustomRule, 0)
 
 	for _, cr := range input {
-		custom := cr.(map[string]interface{})
+		custom := cr.(map[string]any)
 
 		enabled := webapplicationfirewallpolicies.CustomRuleEnabledStateDisabled
 		if custom["enabled"].(bool) {
@@ -913,7 +913,7 @@ func expandCdnFrontDoorFirewallCustomRules(input []interface{}) *webapplicationf
 		ruleType := custom["type"].(string)
 		rateLimitDurationInMinutes := int64(custom["rate_limit_duration_in_minutes"].(int))
 		rateLimitThreshold := int64(custom["rate_limit_threshold"].(int))
-		matchConditions := expandCdnFrontDoorFirewallMatchConditions(custom["match_condition"].([]interface{}))
+		matchConditions := expandCdnFrontDoorFirewallMatchConditions(custom["match_condition"].([]any))
 		action := custom["action"].(string)
 
 		output = append(output, webapplicationfirewallpolicies.CustomRule{
@@ -933,20 +933,20 @@ func expandCdnFrontDoorFirewallCustomRules(input []interface{}) *webapplicationf
 	}
 }
 
-func expandCdnFrontDoorFirewallMatchConditions(input []interface{}) []webapplicationfirewallpolicies.MatchCondition {
+func expandCdnFrontDoorFirewallMatchConditions(input []any) []webapplicationfirewallpolicies.MatchCondition {
 	result := make([]webapplicationfirewallpolicies.MatchCondition, 0)
 	if len(input) == 0 {
 		return nil
 	}
 
 	for _, v := range input {
-		match := v.(map[string]interface{})
+		match := v.(map[string]any)
 
 		matchVariable := match["match_variable"].(string)
 		selector := match["selector"].(string)
 		operator := match["operator"].(string)
-		matchValues := pluginsdk.ExpandStringSlice(match["match_values"].([]interface{}))
-		transforms := match["transforms"].([]interface{})
+		matchValues := pluginsdk.ExpandStringSlice(match["match_values"].([]any))
+		transforms := match["transforms"].([]any)
 
 		matchCondition := webapplicationfirewallpolicies.MatchCondition{
 			Operator:        webapplicationfirewallpolicies.Operator(operator),
@@ -968,7 +968,7 @@ func expandCdnFrontDoorFirewallMatchConditions(input []interface{}) []webapplica
 	return result
 }
 
-func expandCdnFrontDoorFirewallTransforms(input []interface{}) *[]webapplicationfirewallpolicies.TransformType {
+func expandCdnFrontDoorFirewallTransforms(input []any) *[]webapplicationfirewallpolicies.TransformType {
 	result := make([]webapplicationfirewallpolicies.TransformType, 0)
 	if len(input) == 0 {
 		return nil
@@ -981,20 +981,20 @@ func expandCdnFrontDoorFirewallTransforms(input []interface{}) *[]webapplication
 	return &result
 }
 
-func expandCdnFrontDoorFirewallManagedRules(input []interface{}) (*webapplicationfirewallpolicies.ManagedRuleSetList, error) {
+func expandCdnFrontDoorFirewallManagedRules(input []any) (*webapplicationfirewallpolicies.ManagedRuleSetList, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
 
 	result := make([]webapplicationfirewallpolicies.ManagedRuleSet, 0)
 	for _, mr := range input {
-		managedRule := mr.(map[string]interface{})
+		managedRule := mr.(map[string]any)
 
 		ruleType := managedRule["type"].(string)
 		version := managedRule["version"].(string)
 		action := managedRule["action"].(string)
-		overrides := managedRule["override"].([]interface{})
-		exclusions := expandCdnFrontDoorFirewallManagedRuleGroupExclusion(managedRule["exclusion"].([]interface{}))
+		overrides := managedRule["override"].([]any)
+		exclusions := expandCdnFrontDoorFirewallManagedRuleGroupExclusion(managedRule["exclusion"].([]any))
 
 		fVersion := 1.0
 		if v, err := strconv.ParseFloat(version, 64); err == nil {
@@ -1034,14 +1034,14 @@ func expandCdnFrontDoorFirewallManagedRules(input []interface{}) (*webapplicatio
 	}, nil
 }
 
-func expandCdnFrontDoorFirewallManagedRuleGroupExclusion(input []interface{}) *[]webapplicationfirewallpolicies.ManagedRuleExclusion {
+func expandCdnFrontDoorFirewallManagedRuleGroupExclusion(input []any) *[]webapplicationfirewallpolicies.ManagedRuleExclusion {
 	results := make([]webapplicationfirewallpolicies.ManagedRuleExclusion, 0)
 	if len(input) == 0 {
 		return nil
 	}
 
 	for _, v := range input {
-		exclusion := v.(map[string]interface{})
+		exclusion := v.(map[string]any)
 
 		matchVariable := exclusion["match_variable"].(string)
 		operator := exclusion["operator"].(string)
@@ -1057,18 +1057,18 @@ func expandCdnFrontDoorFirewallManagedRuleGroupExclusion(input []interface{}) *[
 	return &results
 }
 
-func expandCdnFrontDoorFirewallManagedRuleGroupOverride(input []interface{}, versionRaw string, version float64, ruleType string) (*[]webapplicationfirewallpolicies.ManagedRuleGroupOverride, error) {
+func expandCdnFrontDoorFirewallManagedRuleGroupOverride(input []any, versionRaw string, version float64, ruleType string) (*[]webapplicationfirewallpolicies.ManagedRuleGroupOverride, error) {
 	result := make([]webapplicationfirewallpolicies.ManagedRuleGroupOverride, 0)
 	if len(input) == 0 {
 		return nil, nil
 	}
 
 	for _, v := range input {
-		override := v.(map[string]interface{})
+		override := v.(map[string]any)
 
-		exclusions := expandCdnFrontDoorFirewallManagedRuleGroupExclusion(override["exclusion"].([]interface{}))
+		exclusions := expandCdnFrontDoorFirewallManagedRuleGroupExclusion(override["exclusion"].([]any))
 		ruleGroupName := override["rule_group_name"].(string)
-		rules, err := expandCdnFrontDoorFirewallRuleOverride(override["rule"].([]interface{}), versionRaw, version, ruleType)
+		rules, err := expandCdnFrontDoorFirewallRuleOverride(override["rule"].([]any), versionRaw, version, ruleType)
 		if err != nil {
 			return nil, err
 		}
@@ -1083,14 +1083,14 @@ func expandCdnFrontDoorFirewallManagedRuleGroupOverride(input []interface{}, ver
 	return &result, nil
 }
 
-func expandCdnFrontDoorFirewallRuleOverride(input []interface{}, versionRaw string, version float64, ruleType string) (*[]webapplicationfirewallpolicies.ManagedRuleOverride, error) {
+func expandCdnFrontDoorFirewallRuleOverride(input []any, versionRaw string, version float64, ruleType string) (*[]webapplicationfirewallpolicies.ManagedRuleOverride, error) {
 	result := make([]webapplicationfirewallpolicies.ManagedRuleOverride, 0)
 	if len(input) == 0 {
 		return nil, nil
 	}
 
 	for _, v := range input {
-		rule := v.(map[string]interface{})
+		rule := v.(map[string]any)
 
 		enabled := webapplicationfirewallpolicies.ManagedRuleEnabledStateDisabled
 		if rule["enabled"].(bool) {
@@ -1113,7 +1113,7 @@ func expandCdnFrontDoorFirewallRuleOverride(input []interface{}, versionRaw stri
 			return nil, fmt.Errorf("%q is only valid if the managed rules 'type' is 'Microsoft_BotManagerRuleSet', got %q", webapplicationfirewallpolicies.ActionTypeJSChallenge, ruleType)
 		}
 
-		exclusions := expandCdnFrontDoorFirewallManagedRuleGroupExclusion(rule["exclusion"].([]interface{}))
+		exclusions := expandCdnFrontDoorFirewallManagedRuleGroupExclusion(rule["exclusion"].([]any))
 
 		result = append(result, webapplicationfirewallpolicies.ManagedRuleOverride{
 			RuleId:       ruleId,
@@ -1126,19 +1126,19 @@ func expandCdnFrontDoorFirewallRuleOverride(input []interface{}, versionRaw stri
 	return &result, nil
 }
 
-func expandCdnFrontDoorFirewallLogScrubbingPolicy(input []interface{}) (*webapplicationfirewallpolicies.PolicySettingsLogScrubbing, error) {
+func expandCdnFrontDoorFirewallLogScrubbingPolicy(input []any) (*webapplicationfirewallpolicies.PolicySettingsLogScrubbing, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
 
-	inputRaw := input[0].(map[string]interface{})
+	inputRaw := input[0].(map[string]any)
 
 	policyEnabled := webapplicationfirewallpolicies.WebApplicationFirewallScrubbingStateDisabled
 	if inputRaw["enabled"].(bool) {
 		policyEnabled = webapplicationfirewallpolicies.WebApplicationFirewallScrubbingStateEnabled
 	}
 
-	scrubbingRules, err := expandCdnFrontDoorFirewallScrubbingRules(inputRaw["scrubbing_rule"].([]interface{}))
+	scrubbingRules, err := expandCdnFrontDoorFirewallScrubbingRules(inputRaw["scrubbing_rule"].([]any))
 	if err != nil {
 		return nil, err
 	}
@@ -1149,7 +1149,7 @@ func expandCdnFrontDoorFirewallLogScrubbingPolicy(input []interface{}) (*webappl
 	}, nil
 }
 
-func expandCdnFrontDoorFirewallScrubbingRules(input []interface{}) (*[]webapplicationfirewallpolicies.WebApplicationFirewallScrubbingRules, error) {
+func expandCdnFrontDoorFirewallScrubbingRules(input []any) (*[]webapplicationfirewallpolicies.WebApplicationFirewallScrubbingRules, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -1157,7 +1157,7 @@ func expandCdnFrontDoorFirewallScrubbingRules(input []interface{}) (*[]webapplic
 	scrubbingRules := make([]webapplicationfirewallpolicies.WebApplicationFirewallScrubbingRules, 0)
 
 	for _, rule := range input {
-		v := rule.(map[string]interface{})
+		v := rule.(map[string]any)
 		var item webapplicationfirewallpolicies.WebApplicationFirewallScrubbingRules
 
 		enabled := webapplicationfirewallpolicies.ScrubbingRuleEntryStateDisabled
@@ -1200,12 +1200,12 @@ func expandCdnFrontDoorFirewallScrubbingRules(input []interface{}) (*[]webapplic
 	return pointer.To(scrubbingRules), nil
 }
 
-func flattenCdnFrontDoorFirewallCustomRules(input *webapplicationfirewallpolicies.CustomRuleList) []interface{} {
+func flattenCdnFrontDoorFirewallCustomRules(input *webapplicationfirewallpolicies.CustomRuleList) []any {
 	if input == nil || input.Rules == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	results := make([]interface{}, 0)
+	results := make([]any, 0)
 	for _, v := range *input.Rules {
 		action := string(v.Action)
 		priority := int(v.Priority)
@@ -1226,7 +1226,7 @@ func flattenCdnFrontDoorFirewallCustomRules(input *webapplicationfirewallpolicie
 			rateLimitThreshold = int(*v.RateLimitThreshold)
 		}
 
-		results = append(results, map[string]interface{}{
+		results = append(results, map[string]any{
 			"action":                         action,
 			"enabled":                        enabled,
 			"match_condition":                flattenCdnFrontDoorFirewallMatchConditions(v.MatchConditions),
@@ -1241,14 +1241,14 @@ func flattenCdnFrontDoorFirewallCustomRules(input *webapplicationfirewallpolicie
 	return results
 }
 
-func flattenCdnFrontDoorFirewallMatchConditions(input []webapplicationfirewallpolicies.MatchCondition) []interface{} {
+func flattenCdnFrontDoorFirewallMatchConditions(input []webapplicationfirewallpolicies.MatchCondition) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	results := make([]interface{}, 0)
+	results := make([]any, 0)
 	for _, v := range input {
-		results = append(results, map[string]interface{}{
+		results = append(results, map[string]any{
 			"match_variable":     string(v.MatchVariable),
 			"match_values":       v.MatchValue,
 			"negation_condition": pointer.From(v.NegateCondition),
@@ -1261,18 +1261,18 @@ func flattenCdnFrontDoorFirewallMatchConditions(input []webapplicationfirewallpo
 	return results
 }
 
-func flattenCdnFrontDoorFirewallManagedRules(input *webapplicationfirewallpolicies.ManagedRuleSetList) []interface{} {
+func flattenCdnFrontDoorFirewallManagedRules(input *webapplicationfirewallpolicies.ManagedRuleSetList) []any {
 	if input == nil || input.ManagedRuleSets == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	results := make([]interface{}, 0)
+	results := make([]any, 0)
 	for _, r := range *input.ManagedRuleSets {
 		ruleSetType := r.RuleSetType
 		ruleSetVersion := r.RuleSetVersion
 		ruleSetAction := pointer.FromEnum(r.RuleSetAction)
 
-		results = append(results, map[string]interface{}{
+		results = append(results, map[string]any{
 			"exclusion": flattenCdnFrontDoorFirewallExclusions(r.Exclusions),
 			"override":  flattenCdnFrontDoorFirewallOverrides(r.RuleGroupOverrides),
 			"type":      ruleSetType,
@@ -1284,18 +1284,18 @@ func flattenCdnFrontDoorFirewallManagedRules(input *webapplicationfirewallpolici
 	return results
 }
 
-func flattenCdnFrontDoorFirewallExclusions(input *[]webapplicationfirewallpolicies.ManagedRuleExclusion) []interface{} {
+func flattenCdnFrontDoorFirewallExclusions(input *[]webapplicationfirewallpolicies.ManagedRuleExclusion) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	results := make([]interface{}, 0)
+	results := make([]any, 0)
 	for _, v := range *input {
 		matchVariable := string(v.MatchVariable)
 		operator := string(v.SelectorMatchOperator)
 		selector := v.Selector
 
-		results = append(results, map[string]interface{}{
+		results = append(results, map[string]any{
 			"match_variable": matchVariable,
 			"operator":       operator,
 			"selector":       selector,
@@ -1305,16 +1305,16 @@ func flattenCdnFrontDoorFirewallExclusions(input *[]webapplicationfirewallpolici
 	return results
 }
 
-func flattenCdnFrontDoorFirewallOverrides(input *[]webapplicationfirewallpolicies.ManagedRuleGroupOverride) []interface{} {
+func flattenCdnFrontDoorFirewallOverrides(input *[]webapplicationfirewallpolicies.ManagedRuleGroupOverride) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	results := make([]interface{}, 0)
+	results := make([]any, 0)
 	for _, v := range *input {
 		ruleGroupName := v.RuleGroupName
 
-		results = append(results, map[string]interface{}{
+		results = append(results, map[string]any{
 			"rule_group_name": ruleGroupName,
 			"exclusion":       flattenCdnFrontDoorFirewallExclusions(v.Exclusions),
 			"rule":            flattenCdnFrontDoorFirewallRules(v.Rules),
@@ -1324,12 +1324,12 @@ func flattenCdnFrontDoorFirewallOverrides(input *[]webapplicationfirewallpolicie
 	return results
 }
 
-func flattenCdnFrontDoorFirewallRules(input *[]webapplicationfirewallpolicies.ManagedRuleOverride) []interface{} {
+func flattenCdnFrontDoorFirewallRules(input *[]webapplicationfirewallpolicies.ManagedRuleOverride) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	results := make([]interface{}, 0)
+	results := make([]any, 0)
 	for _, v := range *input {
 		action := webapplicationfirewallpolicies.ActionTypeAnomalyScoring
 		if v.Action != nil {
@@ -1338,7 +1338,7 @@ func flattenCdnFrontDoorFirewallRules(input *[]webapplicationfirewallpolicies.Ma
 		enabled := pointer.From(v.EnabledState) == webapplicationfirewallpolicies.ManagedRuleEnabledStateEnabled
 		ruleId := v.RuleId
 
-		results = append(results, map[string]interface{}{
+		results = append(results, map[string]any{
 			"action":    action,
 			"enabled":   enabled,
 			"exclusion": flattenCdnFrontDoorFirewallExclusions(v.Exclusions),
@@ -1349,27 +1349,27 @@ func flattenCdnFrontDoorFirewallRules(input *[]webapplicationfirewallpolicies.Ma
 	return results
 }
 
-func flattenCdnFrontDoorFirewallLogScrubbingPolicy(input *webapplicationfirewallpolicies.PolicySettingsLogScrubbing) []interface{} {
+func flattenCdnFrontDoorFirewallLogScrubbingPolicy(input *webapplicationfirewallpolicies.PolicySettingsLogScrubbing) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 	result["enabled"] = pointer.From(input.State) == webapplicationfirewallpolicies.WebApplicationFirewallScrubbingStateEnabled
 	result["scrubbing_rule"] = flattenCdnFrontDoorFirewallLogScrubbingRules(input.ScrubbingRules)
 
-	return []interface{}{result}
+	return []any{result}
 }
 
-func flattenCdnFrontDoorFirewallLogScrubbingRules(scrubbingRules *[]webapplicationfirewallpolicies.WebApplicationFirewallScrubbingRules) interface{} {
-	result := make([]interface{}, 0)
+func flattenCdnFrontDoorFirewallLogScrubbingRules(scrubbingRules *[]webapplicationfirewallpolicies.WebApplicationFirewallScrubbingRules) any {
+	result := make([]any, 0)
 
 	if scrubbingRules == nil || len(*scrubbingRules) == 0 {
 		return result
 	}
 
 	for _, scrubbingRule := range *scrubbingRules {
-		item := map[string]interface{}{}
+		item := map[string]any{}
 		item["enabled"] = pointer.From(scrubbingRule.State) == webapplicationfirewallpolicies.ScrubbingRuleEntryStateEnabled
 		item["match_variable"] = scrubbingRule.MatchVariable
 		item["operator"] = scrubbingRule.SelectorMatchOperator

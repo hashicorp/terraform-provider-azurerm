@@ -64,7 +64,7 @@ func (r AlertPrometheusRuleGroupResource) ResourceType() string {
 	return "azurerm_monitor_alert_prometheus_rule_group"
 }
 
-func (r AlertPrometheusRuleGroupResource) ModelObject() interface{} {
+func (r AlertPrometheusRuleGroupResource) ModelObject() any {
 	return &AlertPrometheusRuleGroupResourceModel{}
 }
 

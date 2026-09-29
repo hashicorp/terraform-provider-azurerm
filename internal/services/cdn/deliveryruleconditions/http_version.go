@@ -48,11 +48,11 @@ func HTTPVersion() *pluginsdk.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointConditionHTTPVersion(input []interface{}) []cdn.BasicDeliveryRuleCondition {
+func ExpandArmCdnEndpointConditionHTTPVersion(input []any) []cdn.BasicDeliveryRuleCondition {
 	output := make([]cdn.BasicDeliveryRuleCondition, 0)
 
 	for _, v := range input {
-		item := v.(map[string]interface{})
+		item := v.(map[string]any)
 		output = append(output, cdn.DeliveryRuleHTTPVersionCondition{
 			Name: cdn.NameHTTPVersion,
 			Parameters: &cdn.HTTPVersionMatchConditionParameters{
@@ -67,14 +67,14 @@ func ExpandArmCdnEndpointConditionHTTPVersion(input []interface{}) []cdn.BasicDe
 	return output
 }
 
-func FlattenArmCdnEndpointConditionHTTPVersion(input cdn.BasicDeliveryRuleCondition) (*map[string]interface{}, error) {
+func FlattenArmCdnEndpointConditionHTTPVersion(input cdn.BasicDeliveryRuleCondition) (*map[string]any, error) {
 	condition, ok := input.AsDeliveryRuleHTTPVersionCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule http version condition")
 	}
 
 	operator := ""
-	matchValues := make([]interface{}, 0)
+	matchValues := make([]any, 0)
 	negateCondition := false
 	if params := condition.Parameters; params != nil {
 		if params.Operator != nil {
@@ -90,7 +90,7 @@ func FlattenArmCdnEndpointConditionHTTPVersion(input cdn.BasicDeliveryRuleCondit
 		}
 	}
 
-	return &map[string]interface{}{
+	return &map[string]any{
 		"operator":         operator,
 		"match_values":     pluginsdk.NewSet(pluginsdk.HashString, matchValues),
 		"negate_condition": negateCondition,

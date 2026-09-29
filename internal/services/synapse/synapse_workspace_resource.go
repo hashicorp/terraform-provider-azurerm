@@ -280,7 +280,7 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 	}
 }
 
-func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	identitySQLControlClient := meta.(*clients.Client).Synapse.WorkspaceManagedIdentitySQLControlSettingsClient
@@ -324,10 +324,10 @@ func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{})
 			Encryption:                       expandEncryptionDetails(d),
 			AzureADOnlyAuthentication:        pointer.To(d.Get("azuread_authentication_only").(bool)),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
-	expandedIdentity, err := expandIdentity(d.Get("identity").([]interface{}))
+	expandedIdentity, err := expandIdentity(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -357,7 +357,7 @@ func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{})
 		if workspaceInfo.ManagedVirtualNetworkSettings == nil {
 			workspaceInfo.ManagedVirtualNetworkSettings = &synapse.ManagedVirtualNetworkSettings{}
 		}
-		workspaceInfo.ManagedVirtualNetworkSettings.AllowedAadTenantIdsForLinking = pluginsdk.ExpandStringSlice(allowedLinkingTenantIds.([]interface{}))
+		workspaceInfo.ManagedVirtualNetworkSettings.AllowedAadTenantIdsForLinking = pluginsdk.ExpandStringSlice(allowedLinkingTenantIds.([]any))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.WorkspaceName, workspaceInfo)
@@ -391,7 +391,7 @@ func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceSynapseWorkspaceRead(d, meta)
 }
 
-func resourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceClient
 	identitySQLControlClient := meta.(*clients.Client).Synapse.WorkspaceManagedIdentitySQLControlSettingsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -480,7 +480,7 @@ func resourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceClient
 	azureADOnlyAuthenticationsClient := meta.(*clients.Client).Synapse.WorkspaceAzureADOnlyAuthenticationsClient
 	identitySQLControlClient := meta.(*clients.Client).Synapse.WorkspaceManagedIdentitySQLControlSettingsClient
@@ -506,7 +506,7 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 			publicNetworkAccess = synapse.WorkspacePublicNetworkAccessDisabled
 		}
 		workspacePatchInfo := synapse.WorkspacePatchInfo{
-			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+			Tags: tags.Expand(d.Get("tags").(map[string]any)),
 			WorkspacePatchProperties: &synapse.WorkspacePatchProperties{
 				SQLAdministratorLoginPassword:    pointer.To(d.Get("sql_administrator_login_password").(string)),
 				WorkspaceRepositoryConfiguration: expandWorkspaceRepositoryConfiguration(d),
@@ -519,7 +519,7 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 			if workspacePatchInfo.ManagedVirtualNetworkSettings == nil {
 				workspacePatchInfo.ManagedVirtualNetworkSettings = &synapse.ManagedVirtualNetworkSettings{}
 			}
-			workspacePatchInfo.ManagedVirtualNetworkSettings.AllowedAadTenantIdsForLinking = pluginsdk.ExpandStringSlice(allowedLinkingTenantIds.([]interface{}))
+			workspacePatchInfo.ManagedVirtualNetworkSettings.AllowedAadTenantIdsForLinking = pluginsdk.ExpandStringSlice(allowedLinkingTenantIds.([]any))
 		}
 
 		if purviewId, ok := d.GetOk("purview_id"); ok {
@@ -582,7 +582,7 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceSynapseWorkspaceRead(d, meta)
 }
 
-func resourceSynapseWorkspaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseWorkspaceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -635,7 +635,7 @@ func waitSynapseWorkspaceCMKState(ctx context.Context, client *synapse.Workspace
 }
 
 func synapseWorkspaceCMKUpdateStateRefreshFunc(ctx context.Context, client *synapse.WorkspacesClient, id *workspaces.WorkspaceId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		res, err := client.Get(ctx, id.ResourceGroupName, id.WorkspaceName)
 		if err != nil {
 			return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
@@ -672,7 +672,7 @@ func waitSynapseWorkspaceProvisioningState(ctx context.Context, client *synapse.
 }
 
 func synapseWorkspaceProvisioningStateRefreshFunc(ctx context.Context, client *synapse.WorkspacesClient, id *workspaces.WorkspaceId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		res, err := client.Get(ctx, id.ResourceGroupName, id.WorkspaceName)
 		if err != nil {
 			return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
@@ -691,7 +691,7 @@ func expandArmWorkspaceDataLakeStorageAccountDetails(storageDataLakeGen2Filesyst
 
 func expandWorkspaceRepositoryConfiguration(d *pluginsdk.ResourceData) *synapse.WorkspaceRepositoryConfiguration {
 	if azdoList, ok := d.GetOk("azure_devops_repo"); ok {
-		azdo := azdoList.([]interface{})[0].(map[string]interface{})
+		azdo := azdoList.([]any)[0].(map[string]any)
 		config := synapse.WorkspaceRepositoryConfiguration{
 			Type:                pointer.To(workspaceVSTSConfiguration),
 			AccountName:         pointer.To(azdo["account_name"].(string)),
@@ -708,7 +708,7 @@ func expandWorkspaceRepositoryConfiguration(d *pluginsdk.ResourceData) *synapse.
 	}
 
 	if githubList, ok := d.GetOk("github_repo"); ok {
-		github := githubList.([]interface{})[0].(map[string]interface{})
+		github := githubList.([]any)[0].(map[string]any)
 		return &synapse.WorkspaceRepositoryConfiguration{
 			Type:                pointer.To(workspaceGitHubConfiguration),
 			AccountName:         pointer.To(github["account_name"].(string)),
@@ -743,7 +743,7 @@ func expandIdentityControlSQLSettings(enabled bool) *synapse.ManagedIdentitySQLC
 
 func expandEncryptionDetails(d *pluginsdk.ResourceData) *synapse.EncryptionDetails {
 	if cmkList, ok := d.GetOk("customer_managed_key"); ok {
-		cmk := cmkList.([]interface{})[0].(map[string]interface{})
+		cmk := cmkList.([]any)[0].(map[string]any)
 
 		encryptionDetails := &synapse.EncryptionDetails{
 			Cmk: &synapse.CustomerManagedKeyDetails{
@@ -774,13 +774,13 @@ func flattenArmWorkspaceDataLakeStorageAccountDetails(input *synapse.DataLakeSto
 	return ""
 }
 
-func flattenWorkspaceRepositoryConfiguration(config *synapse.WorkspaceRepositoryConfiguration) (repoTypeResult string, result []interface{}) {
+func flattenWorkspaceRepositoryConfiguration(config *synapse.WorkspaceRepositoryConfiguration) (repoTypeResult string, result []any) {
 	if config == nil {
-		return "", make([]interface{}, 0)
+		return "", make([]any, 0)
 	}
 
 	if repoType := config.Type; repoType != nil {
-		repo := map[string]interface{}{}
+		repo := map[string]any{}
 
 		switch *repoType {
 		case workspaceVSTSConfiguration:
@@ -812,10 +812,10 @@ func flattenWorkspaceRepositoryConfiguration(config *synapse.WorkspaceRepository
 			repo["last_commit_id"] = *config.LastCommitID
 		}
 
-		return *repoType, []interface{}{repo}
+		return *repoType, []any{repo}
 	}
 
-	return "", make([]interface{}, 0)
+	return "", make([]any, 0)
 }
 
 func flattenIdentityControlSQLSettings(settings synapse.ManagedIdentitySQLControlSettingsModel) bool {
@@ -830,12 +830,12 @@ func flattenIdentityControlSQLSettings(settings synapse.ManagedIdentitySQLContro
 	return false
 }
 
-func flattenEncryptionDetails(encryption *synapse.EncryptionDetails) ([]interface{}, error) {
-	output := make([]interface{}, 0)
+func flattenEncryptionDetails(encryption *synapse.EncryptionDetails) ([]any, error) {
+	output := make([]any, 0)
 	if encryption == nil || encryption.Cmk == nil || encryption.Cmk.Key == nil {
 		return output, nil
 	}
-	resultMap := map[string]interface{}{}
+	resultMap := map[string]any{}
 
 	resultMap["key_name"] = pointer.From(encryption.Cmk.Key.Name)
 	resultMap["key_versionless_id"] = pointer.From(encryption.Cmk.Key.KeyVaultURL)
@@ -851,7 +851,7 @@ func flattenEncryptionDetails(encryption *synapse.EncryptionDetails) ([]interfac
 	return append(output, resultMap), nil
 }
 
-func expandIdentity(input []interface{}) (*synapse.ManagedIdentity, error) {
+func expandIdentity(input []any) (*synapse.ManagedIdentity, error) {
 	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
 	if err != nil {
 		return nil, err
@@ -872,7 +872,7 @@ func expandIdentity(input []interface{}) (*synapse.ManagedIdentity, error) {
 	return &out, nil
 }
 
-func flattenIdentity(input *synapse.ManagedIdentity) (interface{}, error) {
+func flattenIdentity(input *synapse.ManagedIdentity) (any, error) {
 	var config *identity.SystemAndUserAssignedMap
 
 	if input != nil {
