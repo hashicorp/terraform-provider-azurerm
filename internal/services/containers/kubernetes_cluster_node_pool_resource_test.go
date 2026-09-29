@@ -1511,6 +1511,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_B2als_v2"
+
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, r.templateConfig(data))
 }
