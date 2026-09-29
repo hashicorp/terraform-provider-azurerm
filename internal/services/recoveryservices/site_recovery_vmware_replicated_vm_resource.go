@@ -18,8 +18,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	vmwaremachines "github.com/hashicorp/go-azure-sdk/resource-manager/migrate/2020-01-01/machines"
-	vmwarerunasaccounts "github.com/hashicorp/go-azure-sdk/resource-manager/migrate/2020-01-01/runasaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/migrate/2020-01-01/machines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/migrate/2020-01-01/runasaccounts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2025-08-01/vaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationfabrics"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationpolicies"
@@ -882,8 +882,8 @@ func fetchSiteRecoveryContainerId(ctx context.Context, containerClient *replicat
 	return parsedID.ID(), nil
 }
 
-func fetchRunAsAccountsIdBySite(ctx context.Context, runAsAccountClient *vmwarerunasaccounts.RunAsAccountsClient, siteId string, displayName string, applianceName string) (string, error) {
-	parsedSiteId, err := vmwarerunasaccounts.ParseVMwareSiteIDInsensitively(siteId)
+func fetchRunAsAccountsIdBySite(ctx context.Context, runAsAccountClient *runasaccounts.RunAsAccountsClient, siteId string, displayName string, applianceName string) (string, error) {
+	parsedSiteId, err := runasaccounts.ParseVMwareSiteIDInsensitively(siteId)
 	if err != nil {
 		return "", fmt.Errorf("parse %s: %+v", siteId, err)
 	}
@@ -949,14 +949,14 @@ func fetchProcessServerIdByName(ctx context.Context, fabricClient *replicationfa
 	return "", fmt.Errorf("retrieving %q: Detail Type mismatch", fabricId)
 }
 
-func fetchDiscoveryMachineIdBySite(ctx context.Context, machinesClient *vmwaremachines.MachinesClient, siteId string, machineName string) (string, error) {
-	parsedSiteId, err := vmwaremachines.ParseVMwareSiteIDInsensitively(siteId)
+func fetchDiscoveryMachineIdBySite(ctx context.Context, machinesClient *machines.MachinesClient, siteId string, machineName string) (string, error) {
+	parsedSiteId, err := machines.ParseVMwareSiteIDInsensitively(siteId)
 	if err != nil {
 		return "", fmt.Errorf("parse %s: %+v", siteId, err)
 	}
 
 	hackedClient := azuresdkhacks.MachinesClient{Client: machinesClient.Client}
-	resp, err := hackedClient.GetAllVMWareMachinesInSite(ctx, *parsedSiteId, vmwaremachines.DefaultGetAllMachinesInSiteOperationOptions())
+	resp, err := hackedClient.GetAllVMWareMachinesInSite(ctx, *parsedSiteId, machines.DefaultGetAllMachinesInSiteOperationOptions())
 	if err != nil {
 		return "", err
 	}
@@ -982,7 +982,7 @@ func fetchDiscoveryMachineIdBySite(ctx context.Context, machinesClient *vmwarema
 	return "", fmt.Errorf("retrieving %q: machine %s not found", siteId, machineName)
 }
 
-func fetchCredentialByRunAsAccountId(ctx context.Context, client *vmwarerunasaccounts.RunAsAccountsClient, id string) (string, error) {
+func fetchCredentialByRunAsAccountId(ctx context.Context, client *runasaccounts.RunAsAccountsClient, id string) (string, error) {
 	parsedRunAsAccountId, err := commonids.ParseVMwareSiteRunAsAccountIDInsensitively(id)
 	if err != nil {
 		return "", fmt.Errorf("parse %s: %+v", id, err)

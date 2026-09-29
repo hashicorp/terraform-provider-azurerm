@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
-	streamAnalyticsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -75,7 +75,7 @@ func (r JobScheduleResource) ResourceType() string {
 }
 
 func (r JobScheduleResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return streamAnalyticsValidate.StreamingJobScheduleID
+	return validate.StreamingJobScheduleID
 }
 
 func (r JobScheduleResource) Create() sdk.ResourceFunc {

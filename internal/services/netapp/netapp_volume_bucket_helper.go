@@ -7,8 +7,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/buckets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumes"
-	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
-	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -23,7 +23,7 @@ func netAppBucketResourceCommonArguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: netAppValidate.BucketName,
+			ValidateFunc: validate.BucketName,
 		},
 
 		"volume_id": {
@@ -96,7 +96,7 @@ func netAppBucketResourceCommonArguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			ForceNew:     true,
 			Default:      "/",
-			ValidateFunc: netAppValidate.BucketPath,
+			ValidateFunc: validate.BucketPath,
 		},
 
 		"permissions": {
@@ -141,7 +141,7 @@ func netAppBucketDataSourceArguments() map[string]*pluginsdk.Schema {
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: netAppValidate.BucketName,
+			ValidateFunc: validate.BucketName,
 		},
 
 		"netapp_volume_id": {
@@ -236,7 +236,7 @@ func netAppBucketDataSourceCommonAttributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func expandNetAppBucketNfsUser(input []netAppModels.NetAppVolumeBucketNfsUser) *buckets.NfsUser {
+func expandNetAppBucketNfsUser(input []models.NetAppVolumeBucketNfsUser) *buckets.NfsUser {
 	if len(input) == 0 {
 		return nil
 	}
@@ -257,12 +257,12 @@ func expandNetAppBucketCifsUser(input string) *buckets.CifsUser {
 	}
 }
 
-func flattenNetAppBucketNfsUser(input *buckets.NfsUser) []netAppModels.NetAppVolumeBucketNfsUser {
+func flattenNetAppBucketNfsUser(input *buckets.NfsUser) []models.NetAppVolumeBucketNfsUser {
 	if input == nil {
-		return []netAppModels.NetAppVolumeBucketNfsUser{}
+		return []models.NetAppVolumeBucketNfsUser{}
 	}
 
-	return []netAppModels.NetAppVolumeBucketNfsUser{
+	return []models.NetAppVolumeBucketNfsUser{
 		{
 			GroupID: pointer.From(input.GroupId),
 			UserID:  pointer.From(input.UserId),
@@ -278,7 +278,7 @@ func flattenNetAppBucketCifsUser(input *buckets.CifsUser) string {
 	return pointer.From(input.Username)
 }
 
-func expandNetAppBucketAkvDetails(input []netAppModels.NetAppVolumeBucketKeyVault) *buckets.AzureKeyVaultDetails {
+func expandNetAppBucketAkvDetails(input []models.NetAppVolumeBucketKeyVault) *buckets.AzureKeyVaultDetails {
 	if len(input) == 0 {
 		return nil
 	}
@@ -296,12 +296,12 @@ func expandNetAppBucketAkvDetails(input []netAppModels.NetAppVolumeBucketKeyVaul
 	}
 }
 
-func flattenNetAppBucketAkvDetails(input *buckets.AzureKeyVaultDetails) []netAppModels.NetAppVolumeBucketKeyVault {
+func flattenNetAppBucketAkvDetails(input *buckets.AzureKeyVaultDetails) []models.NetAppVolumeBucketKeyVault {
 	if input == nil {
-		return []netAppModels.NetAppVolumeBucketKeyVault{}
+		return []models.NetAppVolumeBucketKeyVault{}
 	}
 
-	out := netAppModels.NetAppVolumeBucketKeyVault{}
+	out := models.NetAppVolumeBucketKeyVault{}
 
 	if input.CertificateAkvDetails != nil {
 		out.CertificateKeyVaultUri = pointer.From(input.CertificateAkvDetails.CertificateKeyVaultUri)
@@ -314,13 +314,13 @@ func flattenNetAppBucketAkvDetails(input *buckets.AzureKeyVaultDetails) []netApp
 	}
 
 	if out.CertificateKeyVaultUri == "" && out.CertificateName == "" && out.CredentialsKeyVaultUri == "" && out.CredentialsSecretName == "" {
-		return []netAppModels.NetAppVolumeBucketKeyVault{}
+		return []models.NetAppVolumeBucketKeyVault{}
 	}
 
-	return []netAppModels.NetAppVolumeBucketKeyVault{out}
+	return []models.NetAppVolumeBucketKeyVault{out}
 }
 
-func expandNetAppBucketServer(input []netAppModels.NetAppVolumeBucketServer) *buckets.BucketServerProperties {
+func expandNetAppBucketServer(input []models.NetAppVolumeBucketServer) *buckets.BucketServerProperties {
 	if len(input) == 0 {
 		return nil
 	}
@@ -341,7 +341,7 @@ func expandNetAppBucketServer(input []netAppModels.NetAppVolumeBucketServer) *bu
 	return out
 }
 
-func expandNetAppBucketServerPatch(input []netAppModels.NetAppVolumeBucketServer, rd *pluginsdk.ResourceData) *buckets.BucketServerPatchProperties {
+func expandNetAppBucketServerPatch(input []models.NetAppVolumeBucketServer, rd *pluginsdk.ResourceData) *buckets.BucketServerPatchProperties {
 	if len(input) == 0 {
 		return nil
 	}
@@ -362,12 +362,12 @@ func expandNetAppBucketServerPatch(input []netAppModels.NetAppVolumeBucketServer
 	return out
 }
 
-func flattenNetAppBucketServer(input *buckets.BucketServerProperties) []netAppModels.NetAppVolumeBucketServer {
+func flattenNetAppBucketServer(input *buckets.BucketServerProperties) []models.NetAppVolumeBucketServer {
 	if input == nil {
-		return []netAppModels.NetAppVolumeBucketServer{}
+		return []models.NetAppVolumeBucketServer{}
 	}
 
-	out := netAppModels.NetAppVolumeBucketServer{
+	out := models.NetAppVolumeBucketServer{
 		Fqdn: pointer.From(input.Fqdn),
 	}
 	if input.OnCertificateConflictAction != nil {
@@ -375,8 +375,8 @@ func flattenNetAppBucketServer(input *buckets.BucketServerProperties) []netAppMo
 	}
 
 	if out.Fqdn == "" && out.OnCertificateConflictAction == "" {
-		return []netAppModels.NetAppVolumeBucketServer{}
+		return []models.NetAppVolumeBucketServer{}
 	}
 
-	return []netAppModels.NetAppVolumeBucketServer{out}
+	return []models.NetAppVolumeBucketServer{out}
 }

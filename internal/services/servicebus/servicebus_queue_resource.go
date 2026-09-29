@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/queues"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -50,7 +50,7 @@ func resourceServicebusQueueSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: azValidate.QueueName(),
+			ValidateFunc: validate.QueueName(),
 		},
 
 		// lintignore: S013
@@ -112,13 +112,13 @@ func resourceServicebusQueueSchema() map[string]*pluginsdk.Schema {
 		"forward_dead_lettered_messages_to": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: azValidate.QueueName(),
+			ValidateFunc: validate.QueueName(),
 		},
 
 		"forward_to": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: azValidate.QueueName(),
+			ValidateFunc: validate.QueueName(),
 		},
 
 		"lock_duration": {
@@ -134,12 +134,12 @@ func resourceServicebusQueueSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.IntAtLeast(1),
 		},
 
-		"max_message_size_in_kilobytes": { // azignore:AZS006 - named `maximum_message_size_in_kb` in the data source to follow new naming conventions
+		"max_message_size_in_kilobytes": { // azignore:AZP003 - named `maximum_message_size_in_kb` in the data source to follow new naming conventions
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
 			// NOTE: O+C this gets a variable default based on the sku and can be updated without issues
 			Computed:     true,
-			ValidateFunc: azValidate.ServiceBusMaxMessageSizeInKilobytes(),
+			ValidateFunc: validate.ServiceBusMaxMessageSizeInKilobytes(),
 		},
 
 		"max_size_in_megabytes": {
@@ -147,7 +147,7 @@ func resourceServicebusQueueSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 			// NOTE: O+C this gets a variable default based on the sku and can be updated without issues
 			Computed:     true,
-			ValidateFunc: azValidate.ServiceBusMaxSizeInMegabytes(),
+			ValidateFunc: validate.ServiceBusMaxSizeInMegabytes(),
 		},
 
 		"requires_duplicate_detection": {
