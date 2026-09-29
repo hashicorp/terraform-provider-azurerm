@@ -17,14 +17,14 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
-type ManagedRedisFlushDatabasesAction struct {
+type Action struct {
 	sdk.ActionMetadata
 }
 
-var _ sdk.Action = &ManagedRedisFlushDatabasesAction{}
+var _ sdk.Action = &Action{}
 
-func Action() action.Action {
-	return &ManagedRedisFlushDatabasesAction{}
+func RegisterAction() action.Action {
+	return &Action{}
 }
 
 type ManagedRedisFlushDatabasesActionActionModel struct {
@@ -33,7 +33,7 @@ type ManagedRedisFlushDatabasesActionActionModel struct {
 	Timeout                types.String   `tfsdk:"timeout"`
 }
 
-func (m *ManagedRedisFlushDatabasesAction) Schema(_ context.Context, _ action.SchemaRequest, response *action.SchemaResponse) {
+func (m *Action) Schema(_ context.Context, _ action.SchemaRequest, response *action.SchemaResponse) {
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"managed_redis_database_id": schema.StringAttribute{
@@ -68,11 +68,11 @@ func (m *ManagedRedisFlushDatabasesAction) Schema(_ context.Context, _ action.Sc
 	}
 }
 
-func (m *ManagedRedisFlushDatabasesAction) Metadata(_ context.Context, _ action.MetadataRequest, response *action.MetadataResponse) {
+func (m *Action) Metadata(_ context.Context, _ action.MetadataRequest, response *action.MetadataResponse) {
 	response.TypeName = "azurerm_managed_redis_databases_flush"
 }
 
-func (m *ManagedRedisFlushDatabasesAction) Invoke(ctx context.Context, request action.InvokeRequest, response *action.InvokeResponse) {
+func (m *Action) Invoke(ctx context.Context, request action.InvokeRequest, response *action.InvokeResponse) {
 	client := m.Client.ManagedRedis.Client
 
 	model := ManagedRedisFlushDatabasesActionActionModel{}
@@ -124,6 +124,6 @@ func (m *ManagedRedisFlushDatabasesAction) Invoke(ctx context.Context, request a
 	})
 }
 
-func (m *ManagedRedisFlushDatabasesAction) Configure(ctx context.Context, request action.ConfigureRequest, response *action.ConfigureResponse) {
+func (m *Action) Configure(ctx context.Context, request action.ConfigureRequest, response *action.ConfigureResponse) {
 	m.Defaults(ctx, request, response)
 }

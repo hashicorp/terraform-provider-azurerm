@@ -33,7 +33,7 @@ func (ListResource) Metadata(_ context.Context, _ resource.MetadataRequest, resp
 }
 
 func (ListResource) ResourceFunc() *pluginsdk.Resource {
-	return Resource()
+	return RegisterResource()
 }
 
 func (ListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
@@ -76,7 +76,7 @@ func (ListResource) List(ctx context.Context, request list.ListRequest, stream *
 			result := request.NewListResult(ctx)
 			result.DisplayName = pointer.From(item.Name)
 
-			rd := Resource().Data(&terraform.InstanceState{})
+			rd := RegisterResource().Data(&terraform.InstanceState{})
 
 			id, err := application.ParseApplicationIDInsensitively(pointer.From(item.Id))
 			if err != nil {

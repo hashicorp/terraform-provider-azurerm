@@ -49,7 +49,7 @@ func (r Registration) Resources() []sdk.Resource {
 
 func (r Registration) Actions() []func() action.Action {
 	return []func() action.Action{
-		managed_redis_flush_databases.Action,
+		managed_redis_flush_databases.RegisterAction,
 	}
 }
 

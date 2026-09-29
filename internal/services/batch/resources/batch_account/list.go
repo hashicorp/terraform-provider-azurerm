@@ -26,7 +26,7 @@ func (ListResource) Metadata(_ context.Context, _ resource.MetadataRequest, resp
 }
 
 func (ListResource) ResourceFunc() *pluginsdk.Resource {
-	return Resource()
+	return RegisterResource()
 }
 
 func (ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
@@ -76,7 +76,7 @@ func (ListResource) List(ctx context.Context, request list.ListRequest, stream *
 			result := request.NewListResult(ctx)
 			result.DisplayName = pointer.From(item.Name)
 
-			rd := Resource().Data(&terraform.InstanceState{})
+			rd := RegisterResource().Data(&terraform.InstanceState{})
 			id, err := batchaccount.ParseBatchAccountIDInsensitively(pointer.From(item.Id))
 			if err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("parsing `%s` ID", batchAccountResourceName), err)
