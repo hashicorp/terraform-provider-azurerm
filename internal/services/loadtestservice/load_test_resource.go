@@ -33,7 +33,7 @@ var (
 
 type LoadTestResource struct{}
 
-func (r LoadTestResource) ModelObject() interface{} {
+func (r LoadTestResource) ModelObject() any {
 	return &LoadTestResourceSchema{}
 }
 
@@ -45,7 +45,7 @@ type LoadTestResourceSchema struct {
 	Location          string                                     `tfschema:"location"`
 	Name              string                                     `tfschema:"name"`
 	ResourceGroupName string                                     `tfschema:"resource_group_name"`
-	Tags              map[string]interface{}                     `tfschema:"tags"`
+	Tags              map[string]any                             `tfschema:"tags"`
 }
 
 type LoadTestEncryption struct {

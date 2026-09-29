@@ -16,7 +16,7 @@ import (
 func patchPossibleValuesFn() {
 	gomonkey.ApplyFunc(validation.StringInSlice,
 		func(valid []string, ignoreCase bool) schema.SchemaValidateFunc { //nolint:staticcheck
-			return func(i interface{}, k string) (warnings []string, errors []error) {
+			return func(i any, k string) (warnings []string, errors []error) {
 				var res []string // must have a copy
 				res = append(res, valid...)
 				return res, nil

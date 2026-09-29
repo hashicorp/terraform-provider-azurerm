@@ -51,7 +51,7 @@ func dataSourceStorageEncryptionScope() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceStorageEncryptionScopeRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceStorageEncryptionScopeRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.ResourceManager.EncryptionScopes
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

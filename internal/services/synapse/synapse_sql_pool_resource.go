@@ -50,7 +50,7 @@ func resourceSynapseSqlPool() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.SqlPoolID(id)
 			return err
-		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
 			d.Set("create_mode", DefaultCreateMode)
 			if v, ok := d.GetOk("create_mode"); ok && v.(string) != "" {
 				d.Set("create_mode", v)
@@ -184,7 +184,7 @@ func resourceSynapseSqlPool() *pluginsdk.Resource {
 	}
 }
 
-func synapseSqlPoolCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+func synapseSqlPoolCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, v any) error {
 	_, value := d.GetChange("geo_backup_policy_enabled")
 	geoBackupEnabled := value.(bool)
 
@@ -198,7 +198,7 @@ func synapseSqlPoolCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff,
 	return nil
 }
 
-func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta any) error {
 	sqlClient := meta.(*clients.Client).Synapse.SqlPoolClient
 	sqlPTDEClient := meta.(*clients.Client).Synapse.SqlPoolTransparentDataEncryptionClient
 	workspaceClient := meta.(*clients.Client).Synapse.WorkspaceClient
@@ -245,7 +245,7 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		Sku: &synapse.Sku{
 			Name: pointer.To(d.Get("sku_name").(string)),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	switch mode {
@@ -260,12 +260,12 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 		sqlPoolInfo.RecoverableDatabaseID = pointer.To(recoveryDatabaseId)
 	case PointInTimeRestoreCreateMode:
-		restore := d.Get("restore").([]interface{})
+		restore := d.Get("restore").([]any)
 		if len(restore) == 0 || restore[0] == nil {
 			return fmt.Errorf("`restore` block must be set when `create_mode` is %q", PointInTimeRestoreCreateMode)
 		}
 
-		v := restore[0].(map[string]interface{})
+		v := restore[0].(map[string]any)
 		sourceDatabaseId := constructSourceDatabaseId(v["source_database_id"].(string))
 		vTime, parseErr := date.ParseTime(time.RFC3339, v["point_in_time"].(string))
 
@@ -317,7 +317,7 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	return resourceSynapseSqlPoolRead(d, meta)
 }
 
-func resourceSynapseSqlPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseSqlPoolUpdate(d *pluginsdk.ResourceData, meta any) error {
 	sqlClient := meta.(*clients.Client).Synapse.SqlPoolClient
 	geoBackUpClient := meta.(*clients.Client).Synapse.SqlPoolGeoBackupPoliciesClient
 	sqlPTDEClient := meta.(*clients.Client).Synapse.SqlPoolTransparentDataEncryptionClient
@@ -368,7 +368,7 @@ func resourceSynapseSqlPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			Sku: &synapse.Sku{
 				Name: pointer.To(d.Get("sku_name").(string)),
 			},
-			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+			Tags: tags.Expand(d.Get("tags").(map[string]any)),
 		}
 
 		if _, err := sqlClient.Update(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, sqlPoolInfo); err != nil {
@@ -404,7 +404,7 @@ func resourceSynapseSqlPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	return resourceSynapseSqlPoolRead(d, meta)
 }
 
-func resourceSynapseSqlPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseSqlPoolRead(d *pluginsdk.ResourceData, meta any) error {
 	sqlClient := meta.(*clients.Client).Synapse.SqlPoolClient
 	sqlPTDEClient := meta.(*clients.Client).Synapse.SqlPoolTransparentDataEncryptionClient
 	geoBackUpClient := meta.(*clients.Client).Synapse.SqlPoolGeoBackupPoliciesClient
@@ -459,12 +459,12 @@ func resourceSynapseSqlPoolRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	// whole "restore" block is not returned. to avoid conflict, so set it from the old state
-	d.Set("restore", d.Get("restore").([]interface{}))
+	d.Set("restore", d.Get("restore").([]any))
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceSynapseSqlPoolDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseSqlPoolDelete(d *pluginsdk.ResourceData, meta any) error {
 	sqlClient := meta.(*clients.Client).Synapse.SqlPoolClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -487,7 +487,7 @@ func resourceSynapseSqlPoolDelete(d *pluginsdk.ResourceData, meta interface{}) e
 }
 
 func synapseSqlPoolScaleStateRefreshFunc(ctx context.Context, client *synapse.SQLPoolsClient, resourceGroup, workspaceName, name string) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		resp, err := client.Get(ctx, resourceGroup, workspaceName, name)
 		if err != nil {
 			return resp, "failed", err

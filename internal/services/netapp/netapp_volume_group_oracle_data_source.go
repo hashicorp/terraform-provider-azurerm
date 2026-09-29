@@ -27,7 +27,7 @@ func (r NetAppVolumeGroupOracleDataSource) ResourceType() string {
 	return "azurerm_netapp_volume_group_oracle"
 }
 
-func (r NetAppVolumeGroupOracleDataSource) ModelObject() interface{} {
+func (r NetAppVolumeGroupOracleDataSource) ModelObject() any {
 	return &models.NetAppVolumeGroupOracleDataSourceModel{}
 }
 

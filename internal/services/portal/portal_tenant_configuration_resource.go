@@ -47,7 +47,7 @@ func resourcePortalTenantConfiguration() *pluginsdk.Resource {
 	}
 }
 
-func resourcePortalTenantConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePortalTenantConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Portal.TenantConfigurationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -87,7 +87,7 @@ func resourcePortalTenantConfigurationCreateUpdate(d *pluginsdk.ResourceData, me
 	return resourcePortalTenantConfigurationRead(d, meta)
 }
 
-func resourcePortalTenantConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePortalTenantConfigurationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Portal.TenantConfigurationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -116,7 +116,7 @@ func resourcePortalTenantConfigurationRead(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func resourcePortalTenantConfigurationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePortalTenantConfigurationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Portal.TenantConfigurationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

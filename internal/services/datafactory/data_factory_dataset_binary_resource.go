@@ -239,7 +239,7 @@ func resourceDataFactoryDatasetBinary() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryDatasetBinaryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetBinaryCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -296,15 +296,15 @@ func resourceDataFactoryDatasetBinaryCreateUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		binaryTableset.Parameters = expandDataSetParameters(v.(map[string]interface{}))
+		binaryTableset.Parameters = expandDataSetParameters(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		binaryTableset.Annotations = pointer.To(v.([]interface{}))
+		binaryTableset.Annotations = pointer.To(v.([]any))
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		binaryTableset.AdditionalProperties = v.(map[string]interface{})
+		binaryTableset.AdditionalProperties = v.(map[string]any)
 	}
 
 	dataset := datafactory.DatasetResource{
@@ -323,7 +323,7 @@ func resourceDataFactoryDatasetBinaryCreateUpdate(d *pluginsdk.ResourceData, met
 	return resourceDataFactoryDatasetBinaryRead(d, meta)
 }
 
-func resourceDataFactoryDatasetBinaryRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetBinaryRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -402,7 +402,7 @@ func resourceDataFactoryDatasetBinaryRead(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func resourceDataFactoryDatasetBinaryDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetBinaryDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

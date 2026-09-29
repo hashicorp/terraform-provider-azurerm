@@ -11,6 +11,6 @@ import (
 
 // The portal says: It can include letters, digits and dashes. It must start with a letter, end with a letter or digit, and be between 3 and 32 characters in length.
 // If you provide invalid name, the rest api will return an error with the following regex.
-func ComputeClusterName(i interface{}, k string) ([]string, []error) {
+func ComputeClusterName(i any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9-]{1,30}[a-zA-Z0-9]$`), "must be between 3 and 32 characters, may only include alphanumeric characters and '-' and must start with a letter, end with a letter or digit")(i, k)
 }

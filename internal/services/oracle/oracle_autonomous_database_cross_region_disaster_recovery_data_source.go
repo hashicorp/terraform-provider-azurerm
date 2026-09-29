@@ -415,7 +415,7 @@ func (d AutonomousDatabaseCrossRegionDisasterRecoveryDataSource) Attributes() ma
 	}
 }
 
-func (d AutonomousDatabaseCrossRegionDisasterRecoveryDataSource) ModelObject() interface{} {
+func (d AutonomousDatabaseCrossRegionDisasterRecoveryDataSource) ModelObject() any {
 	return &AutonomousDatabaseCrossRegionDisasterRecoveryDataModel{}
 }
 

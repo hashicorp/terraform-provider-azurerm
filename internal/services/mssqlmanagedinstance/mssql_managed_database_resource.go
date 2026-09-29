@@ -57,7 +57,7 @@ func (r MsSqlManagedDatabaseResource) ResourceType() string {
 	return "azurerm_mssql_managed_database"
 }
 
-func (r MsSqlManagedDatabaseResource) ModelObject() interface{} {
+func (r MsSqlManagedDatabaseResource) ModelObject() any {
 	return &MsSqlManagedDatabaseModel{}
 }
 
@@ -442,21 +442,21 @@ func flattenLongTermRetentionPolicy(ltrPolicy managedinstancelongtermretentionpo
 	return []LongTermRetentionPolicy{ltrModel}
 }
 
-func flattenManagedDatabasePointInTimeRestore(input interface{}) []PointInTimeRestore {
+func flattenManagedDatabasePointInTimeRestore(input any) []PointInTimeRestore {
 	output := make([]PointInTimeRestore, 0)
 
 	if input == nil {
 		return output
 	}
 
-	attrs := input.([]interface{})
+	attrs := input.([]any)
 
 	for _, attr := range attrs {
 		if attr == nil {
 			return output
 		}
 
-		v := attr.(map[string]interface{})
+		v := attr.(map[string]any)
 
 		output = append(output, PointInTimeRestore{
 			RestorePointInTime: v["restore_point_in_time"].(string),

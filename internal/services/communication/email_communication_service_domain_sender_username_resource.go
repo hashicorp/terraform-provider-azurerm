@@ -64,7 +64,7 @@ func (EmailCommunicationServiceDomainSenderUsernameResource) Attributes() map[st
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (EmailCommunicationServiceDomainSenderUsernameResource) ModelObject() interface{} {
+func (EmailCommunicationServiceDomainSenderUsernameResource) ModelObject() any {
 	return &EmailCommunicationServiceDomainSenderUsernameModel{}
 }
 

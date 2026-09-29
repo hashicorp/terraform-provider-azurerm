@@ -65,11 +65,11 @@ func RequestHeader() *pluginsdk.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointConditionRequestHeader(input []interface{}) []cdn.BasicDeliveryRuleCondition {
+func ExpandArmCdnEndpointConditionRequestHeader(input []any) []cdn.BasicDeliveryRuleCondition {
 	output := make([]cdn.BasicDeliveryRuleCondition, 0)
 
 	for _, v := range input {
-		item := v.(map[string]interface{})
+		item := v.(map[string]any)
 		requestHeaderCondition := cdn.DeliveryRuleRequestHeaderCondition{
 			Name: cdn.NameRequestHeader,
 			Parameters: &cdn.RequestHeaderMatchConditionParameters{
@@ -81,7 +81,7 @@ func ExpandArmCdnEndpointConditionRequestHeader(input []interface{}) []cdn.Basic
 			},
 		}
 
-		if rawTransforms := item["transforms"].([]interface{}); len(rawTransforms) != 0 {
+		if rawTransforms := item["transforms"].([]any); len(rawTransforms) != 0 {
 			transforms := make([]cdn.Transform, 0)
 			for _, t := range rawTransforms {
 				transforms = append(transforms, cdn.Transform(t.(string)))
@@ -95,7 +95,7 @@ func ExpandArmCdnEndpointConditionRequestHeader(input []interface{}) []cdn.Basic
 	return output
 }
 
-func FlattenArmCdnEndpointConditionRequestHeader(input cdn.BasicDeliveryRuleCondition) (*map[string]interface{}, error) {
+func FlattenArmCdnEndpointConditionRequestHeader(input cdn.BasicDeliveryRuleCondition) (*map[string]any, error) {
 	condition, ok := input.AsDeliveryRuleRequestHeaderCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule request header condition")
@@ -103,7 +103,7 @@ func FlattenArmCdnEndpointConditionRequestHeader(input cdn.BasicDeliveryRuleCond
 
 	selector := ""
 	operator := ""
-	matchValues := make([]interface{}, 0)
+	matchValues := make([]any, 0)
 	negateCondition := false
 	transforms := make([]string, 0)
 	if params := condition.Parameters; params != nil {
@@ -128,7 +128,7 @@ func FlattenArmCdnEndpointConditionRequestHeader(input cdn.BasicDeliveryRuleCond
 		}
 	}
 
-	return &map[string]interface{}{
+	return &map[string]any{
 		"selector":         selector,
 		"operator":         operator,
 		"match_values":     pluginsdk.NewSet(pluginsdk.HashString, matchValues),

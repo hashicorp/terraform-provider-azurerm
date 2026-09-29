@@ -226,7 +226,7 @@ func resourceDataFactoryDatasetJSON() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryDatasetJSONCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetJSONCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	subscriptionId := meta.(*clients.Client).DataFactory.DatasetClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -284,19 +284,19 @@ func resourceDataFactoryDatasetJSONCreateUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		jsonTableset.Parameters = expandDataSetParameters(v.(map[string]interface{}))
+		jsonTableset.Parameters = expandDataSetParameters(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		jsonTableset.Annotations = pointer.To(v.([]interface{}))
+		jsonTableset.Annotations = pointer.To(v.([]any))
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		jsonTableset.AdditionalProperties = v.(map[string]interface{})
+		jsonTableset.AdditionalProperties = v.(map[string]any)
 	}
 
 	if v, ok := d.GetOk("schema_column"); ok {
-		jsonTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
+		jsonTableset.Structure = expandDataFactoryDatasetStructure(v.([]any))
 	}
 
 	dataset := datafactory.DatasetResource{
@@ -315,7 +315,7 @@ func resourceDataFactoryDatasetJSONCreateUpdate(d *pluginsdk.ResourceData, meta 
 	return resourceDataFactoryDatasetJSONRead(d, meta)
 }
 
-func resourceDataFactoryDatasetJSONRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetJSONRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -398,7 +398,7 @@ func resourceDataFactoryDatasetJSONRead(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func resourceDataFactoryDatasetJSONDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetJSONDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

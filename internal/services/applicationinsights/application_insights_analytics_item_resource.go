@@ -116,7 +116,7 @@ func resourceApplicationInsightsAnalyticsItem() *pluginsdk.Resource {
 	}
 }
 
-func resourceApplicationInsightsAnalyticsItemCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsAnalyticsItemCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppInsights.AnalyticsItemsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -193,7 +193,7 @@ func resourceApplicationInsightsAnalyticsItemCreate(d *pluginsdk.ResourceData, m
 	return resourceApplicationInsightsAnalyticsItemRead(d, meta)
 }
 
-func resourceApplicationInsightsAnalyticsItemUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsAnalyticsItemUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppInsights.AnalyticsItemsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -236,7 +236,7 @@ func resourceApplicationInsightsAnalyticsItemUpdate(d *pluginsdk.ResourceData, m
 	return resourceApplicationInsightsAnalyticsItemRead(d, meta)
 }
 
-func resourceApplicationInsightsAnalyticsItemRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsAnalyticsItemRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppInsights.AnalyticsItemsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -278,7 +278,7 @@ func resourceApplicationInsightsAnalyticsItemRead(d *pluginsdk.ResourceData, met
 	return nil
 }
 
-func resourceApplicationInsightsAnalyticsItemDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsAnalyticsItemDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppInsights.AnalyticsItemsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

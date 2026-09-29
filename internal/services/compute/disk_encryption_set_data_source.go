@@ -57,7 +57,7 @@ func dataSourceDiskEncryptionSet() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.DiskEncryptionSetsClient
 	env := meta.(*clients.Client).Account.Environment
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId

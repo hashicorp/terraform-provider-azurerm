@@ -150,7 +150,7 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Attributes() map[st
 	}
 }
 
-func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) ModelObject() interface{} {
+func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) ModelObject() any {
 	return &AutonomousDatabaseCrossRegionDisasterRecoveryResourceModel{}
 }
 

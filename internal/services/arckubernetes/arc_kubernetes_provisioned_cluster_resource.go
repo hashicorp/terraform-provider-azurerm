@@ -60,7 +60,7 @@ func (r ArcKubernetesProvisionedClusterResource) ResourceType() string {
 	return "azurerm_arc_kubernetes_provisioned_cluster"
 }
 
-func (r ArcKubernetesProvisionedClusterResource) ModelObject() interface{} {
+func (r ArcKubernetesProvisionedClusterResource) ModelObject() any {
 	return &ArcKubernetesProvisionedClusterModel{}
 }
 

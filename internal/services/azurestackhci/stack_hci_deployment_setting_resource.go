@@ -150,7 +150,7 @@ type StorageModel struct {
 	ConfigurationMode string `tfschema:"configuration_mode"`
 }
 
-func (StackHCIDeploymentSettingResource) ModelObject() interface{} {
+func (StackHCIDeploymentSettingResource) ModelObject() any {
 	return &StackHCIDeploymentSettingModel{}
 }
 

@@ -9,7 +9,7 @@ import (
 	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
-func expandDataSetParameters(input map[string]interface{}) map[string]*datafactory.ParameterSpecification {
+func expandDataSetParameters(input map[string]any) map[string]*datafactory.ParameterSpecification {
 	output := make(map[string]*datafactory.ParameterSpecification)
 
 	for k, v := range input {
@@ -22,8 +22,8 @@ func expandDataSetParameters(input map[string]interface{}) map[string]*datafacto
 	return output
 }
 
-func flattenDataSetParameters(input map[string]*datafactory.ParameterSpecification) map[string]interface{} {
-	output := make(map[string]interface{})
+func flattenDataSetParameters(input map[string]*datafactory.ParameterSpecification) map[string]any {
+	output := make(map[string]any)
 
 	for k, v := range input {
 		if v != nil {

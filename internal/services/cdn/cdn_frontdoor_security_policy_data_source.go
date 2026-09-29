@@ -56,7 +56,7 @@ func (CdnFrontDoorSecurityPolicyDataSource) ResourceType() string {
 	return "azurerm_cdn_frontdoor_security_policy"
 }
 
-func (CdnFrontDoorSecurityPolicyDataSource) ModelObject() interface{} {
+func (CdnFrontDoorSecurityPolicyDataSource) ModelObject() any {
 	return &CdnFrontDoorSecurityPolicyDataSourceModel{}
 }
 

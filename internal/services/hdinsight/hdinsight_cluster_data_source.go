@@ -119,7 +119,7 @@ func dataSourceHDInsightSparkCluster() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceHDInsightClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceHDInsightClusterRead(d *pluginsdk.ResourceData, meta any) error {
 	clustersClient := meta.(*clients.Client).HDInsight.Clusters
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	configurationsClient := meta.(*clients.Client).HDInsight.Configurations

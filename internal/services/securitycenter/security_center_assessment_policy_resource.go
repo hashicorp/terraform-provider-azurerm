@@ -123,7 +123,7 @@ func resourceArmSecurityCenterAssessmentPolicy() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmSecurityCenterAssessmentPolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmSecurityCenterAssessmentPolicyCreate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).SecurityCenter.AssessmentsMetadataClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -192,7 +192,7 @@ func resourceArmSecurityCenterAssessmentPolicyCreate(d *pluginsdk.ResourceData, 
 	return resourceArmSecurityCenterAssessmentPolicyRead(d, meta)
 }
 
-func resourceArmSecurityCenterAssessmentPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmSecurityCenterAssessmentPolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.AssessmentsMetadataClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -244,7 +244,7 @@ func resourceArmSecurityCenterAssessmentPolicyRead(d *pluginsdk.ResourceData, me
 	return nil
 }
 
-func resourceArmSecurityCenterAssessmentPolicyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmSecurityCenterAssessmentPolicyUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.AssessmentsMetadataClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -309,7 +309,7 @@ func resourceArmSecurityCenterAssessmentPolicyUpdate(d *pluginsdk.ResourceData, 
 	return resourceArmSecurityCenterAssessmentPolicyRead(d, meta)
 }
 
-func resourceArmSecurityCenterAssessmentPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmSecurityCenterAssessmentPolicyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.AssessmentsMetadataClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

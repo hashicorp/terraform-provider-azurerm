@@ -49,7 +49,7 @@ type TriggerScheduleScheduleMonthly struct {
 
 var _ sdk.DataSource = TriggerScheduleDataSource{}
 
-func (d TriggerScheduleDataSource) ModelObject() interface{} {
+func (d TriggerScheduleDataSource) ModelObject() any {
 	return &TriggerScheduleDataSourceModel{}
 }
 

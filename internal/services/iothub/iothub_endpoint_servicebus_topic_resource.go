@@ -128,7 +128,7 @@ func resourceIothubEndpointServicebusTopicSchema() map[string]*pluginsdk.Schema 
 	}
 }
 
-func resourceIotHubEndpointServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	subscriptionId := meta.(*clients.Client).IoTHub.ResourceClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -249,7 +249,7 @@ func resourceIotHubEndpointServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData
 	return resourceIotHubEndpointServiceBusTopicRead(d, meta)
 }
 
-func resourceIotHubEndpointServiceBusTopicRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointServiceBusTopicRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -317,7 +317,7 @@ func resourceIotHubEndpointServiceBusTopicRead(d *pluginsdk.ResourceData, meta i
 	return nil
 }
 
-func resourceIotHubEndpointServiceBusTopicDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointServiceBusTopicDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -88,7 +88,7 @@ func resourceApplicationInsightsAPIKey() *pluginsdk.Resource {
 	}
 }
 
-func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppInsights.APIKeysClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -157,7 +157,7 @@ func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta int
 	return resourceApplicationInsightsAPIKeyRead(d, meta)
 }
 
-func resourceApplicationInsightsAPIKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsAPIKeyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppInsights.APIKeysClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -199,7 +199,7 @@ func resourceApplicationInsightsAPIKeyRead(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func resourceApplicationInsightsAPIKeyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsAPIKeyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppInsights.APIKeysClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

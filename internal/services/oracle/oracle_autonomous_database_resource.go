@@ -236,7 +236,7 @@ func (AutonomousDatabaseRegularResource) Attributes() map[string]*pluginsdk.Sche
 	}
 }
 
-func (AutonomousDatabaseRegularResource) ModelObject() interface{} {
+func (AutonomousDatabaseRegularResource) ModelObject() any {
 	return &AutonomousDatabaseRegularResourceModel{}
 }
 

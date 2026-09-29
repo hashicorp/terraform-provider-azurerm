@@ -157,7 +157,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta any) error {
 	roleAssignmentsClient := meta.(*clients.Client).Authorization.ScopedRoleAssignmentsClient
 	roleDefinitionsClient := meta.(*clients.Client).Authorization.ScopedRoleDefinitionsClient
 	subscriptionClient := meta.(*clients.Client).Subscription.SubscriptionsClient
@@ -278,7 +278,7 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}
 	return resourceArmRoleAssignmentRead(d, meta)
 }
 
-func resourceArmRoleAssignmentUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmRoleAssignmentUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Authorization.ScopedRoleAssignmentsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -344,7 +344,7 @@ func resourceArmRoleAssignmentUpdate(d *pluginsdk.ResourceData, meta interface{}
 	return resourceArmRoleAssignmentRead(d, meta)
 }
 
-func resourceArmRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmRoleAssignmentRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Authorization.ScopedRoleAssignmentsClient
 	roleDefinitionsClient := meta.(*clients.Client).Authorization.ScopedRoleDefinitionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -409,7 +409,7 @@ func resourceArmRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceArmRoleAssignmentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmRoleAssignmentDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Authorization.ScopedRoleAssignmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -434,7 +434,7 @@ func resourceArmRoleAssignmentDelete(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func retryRoleAssignmentsClient(d *pluginsdk.ResourceData, id parse.ScopedRoleAssignmentId, param roleassignments.RoleAssignmentCreateParameters, meta interface{}, retryLinkedAuthorizationFailedError bool) func() *pluginsdk.RetryError {
+func retryRoleAssignmentsClient(d *pluginsdk.ResourceData, id parse.ScopedRoleAssignmentId, param roleassignments.RoleAssignmentCreateParameters, meta any, retryLinkedAuthorizationFailedError bool) func() *pluginsdk.RetryError {
 	return func() *pluginsdk.RetryError {
 		roleAssignmentsClient := meta.(*clients.Client).Authorization.ScopedRoleAssignmentsClient
 		ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)

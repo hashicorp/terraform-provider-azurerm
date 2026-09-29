@@ -35,12 +35,12 @@ type NextGenerationFirewallVHubLocalRuleStackModel struct {
 	FrontEnd           []schema.DestinationNAT     `tfschema:"destination_nat"`
 	MarketplaceOfferId string                      `tfschema:"marketplace_offer_id"`
 	PlanId             string                      `tfschema:"plan_id"`
-	Tags               map[string]interface{}      `tfschema:"tags"`
+	Tags               map[string]any              `tfschema:"tags"`
 }
 
 var _ sdk.ResourceWithUpdate = NextGenerationFirewallVHubLocalRuleStackResource{}
 
-func (r NextGenerationFirewallVHubLocalRuleStackResource) ModelObject() interface{} {
+func (r NextGenerationFirewallVHubLocalRuleStackResource) ModelObject() any {
 	return &NextGenerationFirewallVHubLocalRuleStackModel{}
 }
 

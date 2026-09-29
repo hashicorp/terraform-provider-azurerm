@@ -30,7 +30,7 @@ type ManagerModel struct {
 	Name              string                         `tfschema:"name"`
 	Location          string                         `tfschema:"location"`
 	ResourceGroupName string                         `tfschema:"resource_group_name"`
-	Tags              map[string]interface{}         `tfschema:"tags"`
+	Tags              map[string]any                 `tfschema:"tags"`
 }
 
 type ManagerScopeModel struct {
@@ -65,7 +65,7 @@ func (r ManagerResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return networkmanagers.ValidateNetworkManagerID
 }
 
-func (r ManagerResource) ModelObject() interface{} {
+func (r ManagerResource) ModelObject() any {
 	return &ManagerModel{}
 }
 

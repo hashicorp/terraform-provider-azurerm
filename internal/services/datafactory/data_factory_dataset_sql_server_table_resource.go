@@ -146,7 +146,7 @@ func resourceDataFactoryDatasetSQLServerTable() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryDatasetSQLServerTableCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetSQLServerTableCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	subscriptionId := meta.(*clients.Client).DataFactory.DatasetClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -198,19 +198,19 @@ func resourceDataFactoryDatasetSQLServerTableCreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		sqlServerTableset.Parameters = expandDataSetParameters(v.(map[string]interface{}))
+		sqlServerTableset.Parameters = expandDataSetParameters(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		sqlServerTableset.Annotations = pointer.To(v.([]interface{}))
+		sqlServerTableset.Annotations = pointer.To(v.([]any))
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		sqlServerTableset.AdditionalProperties = v.(map[string]interface{})
+		sqlServerTableset.AdditionalProperties = v.(map[string]any)
 	}
 
 	if v, ok := d.GetOk("schema_column"); ok {
-		sqlServerTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
+		sqlServerTableset.Structure = expandDataFactoryDatasetStructure(v.([]any))
 	}
 
 	dataset := datafactory.DatasetResource{
@@ -229,7 +229,7 @@ func resourceDataFactoryDatasetSQLServerTableCreateUpdate(d *pluginsdk.ResourceD
 	return resourceDataFactoryDatasetSQLServerTableRead(d, meta)
 }
 
-func resourceDataFactoryDatasetSQLServerTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetSQLServerTableRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -301,7 +301,7 @@ func resourceDataFactoryDatasetSQLServerTableRead(d *pluginsdk.ResourceData, met
 	return nil
 }
 
-func resourceDataFactoryDatasetSQLServerTableDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetSQLServerTableDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

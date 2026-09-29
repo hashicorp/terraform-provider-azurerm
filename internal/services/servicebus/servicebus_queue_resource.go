@@ -182,7 +182,7 @@ func resourceServicebusQueueSchema() map[string]*pluginsdk.Schema {
 	}
 }
 
-func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceBus.QueuesClient
 	namespaceClient := meta.(*clients.Client).ServiceBus.NamespacesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -223,7 +223,7 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	userConfig := make(map[string]interface{})
+	userConfig := make(map[string]any)
 
 	status := queues.EntityStatus(d.Get("status").(string))
 	userConfig["status"] = status
@@ -357,7 +357,7 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	return resourceServiceBusQueueRead(d, meta)
 }
 
-func resourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceBus.QueuesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -425,7 +425,7 @@ func resourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceServiceBusQueueDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceServiceBusQueueDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceBus.QueuesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -445,8 +445,8 @@ func resourceServiceBusQueueDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func serviceBusQueueStatusRefreshFunc(ctx context.Context, client *queues.QueuesClient, id queues.QueueId, userConfig map[string]interface{}) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+func serviceBusQueueStatusRefreshFunc(ctx context.Context, client *queues.QueuesClient, id queues.QueueId, userConfig map[string]any) pluginsdk.StateRefreshFunc {
+	return func() (any, string, error) {
 		log.Printf("[DEBUG] Checking servicebus queue %s status...", id)
 
 		resp, err := client.Get(ctx, id)

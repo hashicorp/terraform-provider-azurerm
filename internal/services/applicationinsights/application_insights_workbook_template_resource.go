@@ -53,7 +53,7 @@ func (r ApplicationInsightsWorkbookTemplateResource) ResourceType() string {
 	return "azurerm_application_insights_workbook_template"
 }
 
-func (r ApplicationInsightsWorkbookTemplateResource) ModelObject() interface{} {
+func (r ApplicationInsightsWorkbookTemplateResource) ModelObject() any {
 	return &ApplicationInsightsWorkbookTemplateModel{}
 }
 
@@ -176,7 +176,7 @@ func (r ApplicationInsightsWorkbookTemplateResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			var templateDataValue interface{}
+			var templateDataValue any
 			if err := json.Unmarshal([]byte(model.TemplateData), &templateDataValue); err != nil {
 				return err
 			}
@@ -264,7 +264,7 @@ func (r ApplicationInsightsWorkbookTemplateResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("template_data") {
-				var templateDataValue interface{}
+				var templateDataValue any
 				if err := json.Unmarshal([]byte(model.TemplateData), &templateDataValue); err != nil {
 					return err
 				}

@@ -147,7 +147,7 @@ func dataSourcePolicySetDefinition() *pluginsdk.Resource {
 	}
 }
 
-func dataSourcePolicySetDefinitionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourcePolicySetDefinitionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Policy.SetDefinitionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -216,8 +216,8 @@ func dataSourcePolicySetDefinitionRead(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func flattenAzureRMPolicySetDefinitionPolicyDefinitionsTrack1(input *[]policy.DefinitionReference) ([]interface{}, error) {
-	result := make([]interface{}, 0)
+func flattenAzureRMPolicySetDefinitionPolicyDefinitionsTrack1(input *[]policy.DefinitionReference) ([]any, error) {
+	result := make([]any, 0)
 	if input == nil {
 		return result, nil
 	}
@@ -225,7 +225,7 @@ func flattenAzureRMPolicySetDefinitionPolicyDefinitionsTrack1(input *[]policy.De
 	for _, definition := range *input {
 		policyDefinitionID := pointer.From(definition.PolicyDefinitionID)
 
-		parametersMap := make(map[string]interface{})
+		parametersMap := make(map[string]any)
 		for k, v := range definition.Parameters {
 			if v == nil {
 				continue
@@ -240,7 +240,7 @@ func flattenAzureRMPolicySetDefinitionPolicyDefinitionsTrack1(input *[]policy.De
 
 		policyDefinitionReference := pointer.From(definition.PolicyDefinitionReferenceID)
 
-		result = append(result, map[string]interface{}{
+		result = append(result, map[string]any{
 			"policy_definition_id": policyDefinitionID,
 			"parameter_values":     parameterValues,
 			"reference_id":         policyDefinitionReference,
@@ -250,8 +250,8 @@ func flattenAzureRMPolicySetDefinitionPolicyDefinitionsTrack1(input *[]policy.De
 	return result, nil
 }
 
-func flattenAzureRMPolicySetDefinitionPolicyGroupsTrack1(input *[]policy.DefinitionGroup) []interface{} {
-	result := make([]interface{}, 0)
+func flattenAzureRMPolicySetDefinitionPolicyGroupsTrack1(input *[]policy.DefinitionGroup) []any {
+	result := make([]any, 0)
 	if input == nil {
 		return result
 	}
@@ -263,7 +263,7 @@ func flattenAzureRMPolicySetDefinitionPolicyGroupsTrack1(input *[]policy.Definit
 		description := pointer.From(group.Description)
 		metadataID := pointer.From(group.AdditionalMetadataID)
 
-		result = append(result, map[string]interface{}{
+		result = append(result, map[string]any{
 			"name":                            name,
 			"display_name":                    displayName,
 			"category":                        category,

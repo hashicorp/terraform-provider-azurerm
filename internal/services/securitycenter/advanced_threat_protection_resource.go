@@ -61,7 +61,7 @@ func resourceAdvancedThreatProtection() *pluginsdk.Resource {
 	}
 }
 
-func resourceAdvancedThreatProtectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAdvancedThreatProtectionCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.AdvancedThreatProtectionClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -101,7 +101,7 @@ func resourceAdvancedThreatProtectionCreateUpdate(d *pluginsdk.ResourceData, met
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending: []string{"diff"},
 		Target:  []string{"consistent"},
-		Refresh: func() (result interface{}, state string, err error) {
+		Refresh: func() (result any, state string, err error) {
 			resp, err := client.Get(ctx, id.TargetResourceID)
 			if err != nil {
 				return resp, "error", err
@@ -129,7 +129,7 @@ func resourceAdvancedThreatProtectionCreateUpdate(d *pluginsdk.ResourceData, met
 	return resourceAdvancedThreatProtectionRead(d, meta)
 }
 
-func resourceAdvancedThreatProtectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAdvancedThreatProtectionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.AdvancedThreatProtectionClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -158,7 +158,7 @@ func resourceAdvancedThreatProtectionRead(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func resourceAdvancedThreatProtectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAdvancedThreatProtectionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.AdvancedThreatProtectionClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -103,7 +103,7 @@ func resourceManagementGroupPolicyExemption() *pluginsdk.Resource {
 	}
 }
 
-func resourceManagementGroupPolicyExemptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagementGroupPolicyExemptionCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Policy.ExemptionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -132,7 +132,7 @@ func resourceManagementGroupPolicyExemptionCreateUpdate(d *pluginsdk.ResourceDat
 	exemption := policy.Exemption{
 		ExemptionProperties: &policy.ExemptionProperties{
 			PolicyAssignmentID:           pointer.To(d.Get("policy_assignment_id").(string)),
-			PolicyDefinitionReferenceIds: pluginsdk.ExpandStringSlice(d.Get("policy_definition_reference_ids").([]interface{})),
+			PolicyDefinitionReferenceIds: pluginsdk.ExpandStringSlice(d.Get("policy_definition_reference_ids").([]any)),
 			ExemptionCategory:            policy.ExemptionCategory(d.Get("exemption_category").(string)),
 		},
 	}
@@ -172,7 +172,7 @@ func resourceManagementGroupPolicyExemptionCreateUpdate(d *pluginsdk.ResourceDat
 	return resourceManagementGroupPolicyExemptionRead(d, meta)
 }
 
-func resourceManagementGroupPolicyExemptionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagementGroupPolicyExemptionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Policy.ExemptionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -224,7 +224,7 @@ func resourceManagementGroupPolicyExemptionRead(d *pluginsdk.ResourceData, meta 
 	return nil
 }
 
-func resourceManagementGroupPolicyExemptionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagementGroupPolicyExemptionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Policy.ExemptionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -491,7 +491,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 	}
 }
 
-func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.VirtualMachinesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -515,10 +515,10 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	additionalCapabilitiesRaw := d.Get("additional_capabilities").([]interface{})
+	additionalCapabilitiesRaw := d.Get("additional_capabilities").([]any)
 	additionalCapabilities := expandVirtualMachineAdditionalCapabilities(additionalCapabilitiesRaw)
 
-	additionalUnattendContentRaw := d.Get("additional_unattend_content").([]interface{})
+	additionalUnattendContentRaw := d.Get("additional_unattend_content").([]any)
 	additionalUnattendContent := expandAdditionalUnattendContent(additionalUnattendContentRaw)
 
 	allowExtensionOperations := true
@@ -526,15 +526,15 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		allowExtensionOperations = d.Get("allow_extension_operations").(bool)
 	}
 
-	bootDiagnosticsRaw := d.Get("boot_diagnostics").([]interface{})
+	bootDiagnosticsRaw := d.Get("boot_diagnostics").([]any)
 	bootDiagnostics := expandBootDiagnostics(bootDiagnosticsRaw)
 
-	identityExpanded, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+	identityExpanded, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
-	planRaw := d.Get("plan").([]interface{})
+	planRaw := d.Get("plan").([]any)
 	plan := expandPlan(planRaw)
 
 	priority := virtualmachines.VirtualMachinePriorityTypes(d.Get("priority").(string))
@@ -543,16 +543,16 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	assessmentMode := d.Get("patch_assessment_mode").(string)
 	hotPatch := d.Get("hotpatching_enabled").(bool)
 	size := d.Get("size").(string)
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
-	networkInterfaceIdsRaw := d.Get("network_interface_ids").([]interface{})
+	networkInterfaceIdsRaw := d.Get("network_interface_ids").([]any)
 	networkInterfaceIds := expandVirtualMachineNetworkInterfaceIDs(networkInterfaceIdsRaw)
 
 	managedDiskIdRaw := d.Get("os_managed_disk_id").(string)
 	// Note: The API fails if OsProfile is anything but nil with CreateOption = "Attach"
 	osDiskIsImported := managedDiskIdRaw != ""
 
-	secretsRaw := d.Get("secret").([]interface{})
+	secretsRaw := d.Get("secret").([]any)
 	secrets := expandWindowsSecrets(secretsRaw)
 
 	params := virtualmachines.VirtualMachine{
@@ -563,7 +563,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		Plan:             plan,
 		Properties: &virtualmachines.VirtualMachineProperties{
 			ApplicationProfile: &virtualmachines.ApplicationProfile{
-				GalleryApplications: expandVirtualMachineGalleryApplication(d.Get("gallery_application").([]interface{})),
+				GalleryApplications: expandVirtualMachineGalleryApplication(d.Get("gallery_application").([]any)),
 			},
 			HardwareProfile: &virtualmachines.HardwareProfile{
 				VMSize: pointer.ToEnum[virtualmachines.VirtualMachineSizeTypes](size),
@@ -585,14 +585,14 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		},
 		Tags: tags.Expand(t),
 	}
-	osDiskRaw := d.Get("os_disk").([]interface{})
+	osDiskRaw := d.Get("os_disk").([]any)
 	osDisk, err := expandVirtualMachineOSDisk(osDiskRaw, virtualmachines.OperatingSystemTypesWindows)
 	if err != nil {
 		return fmt.Errorf("expanding `os_disk`: %+v", err)
 	}
 	securityEncryptionType := ""
 	if !osDiskIsImported {
-		securityEncryptionType = osDiskRaw[0].(map[string]interface{})["security_encryption_type"].(string)
+		securityEncryptionType = osDiskRaw[0].(map[string]any)["security_encryption_type"].(string)
 		var computerName string
 		if v, ok := d.GetOk("computer_name"); ok && len(v.(string)) > 0 {
 			computerName = v.(string)
@@ -635,7 +635,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		if len(additionalUnattendContentRaw) > 0 {
 			params.Properties.OsProfile.WindowsConfiguration.AdditionalUnattendContent = additionalUnattendContent
 		}
-		sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
+		sourceImageReferenceRaw := d.Get("source_image_reference").([]any)
 		sourceImageId := d.Get("source_image_id").(string)
 		if len(sourceImageReferenceRaw) != 0 || sourceImageId != "" {
 			params.Properties.StorageProfile.ImageReference = expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
@@ -853,11 +853,11 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	var terminateNotificationProfile *virtualmachines.TerminateNotificationProfile
 
 	if v, ok := d.GetOk("os_image_notification"); ok {
-		osImageNotificationProfile = expandOsImageNotificationProfile(v.([]interface{}))
+		osImageNotificationProfile = expandOsImageNotificationProfile(v.([]any))
 	}
 
 	if v, ok := d.GetOk("termination_notification"); ok {
-		terminateNotificationProfile = expandTerminateNotificationProfile(v.([]interface{}))
+		terminateNotificationProfile = expandTerminateNotificationProfile(v.([]any))
 	}
 
 	if terminateNotificationProfile != nil || osImageNotificationProfile != nil {
@@ -889,7 +889,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	return resourceWindowsVirtualMachineRead(d, meta)
 }
 
-func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta any) error {
 	metaClient := meta.(*clients.Client)
 	client := metaClient.Compute.VirtualMachinesClient
 	ctx, cancel := timeouts.ForRead(metaClient.StopContext, d)
@@ -1168,7 +1168,7 @@ func resourceWindowsVirtualMachineFlatten(ctx context.Context, metaClient *clien
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.VirtualMachinesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1224,7 +1224,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 	if d.HasChange("boot_diagnostics") {
 		shouldUpdate = true
 
-		bootDiagnosticsRaw := d.Get("boot_diagnostics").([]interface{})
+		bootDiagnosticsRaw := d.Get("boot_diagnostics").([]any)
 		update.Properties.DiagnosticsProfile = expandBootDiagnostics(bootDiagnosticsRaw)
 	}
 
@@ -1234,7 +1234,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		profile := virtualmachines.OSProfile{}
 
 		if d.HasChange("secret") {
-			secretsRaw := d.Get("secret").([]interface{})
+			secretsRaw := d.Get("secret").([]any)
 			profile.Secrets = expandWindowsSecrets(secretsRaw)
 		}
 
@@ -1372,7 +1372,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 	if d.HasChange("identity") {
 		shouldUpdate = true
 
-		identityExpanded, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		identityExpanded, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -1434,7 +1434,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 	if d.HasChange("gallery_application") {
 		shouldUpdate = true
 		update.Properties.ApplicationProfile = &virtualmachines.ApplicationProfile{
-			GalleryApplications: expandVirtualMachineGalleryApplication(d.Get("gallery_application").([]interface{})),
+			GalleryApplications: expandVirtualMachineGalleryApplication(d.Get("gallery_application").([]any)),
 		}
 	}
 
@@ -1465,7 +1465,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		// @tombuildsstuff: after testing shutting it down isn't sufficient - we need a full deallocation
 		shouldDeallocate = true
 
-		networkInterfaceIdsRaw := d.Get("network_interface_ids").([]interface{})
+		networkInterfaceIdsRaw := d.Get("network_interface_ids").([]any)
 		networkInterfaceIds := expandVirtualMachineNetworkInterfaceIDs(networkInterfaceIdsRaw)
 
 		update.Properties.NetworkProfile = &virtualmachines.NetworkProfile{
@@ -1491,7 +1491,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		shouldShutDown = true
 		shouldDeallocate = true
 
-		osDiskRaw := d.Get("os_disk").([]interface{})
+		osDiskRaw := d.Get("os_disk").([]any)
 		osDisk, err := expandVirtualMachineOSDisk(osDiskRaw, virtualmachines.OperatingSystemTypesWindows)
 		if err != nil {
 			return fmt.Errorf("expanding `os_disk`: %+v", err)
@@ -1582,7 +1582,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 	if d.HasChange("tags") {
 		shouldUpdate = true
 
-		tagsRaw := d.Get("tags").(map[string]interface{})
+		tagsRaw := d.Get("tags").(map[string]any)
 		update.Tags = tags.Expand(tagsRaw)
 	}
 
@@ -1591,12 +1591,12 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	if d.HasChange("os_image_notification") {
 		shouldUpdate = true
-		osImageNotificationProfile = expandOsImageNotificationProfile(d.Get("os_image_notification").([]interface{}))
+		osImageNotificationProfile = expandOsImageNotificationProfile(d.Get("os_image_notification").([]any))
 	}
 
 	if d.HasChange("termination_notification") {
 		shouldUpdate = true
-		terminateNotificationProfile = expandTerminateNotificationProfile(d.Get("termination_notification").([]interface{}))
+		terminateNotificationProfile = expandTerminateNotificationProfile(d.Get("termination_notification").([]any))
 	}
 
 	if osImageNotificationProfile != nil || terminateNotificationProfile != nil {
@@ -1610,12 +1610,12 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		shouldUpdate = true
 
 		n, _ := d.GetChange("additional_capabilities")
-		if len(n.([]interface{})) == 0 || d.HasChange("additional_capabilities.0.ultra_ssd_enabled") {
+		if len(n.([]any)) == 0 || d.HasChange("additional_capabilities.0.ultra_ssd_enabled") {
 			shouldShutDown = true
 			shouldDeallocate = true
 		}
 
-		additionalCapabilitiesRaw := d.Get("additional_capabilities").([]interface{})
+		additionalCapabilitiesRaw := d.Get("additional_capabilities").([]any)
 		update.Properties.AdditionalCapabilities = expandVirtualMachineAdditionalCapabilities(additionalCapabilitiesRaw)
 	}
 
@@ -1772,7 +1772,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 	return resourceWindowsVirtualMachineRead(d, meta)
 }
 
-func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.VirtualMachinesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

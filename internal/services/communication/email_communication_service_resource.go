@@ -84,7 +84,7 @@ func (EmailCommunicationServiceResource) Attributes() map[string]*pluginsdk.Sche
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (EmailCommunicationServiceResource) ModelObject() interface{} {
+func (EmailCommunicationServiceResource) ModelObject() any {
 	return &EmailCommunicationServiceResourceModel{}
 }
 

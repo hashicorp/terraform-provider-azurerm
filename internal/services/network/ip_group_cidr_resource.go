@@ -55,7 +55,7 @@ func resourceIpGroupCidr() *pluginsdk.Resource {
 	}
 }
 
-func resourceIpGroupCidrCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIpGroupCidrCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.IPGroups
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -120,7 +120,7 @@ func resourceIpGroupCidrCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	return resourceIpGroupCidrRead(d, meta)
 }
 
-func resourceIpGroupCidrRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIpGroupCidrRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.IPGroups
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -156,7 +156,7 @@ func resourceIpGroupCidrRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func resourceIpGroupCidrDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIpGroupCidrDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.IPGroups
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

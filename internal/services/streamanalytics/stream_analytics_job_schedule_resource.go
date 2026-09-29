@@ -66,7 +66,7 @@ func (r JobScheduleResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r JobScheduleResource) ModelObject() interface{} {
+func (r JobScheduleResource) ModelObject() any {
 	return &JobScheduleResourceModel{}
 }
 

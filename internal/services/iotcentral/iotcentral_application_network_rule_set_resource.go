@@ -86,7 +86,7 @@ func (r IotCentralApplicationNetworkRuleSetResource) ResourceType() string {
 	return "azurerm_iotcentral_application_network_rule_set"
 }
 
-func (r IotCentralApplicationNetworkRuleSetResource) ModelObject() interface{} {
+func (r IotCentralApplicationNetworkRuleSetResource) ModelObject() any {
 	return &IotCentralApplicationNetworkRuleSetModel{}
 }
 

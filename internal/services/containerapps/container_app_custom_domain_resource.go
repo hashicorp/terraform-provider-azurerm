@@ -79,7 +79,7 @@ func (a ContainerAppCustomDomainResource) Attributes() map[string]*pluginsdk.Sch
 	}
 }
 
-func (a ContainerAppCustomDomainResource) ModelObject() interface{} {
+func (a ContainerAppCustomDomainResource) ModelObject() any {
 	return &ContainerAppCustomDomainResourceModel{}
 }
 

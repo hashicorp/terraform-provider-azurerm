@@ -93,7 +93,7 @@ func resourceSecurityCenterAssessment() *pluginsdk.Resource {
 	}
 }
 
-func resourceSecurityCenterAssessmentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSecurityCenterAssessmentCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.AssessmentsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -124,11 +124,11 @@ func resourceSecurityCenterAssessmentCreateUpdate(d *pluginsdk.ResourceData, met
 
 	assessment := security.Assessment{
 		AssessmentProperties: &security.AssessmentProperties{
-			AdditionalData: pluginsdk.ExpandMapStringPtrString(d.Get("additional_data").(map[string]interface{})),
+			AdditionalData: pluginsdk.ExpandMapStringPtrString(d.Get("additional_data").(map[string]any)),
 			ResourceDetails: &security.AzureResourceDetails{
 				Source: security.SourceAzure,
 			},
-			Status: expandSecurityCenterAssessmentStatus(d.Get("status").([]interface{})),
+			Status: expandSecurityCenterAssessmentStatus(d.Get("status").([]any)),
 		},
 	}
 
@@ -141,7 +141,7 @@ func resourceSecurityCenterAssessmentCreateUpdate(d *pluginsdk.ResourceData, met
 	return resourceSecurityCenterAssessmentRead(d, meta)
 }
 
-func resourceSecurityCenterAssessmentRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSecurityCenterAssessmentRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.AssessmentsClient
 	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -174,7 +174,7 @@ func resourceSecurityCenterAssessmentRead(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func resourceSecurityCenterAssessmentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSecurityCenterAssessmentDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.AssessmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -191,12 +191,12 @@ func resourceSecurityCenterAssessmentDelete(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func expandSecurityCenterAssessmentStatus(input []interface{}) *security.AssessmentStatus {
+func expandSecurityCenterAssessmentStatus(input []any) *security.AssessmentStatus {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	return &security.AssessmentStatus{
 		Code:        security.AssessmentStatusCode(v["code"].(string)),
 		Cause:       pointer.To(v["cause"].(string)),
@@ -204,9 +204,9 @@ func expandSecurityCenterAssessmentStatus(input []interface{}) *security.Assessm
 	}
 }
 
-func flattenSecurityCenterAssessmentStatus(input *security.AssessmentStatus) []interface{} {
+func flattenSecurityCenterAssessmentStatus(input *security.AssessmentStatus) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	var cause, description string
@@ -217,8 +217,8 @@ func flattenSecurityCenterAssessmentStatus(input *security.AssessmentStatus) []i
 		description = *input.Description
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"code":        string(input.Code),
 			"cause":       cause,
 			"description": description,

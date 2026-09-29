@@ -119,7 +119,7 @@ func dataSourceKeyVaultKey() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -228,8 +228,8 @@ func dataSourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func flattenKeyVaultKeyDataSourceOptions(input *[]string) []interface{} {
-	results := make([]interface{}, 0)
+func flattenKeyVaultKeyDataSourceOptions(input *[]string) []any {
+	results := make([]any, 0)
 
 	if input != nil {
 		for _, option := range *input {
