@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2026
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dataprotection_test
@@ -27,6 +27,7 @@ func TestAccDataProtectionBackupInstanceCosmosdbAccount_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("protection_state").HasValue("ProtectionConfigured"),
 			),
 		},
 		data.ImportStep(),
@@ -44,21 +45,6 @@ func TestAccDataProtectionBackupInstanceCosmosdbAccount_requiresImport(t *testin
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
-	})
-}
-
-func TestAccDataProtectionBackupInstanceCosmosdbAccount_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_cosmosdb_account", "test")
-	r := DataProtectionBackupInstanceCosmosdbAccountResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("protection_state").HasValue("ProtectionConfigured"),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
@@ -187,25 +173,6 @@ resource "azurerm_data_protection_backup_instance_cosmosdb_account" "test" {
   location                          = azurerm_resource_group.test.location
   data_protection_backup_vault_id   = azurerm_data_protection_backup_vault.test.id
   backup_policy_cosmosdb_account_id = azurerm_data_protection_backup_policy_cosmosdb_account.another.id
-  cosmosdb_account_id               = azurerm_cosmosdb_account.test.id
-
-  depends_on = [
-    azurerm_role_assignment.reader,
-    azurerm_role_assignment.cosmos_operator,
-  ]
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r DataProtectionBackupInstanceCosmosdbAccountResource) complete(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_data_protection_backup_instance_cosmosdb_account" "test" {
-  name                              = "acctest-dbi-cosmos-%d"
-  location                          = azurerm_resource_group.test.location
-  data_protection_backup_vault_id   = azurerm_data_protection_backup_vault.test.id
-  backup_policy_cosmosdb_account_id = azurerm_data_protection_backup_policy_cosmosdb_account.test.id
   cosmosdb_account_id               = azurerm_cosmosdb_account.test.id
 
   depends_on = [
