@@ -150,7 +150,7 @@ func ExpandApiManagementOperationRepresentation(d *pluginsdk.ResourceData, schem
 
 		// Representation schemaId can only be specified for non form data content types (multipart/form-data, application/x-www-form-urlencoded).
 		// Representation typeName can only be specified for non form data content types (multipart/form-data, application/x-www-form-urlencoded).
-		// nolint gocritic
+		//nolint:gocritic
 		if !contentTypeIsFormData {
 			output.SchemaId = pointer.To(schemaId)
 			output.TypeName = pointer.To(typeName)

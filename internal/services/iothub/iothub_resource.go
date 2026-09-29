@@ -38,7 +38,7 @@ import (
 
 var IothubResourceName = "azurerm_iothub"
 
-// nolint unparam
+//nolint:unparam
 func suppressIfTypeIsNot(t string) pluginsdk.SchemaDiffSuppressFunc {
 	return func(k, old, new string, d *pluginsdk.ResourceData) bool {
 		path := strings.Split(k, ".")
@@ -47,24 +47,11 @@ func suppressIfTypeIsNot(t string) pluginsdk.SchemaDiffSuppressFunc {
 	}
 }
 
-// nolint unparam
 func suppressIfTypeIs(t string) pluginsdk.SchemaDiffSuppressFunc {
 	return func(k, old, new string, d *pluginsdk.ResourceData) bool {
 		path := strings.Split(k, ".")
 		path[len(path)-1] = "type"
 		return d.Get(strings.Join(path, ".")).(string) == t
-	}
-}
-
-// nolint unparam
-func suppressWhenAny(fs ...pluginsdk.SchemaDiffSuppressFunc) pluginsdk.SchemaDiffSuppressFunc {
-	return func(k, old, new string, d *pluginsdk.ResourceData) bool {
-		for _, f := range fs {
-			if f(k, old, new, d) {
-				return true
-			}
-		}
-		return false
 	}
 }
 
@@ -718,7 +705,7 @@ func resourceIotHubCreate(d *pluginsdk.ResourceData, meta any) error {
 		props.Properties.NetworkRuleSets = expandNetworkRuleSetProperties(d)
 	}
 
-	// nolint staticcheck
+	//nolint:staticcheck
 	if v, ok := d.GetOkExists("public_network_access_enabled"); ok {
 		enabled := devices.PublicNetworkAccessDisabled
 		if v.(bool) {
@@ -871,7 +858,7 @@ func resourceIotHubUpdate(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	if d.HasChange("public_network_access_enabled") {
-		// nolint staticcheck
+		//nolint:staticcheck
 		if v, ok := d.GetOkExists("public_network_access_enabled"); ok {
 			enabled := devices.PublicNetworkAccessDisabled
 			if v.(bool) {

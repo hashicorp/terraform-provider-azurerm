@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" //nolint:staticcheck
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -203,7 +203,7 @@ func resourcePolicyDefinitionRead(d *pluginsdk.ResourceData, meta any) error {
 
 	managementGroupName := ""
 	var managementGroupId mgmtGrpParse.ManagementGroupId
-	switch scopeId := id.PolicyScopeId.(type) { // nolint gocritic
+	switch scopeId := id.PolicyScopeId.(type) { //nolint:gocritic
 	case parse.ScopeAtManagementGroup:
 		managementGroupId = mgmtGrpParse.NewManagementGroupId(scopeId.ManagementGroupName)
 		managementGroupName = managementGroupId.Name
@@ -263,7 +263,7 @@ func resourcePolicyDefinitionDelete(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	managementGroupName := ""
-	switch scopeId := id.PolicyScopeId.(type) { // nolint gocritic
+	switch scopeId := id.PolicyScopeId.(type) { //nolint:gocritic
 	case parse.ScopeAtManagementGroup:
 		managementGroupName = scopeId.ManagementGroupName
 	}

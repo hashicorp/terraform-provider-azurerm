@@ -323,9 +323,7 @@ func resourceLogicAppWorkflowCreate(d *pluginsdk.ResourceData, meta any) error {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
-	// nolint gosimple
-	var definition interface{}
-	definition = map[string]any{
+	var definition any = map[string]any{
 		"$schema":        workflowSchema,
 		"contentVersion": workflowVersion,
 		"actions":        make(map[string]any),

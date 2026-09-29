@@ -9,7 +9,6 @@ import (
 	"log"
 	"time"
 
-	// nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -410,11 +409,10 @@ func resourceStorageManagementPolicyDelete(d *pluginsdk.ResourceData, meta any) 
 	return nil
 }
 
-// nolint unparam
 func expandStorageManagementPolicyRules(d *pluginsdk.ResourceData) ([]managementpolicies.ManagementPolicyRule, error) {
 	var result []managementpolicies.ManagementPolicyRule
 
-	rules := d.Get("rule").([]interface{})
+	rules := d.Get("rule").([]any)
 
 	for k, v := range rules {
 		if v != nil {

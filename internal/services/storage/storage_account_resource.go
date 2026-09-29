@@ -1299,7 +1299,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	httpsTrafficOnlyEnabled := true
-	// nolint staticcheck
+	//nolint:staticcheck
 	if v, ok := d.GetOkExists("https_traffic_only_enabled"); ok {
 		httpsTrafficOnlyEnabled = v.(bool)
 	}
@@ -1385,7 +1385,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 		}
 	}
 
-	// nolint staticcheck
+	//nolint:staticcheck
 	if v, ok := d.GetOkExists("large_file_share_enabled"); ok {
 		// @tombuildsstuff: we can't set this to `false` because the API returns:
 		//

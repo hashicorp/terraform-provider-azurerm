@@ -300,7 +300,7 @@ func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta any) er
 		},
 	}
 
-	// nolint : staticcheck
+	//nolint:staticcheck
 	if v, ok := d.GetOkExists("cmk_for_query_forced"); ok {
 		parameters.Properties.ForceCmkForQuery = pointer.To(v.(bool))
 	}
@@ -312,7 +312,7 @@ func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta any) er
 	}
 
 	// The `ImmediatePurgeDataOn30Days` are not returned before it has been set
-	// nolint : staticcheck
+	//nolint:staticcheck
 	if v, ok := d.GetOkExists("immediate_data_purge_on_30_days_enabled"); ok {
 		parameters.Properties.Features.ImmediatePurgeDataOn30Days = pointer.To(v.(bool))
 	}

@@ -38,6 +38,7 @@ linters:
     - nilerr                    # finds code that returns nil after it checks that the error is not nil
     - nilnesserr                # finds code that checks one error but mistakenly returns a different nil error
     - noctx                     # finds http requests and exec commands made without a context.Context
+    - nolintlint                # checks nolint comments are well formed, name a linter and still suppress something - see settings below
     - nosprintfhostport         # checks for misuse of Sprintf to construct host:port in a URL
     - predeclared               # find code that shadows one of Go's predeclared identifiers
     - reassign                  # checks that package variables are not reassigned
@@ -58,18 +59,17 @@ linters:
       - legacy
       - std-error-handling
     paths:
-      - vendor$
       - internal/services/.*/.*_gen.go$
-      - /sdk/
-      - third_party$
-      - builtin$
-      - examples$
     rules:
       # staticcheck 0.8 (golangci-lint v2.13) started reporting deprecated struct fields set in composite literals,
       # which flags the legacy Create/Read/Update/Delete funcs on every untyped resource (~2900 sites). Migrating
       # them to the *Context variants is a mechanical pr of its own; until then keep SA1019 quiet for just these.
       - linters: [staticcheck]
         text: '/(pluginsdk|schema)\.Resource\)\.(Create|Read|Update|Delete) is deprecated: Use'
+      # the sdk's own tests use int model fields on purpose, to check the encoder/decoder still handles them
+      - linters: [azproviderlint]
+        path: internal/sdk/.*_test\.go$
+        text: '^AZS001:'
 
   settings:
     errcheck:
@@ -89,6 +89,8 @@ linters:
     modernize:
       disable:
         - newexpr # flags pointer.To(x) -> new(x), azurerm standardises on pointer.To (see AZG002 below)
+    nolintlint:
+      require-specific: true # a nolint that names no linter switches off every linter for the code below it
     predeclared:
       ignore: # widely used as ordinary variable/parameter names across the provider (old/new in diffs, min/max in validation)
         - new
@@ -169,9 +171,4 @@ formatters:
   exclusions:
     generated: lax
     paths:
-      - vendor$
       - internal/services/.*/.*_gen.go$
-      - /sdk/
-      - third_party$
-      - builtin$
-      - examples$

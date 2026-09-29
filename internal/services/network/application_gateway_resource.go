@@ -4307,7 +4307,7 @@ func expandApplicationGatewaySslCertificates(d *pluginsdk.ResourceData) (*[]appl
 			Properties: &applicationgateways.ApplicationGatewaySslCertificatePropertiesFormat{},
 		}
 
-		// nolint gocritic
+		//nolint:gocritic
 		if data != "" && kvsid != "" {
 			return nil, fmt.Errorf("only one of `key_vault_secret_id` or `data` must be specified for the `ssl_certificate` block %q", name)
 		} else if data != "" {
@@ -4404,7 +4404,6 @@ func expandApplicationGatewayTrustedClientCertificates(d *pluginsdk.ResourceData
 			Properties: &applicationgateways.ApplicationGatewayTrustedClientCertificatePropertiesFormat{},
 		}
 
-		// nolint gocritic
 		if data != "" {
 			// data must be base64 encoded
 			output.Properties.Data = pointer.To(base64.EncodeIfNot(data))
