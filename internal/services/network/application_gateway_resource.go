@@ -4404,7 +4404,6 @@ func expandApplicationGatewayTrustedClientCertificates(d *pluginsdk.ResourceData
 			Properties: &applicationgateways.ApplicationGatewayTrustedClientCertificatePropertiesFormat{},
 		}
 
-		//nolint:gocritic
 		if data != "" {
 			// data must be base64 encoded
 			output.Properties.Data = pointer.To(base64.EncodeIfNot(data))

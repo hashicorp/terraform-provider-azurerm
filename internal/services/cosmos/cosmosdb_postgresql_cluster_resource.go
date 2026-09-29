@@ -423,7 +423,7 @@ func (r CosmosDbPostgreSQLClusterResource) Create() sdk.ResourceFunc {
 			// If `shards_on_coordinator_enabled` isn't set, API would set it to `true` when `node_count` is `0`.
 			// If `shards_on_coordinator_enabled` isn't set, API would set it to `false` when `node_count` is greater than or equal to `2`.
 			// As `shards_on_coordinator_enabled` is `bool` and it's always set to `false` as zero value when it isn't set, so we cannot use `model.ShardsOnCoordinatorEnabled` to check if this property is set in tf config.
-			//nolint:staticcheck
+			//nolint:staticcheck,tfproviderlint // XR001: GetOkExists is needed here, see above
 			if v, ok := metadata.ResourceData.GetOkExists("shards_on_coordinator_enabled"); ok {
 				parameters.Properties.EnableShardsOnCoordinator = pointer.To(v.(bool))
 			}

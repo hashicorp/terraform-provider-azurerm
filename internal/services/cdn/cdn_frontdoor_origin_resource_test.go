@@ -275,7 +275,6 @@ resource "azurerm_storage_account" "test" {
 `, template, data.RandomString)
 }
 
-//nolint:unused
 func (r CdnFrontdoorOriginResource) templatePrivateLinkStorageStaticWebSite(data acceptance.TestData) string {
 	template := r.template(data, "Premium_AzureFrontDoor", false)
 	return fmt.Sprintf(`

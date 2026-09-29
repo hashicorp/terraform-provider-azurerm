@@ -47,24 +47,11 @@ func suppressIfTypeIsNot(t string) pluginsdk.SchemaDiffSuppressFunc {
 	}
 }
 
-//nolint:unparam
 func suppressIfTypeIs(t string) pluginsdk.SchemaDiffSuppressFunc {
 	return func(k, old, new string, d *pluginsdk.ResourceData) bool {
 		path := strings.Split(k, ".")
 		path[len(path)-1] = "type"
 		return d.Get(strings.Join(path, ".")).(string) == t
-	}
-}
-
-//nolint:unparam
-func suppressWhenAny(fs ...pluginsdk.SchemaDiffSuppressFunc) pluginsdk.SchemaDiffSuppressFunc {
-	return func(k, old, new string, d *pluginsdk.ResourceData) bool {
-		for _, f := range fs {
-			if f(k, old, new, d) {
-				return true
-			}
-		}
-		return false
 	}
 }
 

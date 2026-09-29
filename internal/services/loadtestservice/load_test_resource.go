@@ -327,12 +327,10 @@ func (r LoadTestResource) mapLoadTestPropertiesToLoadTestResourceSchema(input lo
 	output.Description = pointer.From(input.Description)
 
 	if encryption := input.Encryption; encryption != nil {
-		outputEncryption := make([]LoadTestEncryption, 0)
-		outputEncryptionIdentity := make([]LoadTestEncryptionIdentity, 0)
-		output.Encryption = append(outputEncryption, LoadTestEncryption{
+		output.Encryption = []LoadTestEncryption{{
 			KeyURL:   pointer.From(encryption.KeyURL),
-			Identity: outputEncryptionIdentity,
-		})
+			Identity: make([]LoadTestEncryptionIdentity, 0),
+		}}
 		if encryptionIdentity := encryption.Identity; encryptionIdentity != nil {
 			output.Encryption[0].Identity = append(output.Encryption[0].Identity, LoadTestEncryptionIdentity{
 				IdentityID: pointer.From(encryptionIdentity.ResourceId),

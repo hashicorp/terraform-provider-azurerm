@@ -12,8 +12,6 @@ import (
 // virtualMachineShouldBeStarted determines if the Virtual Machine should be started after
 // the Virtual Machine has been shut down for maintenance. This means that Virtual Machines
 // which are already stopped can be updated but will not be started
-//
-//nolint:deadcode,unused
 func virtualMachineShouldBeStarted(instanceView *virtualmachines.VirtualMachineInstanceView) bool {
 	if instanceView != nil && instanceView.Statuses != nil {
 		for _, status := range *instanceView.Statuses {

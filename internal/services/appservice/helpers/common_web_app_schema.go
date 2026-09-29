@@ -1395,7 +1395,7 @@ func FilterManagedAppSettings(input map[string]string) map[string]string {
 		"WEBSITE_HEALTHCHECK_MAXPINGFAILURES",
 	}
 
-	for _, v := range unmanagedSettings { //nolint:typecheck
+	for _, v := range unmanagedSettings {
 		delete(input, v)
 	}
 

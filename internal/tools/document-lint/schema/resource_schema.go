@@ -87,7 +87,7 @@ func (r *Resource) Init() {
 		// this is not work if Read() defined in other file
 		r.FilePath = FileForResource(r.SDKResource.Read().Func)
 	} else {
-		r.FilePath = FileForResource(r.Schema.Read, r.Schema.ReadContext) //nolint:staticcheck
+		r.FilePath = FileForResource(r.Schema.Read, r.Schema.ReadContext)
 	}
 	r.PossibleValues = map[string][]string{}
 	r.FindAllInSlicePropByMonkey()

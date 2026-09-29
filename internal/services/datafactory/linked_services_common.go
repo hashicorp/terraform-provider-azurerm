@@ -6,7 +6,7 @@ package datafactory
 import (
 	"log"
 
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" //nolint:staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 func expandLinkedServiceParameters(input map[string]any) map[string]*datafactory.ParameterSpecification {

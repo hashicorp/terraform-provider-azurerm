@@ -83,10 +83,10 @@ func TestResourcesSupportCustomTimeouts(t *testing.T) {
 			// every Resource has to have a Create, Read & Destroy timeout
 
 			//lint:ignore SA1019 SDKv2 migration  - staticcheck's own linter directives are currently being ignored under golanci-lint
-			if (resource.Timeouts.Create == nil) != (resource.Create == nil && resource.CreateContext == nil) { //nolint:staticcheck
+			if (resource.Timeouts.Create == nil) != (resource.Create == nil && resource.CreateContext == nil) {
 				t.Fatalf("Resource %q should define/not define the Create(Context) method and the Create Timeout at the same time", resourceName)
 			}
-			if (resource.Timeouts.Delete == nil) != (resource.Delete == nil && resource.DeleteContext == nil) { //nolint:staticcheck
+			if (resource.Timeouts.Delete == nil) != (resource.Delete == nil && resource.DeleteContext == nil) {
 				t.Fatalf("Resource %q should define/not define the Delete(Context) method and the Delete Timeout at the same time", resourceName)
 			}
 			if resource.Timeouts.Read == nil {
@@ -107,7 +107,7 @@ func TestResourcesSupportCustomTimeouts(t *testing.T) {
 			}
 
 			// Optional
-			if (resource.Timeouts.Update == nil) != (resource.Update == nil && resource.UpdateContext == nil) { //nolint:staticcheck
+			if (resource.Timeouts.Update == nil) != (resource.Update == nil && resource.UpdateContext == nil) {
 				t.Fatalf("Resource %q should define/not define the Update(Context) method and the Update Timeout at the same time", resourceName)
 			}
 		})
