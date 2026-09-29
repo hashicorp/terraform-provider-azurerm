@@ -33,7 +33,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -73,7 +73,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: computeValidate.VirtualMachineName,
+				ValidateFunc: validate.VirtualMachineName,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -90,7 +90,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 					"os_managed_disk_id",
 					"admin_password_wo",
 				},
-				ValidateFunc: computeValidate.WindowsAdminPassword,
+				ValidateFunc: validate.WindowsAdminPassword,
 			},
 
 			"admin_password_wo": {
@@ -99,7 +99,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				WriteOnly:     true,
 				RequiredWith:  []string{"admin_password_wo_version"},
 				ConflictsWith: []string{"admin_password", "os_managed_disk_id"},
-				ValidateFunc:  computeValidate.WindowsAdminPassword,
+				ValidateFunc:  validate.WindowsAdminPassword,
 			},
 
 			"admin_password_wo_version": {
@@ -118,7 +118,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 					"admin_username",
 					"os_managed_disk_id",
 				},
-				ValidateFunc: computeValidate.WindowsAdminUsername,
+				ValidateFunc: validate.WindowsAdminUsername,
 			},
 
 			"network_interface_ids": {
@@ -212,7 +212,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				Computed: true,
 				ForceNew: true,
 
-				ValidateFunc: computeValidate.WindowsComputerNameFull,
+				ValidateFunc: validate.WindowsComputerNameFull,
 				ConflictsWith: []string{
 					"os_managed_disk_id",
 				},
@@ -413,10 +413,10 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 					images.ValidateImageID,
 					validation.AsGeneratedID(galleryimages.ParseGalleryImageIDInsensitively),
 					validation.AsGeneratedID(galleryimageversions.ParseImageVersionIDInsensitively),
-					computeValidate.CommunityGalleryImageID,
-					computeValidate.CommunityGalleryImageVersionID,
-					computeValidate.SharedGalleryImageID,
-					computeValidate.SharedGalleryImageVersionID,
+					validate.CommunityGalleryImageID,
+					validate.CommunityGalleryImageVersionID,
+					validate.SharedGalleryImageID,
+					validate.SharedGalleryImageVersionID,
 				),
 				ExactlyOneOf: []string{
 					"os_managed_disk_id",
@@ -437,7 +437,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: computeValidate.VirtualMachineTimeZone(),
+				ValidateFunc: validate.VirtualMachineTimeZone(),
 			},
 
 			"virtual_machine_scale_set_id": {
@@ -653,7 +653,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		if v, ok := d.GetOk("computer_name"); ok && len(v.(string)) > 0 {
 			computerName = v.(string)
 		} else {
-			_, errs := computeValidate.WindowsComputerNameFull(d.Get("name"), "computer_name")
+			_, errs := validate.WindowsComputerNameFull(d.Get("name"), "computer_name")
 			if len(errs) > 0 {
 				return fmt.Errorf("unable to assume default computer name %s. Please adjust the `name`, or specify an explicit `computer_name`", errs[0])
 			}
