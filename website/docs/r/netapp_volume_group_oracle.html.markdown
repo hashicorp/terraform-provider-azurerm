@@ -50,7 +50,6 @@ resource "azurerm_subnet" "example" {
 
     service_delegation {
       name    = "Microsoft.Netapp/volumes"
-      actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
     }
   }
 }
@@ -175,7 +174,6 @@ resource "azurerm_subnet" "example_primary" {
 
     service_delegation {
       name    = "Microsoft.Netapp/volumes"
-      actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
     }
   }
 }
@@ -199,7 +197,6 @@ resource "azurerm_subnet" "example_secondary" {
 
     service_delegation {
       name    = "Microsoft.Netapp/volumes"
-      actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
     }
   }
 }

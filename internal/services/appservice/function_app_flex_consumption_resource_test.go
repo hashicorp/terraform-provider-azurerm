@@ -1709,14 +1709,7 @@ resource "azurerm_subnet" "test1" {
 
     service_delegation {
       name    = "Microsoft.App/environments"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
-  }
-
-  lifecycle {
-    ignore_changes = [
-      delegation[0].service_delegation[0].actions
-    ]
   }
 }
 

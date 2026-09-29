@@ -810,7 +810,6 @@ resource "azurerm_subnet" "api" {
     name = "aks-delegation"
 
     service_delegation {
-      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
       name    = "Microsoft.ContainerService/managedClusters"
     }
   }

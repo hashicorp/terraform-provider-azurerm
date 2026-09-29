@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -1033,7 +1034,8 @@ data "azurerm_subnet" "test" {
 }
 
 func (r SubnetResource) delegation(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.SixPointOh() {
+		return fmt.Sprintf(`
 %s
 
 resource "azurerm_subnet" "test" {
@@ -1050,6 +1052,26 @@ resource "azurerm_subnet" "test" {
       actions = [
         "Microsoft.Network/virtualNetworks/subnets/action",
       ]
+    }
+  }
+}
+`, r.template(data))
+	}
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+
+  delegation {
+    name = "first"
+
+    service_delegation {
+      name = "Microsoft.ContainerInstance/containerGroups"
     }
   }
 }
@@ -1084,11 +1106,6 @@ resource "azurerm_subnet" "test" {
 
     service_delegation {
       name = "Microsoft.Databricks/workspaces"
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
-        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
-      ]
     }
   }
 }
@@ -1638,10 +1655,6 @@ resource "azurerm_subnet" "test" {
 
     service_delegation {
       name = "%s"
-
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-      ]
     }
   }
 }
@@ -1663,11 +1676,6 @@ resource "azurerm_subnet" "test" {
 
     service_delegation {
       name = "%s"
-
-      actions = [
-        "Microsoft.Network/networkinterfaces/*",
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-      ]
     }
   }
 }

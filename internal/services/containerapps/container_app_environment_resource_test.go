@@ -1151,7 +1151,6 @@ resource "azurerm_subnet" "control" {
   delegation {
     name = "acctestdelegation%[2]d"
     service_delegation {
-      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
       name    = "Microsoft.App/environments"
     }
   }

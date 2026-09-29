@@ -41,9 +41,6 @@ resource "azurerm_subnet" "example" {
     name = "fs"
     service_delegation {
       name = "Microsoft.DBforMySQL/flexibleServers"
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-      ]
     }
   }
 }

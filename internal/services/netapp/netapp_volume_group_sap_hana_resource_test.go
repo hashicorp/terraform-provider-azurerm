@@ -1626,7 +1626,6 @@ resource "azurerm_subnet" "test_secondary" {
 
     service_delegation {
       name    = "Microsoft.Netapp/volumes"
-      actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
     }
   }
 }
@@ -1704,7 +1703,6 @@ resource "azurerm_subnet" "test_secondary" {
 
     service_delegation {
       name    = "Microsoft.Netapp/volumes"
-      actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
     }
   }
 }
@@ -1910,7 +1908,6 @@ resource "azurerm_subnet" "test" {
 
     service_delegation {
       name    = "Microsoft.Netapp/volumes"
-      actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
     }
   }
 }
@@ -2539,7 +2536,6 @@ resource "azurerm_subnet" "test" {
 
     service_delegation {
       name    = "Microsoft.Netapp/volumes"
-      actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
     }
   }
 }
@@ -2716,7 +2712,6 @@ resource "azurerm_subnet" "test-delegated" {
 
     service_delegation {
       name    = "Microsoft.Netapp/volumes"
-      actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
     }
   }
 }

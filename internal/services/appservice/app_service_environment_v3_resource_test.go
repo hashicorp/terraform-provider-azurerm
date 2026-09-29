@@ -301,7 +301,6 @@ resource "azurerm_subnet" "test" {
     name = "asedelegation"
     service_delegation {
       name    = "Microsoft.Web/hostingEnvironments"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
   }
 }
@@ -394,7 +393,6 @@ resource "azurerm_subnet" "test2" {
     name = "asedelegation"
     service_delegation {
       name    = "Microsoft.Web/hostingEnvironments"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
   }
 }
@@ -478,7 +476,6 @@ resource "azurerm_subnet" "test" {
     name = "asedelegation"
     service_delegation {
       name    = "Microsoft.Web/hostingEnvironments"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
   }
 }

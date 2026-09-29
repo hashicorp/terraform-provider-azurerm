@@ -3991,7 +3991,6 @@ resource "azurerm_subnet" "test" {
 
     service_delegation {
       name    = "Microsoft.Web/serverFarms"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
   }
 
@@ -4132,7 +4131,6 @@ resource "azurerm_subnet" "test1" {
     name = "delegation"
     service_delegation {
       name    = "Microsoft.Web/serverFarms"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
   }
 }
@@ -4146,7 +4144,6 @@ resource "azurerm_subnet" "test2" {
     name = "delegation"
     service_delegation {
       name    = "Microsoft.Web/serverFarms"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
   }
 }
@@ -4188,7 +4185,6 @@ resource "azurerm_subnet" "test1" {
 
     service_delegation {
       name    = "Microsoft.Web/serverFarms"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
   }
 }
@@ -4204,7 +4200,6 @@ resource "azurerm_subnet" "test2" {
 
     service_delegation {
       name    = "Microsoft.Web/serverFarms"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
   }
 }
@@ -4247,7 +4242,6 @@ resource "azurerm_subnet" "test1" {
 
     service_delegation {
       name    = "Microsoft.Web/serverFarms"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
   }
 }
@@ -4263,7 +4257,6 @@ resource "azurerm_subnet" "test2" {
 
     service_delegation {
       name    = "Microsoft.Web/serverFarms"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
   }
 }
@@ -4305,7 +4298,6 @@ resource "azurerm_subnet" "test1" {
 
     service_delegation {
       name    = "Microsoft.Web/serverFarms"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
   }
 }
@@ -4321,7 +4313,6 @@ resource "azurerm_subnet" "test2" {
 
     service_delegation {
       name    = "Microsoft.Web/serverFarms"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
   }
 }

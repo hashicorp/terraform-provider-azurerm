@@ -1054,9 +1054,6 @@ resource "azurerm_virtual_network" "test" {
       name = "nginx"
       service_delegation {
         name = "NGINX.NGINXPLUS/nginxDeployments"
-        actions = [
-          "Microsoft.Network/virtualNetworks/subnets/join/action",
-        ]
       }
     }
   }
@@ -1075,9 +1072,6 @@ resource "azurerm_virtual_network" "test" {
       name = "containers"
       service_delegation {
         name = "Microsoft.ContainerInstance/containerGroups"
-        actions = [
-          "Microsoft.Network/virtualNetworks/subnets/action",
-        ]
       }
     }
   }
@@ -1127,9 +1121,6 @@ resource "azurerm_virtual_network" "test" {
       name = "first"
       service_delegation {
         name = "Microsoft.ContainerInstance/containerGroups"
-        actions = [
-          "Microsoft.Network/virtualNetworks/subnets/action",
-        ]
       }
     }
   }

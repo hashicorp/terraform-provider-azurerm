@@ -38,7 +38,6 @@ resource "azurerm_subnet" "example" {
     name = "Microsoft.Web.hostingEnvironments"
     service_delegation {
       name    = "Microsoft.Web/hostingEnvironments"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
   }
 }

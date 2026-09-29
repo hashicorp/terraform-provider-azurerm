@@ -282,7 +282,6 @@ resource "azurerm_subnet" "virtual" {
     name = "aciDelegation"
     service_delegation {
       name    = "Microsoft.ContainerInstance/containerGroups"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
   }
 }

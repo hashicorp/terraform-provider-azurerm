@@ -1015,7 +1015,6 @@ resource "azurerm_subnet" "test" {
 
     service_delegation {
       name    = "Microsoft.ContainerInstance/containerGroups"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
   }
 }
@@ -1490,7 +1489,6 @@ resource "azurerm_subnet" "test" {
 
     service_delegation {
       name    = "Microsoft.ContainerInstance/containerGroups"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
   }
 }
@@ -1555,7 +1553,6 @@ resource "azurerm_subnet" "test" {
 
     service_delegation {
       name    = "Microsoft.ContainerInstance/containerGroups"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
   }
 }
@@ -1612,7 +1609,6 @@ resource "azurerm_subnet" "test" {
 
     service_delegation {
       name    = "Microsoft.ContainerInstance/containerGroups"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
   }
 }

@@ -126,7 +126,6 @@ resource "azurerm_subnet" "test" {
   delegation {
     name = "Microsoft.Network.dnsResolvers"
     service_delegation {
-      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
       name    = "Microsoft.Network/dnsResolvers"
     }
   }

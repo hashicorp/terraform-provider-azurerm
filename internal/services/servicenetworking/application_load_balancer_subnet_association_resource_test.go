@@ -140,7 +140,6 @@ resource "azurerm_subnet" "test" {
 
     service_delegation {
       name    = "Microsoft.ServiceNetworking/trafficControllers"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
     }
   }
 }

@@ -405,7 +405,6 @@ resource "azurerm_subnet" "test-aci" {
 
     service_delegation {
       name    = "Microsoft.ContainerInstance/containerGroups"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
   }
 }
