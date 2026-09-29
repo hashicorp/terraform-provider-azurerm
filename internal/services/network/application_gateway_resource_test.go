@@ -2473,7 +2473,7 @@ resource "azurerm_application_gateway" "import" {
 `, r.basic(data))
 }
 
-// nolint unused - mistakenly marked as unused
+//nolint:unused // mistakenly marked as unused
 func (r ApplicationGatewayResource) trustedRootCertificate_keyvault(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s

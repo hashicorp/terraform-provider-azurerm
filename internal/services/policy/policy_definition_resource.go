@@ -203,7 +203,7 @@ func resourcePolicyDefinitionRead(d *pluginsdk.ResourceData, meta any) error {
 
 	managementGroupName := ""
 	var managementGroupId mgmtGrpParse.ManagementGroupId
-	switch scopeId := id.PolicyScopeId.(type) { // nolint gocritic
+	switch scopeId := id.PolicyScopeId.(type) { //nolint:gocritic
 	case parse.ScopeAtManagementGroup:
 		managementGroupId = mgmtGrpParse.NewManagementGroupId(scopeId.ManagementGroupName)
 		managementGroupName = managementGroupId.Name
@@ -263,7 +263,7 @@ func resourcePolicyDefinitionDelete(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	managementGroupName := ""
-	switch scopeId := id.PolicyScopeId.(type) { // nolint gocritic
+	switch scopeId := id.PolicyScopeId.(type) { //nolint:gocritic
 	case parse.ScopeAtManagementGroup:
 		managementGroupName = scopeId.ManagementGroupName
 	}

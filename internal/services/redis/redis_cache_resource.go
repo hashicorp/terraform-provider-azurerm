@@ -889,7 +889,6 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redisresources.RedisC
 	output.PreferredDataPersistenceAuthMethod = pointer.To(raw["data_persistence_authentication_method"].(string))
 
 	// AAD/Entra support
-	// nolint : staticcheck
 	v, valExists := d.GetOk("redis_configuration.0.active_directory_authentication_enabled")
 	if valExists {
 		entraEnabled := v.(bool)
@@ -899,7 +898,7 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redisresources.RedisC
 	}
 
 	// RDB Backup
-	// nolint : staticcheck
+	//nolint:staticcheck
 	v, valExists = d.GetOkExists("redis_configuration.0.rdb_backup_enabled")
 	if valExists {
 		rdbBackupEnabled := v.(bool)
@@ -934,7 +933,7 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redisresources.RedisC
 	}
 
 	// AOF Backup
-	// nolint : staticcheck
+	//nolint:staticcheck
 	v, valExists = d.GetOkExists("redis_configuration.0.aof_backup_enabled")
 	if valExists {
 		// aof_backup_enabled is available when SKU is Premium

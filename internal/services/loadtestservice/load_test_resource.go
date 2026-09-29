@@ -294,7 +294,7 @@ func (r LoadTestResource) EnsureEncryptionIdentityIDExistsInIdentity(model LoadT
 	return nil
 }
 
-// nolint unparam
+//nolint:unparam
 func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestProperties(input LoadTestResourceSchema, output *loadtests.LoadTestProperties) error {
 	output.Description = &input.Description
 	output.Encryption = r.mapLoadTestResourceSchemaToLoadTestEncryption(input.Encryption)
@@ -321,7 +321,7 @@ func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestEncryption(input []
 	}
 }
 
-// nolint unparam
+//nolint:unparam
 func (r LoadTestResource) mapLoadTestPropertiesToLoadTestResourceSchema(input loadtests.LoadTestProperties, output *LoadTestResourceSchema) error {
 	output.DataPlaneURI = pointer.From(input.DataPlaneURI)
 	output.Description = pointer.From(input.Description)

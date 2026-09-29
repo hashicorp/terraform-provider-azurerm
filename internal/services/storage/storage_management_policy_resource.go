@@ -410,11 +410,11 @@ func resourceStorageManagementPolicyDelete(d *pluginsdk.ResourceData, meta any) 
 	return nil
 }
 
-// nolint unparam
+//nolint:unparam
 func expandStorageManagementPolicyRules(d *pluginsdk.ResourceData) ([]managementpolicies.ManagementPolicyRule, error) {
 	var result []managementpolicies.ManagementPolicyRule
 
-	rules := d.Get("rule").([]interface{})
+	rules := d.Get("rule").([]any)
 
 	for k, v := range rules {
 		if v != nil {

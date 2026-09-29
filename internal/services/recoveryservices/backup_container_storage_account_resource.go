@@ -190,7 +190,7 @@ func resourceBackupProtectionContainerStorageAccountDelete(d *pluginsdk.Resource
 	return nil
 }
 
-// nolint unused - linter mistakenly things this function isn't used?
+//nolint:unused // linter mistakenly things this function isn't used?
 func resourceBackupProtectionContainerStorageAccountWaitForOperation(ctx context.Context, client *backup.OperationStatusesClient, vaultName, resourceGroup, operationID string, d *pluginsdk.ResourceData) error {
 	state := &pluginsdk.StateChangeConf{
 		MinTimeout:                10 * time.Second,
