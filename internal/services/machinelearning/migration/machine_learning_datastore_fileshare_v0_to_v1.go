@@ -7,7 +7,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/fileshares"
-	storageparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -18,7 +18,7 @@ type MachineLearningDataStoreFileShareV0ToV1 struct{}
 func (MachineLearningDataStoreFileShareV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		if v, ok := rawState["storage_fileshare_id"].(string); ok && v != "" {
-			if id, err := storageparse.StorageShareResourceManagerID(v); err == nil {
+			if id, err := parse.StorageShareResourceManagerID(v); err == nil {
 				rawState["storage_fileshare_id"] = fileshares.NewShareID(id.SubscriptionId, id.ResourceGroup, id.StorageAccountName, id.FileshareName).ID()
 			}
 		}

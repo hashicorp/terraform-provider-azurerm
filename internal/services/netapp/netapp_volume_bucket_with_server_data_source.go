@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/buckets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -26,7 +26,7 @@ func (r NetAppVolumeBucketWithServerDataSource) ResourceType() string {
 }
 
 func (r NetAppVolumeBucketWithServerDataSource) ModelObject() interface{} {
-	return &netAppModels.NetAppVolumeBucketWithServerDataSourceModel{}
+	return &models.NetAppVolumeBucketWithServerDataSourceModel{}
 }
 
 func (r NetAppVolumeBucketWithServerDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -71,7 +71,7 @@ func (r NetAppVolumeBucketWithServerDataSource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.NetApp.BucketsClient
 
-			var state netAppModels.NetAppVolumeBucketWithServerDataSourceModel
+			var state models.NetAppVolumeBucketWithServerDataSourceModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -96,8 +96,8 @@ func (r NetAppVolumeBucketWithServerDataSource) Read() sdk.ResourceFunc {
 			if resp.Model != nil && resp.Model.Properties != nil {
 				props := resp.Model.Properties
 				state.Path = pointer.From(props.Path)
-				state.Permissions = string(pointer.From(props.Permissions))
-				state.Status = string(pointer.From(props.Status))
+				state.Permissions = pointer.FromEnum(props.Permissions)
+				state.Status = pointer.FromEnum(props.Status)
 
 				if props.FileSystemUser != nil {
 					state.FileSystemNfsUser = flattenNetAppBucketNfsUser(props.FileSystemUser.NfsUser)

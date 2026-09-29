@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/applicationgateways"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
-	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -256,7 +256,7 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 							"key_vault_secrets_provider.0.secret_rotation_enabled",
 							"key_vault_secrets_provider.0.secret_rotation_interval",
 						},
-						ValidateFunc: containerValidate.Duration,
+						ValidateFunc: validate.Duration,
 					},
 					"secret_identity": {
 						Type:     pluginsdk.TypeList,

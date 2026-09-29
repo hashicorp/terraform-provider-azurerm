@@ -16,8 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2019-06-01/smartdetectoralertrules"
-	billing "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentfeaturesandpricingapis"
-	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentfeaturesandpricingapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -35,9 +35,9 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 		Update: resourceApplicationInsightsUpdate,
 		Delete: resourceApplicationInsightsDelete,
 
-		Importer: pluginsdk.ImporterValidatingIdentity(&components.ComponentId{}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&componentsapis.ComponentId{}),
 		Identity: &schema.ResourceIdentity{
-			SchemaFunc: pluginsdk.GenerateIdentitySchema(&components.ComponentId{}),
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&componentsapis.ComponentId{}),
 		},
 
 		SchemaVersion: 2,
@@ -184,7 +184,7 @@ func resourceApplicationInsightsCreate(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := components.NewComponentID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := componentsapis.NewComponentID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.ComponentsGet(ctx, id)
@@ -196,19 +196,19 @@ func resourceApplicationInsightsCreate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	internetIngestionEnabled := components.PublicNetworkAccessTypeDisabled
+	internetIngestionEnabled := componentsapis.PublicNetworkAccessTypeDisabled
 	if d.Get("internet_ingestion_enabled").(bool) {
-		internetIngestionEnabled = components.PublicNetworkAccessTypeEnabled
+		internetIngestionEnabled = componentsapis.PublicNetworkAccessTypeEnabled
 	}
 
-	internetQueryEnabled := components.PublicNetworkAccessTypeDisabled
+	internetQueryEnabled := componentsapis.PublicNetworkAccessTypeDisabled
 	if d.Get("internet_query_enabled").(bool) {
-		internetQueryEnabled = components.PublicNetworkAccessTypeEnabled
+		internetQueryEnabled = componentsapis.PublicNetworkAccessTypeEnabled
 	}
 
-	applicationInsightsComponentProperties := components.ApplicationInsightsComponentProperties{
+	applicationInsightsComponentProperties := componentsapis.ApplicationInsightsComponentProperties{
 		ApplicationId:                   pointer.To(id.ComponentName),
-		ApplicationType:                 components.ApplicationType(d.Get("application_type").(string)),
+		ApplicationType:                 componentsapis.ApplicationType(d.Get("application_type").(string)),
 		SamplingPercentage:              pointer.To(d.Get("sampling_percentage").(float64)),
 		DisableIPMasking:                pointer.To(!d.Get("ip_masking_enabled").(bool)),
 		DisableLocalAuth:                pointer.To(!d.Get("local_authentication_enabled").(bool)),
@@ -229,7 +229,7 @@ func resourceApplicationInsightsCreate(d *pluginsdk.ResourceData, meta interface
 		applicationInsightsComponentProperties.RetentionInDays = pointer.To(int64(v.(int)))
 	}
 
-	insightProperties := components.ApplicationInsightsComponent{
+	insightProperties := componentsapis.ApplicationInsightsComponent{
 		Name:       pointer.To(id.ComponentName),
 		Location:   location.Normalize(d.Get("location").(string)),
 		Kind:       d.Get("application_type").(string),
@@ -258,7 +258,7 @@ func resourceApplicationInsightsCreate(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("retrieving %s: `id` was nil", id)
 	}
 
-	billingId, err := billing.ParseComponentID(id.ID())
+	billingId, err := componentfeaturesandpricingapis.ParseComponentID(id.ID())
 	if err != nil {
 		return err
 	}
@@ -272,10 +272,10 @@ func resourceApplicationInsightsCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if billingRead.Model.DataVolumeCap == nil {
-		billingRead.Model.DataVolumeCap = &billing.ApplicationInsightsComponentDataVolumeCap{}
+		billingRead.Model.DataVolumeCap = &componentfeaturesandpricingapis.ApplicationInsightsComponentDataVolumeCap{}
 	}
 
-	applicationInsightsComponentBillingFeatures := billing.ApplicationInsightsComponentBillingFeatures{
+	applicationInsightsComponentBillingFeatures := componentfeaturesandpricingapis.ApplicationInsightsComponentBillingFeatures{
 		CurrentBillingFeatures: billingRead.Model.CurrentBillingFeatures,
 		DataVolumeCap:          billingRead.Model.DataVolumeCap,
 	}
@@ -335,7 +335,7 @@ func resourceApplicationInsightsRead(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := components.ParseComponentID(d.Id())
+	id, err := componentsapis.ParseComponentID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -349,7 +349,7 @@ func resourceApplicationInsightsRead(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	billingId, err := billing.ParseComponentID(id.ID())
+	billingId, err := componentfeaturesandpricingapis.ParseComponentID(id.ID())
 	if err != nil {
 		return err
 	}
@@ -384,8 +384,8 @@ func resourceApplicationInsightsRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("ip_masking_enabled", !pointer.From(props.DisableIPMasking))
 			d.Set("connection_string", props.ConnectionString)
 			d.Set("local_authentication_enabled", !pointer.From(props.DisableLocalAuth))
-			d.Set("internet_ingestion_enabled", pointer.From(props.PublicNetworkAccessForIngestion) == components.PublicNetworkAccessTypeEnabled)
-			d.Set("internet_query_enabled", pointer.From(props.PublicNetworkAccessForQuery) == components.PublicNetworkAccessTypeEnabled)
+			d.Set("internet_ingestion_enabled", pointer.From(props.PublicNetworkAccessForIngestion) == componentsapis.PublicNetworkAccessTypeEnabled)
+			d.Set("internet_query_enabled", pointer.From(props.PublicNetworkAccessForQuery) == componentsapis.PublicNetworkAccessTypeEnabled)
 			d.Set("force_customer_storage_for_profiler", props.ForceCustomerStorageForProfiler)
 			d.Set("retention_in_days", pointer.From(props.RetentionInDays))
 			workspaceId := ""
@@ -416,7 +416,7 @@ func resourceApplicationInsightsUpdate(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := components.ParseComponentID(d.Id())
+	id, err := componentsapis.ParseComponentID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -452,16 +452,16 @@ func resourceApplicationInsightsUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("internet_ingestion_enabled") {
-		component.Properties.PublicNetworkAccessForIngestion = pointer.To(components.PublicNetworkAccessTypeDisabled)
+		component.Properties.PublicNetworkAccessForIngestion = pointer.To(componentsapis.PublicNetworkAccessTypeDisabled)
 		if d.Get("internet_ingestion_enabled").(bool) {
-			component.Properties.PublicNetworkAccessForIngestion = pointer.To(components.PublicNetworkAccessTypeEnabled)
+			component.Properties.PublicNetworkAccessForIngestion = pointer.To(componentsapis.PublicNetworkAccessTypeEnabled)
 		}
 	}
 
 	if d.HasChange("internet_query_enabled") {
-		component.Properties.PublicNetworkAccessForQuery = pointer.To(components.PublicNetworkAccessTypeDisabled)
+		component.Properties.PublicNetworkAccessForQuery = pointer.To(componentsapis.PublicNetworkAccessTypeDisabled)
 		if d.Get("internet_query_enabled").(bool) {
-			component.Properties.PublicNetworkAccessForQuery = pointer.To(components.PublicNetworkAccessTypeEnabled)
+			component.Properties.PublicNetworkAccessForQuery = pointer.To(componentsapis.PublicNetworkAccessTypeEnabled)
 		}
 	}
 
@@ -500,7 +500,7 @@ func resourceApplicationInsightsUpdate(d *pluginsdk.ResourceData, meta interface
 	if read.Model.Id == nil {
 		return fmt.Errorf("retrieving %s: `id` was nil", id)
 	}
-	billingId, err := billing.ParseComponentID(id.ID())
+	billingId, err := componentfeaturesandpricingapis.ParseComponentID(id.ID())
 	if err != nil {
 		return err
 	}
@@ -516,7 +516,7 @@ func resourceApplicationInsightsUpdate(d *pluginsdk.ResourceData, meta interface
 	billingProps := billingExisting.Model
 
 	if billingProps.DataVolumeCap == nil {
-		billingProps.DataVolumeCap = &billing.ApplicationInsightsComponentDataVolumeCap{}
+		billingProps.DataVolumeCap = &componentfeaturesandpricingapis.ApplicationInsightsComponentDataVolumeCap{}
 	}
 
 	if d.HasChange("daily_data_cap_in_gb") {
@@ -540,7 +540,7 @@ func resourceApplicationInsightsDelete(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := components.ParseComponentID(d.Id())
+	id, err := componentsapis.ParseComponentID(d.Id())
 	if err != nil {
 		return err
 	}

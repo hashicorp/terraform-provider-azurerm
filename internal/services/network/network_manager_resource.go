@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkmanagers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	managementGroupValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -94,7 +94,7 @@ func (r ManagerResource) Arguments() map[string]*pluginsdk.Schema {
 						Optional: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
-							ValidateFunc: managementGroupValidate.ManagementGroupID,
+							ValidateFunc: validate.ManagementGroupID,
 						},
 						AtLeastOneOf: []string{"scope.0.management_group_ids", "scope.0.subscription_ids"},
 					},

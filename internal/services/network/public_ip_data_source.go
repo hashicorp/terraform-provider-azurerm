@@ -146,7 +146,7 @@ func dataSourcePublicIPRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("zones", zones.FlattenUntyped(model.Zones))
 		skuName := ""
 		if sku := model.Sku; sku != nil {
-			skuName = string(pointer.From(sku.Name))
+			skuName = pointer.FromEnum(sku.Name)
 			d.Set("sku_tier", pointer.FromEnum(sku.Tier))
 		}
 		d.Set("sku", skuName)
@@ -170,7 +170,7 @@ func dataSourcePublicIPRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 
 			if ddosSetting := props.DdosSettings; ddosSetting != nil {
-				d.Set("ddos_protection_mode", string(pointer.From(ddosSetting.ProtectionMode)))
+				d.Set("ddos_protection_mode", pointer.FromEnum(ddosSetting.ProtectionMode))
 				if subResource := ddosSetting.DdosProtectionPlan; subResource != nil {
 					d.Set("ddos_protection_plan_id", subResource.Id)
 				}
@@ -185,9 +185,9 @@ func dataSourcePublicIPRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("fqdn", fqdn)
 			d.Set("reverse_fqdn", reverseFqdn)
 
-			d.Set("allocation_method", string(pointer.From(props.PublicIPAllocationMethod)))
+			d.Set("allocation_method", pointer.FromEnum(props.PublicIPAllocationMethod))
 			d.Set("ip_address", props.IPAddress)
-			d.Set("ip_version", string(pointer.From(props.PublicIPAddressVersion)))
+			d.Set("ip_version", pointer.FromEnum(props.PublicIPAddressVersion))
 			d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes)
 
 			d.Set("ip_tags", flattenPublicIpPropsIpTags(props.IPTags))

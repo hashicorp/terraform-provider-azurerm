@@ -17,8 +17,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
-	webtests "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-03-01/metricalerts"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -282,12 +282,12 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 						"web_test_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: webtests.ValidateWebTestID,
+							ValidateFunc: webtestsapis.ValidateWebTestID,
 						},
 						"component_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: components.ValidateComponentID,
+							ValidateFunc: componentsapis.ValidateComponentID,
 						},
 						"failed_location_count": {
 							Type:         pluginsdk.TypeInt,

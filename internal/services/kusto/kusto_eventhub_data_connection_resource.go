@@ -233,9 +233,9 @@ func resourceKustoEventHubDataConnectionRead(d *pluginsdk.ResourceData, meta int
 				d.Set("consumer_group", props.ConsumerGroup)
 				d.Set("table_name", props.TableName)
 				d.Set("mapping_rule_name", props.MappingRuleName)
-				d.Set("data_format", string(pointer.From(props.DataFormat)))
-				d.Set("database_routing_type", string(pointer.From(props.DatabaseRouting)))
-				d.Set("compression", string(pointer.From(props.Compression)))
+				d.Set("data_format", pointer.FromEnum(props.DataFormat))
+				d.Set("database_routing_type", pointer.FromEnum(props.DatabaseRouting))
+				d.Set("compression", pointer.FromEnum(props.Compression))
 				d.Set("event_system_properties", props.EventSystemProperties)
 				d.Set("retrieval_start_date", pointer.From(props.RetrievalStartDate))
 

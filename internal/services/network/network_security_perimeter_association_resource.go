@@ -209,7 +209,7 @@ func (NetworkSecurityPerimeterAssociationResource) Read() sdk.ResourceFunc {
 						state.ResourceId = pointer.From(props.PrivateLinkResource.Id)
 					}
 
-					state.AccessMode = string(pointer.From(props.AccessMode))
+					state.AccessMode = pointer.FromEnum(props.AccessMode)
 				}
 			}
 

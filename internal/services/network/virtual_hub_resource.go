@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -54,7 +54,7 @@ func resourceVirtualHub() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.VirtualHubName,
+				ValidateFunc: validate.VirtualHubName,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -355,7 +355,7 @@ func resourceVirtualHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				return fmt.Errorf("setting `route`: %+v", err)
 			}
 
-			d.Set("hub_routing_preference", string(pointer.From(props.HubRoutingPreference)))
+			d.Set("hub_routing_preference", pointer.FromEnum(props.HubRoutingPreference))
 
 			var virtualWanId *string
 			if props.VirtualWAN != nil {
