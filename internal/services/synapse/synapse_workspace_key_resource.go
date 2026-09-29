@@ -68,7 +68,7 @@ func resourceSynapseWorkspaceKey() *pluginsdk.Resource {
 	}
 }
 
-func resourceSynapseWorkspaceKeysCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseWorkspaceKeysCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.KeysClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -131,7 +131,7 @@ func resourceSynapseWorkspaceKeysCreateUpdate(d *pluginsdk.ResourceData, meta in
 	return resourceSynapseWorkspaceKeyRead(d, meta)
 }
 
-func resourceSynapseWorkspaceKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseWorkspaceKeyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.KeysClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -162,7 +162,7 @@ func resourceSynapseWorkspaceKeyRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceSynapseWorkspaceKeysDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseWorkspaceKeysDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.KeysClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -188,7 +188,7 @@ func resourceSynapseWorkspaceKeysDelete(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func synapseKeysWaitForStateChange(ctx context.Context, meta interface{}, timeout time.Duration, resourceGroup string, workspaceName string, keyName string, pendingState string, targetState string) *pluginsdk.StateChangeConf {
+func synapseKeysWaitForStateChange(ctx context.Context, meta any, timeout time.Duration, resourceGroup string, workspaceName string, keyName string, pendingState string, targetState string) *pluginsdk.StateChangeConf {
 	return &pluginsdk.StateChangeConf{
 		Pending:    []string{pendingState},
 		Target:     []string{targetState},
@@ -198,8 +198,8 @@ func synapseKeysWaitForStateChange(ctx context.Context, meta interface{}, timeou
 	}
 }
 
-func synapseKeysRefresh(ctx context.Context, meta interface{}, resourceGroup string, workspaceName string, keyName string) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+func synapseKeysRefresh(ctx context.Context, meta any, resourceGroup string, workspaceName string, keyName string) pluginsdk.StateRefreshFunc {
+	return func() (any, string, error) {
 		client := meta.(*clients.Client).Synapse.KeysClient
 
 		log.Printf("[INFO] checking on state of encryption key '%q' (Workspace %q)", workspaceName, keyName)

@@ -55,11 +55,11 @@ func URLRedirect() *pluginsdk.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointActionUrlRedirect(input []interface{}) (*[]cdn.BasicDeliveryRuleAction, error) {
+func ExpandArmCdnEndpointActionUrlRedirect(input []any) (*[]cdn.BasicDeliveryRuleAction, error) {
 	output := make([]cdn.BasicDeliveryRuleAction, 0)
 
 	for _, v := range input {
-		item := v.(map[string]interface{})
+		item := v.(map[string]any)
 
 		params := cdn.URLRedirectActionParameters{
 			OdataType:    pointer.To("Microsoft.Azure.Cdn.Models.DeliveryRuleUrlRedirectActionParameters"),
@@ -95,7 +95,7 @@ func ExpandArmCdnEndpointActionUrlRedirect(input []interface{}) (*[]cdn.BasicDel
 	return &output, nil
 }
 
-func FlattenArmCdnEndpointActionUrlRedirect(input cdn.BasicDeliveryRuleAction) (*map[string]interface{}, error) {
+func FlattenArmCdnEndpointActionUrlRedirect(input cdn.BasicDeliveryRuleAction) (*map[string]any, error) {
 	action, ok := input.AsURLRedirectAction()
 	if !ok {
 		return nil, errors.New("expected a delivery rule url redirect action")
@@ -129,7 +129,7 @@ func FlattenArmCdnEndpointActionUrlRedirect(input cdn.BasicDeliveryRuleAction) (
 		}
 	}
 
-	return &map[string]interface{}{
+	return &map[string]any{
 		"fragment":      fragment,
 		"hostname":      customHostname,
 		"query_string":  queryString,

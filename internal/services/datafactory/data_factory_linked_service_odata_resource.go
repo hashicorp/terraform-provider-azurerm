@@ -124,7 +124,7 @@ func resourceArmDataFactoryLinkedServiceOData() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmDataFactoryLinkedServiceODataCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryLinkedServiceODataCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	subscriptionId := meta.(*clients.Client).DataFactory.LinkedServiceClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -164,9 +164,9 @@ func resourceArmDataFactoryLinkedServiceODataCreateUpdate(d *pluginsdk.ResourceD
 	// There are multiple authentication paths. If support for those get added, we can easily add them in
 	// a similar format to the below while not messing up the other attributes in ODataLinkedServiceTypeProperties
 	if v, ok := d.GetOk("basic_authentication"); ok {
-		attrs := v.([]interface{})
+		attrs := v.([]any)
 		if len(attrs) != 0 && attrs[0] != nil {
-			raw := attrs[0].(map[string]interface{})
+			raw := attrs[0].(map[string]any)
 			odataLinkedService.AuthenticationType = datafactory.ODataAuthenticationTypeBasic
 			odataLinkedService.UserName = raw["username"].(string)
 			odataLinkedService.Password = datafactory.SecureString{
@@ -177,7 +177,7 @@ func resourceArmDataFactoryLinkedServiceODataCreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		odataLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]interface{}))
+		odataLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
@@ -185,11 +185,11 @@ func resourceArmDataFactoryLinkedServiceODataCreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		odataLinkedService.AdditionalProperties = v.(map[string]interface{})
+		odataLinkedService.AdditionalProperties = v.(map[string]any)
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		odataLinkedService.Annotations = pointer.To(v.([]interface{}))
+		odataLinkedService.Annotations = pointer.To(v.([]any))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -205,7 +205,7 @@ func resourceArmDataFactoryLinkedServiceODataCreateUpdate(d *pluginsdk.ResourceD
 	return resourceArmDataFactoryLinkedServiceODataRead(d, meta)
 }
 
-func resourceArmDataFactoryLinkedServiceODataRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryLinkedServiceODataRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -238,7 +238,7 @@ func resourceArmDataFactoryLinkedServiceODataRead(d *pluginsdk.ResourceData, met
 	props := odata.ODataLinkedServiceTypeProperties
 	d.Set("url", props.URL)
 	if props.AuthenticationType == datafactory.ODataAuthenticationTypeBasic {
-		if err := d.Set("basic_authentication", []interface{}{map[string]interface{}{
+		if err := d.Set("basic_authentication", []any{map[string]any{
 			"username": props.UserName,
 			// `password` isn't returned from the api so we'll set it to `*****` here to be able to check for diffs during plan
 			"password": "*****",
@@ -267,7 +267,7 @@ func resourceArmDataFactoryLinkedServiceODataRead(d *pluginsdk.ResourceData, met
 	return nil
 }
 
-func resourceArmDataFactoryLinkedServiceODataDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryLinkedServiceODataDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

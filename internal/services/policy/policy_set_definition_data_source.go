@@ -10,7 +10,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -148,7 +147,7 @@ func dataSourcePolicySetDefinition() *pluginsdk.Resource {
 	}
 }
 
-func dataSourcePolicySetDefinitionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourcePolicySetDefinitionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Policy.SetDefinitionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -198,7 +197,7 @@ func dataSourcePolicySetDefinitionRead(d *pluginsdk.ResourceData, meta interface
 
 	definitionBytes, err := json.Marshal(setDefinition.PolicyDefinitions)
 	if err != nil {
-		return fmt.Errorf("flattening JSON for `policy_defintions`: %+v", err)
+		return fmt.Errorf("flattening JSON for `policy_definitions`: %+v", err)
 	}
 	d.Set("policy_definitions", string(definitionBytes))
 
@@ -217,8 +216,8 @@ func dataSourcePolicySetDefinitionRead(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func flattenAzureRMPolicySetDefinitionPolicyDefinitionsTrack1(input *[]policy.DefinitionReference) ([]interface{}, error) {
-	result := make([]interface{}, 0)
+func flattenAzureRMPolicySetDefinitionPolicyDefinitionsTrack1(input *[]policy.DefinitionReference) ([]any, error) {
+	result := make([]any, 0)
 	if input == nil {
 		return result, nil
 	}
@@ -226,7 +225,7 @@ func flattenAzureRMPolicySetDefinitionPolicyDefinitionsTrack1(input *[]policy.De
 	for _, definition := range *input {
 		policyDefinitionID := pointer.From(definition.PolicyDefinitionID)
 
-		parametersMap := make(map[string]interface{})
+		parametersMap := make(map[string]any)
 		for k, v := range definition.Parameters {
 			if v == nil {
 				continue
@@ -241,18 +240,18 @@ func flattenAzureRMPolicySetDefinitionPolicyDefinitionsTrack1(input *[]policy.De
 
 		policyDefinitionReference := pointer.From(definition.PolicyDefinitionReferenceID)
 
-		result = append(result, map[string]interface{}{
+		result = append(result, map[string]any{
 			"policy_definition_id": policyDefinitionID,
 			"parameter_values":     parameterValues,
 			"reference_id":         policyDefinitionReference,
-			"policy_group_names":   helpers.FlattenStringSlice(definition.GroupNames),
+			"policy_group_names":   pluginsdk.FlattenSlice(definition.GroupNames),
 		})
 	}
 	return result, nil
 }
 
-func flattenAzureRMPolicySetDefinitionPolicyGroupsTrack1(input *[]policy.DefinitionGroup) []interface{} {
-	result := make([]interface{}, 0)
+func flattenAzureRMPolicySetDefinitionPolicyGroupsTrack1(input *[]policy.DefinitionGroup) []any {
+	result := make([]any, 0)
 	if input == nil {
 		return result
 	}
@@ -264,7 +263,7 @@ func flattenAzureRMPolicySetDefinitionPolicyGroupsTrack1(input *[]policy.Definit
 		description := pointer.From(group.Description)
 		metadataID := pointer.From(group.AdditionalMetadataID)
 
-		result = append(result, map[string]interface{}{
+		result = append(result, map[string]any{
 			"name":                            name,
 			"display_name":                    displayName,
 			"category":                        category,

@@ -14,10 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/validate"
@@ -97,7 +95,7 @@ func resourceResourcePolicyExemption() *pluginsdk.Resource {
 			"expires_on": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: azValidate.ISO8601DateTime,
+				ValidateFunc: validation.ISO8601DateTime,
 			},
 
 			"metadata": metadataSchema(),
@@ -105,7 +103,7 @@ func resourceResourcePolicyExemption() *pluginsdk.Resource {
 	}
 }
 
-func resourceResourcePolicyExemptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceResourcePolicyExemptionCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Policy.ExemptionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -129,7 +127,7 @@ func resourceResourcePolicyExemptionCreateUpdate(d *pluginsdk.ResourceData, meta
 	exemption := policy.Exemption{
 		ExemptionProperties: &policy.ExemptionProperties{
 			PolicyAssignmentID:           pointer.To(d.Get("policy_assignment_id").(string)),
-			PolicyDefinitionReferenceIds: helpers.ExpandStringSlice(d.Get("policy_definition_reference_ids").([]interface{})),
+			PolicyDefinitionReferenceIds: pluginsdk.ExpandStringSlice(d.Get("policy_definition_reference_ids").([]any)),
 			ExemptionCategory:            policy.ExemptionCategory(d.Get("exemption_category").(string)),
 		},
 	}
@@ -169,7 +167,7 @@ func resourceResourcePolicyExemptionCreateUpdate(d *pluginsdk.ResourceData, meta
 	return resourceResourcePolicyExemptionRead(d, meta)
 }
 
-func resourceResourcePolicyExemptionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceResourcePolicyExemptionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Policy.ExemptionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -198,7 +196,7 @@ func resourceResourcePolicyExemptionRead(d *pluginsdk.ResourceData, meta interfa
 		d.Set("description", props.Description)
 		d.Set("exemption_category", string(props.ExemptionCategory))
 
-		if err := d.Set("policy_definition_reference_ids", helpers.FlattenStringSlice(props.PolicyDefinitionReferenceIds)); err != nil {
+		if err := d.Set("policy_definition_reference_ids", pluginsdk.FlattenSlice(props.PolicyDefinitionReferenceIds)); err != nil {
 			return fmt.Errorf("setting `policy_definition_reference_ids: %+v", err)
 		}
 
@@ -216,7 +214,7 @@ func resourceResourcePolicyExemptionRead(d *pluginsdk.ResourceData, meta interfa
 	return nil
 }
 
-func resourceResourcePolicyExemptionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceResourcePolicyExemptionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Policy.ExemptionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -77,7 +77,7 @@ func dataSourceResources() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceResourcesRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceResourcesRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Resource.LegacyResourcesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -85,7 +85,7 @@ func dataSourceResourcesRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	resourceGroupName := d.Get("resource_group_name").(string)
 	resourceName := d.Get("name").(string)
 	resourceType := d.Get("type").(string)
-	requiredTags := d.Get("required_tags").(map[string]interface{})
+	requiredTags := d.Get("required_tags").(map[string]any)
 
 	if resourceGroupName == "" && resourceName == "" && resourceType == "" {
 		return errors.New("at least one of `name`, `resource_group_name` or `type` must be specified")
@@ -111,7 +111,7 @@ func dataSourceResourcesRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	// Use List instead of listComplete because of bug in SDK: https://github.com/Azure/azure-sdk-for-go/issues/9510
 	var resourcesResp resources.ListResultPage
-	resources := make([]map[string]interface{}, 0)
+	resources := make([]map[string]any, 0)
 	if resourceGroupName != "" {
 		resp, err := client.ListByResourceGroup(ctx, resourceGroupName, filter, "", nil)
 		if err != nil {
@@ -142,8 +142,8 @@ func dataSourceResourcesRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func filterResource(inputs []resources.GenericResourceExpanded, requiredTags map[string]interface{}) []map[string]interface{} {
-	var result []map[string]interface{}
+func filterResource(inputs []resources.GenericResourceExpanded, requiredTags map[string]any) []map[string]any {
+	var result []map[string]any
 	for _, res := range inputs {
 		if res.ID == nil {
 			continue
@@ -182,9 +182,9 @@ func filterResource(inputs []resources.GenericResourceExpanded, requiredTags map
 				resLocation = location.NormalizeNilable(res.Location)
 			}
 
-			resTags := make(map[string]interface{})
+			resTags := make(map[string]any)
 			if res.Tags != nil {
-				resTags = make(map[string]interface{}, len(res.Tags))
+				resTags = make(map[string]any, len(res.Tags))
 				for key, value := range res.Tags {
 					if value != nil {
 						resTags[key] = *value
@@ -192,7 +192,7 @@ func filterResource(inputs []resources.GenericResourceExpanded, requiredTags map
 				}
 			}
 
-			result = append(result, map[string]interface{}{
+			result = append(result, map[string]any{
 				"name":                resName,
 				"id":                  resID,
 				"resource_group_name": resResourceGroupName,

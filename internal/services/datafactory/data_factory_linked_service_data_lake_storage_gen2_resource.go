@@ -143,7 +143,7 @@ func resourceDataFactoryLinkedServiceDataLakeStorageGen2() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	subscriptionId := meta.(*clients.Client).DataFactory.LinkedServiceClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -206,7 +206,7 @@ func resourceDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate(d *pluginsd
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		datalakeStorageGen2LinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]interface{}))
+		datalakeStorageGen2LinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
@@ -214,11 +214,11 @@ func resourceDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate(d *pluginsd
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		datalakeStorageGen2LinkedService.AdditionalProperties = v.(map[string]interface{})
+		datalakeStorageGen2LinkedService.AdditionalProperties = v.(map[string]any)
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		datalakeStorageGen2LinkedService.Annotations = pointer.To(v.([]interface{}))
+		datalakeStorageGen2LinkedService.Annotations = pointer.To(v.([]any))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -234,7 +234,7 @@ func resourceDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate(d *pluginsd
 	return resourceDataFactoryLinkedServiceDataLakeStorageGen2Read(d, meta)
 }
 
-func resourceDataFactoryLinkedServiceDataLakeStorageGen2Read(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceDataLakeStorageGen2Read(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -301,7 +301,7 @@ func resourceDataFactoryLinkedServiceDataLakeStorageGen2Read(d *pluginsdk.Resour
 	return nil
 }
 
-func resourceDataFactoryLinkedServiceDataLakeStorageGen2Delete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceDataLakeStorageGen2Delete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

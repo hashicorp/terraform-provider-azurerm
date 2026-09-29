@@ -113,7 +113,7 @@ func resourceDataFactoryLinkedServiceCosmosDbMongoAPI() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryLinkedServiceCosmosDbMongoAPICreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceCosmosDbMongoAPICreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	subscriptionId := meta.(*clients.Client).DataFactory.LinkedServiceClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -157,7 +157,7 @@ func resourceDataFactoryLinkedServiceCosmosDbMongoAPICreateUpdate(d *pluginsdk.R
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		cosmosdbLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]interface{}))
+		cosmosdbLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
@@ -165,11 +165,11 @@ func resourceDataFactoryLinkedServiceCosmosDbMongoAPICreateUpdate(d *pluginsdk.R
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		cosmosdbLinkedService.AdditionalProperties = v.(map[string]interface{})
+		cosmosdbLinkedService.AdditionalProperties = v.(map[string]any)
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		cosmosdbLinkedService.Annotations = pointer.To(v.([]interface{}))
+		cosmosdbLinkedService.Annotations = pointer.To(v.([]any))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -185,7 +185,7 @@ func resourceDataFactoryLinkedServiceCosmosDbMongoAPICreateUpdate(d *pluginsdk.R
 	return resourceDataFactoryLinkedServiceCosmosDbMongoAPIRead(d, meta)
 }
 
-func resourceDataFactoryLinkedServiceCosmosDbMongoAPIRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceCosmosDbMongoAPIRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -239,7 +239,7 @@ func resourceDataFactoryLinkedServiceCosmosDbMongoAPIRead(d *pluginsdk.ResourceD
 	return nil
 }
 
-func resourceDataFactoryLinkedServiceCosmosDbMongoAPIDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceCosmosDbMongoAPIDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

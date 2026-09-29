@@ -72,7 +72,7 @@ func resourceSecurityCenterContact() *pluginsdk.Resource {
 	}
 }
 
-func resourceSecurityCenterContactCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSecurityCenterContactCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	// TODO: split this Create/Update
 	client := meta.(*clients.Client).SecurityCenter.ContactsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -130,7 +130,7 @@ func resourceSecurityCenterContactCreateUpdate(d *pluginsdk.ResourceData, meta i
 	return resourceSecurityCenterContactRead(d, meta)
 }
 
-func resourceSecurityCenterContactRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSecurityCenterContactRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.ContactsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -162,7 +162,7 @@ func resourceSecurityCenterContactRead(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func resourceSecurityCenterContactDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSecurityCenterContactDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.ContactsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

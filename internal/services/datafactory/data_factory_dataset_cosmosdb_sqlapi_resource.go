@@ -147,7 +147,7 @@ func resourceDataFactoryDatasetCosmosDbSQLAPI() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryDatasetCosmosDbSQLAPICreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetCosmosDbSQLAPICreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	subscriptionId := meta.(*clients.Client).DataFactory.DatasetClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -199,19 +199,19 @@ func resourceDataFactoryDatasetCosmosDbSQLAPICreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		cosmosDbTableset.Parameters = expandDataSetParameters(v.(map[string]interface{}))
+		cosmosDbTableset.Parameters = expandDataSetParameters(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		cosmosDbTableset.Annotations = pointer.To(v.([]interface{}))
+		cosmosDbTableset.Annotations = pointer.To(v.([]any))
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		cosmosDbTableset.AdditionalProperties = v.(map[string]interface{})
+		cosmosDbTableset.AdditionalProperties = v.(map[string]any)
 	}
 
 	if v, ok := d.GetOk("schema_column"); ok {
-		cosmosDbTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
+		cosmosDbTableset.Structure = expandDataFactoryDatasetStructure(v.([]any))
 	}
 
 	dataset := datafactory.DatasetResource{
@@ -230,7 +230,7 @@ func resourceDataFactoryDatasetCosmosDbSQLAPICreateUpdate(d *pluginsdk.ResourceD
 	return resourceDataFactoryDatasetCosmosDbSQLAPIRead(d, meta)
 }
 
-func resourceDataFactoryDatasetCosmosDbSQLAPIRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetCosmosDbSQLAPIRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -302,7 +302,7 @@ func resourceDataFactoryDatasetCosmosDbSQLAPIRead(d *pluginsdk.ResourceData, met
 	return nil
 }
 
-func resourceDataFactoryDatasetCosmosDbSQLAPIDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetCosmosDbSQLAPIDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -9,15 +9,14 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/eventsubscriptions"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func expandEventSubscriptionDestination(d *pluginsdk.ResourceData) eventsubscriptions.EventSubscriptionDestination {
-	deliveryMappings := expandEventSubscriptionDeliveryAttributeMappings(d.Get("delivery_property").([]interface{}))
+	deliveryMappings := expandEventSubscriptionDeliveryAttributeMappings(d.Get("delivery_property").([]any))
 
-	if val, ok := d.GetOk("azure_function_endpoint"); ok && len(val.([]interface{})) == 1 {
-		return expandEventSubscriptionDestinationAzureFunction(d.Get("azure_function_endpoint").([]interface{}), deliveryMappings)
+	if val, ok := d.GetOk("azure_function_endpoint"); ok && len(val.([]any)) == 1 {
+		return expandEventSubscriptionDestinationAzureFunction(d.Get("azure_function_endpoint").([]any), deliveryMappings)
 	}
 
 	eventhubEndpointId, ok := d.GetOk("eventhub_id")
@@ -39,17 +38,17 @@ func expandEventSubscriptionDestination(d *pluginsdk.ResourceData) eventsubscrip
 	}
 
 	if val, ok := d.GetOk("storage_queue_endpoint"); ok {
-		return expandEventSubscriptionStorageQueueEndpoint(val.([]interface{}))
+		return expandEventSubscriptionStorageQueueEndpoint(val.([]any))
 	}
 
 	if val, ok := d.GetOk("webhook_endpoint"); ok {
-		return expandEventGridEventSubscriptionWebhookEndpoint(val.([]interface{}), deliveryMappings)
+		return expandEventGridEventSubscriptionWebhookEndpoint(val.([]any), deliveryMappings)
 	}
 
 	return nil
 }
 
-func expandEventGridEventSubscriptionWebhookEndpoint(input []interface{}, deliveryMappings []eventsubscriptions.DeliveryAttributeMapping) eventsubscriptions.EventSubscriptionDestination {
+func expandEventGridEventSubscriptionWebhookEndpoint(input []any, deliveryMappings []eventsubscriptions.DeliveryAttributeMapping) eventsubscriptions.EventSubscriptionDestination {
 	props := eventsubscriptions.WebHookEventSubscriptionDestinationProperties{
 		DeliveryAttributeMappings: &deliveryMappings,
 	}
@@ -61,7 +60,7 @@ func expandEventGridEventSubscriptionWebhookEndpoint(input []interface{}, delive
 		return webhookDestination
 	}
 
-	config := input[0].(map[string]interface{})
+	config := input[0].(map[string]any)
 
 	if v, ok := config["url"]; ok && v != "" {
 		props.EndpointURL = pointer.To(v.(string))
@@ -86,8 +85,8 @@ func expandEventGridEventSubscriptionWebhookEndpoint(input []interface{}, delive
 	return webhookDestination
 }
 
-func expandEventSubscriptionDestinationAzureFunction(input []interface{}, deliveryMappings []eventsubscriptions.DeliveryAttributeMapping) eventsubscriptions.EventSubscriptionDestination {
-	item := input[0].(map[string]interface{})
+func expandEventSubscriptionDestinationAzureFunction(input []any, deliveryMappings []eventsubscriptions.DeliveryAttributeMapping) eventsubscriptions.EventSubscriptionDestination {
+	item := input[0].(map[string]any)
 	props := eventsubscriptions.AzureFunctionEventSubscriptionDestinationProperties{
 		DeliveryAttributeMappings: &deliveryMappings,
 	}
@@ -106,13 +105,13 @@ func expandEventSubscriptionDestinationAzureFunction(input []interface{}, delive
 	}
 }
 
-func flattenEventSubscriptionDestinationAzureFunction(input eventsubscriptions.EventSubscriptionDestination) []interface{} {
-	output := make([]interface{}, 0)
+func flattenEventSubscriptionDestinationAzureFunction(input eventsubscriptions.EventSubscriptionDestination) []any {
+	output := make([]any, 0)
 
 	val, ok := input.(eventsubscriptions.AzureFunctionEventSubscriptionDestination)
 	if ok && val.Properties != nil {
 		props := *val.Properties
-		return append(output, map[string]interface{}{
+		return append(output, map[string]any{
 			"function_id":                       pointer.From(props.ResourceId),
 			"max_events_per_batch":              int(pointer.From(props.MaxEventsPerBatch)),
 			"preferred_batch_size_in_kilobytes": int(pointer.From(props.PreferredBatchSizeInKilobytes)),
@@ -190,8 +189,8 @@ func flattenEventSubscriptionDestinationServiceBusTopicEndpoint(input eventsubsc
 	return ""
 }
 
-func expandEventSubscriptionStorageQueueEndpoint(input []interface{}) eventsubscriptions.EventSubscriptionDestination {
-	raw := input[0].(map[string]interface{})
+func expandEventSubscriptionStorageQueueEndpoint(input []any) eventsubscriptions.EventSubscriptionDestination {
+	raw := input[0].(map[string]any)
 	props := eventsubscriptions.StorageQueueEventSubscriptionDestinationProperties{
 		ResourceId: pointer.To(raw["storage_account_id"].(string)),
 		QueueName:  pointer.To(raw["queue_name"].(string)),
@@ -206,12 +205,12 @@ func expandEventSubscriptionStorageQueueEndpoint(input []interface{}) eventsubsc
 	}
 }
 
-func flattenEventSubscriptionDestinationStorageQueueEndpoint(input eventsubscriptions.EventSubscriptionDestination) []interface{} {
-	output := make([]interface{}, 0)
+func flattenEventSubscriptionDestinationStorageQueueEndpoint(input eventsubscriptions.EventSubscriptionDestination) []any {
+	output := make([]any, 0)
 
 	val, ok := input.(eventsubscriptions.StorageQueueEventSubscriptionDestination)
 	if ok && val.Properties != nil {
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"queue_message_time_to_live_in_seconds": int(pointer.From(val.Properties.QueueMessageTimeToLiveInSeconds)),
 			"storage_account_id":                    pointer.From(val.Properties.ResourceId),
 			"queue_name":                            pointer.From(val.Properties.QueueName),
@@ -221,10 +220,10 @@ func flattenEventSubscriptionDestinationStorageQueueEndpoint(input eventsubscrip
 	return output
 }
 
-func expandEventSubscriptionDeliveryAttributeMappings(input []interface{}) []eventsubscriptions.DeliveryAttributeMapping {
+func expandEventSubscriptionDeliveryAttributeMappings(input []any) []eventsubscriptions.DeliveryAttributeMapping {
 	output := make([]eventsubscriptions.DeliveryAttributeMapping, 0)
 	for _, item := range input {
-		mappingBlock := item.(map[string]interface{})
+		mappingBlock := item.(map[string]any)
 
 		switch mappingBlock["type"].(string) {
 		case "Static":
@@ -248,7 +247,7 @@ func expandEventSubscriptionDeliveryAttributeMappings(input []interface{}) []eve
 	return output
 }
 
-func flattenEventSubscriptionDeliveryAttributeMappings(input eventsubscriptions.EventSubscriptionDestination, mappingsFromState []eventsubscriptions.DeliveryAttributeMapping) []interface{} {
+func flattenEventSubscriptionDeliveryAttributeMappings(input eventsubscriptions.EventSubscriptionDestination, mappingsFromState []eventsubscriptions.DeliveryAttributeMapping) []any {
 	mappings := make([]eventsubscriptions.DeliveryAttributeMapping, 0)
 
 	if v, ok := input.(eventsubscriptions.AzureFunctionEventSubscriptionDestination); ok && v.Properties != nil && v.Properties.DeliveryAttributeMappings != nil {
@@ -271,7 +270,7 @@ func flattenEventSubscriptionDeliveryAttributeMappings(input eventsubscriptions.
 		mappings = *v.Properties.DeliveryAttributeMappings
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 	for _, mapping := range mappings {
 		if val, ok := mapping.(eventsubscriptions.StaticDeliveryAttributeMapping); ok {
 			secret := false
@@ -295,7 +294,7 @@ func flattenEventSubscriptionDeliveryAttributeMappings(input eventsubscriptions.
 					}
 				}
 			}
-			output = append(output, map[string]interface{}{
+			output = append(output, map[string]any{
 				"header_name": pointer.From(val.Name),
 				"secret":      secret,
 				"type":        "Static",
@@ -308,7 +307,7 @@ func flattenEventSubscriptionDeliveryAttributeMappings(input eventsubscriptions.
 			if val.Properties != nil && val.Properties.SourceField != nil {
 				sourceField = *val.Properties.SourceField
 			}
-			output = append(output, map[string]interface{}{
+			output = append(output, map[string]any{
 				"header_name":  pointer.From(val.Name),
 				"source_field": sourceField,
 				"type":         "Dynamic",
@@ -319,14 +318,14 @@ func flattenEventSubscriptionDeliveryAttributeMappings(input eventsubscriptions.
 	return output
 }
 
-func expandEventSubscriptionIdentity(input []interface{}) (*eventsubscriptions.EventSubscriptionIdentity, error) {
+func expandEventSubscriptionIdentity(input []any) (*eventsubscriptions.EventSubscriptionIdentity, error) {
 	if len(input) == 0 || input[0] == nil {
 		return &eventsubscriptions.EventSubscriptionIdentity{
 			Type: pointer.ToEnum[eventsubscriptions.EventSubscriptionIdentityType]("None"),
 		}, nil
 	}
 
-	identity := input[0].(map[string]interface{})
+	identity := input[0].(map[string]any)
 	identityType := eventsubscriptions.EventSubscriptionIdentityType(identity["type"].(string))
 	eventgridIdentity := eventsubscriptions.EventSubscriptionIdentity{
 		Type: pointer.To(identityType),
@@ -342,8 +341,8 @@ func expandEventSubscriptionIdentity(input []interface{}) (*eventsubscriptions.E
 	return &eventgridIdentity, nil
 }
 
-func flattenEventSubscriptionWebhookEndpoint(input eventsubscriptions.EventSubscriptionDestination, fullUrl *eventsubscriptions.EventSubscriptionFullURL) []interface{} {
-	output := make([]interface{}, 0)
+func flattenEventSubscriptionWebhookEndpoint(input eventsubscriptions.EventSubscriptionDestination, fullUrl *eventsubscriptions.EventSubscriptionFullURL) []any {
+	output := make([]any, 0)
 	val, ok := input.(eventsubscriptions.WebHookEventSubscriptionDestination)
 	if ok {
 		webHookUrl := ""
@@ -378,7 +377,7 @@ func flattenEventSubscriptionWebhookEndpoint(input eventsubscriptions.EventSubsc
 			}
 		}
 
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"url":                               webHookUrl,
 			"base_url":                          webhookBaseURL,
 			"max_events_per_batch":              maxEventsPerBatch,
@@ -391,51 +390,51 @@ func flattenEventSubscriptionWebhookEndpoint(input eventsubscriptions.EventSubsc
 	return output
 }
 
-func flattenEventSubscriptionIdentity(input *eventsubscriptions.EventSubscriptionIdentity) []interface{} {
+func flattenEventSubscriptionIdentity(input *eventsubscriptions.EventSubscriptionIdentity) []any {
 	if input == nil || input.Type == nil || strings.EqualFold(string(*input.Type), "None") {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"type":                   string(*input.Type),
 			"user_assigned_identity": pointer.From(input.UserAssignedIdentity),
 		},
 	}
 }
 
-func flattenEventSubscriptionRetryPolicy(input *eventsubscriptions.RetryPolicy) []interface{} {
+func flattenEventSubscriptionRetryPolicy(input *eventsubscriptions.RetryPolicy) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"event_time_to_live":    int(pointer.From(input.EventTimeToLiveInMinutes)),
 			"max_delivery_attempts": int(pointer.From(input.MaxDeliveryAttempts)),
 		},
 	}
 }
 
-func flattenEventSubscriptionStorageBlobDeadLetterDestination(input eventsubscriptions.DeadLetterDestination) []interface{} {
+func flattenEventSubscriptionStorageBlobDeadLetterDestination(input eventsubscriptions.DeadLetterDestination) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 	val, ok := input.(eventsubscriptions.StorageBlobDeadLetterDestination)
 	if !ok || val.Properties == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"storage_account_id":          pointer.From(val.Properties.ResourceId),
 			"storage_blob_container_name": pointer.From(val.Properties.BlobContainerName),
 		},
 	}
 }
 
-func flattenEventSubscriptionSubjectFilter(input *eventsubscriptions.EventSubscriptionFilter) []interface{} {
-	output := make([]interface{}, 0)
+func flattenEventSubscriptionSubjectFilter(input *eventsubscriptions.EventSubscriptionFilter) []any {
+	output := make([]any, 0)
 	if input == nil {
 		return output
 	}
@@ -443,7 +442,7 @@ func flattenEventSubscriptionSubjectFilter(input *eventsubscriptions.EventSubscr
 		return output
 	}
 
-	output = append(output, map[string]interface{}{
+	output = append(output, map[string]any{
 		"subject_begins_with": pointer.From(input.SubjectBeginsWith),
 		"subject_ends_with":   pointer.From(input.SubjectEndsWith),
 		"case_sensitive":      pointer.From(input.IsSubjectCaseSensitive),
@@ -452,79 +451,79 @@ func flattenEventSubscriptionSubjectFilter(input *eventsubscriptions.EventSubscr
 	return output
 }
 
-func flattenEventSubscriptionAdvancedFilter(input *eventsubscriptions.EventSubscriptionFilter) []interface{} {
-	output := make([]interface{}, 0)
+func flattenEventSubscriptionAdvancedFilter(input *eventsubscriptions.EventSubscriptionFilter) []any {
+	output := make([]any, 0)
 	if input == nil || input.AdvancedFilters == nil {
 		return output
 	}
 
-	boolEquals := make([]interface{}, 0)
-	numberGreaterThan := make([]interface{}, 0)
-	numberGreaterThanOrEquals := make([]interface{}, 0)
-	numberLessThan := make([]interface{}, 0)
-	numberLessThanOrEquals := make([]interface{}, 0)
-	numberIn := make([]interface{}, 0)
-	numberNotIn := make([]interface{}, 0)
-	numberInRange := make([]interface{}, 0)
-	numberNotInRange := make([]interface{}, 0)
-	stringBeginsWith := make([]interface{}, 0)
-	stringNotBeginsWith := make([]interface{}, 0)
-	stringEndsWith := make([]interface{}, 0)
-	stringNotEndsWith := make([]interface{}, 0)
-	stringContains := make([]interface{}, 0)
-	stringNotContains := make([]interface{}, 0)
-	stringIn := make([]interface{}, 0)
-	stringNotIn := make([]interface{}, 0)
-	isNotNull := make([]interface{}, 0)
-	isNullOrUndefined := make([]interface{}, 0)
+	boolEquals := make([]any, 0)
+	numberGreaterThan := make([]any, 0)
+	numberGreaterThanOrEquals := make([]any, 0)
+	numberLessThan := make([]any, 0)
+	numberLessThanOrEquals := make([]any, 0)
+	numberIn := make([]any, 0)
+	numberNotIn := make([]any, 0)
+	numberInRange := make([]any, 0)
+	numberNotInRange := make([]any, 0)
+	stringBeginsWith := make([]any, 0)
+	stringNotBeginsWith := make([]any, 0)
+	stringEndsWith := make([]any, 0)
+	stringNotEndsWith := make([]any, 0)
+	stringContains := make([]any, 0)
+	stringNotContains := make([]any, 0)
+	stringIn := make([]any, 0)
+	stringNotIn := make([]any, 0)
+	isNotNull := make([]any, 0)
+	isNullOrUndefined := make([]any, 0)
 
 	for _, item := range *input.AdvancedFilters {
 		switch f := item.(type) {
 		case eventsubscriptions.BoolEqualsAdvancedFilter:
-			boolEquals = append(boolEquals, flattenValue(f.Key, pointer.To(interface{}(f.Value))))
+			boolEquals = append(boolEquals, flattenValue(f.Key, pointer.To(any(f.Value))))
 		case eventsubscriptions.NumberGreaterThanAdvancedFilter:
-			numberGreaterThan = append(numberGreaterThan, flattenValue(f.Key, pointer.To(interface{}(f.Value))))
+			numberGreaterThan = append(numberGreaterThan, flattenValue(f.Key, pointer.To(any(f.Value))))
 		case eventsubscriptions.NumberGreaterThanOrEqualsAdvancedFilter:
-			numberGreaterThanOrEquals = append(numberGreaterThanOrEquals, flattenValue(f.Key, pointer.To(interface{}(f.Value))))
+			numberGreaterThanOrEquals = append(numberGreaterThanOrEquals, flattenValue(f.Key, pointer.To(any(f.Value))))
 		case eventsubscriptions.NumberLessThanAdvancedFilter:
-			numberLessThan = append(numberLessThan, flattenValue(f.Key, pointer.To(interface{}(f.Value))))
+			numberLessThan = append(numberLessThan, flattenValue(f.Key, pointer.To(any(f.Value))))
 		case eventsubscriptions.NumberLessThanOrEqualsAdvancedFilter:
-			numberLessThanOrEquals = append(numberLessThanOrEquals, flattenValue(f.Key, pointer.To(interface{}(f.Value))))
+			numberLessThanOrEquals = append(numberLessThanOrEquals, flattenValue(f.Key, pointer.To(any(f.Value))))
 		case eventsubscriptions.NumberInAdvancedFilter:
-			v := helpers.FlattenFloatSlice(f.Values)
+			v := pluginsdk.FlattenSlice(f.Values)
 			numberIn = append(numberIn, flattenValues(f.Key, &v))
 		case eventsubscriptions.NumberNotInAdvancedFilter:
-			v := helpers.FlattenFloatSlice(f.Values)
+			v := pluginsdk.FlattenSlice(f.Values)
 			numberNotIn = append(numberNotIn, flattenValues(f.Key, &v))
 		case eventsubscriptions.StringBeginsWithAdvancedFilter:
-			v := helpers.FlattenStringSlice(f.Values)
+			v := pluginsdk.FlattenSlice(f.Values)
 			stringBeginsWith = append(stringBeginsWith, flattenValues(f.Key, &v))
 		case eventsubscriptions.StringNotBeginsWithAdvancedFilter:
-			v := helpers.FlattenStringSlice(f.Values)
+			v := pluginsdk.FlattenSlice(f.Values)
 			stringNotBeginsWith = append(stringNotBeginsWith, flattenValues(f.Key, &v))
 		case eventsubscriptions.StringEndsWithAdvancedFilter:
-			v := helpers.FlattenStringSlice(f.Values)
+			v := pluginsdk.FlattenSlice(f.Values)
 			stringEndsWith = append(stringEndsWith, flattenValues(f.Key, &v))
 		case eventsubscriptions.StringNotEndsWithAdvancedFilter:
-			v := helpers.FlattenStringSlice(f.Values)
+			v := pluginsdk.FlattenSlice(f.Values)
 			stringNotEndsWith = append(stringNotEndsWith, flattenValues(f.Key, &v))
 		case eventsubscriptions.StringContainsAdvancedFilter:
-			v := helpers.FlattenStringSlice(f.Values)
+			v := pluginsdk.FlattenSlice(f.Values)
 			stringContains = append(stringContains, flattenValues(f.Key, &v))
 		case eventsubscriptions.StringNotContainsAdvancedFilter:
-			v := helpers.FlattenStringSlice(f.Values)
+			v := pluginsdk.FlattenSlice(f.Values)
 			stringNotContains = append(stringNotContains, flattenValues(f.Key, &v))
 		case eventsubscriptions.StringInAdvancedFilter:
-			v := helpers.FlattenStringSlice(f.Values)
+			v := pluginsdk.FlattenSlice(f.Values)
 			stringIn = append(stringIn, flattenValues(f.Key, &v))
 		case eventsubscriptions.StringNotInAdvancedFilter:
-			v := helpers.FlattenStringSlice(f.Values)
+			v := pluginsdk.FlattenSlice(f.Values)
 			stringNotIn = append(stringNotIn, flattenValues(f.Key, &v))
 		case eventsubscriptions.NumberInRangeAdvancedFilter:
-			v := helpers.FlattenFloatRangeSlice(f.Values)
+			v := pluginsdk.FlattenFloatRangeSlice(f.Values)
 			numberInRange = append(numberInRange, flattenRangeValues(f.Key, &v))
 		case eventsubscriptions.NumberNotInRangeAdvancedFilter:
-			v := helpers.FlattenFloatRangeSlice(f.Values)
+			v := pluginsdk.FlattenFloatRangeSlice(f.Values)
 			numberNotInRange = append(numberNotInRange, flattenRangeValues(f.Key, &v))
 		case eventsubscriptions.IsNotNullAdvancedFilter:
 			isNotNull = append(isNotNull, flattenKey(f.Key))
@@ -533,8 +532,8 @@ func flattenEventSubscriptionAdvancedFilter(input *eventsubscriptions.EventSubsc
 		}
 	}
 
-	return []interface{}{
-		map[string][]interface{}{
+	return []any{
+		map[string][]any{
 			"bool_equals":                   boolEquals,
 			"number_greater_than":           numberGreaterThan,
 			"number_greater_than_or_equals": numberGreaterThanOrEquals,
@@ -560,7 +559,7 @@ func flattenEventSubscriptionAdvancedFilter(input *eventsubscriptions.EventSubsc
 
 func expandEventSubscriptionRetryPolicy(d *pluginsdk.ResourceData) *eventsubscriptions.RetryPolicy {
 	if v, ok := d.GetOk("retry_policy"); ok {
-		dest := v.([]interface{})[0].(map[string]interface{})
+		dest := v.([]any)[0].(map[string]any)
 		maxDeliveryAttempts := dest["max_delivery_attempts"].(int)
 		eventTimeToLive := dest["event_time_to_live"].(int)
 		return &eventsubscriptions.RetryPolicy{
@@ -576,12 +575,12 @@ func expandEventSubscriptionFilter(d *pluginsdk.ResourceData) (*eventsubscriptio
 	filter := &eventsubscriptions.EventSubscriptionFilter{}
 
 	if includedEvents, ok := d.GetOk("included_event_types"); ok {
-		filter.IncludedEventTypes = helpers.ExpandStringSlice(includedEvents.([]interface{}))
+		filter.IncludedEventTypes = pluginsdk.ExpandStringSlice(includedEvents.([]any))
 	}
 
 	if v, ok := d.GetOk("subject_filter"); ok {
-		if v.([]interface{})[0] != nil {
-			config := v.([]interface{})[0].(map[string]interface{})
+		if v.([]any)[0] != nil {
+			config := v.([]any)[0].(map[string]any)
 
 			filter.SubjectBeginsWith = pointer.To(config["subject_begins_with"].(string))
 			filter.SubjectEndsWith = pointer.To(config["subject_ends_with"].(string))
@@ -591,9 +590,9 @@ func expandEventSubscriptionFilter(d *pluginsdk.ResourceData) (*eventsubscriptio
 
 	if advancedFilter, ok := d.GetOk("advanced_filter"); ok {
 		advancedFilters := make([]eventsubscriptions.AdvancedFilter, 0)
-		for filterKey, filterSchema := range advancedFilter.([]interface{})[0].(map[string]interface{}) {
-			for _, options := range filterSchema.([]interface{}) {
-				if filter, err := expandEventSubscriptionAdvancedFilter(filterKey, options.(map[string]interface{})); err == nil {
+		for filterKey, filterSchema := range advancedFilter.([]any)[0].(map[string]any) {
+			for _, options := range filterSchema.([]any) {
+				if filter, err := expandEventSubscriptionAdvancedFilter(filterKey, options.(map[string]any)); err == nil {
 					advancedFilters = append(advancedFilters, filter)
 				} else {
 					return nil, err
@@ -610,7 +609,7 @@ func expandEventSubscriptionFilter(d *pluginsdk.ResourceData) (*eventsubscriptio
 	return filter, nil
 }
 
-func expandEventSubscriptionAdvancedFilter(operatorType string, config map[string]interface{}) (eventsubscriptions.AdvancedFilter, error) {
+func expandEventSubscriptionAdvancedFilter(operatorType string, config map[string]any) (eventsubscriptions.AdvancedFilter, error) {
 	k := config["key"].(string)
 
 	switch operatorType {
@@ -640,61 +639,61 @@ func expandEventSubscriptionAdvancedFilter(operatorType string, config map[strin
 			Value: pointer.To(config["value"].(float64)),
 		}, nil
 	case "number_in":
-		v := helpers.ExpandFloatSlice(config["values"].([]interface{}))
+		v := pluginsdk.ExpandFloatSlice(config["values"].([]any))
 		return eventsubscriptions.NumberInAdvancedFilter{
 			Key:    &k,
 			Values: v,
 		}, nil
 	case "number_not_in":
-		v := helpers.ExpandFloatSlice(config["values"].([]interface{}))
+		v := pluginsdk.ExpandFloatSlice(config["values"].([]any))
 		return eventsubscriptions.NumberNotInAdvancedFilter{
 			Key:    &k,
 			Values: v,
 		}, nil
 	case "string_begins_with":
-		v := helpers.ExpandStringSlice(config["values"].([]interface{}))
+		v := pluginsdk.ExpandStringSlice(config["values"].([]any))
 		return eventsubscriptions.StringBeginsWithAdvancedFilter{
 			Key:    &k,
 			Values: v,
 		}, nil
 	case "string_not_begins_with":
-		v := helpers.ExpandStringSlice(config["values"].([]interface{}))
+		v := pluginsdk.ExpandStringSlice(config["values"].([]any))
 		return eventsubscriptions.StringNotBeginsWithAdvancedFilter{
 			Key:    &k,
 			Values: v,
 		}, nil
 	case "string_ends_with":
-		v := helpers.ExpandStringSlice(config["values"].([]interface{}))
+		v := pluginsdk.ExpandStringSlice(config["values"].([]any))
 		return eventsubscriptions.StringEndsWithAdvancedFilter{
 			Key:    &k,
 			Values: v,
 		}, nil
 	case "string_not_ends_with":
-		v := helpers.ExpandStringSlice(config["values"].([]interface{}))
+		v := pluginsdk.ExpandStringSlice(config["values"].([]any))
 		return eventsubscriptions.StringNotEndsWithAdvancedFilter{
 			Key:    &k,
 			Values: v,
 		}, nil
 	case "string_contains":
-		v := helpers.ExpandStringSlice(config["values"].([]interface{}))
+		v := pluginsdk.ExpandStringSlice(config["values"].([]any))
 		return eventsubscriptions.StringContainsAdvancedFilter{
 			Key:    &k,
 			Values: v,
 		}, nil
 	case "string_not_contains":
-		v := helpers.ExpandStringSlice(config["values"].([]interface{}))
+		v := pluginsdk.ExpandStringSlice(config["values"].([]any))
 		return eventsubscriptions.StringNotContainsAdvancedFilter{
 			Key:    &k,
 			Values: v,
 		}, nil
 	case "string_in":
-		v := helpers.ExpandStringSlice(config["values"].([]interface{}))
+		v := pluginsdk.ExpandStringSlice(config["values"].([]any))
 		return eventsubscriptions.StringInAdvancedFilter{
 			Key:    &k,
 			Values: v,
 		}, nil
 	case "string_not_in":
-		v := helpers.ExpandStringSlice(config["values"].([]interface{}))
+		v := pluginsdk.ExpandStringSlice(config["values"].([]any))
 		return eventsubscriptions.StringNotInAdvancedFilter{
 			Key:    &k,
 			Values: v,
@@ -708,13 +707,13 @@ func expandEventSubscriptionAdvancedFilter(operatorType string, config map[strin
 			Key: &k,
 		}, nil
 	case "number_in_range":
-		v := helpers.ExpandFloatRangeSlice(config["values"].([]interface{}))
+		v := pluginsdk.ExpandFloatRangeSlice(config["values"].([]any))
 		return eventsubscriptions.NumberInRangeAdvancedFilter{
 			Key:    &k,
 			Values: v,
 		}, nil
 	case "number_not_in_range":
-		v := helpers.ExpandFloatRangeSlice(config["values"].([]interface{}))
+		v := pluginsdk.ExpandFloatRangeSlice(config["values"].([]any))
 		return eventsubscriptions.NumberNotInRangeAdvancedFilter{
 			Key:    &k,
 			Values: v,
@@ -726,7 +725,7 @@ func expandEventSubscriptionAdvancedFilter(operatorType string, config map[strin
 
 func expandEventSubscriptionStorageBlobDeadLetterDestination(d *pluginsdk.ResourceData) eventsubscriptions.DeadLetterDestination {
 	if v, ok := d.GetOk("storage_blob_dead_letter_destination"); ok {
-		dest := v.([]interface{})[0].(map[string]interface{})
+		dest := v.([]any)[0].(map[string]any)
 		return eventsubscriptions.StorageBlobDeadLetterDestination{
 			Properties: &eventsubscriptions.StorageBlobDeadLetterDestinationProperties{
 				ResourceId:        pointer.To(dest["storage_account_id"].(string)),

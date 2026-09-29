@@ -58,7 +58,7 @@ func resourceSynapsePrivateLinkHub() *pluginsdk.Resource {
 	}
 }
 
-func resourceSynapsePrivateLinkHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapsePrivateLinkHubCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.PrivateLinkHubsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -80,7 +80,7 @@ func resourceSynapsePrivateLinkHubCreate(d *pluginsdk.ResourceData, meta interfa
 
 	privateLinkHubInfo := synapse.PrivateLinkHub{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, privateLinkHubInfo, id.ResourceGroup, id.Name); err != nil {
@@ -92,7 +92,7 @@ func resourceSynapsePrivateLinkHubCreate(d *pluginsdk.ResourceData, meta interfa
 	return resourceSynapsePrivateLinkHubRead(d, meta)
 }
 
-func resourceSynapsePrivateLinkHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapsePrivateLinkHubRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.PrivateLinkHubsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -119,7 +119,7 @@ func resourceSynapsePrivateLinkHubRead(d *pluginsdk.ResourceData, meta interface
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceSynapsePrivateLinkHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapsePrivateLinkHubUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.PrivateLinkHubsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -131,7 +131,7 @@ func resourceSynapsePrivateLinkHubUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	if d.HasChange("tags") {
 		privateLinkHubPatchInfo := synapse.PrivateLinkHubPatchInfo{
-			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+			Tags: tags.Expand(d.Get("tags").(map[string]any)),
 		}
 
 		if _, err := client.Update(ctx, privateLinkHubPatchInfo, id.ResourceGroup, id.Name); err != nil {
@@ -142,7 +142,7 @@ func resourceSynapsePrivateLinkHubUpdate(d *pluginsdk.ResourceData, meta interfa
 	return resourceSynapsePrivateLinkHubRead(d, meta)
 }
 
-func resourceSynapsePrivateLinkHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapsePrivateLinkHubDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.PrivateLinkHubsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

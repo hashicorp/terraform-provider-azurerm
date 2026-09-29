@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package loadtestservice
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -6,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -29,7 +33,7 @@ var (
 
 type LoadTestResource struct{}
 
-func (r LoadTestResource) ModelObject() interface{} {
+func (r LoadTestResource) ModelObject() any {
 	return &LoadTestResourceSchema{}
 }
 
@@ -41,7 +45,7 @@ type LoadTestResourceSchema struct {
 	Location          string                                     `tfschema:"location"`
 	Name              string                                     `tfschema:"name"`
 	ResourceGroupName string                                     `tfschema:"resource_group_name"`
-	Tags              map[string]interface{}                     `tfschema:"tags"`
+	Tags              map[string]any                             `tfschema:"tags"`
 }
 
 type LoadTestEncryption struct {
@@ -280,13 +284,7 @@ func (r LoadTestResource) EnsureEncryptionIdentityIDExistsInIdentity(model LoadT
 			return errors.New(msg)
 		}
 
-		existsInIdentity := false
-		for _, id := range model.Identity[0].IdentityIds {
-			if id == model.Encryption[0].Identity[0].IdentityID {
-				existsInIdentity = true
-				break
-			}
-		}
+		existsInIdentity := slices.Contains(model.Identity[0].IdentityIds, model.Encryption[0].Identity[0].IdentityID)
 
 		if !existsInIdentity {
 			return errors.New(msg)
@@ -341,7 +339,7 @@ func (r LoadTestResource) mapLoadTestPropertiesToLoadTestResourceSchema(input lo
 			})
 
 			if encryptionIdentity.Type != nil {
-				output.Encryption[0].Identity[0].Type = string(pointer.From(encryptionIdentity.Type))
+				output.Encryption[0].Identity[0].Type = pointer.FromEnum(encryptionIdentity.Type)
 			}
 		}
 	}

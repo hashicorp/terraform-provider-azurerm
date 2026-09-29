@@ -65,7 +65,7 @@ func (a AccountStaticWebsiteResource) Attributes() map[string]*pluginsdk.Schema 
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (a AccountStaticWebsiteResource) ModelObject() interface{} {
+func (a AccountStaticWebsiteResource) ModelObject() any {
 	return &AccountStaticWebsiteResourceModel{}
 }
 
@@ -223,9 +223,7 @@ func (a AccountStaticWebsiteResource) Delete() sdk.ResourceFunc {
 			}
 
 			properties := accounts.StorageServiceProperties{
-				StaticWebsite: &accounts.StaticWebsite{
-					Enabled: false,
-				},
+				StaticWebsite: &accounts.StaticWebsite{},
 			}
 
 			client, err := storageClient.AccountsDataPlaneClient(ctx, *accountDetails, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
