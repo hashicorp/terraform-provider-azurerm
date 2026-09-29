@@ -5,4 +5,5 @@ package openapis
 
 type FleetResourceUpdate struct {
 	Properties *FleetResourceProperties `json:"properties,omitempty"`
+	Tags       *map[string]string       `json:"tags,omitempty"`
 }
