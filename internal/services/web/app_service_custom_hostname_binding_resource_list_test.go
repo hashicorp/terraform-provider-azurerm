@@ -60,7 +60,7 @@ func (r AppServiceCustomHostnameBindingResource) basicQuery() string {
 list "azurerm_app_service_custom_hostname_binding" "list" {
   provider = azurerm
   config {
-    app_service_id = azurerm_app_service.test.id
+    app_service_id = azurerm_windows_web_app.test.id
   }
 }
 `
