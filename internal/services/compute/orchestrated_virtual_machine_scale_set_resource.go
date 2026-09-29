@@ -271,13 +271,13 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				},
 			},
 
-			"resilient_vm_creation_enabled": {
+			"resilient_virtual_machine_creation_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
-			"resilient_vm_deletion_enabled": {
+			"resilient_virtual_machine_deletion_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -527,7 +527,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		props.Properties.SinglePlacementGroup = pointer.To(d.Get("single_placement_group").(bool))
 	}
 
-	props.Properties.ResiliencyPolicy = ExpandVirtualMachineScaleSetResiliency(d.Get("automatic_zone_rebalancing_enabled").(bool), d.Get("resilient_vm_creation_enabled").(bool), d.Get("resilient_vm_deletion_enabled").(bool))
+	props.Properties.ResiliencyPolicy = ExpandVirtualMachineScaleSetResiliency(d.Get("automatic_zone_rebalancing_enabled").(bool), d.Get("resilient_virtual_machine_creation_enabled").(bool), d.Get("resilient_virtual_machine_deletion_enabled").(bool))
 
 	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
 	if len(zones) > 0 {
@@ -1367,7 +1367,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 		OSType:                       osType,
 	}
 
-	if d.HasChanges("automatic_zone_rebalancing_enabled", "resilient_vm_creation_enabled", "resilient_vm_deletion_enabled") {
+	if d.HasChanges("automatic_zone_rebalancing_enabled", "resilient_virtual_machine_creation_enabled", "resilient_virtual_machine_deletion_enabled") {
 		// a health extension or health_probe_id must be set when automatic_zone_rebalancing_enabled is true,
 		// so when the properties changes in the same update we apply it first, then set the resiliency policy.
 		automaticZoneRebalancingEnabled := d.Get("automatic_zone_rebalancing_enabled").(bool)
@@ -1376,8 +1376,8 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 				return err
 			}
 		}
-		resilientVMCreationEnabled := d.Get("resilient_vm_creation_enabled").(bool)
-		resilientVMDeletionEnabled := d.Get("resilient_vm_deletion_enabled").(bool)
+		resilientVMCreationEnabled := d.Get("resilient_virtual_machine_creation_enabled").(bool)
+		resilientVMDeletionEnabled := d.Get("resilient_virtual_machine_deletion_enabled").(bool)
 		updateProps.ResiliencyPolicy = ExpandVirtualMachineScaleSetResiliency(automaticZoneRebalancingEnabled, resilientVMCreationEnabled, resilientVMDeletionEnabled)
 	}
 
@@ -1457,8 +1457,8 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 
 			automaticZoneRebalancingEnabled, resilientVMCreationEnabled, resilientVMDeletionEnabled := FlattenVirtualMachineScaleSetResiliency(props.ResiliencyPolicy)
 			d.Set("automatic_zone_rebalancing_enabled", automaticZoneRebalancingEnabled)
-			d.Set("resilient_vm_creation_enabled", resilientVMCreationEnabled)
-			d.Set("resilient_vm_deletion_enabled", resilientVMDeletionEnabled)
+			d.Set("resilient_virtual_machine_creation_enabled", resilientVMCreationEnabled)
+			d.Set("resilient_virtual_machine_deletion_enabled", resilientVMDeletionEnabled)
 
 			d.Set("platform_fault_domain_count", props.PlatformFaultDomainCount)
 			proximityPlacementGroupId := ""

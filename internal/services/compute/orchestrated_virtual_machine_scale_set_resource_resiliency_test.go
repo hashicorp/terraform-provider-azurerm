@@ -152,12 +152,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 
-  automatic_instance_repair {
-    enabled      = true
-    grace_period = "PT30M"
-  }
 }
-# Note: resilient_vm_creation_enabled, resilient_vm_deletion_enabled and automatic_zone_rebalancing_enabled are intentionally NOT configured
+# Note: resilient_virtual_machine_creation_enabled, resilient_virtual_machine_deletion_enabled and automatic_zone_rebalancing_enabled are intentionally NOT configured
 # This tests backward compatibility - these fields should not appear in state
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), data.RandomString)
 }
@@ -252,9 +248,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       "requestPath" = "/healthEndpoint"
     })
   }
-  automatic_zone_rebalancing_enabled = %[5]t
-  resilient_vm_creation_enabled      = %[6]t
-  resilient_vm_deletion_enabled      = %[7]t
+  automatic_zone_rebalancing_enabled         = %[5]t
+  resilient_virtual_machine_creation_enabled = %[6]t
+  resilient_virtual_machine_deletion_enabled = %[7]t
 }
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), data.RandomString, automaticZoneRebalancingEnabled, vmCreationEnabled, vmDeletionEnabled)
 }
