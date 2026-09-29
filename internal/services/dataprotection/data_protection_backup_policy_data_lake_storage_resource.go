@@ -33,12 +33,13 @@ type BackupPolicyDataLakeStorageModel struct {
 }
 
 type BackupPolicyDataLakeStorageRetentionRule struct {
-	Name             string   `tfschema:"name"`
-	Duration         string   `tfschema:"duration"`
-	AbsoluteCriteria string   `tfschema:"absolute_criteria"`
-	DaysOfWeek       []string `tfschema:"days_of_week"`
-	MonthsOfYear     []string `tfschema:"months_of_year"`
-	WeeksOfMonth     []string `tfschema:"weeks_of_month"`
+	Name                 string   `tfschema:"name"`
+	Duration             string   `tfschema:"duration"`
+	AbsoluteCriteria     string   `tfschema:"absolute_criteria"`
+	DaysOfWeek           []string `tfschema:"days_of_week"`
+	MonthsOfYear         []string `tfschema:"months_of_year"`
+	ScheduledBackupTimes []string `tfschema:"scheduled_backup_times"`
+	WeeksOfMonth         []string `tfschema:"weeks_of_month"`
 }
 
 type DataProtectionBackupPolicyDataLakeStorageResource struct{}
@@ -143,6 +144,17 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) Arguments() map[strin
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice(basebackuppolicyresources.PossibleValuesForMonth(), false),
+						},
+					},
+
+					"scheduled_backup_times": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						ForceNew: true,
+						MinItems: 1,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.IsRFC3339Time,
 						},
 					},
 
@@ -416,7 +428,12 @@ func expandBackupPolicyDataLakeStorageRetentionRuleCriteria(input BackupPolicyDa
 		}
 	}
 
-	if len(absoluteCriteria) == 0 && len(daysOfWeek) == 0 && len(monthsOfYear) == 0 && len(weeksOfMonth) == 0 {
+	var scheduleTimes []string
+	if len(input.ScheduledBackupTimes) > 0 {
+		scheduleTimes = input.ScheduledBackupTimes
+	}
+
+	if len(absoluteCriteria) == 0 && len(daysOfWeek) == 0 && len(monthsOfYear) == 0 && len(weeksOfMonth) == 0 && len(scheduleTimes) == 0 {
 		return nil
 	}
 
@@ -425,6 +442,7 @@ func expandBackupPolicyDataLakeStorageRetentionRuleCriteria(input BackupPolicyDa
 			AbsoluteCriteria: pointer.To(absoluteCriteria),
 			DaysOfTheWeek:    pointer.To(daysOfWeek),
 			MonthsOfYear:     pointer.To(monthsOfYear),
+			ScheduleTimes:    pointer.To(scheduleTimes),
 			WeeksOfTheMonth:  pointer.To(weeksOfMonth),
 		},
 	}
@@ -516,6 +534,12 @@ func flattenBackupPolicyDataLakeStorageCriteriaIntoRule(input *[]basebackuppolic
 					weeksOfMonth = append(weeksOfMonth, string(item))
 				}
 				rule.WeeksOfMonth = weeksOfMonth
+			}
+
+			if criteria.ScheduleTimes != nil {
+				scheduleTimes := make([]string, 0)
+				scheduleTimes = append(scheduleTimes, pointer.From(criteria.ScheduleTimes)...)
+				rule.ScheduledBackupTimes = scheduleTimes
 			}
 		}
 	}
