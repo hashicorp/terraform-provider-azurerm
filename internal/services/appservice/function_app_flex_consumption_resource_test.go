@@ -1708,7 +1708,7 @@ resource "azurerm_subnet" "test1" {
     name = "delegation"
 
     service_delegation {
-      name    = "Microsoft.App/environments"
+      name = "Microsoft.App/environments"
     }
   }
 }

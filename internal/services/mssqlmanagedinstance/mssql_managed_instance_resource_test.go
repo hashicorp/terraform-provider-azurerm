@@ -2017,7 +2017,7 @@ resource "azurerm_subnet" "test" {
     name = "managedinstancedelegation"
 
     service_delegation {
-      name    = "Microsoft.Sql/managedInstances"
+      name = "Microsoft.Sql/managedInstances"
     }
   }
 }
@@ -2275,7 +2275,7 @@ resource "azurerm_subnet" "secondary" {
     name = "managedinstancedelegation"
 
     service_delegation {
-      name    = "Microsoft.Sql/managedInstances"
+      name = "Microsoft.Sql/managedInstances"
     }
   }
 }
@@ -2533,7 +2533,7 @@ resource "azurerm_subnet" "secondary_2" {
     name = "managedinstancedelegation"
 
     service_delegation {
-      name    = "Microsoft.Sql/managedInstances"
+      name = "Microsoft.Sql/managedInstances"
     }
   }
 }
@@ -2934,7 +2934,7 @@ resource "azurerm_subnet" "test2" {
     name = "managedinstancedelegation"
 
     service_delegation {
-      name    = "Microsoft.Sql/managedInstances"
+      name = "Microsoft.Sql/managedInstances"
     }
   }
 }

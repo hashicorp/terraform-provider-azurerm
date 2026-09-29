@@ -1625,7 +1625,7 @@ resource "azurerm_subnet" "test_secondary" {
     name = "testdelegation"
 
     service_delegation {
-      name    = "Microsoft.Netapp/volumes"
+      name = "Microsoft.Netapp/volumes"
     }
   }
 }
@@ -1702,7 +1702,7 @@ resource "azurerm_subnet" "test_secondary" {
     name = "testdelegation"
 
     service_delegation {
-      name    = "Microsoft.Netapp/volumes"
+      name = "Microsoft.Netapp/volumes"
     }
   }
 }
@@ -1907,7 +1907,7 @@ resource "azurerm_subnet" "test" {
     name = "testdelegation"
 
     service_delegation {
-      name    = "Microsoft.Netapp/volumes"
+      name = "Microsoft.Netapp/volumes"
     }
   }
 }
@@ -2535,7 +2535,7 @@ resource "azurerm_subnet" "test" {
     name = "testdelegation"
 
     service_delegation {
-      name    = "Microsoft.Netapp/volumes"
+      name = "Microsoft.Netapp/volumes"
     }
   }
 }
@@ -2711,7 +2711,7 @@ resource "azurerm_subnet" "test-delegated" {
     name = "testdelegation"
 
     service_delegation {
-      name    = "Microsoft.Netapp/volumes"
+      name = "Microsoft.Netapp/volumes"
     }
   }
 }

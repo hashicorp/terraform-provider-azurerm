@@ -139,10 +139,11 @@ resource "azurerm_subnet" "test" {
     name = "delegation"
 
     service_delegation {
-      name    = "Microsoft.ServiceNetworking/trafficControllers"
+      name = "Microsoft.ServiceNetworking/trafficControllers"
     }
   }
 }
+
 
 `, data.RandomInteger, data.Locations.Primary)
 }

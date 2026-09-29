@@ -165,7 +165,7 @@ resource "azurerm_subnet" "test" {
     name = "netapp"
 
     service_delegation {
-      name    = "Microsoft.Netapp/volumes"
+      name = "Microsoft.Netapp/volumes"
     }
   }
 }

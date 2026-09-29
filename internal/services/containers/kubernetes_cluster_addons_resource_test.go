@@ -404,7 +404,7 @@ resource "azurerm_subnet" "test-aci" {
     name = "aciDelegation"
 
     service_delegation {
-      name    = "Microsoft.ContainerInstance/containerGroups"
+      name = "Microsoft.ContainerInstance/containerGroups"
     }
   }
 }
