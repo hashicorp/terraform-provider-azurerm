@@ -49,7 +49,7 @@ func (ExascaleDatabaseStorageVaultResource) Arguments() map[string]*pluginsdk.Sc
 			ForceNew: true,
 			ValidateFunc: validation.All(
 				validation.StringLenBetween(1, 255),
-				validate.ExascaleDatabaseStorageVaultName,
+				validate.ExascaleDatabaseResourceName,
 			),
 		},
 
@@ -76,7 +76,7 @@ func (ExascaleDatabaseStorageVaultResource) Arguments() map[string]*pluginsdk.Sc
 			ForceNew: true,
 			ValidateFunc: validation.All(
 				validation.StringLenBetween(1, 255),
-				validate.ExascaleDatabaseStorageVaultName,
+				validate.ExascaleDatabaseResourceName,
 			),
 		},
 
