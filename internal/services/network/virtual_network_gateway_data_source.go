@@ -271,14 +271,14 @@ func dataSourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interfa
 		d.Set("location", location.NormalizeNilable(model.Location))
 
 		props := model.Properties
-		d.Set("type", string(pointer.From(props.GatewayType)))
+		d.Set("type", pointer.FromEnum(props.GatewayType))
 		d.Set("bgp_enabled", props.EnableBgp)
 		d.Set("private_ip_address_enabled", props.EnablePrivateIPAddress)
 		d.Set("active_active", props.ActiveActive)
-		d.Set("generation", string(pointer.From(props.VpnGatewayGeneration)))
+		d.Set("generation", pointer.FromEnum(props.VpnGatewayGeneration))
 
 		if props.VpnType != nil {
-			d.Set("vpn_type", string(pointer.From(props.VpnType)))
+			d.Set("vpn_type", pointer.FromEnum(props.VpnType))
 		}
 
 		if props.GatewayDefaultSite != nil {
@@ -286,7 +286,7 @@ func dataSourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interfa
 		}
 
 		if props.Sku != nil {
-			d.Set("sku", string(pointer.From(props.Sku.Name)))
+			d.Set("sku", pointer.FromEnum(props.Sku.Name))
 		}
 
 		if err := d.Set("ip_configuration", flattenVirtualNetworkGatewayDataSourceIPConfigurations(props.IPConfigurations)); err != nil {
@@ -326,7 +326,7 @@ func flattenVirtualNetworkGatewayDataSourceIPConfigurations(ipConfigs *[]virtual
 			if name := cfg.Name; name != nil {
 				v["name"] = *name
 			}
-			v["private_ip_address_allocation"] = string(pointer.From(props.PrivateIPAllocationMethod))
+			v["private_ip_address_allocation"] = pointer.FromEnum(props.PrivateIPAllocationMethod)
 
 			if subnet := props.Subnet; subnet != nil {
 				if id := subnet.Id; id != nil {

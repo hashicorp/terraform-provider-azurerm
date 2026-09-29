@@ -1065,7 +1065,7 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		}
 
 		if v := props.GpuProfile; v != nil {
-			d.Set("gpu_driver", string(pointer.From(v.Driver)))
+			d.Set("gpu_driver", pointer.FromEnum(v.Driver))
 		}
 
 		if props.CreationData != nil {

@@ -277,7 +277,7 @@ func resourceEventGridSystemTopicEventSubscriptionRead(d *pluginsdk.ResourceData
 				}
 			}
 			d.Set("expiration_time_utc", expirationTimeUtc)
-			d.Set("event_delivery_schema", string(pointer.From(props.EventDeliverySchema)))
+			d.Set("event_delivery_schema", pointer.FromEnum(props.EventDeliverySchema))
 
 			destination := props.Destination
 			deliveryIdentityFlattened := make([]interface{}, 0)

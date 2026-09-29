@@ -929,7 +929,7 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 				}
 				d.Set("max_bid_price", maxBidPrice)
 
-				d.Set("eviction_policy", string(pointer.From(profile.EvictionPolicy)))
+				d.Set("eviction_policy", pointer.FromEnum(profile.EvictionPolicy))
 
 				if profile.ApplicationProfile != nil && profile.ApplicationProfile.GalleryApplications != nil {
 					d.Set("gallery_application", flattenVirtualMachineScaleSetGalleryApplication(profile.ApplicationProfile.GalleryApplications))
@@ -1053,7 +1053,7 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 			}
 
 			if policy := props.UpgradePolicy; policy != nil {
-				d.Set("upgrade_mode", string(pointer.From(policy.Mode)))
+				d.Set("upgrade_mode", pointer.FromEnum(policy.Mode))
 
 				if err := d.Set("automatic_os_upgrade_policy", FlattenVirtualMachineScaleSetAutomaticOSUpgradePolicy(policy.AutomaticOSUpgradePolicy)); err != nil {
 					return fmt.Errorf("setting `automatic_os_upgrade_policy`: %+v", err)

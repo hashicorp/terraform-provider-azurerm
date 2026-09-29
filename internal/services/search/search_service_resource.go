@@ -580,7 +580,7 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			// NOTE: There is a bug in the API where it returns the PublicNetworkAccess value
 			// as 'Disabled' instead of 'disabled'
 			if props.PublicNetworkAccess != nil {
-				publicNetworkAccess = strings.EqualFold(string(pointer.From(props.PublicNetworkAccess)), string(services.PublicNetworkAccessEnabled))
+				publicNetworkAccess = strings.EqualFold(pointer.FromEnum(props.PublicNetworkAccess), string(services.PublicNetworkAccessEnabled))
 			}
 
 			if props.HostingMode != nil {
@@ -588,8 +588,8 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			}
 
 			if props.EncryptionWithCmk != nil {
-				cmkEnforcement = strings.EqualFold(string(pointer.From(props.EncryptionWithCmk.Enforcement)), string(services.SearchEncryptionWithCmkEnabled))
-				d.Set("customer_managed_key_encryption_compliance_status", string(pointer.From(props.EncryptionWithCmk.EncryptionComplianceStatus)))
+				cmkEnforcement = strings.EqualFold(pointer.FromEnum(props.EncryptionWithCmk.Enforcement), string(services.SearchEncryptionWithCmkEnabled))
+				d.Set("customer_managed_key_encryption_compliance_status", pointer.FromEnum(props.EncryptionWithCmk.EncryptionComplianceStatus))
 			}
 
 			if props.Endpoint != nil {
@@ -607,13 +607,13 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 					// API Keys Only Mode or RBAC & API Keys Mode...
 					if props.AuthOptions.AadOrApiKey != nil && props.AuthOptions.AadOrApiKey.AadAuthFailureMode != nil {
 						// You are in RBAC & API Keys Mode...
-						authFailureMode = string(pointer.From(props.AuthOptions.AadOrApiKey.AadAuthFailureMode))
+						authFailureMode = pointer.FromEnum(props.AuthOptions.AadOrApiKey.AadAuthFailureMode)
 					}
 				}
 			}
 
 			if props.SemanticSearch != nil && pointer.From(props.SemanticSearch) != services.SearchSemanticSearchDisabled {
-				semanticSearchSku = string(pointer.From(props.SemanticSearch))
+				semanticSearchSku = pointer.FromEnum(props.SemanticSearch)
 			}
 
 			d.Set("authentication_failure_mode", authFailureMode)
@@ -628,7 +628,7 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.Set("semantic_search_sku", semanticSearchSku)
 
 			if props.NetworkRuleSet != nil {
-				d.Set("network_rule_bypass_option", string(pointer.From(props.NetworkRuleSet.Bypass)))
+				d.Set("network_rule_bypass_option", pointer.FromEnum(props.NetworkRuleSet.Bypass))
 			}
 		}
 

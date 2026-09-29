@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
@@ -33,7 +33,7 @@ func resourcePortalTenantConfiguration() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: schema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.PortalTenantConfigurationID(id)
 			return err
 		}),

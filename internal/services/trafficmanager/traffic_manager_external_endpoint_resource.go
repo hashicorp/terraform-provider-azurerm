@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -26,7 +26,7 @@ func resourceExternalEndpoint() *pluginsdk.Resource {
 		Read:   resourceExternalEndpointRead,
 		Update: resourceExternalEndpointUpdate,
 		Delete: resourceExternalEndpointDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: schema.ValidateResourceIDPriorToImport(func(id string) error {
 			endpointType, err := trafficmanagers.ParseEndpointTypeID(id)
 			if err != nil {
 				return err

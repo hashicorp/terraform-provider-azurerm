@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	firewalls "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
@@ -112,7 +112,7 @@ func (r NextGenerationFirewallVHubStrataCloudManagerResource) Create() sdk.Resou
 				return err
 			}
 
-			id := firewalls.NewFirewallID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
+			id := firewallresources.NewFirewallID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.FirewallsGet(ctx, id)
@@ -129,21 +129,21 @@ func (r NextGenerationFirewallVHubStrataCloudManagerResource) Create() sdk.Resou
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 
-			firewall := firewalls.FirewallResource{
+			firewall := firewallresources.FirewallResource{
 				Location: location.Normalize(model.Location),
-				Properties: firewalls.FirewallDeploymentProperties{
-					IsStrataCloudManaged: pointer.To(firewalls.BooleanEnumTRUE),
-					StrataCloudManagerConfig: &firewalls.StrataCloudManagerConfig{
+				Properties: firewallresources.FirewallDeploymentProperties{
+					IsStrataCloudManaged: pointer.To(firewallresources.BooleanEnumTRUE),
+					StrataCloudManagerConfig: &firewallresources.StrataCloudManagerConfig{
 						CloudManagerName: model.StrataCloudManagerTenantName,
 					},
 					DnsSettings: schema.ExpandDNSSettings(model.DNSSettings),
-					MarketplaceDetails: firewalls.MarketplaceDetails{
+					MarketplaceDetails: firewallresources.MarketplaceDetails{
 						OfferId:     model.MarketplaceOfferId,
 						PublisherId: "paloaltonetworks",
 					},
 					NetworkProfile: schema.ExpandNetworkProfileVHub(model.NetworkProfile),
-					PlanData: firewalls.PlanData{
-						BillingCycle: firewalls.BillingCycleMONTHLY,
+					PlanData: firewallresources.PlanData{
+						BillingCycle: firewallresources.BillingCycleMONTHLY,
 						PlanId:       model.PlanId,
 					},
 					FrontEndSettings: schema.ExpandDestinationNAT(model.FrontEnd),
@@ -168,7 +168,7 @@ func (r NextGenerationFirewallVHubStrataCloudManagerResource) Read() sdk.Resourc
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.FirewallResources
 
-			id, err := firewalls.ParseFirewallID(metadata.ResourceData.Id())
+			id, err := firewallresources.ParseFirewallID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -226,7 +226,7 @@ func (r NextGenerationFirewallVHubStrataCloudManagerResource) Delete() sdk.Resou
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.FirewallResources
 
-			id, err := firewalls.ParseFirewallID(metadata.ResourceData.Id())
+			id, err := firewallresources.ParseFirewallID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -241,7 +241,7 @@ func (r NextGenerationFirewallVHubStrataCloudManagerResource) Delete() sdk.Resou
 }
 
 func (r NextGenerationFirewallVHubStrataCloudManagerResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return firewalls.ValidateFirewallID
+	return firewallresources.ValidateFirewallID
 }
 
 func (r NextGenerationFirewallVHubStrataCloudManagerResource) Update() sdk.ResourceFunc {
@@ -250,7 +250,7 @@ func (r NextGenerationFirewallVHubStrataCloudManagerResource) Update() sdk.Resou
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.FirewallResources
 
-			id, err := firewalls.ParseFirewallID(metadata.ResourceData.Id())
+			id, err := firewallresources.ParseFirewallID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -281,7 +281,7 @@ func (r NextGenerationFirewallVHubStrataCloudManagerResource) Update() sdk.Resou
 
 			if metadata.ResourceData.HasChange("strata_cloud_manager_tenant_name") {
 				if props.StrataCloudManagerConfig == nil {
-					props.StrataCloudManagerConfig = &firewalls.StrataCloudManagerConfig{}
+					props.StrataCloudManagerConfig = &firewallresources.StrataCloudManagerConfig{}
 				}
 				props.StrataCloudManagerConfig.CloudManagerName = model.StrataCloudManagerTenantName
 			}

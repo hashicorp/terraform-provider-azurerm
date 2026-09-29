@@ -10,8 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	certificates "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/certificateobjectlocalrulestackresources"
-	localrulestacks "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulestackresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/certificateobjectlocalrulestackresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulestackresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -27,7 +27,7 @@ type LocalRulestackOutboundTrustCertificateResourceModel struct {
 var _ sdk.Resource = LocalRulestackOutboundTrustCertificateAssociationResource{}
 
 func (l LocalRulestackOutboundTrustCertificateAssociationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return certificates.ValidateLocalRulestackCertificateID
+	return certificateobjectlocalrulestackresources.ValidateLocalRulestackCertificateID
 }
 
 func (l LocalRulestackOutboundTrustCertificateAssociationResource) ModelObject() interface{} {
@@ -44,7 +44,7 @@ func (l LocalRulestackOutboundTrustCertificateAssociationResource) Arguments() m
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: certificates.ValidateLocalRulestackCertificateID,
+			ValidateFunc: certificateobjectlocalrulestackresources.ValidateLocalRulestackCertificateID,
 		},
 	}
 }
@@ -65,14 +65,14 @@ func (l LocalRulestackOutboundTrustCertificateAssociationResource) Create() sdk.
 				return err
 			}
 
-			certificateId, err := certificates.ParseLocalRulestackCertificateID(model.CertificateID)
+			certificateId, err := certificateobjectlocalrulestackresources.ParseLocalRulestackCertificateID(model.CertificateID)
 			if err != nil {
 				return err
 			}
 
 			locks.ByID(certificateId.ID())
 			defer locks.UnlockByID(certificateId.ID())
-			rulestackId := localrulestacks.NewLocalRulestackID(certificateId.SubscriptionId, certificateId.ResourceGroupName, certificateId.LocalRulestackName)
+			rulestackId := localrulestackresources.NewLocalRulestackID(certificateId.SubscriptionId, certificateId.ResourceGroupName, certificateId.LocalRulestackName)
 
 			locks.ByID(rulestackId.ID())
 			defer locks.UnlockByID(rulestackId.ID())
@@ -113,12 +113,12 @@ func (l LocalRulestackOutboundTrustCertificateAssociationResource) Read() sdk.Re
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.LocalRulestackResources
 
-			certificateId, err := certificates.ParseLocalRulestackCertificateID(metadata.ResourceData.Id())
+			certificateId, err := certificateobjectlocalrulestackresources.ParseLocalRulestackCertificateID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			rulestackId := localrulestacks.NewLocalRulestackID(certificateId.SubscriptionId, certificateId.ResourceGroupName, certificateId.LocalRulestackName)
+			rulestackId := localrulestackresources.NewLocalRulestackID(certificateId.SubscriptionId, certificateId.ResourceGroupName, certificateId.LocalRulestackName)
 
 			var state LocalRulestackOutboundTrustCertificateResourceModel
 
@@ -133,7 +133,7 @@ func (l LocalRulestackOutboundTrustCertificateAssociationResource) Read() sdk.Re
 				props := model.Properties
 				secServices := pointer.From(props.SecurityServices)
 
-				state.CertificateID = certificates.NewLocalRulestackCertificateID(certificateId.SubscriptionId, certificateId.ResourceGroupName, certificateId.LocalRulestackName, pointer.From(secServices.OutboundTrustCertificate)).ID()
+				state.CertificateID = certificateobjectlocalrulestackresources.NewLocalRulestackCertificateID(certificateId.SubscriptionId, certificateId.ResourceGroupName, certificateId.LocalRulestackName, pointer.From(secServices.OutboundTrustCertificate)).ID()
 			}
 
 			return metadata.Encode(&state)
@@ -147,14 +147,14 @@ func (l LocalRulestackOutboundTrustCertificateAssociationResource) Delete() sdk.
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.LocalRulestackResources
 
-			certId, err := certificates.ParseLocalRulestackCertificateID(metadata.ResourceData.Id())
+			certId, err := certificateobjectlocalrulestackresources.ParseLocalRulestackCertificateID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 			locks.ByID(certId.ID())
 			defer locks.UnlockByID(certId.ID())
 
-			rulestackId := localrulestacks.NewLocalRulestackID(certId.SubscriptionId, certId.ResourceGroupName, certId.LocalRulestackName)
+			rulestackId := localrulestackresources.NewLocalRulestackID(certId.SubscriptionId, certId.ResourceGroupName, certId.LocalRulestackName)
 			locks.ByID(rulestackId.ID())
 			defer locks.UnlockByID(rulestackId.ID())
 

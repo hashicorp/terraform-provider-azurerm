@@ -460,9 +460,9 @@ func resourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, meta
 			return fmt.Errorf("setting `custom_bgp_addresses`: %+v", err)
 		}
 
-		d.Set("connection_protocol", string(pointer.From(props.ConnectionProtocol)))
+		d.Set("connection_protocol", pointer.FromEnum(props.ConnectionProtocol))
 
-		d.Set("connection_mode", string(pointer.From(props.ConnectionMode)))
+		d.Set("connection_mode", pointer.FromEnum(props.ConnectionMode))
 
 		if props.ExpressRouteGatewayBypass != nil {
 			d.Set("express_route_gateway_bypass", props.ExpressRouteGatewayBypass)
@@ -669,7 +669,7 @@ func virtualNetworkGatewayConnectionStateRefreshFunc(ctx context.Context, client
 		}
 
 		if res.Model != nil && res.Model.Properties.ProvisioningState != nil {
-			return res, string(pointer.From(res.Model.Properties.ProvisioningState)), nil
+			return res, pointer.FromEnum(res.Model.Properties.ProvisioningState), nil
 		}
 
 		return nil, "", fmt.Errorf("polling for %s: %+v", id, err)

@@ -272,7 +272,7 @@ func (MaintenanceDynamicScopeResource) Read() sdk.ResourceFunc {
 						tagsListProp := make([]Tag, 0)
 						tagFilterProp := ""
 						if tags := filter.TagSettings; tags != nil {
-							tagFilterProp = string(pointer.From(tags.FilterOperator))
+							tagFilterProp = pointer.FromEnum(tags.FilterOperator)
 							for k, v := range pointer.From(tags.Tags) {
 								tagsListProp = append(tagsListProp, Tag{
 									Tag:    k,
