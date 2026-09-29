@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -49,7 +49,7 @@ func resourceStorageEncryptionScope() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: storageValidate.StorageEncryptionScopeName,
+				ValidateFunc: validate.StorageEncryptionScopeName,
 			},
 
 			"storage_account_id": {
@@ -60,12 +60,9 @@ func resourceStorageEncryptionScope() *pluginsdk.Resource {
 			},
 
 			"source": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(encryptionscopes.EncryptionScopeSourceMicrosoftPointKeyVault),
-					string(encryptionscopes.EncryptionScopeSourceMicrosoftPointStorage),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(encryptionscopes.PossibleValuesForEncryptionScopeSource(), false),
 			},
 
 			"key_vault_key_id": {
@@ -218,7 +215,7 @@ func resourceStorageEncryptionScopeRead(d *pluginsdk.ResourceData, meta interfac
 			}
 
 			d.Set("infrastructure_encryption_required", props.RequireInfrastructureEncryption)
-			d.Set("source", string(pointer.From(props.Source)))
+			d.Set("source", pointer.FromEnum(props.Source))
 
 			keyVaultKeyUri := ""
 			if props.KeyVaultProperties != nil {

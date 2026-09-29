@@ -10,7 +10,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -18,9 +17,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func dataSourceArmPolicySetDefinition() *pluginsdk.Resource {
+func dataSourcePolicySetDefinition() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceArmPolicySetDefinitionRead,
+		Read: dataSourcePolicySetDefinitionRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -30,7 +29,7 @@ func dataSourceArmPolicySetDefinition() *pluginsdk.Resource {
 			"display_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringIsNotEmpty,
 				ExactlyOneOf: []string{"name", "display_name"},
 			},
@@ -38,7 +37,7 @@ func dataSourceArmPolicySetDefinition() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringIsNotEmpty,
 				ExactlyOneOf: []string{"name", "display_name"},
 			},
@@ -148,7 +147,7 @@ func dataSourceArmPolicySetDefinition() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceArmPolicySetDefinitionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourcePolicySetDefinitionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.SetDefinitionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -198,7 +197,7 @@ func dataSourceArmPolicySetDefinitionRead(d *pluginsdk.ResourceData, meta interf
 
 	definitionBytes, err := json.Marshal(setDefinition.PolicyDefinitions)
 	if err != nil {
-		return fmt.Errorf("flattening JSON for `policy_defintions`: %+v", err)
+		return fmt.Errorf("flattening JSON for `policy_definitions`: %+v", err)
 	}
 	d.Set("policy_definitions", string(definitionBytes))
 
@@ -245,7 +244,7 @@ func flattenAzureRMPolicySetDefinitionPolicyDefinitionsTrack1(input *[]policy.De
 			"policy_definition_id": policyDefinitionID,
 			"parameter_values":     parameterValues,
 			"reference_id":         policyDefinitionReference,
-			"policy_group_names":   helpers.FlattenStringSlice(definition.GroupNames),
+			"policy_group_names":   pluginsdk.FlattenSlice(definition.GroupNames),
 		})
 	}
 	return result, nil

@@ -7,22 +7,22 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strconv"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/disasterrecoveryconfigs"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/armdisasterrecoveries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/disasterrecoveryconfigs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
-
-type ServiceBusNamespaceDisasterRecoveryConfigResource struct{}
 
 func resourceServiceBusNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -32,7 +32,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
 		Delete: resourceServiceBusNamespaceDisasterRecoveryConfigDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := disasterrecoveryconfigs.ParseDisasterRecoveryConfigID(id)
+			_, err := armdisasterrecoveries.ParseDisasterRecoveryConfigID(id)
 			return err
 		}),
 
@@ -57,9 +57,10 @@ func resourceServiceBusNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
 			},
 
 			"partner_namespace_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: azure.ValidateResourceIDOrEmpty, // nolint: staticcheck
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				// TODO: check to see if empty values should be allowed (the previous validator permitted them)
+				ValidateFunc: validation.Any(validation.StringIsEmpty, namespaces.ValidateNamespaceID),
 			},
 
 			"alias_authorization_rule_id": {
@@ -96,21 +97,21 @@ func resourceServiceBusNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
 }
 
 func resourceServiceBusNamespaceDisasterRecoveryConfigCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ServiceBus.DisasterRecoveryConfigsClient
+	client := meta.(*clients.Client).ServiceBus.ArmDisasterRecoveriesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	namespaceId, err := disasterrecoveryconfigs.ParseNamespaceID(d.Get("primary_namespace_id").(string))
+	namespaceId, err := armdisasterrecoveries.ParseNamespaceID(d.Get("primary_namespace_id").(string))
 	if err != nil {
 		return err
 	}
 
 	partnerNamespaceId := d.Get("partner_namespace_id").(string)
 
-	id := disasterrecoveryconfigs.NewDisasterRecoveryConfigID(namespaceId.SubscriptionId, namespaceId.ResourceGroupName, namespaceId.NamespaceName, d.Get("name").(string))
+	id := armdisasterrecoveries.NewDisasterRecoveryConfigID(namespaceId.SubscriptionId, namespaceId.ResourceGroupName, namespaceId.NamespaceName, d.Get("name").(string))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-		existing, err := client.Get(ctx, id)
+		existing, err := client.DisasterRecoveryConfigsGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -122,13 +123,13 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigCreate(d *pluginsdk.Resour
 		}
 	}
 
-	parameters := disasterrecoveryconfigs.ArmDisasterRecovery{
-		Properties: &disasterrecoveryconfigs.ArmDisasterRecoveryProperties{
+	parameters := armdisasterrecoveries.ArmDisasterRecovery{
+		Properties: &armdisasterrecoveries.ArmDisasterRecoveryProperties{
 			PartnerNamespace: pointer.To(partnerNamespaceId),
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
+	if _, err := client.DisasterRecoveryConfigsCreateOrUpdate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -142,11 +143,11 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigCreate(d *pluginsdk.Resour
 }
 
 func resourceServiceBusNamespaceDisasterRecoveryConfigUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ServiceBus.DisasterRecoveryConfigsClient
+	client := meta.(*clients.Client).ServiceBus.ArmDisasterRecoveriesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := disasterrecoveryconfigs.ParseDisasterRecoveryConfigID(d.State().ID)
+	id, err := armdisasterrecoveries.ParseDisasterRecoveryConfigID(d.State().ID)
 	if err != nil {
 		return err
 	}
@@ -155,7 +156,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigUpdate(d *pluginsdk.Resour
 	defer locks.UnlockByName(id.NamespaceName, serviceBusNamespaceResourceName)
 
 	if d.HasChange("partner_namespace_id") {
-		if _, err := client.BreakPairing(ctx, *id); err != nil {
+		if _, err := client.DisasterRecoveryConfigsBreakPairing(ctx, *id); err != nil {
 			return fmt.Errorf("breaking the pairing for %s: %+v", *id, err)
 		}
 		if err := resourceServiceBusNamespaceDisasterRecoveryConfigWaitForState(ctx, client, *id); err != nil {
@@ -163,13 +164,13 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigUpdate(d *pluginsdk.Resour
 		}
 	}
 
-	parameters := disasterrecoveryconfigs.ArmDisasterRecovery{
-		Properties: &disasterrecoveryconfigs.ArmDisasterRecoveryProperties{
+	parameters := armdisasterrecoveries.ArmDisasterRecovery{
+		Properties: &armdisasterrecoveries.ArmDisasterRecoveryProperties{
 			PartnerNamespace: pointer.To(d.Get("partner_namespace_id").(string)),
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, *id, parameters); err != nil {
+	if _, err := client.DisasterRecoveryConfigsCreateOrUpdate(ctx, *id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", *id, err)
 	}
 	if err := resourceServiceBusNamespaceDisasterRecoveryConfigWaitForState(ctx, client, *id); err != nil {
@@ -180,16 +181,17 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigUpdate(d *pluginsdk.Resour
 }
 
 func resourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ServiceBus.DisasterRecoveryConfigsClient
+	client := meta.(*clients.Client).ServiceBus.ArmDisasterRecoveriesClient
+	authRuleClient := meta.(*clients.Client).ServiceBus.DisasterRecoveryConfigsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := disasterrecoveryconfigs.ParseDisasterRecoveryConfigID(d.Id())
+	id, err := armdisasterrecoveries.ParseDisasterRecoveryConfigID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.DisasterRecoveryConfigsGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
@@ -198,7 +200,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.Resource
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	primaryId := disasterrecoveryconfigs.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
+	primaryId := armdisasterrecoveries.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
 
 	d.Set("name", id.DisasterRecoveryConfigName)
 	d.Set("primary_namespace_id", primaryId.ID())
@@ -219,7 +221,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.Resource
 		authRuleId = *ruleId
 	}
 
-	keys, err := client.ListKeys(ctx, authRuleId)
+	keys, err := authRuleClient.ListKeys(ctx, authRuleId)
 
 	if err != nil {
 		log.Printf("[WARN] listing default keys for %s: %+v", id, err)
@@ -236,18 +238,19 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.Resource
 }
 
 func resourceServiceBusNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ServiceBus.DisasterRecoveryConfigsClient
+	client := meta.(*clients.Client).ServiceBus.ArmDisasterRecoveriesClient
+	namespacesClient := meta.(*clients.Client).ServiceBus.NamespacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := disasterrecoveryconfigs.ParseDisasterRecoveryConfigID(d.Id())
+	id, err := armdisasterrecoveries.ParseDisasterRecoveryConfigID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	// @tombuildsstuff: whilst we previously checked the 200 response, since that's the only valid status
 	// code defined in the Swagger, anything else would raise an error thus the check is superfluous
-	if _, err := client.BreakPairing(ctx, *id); err != nil {
+	if _, err := client.DisasterRecoveryConfigsBreakPairing(ctx, *id); err != nil {
 		return fmt.Errorf("breaking pairing %s: %+v", id, err)
 	}
 
@@ -255,46 +258,26 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resour
 		return fmt.Errorf("waiting for the pairing to break for %s: %+v", *id, err)
 	}
 
-	if _, err := client.Delete(ctx, *id); err != nil {
+	if _, err := client.DisasterRecoveryConfigsDelete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	// no future for deletion so wait for it to vanish
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
-	}
-	deleteWait := &pluginsdk.StateChangeConf{
-		Pending:    []string{"200"},
-		Target:     []string{"404"},
-		MinTimeout: 30 * time.Second,
-		Timeout:    time.Until(deadline),
-		Refresh: func() (interface{}, string, error) {
-			resp, err := client.Get(ctx, *id)
-			statusCode := "dropped connection"
-			if resp.HttpResponse != nil {
-				statusCode = strconv.Itoa(resp.HttpResponse.StatusCode)
-			}
-
-			if err != nil {
-				if response.WasNotFound(resp.HttpResponse) {
-					return resp, statusCode, nil
-				}
-				return nil, "nil", fmt.Errorf("retrieving %s: %+v", *id, err)
-			}
-
-			return resp, statusCode, nil
-		},
-	}
-
-	if _, err := deleteWait.WaitForStateContext(ctx); err != nil {
+	deletePoller := custompollers.NewEventualConsistencyPoller(1, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.DisasterRecoveryConfigsGet(pollerCtx, *id)
+		return resp.HttpResponse, err
+	}, &custompollers.EventualConsistencyPollerOptions{
+		Interval:         30 * time.Second,
+		TargetStatusCode: pointer.To(http.StatusNotFound),
+	})
+	if err := deletePoller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting the deletion of %s: %v", *id, err)
 	}
 
-	namespaceId := disasterrecoveryconfigs.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
+	namespaceId := namespaces.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
 	// it can take some time for the name to become available again
 	// this is mainly here 	to enable updating the resource in place
-	deadline, ok = ctx.Deadline()
+	deadline, ok := ctx.Deadline()
 	if !ok {
 		return fmt.Errorf("internal-error: context had no deadline")
 	}
@@ -304,7 +287,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resour
 		MinTimeout: 30 * time.Second,
 		Timeout:    time.Until(deadline),
 		Refresh: func() (interface{}, string, error) {
-			resp, err := client.CheckNameAvailability(ctx, namespaceId, disasterrecoveryconfigs.CheckNameAvailability{
+			resp, err := namespacesClient.DisasterRecoveryConfigsCheckNameAvailability(ctx, namespaceId, namespaces.CheckNameAvailability{
 				Name: id.DisasterRecoveryConfigName,
 			})
 			if err != nil {
@@ -328,25 +311,25 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resour
 	return nil
 }
 
-func resourceServiceBusNamespaceDisasterRecoveryConfigWaitForState(ctx context.Context, client *disasterrecoveryconfigs.DisasterRecoveryConfigsClient, id disasterrecoveryconfigs.DisasterRecoveryConfigId) error {
+func resourceServiceBusNamespaceDisasterRecoveryConfigWaitForState(ctx context.Context, client *armdisasterrecoveries.ArmDisasterRecoveriesClient, id armdisasterrecoveries.DisasterRecoveryConfigId) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
 		return fmt.Errorf("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{string(disasterrecoveryconfigs.ProvisioningStateDRAccepted)},
-		Target:     []string{string(disasterrecoveryconfigs.ProvisioningStateDRSucceeded)},
+		Pending:    []string{string(armdisasterrecoveries.ProvisioningStateDRAccepted)},
+		Target:     []string{string(armdisasterrecoveries.ProvisioningStateDRSucceeded)},
 		MinTimeout: 30 * time.Second,
 		Timeout:    time.Until(deadline),
 		Refresh: func() (interface{}, string, error) {
-			resp, err := client.Get(ctx, id)
+			resp, err := client.DisasterRecoveryConfigsGet(ctx, id)
 			if err != nil {
 				return nil, "error", fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					if *props.ProvisioningState == disasterrecoveryconfigs.ProvisioningStateDRFailed {
+					if *props.ProvisioningState == armdisasterrecoveries.ProvisioningStateDRFailed {
 						return resp, "failed", fmt.Errorf("replication Failed for %s: %+v", id, err)
 					}
 					return resp, string(*props.ProvisioningState), nil

@@ -240,15 +240,13 @@ func resourceLogicAppActionHTTPRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 
 		if headers := inputs["headers"]; headers != nil {
-			hv := headers.(map[string]interface{})
-			if err := d.Set("headers", hv); err != nil {
+			if err := d.Set("headers", headers.(map[string]interface{})); err != nil {
 				return fmt.Errorf("setting `headers` for HTTP Action %q: %+v", id.Name, err)
 			}
 		}
 
 		if queries := inputs["queries"]; queries != nil {
-			qv := queries.(map[string]interface{})
-			if err := d.Set("queries", qv); err != nil {
+			if err := d.Set("queries", queries.(map[string]interface{})); err != nil {
 				return fmt.Errorf("setting `queries` for HTTP Action %q: %+v", id.Name, err)
 			}
 		}

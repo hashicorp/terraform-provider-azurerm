@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -22,13 +23,14 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimages"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-07-03/galleryimageversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -69,7 +71,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: computeValidate.VirtualMachineName,
+				ValidateFunc: validate.VirtualMachineName,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -100,7 +102,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			"instances": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.IntBetween(0, 1000),
 			},
 
@@ -110,7 +112,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			"sku_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: computeValidate.OrchestratedVirtualMachineScaleSetSku,
+				ValidateFunc: validate.OrchestratedVirtualMachineScaleSetSku,
 			},
 
 			"sku_profile": {
@@ -136,7 +138,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 									"name": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: computeValidate.SkuProfileVMSizeName,
+										ValidateFunc: validate.SkuProfileVMSizeName,
 									},
 									"rank": {
 										Type:         pluginsdk.TypeInt,
@@ -181,13 +183,10 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 
 			"eviction_policy": {
 				// only applicable when `priority` is set to `Spot`
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualmachinescalesets.VirtualMachineEvictionPolicyTypesDeallocate),
-					string(virtualmachinescalesets.VirtualMachineEvictionPolicyTypesDelete),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForVirtualMachineEvictionPolicyTypes(), false),
 			},
 
 			"extension_operations_enabled": {
@@ -204,7 +203,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Default:      "PT1H30M",
-				ValidateFunc: validate.ISO8601DurationBetween("PT15M", "PT2H"),
+				ValidateFunc: validation.ISO8601DurationBetween("PT15M", "PT2H"),
 			},
 
 			// whilst the Swagger defines multiple at this time only UAI is supported
@@ -231,7 +230,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeFloat,
 				Optional:     true,
 				Default:      -1,
-				ValidateFunc: computeValidate.SpotMaxPrice,
+				ValidateFunc: validate.SpotMaxPrice,
 			},
 
 			"plan": planSchema(),
@@ -272,7 +271,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			// for this bool
 			"single_placement_group": {
 				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Optional: true,
 			},
 
@@ -281,12 +280,12 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				Optional: true,
 				ValidateFunc: validation.Any(
 					images.ValidateImageID,
-					computeValidate.SharedImageID,
-					computeValidate.SharedImageVersionID,
-					computeValidate.CommunityGalleryImageID,
-					computeValidate.CommunityGalleryImageVersionID,
-					computeValidate.SharedGalleryImageID,
-					computeValidate.SharedGalleryImageVersionID,
+					validation.AsGeneratedID(galleryimages.ParseGalleryImageIDInsensitively),
+					validation.AsGeneratedID(galleryimageversions.ParseImageVersionIDInsensitively),
+					validate.CommunityGalleryImageID,
+					validate.CommunityGalleryImageVersionID,
+					validate.SharedGalleryImageID,
+					validate.SharedGalleryImageVersionID,
 				),
 				ConflictsWith: []string{
 					"source_image_reference",
@@ -315,15 +314,11 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			},
 
 			"upgrade_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(virtualmachinescalesets.UpgradeModeManual),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualmachinescalesets.UpgradeModeAutomatic),
-					string(virtualmachinescalesets.UpgradeModeManual),
-					string(virtualmachinescalesets.UpgradeModeRolling),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(virtualmachinescalesets.UpgradeModeManual),
+				ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForUpgradeMode(), false),
 			},
 
 			"user_data_base64": {
@@ -343,13 +338,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				newZones := zones.ExpandUntyped(new.(*schema.Set).List())
 
 				for _, ov := range oldZones {
-					found := false
-					for _, nv := range newZones {
-						if ov == nv {
-							found = true
-							break
-						}
-					}
+					found := slices.Contains(newZones, ov)
 
 					if !found {
 						return true
@@ -633,7 +622,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			// if the Computer Prefix Name was not defined use the computer name
 			if vmssOsProfile.ComputerNamePrefix == nil || len(*vmssOsProfile.ComputerNamePrefix) == 0 {
 				// validate that the computer name is a valid Computer Prefix Name
-				_, errs := computeValidate.WindowsComputerNamePrefix(id.VirtualMachineScaleSetName, "computer_name_prefix")
+				_, errs := validate.WindowsComputerNamePrefix(id.VirtualMachineScaleSetName, "computer_name_prefix")
 				if len(errs) > 0 {
 					return fmt.Errorf("unable to assume default computer name prefix %s. Please adjust the `name`, or specify an explicit `computer_name_prefix`", errs[0])
 				}
@@ -698,7 +687,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			// if the Computer Prefix Name was not defined use the computer name
 			if vmssOsProfile.ComputerNamePrefix == nil || len(*vmssOsProfile.ComputerNamePrefix) == 0 {
 				// validate that the computer name is a valid Computer Prefix Name
-				_, errs := computeValidate.LinuxComputerNamePrefix(id.VirtualMachineScaleSetName, "computer_name_prefix")
+				_, errs := validate.LinuxComputerNamePrefix(id.VirtualMachineScaleSetName, "computer_name_prefix")
 				if len(errs) > 0 {
 					if errs[0] != nil {
 						return fmt.Errorf("unable to assume default computer name prefix `%s`. Please adjust the `name`, or specify an explicit `computer_name_prefix`", errs[0])
@@ -806,7 +795,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		virtualMachineProfile.ScheduledEventsProfile = ExpandOrchestratedVirtualMachineScaleSetScheduledEventsProfile(v.([]interface{}))
 	}
 
-	// Only inclued the virtual machine profile if this is not a legacy configuration
+	// Only include the virtual machine profile if this is not a legacy configuration
 	if !isLegacy {
 		if v, ok := d.GetOk("plan"); ok {
 			props.Plan = expandPlanVMSS(v.([]interface{}))
@@ -909,7 +898,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 					ImageReference: existing.Model.Properties.VirtualMachineProfile.StorageProfile.ImageReference,
 				},
 			},
-			// Currently not suppored in orchestrated VMSS
+			// Currently not supported in orchestrated VMSS
 			// if an upgrade policy's been configured previously (which it will have) it must be threaded through
 			// this doesn't matter for Manual - but breaks when updating anything on a Automatic and Rolling Mode Scale Set
 			// UpgradePolicy: existing.Properties.UpgradePolicy,
@@ -1332,14 +1321,10 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 
 	// AutomaticOSUpgradeIsEnabled currently is not supported in orchestrated VMSS flex
 	metaData := virtualMachineScaleSetUpdateMetaData{
-		AutomaticOSUpgradeIsEnabled:  false,
-		CanReimageOnManualUpgrade:    false,
-		CanRollInstancesWhenRequired: false,
-		UpdateInstances:              false,
-		Client:                       meta.(*clients.Client).Compute,
-		Existing:                     pointer.From(existing.Model),
-		ID:                           id,
-		OSType:                       osType,
+		Client:   meta.(*clients.Client).Compute,
+		Existing: pointer.From(existing.Model),
+		ID:       id,
+		OSType:   osType,
 	}
 
 	if err := metaData.performUpdate(ctx, update); err != nil {
@@ -1506,8 +1491,7 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 				if nwProfile := profile.NetworkProfile; nwProfile != nil {
 					d.Set("network_api_version", pointer.From(nwProfile.NetworkApiVersion))
 
-					flattenedNics := FlattenOrchestratedVirtualMachineScaleSetNetworkInterface(nwProfile.NetworkInterfaceConfigurations)
-					if err := d.Set("network_interface", flattenedNics); err != nil {
+					if err := d.Set("network_interface", FlattenOrchestratedVirtualMachineScaleSetNetworkInterface(nwProfile.NetworkInterfaceConfigurations)); err != nil {
 						return fmt.Errorf("setting `network_interface`: %w", err)
 					}
 				}
@@ -1538,9 +1522,8 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 				d.Set("user_data_base64", profile.UserData)
 
 				if policy := props.UpgradePolicy; policy != nil {
-					upgradeMode = string(pointer.From(policy.Mode))
-					flattenedRolling := FlattenVirtualMachineScaleSetRollingUpgradePolicy(policy.RollingUpgradePolicy)
-					if err := d.Set("rolling_upgrade_policy", flattenedRolling); err != nil {
+					upgradeMode = pointer.FromEnum(policy.Mode)
+					if err := d.Set("rolling_upgrade_policy", FlattenVirtualMachineScaleSetRollingUpgradePolicy(policy.RollingUpgradePolicy)); err != nil {
 						return fmt.Errorf("setting `rolling_upgrade_policy`: %w", err)
 					}
 				}
@@ -1649,7 +1632,7 @@ func flattenOrchestratedVirtualMachineScaleSetSkuProfile(input *virtualmachinesc
 	}
 
 	result := map[string]interface{}{
-		"allocation_strategy": string(pointer.From(input.AllocationStrategy)),
+		"allocation_strategy": pointer.FromEnum(input.AllocationStrategy),
 	}
 
 	output := make([]interface{}, 0)
@@ -1723,8 +1706,8 @@ func expandOrchestratedVirtualMachineScaleSetPublicIPSku(input string) *virtualm
 func flattenOrchestratedVirtualMachineScaleSetPublicIPSku(input *virtualmachinescalesets.PublicIPAddressSku) string {
 	var skuName string
 	if input != nil {
-		name := string(pointer.From(input.Name))
-		tier := string(pointer.From(input.Tier))
+		name := pointer.FromEnum(input.Name)
+		tier := pointer.FromEnum(input.Tier)
 		if name != "" && tier != "" {
 			skuName = fmt.Sprintf("%s_%s", name, tier)
 		}

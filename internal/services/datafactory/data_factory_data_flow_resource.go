@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/dataflows"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/helper"
@@ -137,8 +136,7 @@ func resourceDataFactoryDataFlowCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		mappingDataFlow.Annotations = &annotations
+		mappingDataFlow.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("folder"); ok {
@@ -148,7 +146,7 @@ func resourceDataFactoryDataFlowCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if v, ok := d.GetOk("script_lines"); ok {
-		mappingDataFlow.TypeProperties.ScriptLines = helpers.ExpandStringSlice(v.([]interface{}))
+		mappingDataFlow.TypeProperties.ScriptLines = pluginsdk.ExpandStringSlice(v.([]interface{}))
 	}
 
 	dataFlow := dataflows.DataFlowResource{

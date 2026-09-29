@@ -6,6 +6,7 @@ package servicefabricmanaged
 import (
 	"context"
 	"fmt"
+	"maps"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -52,11 +53,6 @@ type ADAuthentication struct {
 type Authentication struct {
 	ADAuth             []ADAuthentication `tfschema:"active_directory"`
 	CertAuthentication []ThumbprintAuth   `tfschema:"certificate"`
-}
-
-type PortRange struct {
-	From int64 `tfschema:"from"`
-	To   int64 `tfschema:"to"`
 }
 
 type VaultCertificates struct {
@@ -133,7 +129,7 @@ func (k ClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"dns_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[a-z0-9]+(-*[a-z0-9])*$`), "The dns name of the cluster must have lowercase letters, numbers and hyphens. The first character must be a letter and the last character a letter or number"),
 		},
 		"dns_service_enabled": {
@@ -206,26 +202,19 @@ func (k ClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 		"lb_rule": lbRulesSchema(),
 		"sku": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  "Basic",
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(managedcluster.SkuNameBasic),
-				string(managedcluster.SkuNameStandard),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      "Basic",
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(managedcluster.PossibleValuesForSkuName(), false),
 		},
 		"subnet_id": commonschema.ResourceIDReferenceOptionalForceNew(&commonids.SubnetId{}),
 		"tags":      commonschema.Tags(),
 		"upgrade_wave": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  managedcluster.ClusterUpgradeCadenceWaveZero,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(managedcluster.ClusterUpgradeCadenceWaveZero),
-				string(managedcluster.ClusterUpgradeCadenceWaveOne),
-				string(managedcluster.ClusterUpgradeCadenceWaveTwo),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      managedcluster.ClusterUpgradeCadenceWaveZero,
+			ValidateFunc: validation.StringInSlice(managedcluster.PossibleValuesForClusterUpgradeCadence(), false),
 		},
 	}
 }
@@ -705,9 +694,7 @@ func flattenNodetypeProperties(nt nodetype.NodeType) NodeType {
 
 	if capacities := props.Capacities; capacities != nil {
 		caps := make(map[string]string)
-		for k, v := range *capacities {
-			caps[k] = v
-		}
+		maps.Copy(caps, *capacities)
 		out.Capacities = caps
 	}
 
@@ -717,9 +704,7 @@ func flattenNodetypeProperties(nt nodetype.NodeType) NodeType {
 
 	if placementProps := props.PlacementProperties; placementProps != nil {
 		placements := make(map[string]string)
-		for k, v := range *placementProps {
-			placements[k] = v
-		}
+		maps.Copy(placements, *placementProps)
 		out.PlacementProperties = placements
 	}
 
@@ -988,9 +973,8 @@ func nodeTypeSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: func(i interface{}, s string) ([]string, []error) {
-						input := i.(string)
 						errors := make([]error, 0)
-						if _, _, err := parsePortRange(input); err != nil {
+						if _, _, err := parsePortRange(i.(string)); err != nil {
 							errors = append(errors, err)
 						}
 						return nil, errors
@@ -1004,14 +988,10 @@ func nodeTypeSchema() *pluginsdk.Schema {
 					},
 				},
 				"data_disk_type": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(nodetype.DiskTypeStandardLRS),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(nodetype.DiskTypeStandardLRS),
-						string(nodetype.DiskTypeStandardSSDLRS),
-						string(nodetype.DiskTypePremiumLRS),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(nodetype.DiskTypeStandardLRS),
+					ValidateFunc: validation.StringInSlice(nodetype.PossibleValuesForDiskType(), false),
 				},
 				"ephemeral_port_range": {
 					Type:     pluginsdk.TypeString,
@@ -1136,13 +1116,9 @@ func lbRulesSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.IntBetween(1, 65535),
 				},
 				"probe_protocol": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(managedcluster.ProbeProtocolHTTP),
-						string(managedcluster.ProbeProtocolHTTPS),
-						string(managedcluster.ProbeProtocolTcp),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(managedcluster.PossibleValuesForProbeProtocol(), false),
 				},
 				"probe_request_path": {
 					Type:         pluginsdk.TypeString,
@@ -1150,12 +1126,9 @@ func lbRulesSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringIsNotWhiteSpace,
 				},
 				"protocol": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(managedcluster.ProtocolTcp),
-						string(managedcluster.ProtocolUdp),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(managedcluster.PossibleValuesForProtocol(), false),
 				},
 			},
 		},

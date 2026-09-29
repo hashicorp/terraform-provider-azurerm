@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	kustoValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -30,7 +30,7 @@ func dataSourceKustoDatabase() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: kustoValidate.DatabaseName,
+				ValidateFunc: validate.DatabaseName,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
@@ -38,7 +38,7 @@ func dataSourceKustoDatabase() *pluginsdk.Resource {
 			"cluster_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: kustoValidate.ClusterName,
+				ValidateFunc: validate.ClusterName,
 			},
 
 			"location": commonschema.LocationComputed(),

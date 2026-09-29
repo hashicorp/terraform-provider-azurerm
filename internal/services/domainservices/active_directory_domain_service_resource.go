@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices/parse"
@@ -130,7 +129,7 @@ func resourceActiveDirectoryDomainService() *pluginsdk.Resource {
 			"notifications": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -161,7 +160,7 @@ func resourceActiveDirectoryDomainService() *pluginsdk.Resource {
 			"secure_ldap": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -180,7 +179,7 @@ func resourceActiveDirectoryDomainService() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							Sensitive:    true,
-							ValidateFunc: azValidate.Base64EncodedString,
+							ValidateFunc: validation.StringIsBase64,
 						},
 
 						"pfx_certificate_password": {
@@ -210,7 +209,7 @@ func resourceActiveDirectoryDomainService() *pluginsdk.Resource {
 			"security": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -594,9 +593,8 @@ func domainServiceControllerRefreshFunc(ctx context.Context, client *domainservi
 }
 
 func expandDomainServiceLdaps(input []interface{}) (ldaps *domainservices.LdapsSettings) {
-	state := domainservices.LdapsDisabled
 	ldaps = &domainservices.LdapsSettings{
-		Ldaps: &state,
+		Ldaps: pointer.To(domainservices.LdapsDisabled),
 	}
 
 	if len(input) > 0 {
@@ -761,7 +759,7 @@ func flattenDomainServiceNotifications(input *domainservices.NotificationSetting
 
 func flattenDomainServiceReplicaSets(input *[]domainservices.ReplicaSet) (ret []interface{}) {
 	if input == nil {
-		return
+		return []interface{}{}
 	}
 
 	for _, in := range *input {

@@ -14,12 +14,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/secrets"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -235,7 +234,7 @@ func expandCdnFrontDoorSecretParameters(ctx context.Context, input []interface{}
 	customerCertificate := &secrets.CustomerCertificateParameters{
 		Type: secrets.SecretTypeCustomerCertificate,
 		SecretSource: secrets.ResourceReference{
-			Id: pointer.To(keyVaultParse.NewSecretVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, certificateId.Name).ID()),
+			Id: pointer.To(parse.NewSecretVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, certificateId.Name).ID()),
 		},
 		UseLatestVersion: pointer.To(useLatest),
 	}
@@ -262,7 +261,7 @@ func flattenCdnFrontDoorSecretParameters(ctx context.Context, input secrets.Secr
 		return nil, fmt.Errorf("received an unexpected type (`%T`)", input.(secrets.CustomerCertificateParameters))
 	}
 
-	secretSourceId, err := keyVaultParse.SecretVersionlessID(pointer.From(customerCertificate.SecretSource.Id))
+	secretSourceId, err := parse.SecretVersionlessID(pointer.From(customerCertificate.SecretSource.Id))
 	if err != nil {
 		return nil, err
 	}
@@ -287,7 +286,7 @@ func flattenCdnFrontDoorSecretParameters(ctx context.Context, input secrets.Secr
 		map[string]interface{}{
 			"expiration_date":           pointer.From(customerCertificate.ExpirationDate),
 			"key_vault_certificate_id":  certificateID,
-			"subject_alternative_names": helpers.FlattenStringSlice(customerCertificate.SubjectAlternativeNames),
+			"subject_alternative_names": pluginsdk.FlattenSlice(customerCertificate.SubjectAlternativeNames),
 		},
 	}
 	results = append(results, result)

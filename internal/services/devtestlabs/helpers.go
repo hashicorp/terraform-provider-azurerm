@@ -6,7 +6,6 @@ package devtestlabs
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/virtualmachines"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -20,19 +19,16 @@ func schemaDevTestVirtualMachineInboundNatRule() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"protocol": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(virtualmachines.TransportProtocolTcp),
-						string(virtualmachines.TransportProtocolUdp),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForTransportProtocol(), false),
 				},
 
 				"backend_port": {
 					Type:         pluginsdk.TypeInt,
 					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: validate.PortNumber,
+					ValidateFunc: validation.IsPortNumber,
 				},
 
 				"frontend_port": {
@@ -53,10 +49,9 @@ func expandDevTestLabVirtualMachineNatRules(input *pluginsdk.Set) []virtualmachi
 	for _, val := range input.List() {
 		v := val.(map[string]interface{})
 		backendPort := v["backend_port"].(int)
-		protocol := virtualmachines.TransportProtocol(v["protocol"].(string))
 
 		rule := virtualmachines.InboundNatRule{
-			TransportProtocol: &protocol,
+			TransportProtocol: pointer.ToEnum[virtualmachines.TransportProtocol](v["protocol"].(string)),
 			BackendPort:       pointer.To(int64(backendPort)),
 		}
 

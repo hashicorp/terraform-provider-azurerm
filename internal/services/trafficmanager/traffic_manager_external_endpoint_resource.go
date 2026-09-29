@@ -13,10 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/profiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/trafficmanagers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -27,7 +26,7 @@ func resourceExternalEndpoint() *pluginsdk.Resource {
 		Read:   resourceExternalEndpointRead,
 		Update: resourceExternalEndpointUpdate,
 		Delete: resourceExternalEndpointDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: schema.ValidateResourceIDPriorToImport(func(id string) error {
 			endpointType, err := trafficmanagers.ParseEndpointTypeID(id)
 			if err != nil {
 				return err
@@ -117,7 +116,7 @@ func resourceExternalEndpoint() *pluginsdk.Resource {
 			"endpoint_location": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Computed:         true,
+				Computed:         true, // azignore:AZS007 - pre-existing violation
 				StateFunc:        location.StateFunc,
 				DiffSuppressFunc: location.DiffSuppressFunc,
 			},
@@ -137,12 +136,12 @@ func resourceExternalEndpoint() *pluginsdk.Resource {
 						"first": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: azValidate.IPv4Address,
+							ValidateFunc: validation.IsIPv4Address,
 						},
 						"last": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: azValidate.IPv4Address,
+							ValidateFunc: validation.IsIPv4Address,
 						},
 						"scope": {
 							Type:         pluginsdk.TypeInt,

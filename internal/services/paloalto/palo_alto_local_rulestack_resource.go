@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	localrulestacks "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulestackresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulestackresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
@@ -44,7 +44,7 @@ type LocalRuleStackModel struct {
 }
 
 func (r LocalRuleStack) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return localrulestacks.ValidateLocalRulestackID
+	return localrulestackresources.ValidateLocalRulestackID
 }
 
 func (r LocalRuleStack) ResourceType() string {
@@ -145,7 +145,7 @@ func (r LocalRuleStack) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			id := localrulestacks.NewLocalRulestackID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
+			id := localrulestackresources.NewLocalRulestackID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
 
@@ -161,7 +161,7 @@ func (r LocalRuleStack) Create() sdk.ResourceFunc {
 				}
 			}
 
-			secServices := localrulestacks.SecurityServices{
+			secServices := localrulestackresources.SecurityServices{
 				AntiSpywareProfile:   pointer.To(RuleStackSecurityServicesNone),
 				AntiVirusProfile:     pointer.To(RuleStackSecurityServicesNone),
 				DnsSubscription:      pointer.To(RuleStackSecurityServicesNone),
@@ -189,12 +189,12 @@ func (r LocalRuleStack) Create() sdk.ResourceFunc {
 				secServices.VulnerabilityProfile = pointer.To(model.VulnerabilityProfile)
 			}
 
-			localRuleStack := localrulestacks.LocalRulestackResource{
+			localRuleStack := localrulestackresources.LocalRulestackResource{
 				Location: location.Normalize(model.Location),
-				Properties: localrulestacks.RulestackProperties{
-					DefaultMode:      pointer.To(localrulestacks.DefaultModeNONE),
+				Properties: localrulestackresources.RulestackProperties{
+					DefaultMode:      pointer.To(localrulestackresources.DefaultModeNONE),
 					Description:      pointer.To(model.Description),
-					Scope:            pointer.To(localrulestacks.ScopeTypeLOCAL),
+					Scope:            pointer.To(localrulestackresources.ScopeTypeLOCAL),
 					SecurityServices: pointer.To(secServices),
 				},
 			}
@@ -215,7 +215,7 @@ func (r LocalRuleStack) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.LocalRulestackResources
 
-			id, err := localrulestacks.ParseLocalRulestackID(metadata.ResourceData.Id())
+			id, err := localrulestackresources.ParseLocalRulestackID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -270,7 +270,7 @@ func (r LocalRuleStack) Delete() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.LocalRulestackResources
-			id, err := localrulestacks.ParseLocalRulestackID(metadata.ResourceData.Id())
+			id, err := localrulestackresources.ParseLocalRulestackID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -290,7 +290,7 @@ func (r LocalRuleStack) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.LocalRulestackResources
 
-			id, err := localrulestacks.ParseLocalRulestackID(metadata.ResourceData.Id())
+			id, err := localrulestackresources.ParseLocalRulestackID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}

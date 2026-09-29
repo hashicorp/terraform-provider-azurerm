@@ -7,7 +7,7 @@ import (
 	"context"
 	"log"
 
-	apikeys "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentapikeysapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentapikeysapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -25,7 +25,7 @@ func (ApiKeyUpgradeV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		// previously only normalised the `apiKeys` segment instead of all the static segments, so IDs with incorrect
 		// casing were still present and being created in a user's state
 		oldIdRaw := rawState["id"].(string)
-		id, err := apikeys.ParseApiKeyIDInsensitively(oldIdRaw)
+		id, err := componentapikeysapis.ParseApiKeyIDInsensitively(oldIdRaw)
 		if err != nil {
 			return rawState, err
 		}

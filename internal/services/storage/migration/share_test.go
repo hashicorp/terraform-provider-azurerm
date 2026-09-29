@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	storageClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 )
 
 func TestShareV0ToV1(t *testing.T) {
@@ -70,7 +70,7 @@ func TestShareV1ToV2(t *testing.T) {
 			Account: &clients.ResourceManagerAccount{
 				Environment: *cloud,
 			},
-			Storage: &storageClient.Client{
+			Storage: &client.Client{
 				StorageDomainSuffix: *storageSuffix,
 			},
 		}

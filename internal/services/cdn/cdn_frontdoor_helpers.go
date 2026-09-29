@@ -11,13 +11,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afddomains"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/routes"
-	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func flattenTransformSlice(input *[]waf.TransformType) []interface{} {
+func flattenTransformSlice(input *[]webapplicationfirewallpolicies.TransformType) []interface{} {
 	result := make([]interface{}, 0)
 	if input == nil || len(*input) == 0 {
 		return result
@@ -30,7 +30,7 @@ func flattenTransformSlice(input *[]waf.TransformType) []interface{} {
 	return result
 }
 
-func flattenFrontendEndpointLinkSlice(input *[]waf.FrontendEndpointLink) []interface{} {
+func flattenFrontendEndpointLinkSlice(input *[]webapplicationfirewallpolicies.FrontendEndpointLink) []interface{} {
 	result := make([]interface{}, 0)
 	if input == nil || len(*input) == 0 {
 		return result
@@ -99,7 +99,7 @@ func expandStringSliceToCsvFormat(input []interface{}) *string {
 		return nil
 	}
 
-	v := helpers.ExpandStringSlice(input)
+	v := pluginsdk.ExpandStringSlice(input)
 	csv := strings.Trim(fmt.Sprintf("[%s]", strings.Join(*v, ",")), "[]")
 
 	return &csv
@@ -130,9 +130,9 @@ func flattenCsvToStringSlice(input *string) []interface{} {
 		return results
 	}
 
-	v := strings.Split(*input, ",")
+	v := strings.SplitSeq(*input, ",")
 
-	for _, s := range v {
+	for s := range v {
 		results = append(results, s)
 	}
 

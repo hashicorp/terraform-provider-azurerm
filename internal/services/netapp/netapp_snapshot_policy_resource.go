@@ -16,14 +16,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/capacitypools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/snapshotpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/volumes"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/capacitypools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/snapshotpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -52,7 +51,7 @@ func resourceNetAppSnapshotPolicy() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: netAppValidate.SnapshotName,
+				ValidateFunc: validate.SnapshotName,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -63,7 +62,7 @@ func resourceNetAppSnapshotPolicy() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: netAppValidate.AccountName,
+				ValidateFunc: validate.AccountName,
 			},
 
 			"enabled": {
@@ -514,7 +513,7 @@ func expandNetAppSnapshotPolicyWeeklySchedule(input []interface{}) *snapshotpoli
 		weeklyScheduleObject.SnapshotsToKeep = pointer.To(int64(v.(int)))
 	}
 	if _, ok := weeklyScheduleRaw["days_of_week"]; ok {
-		weeklyScheduleObject.Day = helpers.ExpandStringSliceWithDelimiter(weeklyScheduleRaw["days_of_week"].(*pluginsdk.Set).List(), ",")
+		weeklyScheduleObject.Day = pluginsdk.ExpandStringSliceWithDelimiter(weeklyScheduleRaw["days_of_week"].(*pluginsdk.Set).List(), ",")
 	}
 	if v, ok := weeklyScheduleRaw["hour"]; ok {
 		weeklyScheduleObject.Hour = pointer.To(int64(v.(int)))
@@ -539,7 +538,7 @@ func expandNetAppSnapshotPolicyMonthlySchedule(input []interface{}) *snapshotpol
 		monthlyScheduleObject.SnapshotsToKeep = pointer.To(int64(v.(int)))
 	}
 	if _, ok := monthlyScheduleRaw["days_of_month"]; ok {
-		monthlyScheduleObject.DaysOfMonth = helpers.ExpandIntSliceWithDelimiter(monthlyScheduleRaw["days_of_month"].(*pluginsdk.Set).List(), ",")
+		monthlyScheduleObject.DaysOfMonth = pluginsdk.ExpandIntSliceWithDelimiter(monthlyScheduleRaw["days_of_month"].(*pluginsdk.Set).List(), ",")
 	}
 	if v, ok := monthlyScheduleRaw["hour"]; ok {
 		monthlyScheduleObject.Hour = pointer.To(int64(v.(int)))
@@ -585,7 +584,7 @@ func flattenNetAppVolumeSnapshotPolicyWeeklySchedule(input *snapshotpolicies.Wee
 
 	weekDays := make([]interface{}, 0)
 	if input.Day != nil {
-		for _, day := range strings.Split(*input.Day, ",") {
+		for day := range strings.SplitSeq(*input.Day, ",") {
 			weekDays = append(weekDays, day)
 		}
 	}
@@ -607,7 +606,7 @@ func flattenNetAppVolumeSnapshotPolicyMonthlySchedule(input *snapshotpolicies.Mo
 
 	daysOfMonth := make([]interface{}, 0)
 	if input.DaysOfMonth != nil {
-		for _, day := range strings.Split(*input.DaysOfMonth, ",") {
+		for day := range strings.SplitSeq(*input.DaysOfMonth, ",") {
 			intDay, _ := strconv.Atoi(day)
 			daysOfMonth = append(daysOfMonth, intDay)
 		}

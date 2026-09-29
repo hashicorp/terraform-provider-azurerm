@@ -63,13 +63,10 @@ func resourceStorageSync() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"incoming_traffic_policy": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(storagesyncservicesresource.IncomingTrafficPolicyAllowAllTraffic),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(storagesyncservicesresource.IncomingTrafficPolicyAllowAllTraffic),
-					string(storagesyncservicesresource.IncomingTrafficPolicyAllowVirtualNetworksOnly),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(storagesyncservicesresource.IncomingTrafficPolicyAllowAllTraffic),
+				ValidateFunc: validation.StringInSlice(storagesyncservicesresource.PossibleValuesForIncomingTrafficPolicy(), false),
 			},
 
 			"registered_servers": {
@@ -156,7 +153,7 @@ func resourceStorageSyncFlatten(ctx context.Context, d *pluginsdk.ResourceData, 
 		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
-			d.Set("incoming_traffic_policy", string(pointer.From(props.IncomingTrafficPolicy)))
+			d.Set("incoming_traffic_policy", pointer.FromEnum(props.IncomingTrafficPolicy))
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {

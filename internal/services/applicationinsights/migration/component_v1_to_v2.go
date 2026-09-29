@@ -8,7 +8,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -25,7 +25,7 @@ func (ComponentUpgradeV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		// This state migration is identical to v0 -> v1, however we need to apply it again because application insights
 		// resources with the incorrect casing could still be imported and exist within some user's state
 		oldIdRaw := rawState["id"].(string)
-		id, err := components.ParseComponentIDInsensitively(oldIdRaw)
+		id, err := componentsapis.ParseComponentIDInsensitively(oldIdRaw)
 		if err != nil {
 			return rawState, err
 		}

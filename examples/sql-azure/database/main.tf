@@ -27,7 +27,7 @@ resource "azurerm_mssql_database" "example" {
 }
 
 # Enables the "Allow Access to Azure services" box as described in the API docs
-# https://docs.microsoft.com/en-us/rest/api/sql/firewallrules/createorupdate
+# https://docs.microsoft.com/rest/api/sql/firewallrules/createorupdate
 resource "azurerm_mssql_firewall_rule" "example" {
   name             = "allow-azure-services"
   server_id        = azurerm_mssql_server.example.id

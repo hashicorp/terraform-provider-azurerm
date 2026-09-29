@@ -313,35 +313,28 @@ func dataSourceMonitorActionGroup() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							Type:     pluginsdk.TypeString,
+							Computed: true,
 						},
 						"event_hub_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							Type:     pluginsdk.TypeString,
+							Computed: true,
 						},
 						"event_hub_namespace": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							Type:     pluginsdk.TypeString,
+							Computed: true,
 						},
 						"tenant_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validation.IsUUID,
+							Type:     pluginsdk.TypeString,
+							Computed: true,
 						},
 						"use_common_alert_schema": {
 							Type:     pluginsdk.TypeBool,
-							Optional: true,
+							Computed: true,
 						},
 						"subscription_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validation.IsUUID,
+							Type:     pluginsdk.TypeString,
+							Computed: true,
 						},
 					},
 				},
