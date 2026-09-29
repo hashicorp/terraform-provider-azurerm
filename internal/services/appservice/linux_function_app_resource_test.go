@@ -3122,7 +3122,7 @@ resource "azurerm_linux_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger, pythonVersion)
 }
 
-// nolint: unparam
+//nolint:unparam
 func (r LinuxFunctionAppResource) appStackJava(data acceptance.TestData, planSku string, javaVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

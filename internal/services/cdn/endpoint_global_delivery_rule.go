@@ -4,7 +4,7 @@
 package cdn
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/deliveryruleactions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"

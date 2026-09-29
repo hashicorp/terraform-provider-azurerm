@@ -692,7 +692,7 @@ resource "azurerm_role_assignment" "test" {
 `, groupId)
 }
 
-// nolint: unused
+//nolint:unused
 func (RoleAssignmentResource) subscriptionScoped(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

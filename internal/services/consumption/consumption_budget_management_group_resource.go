@@ -288,7 +288,7 @@ func expandConsumptionBudgetMgmtNotificationsFromModel(input []ConsumptionBudget
 		notification := budgets.Notification{
 			Enabled:  n.Enabled,
 			Operator: budgets.OperatorType(n.Operator),
-			// nolint: gosec
+			//nolint:gosec
 			Threshold: float64(n.Threshold),
 		}
 

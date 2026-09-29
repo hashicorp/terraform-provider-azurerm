@@ -12,7 +12,7 @@ import (
 
 // NOTE: these methods are deprecated, but provided to ease compatibility for open PR's
 
-func evaluateSchemaValidateFunc(i any, k string, validateFunc pluginsdk.SchemaValidateFunc) (bool, error) { // nolint: unparam
+func evaluateSchemaValidateFunc(i any, k string, validateFunc pluginsdk.SchemaValidateFunc) (bool, error) { //nolint:unparam
 	_, errs := validateFunc(i, k)
 
 	errorStrings := []string{}

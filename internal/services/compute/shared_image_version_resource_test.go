@@ -303,7 +303,7 @@ func (SharedImageVersionResource) revokeSnapshot(ctx context.Context, client *cl
 	return nil
 }
 
-// nolint: unparam
+//nolint:unparam
 func (SharedImageVersionResource) setup(data acceptance.TestData) string {
 	return ImageResource{}.setupManagedDisks(data)
 }

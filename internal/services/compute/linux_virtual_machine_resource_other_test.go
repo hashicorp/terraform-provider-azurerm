@@ -1040,7 +1040,7 @@ resource "azurerm_linux_virtual_machine" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-// nolint: unused
+//nolint:unused
 func (r LinuxVirtualMachineResource) otherPatchAssessmentModeAutomaticByPlatform(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s

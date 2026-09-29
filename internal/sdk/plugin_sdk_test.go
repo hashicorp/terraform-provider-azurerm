@@ -16,7 +16,7 @@ import (
 )
 
 func TestAccPluginSDK_decoder(t *testing.T) {
-	os.Setenv("TF_ACC", "1") // nolint:tenv // plugin testing harness prevents this
+	os.Setenv("TF_ACC", "1") //nolint:tenv // plugin testing harness prevents this
 
 	type NestedType struct {
 		Key string `tfschema:"key"`
@@ -217,7 +217,7 @@ func TestAccPluginSDK_decoder(t *testing.T) {
 }
 
 func TestAccPluginSDK_decoderOptionalComputed(t *testing.T) {
-	os.Setenv("TF_ACC", "1") // nolint:tenv // plugin testing harness prevents this
+	os.Setenv("TF_ACC", "1") //nolint:tenv // plugin testing harness prevents this
 
 	type MyType struct {
 		Hello   string `tfschema:"hello"`
@@ -344,7 +344,7 @@ resource "validator_decoder_unspecified" "test" {}
 }
 
 func TestAccPluginSDK_decoderOptionalComputedOverride(t *testing.T) {
-	os.Setenv("TF_ACC", "1") // nolint:tenv // plugin testing harness prevents this
+	os.Setenv("TF_ACC", "1") //nolint:tenv // plugin testing harness prevents this
 
 	type MyType struct {
 		Hello   string `tfschema:"hello"`
@@ -451,7 +451,7 @@ resource "validator_decoder_override" "test" {
 }
 
 func TestAccPluginSDK_decoderSets(t *testing.T) {
-	os.Setenv("TF_ACC", "1") // nolint:tenv // plugin testing harness prevents this
+	os.Setenv("TF_ACC", "1") //nolint:tenv // plugin testing harness prevents this
 
 	type MyType struct {
 		SetOfStrings []string  `tfschema:"set_of_strings"`
@@ -631,7 +631,7 @@ func TestAccPluginSDK_decoderSets(t *testing.T) {
 }
 
 func TestAccPluginSDK_encoder(t *testing.T) {
-	os.Setenv("TF_ACC", "1") // nolint:tenv // plugin testing harness prevents this
+	os.Setenv("TF_ACC", "1") //nolint:tenv // plugin testing harness prevents this
 
 	type NestedType struct {
 		Key string `tfschema:"key"`
@@ -870,7 +870,7 @@ func TestAccPluginSDK_encoder(t *testing.T) {
 }
 
 func TestAccPluginSDK_returnsComputedFields(t *testing.T) {
-	os.Setenv("TF_ACC", "1") // nolint:tenv // plugin sdk always is
+	os.Setenv("TF_ACC", "1") //nolint:tenv // plugin sdk always is
 
 	resourceName := "validator_computed.test"
 	// lintignore:AT001
