@@ -12,13 +12,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesetvms"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkwatchers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/packetcaptures"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkwatchers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/packetcaptures"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -97,7 +96,7 @@ func resourceVirtualMachineScaleSetPacketCapture() *pluginsdk.Resource {
 						"file_path": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: networkValidate.FilePath,
+							ValidateFunc: validate.FilePath,
 							AtLeastOneOf: []string{"storage_location.0.file_path", "storage_location.0.storage_account_id"},
 						},
 						"storage_account_id": {
@@ -395,11 +394,11 @@ func expandVirtualMachineScaleSetPacketCaptureMachineScope(input []interface{}) 
 	output := &packetcaptures.PacketCaptureMachineScope{}
 
 	if exclude := raw["exclude_instance_ids"].([]interface{}); len(exclude) > 0 {
-		output.Exclude = helpers.ExpandStringSlice(exclude)
+		output.Exclude = pluginsdk.ExpandStringSlice(exclude)
 	}
 
 	if include := raw["include_instance_ids"].([]interface{}); len(include) > 0 {
-		output.Include = helpers.ExpandStringSlice(include)
+		output.Include = pluginsdk.ExpandStringSlice(include)
 	}
 
 	return output

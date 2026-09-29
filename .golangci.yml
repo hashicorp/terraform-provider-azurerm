@@ -1,4 +1,4 @@
-# Copyright (c) HashiCorp, Inc.
+# Copyright IBM Corp. 2014, 2026
 # SPDX-License-Identifier: MPL-2.0
 
 # NOTE: this config enables the azproviderlint and tfproviderlint module plugins, which only
@@ -108,14 +108,14 @@ linters:
         settings:
           disable:
             - AZG008 # pointer dereferences (*props.Status) must have a reachable nil guard - ~1398 findings to fix later
-            - AZR002 # splite create and udpate: ~350 todo over time
+            - AZR002 # split create and update: ~350 todo over time
             - AZT002 # tests should not obtain credentials via os.Getenv - investigate in a later pr
             - AZR004 # Resource IDs should not be compared with == or != - to fix in a later commit
             - AZR003 # d.Get should not be used within a Delete function as it does not work as expected during deletion - 9 findings to fix later
             - AZR007 # StateChangeConf should be replaced with a custom poller implementing pollers.PollerType - 159 findings, being migrated over time (eventual consistency poller series was the start)
             - AZS003 # TypeList blocks where every property is optional with no default allow empty blocks - 290 findings to fix later
-            - AZS005 # resources with no corresponding data source - 768 findings, to determine if to be fixed later
-            - AZS006 # data sources missing properties that exist on the resource - 185 findings, todo later
+            - AZP002 # resources with no corresponding data source - 768 findings, to determine if to be fixed later
+            - AZP003 # data sources missing properties that exist on the resource - 185 findings, todo later
             - AZR010 # callers nil-checking before flatten* functions that already handle nil - 244 findings, new in v0.8.0, to fix later
           AZG002:
             use: pointer.To # rather than the go1.26 new(<expr>) builtin
@@ -123,6 +123,9 @@ linters:
             # only inline temporaries into calls whose other arguments are all basic literals
             # (e.g. d.Set("key", x)) - among identifier/expression siblings the name adds context
             only-when-literals: true
+          AZG010:
+            ignore:
+              - '^v\d{4}_\d{2}_\d{2}' # versioned SDK packages (v2021_03_01) keep their descriptive alias
           AZS004:
             # exact-match only: report hand-written lists that exactly match the enum (a pure
             # PossibleValuesFor<Enum>() swap); deliberate subsets/supersets are left alone

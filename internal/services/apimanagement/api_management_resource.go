@@ -33,12 +33,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
-	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -117,19 +116,19 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 		"publisher_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: apimValidate.ApiManagementServicePublisherName,
+			ValidateFunc: validate.ApiManagementServicePublisherName,
 		},
 
 		"publisher_email": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: apimValidate.ApiManagementServicePublisherEmail,
+			ValidateFunc: validate.ApiManagementServicePublisherEmail,
 		},
 
 		"sku_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: apimValidate.ApimSkuName(),
+			ValidateFunc: validate.ApimSkuName(),
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
@@ -496,7 +495,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 					"validation_key": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validate.Base64EncodedString,
+						ValidateFunc: validation.StringIsBase64,
 						Sensitive:    true,
 					},
 				},

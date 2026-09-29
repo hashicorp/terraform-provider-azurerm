@@ -28,10 +28,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -72,7 +71,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: computeValidate.VirtualMachineName,
+				ValidateFunc: validate.VirtualMachineName,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -113,7 +112,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			"sku_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: computeValidate.OrchestratedVirtualMachineScaleSetSku,
+				ValidateFunc: validate.OrchestratedVirtualMachineScaleSetSku,
 			},
 
 			"sku_profile": {
@@ -139,7 +138,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 									"name": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: computeValidate.SkuProfileVMSizeName,
+										ValidateFunc: validate.SkuProfileVMSizeName,
 									},
 									"rank": {
 										Type:         pluginsdk.TypeInt,
@@ -204,7 +203,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Default:      "PT1H30M",
-				ValidateFunc: validate.ISO8601DurationBetween("PT15M", "PT2H"),
+				ValidateFunc: validation.ISO8601DurationBetween("PT15M", "PT2H"),
 			},
 
 			// whilst the Swagger defines multiple at this time only UAI is supported
@@ -231,7 +230,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeFloat,
 				Optional:     true,
 				Default:      -1,
-				ValidateFunc: computeValidate.SpotMaxPrice,
+				ValidateFunc: validate.SpotMaxPrice,
 			},
 
 			"plan": planSchema(),
@@ -283,10 +282,10 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 					images.ValidateImageID,
 					validation.AsGeneratedID(galleryimages.ParseGalleryImageIDInsensitively),
 					validation.AsGeneratedID(galleryimageversions.ParseImageVersionIDInsensitively),
-					computeValidate.CommunityGalleryImageID,
-					computeValidate.CommunityGalleryImageVersionID,
-					computeValidate.SharedGalleryImageID,
-					computeValidate.SharedGalleryImageVersionID,
+					validate.CommunityGalleryImageID,
+					validate.CommunityGalleryImageVersionID,
+					validate.SharedGalleryImageID,
+					validate.SharedGalleryImageVersionID,
 				),
 				ConflictsWith: []string{
 					"source_image_reference",
@@ -623,7 +622,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			// if the Computer Prefix Name was not defined use the computer name
 			if vmssOsProfile.ComputerNamePrefix == nil || len(*vmssOsProfile.ComputerNamePrefix) == 0 {
 				// validate that the computer name is a valid Computer Prefix Name
-				_, errs := computeValidate.WindowsComputerNamePrefix(id.VirtualMachineScaleSetName, "computer_name_prefix")
+				_, errs := validate.WindowsComputerNamePrefix(id.VirtualMachineScaleSetName, "computer_name_prefix")
 				if len(errs) > 0 {
 					return fmt.Errorf("unable to assume default computer name prefix %s. Please adjust the `name`, or specify an explicit `computer_name_prefix`", errs[0])
 				}
@@ -688,7 +687,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			// if the Computer Prefix Name was not defined use the computer name
 			if vmssOsProfile.ComputerNamePrefix == nil || len(*vmssOsProfile.ComputerNamePrefix) == 0 {
 				// validate that the computer name is a valid Computer Prefix Name
-				_, errs := computeValidate.LinuxComputerNamePrefix(id.VirtualMachineScaleSetName, "computer_name_prefix")
+				_, errs := validate.LinuxComputerNamePrefix(id.VirtualMachineScaleSetName, "computer_name_prefix")
 				if len(errs) > 0 {
 					if errs[0] != nil {
 						return fmt.Errorf("unable to assume default computer name prefix `%s`. Please adjust the `name`, or specify an explicit `computer_name_prefix`", errs[0])
@@ -796,7 +795,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		virtualMachineProfile.ScheduledEventsProfile = ExpandOrchestratedVirtualMachineScaleSetScheduledEventsProfile(v.([]interface{}))
 	}
 
-	// Only inclued the virtual machine profile if this is not a legacy configuration
+	// Only include the virtual machine profile if this is not a legacy configuration
 	if !isLegacy {
 		if v, ok := d.GetOk("plan"); ok {
 			props.Plan = expandPlanVMSS(v.([]interface{}))
@@ -899,7 +898,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 					ImageReference: existing.Model.Properties.VirtualMachineProfile.StorageProfile.ImageReference,
 				},
 			},
-			// Currently not suppored in orchestrated VMSS
+			// Currently not supported in orchestrated VMSS
 			// if an upgrade policy's been configured previously (which it will have) it must be threaded through
 			// this doesn't matter for Manual - but breaks when updating anything on a Automatic and Rolling Mode Scale Set
 			// UpgradePolicy: existing.Properties.UpgradePolicy,
@@ -1523,7 +1522,7 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 				d.Set("user_data_base64", profile.UserData)
 
 				if policy := props.UpgradePolicy; policy != nil {
-					upgradeMode = string(pointer.From(policy.Mode))
+					upgradeMode = pointer.FromEnum(policy.Mode)
 					if err := d.Set("rolling_upgrade_policy", FlattenVirtualMachineScaleSetRollingUpgradePolicy(policy.RollingUpgradePolicy)); err != nil {
 						return fmt.Errorf("setting `rolling_upgrade_policy`: %w", err)
 					}
@@ -1633,7 +1632,7 @@ func flattenOrchestratedVirtualMachineScaleSetSkuProfile(input *virtualmachinesc
 	}
 
 	result := map[string]interface{}{
-		"allocation_strategy": string(pointer.From(input.AllocationStrategy)),
+		"allocation_strategy": pointer.FromEnum(input.AllocationStrategy),
 	}
 
 	output := make([]interface{}, 0)
@@ -1707,8 +1706,8 @@ func expandOrchestratedVirtualMachineScaleSetPublicIPSku(input string) *virtualm
 func flattenOrchestratedVirtualMachineScaleSetPublicIPSku(input *virtualmachinescalesets.PublicIPAddressSku) string {
 	var skuName string
 	if input != nil {
-		name := string(pointer.From(input.Name))
-		tier := string(pointer.From(input.Tier))
+		name := pointer.FromEnum(input.Name)
+		tier := pointer.FromEnum(input.Tier)
 		if name != "" && tier != "" {
 			skuName = fmt.Sprintf("%s_%s", name, tier)
 		}

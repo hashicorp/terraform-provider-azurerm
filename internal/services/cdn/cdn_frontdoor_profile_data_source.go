@@ -94,7 +94,7 @@ func dataSourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta interface
 		d.Set("resource_group_name", id.ResourceGroupName)
 
 		if skuName := model.Sku.Name; skuName != nil {
-			d.Set("sku_name", string(pointer.From(skuName)))
+			d.Set("sku_name", pointer.FromEnum(skuName))
 		}
 
 		if identity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity); err == nil {

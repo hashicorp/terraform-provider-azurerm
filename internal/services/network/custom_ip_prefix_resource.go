@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/customipprefixes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/customipprefixes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -71,22 +71,10 @@ func (r CustomIpPrefixResource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"cidr": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: func(i interface{}, k string) (warnings []string, errors []error) {
-				v, ok := i.(string)
-				if !ok {
-					errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-					return
-				}
-
-				if _, _, err := net.ParseCIDR(v); err != nil {
-					errors = append(errors, fmt.Errorf("expected %q to be a valid IPv4 or IPv6 network, got %v: %v", k, i, err))
-				}
-
-				return
-			},
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.IsCIDR,
 		},
 
 		"parent_custom_ip_prefix_id": {
@@ -646,7 +634,7 @@ func (r CustomIpPrefixResource) commissionedStateRefreshFunc(ctx context.Context
 			return nil, "", fmt.Errorf("polling for %s: `properties` was nil", id)
 		}
 
-		return res, string(pointer.From(res.Model.Properties.CommissionedState)), nil
+		return res, pointer.FromEnum(res.Model.Properties.CommissionedState), nil
 	}
 }
 
@@ -664,6 +652,6 @@ func (r CustomIpPrefixResource) provisioningStateRefreshFunc(ctx context.Context
 			return nil, "", fmt.Errorf("polling for %s: `properties` was nil", id)
 		}
 
-		return res, string(pointer.From(res.Model.Properties.ProvisioningState)), nil
+		return res, pointer.FromEnum(res.Model.Properties.ProvisioningState), nil
 	}
 }

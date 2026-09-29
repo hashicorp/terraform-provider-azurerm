@@ -8,6 +8,8 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"maps"
+	"math"
 	"slices"
 	"strconv"
 	"strings"
@@ -24,7 +26,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
 	"github.com/hashicorp/go-cty/cty"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -150,7 +151,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true, // azignore:AZS007 - pre-existing violation
-				ValidateFunc: validation.IntInSlice([]int{32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4193280, 4194304, 8388608, 16777216, 33553408}),
+				ValidateFunc: validation.IntBetween(int(math.Exp2(15)), int(math.Exp2(26))),
 			},
 
 			"storage_tier": {
@@ -459,7 +460,10 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 
 				// get the valid mappings for the passed
 				// storage_mb size...
-				storageTiers := storageTierMappings[newMb]
+				storageTiers, ok := storageTierMappings[newMb]
+				if !ok {
+					return nil
+				}
 
 				if newTier == "" {
 					newTier = string(storageTiers.DefaultTier)
@@ -473,7 +477,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 
 				if !isValid {
 					if strings.EqualFold(oldTierRaw.(string), newTier) {
-						// The tier value did not change, so we need to determin if they are
+						// The tier value did not change, so we need to determine if they are
 						// using the default value for the tier, or they actually defined the
 						// tier in the config or not... If they did not define
 						// the tier in the config we need to assign a new valid default
@@ -486,7 +490,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 						}
 					}
 
-					return fmt.Errorf("invalid 'storage_tier' %q for defined 'storage_mb' size '%d', expected one of [%s]", newTier, newMb, azure.QuotedStringSlice(*storageTiers.ValidTiers))
+					return fmt.Errorf("invalid 'storage_tier' %q for defined 'storage_mb' size '%d', expected one of %q", newTier, newMb, *storageTiers.ValidTiers)
 				}
 
 				return nil
@@ -612,6 +616,27 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				if diff.HasChange("sku_name") {
 					skuOld, skuNew := diff.GetChange("sku_name")
 					return validate.FlexibleServerSkuNameChange(skuOld.(string), skuNew.(string))
+				}
+
+				return nil
+			}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				if diff.GetRawConfig().AsValueMap()["storage_mb"].IsNull() {
+					return nil
+				}
+
+				storageMb := diff.Get("storage_mb").(int)
+
+				if diff.Get("storage_type").(string) == string(servers.StorageTypePremiumVTwoLRS) {
+					if storageMb%1024 != 0 {
+						return fmt.Errorf("`storage_mb` must be a multiple of `1024` when `storage_type` is `PremiumV2_LRS`, got `%d`", storageMb)
+					}
+
+					return nil
+				}
+
+				validStorageMb := slices.Sorted(maps.Keys(validate.InitializeFlexibleServerStorageTierDefaults()))
+				if !slices.Contains(validStorageMb, storageMb) {
+					return fmt.Errorf("`storage_mb` must be one of %v when `storage_type` is `Premium_LRS`, got `%d`", validStorageMb, storageMb)
 				}
 
 				return nil
@@ -848,7 +873,7 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("fqdn", props.FullyQualifiedDomainName)
 
 			// According to the API spec, `sourceServerResourceId`(`source_server_id`) is only returned by the Azure REST API
-			// when `create_mode` is 'Replica'. For other create modes, this field is not returned, which is intended behavior of the API.
+			// when `create_mode` is 'Replica'. For other create modes, this field is not returned, which is intended behaviour of the API.
 			// Therefore, we populate this field from the API response if present; otherwise, we read the value from the configuration.
 			sourceResourceId := pointer.From(props.SourceServerResourceId)
 			if sourceResourceId == "" {
@@ -918,8 +943,14 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 				return fmt.Errorf("setting `high_availability`: %+v", err)
 			}
 
-			if err := d.Set("cluster", flattenFlexibleServerCluster(props.Cluster)); err != nil {
-				return fmt.Errorf("setting `cluster`: %+v", err)
+			if pointer.From(props.SourceServerResourceId) == "" {
+				if err := d.Set("cluster", flattenFlexibleServerCluster(props.Cluster)); err != nil {
+					return fmt.Errorf("setting `cluster`: %+v", err)
+				}
+			} else {
+				if err := d.Set("cluster", []interface{}{}); err != nil {
+					return fmt.Errorf("setting `cluster`: %+v", err)
+				}
 			}
 
 			if props.AuthConfig != nil {

@@ -13,10 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/trafficmanagers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -27,7 +26,7 @@ func resourceAzureEndpoint() *pluginsdk.Resource {
 		Read:   resourceAzureEndpointRead,
 		Update: resourceAzureEndpointUpdate,
 		Delete: resourceAzureEndpointDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: schema.ValidateResourceIDPriorToImport(func(id string) error {
 			endpointType, err := trafficmanagers.ParseEndpointTypeID(id)
 			if err != nil {
 				return err
@@ -129,12 +128,12 @@ func resourceAzureEndpoint() *pluginsdk.Resource {
 						"first": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: azValidate.IPv4Address,
+							ValidateFunc: validation.IsIPv4Address,
 						},
 						"last": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: azValidate.IPv4Address,
+							ValidateFunc: validation.IsIPv4Address,
 						},
 						"scope": {
 							Type:         pluginsdk.TypeInt,

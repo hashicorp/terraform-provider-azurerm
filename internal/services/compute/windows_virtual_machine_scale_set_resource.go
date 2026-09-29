@@ -27,10 +27,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -203,7 +202,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 	if v, ok := d.GetOk("computer_name_prefix"); ok && len(v.(string)) > 0 {
 		computerNamePrefix = v.(string)
 	} else {
-		_, errs := computeValidate.WindowsComputerNamePrefix(d.Get("name"), "computer_name_prefix")
+		_, errs := validate.WindowsComputerNamePrefix(d.Get("name"), "computer_name_prefix")
 		if len(errs) > 0 {
 			return fmt.Errorf("unable to assume default computer name prefix %s. Please adjust the %q, or specify an explicit %q", errs[0], "name", "computer_name_prefix")
 		}
@@ -1161,7 +1160,7 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: computeValidate.VirtualMachineName,
+			ValidateFunc: validate.VirtualMachineName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -1227,7 +1226,7 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 			Computed: true,
 			ForceNew: true,
 
-			ValidateFunc: computeValidate.WindowsComputerNamePrefix,
+			ValidateFunc: validate.WindowsComputerNamePrefix,
 		},
 
 		"custom_data": base64.OptionalSchema(false),
@@ -1274,7 +1273,7 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      "PT1H30M",
-			ValidateFunc: validate.ISO8601DurationBetween("PT15M", "PT2H"),
+			ValidateFunc: validation.ISO8601DurationBetween("PT15M", "PT2H"),
 		},
 
 		"gallery_application": VirtualMachineScaleSetGalleryApplicationSchema(),
@@ -1318,7 +1317,7 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 			Type:         pluginsdk.TypeFloat,
 			Optional:     true,
 			Default:      -1,
-			ValidateFunc: computeValidate.SpotMaxPrice,
+			ValidateFunc: validate.SpotMaxPrice,
 		},
 
 		"overprovision": {
@@ -1389,10 +1388,10 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 				images.ValidateImageID,
 				validation.AsGeneratedID(galleryimages.ParseGalleryImageIDInsensitively),
 				validation.AsGeneratedID(galleryimageversions.ParseImageVersionIDInsensitively),
-				computeValidate.CommunityGalleryImageID,
-				computeValidate.CommunityGalleryImageVersionID,
-				computeValidate.SharedGalleryImageID,
-				computeValidate.SharedGalleryImageVersionID,
+				validate.CommunityGalleryImageID,
+				validate.CommunityGalleryImageVersionID,
+				validate.SharedGalleryImageID,
+				validate.SharedGalleryImageVersionID,
 			),
 			ExactlyOneOf: []string{
 				"source_image_id",
@@ -1407,7 +1406,7 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		"timezone": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: computeValidate.VirtualMachineTimeZone(),
+			ValidateFunc: validate.VirtualMachineTimeZone(),
 		},
 
 		"upgrade_mode": {

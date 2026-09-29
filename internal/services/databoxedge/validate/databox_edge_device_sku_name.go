@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2022-03-01/devices"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 )
 
 func DataboxEdgeDeviceSkuName(v interface{}, k string) (warnings []string, errors []error) {
@@ -39,10 +38,10 @@ func DataboxEdgeDeviceSkuName(v interface{}, k string) (warnings []string, error
 	}
 
 	if !validSku {
-		errors = append(errors, fmt.Errorf("expected %q %q segment to be one of [%s], got %q", k, "name", azure.QuotedStringSlice(validSkus), value))
+		errors = append(errors, fmt.Errorf("expected %q %q segment to be one of %q, got %q", k, "name", validSkus, value))
 	}
 	if !validTier {
-		errors = append(errors, fmt.Errorf("expected %q %q segment to be one of [%s], got %q", k, "tier", azure.QuotedStringSlice(validTiers), value))
+		errors = append(errors, fmt.Errorf("expected %q %q segment to be one of %q, got %q", k, "tier", validTiers, value))
 	}
 
 	return warnings, errors

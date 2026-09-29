@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
-	workbooktemplates "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-11-20/workbooktemplatesapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-11-20/workbooktemplatesapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -58,11 +58,11 @@ func (r ApplicationInsightsWorkbookTemplateResource) ModelObject() interface{} {
 }
 
 func (r ApplicationInsightsWorkbookTemplateResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return workbooktemplates.ValidateWorkbookTemplateID
+	return workbooktemplatesapis.ValidateWorkbookTemplateID
 }
 
 func (r ApplicationInsightsWorkbookTemplateResource) Identity() resourceids.ResourceId {
-	return &workbooktemplates.WorkbookTemplateId{}
+	return &workbooktemplatesapis.WorkbookTemplateId{}
 }
 
 func (r ApplicationInsightsWorkbookTemplateResource) Arguments() map[string]*pluginsdk.Schema {
@@ -163,7 +163,7 @@ func (r ApplicationInsightsWorkbookTemplateResource) Create() sdk.ResourceFunc {
 
 			client := metadata.Client.AppInsights.WorkbookTemplateClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
-			id := workbooktemplates.NewWorkbookTemplateID(subscriptionId, model.ResourceGroupName, model.Name)
+			id := workbooktemplatesapis.NewWorkbookTemplateID(subscriptionId, model.ResourceGroupName, model.Name)
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.WorkbookTemplatesGet(ctx, id)
@@ -181,9 +181,9 @@ func (r ApplicationInsightsWorkbookTemplateResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			properties := &workbooktemplates.WorkbookTemplate{
+			properties := &workbooktemplatesapis.WorkbookTemplate{
 				Location: location.Normalize(model.Location),
-				Properties: &workbooktemplates.WorkbookTemplateProperties{
+				Properties: &workbooktemplatesapis.WorkbookTemplateProperties{
 					Priority:     &model.Priority,
 					TemplateData: templateDataValue,
 				},
@@ -196,7 +196,7 @@ func (r ApplicationInsightsWorkbookTemplateResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.Localized != "" {
-				var localizedValue map[string][]workbooktemplates.WorkbookTemplateLocalizedGallery
+				var localizedValue map[string][]workbooktemplatesapis.WorkbookTemplateLocalizedGallery
 				if err := json.Unmarshal([]byte(model.Localized), &localizedValue); err != nil {
 					return err
 				}
@@ -228,7 +228,7 @@ func (r ApplicationInsightsWorkbookTemplateResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppInsights.WorkbookTemplateClient
 
-			id, err := workbooktemplates.ParseWorkbookTemplateID(metadata.ResourceData.Id())
+			id, err := workbooktemplatesapis.ParseWorkbookTemplateID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -273,7 +273,7 @@ func (r ApplicationInsightsWorkbookTemplateResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("localized") {
-				var localizedValue map[string][]workbooktemplates.WorkbookTemplateLocalizedGallery
+				var localizedValue map[string][]workbooktemplatesapis.WorkbookTemplateLocalizedGallery
 				if err := json.Unmarshal([]byte(model.Localized), &localizedValue); err != nil {
 					return err
 				}
@@ -300,7 +300,7 @@ func (r ApplicationInsightsWorkbookTemplateResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppInsights.WorkbookTemplateClient
 
-			id, err := workbooktemplates.ParseWorkbookTemplateID(metadata.ResourceData.Id())
+			id, err := workbooktemplatesapis.ParseWorkbookTemplateID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -324,7 +324,7 @@ func (r ApplicationInsightsWorkbookTemplateResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r ApplicationInsightsWorkbookTemplateResource) flatten(metadata sdk.ResourceMetaData, id *workbooktemplates.WorkbookTemplateId, model *workbooktemplates.WorkbookTemplate) error {
+func (r ApplicationInsightsWorkbookTemplateResource) flatten(metadata sdk.ResourceMetaData, id *workbooktemplatesapis.WorkbookTemplateId, model *workbooktemplatesapis.WorkbookTemplate) error {
 	state := ApplicationInsightsWorkbookTemplateModel{
 		Name:              id.WorkbookTemplateName,
 		ResourceGroupName: id.ResourceGroupName,
@@ -378,7 +378,7 @@ func (r ApplicationInsightsWorkbookTemplateResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppInsights.WorkbookTemplateClient
 
-			id, err := workbooktemplates.ParseWorkbookTemplateID(metadata.ResourceData.Id())
+			id, err := workbooktemplatesapis.ParseWorkbookTemplateID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -392,10 +392,10 @@ func (r ApplicationInsightsWorkbookTemplateResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandWorkbookTemplateGalleryModel(inputList []WorkbookTemplateGalleryModel) *[]workbooktemplates.WorkbookTemplateGallery {
-	outputList := make([]workbooktemplates.WorkbookTemplateGallery, 0, len(inputList))
+func expandWorkbookTemplateGalleryModel(inputList []WorkbookTemplateGalleryModel) *[]workbooktemplatesapis.WorkbookTemplateGallery {
+	outputList := make([]workbooktemplatesapis.WorkbookTemplateGallery, 0, len(inputList))
 	for _, input := range inputList {
-		output := workbooktemplates.WorkbookTemplateGallery{
+		output := workbooktemplatesapis.WorkbookTemplateGallery{
 			Category:     pointer.To(input.Category),
 			Name:         pointer.To(input.Name),
 			Order:        pointer.To(input.Order),
@@ -409,7 +409,7 @@ func expandWorkbookTemplateGalleryModel(inputList []WorkbookTemplateGalleryModel
 	return &outputList
 }
 
-func flattenWorkbookTemplateGalleryModel(inputList *[]workbooktemplates.WorkbookTemplateGallery) []WorkbookTemplateGalleryModel {
+func flattenWorkbookTemplateGalleryModel(inputList *[]workbooktemplatesapis.WorkbookTemplateGallery) []WorkbookTemplateGalleryModel {
 	if inputList == nil {
 		return []WorkbookTemplateGalleryModel{}
 	}
