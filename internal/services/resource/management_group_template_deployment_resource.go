@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-02-01/templatespecversions"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	mgParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
@@ -74,7 +73,7 @@ func managementGroupTemplateDeploymentResource() *pluginsdk.Resource {
 					"template_content",
 					"template_spec_version_id",
 				},
-				StateFunc: helpers.NormalizeJson,
+				StateFunc: pluginsdk.NormalizeJson,
 			},
 
 			"template_spec_version_id": {
@@ -98,7 +97,7 @@ func managementGroupTemplateDeploymentResource() *pluginsdk.Resource {
 				Type:      pluginsdk.TypeString,
 				Optional:  true,
 				Computed:  true, // azignore:AZS007 - pre-existing violation
-				StateFunc: helpers.NormalizeJson,
+				StateFunc: pluginsdk.NormalizeJson,
 			},
 
 			"tags": commonschema.Tags(),
@@ -114,7 +113,7 @@ func managementGroupTemplateDeploymentResource() *pluginsdk.Resource {
 	}
 }
 
-func managementGroupTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func managementGroupTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Resource.LegacyDeploymentsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -144,7 +143,7 @@ func managementGroupTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, 
 			DebugSetting: expandTemplateDeploymentDebugSetting(d.Get("debug_level").(string)),
 			Mode:         resources.DeploymentModeIncremental,
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if templateRaw, ok := d.GetOk("template_content"); ok {
@@ -191,7 +190,7 @@ func managementGroupTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, 
 	return managementGroupTemplateDeploymentResourceRead(d, meta)
 }
 
-func managementGroupTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func managementGroupTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Resource.LegacyDeploymentsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -259,7 +258,7 @@ func managementGroupTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	if d.HasChange("tags") {
-		deployment.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		deployment.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	log.Printf("[DEBUG] Running validation of Management Group Template Deployment %q..", id.DeploymentName)
@@ -282,7 +281,7 @@ func managementGroupTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, 
 	return managementGroupTemplateDeploymentResourceRead(d, meta)
 }
 
-func managementGroupTemplateDeploymentResourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func managementGroupTemplateDeploymentResourceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Resource.LegacyDeploymentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -347,7 +346,7 @@ func managementGroupTemplateDeploymentResourceRead(d *pluginsdk.ResourceData, me
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func managementGroupTemplateDeploymentResourceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func managementGroupTemplateDeploymentResourceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Resource.LegacyDeploymentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

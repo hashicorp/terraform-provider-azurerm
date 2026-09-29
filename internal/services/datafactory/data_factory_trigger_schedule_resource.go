@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
@@ -246,7 +245,7 @@ func resourceDataFactoryTriggerSchedule() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryTriggerScheduleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryTriggerScheduleCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.TriggersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -276,7 +275,7 @@ func resourceDataFactoryTriggerScheduleCreate(d *pluginsdk.ResourceData, meta in
 		Recurrence: &datafactory.ScheduleTriggerRecurrence{
 			Frequency: datafactory.RecurrenceFrequency(d.Get("frequency").(string)),
 			Interval:  pointer.To(int32(d.Get("interval").(int))),
-			Schedule:  expandDataFactorySchedule(d.Get("schedule").([]interface{})),
+			Schedule:  expandDataFactorySchedule(d.Get("schedule").([]any)),
 			TimeZone:  pointer.To(d.Get("time_zone").(string)),
 		},
 	}
@@ -306,15 +305,15 @@ func resourceDataFactoryTriggerScheduleCreate(d *pluginsdk.ResourceData, meta in
 					ReferenceName: pointer.To(pipelineName),
 					Type:          pointer.To("PipelineReference"),
 				},
-				Parameters: d.Get("pipeline_parameters").(map[string]interface{}),
+				Parameters: d.Get("pipeline_parameters").(map[string]any),
 			},
 		}
 	} else {
-		scheduleProps.Pipelines = expandDataFactoryPipelines(d.Get("pipeline").([]interface{}))
+		scheduleProps.Pipelines = expandDataFactoryPipelines(d.Get("pipeline").([]any))
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		scheduleProps.Annotations = pointer.To(v.([]interface{}))
+		scheduleProps.Annotations = pointer.To(v.([]any))
 	}
 
 	trigger := datafactory.TriggerResource{
@@ -340,7 +339,7 @@ func resourceDataFactoryTriggerScheduleCreate(d *pluginsdk.ResourceData, meta in
 	return resourceDataFactoryTriggerScheduleRead(d, meta)
 }
 
-func resourceDataFactoryTriggerScheduleUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryTriggerScheduleUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.TriggersClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -367,7 +366,7 @@ func resourceDataFactoryTriggerScheduleUpdate(d *pluginsdk.ResourceData, meta in
 		Recurrence: &datafactory.ScheduleTriggerRecurrence{
 			Frequency: datafactory.RecurrenceFrequency(d.Get("frequency").(string)),
 			Interval:  pointer.To(int32(d.Get("interval").(int))),
-			Schedule:  expandDataFactorySchedule(d.Get("schedule").([]interface{})),
+			Schedule:  expandDataFactorySchedule(d.Get("schedule").([]any)),
 			TimeZone:  pointer.To(d.Get("time_zone").(string)),
 		},
 	}
@@ -391,7 +390,7 @@ func resourceDataFactoryTriggerScheduleUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	pipelineName := d.Get("pipeline_name").(string)
-	pipeline := d.Get("pipeline").([]interface{})
+	pipeline := d.Get("pipeline").([]any)
 	if (d.HasChange("pipeline_name") && len(pipelineName) == 0) || (d.HasChange("pipeline") && len(pipeline) != 0) {
 		scheduleProps.Pipelines = expandDataFactoryPipelines(pipeline)
 	} else {
@@ -401,13 +400,13 @@ func resourceDataFactoryTriggerScheduleUpdate(d *pluginsdk.ResourceData, meta in
 					ReferenceName: pointer.To(pipelineName),
 					Type:          pointer.To("PipelineReference"),
 				},
-				Parameters: d.Get("pipeline_parameters").(map[string]interface{}),
+				Parameters: d.Get("pipeline_parameters").(map[string]any),
 			},
 		}
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		scheduleProps.Annotations = pointer.To(v.([]interface{}))
+		scheduleProps.Annotations = pointer.To(v.([]any))
 	}
 
 	trigger := datafactory.TriggerResource{
@@ -431,7 +430,7 @@ func resourceDataFactoryTriggerScheduleUpdate(d *pluginsdk.ResourceData, meta in
 	return resourceDataFactoryTriggerScheduleRead(d, meta)
 }
 
-func resourceDataFactoryTriggerScheduleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryTriggerScheduleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.TriggersClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -501,7 +500,7 @@ func resourceDataFactoryTriggerScheduleRead(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func resourceDataFactoryTriggerScheduleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryTriggerScheduleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.TriggersClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -526,16 +525,16 @@ func resourceDataFactoryTriggerScheduleDelete(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func expandDataFactorySchedule(input []interface{}) *datafactory.RecurrenceSchedule {
+func expandDataFactorySchedule(input []any) *datafactory.RecurrenceSchedule {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	schedule := datafactory.RecurrenceSchedule{}
 
-	value := input[0].(map[string]interface{})
+	value := input[0].(map[string]any)
 	weekDays := make([]datafactory.DaysOfWeek, 0)
-	for _, v := range value["days_of_week"].([]interface{}) {
+	for _, v := range value["days_of_week"].([]any) {
 		weekDays = append(weekDays, datafactory.DaysOfWeek(v.(string)))
 	}
 	if len(weekDays) > 0 {
@@ -543,8 +542,8 @@ func expandDataFactorySchedule(input []interface{}) *datafactory.RecurrenceSched
 	}
 
 	monthlyOccurrences := make([]datafactory.RecurrenceScheduleOccurrence, 0)
-	for _, v := range value["monthly"].([]interface{}) {
-		value := v.(map[string]interface{})
+	for _, v := range value["monthly"].([]any) {
+		value := v.(map[string]any)
 		monthlyOccurrences = append(monthlyOccurrences, datafactory.RecurrenceScheduleOccurrence{
 			Day:        datafactory.DayOfWeek(value["weekday"].(string)),
 			Occurrence: pointer.To(int32(value["week"].(int))),
@@ -554,44 +553,44 @@ func expandDataFactorySchedule(input []interface{}) *datafactory.RecurrenceSched
 		schedule.MonthlyOccurrences = &monthlyOccurrences
 	}
 
-	if monthdays := value["days_of_month"].([]interface{}); len(monthdays) > 0 {
-		schedule.MonthDays = helpers.ExpandInt32Slice(monthdays)
+	if monthdays := value["days_of_month"].([]any); len(monthdays) > 0 {
+		schedule.MonthDays = pluginsdk.ExpandInt32Slice(monthdays)
 	}
-	if minutes := value["minutes"].([]interface{}); len(minutes) > 0 {
-		schedule.Minutes = helpers.ExpandInt32Slice(minutes)
+	if minutes := value["minutes"].([]any); len(minutes) > 0 {
+		schedule.Minutes = pluginsdk.ExpandInt32Slice(minutes)
 	}
-	if hours := value["hours"].([]interface{}); len(hours) > 0 {
-		schedule.Hours = helpers.ExpandInt32Slice(hours)
+	if hours := value["hours"].([]any); len(hours) > 0 {
+		schedule.Hours = pluginsdk.ExpandInt32Slice(hours)
 	}
 
 	return &schedule
 }
 
-func flattenDataFactorySchedule(schedule *datafactory.RecurrenceSchedule) []interface{} {
+func flattenDataFactorySchedule(schedule *datafactory.RecurrenceSchedule) []any {
 	if schedule == nil {
-		return []interface{}{}
+		return []any{}
 	}
-	value := make(map[string]interface{})
+	value := make(map[string]any)
 	if schedule.Minutes != nil {
-		value["minutes"] = helpers.FlattenInt32Slice(schedule.Minutes)
+		value["minutes"] = pluginsdk.FlattenSlice(schedule.Minutes)
 	}
 	if schedule.Hours != nil {
-		value["hours"] = helpers.FlattenInt32Slice(schedule.Hours)
+		value["hours"] = pluginsdk.FlattenSlice(schedule.Hours)
 	}
 	if schedule.WeekDays != nil {
-		weekDays := make([]interface{}, 0)
+		weekDays := make([]any, 0)
 		for _, v := range *schedule.WeekDays {
 			weekDays = append(weekDays, string(v))
 		}
 		value["days_of_week"] = weekDays
 	}
 	if schedule.MonthDays != nil {
-		value["days_of_month"] = helpers.FlattenInt32Slice(schedule.MonthDays)
+		value["days_of_month"] = pluginsdk.FlattenSlice(schedule.MonthDays)
 	}
 	if schedule.MonthlyOccurrences != nil {
-		monthlyOccurrences := make([]interface{}, 0)
+		monthlyOccurrences := make([]any, 0)
 		for _, v := range *schedule.MonthlyOccurrences {
-			occurrence := make(map[string]interface{})
+			occurrence := make(map[string]any)
 			occurrence["weekday"] = string(v.Day)
 			if v.Occurrence != nil {
 				occurrence["week"] = *v.Occurrence
@@ -600,10 +599,10 @@ func flattenDataFactorySchedule(schedule *datafactory.RecurrenceSchedule) []inte
 		}
 		value["monthly"] = monthlyOccurrences
 	}
-	return []interface{}{value}
+	return []any{value}
 }
 
-func expandDataFactoryPipelines(input []interface{}) *[]datafactory.TriggerPipelineReference {
+func expandDataFactoryPipelines(input []any) *[]datafactory.TriggerPipelineReference {
 	if len(input) == 0 {
 		return nil
 	}
@@ -611,13 +610,13 @@ func expandDataFactoryPipelines(input []interface{}) *[]datafactory.TriggerPipel
 	pipes := make([]datafactory.TriggerPipelineReference, 0)
 
 	for _, item := range input {
-		config := item.(map[string]interface{})
+		config := item.(map[string]any)
 		v := datafactory.TriggerPipelineReference{
 			PipelineReference: &datafactory.PipelineReference{
 				ReferenceName: pointer.To(config["name"].(string)),
 				Type:          pointer.To("PipelineReference"),
 			},
-			Parameters: config["parameters"].(map[string]interface{}),
+			Parameters: config["parameters"].(map[string]any),
 		}
 		pipes = append(pipes, v)
 	}
@@ -625,15 +624,15 @@ func expandDataFactoryPipelines(input []interface{}) *[]datafactory.TriggerPipel
 	return &pipes
 }
 
-func flattenDataFactoryPipelines(pipelines *[]datafactory.TriggerPipelineReference) interface{} {
+func flattenDataFactoryPipelines(pipelines *[]datafactory.TriggerPipelineReference) any {
 	if pipelines == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	res := make([]interface{}, 0)
+	res := make([]any, 0)
 
 	for _, item := range *pipelines {
-		v := make(map[string]interface{})
+		v := make(map[string]any)
 		v["name"] = pointer.To(*item.PipelineReference.ReferenceName)
 		v["parameters"] = item.Parameters
 		res = append(res, v)

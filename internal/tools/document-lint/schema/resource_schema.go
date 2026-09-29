@@ -13,7 +13,7 @@ import (
 )
 
 // FileForResource for typed sdk resource, the file is terraform-provider-azurerm/internal/sdk/wrapper_resource.go
-func FileForResource(funcs ...interface{}) (file string) {
+func FileForResource(funcs ...any) (file string) {
 	for _, fn := range funcs {
 		if file, _ = util.FuncFileLine(fn); file != "" {
 			return file
@@ -65,7 +65,7 @@ func NewResourceByUntyped(r *schema.Resource, rType string) *Resource {
 	return s
 }
 
-func NewResource(r interface{}, rType string) *Resource {
+func NewResource(r any, rType string) *Resource {
 	switch ins := r.(type) {
 	case sdk.Resource:
 		return NewResourceByTyped(ins)

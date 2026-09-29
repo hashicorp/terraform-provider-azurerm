@@ -11,7 +11,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -21,7 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub"
+	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub" // azignore:AZG010 - package name does not match its path
 )
 
 func resourceIotHubRoute() *pluginsdk.Resource {
@@ -106,7 +105,7 @@ func resourceIotHubRoute() *pluginsdk.Resource {
 	}
 }
 
-func resourceIotHubRouteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubRouteCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -128,14 +127,14 @@ func resourceIotHubRouteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	source := devices.RoutingSource(d.Get("source").(string))
 	condition := d.Get("condition").(string)
-	endpointNamesRaw := d.Get("endpoint_names").([]interface{})
+	endpointNamesRaw := d.Get("endpoint_names").([]any)
 	isEnabled := d.Get("enabled").(bool)
 
 	route := devices.RouteProperties{
 		Name:          &id.Name,
 		Source:        source,
 		Condition:     &condition,
-		EndpointNames: helpers.ExpandStringSlice(endpointNamesRaw),
+		EndpointNames: pluginsdk.ExpandStringSlice(endpointNamesRaw),
 		IsEnabled:     &isEnabled,
 	}
 
@@ -191,7 +190,7 @@ func resourceIotHubRouteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	return resourceIotHubRouteRead(d, meta)
 }
 
-func resourceIotHubRouteRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubRouteRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -242,7 +241,7 @@ func resourceIotHubRouteRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func resourceIotHubRouteDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubRouteDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -110,7 +110,7 @@ func endpointGlobalDeliveryRule() *pluginsdk.Schema {
 	}
 }
 
-func expandArmCdnEndpointGlobalDeliveryRule(rule map[string]interface{}) (*cdn.DeliveryRule, error) {
+func expandArmCdnEndpointGlobalDeliveryRule(rule map[string]any) (*cdn.DeliveryRule, error) {
 	deliveryRule := cdn.DeliveryRule{
 		Name:  pointer.To("Global"),
 		Order: pointer.To(int32(0)),
@@ -125,13 +125,13 @@ func expandArmCdnEndpointGlobalDeliveryRule(rule map[string]interface{}) (*cdn.D
 	return &deliveryRule, nil
 }
 
-func flattenArmCdnEndpointGlobalDeliveryRule(deliveryRule cdn.DeliveryRule) (*map[string]interface{}, error) {
+func flattenArmCdnEndpointGlobalDeliveryRule(deliveryRule cdn.DeliveryRule) (*map[string]any, error) {
 	actions, err := flattenDeliveryRuleActions(deliveryRule.Actions)
 	if err != nil {
 		return nil, err
 	}
 
-	output := make(map[string]interface{})
+	output := make(map[string]any)
 	for key, value := range *actions {
 		output[key] = value
 	}

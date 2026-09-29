@@ -82,7 +82,7 @@ func resourceSynapseSqlPoolExtendedAuditingPolicy() *pluginsdk.Resource {
 	}
 }
 
-func resourceSynapseSqlPoolExtendedAuditingPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseSqlPoolExtendedAuditingPolicyCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.SqlPoolExtendedBlobAuditingPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -137,7 +137,7 @@ func resourceSynapseSqlPoolExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resou
 	return resourceSynapseSqlPoolExtendedAuditingPolicyRead(d, meta)
 }
 
-func resourceSynapseSqlPoolExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseSqlPoolExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.SqlPoolExtendedBlobAuditingPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -171,7 +171,7 @@ func resourceSynapseSqlPoolExtendedAuditingPolicyRead(d *pluginsdk.ResourceData,
 	return nil
 }
 
-func resourceSynapseSqlPoolExtendedAuditingPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseSqlPoolExtendedAuditingPolicyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.SqlPoolExtendedBlobAuditingPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

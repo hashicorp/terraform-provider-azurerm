@@ -305,7 +305,7 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 	}
 }
 
-func resourceStorageManagementPolicyCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageManagementPolicyCreateOrUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.ResourceManager.ManagementPolicies
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -356,7 +356,7 @@ func resourceStorageManagementPolicyCreateOrUpdate(d *pluginsdk.ResourceData, me
 	return resourceStorageManagementPolicyRead(d, meta)
 }
 
-func resourceStorageManagementPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageManagementPolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.ResourceManager.ManagementPolicies
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -392,7 +392,7 @@ func resourceStorageManagementPolicyRead(d *pluginsdk.ResourceData, meta interfa
 	return nil
 }
 
-func resourceStorageManagementPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageManagementPolicyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.ResourceManager.ManagementPolicies
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -443,10 +443,10 @@ func expandStorageManagementPolicyRule(d *pluginsdk.ResourceData, ruleIndex int)
 		Filters: &managementpolicies.ManagementPolicyFilter{},
 		Actions: managementpolicies.ManagementPolicyAction{},
 	}
-	filtersRef := d.Get(fmt.Sprintf("rule.%d.filters", ruleIndex)).([]interface{})
+	filtersRef := d.Get(fmt.Sprintf("rule.%d.filters", ruleIndex)).([]any)
 	if len(filtersRef) == 1 {
 		if filtersRef[0] != nil {
-			filterRef := filtersRef[0].(map[string]interface{})
+			filterRef := filtersRef[0].(map[string]any)
 
 			prefixMatches := []string{}
 			prefixMatchesRef := filterRef["prefix_match"].(*pluginsdk.Set)
@@ -473,7 +473,7 @@ func expandStorageManagementPolicyRule(d *pluginsdk.ResourceData, ruleIndex int)
 		if _, ok := d.GetOk(fmt.Sprintf("rule.%d.actions.0.base_blob", ruleIndex)); ok {
 			baseBlob := &managementpolicies.ManagementPolicyBaseBlob{}
 			var (
-				sinceMod, sinceAccess, sinceCreate       interface{}
+				sinceMod, sinceAccess, sinceCreate       any
 				sinceModOK, sinceAccessOK, sinceCreateOK bool
 			)
 
@@ -693,13 +693,13 @@ func expandStorageManagementPolicyRule(d *pluginsdk.ResourceData, ruleIndex int)
 	}, nil
 }
 
-func flattenStorageManagementPolicyRules(armRules []managementpolicies.ManagementPolicyRule) []interface{} {
-	rules := make([]interface{}, 0)
+func flattenStorageManagementPolicyRules(armRules []managementpolicies.ManagementPolicyRule) []any {
+	rules := make([]any, 0)
 	if armRules == nil {
 		return rules
 	}
 	for _, armRule := range armRules {
-		rule := make(map[string]interface{})
+		rule := make(map[string]any)
 
 		rule["name"] = armRule.Name
 		rule["enabled"] = armRule.Enabled
@@ -707,16 +707,16 @@ func flattenStorageManagementPolicyRules(armRules []managementpolicies.Managemen
 		armDefinition := armRule.Definition
 		armFilter := armDefinition.Filters
 		if armFilter != nil {
-			filter := make(map[string]interface{})
+			filter := make(map[string]any)
 			if armFilter.PrefixMatch != nil {
-				prefixMatches := make([]interface{}, 0)
+				prefixMatches := make([]any, 0)
 				for _, armPrefixMatch := range *armFilter.PrefixMatch {
 					prefixMatches = append(prefixMatches, armPrefixMatch)
 				}
 				filter["prefix_match"] = prefixMatches
 			}
 			if armFilter.BlobTypes != nil {
-				blobTypes := make([]interface{}, 0)
+				blobTypes := make([]any, 0)
 				for _, armBlobType := range armFilter.BlobTypes {
 					blobTypes = append(blobTypes, armBlobType)
 				}
@@ -725,11 +725,11 @@ func flattenStorageManagementPolicyRules(armRules []managementpolicies.Managemen
 
 			filter["match_blob_index_tag"] = flattenAzureRmStorageBlobIndexMatch(armFilter.BlobIndexMatch)
 
-			rule["filters"] = []interface{}{filter}
+			rule["filters"] = []any{filter}
 		}
 
 		armAction := armDefinition.Actions
-		action := make(map[string]interface{})
+		action := make(map[string]any)
 		armActionBaseBlob := armAction.BaseBlob
 		if armActionBaseBlob != nil {
 			var (
@@ -799,8 +799,8 @@ func flattenStorageManagementPolicyRules(armRules []managementpolicies.Managemen
 					deleteSinceCreate = int(*props.DaysAfterCreationGreaterThan)
 				}
 			}
-			action["base_blob"] = []interface{}{
-				map[string]interface{}{
+			action["base_blob"] = []any{
+				map[string]any{
 					"auto_tier_to_hot_from_cool_enabled":                             autoTierToHotOK,
 					"tier_to_cool_after_days_since_modification_greater_than":        tierToCoolSinceMod,
 					"tier_to_cool_after_days_since_last_access_time_greater_than":    tierToCoolSinceAccess,
@@ -844,7 +844,7 @@ func flattenStorageManagementPolicyRules(armRules []managementpolicies.Managemen
 			if armActionSnapshot.TierToCool != nil {
 				coolAfterCreation = int(armActionSnapshot.TierToCool.DaysAfterCreationGreaterThan)
 			}
-			action["snapshot"] = []interface{}{map[string]interface{}{
+			action["snapshot"] = []any{map[string]any{
 				"delete_after_days_since_creation_greater_than":                  deleteAfterCreation,
 				"change_tier_to_archive_after_days_since_creation":               archiveAfterCreation,
 				"tier_to_archive_after_days_since_last_tier_change_greater_than": archiveAfterLastTierChange,
@@ -877,7 +877,7 @@ func flattenStorageManagementPolicyRules(armRules []managementpolicies.Managemen
 			if armActionVersion.TierToCool != nil {
 				coolAfterCreation = int(armActionVersion.TierToCool.DaysAfterCreationGreaterThan)
 			}
-			action["version"] = []interface{}{map[string]interface{}{
+			action["version"] = []any{map[string]any{
 				"delete_after_days_since_creation":                               deleteAfterCreation,
 				"change_tier_to_archive_after_days_since_creation":               archiveAfterCreation,
 				"tier_to_archive_after_days_since_last_tier_change_greater_than": archiveAfterLastTierChange,
@@ -886,7 +886,7 @@ func flattenStorageManagementPolicyRules(armRules []managementpolicies.Managemen
 			}}
 		}
 
-		rule["actions"] = []interface{}{action}
+		rule["actions"] = []any{action}
 
 		rules = append(rules, rule)
 	}
@@ -894,14 +894,14 @@ func flattenStorageManagementPolicyRules(armRules []managementpolicies.Managemen
 	return rules
 }
 
-func expandAzureRmStorageBlobIndexMatch(blobIndexMatches []interface{}) *[]managementpolicies.TagFilter {
+func expandAzureRmStorageBlobIndexMatch(blobIndexMatches []any) *[]managementpolicies.TagFilter {
 	if len(blobIndexMatches) == 0 {
 		return nil
 	}
 
 	results := make([]managementpolicies.TagFilter, 0)
 	for _, v := range blobIndexMatches {
-		blobIndexMatch := v.(map[string]interface{})
+		blobIndexMatch := v.(map[string]any)
 
 		filter := managementpolicies.TagFilter{
 			Name:  blobIndexMatch["name"].(string),
@@ -915,15 +915,15 @@ func expandAzureRmStorageBlobIndexMatch(blobIndexMatches []interface{}) *[]manag
 	return &results
 }
 
-func flattenAzureRmStorageBlobIndexMatch(blobIndexMatches *[]managementpolicies.TagFilter) []map[string]interface{} {
-	result := make([]map[string]interface{}, 0)
+func flattenAzureRmStorageBlobIndexMatch(blobIndexMatches *[]managementpolicies.TagFilter) []map[string]any {
+	result := make([]map[string]any, 0)
 
 	if blobIndexMatches == nil || len(*blobIndexMatches) == 0 {
 		return result
 	}
 
 	for _, blobIndexMatch := range *blobIndexMatches {
-		result = append(result, map[string]interface{}{
+		result = append(result, map[string]any{
 			"name":      blobIndexMatch.Name,
 			"operation": blobIndexMatch.Op,
 			"value":     blobIndexMatch.Value,

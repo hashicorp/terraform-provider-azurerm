@@ -75,7 +75,7 @@ func resourcePostgresqlFlexibleServerFirewallRule() *pluginsdk.Resource {
 	}
 }
 
-func resourcePostgresqlFlexibleServerFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePostgresqlFlexibleServerFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Postgres.FlexibleServerFirewallRuleClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -129,7 +129,8 @@ func resourcePostgresqlFlexibleServerFirewallRuleCreateUpdate(d *pluginsdk.Resou
 	return resourcePostgresqlFlexibleServerFirewallRuleRead(d, meta)
 }
 
-func resourcePostgresqlFlexibleServerFirewallRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePostgresqlFlexibleServerFirewallRuleRead(d *pluginsdk.ResourceData, meta any) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Postgres.FlexibleServerFirewallRuleClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -162,7 +163,7 @@ func resourcePostgresqlFlexibleServerFirewallRuleFlatten(d *pluginsdk.ResourceDa
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourcePostgresqlFlexibleServerFirewallRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePostgresqlFlexibleServerFirewallRuleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Postgres.FlexibleServerFirewallRuleClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

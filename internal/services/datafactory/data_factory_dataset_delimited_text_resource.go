@@ -332,7 +332,7 @@ func resourceDataFactoryDatasetDelimitedText() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryDatasetDelimitedTextCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetDelimitedTextCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	subscriptionId := meta.(*clients.Client).DataFactory.DatasetClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -425,19 +425,19 @@ func resourceDataFactoryDatasetDelimitedTextCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		delimited_textTableset.Parameters = expandDataSetParameters(v.(map[string]interface{}))
+		delimited_textTableset.Parameters = expandDataSetParameters(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		delimited_textTableset.Annotations = pointer.To(v.([]interface{}))
+		delimited_textTableset.Annotations = pointer.To(v.([]any))
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		delimited_textTableset.AdditionalProperties = v.(map[string]interface{})
+		delimited_textTableset.AdditionalProperties = v.(map[string]any)
 	}
 
 	if v, ok := d.GetOk("schema_column"); ok {
-		delimited_textTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
+		delimited_textTableset.Structure = expandDataFactoryDatasetStructure(v.([]any))
 	}
 
 	dataset := datafactory.DatasetResource{
@@ -456,7 +456,7 @@ func resourceDataFactoryDatasetDelimitedTextCreateUpdate(d *pluginsdk.ResourceDa
 	return resourceDataFactoryDatasetDelimitedTextRead(d, meta)
 }
 
-func resourceDataFactoryDatasetDelimitedTextRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetDelimitedTextRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -595,7 +595,7 @@ func resourceDataFactoryDatasetDelimitedTextRead(d *pluginsdk.ResourceData, meta
 	return nil
 }
 
-func resourceDataFactoryDatasetDelimitedTextDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetDelimitedTextDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

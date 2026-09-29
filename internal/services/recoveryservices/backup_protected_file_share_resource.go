@@ -81,7 +81,7 @@ func resourceBackupProtectedFileShare() *pluginsdk.Resource {
 	}
 }
 
-func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	protectedClient := meta.(*clients.Client).RecoveryServices.ProtectedItemsGroupClient
 	protectableClient := meta.(*clients.Client).RecoveryServices.ProtectableItemsClient
 	protectionContainerClient := meta.(*clients.Client).RecoveryServices.BackupProtectionContainersClient
@@ -254,7 +254,7 @@ func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, met
 	return resourceBackupProtectedFileShareRead(d, meta)
 }
 
-func resourceBackupProtectedFileShareRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBackupProtectedFileShareRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).RecoveryServices.ProtectedItemsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -295,7 +295,7 @@ func resourceBackupProtectedFileShareRead(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func resourceBackupProtectedFileShareDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBackupProtectedFileShareDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).RecoveryServices.ProtectedItemsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -313,7 +313,7 @@ func resourceBackupProtectedFileShareDelete(d *pluginsdk.ResourceData, meta inte
 }
 
 func protectionContainerOperationResultsRefreshFunc(ctx context.Context, client *backup.ProtectionContainerOperationResultsClient, vaultName, resourceGroup, containerName string, operationID string) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		resp, err := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, operationID)
 		if err != nil {
 			return nil, "Error", fmt.Errorf("making Read request on Recovery Service Protection Container operation %q (Vault %q in Resource Group %q): %+v", operationID, vaultName, resourceGroup, err)

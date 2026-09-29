@@ -139,7 +139,7 @@ func TestAccProvider_resourceProviders_core(t *testing.T) {
 	logging.SetOutput(t)
 
 	provider := TestAzureProvider()
-	config := map[string]interface{}{
+	config := map[string]any{
 		"resource_provider_registrations": "core",
 	}
 
@@ -166,9 +166,9 @@ func TestAccProvider_resourceProviders_coreWithAdditional(t *testing.T) {
 	logging.SetOutput(t)
 
 	provider := TestAzureProvider()
-	config := map[string]interface{}{
+	config := map[string]any{
 		"resource_provider_registrations": "core",
-		"resource_providers_to_register": []interface{}{
+		"resource_providers_to_register": []any{
 			"Microsoft.ApiManagement",
 			"Microsoft.KeyVault",
 		},
@@ -200,9 +200,9 @@ func TestAccProvider_resourceProviders_explicit(t *testing.T) {
 	logging.SetOutput(t)
 
 	provider := TestAzureProvider()
-	config := map[string]interface{}{
+	config := map[string]any{
 		"resource_provider_registrations": "none",
-		"resource_providers_to_register": []interface{}{
+		"resource_providers_to_register": []any{
 			"Microsoft.Compute",
 			"Microsoft.Network",
 			"Microsoft.Storage",
@@ -354,7 +354,7 @@ func TestAccProvider_cliAuth(t *testing.T) {
 	defer cancel()
 
 	// Support only Azure CLI authentication
-	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 		envName := d.Get("environment").(string)
 		env, err := environments.FromName(envName)
 		if err != nil {
@@ -403,7 +403,7 @@ func TestAccProvider_clientCertificateAuth(t *testing.T) {
 	defer cancel()
 
 	// Support only Client Certificate authentication
-	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 		envName := d.Get("environment").(string)
 		env, err := environments.FromName(envName)
 		if err != nil {
@@ -482,7 +482,7 @@ func testAccProvider_clientSecretAuthFromEnvironment(t *testing.T) {
 	defer cancel()
 
 	// Support only Client Secret authentication
-	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 		envName := d.Get("environment").(string)
 		env, err := environments.FromName(envName)
 		if err != nil {
@@ -550,7 +550,7 @@ func testAccProvider_clientSecretAuthFromFiles(t *testing.T) {
 	defer cancel()
 
 	// Support only Client Secret authentication
-	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 		envName := d.Get("environment").(string)
 		env, err := environments.FromName(envName)
 		if err != nil {
@@ -610,7 +610,7 @@ func TestAccProvider_genericOidcAuth(t *testing.T) {
 	defer cancel()
 
 	// Support only OIDC authentication
-	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 		envName := d.Get("environment").(string)
 		env, err := environments.FromName(envName)
 		if err != nil {
@@ -673,7 +673,7 @@ func TestAccProvider_githubOidcAuth(t *testing.T) {
 	defer cancel()
 
 	// Support only GitHub OIDC authentication
-	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 		envName := d.Get("environment").(string)
 		env, err := environments.FromName(envName)
 		if err != nil {
@@ -735,7 +735,7 @@ func TestAccProvider_adoOidcAuth(t *testing.T) {
 	defer cancel()
 
 	// Support only ADO OIDC authentication
-	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 		envName := d.Get("environment").(string)
 		env, err := environments.FromName(envName)
 		if err != nil {
@@ -798,7 +798,7 @@ func TestAccProvider_aksWorkloadIdentityAuth(t *testing.T) {
 	defer cancel()
 
 	// Support only AKS Workload Identity authentication
-	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 		envName := d.Get("environment").(string)
 		env, err := environments.FromName(envName)
 		if err != nil {
@@ -832,7 +832,7 @@ func TestAccProvider_aksWorkloadIdentityAuth(t *testing.T) {
 	}
 
 	// Ensure we enable AKS Workload Identity else the configuration will not be detected
-	conf := map[string]interface{}{"use_aks_workload_identity": true}
+	conf := map[string]any{"use_aks_workload_identity": true}
 	d := provider.Configure(ctx, terraform.NewResourceConfigRaw(conf))
 	if d != nil && d.HasError() {
 		t.Fatalf("err: %+v", d)

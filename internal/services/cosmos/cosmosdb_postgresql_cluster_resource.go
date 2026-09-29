@@ -73,7 +73,7 @@ func (r CosmosDbPostgreSQLClusterResource) ResourceType() string {
 	return CosmosDbPostgreSQLClusterResourceName
 }
 
-func (r CosmosDbPostgreSQLClusterResource) ModelObject() interface{} {
+func (r CosmosDbPostgreSQLClusterResource) ModelObject() any {
 	return &CosmosDbPostgreSQLClusterModel{}
 }
 

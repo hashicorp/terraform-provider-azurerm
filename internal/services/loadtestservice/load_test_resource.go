@@ -33,7 +33,7 @@ var (
 
 type LoadTestResource struct{}
 
-func (r LoadTestResource) ModelObject() interface{} {
+func (r LoadTestResource) ModelObject() any {
 	return &LoadTestResourceSchema{}
 }
 
@@ -45,7 +45,7 @@ type LoadTestResourceSchema struct {
 	Location          string                                     `tfschema:"location"`
 	Name              string                                     `tfschema:"name"`
 	ResourceGroupName string                                     `tfschema:"resource_group_name"`
-	Tags              map[string]interface{}                     `tfschema:"tags"`
+	Tags              map[string]any                             `tfschema:"tags"`
 }
 
 type LoadTestEncryption struct {
@@ -339,7 +339,7 @@ func (r LoadTestResource) mapLoadTestPropertiesToLoadTestResourceSchema(input lo
 			})
 
 			if encryptionIdentity.Type != nil {
-				output.Encryption[0].Identity[0].Type = string(pointer.From(encryptionIdentity.Type))
+				output.Encryption[0].Identity[0].Type = pointer.FromEnum(encryptionIdentity.Type)
 			}
 		}
 	}

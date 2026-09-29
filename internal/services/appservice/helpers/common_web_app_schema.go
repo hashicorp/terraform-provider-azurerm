@@ -664,19 +664,19 @@ func applicationLogSchema() *pluginsdk.Schema {
 			if stateLogs == nil || planLogs == nil {
 				return false
 			}
-			stateAttrs := stateLogs.([]interface{})
-			planAttrs := planLogs.([]interface{})
+			stateAttrs := stateLogs.([]any)
+			planAttrs := planLogs.([]any)
 
 			// If the plan wants to set default values and the state is empty; suppress diff
 			if len(stateAttrs) == 0 && len(planAttrs) > 0 && planAttrs[0] != nil {
-				planAttr := planAttrs[0].(map[string]interface{})
+				planAttr := planAttrs[0].(map[string]any)
 				newFileSystemLevel, ok := planAttr["file_system_level"].(string)
 				if !ok {
 					return false
 				}
 
 				// if something is in `azure_blob_storage`, then we don't suppress the diff as we don't allow the default values for `azure_blob_storage` to be passed in
-				newAzureBlobStorage, ok := planAttr["azure_blob_storage"].([]interface{})
+				newAzureBlobStorage, ok := planAttr["azure_blob_storage"].([]any)
 				if !ok || len(newAzureBlobStorage) != 0 {
 					return false
 				}
@@ -1187,10 +1187,10 @@ func FlattenLogsConfig(logsConfig *webapps.SiteLogsConfig) []LogsConfig {
 		applicationLog := ApplicationLog{}
 
 		if appLogs.FileSystem != nil {
-			applicationLog.FileSystemLevel = string(pointer.From(appLogs.FileSystem.Level))
+			applicationLog.FileSystemLevel = pointer.FromEnum(appLogs.FileSystem.Level)
 			if appLogs.AzureBlobStorage != nil && appLogs.AzureBlobStorage.SasURL != nil {
 				blobStorage := AzureBlobStorage{
-					Level: string(pointer.From(appLogs.AzureBlobStorage.Level)),
+					Level: pointer.FromEnum(appLogs.AzureBlobStorage.Level),
 				}
 
 				blobStorage.SasURL = pointer.From(appLogs.AzureBlobStorage.SasURL)
@@ -1213,7 +1213,7 @@ func FlattenLogsConfig(logsConfig *webapps.SiteLogsConfig) []LogsConfig {
 					}
 				},
 			*/
-			if !strings.EqualFold(string(pointer.From(appLogs.FileSystem.Level)), string(webapps.LogLevelOff)) || len(applicationLog.AzureBlobStorage) > 0 {
+			if !strings.EqualFold(pointer.FromEnum(appLogs.FileSystem.Level), string(webapps.LogLevelOff)) || len(applicationLog.AzureBlobStorage) > 0 {
 				logs.ApplicationLogs = []ApplicationLog{applicationLog}
 			}
 		}
@@ -1303,7 +1303,7 @@ func FlattenStorageAccounts(appStorageAccounts *webapps.AzureStoragePropertyDict
 	for k, v := range *appStorageAccounts.Properties {
 		storageAccount := StorageAccount{
 			Name: k,
-			Type: string(pointer.From(v.Type)),
+			Type: pointer.FromEnum(v.Type),
 		}
 		if v.AccountName != nil {
 			storageAccount.AccountName = *v.AccountName
