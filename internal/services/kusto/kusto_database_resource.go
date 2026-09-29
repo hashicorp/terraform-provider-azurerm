@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
-	kustoValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -52,7 +52,7 @@ func resourceKustoDatabase() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: kustoValidate.DatabaseName,
+				ValidateFunc: validate.DatabaseName,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -63,7 +63,7 @@ func resourceKustoDatabase() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: kustoValidate.ClusterName,
+				ValidateFunc: validate.ClusterName,
 			},
 
 			"soft_delete_period": {

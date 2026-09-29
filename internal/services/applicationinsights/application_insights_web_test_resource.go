@@ -16,8 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
-	webtests "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -35,9 +35,9 @@ func resourceApplicationInsightsWebTests() *pluginsdk.Resource {
 		Update: resourceApplicationInsightsWebTestsUpdate,
 		Delete: resourceApplicationInsightsWebTestsDelete,
 
-		Importer: pluginsdk.ImporterValidatingIdentity(&webtests.WebTestId{}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&webtestsapis.WebTestId{}),
 		Identity: &schema.ResourceIdentity{
-			SchemaFunc: pluginsdk.GenerateIdentitySchema(&webtests.WebTestId{}),
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&webtestsapis.WebTestId{}),
 		},
 
 		SchemaVersion: 1,
@@ -66,7 +66,7 @@ func resourceApplicationInsightsWebTests() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: components.ValidateComponentID,
+				ValidateFunc: componentsapis.ValidateComponentID,
 			},
 
 			"location": commonschema.Location(),
@@ -76,8 +76,8 @@ func resourceApplicationInsightsWebTests() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(webtests.WebTestKindMultistep),
-					string(webtests.WebTestKindPing),
+					string(webtestsapis.WebTestKindMultistep),
+					string(webtestsapis.WebTestKindPing),
 				}, false),
 			},
 
@@ -146,12 +146,12 @@ func resourceApplicationInsightsWebTestsCreate(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	appInsightsId, err := components.ParseComponentID(d.Get("application_insights_id").(string))
+	appInsightsId, err := componentsapis.ParseComponentID(d.Get("application_insights_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := webtests.NewWebTestID(appInsightsId.SubscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := webtestsapis.NewWebTestID(appInsightsId.SubscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.WebTestsGet(ctx, id)
@@ -175,21 +175,21 @@ func resourceApplicationInsightsWebTestsCreate(d *pluginsdk.ResourceData, meta i
 	tagKey := fmt.Sprintf("hidden-link:%s", appInsightsId.ID())
 	t[tagKey] = "Resource"
 
-	webTest := webtests.WebTest{
+	webTest := webtestsapis.WebTest{
 		Name:     pointer.To(id.WebTestName),
 		Location: location.Normalize(d.Get("location").(string)),
-		Kind:     pointer.ToEnum[webtests.WebTestKind](d.Get("kind").(string)),
-		Properties: &webtests.WebTestProperties{
+		Kind:     pointer.ToEnum[webtestsapis.WebTestKind](d.Get("kind").(string)),
+		Properties: &webtestsapis.WebTestProperties{
 			SyntheticMonitorId: id.WebTestName,
 			Name:               id.WebTestName,
 			Description:        pointer.To(d.Get("description").(string)),
 			Enabled:            pointer.To(d.Get("enabled").(bool)),
 			Frequency:          pointer.To(int64(d.Get("frequency").(int))),
 			Timeout:            pointer.To(int64(d.Get("timeout").(int))),
-			Kind:               webtests.WebTestKind(d.Get("kind").(string)),
+			Kind:               webtestsapis.WebTestKind(d.Get("kind").(string)),
 			RetryEnabled:       pointer.To(d.Get("retry_enabled").(bool)),
 			Locations:          expandApplicationInsightsWebTestGeoLocations(d.Get("geo_locations").([]interface{})),
-			Configuration: &webtests.WebTestPropertiesConfiguration{
+			Configuration: &webtestsapis.WebTestPropertiesConfiguration{
 				WebTest: pointer.To(d.Get("configuration").(string)),
 			},
 		},
@@ -213,7 +213,7 @@ func resourceApplicationInsightsWebTestsUpdate(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := webtests.ParseWebTestID(d.Id())
+	id, err := webtestsapis.ParseWebTestID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -259,7 +259,7 @@ func resourceApplicationInsightsWebTestsUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if d.HasChange("configuration") {
-		props.Configuration = &webtests.WebTestPropertiesConfiguration{
+		props.Configuration = &webtestsapis.WebTestPropertiesConfiguration{
 			WebTest: pointer.To(d.Get("configuration").(string)),
 		}
 	}
@@ -270,7 +270,7 @@ func resourceApplicationInsightsWebTestsUpdate(d *pluginsdk.ResourceData, meta i
 	// user-supplied tags map before sending the request. It is generally undocumented but can be seen in
 	// https://learn.microsoft.com/azure/azure-monitor/app/availability?tabs=standard
 	if d.HasChange("tags") {
-		appInsightsId, err := components.ParseComponentID(d.Get("application_insights_id").(string))
+		appInsightsId, err := componentsapis.ParseComponentID(d.Get("application_insights_id").(string))
 		if err != nil {
 			return err
 		}
@@ -293,7 +293,7 @@ func resourceApplicationInsightsWebTestsRead(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := webtests.ParseWebTestID(d.Id())
+	id, err := webtestsapis.ParseWebTestID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -345,7 +345,7 @@ func resourceApplicationInsightsWebTestsRead(d *pluginsdk.ResourceData, meta int
 			}
 		}
 
-		parsedAppInsightsId, err := webtests.ParseComponentIDInsensitively(appInsightsId)
+		parsedAppInsightsId, err := webtestsapis.ParseComponentIDInsensitively(appInsightsId)
 		if err != nil {
 			return err
 		}
@@ -364,7 +364,7 @@ func resourceApplicationInsightsWebTestsDelete(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := webtests.ParseWebTestID(d.Id())
+	id, err := webtestsapis.ParseWebTestID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -380,11 +380,11 @@ func resourceApplicationInsightsWebTestsDelete(d *pluginsdk.ResourceData, meta i
 	return err
 }
 
-func expandApplicationInsightsWebTestGeoLocations(input []interface{}) []webtests.WebTestGeolocation {
-	locations := make([]webtests.WebTestGeolocation, 0)
+func expandApplicationInsightsWebTestGeoLocations(input []interface{}) []webtestsapis.WebTestGeolocation {
+	locations := make([]webtestsapis.WebTestGeolocation, 0)
 
 	for _, v := range input {
-		loc := webtests.WebTestGeolocation{
+		loc := webtestsapis.WebTestGeolocation{
 			Id: pointer.To(v.(string)),
 		}
 		locations = append(locations, loc)
@@ -393,7 +393,7 @@ func expandApplicationInsightsWebTestGeoLocations(input []interface{}) []webtest
 	return locations
 }
 
-func flattenApplicationInsightsWebTestGeoLocations(input []webtests.WebTestGeolocation) []string {
+func flattenApplicationInsightsWebTestGeoLocations(input []webtestsapis.WebTestGeolocation) []string {
 	results := make([]string, 0)
 	if len(input) == 0 {
 		return results

@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -35,7 +35,7 @@ func resourceStorageShareFile() *pluginsdk.Resource {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: storageValidate.StorageShareDataPlaneID,
+			ValidateFunc: validate.StorageShareDataPlaneID,
 		},
 
 		"path": {
@@ -43,7 +43,7 @@ func resourceStorageShareFile() *pluginsdk.Resource {
 			ForceNew:     true,
 			Optional:     true,
 			Default:      "",
-			ValidateFunc: storageValidate.StorageShareDirectoryName,
+			ValidateFunc: validate.StorageShareDirectoryName,
 		},
 
 		"content_type": {

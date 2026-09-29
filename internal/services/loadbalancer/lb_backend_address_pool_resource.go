@@ -497,9 +497,9 @@ func flattenGatewayLoadBalancerTunnelInterfaces(input *[]loadbalancers.GatewayLo
 			identifier = int(*e.Identifier)
 		}
 
-		t := string(pointer.From(e.Type))
+		t := pointer.FromEnum(e.Type)
 
-		protocol := string(pointer.From(e.Protocol))
+		protocol := pointer.FromEnum(e.Protocol)
 
 		var port int
 		if e.Port != nil {

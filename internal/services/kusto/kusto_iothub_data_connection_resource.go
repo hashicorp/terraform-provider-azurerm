@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	iotHubParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
@@ -209,15 +209,15 @@ func resourceKustoIotHubDataConnectionRead(d *pluginsdk.ResourceData, meta inter
 			d.Set("location", location.NormalizeNilable(dataConnection.Location))
 			if props := dataConnection.Properties; props != nil {
 				iotHubId := ""
-				if parsedIoTHubId, err := iotHubParse.IotHubIDInsensitively(props.IotHubResourceId); err == nil {
+				if parsedIoTHubId, err := parse.IotHubIDInsensitively(props.IotHubResourceId); err == nil {
 					iotHubId = parsedIoTHubId.ID()
 				}
 				d.Set("iothub_id", iotHubId)
 				d.Set("consumer_group", props.ConsumerGroup)
 				d.Set("table_name", props.TableName)
 				d.Set("mapping_rule_name", props.MappingRuleName)
-				d.Set("data_format", string(pointer.From(props.DataFormat)))
-				d.Set("database_routing_type", string(pointer.From(props.DatabaseRouting)))
+				d.Set("data_format", pointer.FromEnum(props.DataFormat))
+				d.Set("database_routing_type", pointer.FromEnum(props.DatabaseRouting))
 				d.Set("shared_access_policy_name", props.SharedAccessPolicyName)
 				d.Set("event_system_properties", pluginsdk.FlattenSlice(props.EventSystemProperties))
 				d.Set("retrieval_start_date", pointer.From(props.RetrievalStartDate))

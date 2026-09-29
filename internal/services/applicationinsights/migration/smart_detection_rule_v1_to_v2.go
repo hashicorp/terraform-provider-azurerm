@@ -7,7 +7,7 @@ import (
 	"context"
 	"log"
 
-	smartdetection "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentproactivedetectionapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentproactivedetectionapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -32,7 +32,7 @@ func (SmartDetectionRuleUpgradeV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc
 			return rawState, err
 		}
 
-		id := smartdetection.NewProactiveDetectionConfigID(oldId.SubscriptionId, oldId.ResourceGroup, oldId.ComponentName, oldId.SmartDetectionRuleName)
+		id := componentproactivedetectionapis.NewProactiveDetectionConfigID(oldId.SubscriptionId, oldId.ResourceGroup, oldId.ComponentName, oldId.SmartDetectionRuleName)
 
 		newId := id.ID()
 		log.Printf("[DEBUG] Updating ID from %q to %q", oldIdRaw, newId)

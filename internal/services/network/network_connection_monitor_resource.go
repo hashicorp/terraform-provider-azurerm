@@ -22,7 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -84,7 +84,7 @@ func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
 						Optional: true,
 						ValidateFunc: validation.Any(
 							validation.IsIPv4Address,
-							networkValidate.NetworkConnectionMonitorEndpointAddress,
+							validate.NetworkConnectionMonitorEndpointAddress,
 						),
 					},
 
@@ -219,7 +219,7 @@ func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
 								"path": {
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
-									ValidateFunc: networkValidate.NetworkConnectionMonitorHttpPath,
+									ValidateFunc: validate.NetworkConnectionMonitorHttpPath,
 								},
 
 								"port": {
@@ -259,7 +259,7 @@ func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
 									Optional: true,
 									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
-										ValidateFunc: networkValidate.NetworkConnectionMonitorValidStatusCodeRanges,
+										ValidateFunc: validate.NetworkConnectionMonitorValidStatusCodeRanges,
 									},
 								},
 							},

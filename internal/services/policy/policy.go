@@ -11,7 +11,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	assignments "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
 )
 
 func getPolicyDefinitionByDisplayName(ctx context.Context, client *policy.DefinitionsClient, displayName, managementGroupName string,
@@ -148,8 +148,8 @@ func flattenParameterDefinitionsValueToStringTrack1(input map[string]*policy.Par
 	return compactJson.String(), nil
 }
 
-func expandParameterValuesValueFromString(jsonString string) (map[string]assignments.ParameterValuesValue, error) {
-	var result map[string]assignments.ParameterValuesValue
+func expandParameterValuesValueFromString(jsonString string) (map[string]policyassignments.ParameterValuesValue, error) {
+	var result map[string]policyassignments.ParameterValuesValue
 
 	err := json.Unmarshal([]byte(jsonString), &result)
 
@@ -170,7 +170,7 @@ func flattenParameterValuesValueToStringTrack1(input map[string]*policy.Paramete
 	return string(result), err
 }
 
-func flattenParameterValuesValueToStringV2(input *map[string]assignments.ParameterValuesValue) (string, error) {
+func flattenParameterValuesValueToStringV2(input *map[string]policyassignments.ParameterValuesValue) (string, error) {
 	if input == nil || *input == nil {
 		return "", nil
 	}

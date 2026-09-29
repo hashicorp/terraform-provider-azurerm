@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	managedHsmHelpers "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/helpers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -87,7 +87,7 @@ func dataSourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta interface{}
 
 		if props.ActiveKey != nil && props.ActiveKey.KeyURL != "" {
 			keyVaultURI := props.ActiveKey.KeyURL
-			isHSMURI, _, _, err := managedHsmHelpers.IsManagedHSMURI(env, keyVaultURI)
+			isHSMURI, _, _, err := helpers.IsManagedHSMURI(env, keyVaultURI)
 			if err != nil {
 				return fmt.Errorf("parsing key vault URI: %+v", err)
 			}

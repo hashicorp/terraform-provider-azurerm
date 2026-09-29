@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	serviceFabricValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabric/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabric/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -330,37 +330,37 @@ func resourceServiceFabricCluster() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Default:      "00:45:00",
-							ValidateFunc: serviceFabricValidate.UpgradeTimeout,
+							ValidateFunc: validate.UpgradeTimeout,
 						},
 						"health_check_stable_duration": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Default:      "00:01:00",
-							ValidateFunc: serviceFabricValidate.UpgradeTimeout,
+							ValidateFunc: validate.UpgradeTimeout,
 						},
 						"health_check_wait_duration": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Default:      "00:00:30",
-							ValidateFunc: serviceFabricValidate.UpgradeTimeout,
+							ValidateFunc: validate.UpgradeTimeout,
 						},
 						"upgrade_domain_timeout": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Default:      "02:00:00",
-							ValidateFunc: serviceFabricValidate.UpgradeTimeout,
+							ValidateFunc: validate.UpgradeTimeout,
 						},
 						"upgrade_replica_set_check_timeout": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Default:      "10675199.02:48:05.4775807",
-							ValidateFunc: serviceFabricValidate.UpgradeTimeout,
+							ValidateFunc: validate.UpgradeTimeout,
 						},
 						"upgrade_timeout": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Default:      "12:00:00",
-							ValidateFunc: serviceFabricValidate.UpgradeTimeout,
+							ValidateFunc: validate.UpgradeTimeout,
 						},
 						"health_policy": {
 							Type:     pluginsdk.TypeList,

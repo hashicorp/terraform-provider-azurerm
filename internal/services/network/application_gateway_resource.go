@@ -29,7 +29,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -312,7 +312,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: networkValidate.ApplicationGatewayName,
+							ValidateFunc: validate.ApplicationGatewayName,
 						},
 
 						"port": {
@@ -345,7 +345,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"probe_name": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: networkValidate.ApplicationGatewayName,
+							ValidateFunc: validate.ApplicationGatewayName,
 						},
 
 						"timeout_in_seconds": {
@@ -360,7 +360,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Optional: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: networkValidate.ApplicationGatewayName,
+								ValidateFunc: validate.ApplicationGatewayName,
 							},
 						},
 
@@ -625,19 +625,19 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: networkValidate.ApplicationGatewayName,
+							ValidateFunc: validate.ApplicationGatewayName,
 						},
 
 						"frontend_ip_configuration_name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: networkValidate.ApplicationGatewayName,
+							ValidateFunc: validate.ApplicationGatewayName,
 						},
 
 						"frontend_port_name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: networkValidate.ApplicationGatewayName,
+							ValidateFunc: validate.ApplicationGatewayName,
 						},
 
 						"protocol": {
@@ -661,13 +661,13 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"ssl_certificate_name": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: networkValidate.ApplicationGatewayName,
+							ValidateFunc: validate.ApplicationGatewayName,
 						},
 
 						"ssl_profile_name": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: networkValidate.ApplicationGatewayName,
+							ValidateFunc: validate.ApplicationGatewayName,
 						},
 
 						"frontend_ip_configuration_id": {
@@ -880,25 +880,25 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: networkValidate.ApplicationGatewayName,
+							ValidateFunc: validate.ApplicationGatewayName,
 						},
 
 						"backend_address_pool_name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: networkValidate.ApplicationGatewayName,
+							ValidateFunc: validate.ApplicationGatewayName,
 						},
 
 						"backend_name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: networkValidate.ApplicationGatewayName,
+							ValidateFunc: validate.ApplicationGatewayName,
 						},
 
 						"listener_name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: networkValidate.ApplicationGatewayName,
+							ValidateFunc: validate.ApplicationGatewayName,
 						},
 
 						"priority": {
@@ -1089,7 +1089,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: networkValidate.ApplicationGatewayName,
+							ValidateFunc: validate.ApplicationGatewayName,
 						},
 
 						"protocol": {
@@ -1580,13 +1580,13 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Default:      "OWASP",
-							ValidateFunc: networkValidate.ValidateWebApplicationFirewallPolicyRuleSetType,
+							ValidateFunc: validate.ValidateWebApplicationFirewallPolicyRuleSetType,
 						},
 
 						"rule_set_version": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: networkValidate.ValidateWebApplicationFirewallPolicyRuleSetVersion,
+							ValidateFunc: validate.ValidateWebApplicationFirewallPolicyRuleSetVersion,
 						},
 						"file_upload_limit_mb": {
 							Type:         pluginsdk.TypeInt,
@@ -1613,7 +1613,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 									"rule_group_name": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: networkValidate.ValidateWebApplicationFirewallPolicyRuleGroupName,
+										ValidateFunc: validate.ValidateWebApplicationFirewallPolicyRuleGroupName,
 									},
 
 									"rules": {
@@ -3349,7 +3349,7 @@ func flattenApplicationGatewayFrontendIPConfigurations(input *[]applicationgatew
 		}
 
 		if props := config.Properties; props != nil {
-			output["private_ip_address_allocation"] = string(pointer.From(props.PrivateIPAllocationMethod))
+			output["private_ip_address_allocation"] = pointer.FromEnum(props.PrivateIPAllocationMethod)
 
 			if props.Subnet != nil && props.Subnet.Id != nil {
 				output["subnet_id"] = *props.Subnet.Id
@@ -3457,7 +3457,7 @@ func flattenApplicationGatewayProbes(input *[]applicationgateways.ApplicationGat
 		}
 
 		if props := v.Properties; props != nil {
-			output["protocol"] = string(pointer.From(props.Protocol))
+			output["protocol"] = pointer.FromEnum(props.Protocol)
 
 			if host := props.Host; host != nil {
 				output["host"] = *host
@@ -3609,7 +3609,7 @@ func flattenApplicationGatewayPrivateLinkConfigurations(input *[]applicationgate
 					if ipConfigProps.PrivateIPAddress != nil {
 						ipConfigResult["private_ip_address"] = *ipConfigProps.PrivateIPAddress
 					}
-					ipConfigResult["private_ip_address_allocation"] = string(pointer.From(ipConfigProps.PrivateIPAllocationMethod))
+					ipConfigResult["private_ip_address_allocation"] = pointer.FromEnum(ipConfigProps.PrivateIPAllocationMethod)
 					if ipConfigProps.Primary != nil {
 						ipConfigResult["primary"] = *ipConfigProps.Primary
 					}
@@ -3721,7 +3721,7 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]applicationgateways.A
 	for _, config := range *input {
 		if props := config.Properties; props != nil {
 			output := map[string]interface{}{
-				"rule_type": string(pointer.From(props.RuleType)),
+				"rule_type": pointer.FromEnum(props.RuleType),
 			}
 
 			if config.Id != nil {
@@ -4181,7 +4181,7 @@ func flattenApplicationGatewayRedirectConfigurations(input *[]applicationgateway
 	for _, config := range *input {
 		if props := config.Properties; props != nil {
 			output := map[string]interface{}{
-				"redirect_type": string(pointer.From(props.RedirectType)),
+				"redirect_type": pointer.FromEnum(props.RedirectType),
 			}
 
 			if config.Id != nil {
@@ -4280,8 +4280,8 @@ func expandApplicationGatewaySku(d *pluginsdk.ResourceData) *applicationgateways
 func flattenApplicationGatewaySku(input *applicationgateways.ApplicationGatewaySku) []interface{} {
 	result := make(map[string]interface{})
 
-	result["name"] = string(pointer.From(input.Name))
-	result["tier"] = string(pointer.From(input.Tier))
+	result["name"] = pointer.FromEnum(input.Name)
+	result["tier"] = pointer.FromEnum(input.Tier)
 	if input.Capacity != nil {
 		result["capacity"] = int(*input.Capacity)
 	}
@@ -4525,7 +4525,7 @@ func flattenApplicationGatewaySslProfiles(input *[]applicationgateways.Applicati
 			if props.ClientAuthConfiguration != nil {
 				verifyClientCertIssuerDn = pointer.From(props.ClientAuthConfiguration.VerifyClientCertIssuerDN)
 				if *props.ClientAuthConfiguration.VerifyClientRevocation != applicationgateways.ApplicationGatewayClientRevocationOptionsNone {
-					verifyClientCertificateRevocation = string(pointer.From(props.ClientAuthConfiguration.VerifyClientRevocation))
+					verifyClientCertificateRevocation = pointer.FromEnum(props.ClientAuthConfiguration.VerifyClientRevocation)
 				}
 			}
 
@@ -5113,14 +5113,14 @@ func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceD
 		}
 	}
 
-	if tier != "" && d.HasChange("sku.0.tier") && slices.Contains(networkValidate.DeprecatedV1SkuTiers, tier) {
+	if tier != "" && d.HasChange("sku.0.tier") && slices.Contains(validate.DeprecatedV1SkuTiers, tier) {
 		return fmt.Errorf("new creation / update to `%s` SKU tier is no longer supported, please use supported SKU tiers: `Basic`, `Standard_v2`, `WAF_v2`, refer to https://aka.ms/V1retirement", tier)
 	}
 
 	if d.HasChange("sku.0.name") {
 		skuName := d.Get("sku.0.name").(string)
 
-		if skuName != "" && slices.Contains(networkValidate.DeprecatedV1SkuNames, skuName) {
+		if skuName != "" && slices.Contains(validate.DeprecatedV1SkuNames, skuName) {
 			return fmt.Errorf("new creation / update to `%s` SKU name is no longer supported, please use supported SKU names: `Basic`, `Standard_v2`, `WAF_v2`, refer to https://aka.ms/V1retirement", skuName)
 		}
 	}

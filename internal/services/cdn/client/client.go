@@ -6,7 +6,7 @@ package client
 import (
 	"fmt"
 
-	cdnSdk "github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afddomains"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdorigingroups"
@@ -17,14 +17,14 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rulesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/secrets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/securitypolicies"
-	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
 	AFDCustomDomainsClient          *afddomains.AFDDomainsClient
 	AFDEndpointsClient              *afdendpoints.AFDEndpointsClient
-	FrontDoorFirewallPoliciesClient *waf.WebApplicationFirewallPoliciesClient
+	FrontDoorFirewallPoliciesClient *webapplicationfirewallpolicies.WebApplicationFirewallPoliciesClient
 	FrontDoorOriginGroupsClient     *afdorigingroups.AFDOriginGroupsClient
 	FrontDoorOriginsClient          *afdorigins.AFDOriginsClient
 	FrontDoorProfilesClient         *profiles.ProfilesClient
@@ -36,9 +36,9 @@ type Client struct {
 
 	// These clients are in-use by deprecated resources/data sources, and can no longer be created.
 	// Because we are unable to test, we'll leave these on the track1 SDK.
-	CustomDomainsClient *cdnSdk.CustomDomainsClient
-	EndpointsClient     *cdnSdk.EndpointsClient
-	ProfilesClient      *cdnSdk.ProfilesClient
+	CustomDomainsClient *cdn.CustomDomainsClient
+	EndpointsClient     *cdn.EndpointsClient
+	ProfilesClient      *cdn.ProfilesClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -54,7 +54,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(afdEndpointsClient.Client, o.Authorizers.ResourceManager)
 
-	frontDoorFirewallPoliciesClient := waf.NewWebApplicationFirewallPoliciesClientWithBaseURI(o.ResourceManagerEndpoint)
+	frontDoorFirewallPoliciesClient := webapplicationfirewallpolicies.NewWebApplicationFirewallPoliciesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&frontDoorFirewallPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
 	frontDoorOriginGroupsClient, err := afdorigingroups.NewAFDOriginGroupsClientWithBaseURI(o.Environment.ResourceManager)
@@ -105,13 +105,13 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(frontDoorSecurityPoliciesClient.Client, o.Authorizers.ResourceManager)
 
-	customDomainsClient := cdnSdk.NewCustomDomainsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	customDomainsClient := cdn.NewCustomDomainsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&customDomainsClient.Client, o.ResourceManagerAuthorizer)
 
-	endpointsClient := cdnSdk.NewEndpointsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	endpointsClient := cdn.NewEndpointsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&endpointsClient.Client, o.ResourceManagerAuthorizer)
 
-	profilesClient := cdnSdk.NewProfilesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	profilesClient := cdn.NewProfilesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&profilesClient.Client, o.ResourceManagerAuthorizer)
 
 	client := Client{

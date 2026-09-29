@@ -22,7 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -59,7 +59,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: netAppValidate.VolumeName,
+				ValidateFunc: validate.VolumeName,
 			},
 
 			"location": commonschema.Location(),
@@ -70,20 +70,20 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: netAppValidate.AccountName,
+				ValidateFunc: validate.AccountName,
 			},
 
 			"pool_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: netAppValidate.PoolName,
+				ValidateFunc: validate.PoolName,
 			},
 
 			"volume_path": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: netAppValidate.VolumePath,
+				ValidateFunc: validate.VolumePath,
 			},
 
 			"service_level": {
@@ -571,7 +571,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				// Always use the new configuration when protocols are changing to ensure validation against intended state
 				exportPolicyRules := d.Get("export_policy_rule").([]interface{})
 
-				validationErrors := netAppValidate.ValidateNetAppVolumeProtocolConversion(oldProtocolsStr, newProtocolsStr, kerberosEnabled, dataReplication, exportPolicyRules)
+				validationErrors := validate.ValidateNetAppVolumeProtocolConversion(oldProtocolsStr, newProtocolsStr, kerberosEnabled, dataReplication, exportPolicyRules)
 				for _, err := range validationErrors {
 					return err
 				}
@@ -1088,18 +1088,18 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 
 		props := model.Properties
 		d.Set("volume_path", props.CreationToken)
-		d.Set("service_level", string(pointer.From(props.ServiceLevel)))
+		d.Set("service_level", pointer.FromEnum(props.ServiceLevel))
 		d.Set("subnet_id", props.SubnetId)
 		d.Set("kerberos_enabled", props.KerberosEnabled)
 		d.Set("smb_continuous_availability_enabled", props.SmbContinuouslyAvailable)
 		d.Set("smb3_protocol_encryption_enabled", props.SmbEncryption)
-		d.Set("network_features", string(pointer.From(props.NetworkFeatures)))
+		d.Set("network_features", pointer.FromEnum(props.NetworkFeatures))
 		d.Set("protocols", props.ProtocolTypes)
-		d.Set("security_style", string(pointer.From(props.SecurityStyle)))
+		d.Set("security_style", pointer.FromEnum(props.SecurityStyle))
 		d.Set("snapshot_directory_visible", props.SnapshotDirectoryVisible)
 		d.Set("throughput_in_mibps", props.ThroughputMibps)
 		d.Set("storage_quota_in_gb", props.UsageThreshold/1073741824)
-		d.Set("encryption_key_source", string(pointer.From(props.EncryptionKeySource)))
+		d.Set("encryption_key_source", pointer.FromEnum(props.EncryptionKeySource))
 		d.Set("key_vault_private_endpoint_id", props.KeyVaultPrivateEndpointResourceId)
 		d.Set("large_volume_enabled", props.IsLargeVolume)
 		d.Set("breakthrough_mode_enabled", pointer.From(props.BreakthroughMode) == volumes.BreakthroughModeEnabled)
@@ -1575,7 +1575,7 @@ func flattenNetAppVolumeDataProtectionAdvancedRansomwareProtection(input *volume
 
 	desiredState := ""
 	if input.RansomwareProtection.DesiredRansomwareProtectionState != nil {
-		desiredState = string(pointer.From(input.RansomwareProtection.DesiredRansomwareProtectionState))
+		desiredState = pointer.FromEnum(input.RansomwareProtection.DesiredRansomwareProtectionState)
 	}
 
 	// Only return the block if a desired state has been set

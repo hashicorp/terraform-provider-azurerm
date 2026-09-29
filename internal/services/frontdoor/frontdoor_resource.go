@@ -22,7 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
-	frontDoorValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -1695,7 +1695,7 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: frontDoorValidate.FrontDoorName,
+			ValidateFunc: validate.FrontDoorName,
 		},
 
 		"cname": {
@@ -1734,7 +1734,7 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 					"name": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: frontDoorValidate.BackendPoolRoutingRuleName,
+						ValidateFunc: validate.BackendPoolRoutingRuleName,
 					},
 					"enabled": {
 						Type:     pluginsdk.TypeBool,
@@ -1812,7 +1812,7 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 								"backend_pool_name": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: frontDoorValidate.BackendPoolRoutingRuleName,
+									ValidateFunc: validate.BackendPoolRoutingRuleName,
 								},
 								"cache_enabled": {
 									Type:     pluginsdk.TypeBool,
@@ -1874,7 +1874,7 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 					"name": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: frontDoorValidate.BackendPoolRoutingRuleName,
+						ValidateFunc: validate.BackendPoolRoutingRuleName,
 					},
 					"sample_size": {
 						Type:     pluginsdk.TypeInt,
@@ -1908,7 +1908,7 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 					"name": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: frontDoorValidate.BackendPoolRoutingRuleName,
+						ValidateFunc: validate.BackendPoolRoutingRuleName,
 					},
 					"enabled": {
 						Type:     pluginsdk.TypeBool,
@@ -1997,7 +1997,7 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 					"name": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: frontDoorValidate.BackendPoolRoutingRuleName,
+						ValidateFunc: validate.BackendPoolRoutingRuleName,
 					},
 					"health_probe_name": {
 						Type:     pluginsdk.TypeString,
@@ -2044,7 +2044,7 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 					"name": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: frontDoorValidate.BackendPoolRoutingRuleName,
+						ValidateFunc: validate.BackendPoolRoutingRuleName,
 					},
 					"host_name": {
 						Type:     pluginsdk.TypeString,
