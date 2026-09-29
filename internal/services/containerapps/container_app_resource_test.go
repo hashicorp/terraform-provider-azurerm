@@ -788,6 +788,7 @@ data "azurerm_client_config" "current" {}
 resource "azurerm_key_vault" "test" {
   name                       = "acctest-kv-%[3]s"
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   location                   = azurerm_resource_group.test.location
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "premium"
@@ -880,6 +881,7 @@ data "azurerm_client_config" "current" {}
 resource "azurerm_key_vault" "test" {
   name                       = "acctest-kv-%[3]s"
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   location                   = azurerm_resource_group.test.location
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "premium"
@@ -972,6 +974,7 @@ data "azurerm_client_config" "current" {}
 resource "azurerm_key_vault" "test" {
   name                       = "acctest-kv-%[3]s"
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   location                   = azurerm_resource_group.test.location
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "premium"
@@ -1084,6 +1087,7 @@ data "azurerm_client_config" "current" {}
 resource "azurerm_key_vault" "test" {
   name                       = "acctest-kv-%[3]s"
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   location                   = azurerm_resource_group.test.location
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "premium"
@@ -1210,6 +1214,7 @@ data "azurerm_client_config" "current" {}
 resource "azurerm_key_vault" "test" {
   name                       = "acctest-kv-%[3]s"
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   location                   = azurerm_resource_group.test.location
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "premium"
@@ -2760,7 +2765,9 @@ resource "azurerm_container_app" "test" {
       custom_rule_type = "rabbitmq"
 
       metadata = {
-        foo = "bar"
+        queueName = "myqueue"
+        mode      = "QueueLength"
+        value     = "10"
       }
 
       authentication {
@@ -2811,7 +2818,7 @@ func (ContainerAppResource) templateMultipleWorkloadProfiles(data acceptance.Tes
 
 func (ContainerAppResource) templateWithVnet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+	%s
 resource "azurerm_container_registry" "test" {
   name                = "testacccr%[2]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -2834,9 +2841,9 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_share" "test" {
-  name                 = "testshare%[3]s"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 1
+  name               = "testshare%[3]s"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 1
 }
 
 resource "azurerm_container_app_environment_storage" "test" {
@@ -2847,12 +2854,12 @@ resource "azurerm_container_app_environment_storage" "test" {
   share_name                   = azurerm_storage_share.test.name
   access_mode                  = "ReadWrite"
 }
-`, ContainerAppEnvironmentResource{}.completeWithoutWorkloadProfile(data), data.RandomInteger, data.RandomString)
+	`, ContainerAppEnvironmentResource{}.completeWithoutWorkloadProfile(data), data.RandomInteger, data.RandomString)
 }
 
 func (ContainerAppResource) templatePlusExtras(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+	%s
 
 resource "azurerm_container_registry" "test" {
   name                = "testacccr%[2]d"
@@ -2876,7 +2883,7 @@ resource "azurerm_container_app_environment_storage" "test" {
   share_name                   = azurerm_storage_share.test.name
   access_mode                  = "ReadWrite"
 }
-`, ContainerAppEnvironmentDaprComponentResource{}.complete(data), data.RandomInteger, data.RandomString)
+	`, ContainerAppEnvironmentDaprComponentResource{}.complete(data), data.RandomInteger, data.RandomString)
 }
 
 func (r ContainerAppResource) ingressTrafficValidation(data acceptance.TestData, trafficBlock string) string {

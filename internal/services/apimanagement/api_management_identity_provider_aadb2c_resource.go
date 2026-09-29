@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceArmApiManagementIdentityProviderAADB2C() *pluginsdk.Resource {
@@ -151,7 +150,7 @@ func resourceArmApiManagementIdentityProviderAADB2CCreateUpdate(d *pluginsdk.Res
 			ClientLibrary:            pointer.To(clientLibrary),
 			ClientSecret:             clientSecret,
 			Type:                     pointer.To(identityprovider.IdentityProviderTypeAadBTwoC),
-			AllowedTenants:           utils.ExpandStringSlice([]interface{}{allowedTenant}),
+			AllowedTenants:           pluginsdk.ExpandStringSlice([]interface{}{allowedTenant}),
 			SigninTenant:             pointer.To(signinTenant),
 			Authority:                pointer.To(authority),
 			SignupPolicyName:         pointer.To(signupPolicy),

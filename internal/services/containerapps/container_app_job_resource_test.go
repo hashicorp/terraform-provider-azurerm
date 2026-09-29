@@ -814,6 +814,7 @@ data "azurerm_client_config" "current" {}
 resource "azurerm_key_vault" "test" {
   name                       = "acctest-kv-%[3]s"
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   location                   = azurerm_resource_group.test.location
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "premium"
@@ -914,6 +915,7 @@ data "azurerm_client_config" "current" {}
 resource "azurerm_key_vault" "test" {
   name                       = "acctest-kv-%[3]s"
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   location                   = azurerm_resource_group.test.location
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "premium"
@@ -1014,6 +1016,7 @@ data "azurerm_client_config" "current" {}
 resource "azurerm_key_vault" "test" {
   name                       = "acctest-kv-%[3]s"
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   location                   = azurerm_resource_group.test.location
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "premium"
@@ -1138,6 +1141,7 @@ data "azurerm_client_config" "current" {}
 resource "azurerm_key_vault" "test" {
   name                       = "acctest-kv-%[3]s"
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   location                   = azurerm_resource_group.test.location
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "premium"
@@ -1272,6 +1276,7 @@ data "azurerm_client_config" "current" {}
 resource "azurerm_key_vault" "test" {
   name                       = "acctest-kv-%[3]s"
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   location                   = azurerm_resource_group.test.location
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "premium"

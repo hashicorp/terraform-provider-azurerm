@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourcePortalDashboard() *pluginsdk.Resource {
@@ -59,7 +58,7 @@ func resourcePortalDashboard() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.DashboardProperties,
-				StateFunc:    utils.NormalizeJson,
+				StateFunc:    pluginsdk.NormalizeJson,
 			},
 		},
 	}

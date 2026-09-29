@@ -5,7 +5,6 @@ package recoveryservices
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -36,8 +35,6 @@ func dataSourceBackupPolicyFileShareRead(d *pluginsdk.ResourceData, meta interfa
 	defer cancel()
 
 	id := protectionpolicies.NewBackupPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("recovery_vault_name").(string), d.Get("name").(string))
-
-	log.Printf("[DEBUG] Reading %s", id)
 
 	protectionPolicy, err := client.Get(ctx, id)
 	if err != nil {

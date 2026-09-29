@@ -32,14 +32,8 @@ func dataSourceAdvisorRecommendations() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(getrecommendations.CategoryHighAvailability),
-						string(getrecommendations.CategorySecurity),
-						string(getrecommendations.CategoryPerformance),
-						string(getrecommendations.CategoryCost),
-						string(getrecommendations.CategoryOperationalExcellence),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice(getrecommendations.PossibleValuesForCategory(), false),
 				},
 			},
 
@@ -152,16 +146,16 @@ func dataSourceAdvisorRecommendationsRead(d *pluginsdk.ResourceData, meta interf
 		opts.Filter = pointer.To(strings.Join(filterList, " and "))
 	}
 
-	recomendations, err := client.RecommendationsListComplete(ctx, id, opts)
+	recommendations, err := client.RecommendationsListComplete(ctx, id, opts)
 	if err != nil {
 		return fmt.Errorf("loading Advisor Recommendation for %q: %+v", id, err)
 	}
 
-	if err := d.Set("recommendations", flattenAzureRmAdvisorRecommendations(recomendations.Items)); err != nil {
+	if err := d.Set("recommendations", flattenAzureRmAdvisorRecommendations(recommendations.Items)); err != nil {
 		return fmt.Errorf("setting `recommendations`: %+v", err)
 	}
 
-	d.SetId("avdisor/recommendations/" + time.Now().UTC().String())
+	d.SetId(fmt.Sprintf("advisor/recommendations/%s/%d", id.SubscriptionId, pluginsdk.HashString(strings.Join(filterList, " and "))))
 
 	return nil
 }
@@ -188,10 +182,10 @@ func flattenAzureRmAdvisorRecommendations(recommends []getrecommendations.Resour
 		}
 
 		result = append(result, map[string]interface{}{
-			"category":               string(pointer.From(v.Category)),
+			"category":               pointer.FromEnum(v.Category),
 			"description":            description,
 			"id":                     pointer.From(r.Id),
-			"impact":                 string(pointer.From(v.Impact)),
+			"impact":                 pointer.FromEnum(v.Impact),
 			"recommendation_name":    pointer.From(r.Name),
 			"recommendation_type_id": pointer.From(v.RecommendationTypeId),
 			"resource_name":          pointer.From(v.ImpactedValue),

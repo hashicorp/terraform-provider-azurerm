@@ -28,7 +28,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name web_pubsub -service-package-name signalr -properties "name,resource_group_name"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 const webPubSubResourceType = "azurerm_web_pubsub"
 
@@ -389,15 +389,9 @@ func flattenLiveTraceConfig(input *webpubsub.LiveTraceConfiguration) []interface
 
 	if input.Categories != nil {
 		for _, item := range *input.Categories {
-			name := ""
-			if item.Name != nil {
-				name = *item.Name
-			}
+			name := pointer.From(item.Name)
 
-			var cateEnabled string
-			if item.Enabled != nil {
-				cateEnabled = *item.Enabled
-			}
+			cateEnabled := pointer.From(item.Enabled)
 
 			switch name {
 			case "MessagingLogs":

@@ -196,8 +196,7 @@ func resourceLogicAppTriggerHttpRequestDelete(d *pluginsdk.ResourceData, meta in
 
 	workflowId := workflows.NewWorkflowID(id.SubscriptionId, id.ResourceGroupName, id.WorkflowName)
 
-	err = resourceLogicAppTriggerRemove(d, meta, workflowId, id.TriggerName)
-	if err != nil {
+	if err = resourceLogicAppTriggerRemove(d, meta, workflowId, id.TriggerName); err != nil {
 		return fmt.Errorf("removing Trigger %s: %+v", id, err)
 	}
 

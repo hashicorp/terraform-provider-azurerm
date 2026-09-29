@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -23,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
@@ -34,7 +33,7 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 		Delete: resourceCdnFrontDoorFirewallPolicyDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := waf.ParseFrontDoorWebApplicationFirewallPolicyID(id)
+			_, err := webapplicationfirewallpolicies.ParseFrontDoorWebApplicationFirewallPolicyID(id)
 			return err
 		}),
 
@@ -60,18 +59,15 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(waf.SkuNameStandardAzureFrontDoor),
-					string(waf.SkuNamePremiumAzureFrontDoor),
+					string(webapplicationfirewallpolicies.SkuNameStandardAzureFrontDoor),
+					string(webapplicationfirewallpolicies.SkuNamePremiumAzureFrontDoor),
 				}, false),
 			},
 
 			"mode": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(waf.PolicyModeDetection),
-					string(waf.PolicyModePrevention),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForPolicyMode(), false),
 			},
 
 			"enabled": {
@@ -80,27 +76,21 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			// NOTE: 'js challenge expiration' is always
-			// enabled no matter what and cannot be disabled for Premium_AzureFrontDoor
-			// and is not supported in Standard_AzureFrontDoor...
 			"js_challenge_cookie_expiration_in_minutes": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// Note: O+C because 'js challenge expiration' is always
+				// enabled no matter what and cannot be disabled for Premium_AzureFrontDoor
+				// and is not supported in Standard_AzureFrontDoor...
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(5, 1440),
 			},
 
-			// NOTE: 'captcha expiration' is always
-			// enabled no matter what and cannot be disabled for Premium_AzureFrontDoor
-			// and is not supported in Standard_AzureFrontDoor...
-
-			// NOTE: This field is Optional + Computed because:
-			//  * Optional: Users can override the Azure default value (e.g., 30 minutes)
-			//  * Computed: Azure automatically enables CAPTCHA policy with a default of 30 minutes on the Premium_AzureFrontDoor SKU,
-			//    so the value is defined by Azure even when not explicitly set by the user
 			"captcha_cookie_expiration_in_minutes": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// Note: O+C because Azure automatically enables CAPTCHA policy with a default of 30 minutes on the Premium_AzureFrontDoor SKU
+				// but it cannot be defined for Standard_AzureFrontDoor
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(5, 1440),
 			},
@@ -170,12 +160,9 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 						},
 
 						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(waf.RuleTypeMatchRule),
-								string(waf.RuleTypeRateLimitRule),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForRuleType(), false),
 						},
 
 						"rate_limit_duration_in_minutes": {
@@ -194,12 +181,12 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(waf.ActionTypeAllow),
-								string(waf.ActionTypeBlock),
-								string(waf.ActionTypeLog),
-								string(waf.ActionTypeRedirect),
-								string(waf.ActionTypeJSChallenge),
-								string(waf.ActionTypeCAPTCHA),
+								string(webapplicationfirewallpolicies.ActionTypeAllow),
+								string(webapplicationfirewallpolicies.ActionTypeBlock),
+								string(webapplicationfirewallpolicies.ActionTypeLog),
+								string(webapplicationfirewallpolicies.ActionTypeRedirect),
+								string(webapplicationfirewallpolicies.ActionTypeJSChallenge),
+								string(webapplicationfirewallpolicies.ActionTypeCAPTCHA),
 							}, false),
 						},
 
@@ -210,19 +197,9 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"match_variable": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(waf.MatchVariableCookies),
-											string(waf.MatchVariablePostArgs),
-											string(waf.MatchVariableQueryString),
-											string(waf.MatchVariableRemoteAddr),
-											string(waf.MatchVariableRequestBody),
-											string(waf.MatchVariableRequestHeader),
-											string(waf.MatchVariableRequestMethod),
-											string(waf.MatchVariableRequestUri),
-											string(waf.MatchVariableSocketAddr),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForMatchVariable(), false),
 									},
 
 									"match_values": {
@@ -236,22 +213,9 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 									},
 
 									"operator": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(waf.OperatorAny),
-											string(waf.OperatorBeginsWith),
-											string(waf.OperatorContains),
-											string(waf.OperatorEndsWith),
-											string(waf.OperatorEqual),
-											string(waf.OperatorGeoMatch),
-											string(waf.OperatorGreaterThan),
-											string(waf.OperatorGreaterThanOrEqual),
-											string(waf.OperatorIPMatch),
-											string(waf.OperatorLessThan),
-											string(waf.OperatorLessThanOrEqual),
-											string(waf.OperatorRegEx),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForOperator(), false),
 									},
 
 									"selector": {
@@ -271,15 +235,8 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 										Optional: true,
 										MaxItems: 5,
 										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{
-												string(waf.TransformTypeLowercase),
-												string(waf.TransformTypeRemoveNulls),
-												string(waf.TransformTypeTrim),
-												string(waf.TransformTypeUppercase),
-												string(waf.TransformTypeURLDecode),
-												string(waf.TransformTypeURLEncode),
-											}, false),
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForTransformType(), false),
 										},
 									},
 								},
@@ -311,10 +268,10 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(waf.ActionTypeAllow),
-								string(waf.ActionTypeLog),
-								string(waf.ActionTypeBlock),
-								string(waf.ActionTypeRedirect),
+								string(webapplicationfirewallpolicies.ActionTypeAllow),
+								string(webapplicationfirewallpolicies.ActionTypeLog),
+								string(webapplicationfirewallpolicies.ActionTypeBlock),
+								string(webapplicationfirewallpolicies.ActionTypeRedirect),
 							}, false),
 						},
 
@@ -325,26 +282,14 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"match_variable": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(waf.ManagedRuleExclusionMatchVariableQueryStringArgNames),
-											string(waf.ManagedRuleExclusionMatchVariableRequestBodyPostArgNames),
-											string(waf.ManagedRuleExclusionMatchVariableRequestCookieNames),
-											string(waf.ManagedRuleExclusionMatchVariableRequestHeaderNames),
-											string(waf.ManagedRuleExclusionMatchVariableRequestBodyJsonArgNames),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForManagedRuleExclusionMatchVariable(), false),
 									},
 									"operator": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(waf.ManagedRuleExclusionSelectorMatchOperatorContains),
-											string(waf.ManagedRuleExclusionSelectorMatchOperatorEndsWith),
-											string(waf.ManagedRuleExclusionSelectorMatchOperatorEquals),
-											string(waf.ManagedRuleExclusionSelectorMatchOperatorEqualsAny),
-											string(waf.ManagedRuleExclusionSelectorMatchOperatorStartsWith),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForManagedRuleExclusionSelectorMatchOperator(), false),
 									},
 									"selector": {
 										Type:         pluginsdk.TypeString,
@@ -374,26 +319,14 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 												"match_variable": {
-													Type:     pluginsdk.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(waf.ManagedRuleExclusionMatchVariableQueryStringArgNames),
-														string(waf.ManagedRuleExclusionMatchVariableRequestBodyPostArgNames),
-														string(waf.ManagedRuleExclusionMatchVariableRequestCookieNames),
-														string(waf.ManagedRuleExclusionMatchVariableRequestHeaderNames),
-														string(waf.ManagedRuleExclusionMatchVariableRequestBodyJsonArgNames),
-													}, false),
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForManagedRuleExclusionMatchVariable(), false),
 												},
 												"operator": {
-													Type:     pluginsdk.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(waf.ManagedRuleExclusionSelectorMatchOperatorContains),
-														string(waf.ManagedRuleExclusionSelectorMatchOperatorEndsWith),
-														string(waf.ManagedRuleExclusionSelectorMatchOperatorEquals),
-														string(waf.ManagedRuleExclusionSelectorMatchOperatorEqualsAny),
-														string(waf.ManagedRuleExclusionSelectorMatchOperatorStartsWith),
-													}, false),
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForManagedRuleExclusionSelectorMatchOperator(), false),
 												},
 												"selector": {
 													Type:         pluginsdk.TypeString,
@@ -429,26 +362,14 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 													Elem: &pluginsdk.Resource{
 														Schema: map[string]*pluginsdk.Schema{
 															"match_variable": {
-																Type:     pluginsdk.TypeString,
-																Required: true,
-																ValidateFunc: validation.StringInSlice([]string{
-																	string(waf.ManagedRuleExclusionMatchVariableQueryStringArgNames),
-																	string(waf.ManagedRuleExclusionMatchVariableRequestBodyPostArgNames),
-																	string(waf.ManagedRuleExclusionMatchVariableRequestCookieNames),
-																	string(waf.ManagedRuleExclusionMatchVariableRequestHeaderNames),
-																	string(waf.ManagedRuleExclusionMatchVariableRequestBodyJsonArgNames),
-																}, false),
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForManagedRuleExclusionMatchVariable(), false),
 															},
 															"operator": {
-																Type:     pluginsdk.TypeString,
-																Required: true,
-																ValidateFunc: validation.StringInSlice([]string{
-																	string(waf.ManagedRuleExclusionSelectorMatchOperatorContains),
-																	string(waf.ManagedRuleExclusionSelectorMatchOperatorEndsWith),
-																	string(waf.ManagedRuleExclusionSelectorMatchOperatorEquals),
-																	string(waf.ManagedRuleExclusionSelectorMatchOperatorEqualsAny),
-																	string(waf.ManagedRuleExclusionSelectorMatchOperatorStartsWith),
-																}, false),
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForManagedRuleExclusionSelectorMatchOperator(), false),
 															},
 															"selector": {
 																Type:         pluginsdk.TypeString,
@@ -464,7 +385,7 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 												"action": {
 													Type:     pluginsdk.TypeString,
 													Required: true,
-													ValidateFunc: validation.StringInSlice(waf.PossibleValuesForActionType(),
+													ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForActionType(),
 														false),
 												},
 											},
@@ -504,15 +425,15 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 									"match_variable": {
 										Type:     pluginsdk.TypeString,
 										Required: true,
-										ValidateFunc: validation.StringInSlice(waf.PossibleValuesForScrubbingRuleEntryMatchVariable(),
+										ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForScrubbingRuleEntryMatchVariable(),
 											false),
 									},
 
 									"operator": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
-										Default:  string(waf.ScrubbingRuleEntryMatchOperatorEquals),
-										ValidateFunc: validation.StringInSlice(waf.PossibleValuesForScrubbingRuleEntryMatchOperator(),
+										Default:  string(webapplicationfirewallpolicies.ScrubbingRuleEntryMatchOperatorEquals),
+										ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForScrubbingRuleEntryMatchOperator(),
 											false),
 									},
 
@@ -542,11 +463,11 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 				currentSku := diff.Get("sku_name").(string)
-				standardSku := string(waf.SkuNameStandardAzureFrontDoor)
+				standardSku := string(webapplicationfirewallpolicies.SkuNameStandardAzureFrontDoor)
 				oldSku, _ := diff.GetChange("sku_name")
 
 				if currentSku == standardSku {
-					premiumSku := string(waf.SkuNamePremiumAzureFrontDoor)
+					premiumSku := string(webapplicationfirewallpolicies.SkuNamePremiumAzureFrontDoor)
 					managedRules := diff.Get("managed_rule").([]interface{})
 					customRules := expandCdnFrontDoorFirewallCustomRules(diff.Get("custom_rule").([]interface{}))
 
@@ -570,10 +491,10 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 					if customRules != nil && customRules.Rules != nil {
 						for _, v := range *customRules.Rules {
 							switch v.Action {
-							case waf.ActionTypeJSChallenge:
-								return fmt.Errorf("'custom_rule' blocks with the 'action' type of 'JSChallenge' are only supported for the %q sku, got action: %q (custom_rule.name: %q, sku_name: %q)", premiumSku, waf.ActionTypeJSChallenge, *v.Name, currentSku)
-							case waf.ActionTypeCAPTCHA:
-								return fmt.Errorf("'custom_rule' blocks with the 'action' type of 'CAPTCHA' are only supported for the %q sku, got action: %q (custom_rule.name: %q, sku_name: %q)", premiumSku, waf.ActionTypeCAPTCHA, *v.Name, currentSku)
+							case webapplicationfirewallpolicies.ActionTypeJSChallenge:
+								return fmt.Errorf("'custom_rule' blocks with the 'action' type of 'JSChallenge' are only supported for the %q sku, got action: %q (custom_rule.name: %q, sku_name: %q)", premiumSku, webapplicationfirewallpolicies.ActionTypeJSChallenge, *v.Name, currentSku)
+							case webapplicationfirewallpolicies.ActionTypeCAPTCHA:
+								return fmt.Errorf("'custom_rule' blocks with the 'action' type of 'CAPTCHA' are only supported for the %q sku, got action: %q (custom_rule.name: %q, sku_name: %q)", premiumSku, webapplicationfirewallpolicies.ActionTypeCAPTCHA, *v.Name, currentSku)
 							}
 						}
 					}
@@ -601,7 +522,7 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 				rawConfig := diff.GetRawConfig()
 
-				if diff.Get("sku_name").(string) == string(waf.SkuNamePremiumAzureFrontDoor) {
+				if diff.Get("sku_name").(string) == string(webapplicationfirewallpolicies.SkuNamePremiumAzureFrontDoor) {
 					// Force the value to default when removed from config
 					if rawConfig.IsNull() || rawConfig.GetAttr("js_challenge_cookie_expiration_in_minutes").IsNull() {
 						if diff.Get("js_challenge_cookie_expiration_in_minutes").(int) != 30 {
@@ -636,7 +557,7 @@ func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	id := waf.NewFrontDoorWebApplicationFirewallPolicyID(subscriptionId, resourceGroup, name)
+	id := webapplicationfirewallpolicies.NewFrontDoorWebApplicationFirewallPolicyID(subscriptionId, resourceGroup, name)
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		result, err := client.PoliciesGet(ctx, id)
@@ -651,20 +572,20 @@ func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
-	enabled := waf.PolicyEnabledStateDisabled
+	enabled := webapplicationfirewallpolicies.PolicyEnabledStateDisabled
 
 	if d.Get("enabled").(bool) {
-		enabled = waf.PolicyEnabledStateEnabled
+		enabled = webapplicationfirewallpolicies.PolicyEnabledStateEnabled
 	}
 
-	requestBodyCheck := waf.PolicyRequestBodyCheckDisabled
+	requestBodyCheck := webapplicationfirewallpolicies.PolicyRequestBodyCheckDisabled
 
 	if d.Get("request_body_check_enabled").(bool) {
-		requestBodyCheck = waf.PolicyRequestBodyCheckEnabled
+		requestBodyCheck = webapplicationfirewallpolicies.PolicyRequestBodyCheckEnabled
 	}
 
 	sku := d.Get("sku_name").(string)
-	mode := waf.PolicyMode(d.Get("mode").(string))
+	mode := webapplicationfirewallpolicies.PolicyMode(d.Get("mode").(string))
 	redirectUrl := d.Get("redirect_url").(string)
 	customBlockResponseStatusCode := d.Get("custom_block_response_status_code").(int)
 	customBlockResponseBody := d.Get("custom_block_response_body").(string)
@@ -680,17 +601,17 @@ func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("expanding 'log_scrubbing': %+v", err)
 	}
 
-	if sku != string(waf.SkuNamePremiumAzureFrontDoor) && managedRules != nil {
+	if sku != string(webapplicationfirewallpolicies.SkuNamePremiumAzureFrontDoor) && managedRules != nil {
 		return fmt.Errorf("the 'managed_rule' field is only supported with the 'Premium_AzureFrontDoor' sku, got %q", sku)
 	}
 
-	payload := waf.WebApplicationFirewallPolicy{
+	payload := webapplicationfirewallpolicies.WebApplicationFirewallPolicy{
 		Location: pointer.To(location.Normalize("Global")),
-		Sku: &waf.Sku{
-			Name: pointer.To(waf.SkuName(sku)),
+		Sku: &webapplicationfirewallpolicies.Sku{
+			Name: pointer.ToEnum[webapplicationfirewallpolicies.SkuName](sku),
 		},
-		Properties: &waf.WebApplicationFirewallPolicyProperties{
-			PolicySettings: &waf.PolicySettings{
+		Properties: &webapplicationfirewallpolicies.WebApplicationFirewallPolicyProperties{
+			PolicySettings: &webapplicationfirewallpolicies.PolicySettings{
 				EnabledState:     pointer.To(enabled),
 				Mode:             pointer.To(mode),
 				RequestBodyCheck: pointer.To(requestBodyCheck),
@@ -703,7 +624,7 @@ func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 	// NOTE: CAPTCHA and JS Challenge Expiration policy is enabled by default on Premium SKU's with a default of
 	// 30 minutes, if it is not in the config set the default and include it in the policy settings
 	// payload block...
-	if sku == string(waf.SkuNamePremiumAzureFrontDoor) {
+	if sku == string(webapplicationfirewallpolicies.SkuNamePremiumAzureFrontDoor) {
 		// Set the Default values...
 		jsChallengeExpirationInMinutes := 30
 		captchaExpirationInMinutes := 30
@@ -753,7 +674,7 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := waf.ParseFrontDoorWebApplicationFirewallPolicyID(d.Id())
+	id, err := webapplicationfirewallpolicies.ParseFrontDoorWebApplicationFirewallPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -775,26 +696,37 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 
 	props := *model.Properties
 
-	if d.HasChanges("custom_block_response_body", "custom_block_response_status_code", "enabled", "mode", "redirect_url", "request_body_check_enabled", "js_challenge_cookie_expiration_in_minutes", "captcha_cookie_expiration_in_minutes", "log_scrubbing") {
-		enabled := waf.PolicyEnabledStateDisabled
+	// lintignore:R019 // deliberate subset: only the fields feeding PolicySettings; custom_rule, managed_rule and tags are applied in separate branches below
+	if d.HasChanges(
+		"custom_block_response_body",
+		"custom_block_response_status_code",
+		"enabled",
+		"mode",
+		"redirect_url",
+		"request_body_check_enabled",
+		"js_challenge_cookie_expiration_in_minutes",
+		"captcha_cookie_expiration_in_minutes",
+		"log_scrubbing",
+	) {
+		enabled := webapplicationfirewallpolicies.PolicyEnabledStateDisabled
 		if d.Get("enabled").(bool) {
-			enabled = waf.PolicyEnabledStateEnabled
+			enabled = webapplicationfirewallpolicies.PolicyEnabledStateEnabled
 		}
 
-		requestBodyCheck := waf.PolicyRequestBodyCheckDisabled
+		requestBodyCheck := webapplicationfirewallpolicies.PolicyRequestBodyCheckDisabled
 		if d.Get("request_body_check_enabled").(bool) {
-			requestBodyCheck = waf.PolicyRequestBodyCheckEnabled
+			requestBodyCheck = webapplicationfirewallpolicies.PolicyRequestBodyCheckEnabled
 		}
 
-		props.PolicySettings = &waf.PolicySettings{
+		props.PolicySettings = &webapplicationfirewallpolicies.PolicySettings{
 			EnabledState:     pointer.To(enabled),
-			Mode:             pointer.To(waf.PolicyMode(d.Get("mode").(string))),
+			Mode:             pointer.ToEnum[webapplicationfirewallpolicies.PolicyMode](d.Get("mode").(string)),
 			RequestBodyCheck: pointer.To(requestBodyCheck),
 		}
 
 		// NOTE: 'captcha_cookie_expiration_in_minutes' and 'js_challenge_cookie_expiration_in_minutes'
 		// is only valid for 'Premium_AzureFrontDoor' skus...
-		if model.Sku != nil && model.Sku.Name != nil && *model.Sku.Name == waf.SkuNamePremiumAzureFrontDoor {
+		if model.Sku != nil && model.Sku.Name != nil && *model.Sku.Name == webapplicationfirewallpolicies.SkuNamePremiumAzureFrontDoor {
 			// Set the Default value...
 			jsChallengeExpirationInMinutes := 30
 			captchaExpirationInMinutes := 30
@@ -838,7 +770,7 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 			return fmt.Errorf("expanding managed_rule: %+v", err)
 		}
 
-		if pointer.From(model.Sku.Name) != waf.SkuNamePremiumAzureFrontDoor && managedRules != nil {
+		if pointer.From(model.Sku.Name) != webapplicationfirewallpolicies.SkuNamePremiumAzureFrontDoor && managedRules != nil {
 			return fmt.Errorf("the 'managed_rule' field is only supported when using the sku 'Premium_AzureFrontDoor', got %q", pointer.From(model.Sku.Name))
 		}
 
@@ -864,8 +796,7 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 
 	model.Properties = pointer.To(props)
 
-	err = client.PoliciesCreateOrUpdateThenPoll(ctx, *id, *model)
-	if err != nil {
+	if err = client.PoliciesCreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
@@ -877,7 +808,7 @@ func resourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := waf.ParseFrontDoorWebApplicationFirewallPolicyID(d.Id())
+	id, err := webapplicationfirewallpolicies.ParseFrontDoorWebApplicationFirewallPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -896,7 +827,7 @@ func resourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta inte
 
 	if model := resp.Model; model != nil {
 		if sku := model.Sku; sku != nil {
-			d.Set("sku_name", string(pointer.From(sku.Name)))
+			d.Set("sku_name", pointer.FromEnum(sku.Name))
 		}
 
 		if props := model.Properties; props != nil {
@@ -913,9 +844,9 @@ func resourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta inte
 			}
 
 			if policy := props.PolicySettings; policy != nil {
-				d.Set("enabled", pointer.From(policy.EnabledState) == waf.PolicyEnabledStateEnabled)
-				d.Set("mode", string(pointer.From(policy.Mode)))
-				d.Set("request_body_check_enabled", pointer.From(policy.RequestBodyCheck) == waf.PolicyRequestBodyCheckEnabled)
+				d.Set("enabled", pointer.From(policy.EnabledState) == webapplicationfirewallpolicies.PolicyEnabledStateEnabled)
+				d.Set("mode", pointer.FromEnum(policy.Mode))
+				d.Set("request_body_check_enabled", pointer.From(policy.RequestBodyCheck) == webapplicationfirewallpolicies.PolicyRequestBodyCheckEnabled)
 				d.Set("redirect_url", policy.RedirectURL)
 				d.Set("custom_block_response_status_code", int(pointer.From(policy.CustomBlockResponseStatusCode)))
 				d.Set("custom_block_response_body", policy.CustomBlockResponseBody)
@@ -950,32 +881,31 @@ func resourceCdnFrontDoorFirewallPolicyDelete(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := waf.ParseFrontDoorWebApplicationFirewallPolicyID(d.Id())
+	id, err := webapplicationfirewallpolicies.ParseFrontDoorWebApplicationFirewallPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	err = client.PoliciesDeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.PoliciesDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func expandCdnFrontDoorFirewallCustomRules(input []interface{}) *waf.CustomRuleList {
+func expandCdnFrontDoorFirewallCustomRules(input []interface{}) *webapplicationfirewallpolicies.CustomRuleList {
 	if len(input) == 0 {
 		return nil
 	}
 
-	output := make([]waf.CustomRule, 0)
+	output := make([]webapplicationfirewallpolicies.CustomRule, 0)
 
 	for _, cr := range input {
 		custom := cr.(map[string]interface{})
 
-		enabled := waf.CustomRuleEnabledStateDisabled
+		enabled := webapplicationfirewallpolicies.CustomRuleEnabledStateDisabled
 		if custom["enabled"].(bool) {
-			enabled = waf.CustomRuleEnabledStateEnabled
+			enabled = webapplicationfirewallpolicies.CustomRuleEnabledStateEnabled
 		}
 
 		name := custom["name"].(string)
@@ -986,25 +916,25 @@ func expandCdnFrontDoorFirewallCustomRules(input []interface{}) *waf.CustomRuleL
 		matchConditions := expandCdnFrontDoorFirewallMatchConditions(custom["match_condition"].([]interface{}))
 		action := custom["action"].(string)
 
-		output = append(output, waf.CustomRule{
+		output = append(output, webapplicationfirewallpolicies.CustomRule{
 			Name:                       pointer.To(name),
 			Priority:                   priority,
 			EnabledState:               pointer.To(enabled),
-			RuleType:                   waf.RuleType(ruleType),
+			RuleType:                   webapplicationfirewallpolicies.RuleType(ruleType),
 			RateLimitDurationInMinutes: pointer.To(rateLimitDurationInMinutes),
 			RateLimitThreshold:         pointer.To(rateLimitThreshold),
 			MatchConditions:            matchConditions,
-			Action:                     waf.ActionType(action),
+			Action:                     webapplicationfirewallpolicies.ActionType(action),
 		})
 	}
 
-	return &waf.CustomRuleList{
+	return &webapplicationfirewallpolicies.CustomRuleList{
 		Rules: &output,
 	}
 }
 
-func expandCdnFrontDoorFirewallMatchConditions(input []interface{}) []waf.MatchCondition {
-	result := make([]waf.MatchCondition, 0)
+func expandCdnFrontDoorFirewallMatchConditions(input []interface{}) []webapplicationfirewallpolicies.MatchCondition {
+	result := make([]webapplicationfirewallpolicies.MatchCondition, 0)
 	if len(input) == 0 {
 		return nil
 	}
@@ -1015,19 +945,18 @@ func expandCdnFrontDoorFirewallMatchConditions(input []interface{}) []waf.MatchC
 		matchVariable := match["match_variable"].(string)
 		selector := match["selector"].(string)
 		operator := match["operator"].(string)
-		negateCondition := match["negation_condition"].(bool)
-		matchValues := utils.ExpandStringSlice(match["match_values"].([]interface{}))
+		matchValues := pluginsdk.ExpandStringSlice(match["match_values"].([]interface{}))
 		transforms := match["transforms"].([]interface{})
 
-		matchCondition := waf.MatchCondition{
-			Operator:        waf.Operator(operator),
-			NegateCondition: &negateCondition,
+		matchCondition := webapplicationfirewallpolicies.MatchCondition{
+			Operator:        webapplicationfirewallpolicies.Operator(operator),
+			NegateCondition: pointer.To(match["negation_condition"].(bool)),
 			MatchValue:      *matchValues,
 			Transforms:      expandCdnFrontDoorFirewallTransforms(transforms),
 		}
 
 		if matchVariable != "" {
-			matchCondition.MatchVariable = waf.MatchVariable(matchVariable)
+			matchCondition.MatchVariable = webapplicationfirewallpolicies.MatchVariable(matchVariable)
 		}
 		if selector != "" {
 			matchCondition.Selector = pointer.To(selector)
@@ -1039,25 +968,25 @@ func expandCdnFrontDoorFirewallMatchConditions(input []interface{}) []waf.MatchC
 	return result
 }
 
-func expandCdnFrontDoorFirewallTransforms(input []interface{}) *[]waf.TransformType {
-	result := make([]waf.TransformType, 0)
+func expandCdnFrontDoorFirewallTransforms(input []interface{}) *[]webapplicationfirewallpolicies.TransformType {
+	result := make([]webapplicationfirewallpolicies.TransformType, 0)
 	if len(input) == 0 {
 		return nil
 	}
 
 	for _, v := range input {
-		result = append(result, waf.TransformType(v.(string)))
+		result = append(result, webapplicationfirewallpolicies.TransformType(v.(string)))
 	}
 
 	return &result
 }
 
-func expandCdnFrontDoorFirewallManagedRules(input []interface{}) (*waf.ManagedRuleSetList, error) {
+func expandCdnFrontDoorFirewallManagedRules(input []interface{}) (*webapplicationfirewallpolicies.ManagedRuleSetList, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
 
-	result := make([]waf.ManagedRuleSet, 0)
+	result := make([]webapplicationfirewallpolicies.ManagedRuleSet, 0)
 	for _, mr := range input {
 		managedRule := mr.(map[string]interface{})
 
@@ -1086,7 +1015,7 @@ func expandCdnFrontDoorFirewallManagedRules(input []interface{}) (*waf.ManagedRu
 			return nil, err
 		}
 
-		managedRuleSet := waf.ManagedRuleSet{
+		managedRuleSet := webapplicationfirewallpolicies.ManagedRuleSet{
 			Exclusions:         exclusions,
 			RuleSetVersion:     version,
 			RuleGroupOverrides: ruleGroupOverrides,
@@ -1094,19 +1023,19 @@ func expandCdnFrontDoorFirewallManagedRules(input []interface{}) (*waf.ManagedRu
 		}
 
 		if action != "" {
-			managedRuleSet.RuleSetAction = pointer.To(waf.ManagedRuleSetActionType(action))
+			managedRuleSet.RuleSetAction = pointer.ToEnum[webapplicationfirewallpolicies.ManagedRuleSetActionType](action)
 		}
 
 		result = append(result, managedRuleSet)
 	}
 
-	return &waf.ManagedRuleSetList{
+	return &webapplicationfirewallpolicies.ManagedRuleSetList{
 		ManagedRuleSets: &result,
 	}, nil
 }
 
-func expandCdnFrontDoorFirewallManagedRuleGroupExclusion(input []interface{}) *[]waf.ManagedRuleExclusion {
-	results := make([]waf.ManagedRuleExclusion, 0)
+func expandCdnFrontDoorFirewallManagedRuleGroupExclusion(input []interface{}) *[]webapplicationfirewallpolicies.ManagedRuleExclusion {
+	results := make([]webapplicationfirewallpolicies.ManagedRuleExclusion, 0)
 	if len(input) == 0 {
 		return nil
 	}
@@ -1118,9 +1047,9 @@ func expandCdnFrontDoorFirewallManagedRuleGroupExclusion(input []interface{}) *[
 		operator := exclusion["operator"].(string)
 		selector := exclusion["selector"].(string)
 
-		results = append(results, waf.ManagedRuleExclusion{
-			MatchVariable:         waf.ManagedRuleExclusionMatchVariable(matchVariable),
-			SelectorMatchOperator: waf.ManagedRuleExclusionSelectorMatchOperator(operator),
+		results = append(results, webapplicationfirewallpolicies.ManagedRuleExclusion{
+			MatchVariable:         webapplicationfirewallpolicies.ManagedRuleExclusionMatchVariable(matchVariable),
+			SelectorMatchOperator: webapplicationfirewallpolicies.ManagedRuleExclusionSelectorMatchOperator(operator),
 			Selector:              selector,
 		})
 	}
@@ -1128,8 +1057,8 @@ func expandCdnFrontDoorFirewallManagedRuleGroupExclusion(input []interface{}) *[
 	return &results
 }
 
-func expandCdnFrontDoorFirewallManagedRuleGroupOverride(input []interface{}, versionRaw string, version float64, ruleType string) (*[]waf.ManagedRuleGroupOverride, error) {
-	result := make([]waf.ManagedRuleGroupOverride, 0)
+func expandCdnFrontDoorFirewallManagedRuleGroupOverride(input []interface{}, versionRaw string, version float64, ruleType string) (*[]webapplicationfirewallpolicies.ManagedRuleGroupOverride, error) {
+	result := make([]webapplicationfirewallpolicies.ManagedRuleGroupOverride, 0)
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -1144,7 +1073,7 @@ func expandCdnFrontDoorFirewallManagedRuleGroupOverride(input []interface{}, ver
 			return nil, err
 		}
 
-		result = append(result, waf.ManagedRuleGroupOverride{
+		result = append(result, webapplicationfirewallpolicies.ManagedRuleGroupOverride{
 			Exclusions:    exclusions,
 			RuleGroupName: ruleGroupName,
 			Rules:         rules,
@@ -1154,8 +1083,8 @@ func expandCdnFrontDoorFirewallManagedRuleGroupOverride(input []interface{}, ver
 	return &result, nil
 }
 
-func expandCdnFrontDoorFirewallRuleOverride(input []interface{}, versionRaw string, version float64, ruleType string) (*[]waf.ManagedRuleOverride, error) {
-	result := make([]waf.ManagedRuleOverride, 0)
+func expandCdnFrontDoorFirewallRuleOverride(input []interface{}, versionRaw string, version float64, ruleType string) (*[]webapplicationfirewallpolicies.ManagedRuleOverride, error) {
+	result := make([]webapplicationfirewallpolicies.ManagedRuleOverride, 0)
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -1163,30 +1092,30 @@ func expandCdnFrontDoorFirewallRuleOverride(input []interface{}, versionRaw stri
 	for _, v := range input {
 		rule := v.(map[string]interface{})
 
-		enabled := waf.ManagedRuleEnabledStateDisabled
+		enabled := webapplicationfirewallpolicies.ManagedRuleEnabledStateDisabled
 		if rule["enabled"].(bool) {
-			enabled = waf.ManagedRuleEnabledStateEnabled
+			enabled = webapplicationfirewallpolicies.ManagedRuleEnabledStateEnabled
 		}
 
 		ruleId := rule["rule_id"].(string)
-		action := waf.ActionType(rule["action"].(string))
+		action := webapplicationfirewallpolicies.ActionType(rule["action"].(string))
 
 		// NOTE: Default Rule Sets(DRS) 2.0 and above rules only use action type of 'AnomalyScoring' or 'Log'. Issues 19088 and 19561
 		// This will still work for bot rules as well since it will be the default value of 1.0
 		switch {
-		case version < 2.0 && action == waf.ActionTypeAnomalyScoring:
-			return nil, fmt.Errorf("%q is only valid in managed rules where 'type' is DRS and `version` is '2.0' or above, got %q", waf.ActionTypeAnomalyScoring, versionRaw)
+		case version < 2.0 && action == webapplicationfirewallpolicies.ActionTypeAnomalyScoring:
+			return nil, fmt.Errorf("%q is only valid in managed rules where 'type' is DRS and `version` is '2.0' or above, got %q", webapplicationfirewallpolicies.ActionTypeAnomalyScoring, versionRaw)
 
-		case version >= 2.0 && action != waf.ActionTypeAnomalyScoring && action != waf.ActionTypeLog:
+		case version >= 2.0 && action != webapplicationfirewallpolicies.ActionTypeAnomalyScoring && action != webapplicationfirewallpolicies.ActionTypeLog:
 			return nil, fmt.Errorf("the managed rules 'action' field must be set to 'AnomalyScoring' or 'Log' if the managed rule is DRS 2.0 or above, got %q", action)
 
-		case !strings.Contains(strings.ToLower(ruleType), "botmanagerruleset") && action == waf.ActionTypeJSChallenge:
-			return nil, fmt.Errorf("%q is only valid if the managed rules 'type' is 'Microsoft_BotManagerRuleSet', got %q", waf.ActionTypeJSChallenge, ruleType)
+		case !strings.Contains(strings.ToLower(ruleType), "botmanagerruleset") && action == webapplicationfirewallpolicies.ActionTypeJSChallenge:
+			return nil, fmt.Errorf("%q is only valid if the managed rules 'type' is 'Microsoft_BotManagerRuleSet', got %q", webapplicationfirewallpolicies.ActionTypeJSChallenge, ruleType)
 		}
 
 		exclusions := expandCdnFrontDoorFirewallManagedRuleGroupExclusion(rule["exclusion"].([]interface{}))
 
-		result = append(result, waf.ManagedRuleOverride{
+		result = append(result, webapplicationfirewallpolicies.ManagedRuleOverride{
 			RuleId:       ruleId,
 			EnabledState: pointer.To(enabled),
 			Action:       pointer.To(action),
@@ -1197,16 +1126,16 @@ func expandCdnFrontDoorFirewallRuleOverride(input []interface{}, versionRaw stri
 	return &result, nil
 }
 
-func expandCdnFrontDoorFirewallLogScrubbingPolicy(input []interface{}) (*waf.PolicySettingsLogScrubbing, error) {
+func expandCdnFrontDoorFirewallLogScrubbingPolicy(input []interface{}) (*webapplicationfirewallpolicies.PolicySettingsLogScrubbing, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
 
 	inputRaw := input[0].(map[string]interface{})
 
-	policyEnabled := waf.WebApplicationFirewallScrubbingStateDisabled
+	policyEnabled := webapplicationfirewallpolicies.WebApplicationFirewallScrubbingStateDisabled
 	if inputRaw["enabled"].(bool) {
-		policyEnabled = waf.WebApplicationFirewallScrubbingStateEnabled
+		policyEnabled = webapplicationfirewallpolicies.WebApplicationFirewallScrubbingStateEnabled
 	}
 
 	scrubbingRules, err := expandCdnFrontDoorFirewallScrubbingRules(inputRaw["scrubbing_rule"].([]interface{}))
@@ -1214,31 +1143,31 @@ func expandCdnFrontDoorFirewallLogScrubbingPolicy(input []interface{}) (*waf.Pol
 		return nil, err
 	}
 
-	return &waf.PolicySettingsLogScrubbing{
+	return &webapplicationfirewallpolicies.PolicySettingsLogScrubbing{
 		State:          pointer.To(policyEnabled),
 		ScrubbingRules: scrubbingRules,
 	}, nil
 }
 
-func expandCdnFrontDoorFirewallScrubbingRules(input []interface{}) (*[]waf.WebApplicationFirewallScrubbingRules, error) {
+func expandCdnFrontDoorFirewallScrubbingRules(input []interface{}) (*[]webapplicationfirewallpolicies.WebApplicationFirewallScrubbingRules, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
 
-	scrubbingRules := make([]waf.WebApplicationFirewallScrubbingRules, 0)
+	scrubbingRules := make([]webapplicationfirewallpolicies.WebApplicationFirewallScrubbingRules, 0)
 
 	for _, rule := range input {
 		v := rule.(map[string]interface{})
-		var item waf.WebApplicationFirewallScrubbingRules
+		var item webapplicationfirewallpolicies.WebApplicationFirewallScrubbingRules
 
-		enalbed := waf.ScrubbingRuleEntryStateDisabled
+		enabled := webapplicationfirewallpolicies.ScrubbingRuleEntryStateDisabled
 		if value := v["enabled"].(bool); value {
-			enalbed = waf.ScrubbingRuleEntryStateEnabled
+			enabled = webapplicationfirewallpolicies.ScrubbingRuleEntryStateEnabled
 		}
 
-		item.State = pointer.To(enalbed)
-		item.MatchVariable = waf.ScrubbingRuleEntryMatchVariable(v["match_variable"].(string))
-		item.SelectorMatchOperator = waf.ScrubbingRuleEntryMatchOperator(v["operator"].(string))
+		item.State = pointer.To(enabled)
+		item.MatchVariable = webapplicationfirewallpolicies.ScrubbingRuleEntryMatchVariable(v["match_variable"].(string))
+		item.SelectorMatchOperator = webapplicationfirewallpolicies.ScrubbingRuleEntryMatchOperator(v["operator"].(string))
 
 		if selector, ok := v["selector"]; ok {
 			item.Selector = pointer.To(selector.(string))
@@ -1246,22 +1175,22 @@ func expandCdnFrontDoorFirewallScrubbingRules(input []interface{}) (*[]waf.WebAp
 
 		// NOTE: Validate the rules configuration...
 		switch {
-		case item.MatchVariable == waf.ScrubbingRuleEntryMatchVariableRequestIPAddress || item.MatchVariable == waf.ScrubbingRuleEntryMatchVariableRequestUri:
+		case item.MatchVariable == webapplicationfirewallpolicies.ScrubbingRuleEntryMatchVariableRequestIPAddress || item.MatchVariable == webapplicationfirewallpolicies.ScrubbingRuleEntryMatchVariableRequestUri:
 			// NOTE: 'RequestIPAddress' and 'RequestUri' 'match_variable's can only use the 'EqualsAny' 'operator'...
-			if item.SelectorMatchOperator != waf.ScrubbingRuleEntryMatchOperatorEqualsAny {
-				return nil, fmt.Errorf("the %q 'match_variable' must use the %q 'operator', got %q", item.MatchVariable, waf.ScrubbingRuleEntryMatchOperatorEqualsAny, item.SelectorMatchOperator)
+			if item.SelectorMatchOperator != webapplicationfirewallpolicies.ScrubbingRuleEntryMatchOperatorEqualsAny {
+				return nil, fmt.Errorf("the %q 'match_variable' must use the %q 'operator', got %q", item.MatchVariable, webapplicationfirewallpolicies.ScrubbingRuleEntryMatchOperatorEqualsAny, item.SelectorMatchOperator)
 			}
 
-		case item.SelectorMatchOperator == waf.ScrubbingRuleEntryMatchOperatorEquals:
+		case item.SelectorMatchOperator == webapplicationfirewallpolicies.ScrubbingRuleEntryMatchOperatorEquals:
 			// NOTE: If the 'operator' is set to 'Equals' the 'selector' cannot be 'nil'...
 			if pointer.From(item.Selector) == "" {
-				return nil, fmt.Errorf("the 'selector' field must be set when the %q 'operator' is used, got %q", waf.ScrubbingRuleEntryMatchOperatorEquals, "nil")
+				return nil, fmt.Errorf("the 'selector' field must be set when the %q 'operator' is used, got %q", webapplicationfirewallpolicies.ScrubbingRuleEntryMatchOperatorEquals, "nil")
 			}
 
-		case item.SelectorMatchOperator == waf.ScrubbingRuleEntryMatchOperatorEqualsAny:
+		case item.SelectorMatchOperator == webapplicationfirewallpolicies.ScrubbingRuleEntryMatchOperatorEqualsAny:
 			// NOTE: If the 'operator' is set to 'EqualsAny' the 'selector' must be 'nil'...
 			if pointer.From(item.Selector) != "" {
-				return nil, fmt.Errorf("the 'selector' field cannot be set when the %q 'operator' is used, got %q", waf.ScrubbingRuleEntryMatchOperatorEqualsAny, pointer.From(item.Selector))
+				return nil, fmt.Errorf("the 'selector' field cannot be set when the %q 'operator' is used, got %q", webapplicationfirewallpolicies.ScrubbingRuleEntryMatchOperatorEqualsAny, pointer.From(item.Selector))
 			}
 		}
 
@@ -1271,7 +1200,7 @@ func expandCdnFrontDoorFirewallScrubbingRules(input []interface{}) (*[]waf.WebAp
 	return pointer.To(scrubbingRules), nil
 }
 
-func flattenCdnFrontDoorFirewallCustomRules(input *waf.CustomRuleList) []interface{} {
+func flattenCdnFrontDoorFirewallCustomRules(input *webapplicationfirewallpolicies.CustomRuleList) []interface{} {
 	if input == nil || input.Rules == nil {
 		return []interface{}{}
 	}
@@ -1284,12 +1213,7 @@ func flattenCdnFrontDoorFirewallCustomRules(input *waf.CustomRuleList) []interfa
 
 		enabled := false
 		if v.EnabledState != nil {
-			enabled = pointer.From(v.EnabledState) == waf.CustomRuleEnabledStateEnabled
-		}
-
-		name := ""
-		if v.Name != nil {
-			name = *v.Name
+			enabled = pointer.From(v.EnabledState) == webapplicationfirewallpolicies.CustomRuleEnabledStateEnabled
 		}
 
 		rateLimitDurationInMinutes := 0
@@ -1309,7 +1233,7 @@ func flattenCdnFrontDoorFirewallCustomRules(input *waf.CustomRuleList) []interfa
 			"rate_limit_duration_in_minutes": rateLimitDurationInMinutes,
 			"rate_limit_threshold":           rateLimitThreshold,
 			"priority":                       priority,
-			"name":                           name,
+			"name":                           pointer.From(v.Name),
 			"type":                           ruleType,
 		})
 	}
@@ -1317,29 +1241,19 @@ func flattenCdnFrontDoorFirewallCustomRules(input *waf.CustomRuleList) []interfa
 	return results
 }
 
-func flattenCdnFrontDoorFirewallMatchConditions(input []waf.MatchCondition) []interface{} {
+func flattenCdnFrontDoorFirewallMatchConditions(input []webapplicationfirewallpolicies.MatchCondition) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
 
 	results := make([]interface{}, 0)
 	for _, v := range input {
-		selector := ""
-		if v.Selector != nil {
-			selector = *v.Selector
-		}
-
-		negateCondition := false
-		if v.NegateCondition != nil {
-			negateCondition = *v.NegateCondition
-		}
-
 		results = append(results, map[string]interface{}{
 			"match_variable":     string(v.MatchVariable),
 			"match_values":       v.MatchValue,
-			"negation_condition": negateCondition,
+			"negation_condition": pointer.From(v.NegateCondition),
 			"operator":           string(v.Operator),
-			"selector":           selector,
+			"selector":           pointer.From(v.Selector),
 			"transforms":         flattenTransformSlice(v.Transforms),
 		})
 	}
@@ -1347,7 +1261,7 @@ func flattenCdnFrontDoorFirewallMatchConditions(input []waf.MatchCondition) []in
 	return results
 }
 
-func flattenCdnFrontDoorFirewallManagedRules(input *waf.ManagedRuleSetList) []interface{} {
+func flattenCdnFrontDoorFirewallManagedRules(input *webapplicationfirewallpolicies.ManagedRuleSetList) []interface{} {
 	if input == nil || input.ManagedRuleSets == nil {
 		return []interface{}{}
 	}
@@ -1356,7 +1270,7 @@ func flattenCdnFrontDoorFirewallManagedRules(input *waf.ManagedRuleSetList) []in
 	for _, r := range *input.ManagedRuleSets {
 		ruleSetType := r.RuleSetType
 		ruleSetVersion := r.RuleSetVersion
-		ruleSetAction := string(pointer.From(r.RuleSetAction))
+		ruleSetAction := pointer.FromEnum(r.RuleSetAction)
 
 		results = append(results, map[string]interface{}{
 			"exclusion": flattenCdnFrontDoorFirewallExclusions(r.Exclusions),
@@ -1370,7 +1284,7 @@ func flattenCdnFrontDoorFirewallManagedRules(input *waf.ManagedRuleSetList) []in
 	return results
 }
 
-func flattenCdnFrontDoorFirewallExclusions(input *[]waf.ManagedRuleExclusion) []interface{} {
+func flattenCdnFrontDoorFirewallExclusions(input *[]webapplicationfirewallpolicies.ManagedRuleExclusion) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -1391,7 +1305,7 @@ func flattenCdnFrontDoorFirewallExclusions(input *[]waf.ManagedRuleExclusion) []
 	return results
 }
 
-func flattenCdnFrontDoorFirewallOverrides(input *[]waf.ManagedRuleGroupOverride) []interface{} {
+func flattenCdnFrontDoorFirewallOverrides(input *[]webapplicationfirewallpolicies.ManagedRuleGroupOverride) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -1410,18 +1324,18 @@ func flattenCdnFrontDoorFirewallOverrides(input *[]waf.ManagedRuleGroupOverride)
 	return results
 }
 
-func flattenCdnFrontDoorFirewallRules(input *[]waf.ManagedRuleOverride) []interface{} {
+func flattenCdnFrontDoorFirewallRules(input *[]webapplicationfirewallpolicies.ManagedRuleOverride) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
 
 	results := make([]interface{}, 0)
 	for _, v := range *input {
-		action := waf.ActionTypeAnomalyScoring
+		action := webapplicationfirewallpolicies.ActionTypeAnomalyScoring
 		if v.Action != nil {
 			action = pointer.From(v.Action)
 		}
-		enabled := pointer.From(v.EnabledState) == waf.ManagedRuleEnabledStateEnabled
+		enabled := pointer.From(v.EnabledState) == webapplicationfirewallpolicies.ManagedRuleEnabledStateEnabled
 		ruleId := v.RuleId
 
 		results = append(results, map[string]interface{}{
@@ -1435,19 +1349,19 @@ func flattenCdnFrontDoorFirewallRules(input *[]waf.ManagedRuleOverride) []interf
 	return results
 }
 
-func flattenCdnFrontDoorFirewallLogScrubbingPolicy(input *waf.PolicySettingsLogScrubbing) []interface{} {
+func flattenCdnFrontDoorFirewallLogScrubbingPolicy(input *webapplicationfirewallpolicies.PolicySettingsLogScrubbing) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
 
 	result := make(map[string]interface{})
-	result["enabled"] = pointer.From(input.State) == waf.WebApplicationFirewallScrubbingStateEnabled
+	result["enabled"] = pointer.From(input.State) == webapplicationfirewallpolicies.WebApplicationFirewallScrubbingStateEnabled
 	result["scrubbing_rule"] = flattenCdnFrontDoorFirewallLogScrubbingRules(input.ScrubbingRules)
 
 	return []interface{}{result}
 }
 
-func flattenCdnFrontDoorFirewallLogScrubbingRules(scrubbingRules *[]waf.WebApplicationFirewallScrubbingRules) interface{} {
+func flattenCdnFrontDoorFirewallLogScrubbingRules(scrubbingRules *[]webapplicationfirewallpolicies.WebApplicationFirewallScrubbingRules) interface{} {
 	result := make([]interface{}, 0)
 
 	if scrubbingRules == nil || len(*scrubbingRules) == 0 {
@@ -1456,7 +1370,7 @@ func flattenCdnFrontDoorFirewallLogScrubbingRules(scrubbingRules *[]waf.WebAppli
 
 	for _, scrubbingRule := range *scrubbingRules {
 		item := map[string]interface{}{}
-		item["enabled"] = pointer.From(scrubbingRule.State) == waf.ScrubbingRuleEntryStateEnabled
+		item["enabled"] = pointer.From(scrubbingRule.State) == webapplicationfirewallpolicies.ScrubbingRuleEntryStateEnabled
 		item["match_variable"] = scrubbingRule.MatchVariable
 		item["operator"] = scrubbingRule.SelectorMatchOperator
 		item["selector"] = pointer.From(scrubbingRule.Selector)

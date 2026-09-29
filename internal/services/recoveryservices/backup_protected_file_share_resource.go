@@ -10,8 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-12-01/backup" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -24,7 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	recoveryServicesValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -39,7 +37,7 @@ func resourceBackupProtectedFileShare() *pluginsdk.Resource {
 		Delete: resourceBackupProtectedFileShareDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ProtectedItemID(id)
+			_, err := protecteditems.ParseProtectedItemID(id)
 			return err
 		}),
 
@@ -146,7 +144,7 @@ func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, met
 	operationID := parsedLocation.Path["operationResults"]
 
 	// `inquire` API is an async operation and the results should be tracked using location header or Azure-async-url.
-	//  The Azure-AsyncOperation is not included in swagger, so call location (https://docs.microsoft.com/en-us/rest/api/backup/protection-container-operation-results/get)
+	//  The Azure-AsyncOperation is not included in swagger, so call location (https://docs.microsoft.com/rest/api/backup/protection-container-operation-results/get)
 	//  to wait the operation successfully completes.
 	state := &pluginsdk.StateChangeConf{
 		MinTimeout: 10 * time.Second,
@@ -283,8 +281,7 @@ func resourceBackupProtectedFileShareRead(d *pluginsdk.ResourceData, meta interf
 		if properties := model.Properties; properties != nil {
 			if item, ok := properties.(protecteditems.AzureFileshareProtectedItem); ok {
 				if item.SourceResourceId != nil {
-					sourceResourceID := strings.Replace(*item.SourceResourceId, "Microsoft.storage", "Microsoft.Storage", 1) // The SDK is returning inconsistent capitalization
-					d.Set("source_storage_account_id", sourceResourceID)
+					d.Set("source_storage_account_id", strings.Replace(*item.SourceResourceId, "Microsoft.storage", "Microsoft.Storage", 1))
 				}
 				d.Set("source_file_share_name", item.FriendlyName)
 

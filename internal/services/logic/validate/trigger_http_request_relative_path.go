@@ -4,16 +4,11 @@
 package validate
 
 import (
-	"fmt"
 	"regexp"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func TriggerHttpRequestRelativePath(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	if !regexp.MustCompile("^[A-Za-z0-9_/}{]+$").MatchString(value) {
-		errors = append(errors, fmt.Errorf("%s can only contain alphanumeric characters, underscores, forward slashes and curly braces", k))
-	}
-
-	return warnings, errors
+func TriggerHttpRequestRelativePath(v interface{}, k string) ([]string, []error) {
+	return validation.StringMatch(regexp.MustCompile("^[A-Za-z0-9_/}{]+$"), "can only contain alphanumeric characters, underscores, forward slashes and curly braces")(v, k)
 }

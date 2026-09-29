@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -133,15 +132,13 @@ func (r ResourceProviderRegistrationResource) Create() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("feature") {
 				oldFeaturesRaw, newFeaturesRaw := metadata.ResourceData.GetChange("feature")
-				err := r.applyFeatures(ctx, metadata, resourceId, oldFeaturesRaw.(*pluginsdk.Set).List(), newFeaturesRaw.(*pluginsdk.Set).List())
-				if err != nil {
+				if err := r.applyFeatures(ctx, metadata, resourceId, oldFeaturesRaw.(*pluginsdk.Set).List(), newFeaturesRaw.(*pluginsdk.Set).List()); err != nil {
 					return fmt.Errorf("applying features for %q: %+v", resourceId, err)
 				}
 			}
 
 			log.Printf("[DEBUG] Registering %s..", resourceId)
-			payload := providers.ProviderRegistrationRequest{}
-			if _, err := client.Register(ctx, resourceId, payload); err != nil {
+			if _, err := client.Register(ctx, resourceId, providers.ProviderRegistrationRequest{}); err != nil {
 				return fmt.Errorf("registering %s: %+v", resourceId, err)
 			}
 			metadata.SetID(resourceId)
@@ -206,8 +203,7 @@ func (r ResourceProviderRegistrationResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("feature") {
 				oldFeaturesRaw, newFeaturesRaw := metadata.ResourceData.GetChange("feature")
-				err := r.applyFeatures(ctx, metadata, *id, oldFeaturesRaw.(*pluginsdk.Set).List(), newFeaturesRaw.(*pluginsdk.Set).List())
-				if err != nil {
+				if err := r.applyFeatures(ctx, metadata, *id, oldFeaturesRaw.(*pluginsdk.Set).List(), newFeaturesRaw.(*pluginsdk.Set).List()); err != nil {
 					return fmt.Errorf("applying features for %s: %+v", *id, err)
 				}
 			}
@@ -287,7 +283,7 @@ func (r ResourceProviderRegistrationResource) Read() sdk.ResourceFunc {
 					case Registering, Registered:
 						features = append(features, ResourceProviderRegistrationFeatureModel{Name: featureName, Registered: true})
 					case Unregistering, Unregistered:
-						features = append(features, ResourceProviderRegistrationFeatureModel{Name: featureName, Registered: false})
+						features = append(features, ResourceProviderRegistrationFeatureModel{Name: featureName})
 					}
 				}
 			}
@@ -316,8 +312,7 @@ func (r ResourceProviderRegistrationResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			err = r.applyFeatures(ctx, metadata, *id, metadata.ResourceData.Get("feature").(*pluginsdk.Set).List(), make([]interface{}, 0))
-			if err != nil {
+			if err = r.applyFeatures(ctx, metadata, *id, metadata.ResourceData.Get("feature").(*pluginsdk.Set).List(), make([]interface{}, 0)); err != nil {
 				return fmt.Errorf("applying features for %s: %+v", *id, err)
 			}
 
@@ -340,7 +335,7 @@ func (r ResourceProviderRegistrationResource) Delete() sdk.ResourceFunc {
 }
 
 func (r ResourceProviderRegistrationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ResourceProviderID
+	return providers.ValidateSubscriptionProviderID
 }
 
 func (r ResourceProviderRegistrationResource) CustomImporter() sdk.ResourceRunFunc {

@@ -45,20 +45,3 @@ func ValidateResourceID(i interface{}, k string) (warnings []string, errors []er
 
 	return warnings, errors
 }
-
-// Deprecated: use a more specific Resource ID validator instead, however note that empty strings should not
-// be allowed as a validation value. Rather than specifying an empty string, users can omit the field to use
-// an unset value.
-func ValidateResourceIDOrEmpty(i interface{}, k string) (_ []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return
-	}
-
-	if v == "" {
-		return
-	}
-
-	return ValidateResourceID(i, k)
-}

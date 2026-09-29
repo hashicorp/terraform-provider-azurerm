@@ -13,16 +13,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var VPNGatewayResourceName = "azurerm_vpn_gateway"
@@ -84,7 +82,7 @@ func resourceVPNGateway() *pluginsdk.Resource {
 			"bgp_settings": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -108,7 +106,7 @@ func resourceVPNGateway() *pluginsdk.Resource {
 						"instance_0_bgp_peering_address": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -117,7 +115,7 @@ func resourceVPNGateway() *pluginsdk.Resource {
 										Required: true,
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
-											ValidateFunc: commonValidate.IPv4Address,
+											ValidateFunc: validation.IsIPv4Address,
 										},
 									},
 
@@ -148,7 +146,7 @@ func resourceVPNGateway() *pluginsdk.Resource {
 						"instance_1_bgp_peering_address": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -157,7 +155,7 @@ func resourceVPNGateway() *pluginsdk.Resource {
 										Required: true,
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
-											ValidateFunc: commonValidate.IPv4Address,
+											ValidateFunc: validation.IsIPv4Address,
 										},
 									},
 
@@ -285,11 +283,11 @@ func resourceVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 			if len(input0) > 0 || len(input1) > 0 {
 				if len(input0) > 0 && input0[0] != nil {
 					val := input0[0].(map[string]interface{})
-					(*props.BgpSettings.BgpPeeringAddresses)[0].CustomBgpIPAddresses = utils.ExpandStringSlice(val["custom_ips"].(*pluginsdk.Set).List())
+					(*props.BgpSettings.BgpPeeringAddresses)[0].CustomBgpIPAddresses = pluginsdk.ExpandStringSlice(val["custom_ips"].(*pluginsdk.Set).List())
 				}
 				if len(input1) > 0 && input1[0] != nil {
 					val := input1[0].(map[string]interface{})
-					(*props.BgpSettings.BgpPeeringAddresses)[1].CustomBgpIPAddresses = utils.ExpandStringSlice(val["custom_ips"].(*pluginsdk.Set).List())
+					(*props.BgpSettings.BgpPeeringAddresses)[1].CustomBgpIPAddresses = pluginsdk.ExpandStringSlice(val["custom_ips"].(*pluginsdk.Set).List())
 				}
 
 				resp.Model.Properties = props
@@ -343,13 +341,13 @@ func resourceVPNGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		if d.HasChange("bgp_settings.0.instance_0_bgp_peering_address") {
 			if input := val["instance_0_bgp_peering_address"].([]interface{}); len(input) > 0 {
 				val := input[0].(map[string]interface{})
-				(*model.Properties.BgpSettings.BgpPeeringAddresses)[0].CustomBgpIPAddresses = utils.ExpandStringSlice(val["custom_ips"].(*pluginsdk.Set).List())
+				(*model.Properties.BgpSettings.BgpPeeringAddresses)[0].CustomBgpIPAddresses = pluginsdk.ExpandStringSlice(val["custom_ips"].(*pluginsdk.Set).List())
 			}
 		}
 		if d.HasChange("bgp_settings.0.instance_1_bgp_peering_address") {
 			if input := val["instance_1_bgp_peering_address"].([]interface{}); len(input) > 0 {
 				val := input[0].(map[string]interface{})
-				(*model.Properties.BgpSettings.BgpPeeringAddresses)[1].CustomBgpIPAddresses = utils.ExpandStringSlice(val["custom_ips"].(*pluginsdk.Set).List())
+				(*model.Properties.BgpSettings.BgpPeeringAddresses)[1].CustomBgpIPAddresses = pluginsdk.ExpandStringSlice(val["custom_ips"].(*pluginsdk.Set).List())
 			}
 		}
 	}
@@ -393,12 +391,7 @@ func resourceVPNGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				return fmt.Errorf("setting `bgp_settings`: %+v", err)
 			}
 
-			bgpRouteTranslationForNatEnabled := false
-			if props.EnableBgpRouteTranslationForNat != nil {
-				bgpRouteTranslationForNatEnabled = *props.EnableBgpRouteTranslationForNat
-			}
-			d.Set("bgp_route_translation_for_nat_enabled", bgpRouteTranslationForNatEnabled)
-
+			d.Set("bgp_route_translation_for_nat_enabled", pointer.From(props.EnableBgpRouteTranslationForNat))
 			scaleUnit := 0
 			if props.VpnGatewayScaleUnit != nil {
 				scaleUnit = int(*props.VpnGatewayScaleUnit)
@@ -469,11 +462,6 @@ func flattenVPNGatewayBGPSettings(input *virtualwans.BgpSettings) []interface{} 
 		asn = int(*input.Asn)
 	}
 
-	bgpPeeringAddress := ""
-	if input.BgpPeeringAddress != nil {
-		bgpPeeringAddress = *input.BgpPeeringAddress
-	}
-
 	peerWeight := 0
 	if input.PeerWeight != nil {
 		peerWeight = int(*input.PeerWeight)
@@ -490,7 +478,7 @@ func flattenVPNGatewayBGPSettings(input *virtualwans.BgpSettings) []interface{} 
 	return []interface{}{
 		map[string]interface{}{
 			"asn":                            asn,
-			"bgp_peering_address":            bgpPeeringAddress,
+			"bgp_peering_address":            pointer.From(input.BgpPeeringAddress),
 			"instance_0_bgp_peering_address": instance0BgpPeeringAddress,
 			"instance_1_bgp_peering_address": instance1BgpPeeringAddress,
 			"peer_weight":                    peerWeight,
@@ -499,17 +487,12 @@ func flattenVPNGatewayBGPSettings(input *virtualwans.BgpSettings) []interface{} 
 }
 
 func flattenVPNGatewayIPConfigurationBgpPeeringAddress(input virtualwans.IPConfigurationBgpPeeringAddress) []interface{} {
-	ipConfigurationID := ""
-	if input.IPconfigurationId != nil {
-		ipConfigurationID = *input.IPconfigurationId
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"ip_configuration_id": ipConfigurationID,
-			"custom_ips":          utils.FlattenStringSlice(input.CustomBgpIPAddresses),
-			"default_ips":         utils.FlattenStringSlice(input.DefaultBgpIPAddresses),
-			"tunnel_ips":          utils.FlattenStringSlice(input.TunnelIPAddresses),
+			"ip_configuration_id": pointer.From(input.IPconfigurationId),
+			"custom_ips":          pluginsdk.FlattenSlice(input.CustomBgpIPAddresses),
+			"default_ips":         pluginsdk.FlattenSlice(input.DefaultBgpIPAddresses),
+			"tunnel_ips":          pluginsdk.FlattenSlice(input.TunnelIPAddresses),
 		},
 	}
 }

@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	validate2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -59,7 +59,7 @@ func resourceContainerRegistryAgentPool() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate2.ContainerRegistryName,
+				ValidateFunc: validate.ContainerRegistryName,
 			},
 
 			"instance_count": {
@@ -193,23 +193,9 @@ func resourceContainerRegistryAgentPoolRead(d *pluginsdk.ResourceData, meta inte
 		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
-			count := int64(0)
-			if v := props.Count; v != nil {
-				count = *v
-			}
-			d.Set("instance_count", count)
-
-			tier := ""
-			if v := props.Tier; v != nil {
-				tier = *v
-			}
-			d.Set("tier", tier)
-
-			virtualNetworkSubnetId := ""
-			if v := props.VirtualNetworkSubnetResourceId; v != nil {
-				virtualNetworkSubnetId = *v
-			}
-			d.Set("virtual_network_subnet_id", virtualNetworkSubnetId)
+			d.Set("instance_count", pointer.From(props.Count))
+			d.Set("tier", pointer.From(props.Tier))
+			d.Set("virtual_network_subnet_id", pointer.From(props.VirtualNetworkSubnetResourceId))
 		}
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err

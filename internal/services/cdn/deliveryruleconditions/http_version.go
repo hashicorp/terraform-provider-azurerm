@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func HTTPVersion() *pluginsdk.Resource {
@@ -60,7 +59,7 @@ func ExpandArmCdnEndpointConditionHTTPVersion(input []interface{}) []cdn.BasicDe
 				OdataType:       pointer.To("Microsoft.Azure.Cdn.Models.DeliveryRuleHttpVersionConditionParameters"),
 				Operator:        pointer.To(item["operator"].(string)),
 				NegateCondition: pointer.To(item["negate_condition"].(bool)),
-				MatchValues:     utils.ExpandStringSlice(item["match_values"].(*pluginsdk.Set).List()),
+				MatchValues:     pluginsdk.ExpandStringSlice(item["match_values"].(*pluginsdk.Set).List()),
 			},
 		})
 	}
@@ -87,7 +86,7 @@ func FlattenArmCdnEndpointConditionHTTPVersion(input cdn.BasicDeliveryRuleCondit
 		}
 
 		if params.MatchValues != nil {
-			matchValues = utils.FlattenStringSlice(params.MatchValues)
+			matchValues = pluginsdk.FlattenSlice(params.MatchValues)
 		}
 	}
 

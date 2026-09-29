@@ -81,13 +81,11 @@ func dataSourceIpGroupsRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	d.SetId(id.ID())
 
-	err = d.Set("names", names)
-	if err != nil {
+	if err = d.Set("names", names); err != nil {
 		return fmt.Errorf("error setting names: %+v", err)
 	}
 
-	err = d.Set("ids", ids)
-	if err != nil {
+	if err = d.Set("ids", ids); err != nil {
 		return fmt.Errorf("error setting ids: %+v", err)
 	}
 

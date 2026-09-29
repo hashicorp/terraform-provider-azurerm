@@ -90,12 +90,9 @@ func (r StorageMoverJobDefinitionResource) Arguments() map[string]*pluginsdk.Sch
 		},
 
 		"copy_mode": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(jobdefinitions.CopyModeMirror),
-				string(jobdefinitions.CopyModeAdditive),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(jobdefinitions.PossibleValuesForCopyMode(), false),
 		},
 
 		"source_sub_path": {

@@ -76,7 +76,7 @@ func resourceCosmosDbCassandraTable() *pluginsdk.Resource {
 			"throughput": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validate.CosmosThroughput,
 			},
 
@@ -362,20 +362,14 @@ func flattenTableSchema(input *cosmosdb.CassandraSchema) []interface{} {
 
 func flattenTableSchemaColumns(input *[]cosmosdb.Column) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	columns := make([]interface{}, 0)
 
 	for _, v := range *input {
-		name := ""
-		if v.Name != nil {
-			name = *v.Name
-		}
-		typeStr := ""
-		if v.Type != nil {
-			typeStr = *v.Type
-		}
+		name := pointer.From(v.Name)
+		typeStr := pointer.From(v.Type)
 		columns = append(columns, map[string]interface{}{
 			"name": name,
 			"type": typeStr,
@@ -387,18 +381,14 @@ func flattenTableSchemaColumns(input *[]cosmosdb.Column) []interface{} {
 
 func flattenTableSchemaPartitionKeys(input *[]cosmosdb.CassandraPartitionKey) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	keys := make([]interface{}, 0)
 
 	for _, v := range *input {
-		name := ""
-		if v.Name != nil {
-			name = *v.Name
-		}
 		keys = append(keys, map[string]interface{}{
-			"name": name,
+			"name": pointer.From(v.Name),
 		})
 	}
 
@@ -407,20 +397,14 @@ func flattenTableSchemaPartitionKeys(input *[]cosmosdb.CassandraPartitionKey) []
 
 func flattenTableSchemaClusterKeys(input *[]cosmosdb.ClusterKey) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	keys := make([]interface{}, 0)
 
 	for _, v := range *input {
-		name := ""
-		if v.Name != nil {
-			name = *v.Name
-		}
-		orderBy := ""
-		if v.OrderBy != nil {
-			orderBy = *v.OrderBy
-		}
+		name := pointer.From(v.Name)
+		orderBy := pointer.From(v.OrderBy)
 		keys = append(keys, map[string]interface{}{
 			"name":     name,
 			"order_by": orderBy,

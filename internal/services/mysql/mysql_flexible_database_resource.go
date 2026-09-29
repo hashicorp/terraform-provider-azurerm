@@ -5,6 +5,7 @@ package mysql
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -62,15 +63,25 @@ func resourceMySqlFlexibleDatabase() *pluginsdk.Resource {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: resourceMysqlFlexibleDatabaseAliasDiffSuppress("utf8", "utf8mb3"),
 			},
 
 			"collation": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:             pluginsdk.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: resourceMysqlFlexibleDatabaseAliasDiffSuppress("utf8_unicode_ci", "utf8mb3_unicode_ci"),
 			},
 		},
+	}
+}
+
+// `utf8` is a deprecated alias for `utf8mb3`, see http://dev.mysql.com/doc/refman/8.4/en/charset-unicode-utf8.html
+func resourceMysqlFlexibleDatabaseAliasDiffSuppress(firstAlias, secondAlias string) pluginsdk.SchemaDiffSuppressFunc {
+	return func(key, oldValue, newValue string, d *pluginsdk.ResourceData) bool {
+		return suppress.CaseDifference(key, oldValue, newValue, d) ||
+			strings.EqualFold(oldValue, firstAlias) && strings.EqualFold(newValue, secondAlias) ||
+			strings.EqualFold(oldValue, secondAlias) && strings.EqualFold(newValue, firstAlias)
 	}
 }
 

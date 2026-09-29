@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceCosmosDbMongoCollection() *pluginsdk.Resource {
@@ -99,7 +98,7 @@ func resourceCosmosDbMongoCollection() *pluginsdk.Resource {
 			"throughput": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validate.CosmosThroughput,
 			},
 
@@ -420,7 +419,7 @@ func expandCosmosMongoCollectionIndex(indexes []interface{}, defaultTtl *int) (*
 
 			results = append(results, cosmosdb.MongoIndex{
 				Key: &cosmosdb.MongoIndexKeys{
-					Keys: utils.ExpandStringSlice(index["keys"].([]interface{})),
+					Keys: pluginsdk.ExpandStringSlice(index["keys"].([]interface{})),
 				},
 				Options: &cosmosdb.MongoIndexOptions{
 					Unique: pointer.To(index["unique"].(bool)),
@@ -461,21 +460,21 @@ func flattenCosmosMongoCollectionIndex(input *[]cosmosdb.MongoIndex, accountIsVe
 			switch key {
 			// As `DocumentDBDefaultIndex` and `_id` cannot be updated, so they would be moved into `system_indexes`.
 			case "_id":
-				systemIndex["keys"] = utils.FlattenStringSlice(v.Key.Keys)
+				systemIndex["keys"] = pluginsdk.FlattenSlice(v.Key.Keys)
 				// The system index `_id` is always unique but api returns nil and it would be converted to `false` by zero-value. So it has to be manually set as `true`.
 				systemIndex["unique"] = true
 
 				systemIndexes = append(systemIndexes, systemIndex)
 
 				if accountIsVersion36 {
-					index["keys"] = utils.FlattenStringSlice(v.Key.Keys)
+					index["keys"] = pluginsdk.FlattenSlice(v.Key.Keys)
 					index["unique"] = true
 					indexes = append(indexes, index)
 				}
 
 			case "DocumentDBDefaultIndex":
 				// Updating system index `DocumentDBDefaultIndex` is not a supported scenario.
-				systemIndex["keys"] = utils.FlattenStringSlice(v.Key.Keys)
+				systemIndex["keys"] = pluginsdk.FlattenSlice(v.Key.Keys)
 
 				isUnique := false
 				if v.Options != nil && v.Options.Unique != nil {
@@ -491,7 +490,7 @@ func flattenCosmosMongoCollectionIndex(input *[]cosmosdb.MongoIndex, accountIsVe
 				}
 			default:
 				// The other settable indexes would be set in `index`
-				index["keys"] = utils.FlattenStringSlice(v.Key.Keys)
+				index["keys"] = pluginsdk.FlattenSlice(v.Key.Keys)
 
 				isUnique := false
 				if v.Options != nil && v.Options.Unique != nil {

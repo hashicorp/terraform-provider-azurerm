@@ -26,7 +26,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name resource_group -properties "name"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 const resourceGroupResourceName = "azurerm_resource_group"
 
@@ -55,6 +55,7 @@ func resourceResourceGroup() *pluginsdk.Resource {
 			"managed_by": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
@@ -124,10 +125,6 @@ func resourceResourceGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	patch := resourcegroups.ResourceGroupPatchable{}
-
-	if d.HasChange("managed_by") {
-		patch.ManagedBy = pointer.To(d.Get("managed_by").(string))
-	}
 
 	if d.HasChange("tags") {
 		patch.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))

@@ -89,7 +89,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 								},
 
 								// There's an issue with API that if parallelism is omitted, it's always set to `0` instead of being computed dynamically.
-								// To workaround this, mark it as Required which is also consistent with portal behavior.
+								// To workaround this, mark it as Required which is also consistent with portal behaviour.
 								// Relevant GH issue: https://github.com/Azure/azure-rest-api-specs/issues/40986
 								"parallelism": {
 									Type:         pluginsdk.TypeInt,
@@ -116,16 +116,11 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								// "CreatorOnly" is excluded because it silently behaves as "Inherit" when authenticated via Service Principal.
-								// Ref: https://github.com/Azure/azure-rest-api-specs/issues/41786
 								"kind": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ForceNew: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(pools.AzureDevOpsPermissionTypeInherit),
-										string(pools.AzureDevOpsPermissionTypeSpecificAccounts),
-									}, false),
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ForceNew:     true,
+									ValidateFunc: validation.StringInSlice(pools.PossibleValuesForAzureDevOpsPermissionType(), false),
 								},
 
 								"administrator_account": {

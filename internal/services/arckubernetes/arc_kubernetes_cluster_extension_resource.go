@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	arckubernetes "github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2024-01-01/connectedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2024-01-01/connectedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2024-11-01/extensions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -60,7 +60,7 @@ func (r ArcKubernetesClusterExtensionResource) IDValidationFunc() pluginsdk.Sche
 		}
 
 		// validate the scope is a connected cluster id
-		if _, err := arckubernetes.ParseConnectedClusterID(id.Scope); err != nil {
+		if _, err := connectedclusters.ParseConnectedClusterID(id.Scope); err != nil {
 			errs = append(errs, fmt.Errorf("parsing %q as a Connected Cluster ID: %+v", idRaw, err))
 			return
 		}
@@ -85,7 +85,7 @@ func (r ArcKubernetesClusterExtensionResource) Arguments() map[string]*pluginsdk
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: arckubernetes.ValidateConnectedClusterID,
+			ValidateFunc: connectedclusters.ValidateConnectedClusterID,
 		},
 
 		"extension_type": {
@@ -119,7 +119,7 @@ func (r ArcKubernetesClusterExtensionResource) Arguments() map[string]*pluginsdk
 		"release_train": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
@@ -127,7 +127,7 @@ func (r ArcKubernetesClusterExtensionResource) Arguments() map[string]*pluginsdk
 		"release_namespace": {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
-			Computed:      true,
+			Computed:      true, // azignore:AZS007 - pre-existing violation
 			ForceNew:      true,
 			ConflictsWith: []string{"target_namespace"},
 			ValidateFunc:  validation.StringIsNotEmpty,
@@ -136,7 +136,7 @@ func (r ArcKubernetesClusterExtensionResource) Arguments() map[string]*pluginsdk
 		"target_namespace": {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
-			Computed:      true,
+			Computed:      true, // azignore:AZS007 - pre-existing violation
 			ForceNew:      true,
 			ConflictsWith: []string{"release_namespace"},
 			ValidateFunc:  validation.StringIsNotEmpty,
@@ -171,13 +171,13 @@ func (r ArcKubernetesClusterExtensionResource) Create() sdk.ResourceFunc {
 
 			client := metadata.Client.ArcKubernetes.ExtensionsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
-			clusterID, err := arckubernetes.ParseConnectedClusterID(model.ClusterID)
+			clusterID, err := connectedclusters.ParseConnectedClusterID(model.ClusterID)
 			if err != nil {
 				return err
 			}
 
 			// defined as strings because they're not enums in the swagger https://github.com/Azure/azure-rest-api-specs/pull/23545
-			connectedClusterId := arckubernetes.NewConnectedClusterID(subscriptionId, clusterID.ResourceGroupName, clusterID.ConnectedClusterName)
+			connectedClusterId := connectedclusters.NewConnectedClusterID(subscriptionId, clusterID.ResourceGroupName, clusterID.ConnectedClusterName)
 			id := extensions.NewScopedExtensionID(connectedClusterId.ID(), model.Name)
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
@@ -191,11 +191,9 @@ func (r ArcKubernetesClusterExtensionResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			autoUpgradeMinorVersion := model.Version == ""
-
 			properties := &extensions.Extension{
 				Properties: &extensions.ExtensionProperties{
-					AutoUpgradeMinorVersion:        &autoUpgradeMinorVersion,
+					AutoUpgradeMinorVersion:        pointer.To(model.Version == ""),
 					ConfigurationProtectedSettings: &model.ConfigurationProtectedSettings,
 					ConfigurationSettings:          &model.ConfigurationSettings,
 				},
@@ -303,7 +301,7 @@ func (r ArcKubernetesClusterExtensionResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			clusterId, err := arckubernetes.ParseConnectedClusterID(id.Scope)
+			clusterId, err := connectedclusters.ParseConnectedClusterID(id.Scope)
 			if err != nil {
 				return fmt.Errorf("parsing %q as a Connected Cluster ID: %+v", id.Scope, err)
 			}

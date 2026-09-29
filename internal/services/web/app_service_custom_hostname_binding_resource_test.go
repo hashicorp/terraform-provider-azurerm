@@ -182,11 +182,12 @@ provider "azurerm" {
 data "azurerm_client_config" "test" {}
 
 resource "azurerm_key_vault" "test" {
-  name                = "acct-%[3]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.test.tenant_id
-  sku_name            = "standard"
+  name                       = "acct-%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.test.tenant_id
+  sku_name                   = "standard"
 
   access_policy {
     tenant_id               = data.azurerm_client_config.test.tenant_id

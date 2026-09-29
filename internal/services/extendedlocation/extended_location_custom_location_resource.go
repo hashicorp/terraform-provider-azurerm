@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/extendedlocation/2021-08-15/customlocations"
-	arckubernetes "github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2021-10-01/connectedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2021-10-01/connectedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2024-11-01/extensions"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -77,7 +77,7 @@ func (r ExtendedLocationCustomLocationResource) Arguments() map[string]*pluginsd
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: arckubernetes.ValidateConnectedClusterID,
+			ValidateFunc: connectedclusters.ValidateConnectedClusterID,
 		},
 
 		"cluster_extension_ids": {
@@ -87,12 +87,10 @@ func (r ExtendedLocationCustomLocationResource) Arguments() map[string]*pluginsd
 		},
 
 		"host_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(customlocations.HostTypeKubernetes),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(customlocations.PossibleValuesForHostType(), false),
 		},
 
 		"display_name": {
@@ -161,7 +159,7 @@ func (r ExtendedLocationCustomLocationResource) Create() sdk.ResourceFunc {
 				ClusterExtensionIds: pointer.To(model.ClusterExtensionIds),
 				DisplayName:         pointer.To(model.DisplayName),
 				HostResourceId:      pointer.To(model.HostResourceId),
-				HostType:            pointer.To(customlocations.HostType(model.HostType)),
+				HostType:            pointer.ToEnum[customlocations.HostType](model.HostType),
 				Namespace:           pointer.To(model.Namespace),
 			}
 
@@ -218,7 +216,7 @@ func (r ExtendedLocationCustomLocationResource) Read() sdk.ResourceFunc {
 					ClusterExtensionIds: pointer.From(props.ClusterExtensionIds),
 					DisplayName:         pointer.From(props.DisplayName),
 					HostResourceId:      pointer.From(props.HostResourceId),
-					HostType:            string(pointer.From(props.HostType)),
+					HostType:            pointer.FromEnum(props.HostType),
 					Namespace:           pointer.From(props.Namespace),
 				}
 

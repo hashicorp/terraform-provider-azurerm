@@ -28,8 +28,7 @@ func Render(data *data.TerraformNodeData, text string) ([]string, error) {
 		return nil, err
 	}
 
-	err = tmpl.Execute(&b, data)
-	if err != nil {
+	if err = tmpl.Execute(&b, data); err != nil {
 		return nil, err
 	}
 

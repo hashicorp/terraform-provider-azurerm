@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceVpnSite() *pluginsdk.Resource {
@@ -144,14 +143,14 @@ func resourceVpnSite() *pluginsdk.Resource {
 			"o365_policy": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"traffic_category": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -320,7 +319,7 @@ func resourceVpnSiteUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		payload.Properties.AddressSpace = expandVpnSiteAddressSpace(d.Get("address_cidrs").(*pluginsdk.Set).List())
 	}
 
-	if d.HasChange("device_vendor") || d.HasChange("device_model") {
+	if d.HasChanges("device_vendor", "device_model") {
 		payload.Properties.DeviceProperties = expandVpnSiteDeviceProperties(d.Get("device_vendor").(string), d.Get("device_model").(string))
 	}
 
@@ -395,7 +394,7 @@ func flattenVpnSiteAddressSpace(input *virtualwans.AddressSpace) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
-	return utils.FlattenStringSlice(input.AddressPrefixes)
+	return pluginsdk.FlattenSlice(input.AddressPrefixes)
 }
 
 func expandVpnSiteLinks(input []interface{}) *[]virtualwans.VpnSiteLink {
@@ -445,16 +444,6 @@ func flattenVpnSiteLinks(input *[]virtualwans.VpnSiteLink) []interface{} {
 	output := make([]interface{}, 0)
 
 	for _, e := range *input {
-		var name string
-		if e.Name != nil {
-			name = *e.Name
-		}
-
-		id := ""
-		if e.Id != nil {
-			id = *e.Id
-		}
-
 		var (
 			ipAddress        string
 			fqdn             string
@@ -485,8 +474,8 @@ func flattenVpnSiteLinks(input *[]virtualwans.VpnSiteLink) []interface{} {
 		}
 
 		link := map[string]interface{}{
-			"name":          name,
-			"id":            id,
+			"name":          pointer.From(e.Name),
+			"id":            pointer.From(e.Id),
 			"provider_name": linkProviderName,
 			"speed_in_mbps": linkSpeed,
 			"ip_address":    ipAddress,
@@ -523,15 +512,10 @@ func flattenVpnSiteVpnSiteBgpSettings(input *virtualwans.VpnLinkBgpSettings) []i
 		asn = int(*input.Asn)
 	}
 
-	var peerAddress string
-	if input.BgpPeeringAddress != nil {
-		peerAddress = *input.BgpPeeringAddress
-	}
-
 	return []interface{}{
 		map[string]interface{}{
 			"asn":             asn,
-			"peering_address": peerAddress,
+			"peering_address": pointer.From(input.BgpPeeringAddress),
 		},
 	}
 }
@@ -584,26 +568,11 @@ func flattenVpnSiteO365TrafficCategoryPolicy(input *virtualwans.O365BreakOutCate
 		return make([]interface{}, 0)
 	}
 
-	isAllowed := false
-	if input.Allow != nil {
-		isAllowed = *input.Allow
-	}
-
-	isDefault := false
-	if input.Default != nil {
-		isDefault = *input.Default
-	}
-
-	isOptimized := false
-	if input.Optimize != nil {
-		isOptimized = *input.Optimize
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"allow_endpoint_enabled":    isAllowed,
-			"default_endpoint_enabled":  isDefault,
-			"optimize_endpoint_enabled": isOptimized,
+			"allow_endpoint_enabled":    pointer.From(input.Allow),
+			"default_endpoint_enabled":  pointer.From(input.Default),
+			"optimize_endpoint_enabled": pointer.From(input.Optimize),
 		},
 	}
 }

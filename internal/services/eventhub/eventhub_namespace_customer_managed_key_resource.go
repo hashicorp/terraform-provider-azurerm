@@ -126,9 +126,8 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 	}
 
 	namespace := resp.Model
-	keySource := namespaces.KeySourceMicrosoftPointKeyVault
 	namespace.Properties.Encryption = &namespaces.Encryption{
-		KeySource: &keySource,
+		KeySource: pointer.To(namespaces.KeySourceMicrosoftPointKeyVault),
 	}
 
 	keyVaultProps, err := expandEventHubNamespaceKeyVaultKeyIds(d.Get("key_vault_key_ids").(*pluginsdk.Set).List())
@@ -281,22 +280,7 @@ func flattenEventHubNamespaceKeyVaultKeyIds(input *namespaces.Encryption) ([]str
 	}
 
 	for _, item := range *input.KeyVaultProperties {
-		var keyName string
-		if item.KeyName != nil {
-			keyName = *item.KeyName
-		}
-
-		var keyVaultUri string
-		if item.KeyVaultUri != nil {
-			keyVaultUri = *item.KeyVaultUri
-		}
-
-		var keyVersion string
-		if item.KeyVersion != nil {
-			keyVersion = *item.KeyVersion
-		}
-
-		keyVaultKeyId, err := keyvault.NewNestedItemID(keyVaultUri, keyvault.NestedItemTypeKey, keyName, keyVersion)
+		keyVaultKeyId, err := keyvault.NewNestedItemID(pointer.From(item.KeyVaultUri), keyvault.NestedItemTypeKey, pointer.From(item.KeyName), pointer.From(item.KeyVersion))
 		if err != nil {
 			return nil, err
 		}

@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDataFactoryDataFlow() *pluginsdk.Resource {
@@ -137,8 +136,7 @@ func resourceDataFactoryDataFlowCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		mappingDataFlow.Annotations = &annotations
+		mappingDataFlow.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("folder"); ok {
@@ -148,7 +146,7 @@ func resourceDataFactoryDataFlowCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if v, ok := d.GetOk("script_lines"); ok {
-		mappingDataFlow.TypeProperties.ScriptLines = utils.ExpandStringSlice(v.([]interface{}))
+		mappingDataFlow.TypeProperties.ScriptLines = pluginsdk.ExpandStringSlice(v.([]interface{}))
 	}
 
 	dataFlow := dataflows.DataFlowResource{

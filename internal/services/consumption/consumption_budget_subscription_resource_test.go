@@ -19,9 +19,7 @@ import (
 
 func consumptionBudgetTestStartDate() time.Time {
 	utcNow := time.Now().UTC()
-	startDate := time.Date(utcNow.Year(), utcNow.Month(), 1, 0, 0, 0, 0, utcNow.Location())
-
-	return startDate
+	return time.Date(utcNow.Year(), utcNow.Month(), 1, 0, 0, 0, 0, utcNow.Location())
 }
 
 type ConsumptionBudgetSubscriptionResource struct{}

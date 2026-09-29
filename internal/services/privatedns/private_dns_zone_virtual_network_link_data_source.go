@@ -31,7 +31,6 @@ func dataSourcePrivateDnsZoneVirtualNetworkLink() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			// TODO: in 4.0 switch this to `private_dns_zone_id`
 			"private_dns_zone_name": {
 				Type:     pluginsdk.TypeString,
 				Required: true,

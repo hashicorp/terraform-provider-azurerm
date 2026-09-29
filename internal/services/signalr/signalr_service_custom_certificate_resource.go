@@ -3,15 +3,20 @@
 
 package signalr
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name signalr_service_custom_certificate -service-package-name signalr -properties "name" -compare-values "subscription_id:signalr_service_id,resource_group_name:signalr_service_id,signalr_name:signalr_service_id"
+
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -27,7 +32,14 @@ type CustomCertSignalrServiceResourceModel struct {
 
 type CustomCertSignalrServiceResource struct{}
 
-var _ sdk.Resource = CustomCertSignalrServiceResource{}
+var (
+	_ sdk.Resource             = CustomCertSignalrServiceResource{}
+	_ sdk.ResourceWithIdentity = CustomCertSignalrServiceResource{}
+)
+
+func (r CustomCertSignalrServiceResource) Identity() resourceids.ResourceId {
+	return &signalr.CustomCertificateId{}
+}
 
 func (r CustomCertSignalrServiceResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -124,10 +136,13 @@ func (r CustomCertSignalrServiceResource) Create() sdk.ResourceFunc {
 				customCert.Properties.KeyVaultSecretVersion = pointer.To(certVersion)
 			}
 
-			if err := client.CustomCertificatesCreateOrUpdateCallbackThenPoll(ctx, id, customCert, metadata.SetIDCallback(&id)); err != nil {
+			if err := client.CustomCertificatesCreateOrUpdateCallbackThenPoll(ctx, id, customCert, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 
 			return nil
 		},
@@ -156,30 +171,7 @@ func (r CustomCertSignalrServiceResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: got nil model", *id)
 			}
 
-			vaultBasedUri := resp.Model.Properties.KeyVaultBaseUri
-			certName := resp.Model.Properties.KeyVaultSecretName
-
-			signalrServiceId := signalr.NewSignalRID(id.SubscriptionId, id.ResourceGroupName, id.SignalRName).ID()
-
-			certVersion := ""
-			if resp.Model.Properties.KeyVaultSecretVersion != nil {
-				certVersion = *resp.Model.Properties.KeyVaultSecretVersion
-			}
-			nestedItem, err := keyvault.NewNestedItemID(vaultBasedUri, keyvault.NestedItemTypeCertificate, certName, certVersion)
-			if err != nil {
-				return err
-			}
-
-			certId := nestedItem.ID()
-
-			state := CustomCertSignalrServiceResourceModel{
-				Name:               id.CustomCertificateName,
-				CustomCertId:       certId,
-				SignalRServiceId:   signalrServiceId,
-				CertificateVersion: pointer.From(resp.Model.Properties.KeyVaultSecretVersion),
-			}
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
 }
@@ -204,20 +196,11 @@ func (r CustomCertSignalrServiceResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
-			deadline, ok := ctx.Deadline()
-			if !ok {
-				return fmt.Errorf("internal-error: context had no deadline")
-			}
-			stateConf := &pluginsdk.StateChangeConf{
-				Pending:                   []string{"Exists"},
-				Target:                    []string{"NotFound"},
-				Refresh:                   signalrServiceCustomCertificateDeleteRefreshFunc(ctx, client, *id),
-				Timeout:                   time.Until(deadline),
-				PollInterval:              10 * time.Second,
-				ContinuousTargetOccurence: 20,
-			}
-
-			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+			poller := custompollers.NewEventualConsistencyPoller(20, func(pollerCtx context.Context) (*http.Response, error) {
+				resp, err := client.CustomCertificatesGet(pollerCtx, *id)
+				return resp.HttpResponse, err
+			}, custompollers.DefaultDeletionEventualConsistencyPollerOptions())
+			if err := poller.PollUntilDone(ctx); err != nil {
 				return fmt.Errorf("waiting for %s to be fully deleted: %+v", *id, err)
 			}
 			return nil
@@ -229,17 +212,25 @@ func (r CustomCertSignalrServiceResource) IDValidationFunc() pluginsdk.SchemaVal
 	return signalr.ValidateCustomCertificateID
 }
 
-func signalrServiceCustomCertificateDeleteRefreshFunc(ctx context.Context, client *signalr.SignalRClient, id signalr.CustomCertificateId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.CustomCertificatesGet(ctx, id)
-		if err != nil {
-			if response.WasNotFound(res.HttpResponse) {
-				return "NotFound", "NotFound", nil
-			}
-
-			return nil, "", fmt.Errorf("checking if %s has been deleted: %+v", id, err)
-		}
-
-		return res, "Exists", nil
+func (r CustomCertSignalrServiceResource) flatten(metadata sdk.ResourceMetaData, id *signalr.CustomCertificateId, cert *signalr.CustomCertificate) error {
+	state := CustomCertSignalrServiceResourceModel{
+		Name:             id.CustomCertificateName,
+		SignalRServiceId: signalr.NewSignalRID(id.SubscriptionId, id.ResourceGroupName, id.SignalRName).ID(),
 	}
+
+	if cert != nil {
+		certVersion := pointer.From(cert.Properties.KeyVaultSecretVersion)
+		nestedItem, err := keyvault.NewNestedItemID(cert.Properties.KeyVaultBaseUri, keyvault.NestedItemTypeCertificate, cert.Properties.KeyVaultSecretName, certVersion)
+		if err != nil {
+			return err
+		}
+		state.CustomCertId = nestedItem.ID()
+		state.CertificateVersion = certVersion
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }

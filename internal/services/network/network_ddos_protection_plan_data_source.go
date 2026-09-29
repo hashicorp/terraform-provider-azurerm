@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/ddosprotectionplans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/ddosprotectionplans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -74,8 +74,7 @@ func dataSourceNetworkDDoSProtectionPlanRead(d *pluginsdk.ResourceData, meta int
 		d.Set("location", location.NormalizeNilable(model.Location))
 
 		if props := model.Properties; props != nil {
-			vNetIDs := flattenNetworkDDoSProtectionPlanVirtualNetworkIDs(props.VirtualNetworks)
-			if err := d.Set("virtual_network_ids", vNetIDs); err != nil {
+			if err := d.Set("virtual_network_ids", flattenNetworkDDoSProtectionPlanVirtualNetworkIDs(props.VirtualNetworks)); err != nil {
 				return fmt.Errorf("setting `virtual_network_ids`: %+v", err)
 			}
 		}

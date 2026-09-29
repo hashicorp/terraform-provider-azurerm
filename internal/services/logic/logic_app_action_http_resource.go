@@ -174,8 +174,7 @@ func resourceLogicAppActionHTTPCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		action["runAfter"] = expandLogicAppActionRunAfter(v.(*pluginsdk.Set).List())
 	}
 
-	err = resourceLogicAppActionUpdate(d, meta, *workflowId, id, action, "azurerm_logic_app_action_http")
-	if err != nil {
+	if err = resourceLogicAppActionUpdate(d, meta, *workflowId, id, action, "azurerm_logic_app_action_http"); err != nil {
 		return err
 	}
 
@@ -241,15 +240,13 @@ func resourceLogicAppActionHTTPRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 
 		if headers := inputs["headers"]; headers != nil {
-			hv := headers.(map[string]interface{})
-			if err := d.Set("headers", hv); err != nil {
+			if err := d.Set("headers", headers.(map[string]interface{})); err != nil {
 				return fmt.Errorf("setting `headers` for HTTP Action %q: %+v", id.Name, err)
 			}
 		}
 
 		if queries := inputs["queries"]; queries != nil {
-			qv := queries.(map[string]interface{})
-			if err := d.Set("queries", qv); err != nil {
+			if err := d.Set("queries", queries.(map[string]interface{})); err != nil {
 				return fmt.Errorf("setting `queries` for HTTP Action %q: %+v", id.Name, err)
 			}
 		}
@@ -277,8 +274,7 @@ func resourceLogicAppActionHTTPDelete(d *pluginsdk.ResourceData, meta interface{
 
 	workflowId := workflows.NewWorkflowID(id.SubscriptionId, id.ResourceGroup, id.WorkflowName)
 
-	err = resourceLogicAppActionRemove(d, meta, workflowId, id.Name)
-	if err != nil {
+	if err = resourceLogicAppActionRemove(d, meta, workflowId, id.Name); err != nil {
 		return fmt.Errorf("removing Action %s: %+v", id, err)
 	}
 

@@ -48,13 +48,11 @@ func (r VaultGuardProxyResource) ResourceType() string {
 }
 
 func (r VaultGuardProxyResource) Arguments() map[string]*schema.Schema {
-	args := map[string]*schema.Schema{
+	return map[string]*schema.Schema{
 		"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&vaults.VaultId{}),
 
 		"resource_guard_id": commonschema.ResourceIDReferenceRequiredForceNew(&resourceguardresources.ResourceGuardId{}),
 	}
-
-	return args
 }
 
 func (r VaultGuardProxyResource) Attributes() map[string]*schema.Schema {
@@ -134,8 +132,14 @@ func (r VaultGuardProxyResource) Read() sdk.ResourceFunc {
 				VaultId: vaultId.ID(),
 			}
 
-			if resp.Model != nil && resp.Model.Properties != nil {
-				state.ResourceGuardId = pointer.From(resp.Model.Properties.ResourceGuardResourceId)
+			if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.ResourceGuardResourceId != nil {
+				// Resource Guards created outside of Terraform may have a lowercased `resourceGroups` segment
+				// which is persisted to the proxy even when the API is provided correct casing on creation, so we need to parse this insensitively before setting it into state
+				resourceGuardID, err := resourceguardresources.ParseResourceGuardIDInsensitively(*resp.Model.Properties.ResourceGuardResourceId)
+				if err != nil {
+					return err
+				}
+				state.ResourceGuardId = resourceGuardID.ID()
 			}
 
 			return metadata.Encode(&state)

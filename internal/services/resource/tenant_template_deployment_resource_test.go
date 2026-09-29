@@ -9,14 +9,24 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/deployments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type TenantTemplateDeploymentResource struct{}
+
+func TestAccTenantTemplateDeployment_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_tenant_template_deployment", "test")
+	r := TenantTemplateDeploymentResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.emptyConfig(data),
+		},
+	}, "")
+}
 
 func TestAccTenantTemplateDeployment_empty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_tenant_template_deployment", "test")
@@ -45,7 +55,7 @@ func TestAccTenantTemplateDeployment_empty(t *testing.T) {
 }
 
 func (t TenantTemplateDeploymentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.SubscriptionTemplateDeploymentID(state.ID)
+	id, err := deployments.ParseProviderDeploymentID(state.ID)
 	if err != nil {
 		return nil, err
 	}

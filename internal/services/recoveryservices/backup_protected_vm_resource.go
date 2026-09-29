@@ -28,7 +28,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceRecoveryServicesBackupProtectedVM() *pluginsdk.Resource {
@@ -110,8 +109,7 @@ func resourceRecoveryServicesBackupProtectedVMCreate(d *pluginsdk.ResourceData, 
 
 		if isSoftDeleted {
 			if meta.(*clients.Client).Features.RecoveryServicesVault.RecoverSoftDeletedBackupProtectedVM {
-				err = resourceRecoveryServicesVaultBackupProtectedVMRecoverSoftDeleted(ctx, client, id)
-				if err != nil {
+				if err = resourceRecoveryServicesVaultBackupProtectedVMRecoverSoftDeleted(ctx, client, id); err != nil {
 					return fmt.Errorf("recovering soft deleted %s: %+v", id, err)
 				}
 			} else {
@@ -158,7 +156,7 @@ func resourceRecoveryServicesBackupProtectedVMCreate(d *pluginsdk.ResourceData, 
 
 		updateInput := protecteditems.ProtectedItemResource{
 			Properties: &protecteditems.AzureIaaSComputeVMProtectedItem{
-				ProtectionState:  pointer.To(protecteditems.ProtectionState(protectionState)),
+				ProtectionState:  pointer.ToEnum[protecteditems.ProtectionState](protectionState),
 				SourceResourceId: pointer.To(vmId),
 			},
 		}
@@ -214,11 +212,11 @@ func resourceRecoveryServicesBackupProtectedVMRead(d *pluginsdk.ResourceData, me
 
 				if v := vm.ExtendedProperties; v != nil && v.DiskExclusionProperties != nil {
 					if *v.DiskExclusionProperties.IsInclusionList {
-						if err := d.Set("include_disk_luns", utils.FlattenInt64Slice(v.DiskExclusionProperties.DiskLunList)); err != nil {
+						if err := d.Set("include_disk_luns", pluginsdk.FlattenSlice(v.DiskExclusionProperties.DiskLunList)); err != nil {
 							return fmt.Errorf("setting include_disk_luns: %+v", err)
 						}
 					} else {
-						if err := d.Set("exclude_disk_luns", utils.FlattenInt64Slice(v.DiskExclusionProperties.DiskLunList)); err != nil {
+						if err := d.Set("exclude_disk_luns", pluginsdk.FlattenSlice(v.DiskExclusionProperties.DiskLunList)); err != nil {
 							return fmt.Errorf("setting exclude_disk_luns: %+v", err)
 						}
 					}
@@ -268,7 +266,7 @@ func resourceRecoveryServicesBackupProtectedVMUpdate(d *pluginsdk.ResourceData, 
 		properties.PolicyId = pointer.To(d.Get("backup_policy_id").(string))
 	}
 
-	if d.HasChange("exclude_disk_luns") || d.HasChange("include_disk_luns") {
+	if d.HasChanges("exclude_disk_luns", "include_disk_luns") {
 		properties.ExtendedProperties = expandDiskExclusion(d)
 	}
 
@@ -279,7 +277,7 @@ func resourceRecoveryServicesBackupProtectedVMUpdate(d *pluginsdk.ResourceData, 
 				return err
 			}
 		}
-		properties.ProtectionState = pointer.To(protecteditems.ProtectionState(protectionState))
+		properties.ProtectionState = pointer.ToEnum[protecteditems.ProtectionState](protectionState)
 	}
 	model.Properties = properties
 
@@ -353,7 +351,7 @@ func expandDiskExclusion(d *pluginsdk.ResourceData) *protecteditems.ExtendedProp
 
 		return &protecteditems.ExtendedProperties{
 			DiskExclusionProperties: &protecteditems.DiskExclusionProperties{
-				DiskLunList:     utils.ExpandInt64Slice(diskLun),
+				DiskLunList:     pluginsdk.ExpandInt64Slice(diskLun),
 				IsInclusionList: pointer.To(true),
 			},
 		}
@@ -364,7 +362,7 @@ func expandDiskExclusion(d *pluginsdk.ResourceData) *protecteditems.ExtendedProp
 
 		return &protecteditems.ExtendedProperties{
 			DiskExclusionProperties: &protecteditems.DiskExclusionProperties{
-				DiskLunList:     utils.ExpandInt64Slice(diskLun),
+				DiskLunList:     pluginsdk.ExpandInt64Slice(diskLun),
 				IsInclusionList: pointer.To(false),
 			},
 		}
@@ -425,7 +423,7 @@ func resourceRecoveryServicesBackupProtectedVMSchema() map[string]*pluginsdk.Sch
 		"source_vm_id": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ForceNew: true,
 			ValidateFunc: validation.Any(
 				validation.StringIsEmpty,

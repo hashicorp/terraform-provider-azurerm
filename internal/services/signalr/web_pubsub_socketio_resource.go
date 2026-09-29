@@ -3,7 +3,7 @@
 
 package signalr
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name web_pubsub_socketio -service-package-name signalr -properties "name,resource_group_name"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 import (
 	"context"
@@ -481,7 +481,12 @@ func (w WebPubSubSocketIOResource) Update() sdk.ResourceFunc {
 				payload.Identity = expandedIdentity
 			}
 
-			if rd.HasChanges("live_trace_enabled", "live_trace_connectivity_logs_enabled", "live_trace_http_request_logs_enabled", "live_trace_messaging_logs_enabled") {
+			if rd.HasChanges(
+				"live_trace_enabled",
+				"live_trace_connectivity_logs_enabled",
+				"live_trace_http_request_logs_enabled",
+				"live_trace_messaging_logs_enabled",
+			) {
 				props.LiveTraceConfiguration = expandLiveTraceConfigFromModel(config)
 			}
 

@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceApiManagementIdentityProviderAAD() *pluginsdk.Resource {
@@ -113,7 +112,7 @@ func resourceApiManagementIdentityProviderAADCreateUpdate(d *pluginsdk.ResourceD
 			ClientLibrary:  pointer.To(clientLibrary),
 			ClientSecret:   clientSecret,
 			Type:           pointer.To(identityprovider.IdentityProviderTypeAad),
-			AllowedTenants: utils.ExpandStringSlice(allowedTenants),
+			AllowedTenants: pluginsdk.ExpandStringSlice(allowedTenants),
 			SigninTenant:   pointer.To(signinTenant),
 		},
 	}
@@ -136,8 +135,6 @@ func resourceApiManagementIdentityProviderAADRead(d *pluginsdk.ResourceData, met
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroupName
-	serviceName := id.ServiceName
 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
@@ -150,8 +147,8 @@ func resourceApiManagementIdentityProviderAADRead(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("api_management_name", serviceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("api_management_name", id.ServiceName)
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {

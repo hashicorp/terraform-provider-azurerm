@@ -287,7 +287,14 @@ func (r GalleryApplicationResource) Update() sdk.ResourceFunc {
 			}
 
 			payload := *existing.Model
-			if metadata.ResourceData.HasChanges("description", "end_of_life_date", "eula", "privacy_statement_uri", "release_note_uri") {
+			// lintignore:R019 // deliberate subset: only the fields feeding payload.Properties; tags are applied separately below
+			if metadata.ResourceData.HasChanges(
+				"description",
+				"end_of_life_date",
+				"eula",
+				"privacy_statement_uri",
+				"release_note_uri",
+			) {
 				if payload.Properties == nil {
 					payload.Properties = &galleryapplications.GalleryApplicationProperties{}
 				}

@@ -10,8 +10,8 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" // nolint: staticcheck
-	assignments "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
 )
 
 func getPolicyDefinitionByDisplayName(ctx context.Context, client *policy.DefinitionsClient, displayName, managementGroupName string,
@@ -61,7 +61,7 @@ func getPolicyDefinitionByDisplayName(ctx context.Context, client *policy.Defini
 func getPolicyDefinitionByName(ctx context.Context, client *policy.DefinitionsClient, name, managementGroupName string) (res policy.Definition, err error) {
 	if managementGroupName == "" {
 		res, err = client.GetBuiltIn(ctx, name)
-		if utils.ResponseWasNotFound(res.Response) {
+		if response.WasNotFound(res.Response.Response) {
 			res, err = client.Get(ctx, name)
 		}
 	} else {
@@ -74,7 +74,7 @@ func getPolicyDefinitionByName(ctx context.Context, client *policy.DefinitionsCl
 func getPolicySetDefinitionByName(ctx context.Context, client *policy.SetDefinitionsClient, name, managementGroupID string) (res policy.SetDefinition, err error) {
 	if managementGroupID == "" {
 		res, err = client.GetBuiltIn(ctx, name)
-		if utils.ResponseWasNotFound(res.Response) {
+		if response.WasNotFound(res.Response.Response) {
 			res, err = client.Get(ctx, name)
 		}
 	} else {
@@ -148,8 +148,8 @@ func flattenParameterDefinitionsValueToStringTrack1(input map[string]*policy.Par
 	return compactJson.String(), nil
 }
 
-func expandParameterValuesValueFromString(jsonString string) (map[string]assignments.ParameterValuesValue, error) {
-	var result map[string]assignments.ParameterValuesValue
+func expandParameterValuesValueFromString(jsonString string) (map[string]policyassignments.ParameterValuesValue, error) {
+	var result map[string]policyassignments.ParameterValuesValue
 
 	err := json.Unmarshal([]byte(jsonString), &result)
 
@@ -170,7 +170,7 @@ func flattenParameterValuesValueToStringTrack1(input map[string]*policy.Paramete
 	return string(result), err
 }
 
-func flattenParameterValuesValueToStringV2(input *map[string]assignments.ParameterValuesValue) (string, error) {
+func flattenParameterValuesValueToStringV2(input *map[string]policyassignments.ParameterValuesValue) (string, error) {
 	if input == nil || *input == nil {
 		return "", nil
 	}

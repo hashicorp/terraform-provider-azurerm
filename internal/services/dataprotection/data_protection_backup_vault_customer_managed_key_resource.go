@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_vault_customer_managed_key -service-package-name dataprotection -compare-values "subscription_id:data_protection_backup_vault_id,resource_group_name:data_protection_backup_vault_id,name:data_protection_backup_vault_id" -test-name complete
+//go:generate go run ../../tools/generator-tests resourceidentity -parent-id "data_protection_backup_vault_id" -test-name complete
 
 type DataProtectionBackupVaultCustomerManagedKeyResource struct{}
 
@@ -125,8 +125,7 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Create() sdk.Resour
 				IdentityType: pointer.To(backupvaultresources.IdentityTypeSystemAssigned),
 			}
 
-			err = client.BackupVaultsCreateOrUpdateCallbackThenPoll(ctx, *id, *payload, backupvaultresources.DefaultBackupVaultsCreateOrUpdateOperationOptions(), metadata.SetIDAndIdentityCallback(id))
-			if err != nil {
+			if err = client.BackupVaultsCreateOrUpdateCallbackThenPoll(ctx, *id, *payload, backupvaultresources.DefaultBackupVaultsCreateOrUpdateOperationOptions(), metadata.SetIDAndIdentityCallback(id)); err != nil {
 				return fmt.Errorf("creating Customer Managed Key for %s: %+v", *id, err)
 			}
 
@@ -234,8 +233,7 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Update() sdk.Resour
 				}
 			}
 
-			err = client.BackupVaultsCreateOrUpdateThenPoll(ctx, *id, *payload, backupvaultresources.DefaultBackupVaultsCreateOrUpdateOperationOptions())
-			if err != nil {
+			if err = client.BackupVaultsCreateOrUpdateThenPoll(ctx, *id, *payload, backupvaultresources.DefaultBackupVaultsCreateOrUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("updating Customer Managed Key for %s: %+v", *id, err)
 			}
 

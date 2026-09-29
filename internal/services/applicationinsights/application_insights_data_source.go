@@ -7,11 +7,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -88,7 +89,7 @@ func dataSourceArmApplicationInsightsRead(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := components.NewComponentID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := componentsapis.NewComponentID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	resp, err := client.ComponentsGet(ctx, id)
 	if err != nil {
@@ -115,12 +116,7 @@ func dataSourceArmApplicationInsightsRead(d *pluginsdk.ResourceData, meta interf
 				retentionInDays = int(*props.RetentionInDays)
 			}
 			d.Set("retention_in_days", retentionInDays)
-
-			workspaceId := ""
-			if props.WorkspaceResourceId != nil {
-				workspaceId = *props.WorkspaceResourceId
-			}
-			d.Set("workspace_id", workspaceId)
+			d.Set("workspace_id", pointer.From(props.WorkspaceResourceId))
 		}
 	}
 	return nil
