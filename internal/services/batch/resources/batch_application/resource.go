@@ -15,7 +15,7 @@ import (
 
 var azureBatchApplicationResourceName = "azurerm_batch_application"
 
-func Resource() *pluginsdk.Resource {
+func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceBatchApplicationCreate,
 		Read:   resourceBatchApplicationRead,
@@ -31,7 +31,7 @@ func Resource() *pluginsdk.Resource {
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&application.ApplicationId{}),
 
-		Schema: resourceBatch_applicationSchema(),
+		Schema: batchApplicationSchema(),
 
 		Identity: &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&application.ApplicationId{}),

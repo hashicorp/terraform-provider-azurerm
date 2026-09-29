@@ -11,7 +11,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func Resource() *pluginsdk.Resource {
+//go:generate go run ../../../../tools/generator-tests resourceidentity -resource-name batch_pool -service-package-name batch -properties "name,resource_group_name,batch_account_name:account_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
+func RegisterResource() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
 		Create: resourceBatchCreate,
 		Read:   resourceBatchPoolRead,
@@ -27,7 +29,7 @@ func Resource() *pluginsdk.Resource {
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&pool.PoolId{}),
 
-		Schema: resourceBatch_poolSchema(),
+		Schema: batchPoolSchema(),
 	}
 
 	resource.Identity = &schema.ResourceIdentity{

@@ -40,18 +40,18 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_batch_account":     batch_account.DataSource(),
-		"azurerm_batch_application": batch_application.DataSource(),
-		"azurerm_batch_pool":        batch_pool.DataSource(),
+		"azurerm_batch_account":     batch_account.RegisterDataSource(),
+		"azurerm_batch_application": batch_application.RegisterDataSource(),
+		"azurerm_batch_pool":        batch_pool.RegisterDataSource(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_batch_account":     batch_account.Resource(),
-		"azurerm_batch_application": batch_application.Resource(),
-		"azurerm_batch_pool":        batch_pool.Resource(),
+		"azurerm_batch_account":     batch_account.RegisterResource(),
+		"azurerm_batch_application": batch_application.RegisterResource(),
+		"azurerm_batch_pool":        batch_pool.RegisterResource(),
 	}
 }
 

@@ -15,7 +15,7 @@ import (
 
 const batchAccountResourceName = "azurerm_batch_account"
 
-func Resource() *pluginsdk.Resource {
+func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceBatchAccountCreate,
 		Read:   resourceBatchAccountRead,
@@ -31,7 +31,7 @@ func Resource() *pluginsdk.Resource {
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&batchaccount.BatchAccountId{}),
 
-		Schema: resourceBatch_accountSchema(),
+		Schema: batchAccountSchema(),
 
 		Identity: &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&batchaccount.BatchAccountId{}),
