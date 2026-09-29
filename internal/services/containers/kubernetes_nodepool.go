@@ -596,7 +596,7 @@ func schemaNodePoolLocalDNSProfile() *pluginsdk.Schema {
 					},
 				},
 
-				"vnet_dns_override": {
+				"virtual_network_dns_override": {
 					Type:     pluginsdk.TypeSet,
 					Optional: true,
 					Set:      localDNSOverrideSetHash,
@@ -1270,7 +1270,7 @@ func expandClusterNodePoolLocalDNSProfile(input []interface{}) *managedclusters.
 		profile.KubeDNSOverrides = &overrides
 	}
 
-	if v, ok := raw["vnet_dns_override"].(*pluginsdk.Set); ok && v.Len() > 0 {
+	if v, ok := raw["virtual_network_dns_override"].(*pluginsdk.Set); ok && v.Len() > 0 {
 		overrides := make(map[string]managedclusters.LocalDNSOverride)
 		for _, item := range v.List() {
 			overrideData := item.(map[string]interface{})
@@ -1628,7 +1628,7 @@ func flattenClusterNodePoolLocalDNSProfile(input *managedclusters.LocalDNSProfil
 			overrideMap["domain"] = k
 			overrides = append(overrides, overrideMap)
 		}
-		values["vnet_dns_override"] = pluginsdk.NewSet(localDNSOverrideSetHash, overrides)
+		values["virtual_network_dns_override"] = pluginsdk.NewSet(localDNSOverrideSetHash, overrides)
 	}
 
 	return []interface{}{values}
@@ -2147,7 +2147,7 @@ func validateLocalDNSProfileOverrides(prefix string) schema.CustomizeDiffFunc {
 			return nil
 		}
 
-		if v, ok := d.GetOk(prefix + "local_dns.0.vnet_dns_override"); ok {
+		if v, ok := d.GetOk(prefix + "local_dns.0.virtual_network_dns_override"); ok {
 			for _, item := range v.(*pluginsdk.Set).List() {
 				override := item.(map[string]any)
 				domain := override["domain"].(string)
@@ -2156,15 +2156,15 @@ func validateLocalDNSProfileOverrides(prefix string) schema.CustomizeDiffFunc {
 				serveStale := override["serve_stale"].(string)
 
 				if domain == "." && strings.EqualFold(forwardDest, string(agentpools.LocalDNSForwardDestinationClusterCoreDNS)) {
-					return fmt.Errorf("under `vnet_dns_override`, the `forward_destination` for the root zone ('.') cannot be 'ClusterCoreDNS'")
+					return fmt.Errorf("under `virtual_network_dns_override`, the `forward_destination` for the root zone ('.') cannot be 'ClusterCoreDNS'")
 				}
 
 				if domain == "cluster.local" && strings.EqualFold(forwardDest, string(agentpools.LocalDNSForwardDestinationVnetDNS)) {
-					return fmt.Errorf("under `vnet_dns_override`, the `forward_destination` for 'cluster.local' cannot be 'VnetDNS'")
+					return fmt.Errorf("under `virtual_network_dns_override`, the `forward_destination` for 'cluster.local' cannot be 'VnetDNS'")
 				}
 
 				if strings.EqualFold(protocol, string(agentpools.LocalDNSProtocolForceTCP)) && strings.EqualFold(serveStale, string(agentpools.LocalDNSServeStaleVerify)) {
-					return fmt.Errorf("under `vnet_dns_override` for domain %q, when `protocol` is 'ForceTCP', `serve_stale` cannot be 'Verify'. Use 'Immediate' instead", domain)
+					return fmt.Errorf("under `virtual_network_dns_override` for domain %q, when `protocol` is 'ForceTCP', `serve_stale` cannot be 'Verify'. Use 'Immediate' instead", domain)
 				}
 			}
 		}
