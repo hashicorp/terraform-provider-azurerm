@@ -295,7 +295,7 @@ func flattenNetworkDDoSCustomPolicyDetectionRules(input *[]ddoscustompolicies.Dd
 		if props := v.Properties; props != nil {
 			if trafficDetectionRule := props.TrafficDetectionRule; trafficDetectionRule != nil {
 				rule.PacketsPerSecond = pointer.From(trafficDetectionRule.PacketsPerSecond)
-				rule.TrafficType = string(pointer.From(trafficDetectionRule.TrafficType))
+				rule.TrafficType = pointer.FromEnum(trafficDetectionRule.TrafficType)
 			}
 		}
 
