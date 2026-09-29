@@ -50,7 +50,7 @@ resource "azurerm_subnet" "netappSubnet" {
     name = "testdelegation"
 
     service_delegation {
-      name    = "Microsoft.Netapp/volumes"
+      name = "Microsoft.Netapp/volumes"
     }
   }
 }

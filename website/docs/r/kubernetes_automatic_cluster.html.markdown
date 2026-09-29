@@ -80,7 +80,7 @@ resource "azurerm_subnet" "api" {
     name = "aks-delegation"
 
     service_delegation {
-      name    = "Microsoft.ContainerService/managedClusters"
+      name = "Microsoft.ContainerService/managedClusters"
     }
   }
 }

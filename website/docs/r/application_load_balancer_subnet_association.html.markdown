@@ -41,7 +41,7 @@ resource "azurerm_subnet" "example" {
     name = "delegation"
 
     service_delegation {
-      name    = "Microsoft.ServiceNetworking/trafficControllers"
+      name = "Microsoft.ServiceNetworking/trafficControllers"
     }
   }
 }

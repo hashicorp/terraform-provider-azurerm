@@ -49,7 +49,7 @@ resource "azurerm_subnet" "example" {
     name = "netapp"
 
     service_delegation {
-      name    = "Microsoft.Netapp/volumes"
+      name = "Microsoft.Netapp/volumes"
     }
   }
 }

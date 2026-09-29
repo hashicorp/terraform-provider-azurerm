@@ -155,7 +155,7 @@ resource "azurerm_subnet" "example" {
     name = "managedinstancedelegation"
 
     service_delegation {
-      name    = "Microsoft.Sql/managedInstances"
+      name = "Microsoft.Sql/managedInstances"
     }
   }
 }

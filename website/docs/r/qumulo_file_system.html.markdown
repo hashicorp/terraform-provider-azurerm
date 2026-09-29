@@ -34,7 +34,7 @@ resource "azurerm_subnet" "example" {
   delegation {
     name = "delegation"
     service_delegation {
-      name    = "Qumulo.Storage/fileSystems"
+      name = "Qumulo.Storage/fileSystems"
     }
   }
 }

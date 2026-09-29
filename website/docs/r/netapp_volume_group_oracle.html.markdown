@@ -49,7 +49,7 @@ resource "azurerm_subnet" "example" {
     name = "exampledelegation"
 
     service_delegation {
-      name    = "Microsoft.Netapp/volumes"
+      name = "Microsoft.Netapp/volumes"
     }
   }
 }
@@ -173,7 +173,7 @@ resource "azurerm_subnet" "example_primary" {
     name = "exampledelegation"
 
     service_delegation {
-      name    = "Microsoft.Netapp/volumes"
+      name = "Microsoft.Netapp/volumes"
     }
   }
 }
@@ -196,7 +196,7 @@ resource "azurerm_subnet" "example_secondary" {
     name = "exampledelegation"
 
     service_delegation {
-      name    = "Microsoft.Netapp/volumes"
+      name = "Microsoft.Netapp/volumes"
     }
   }
 }

@@ -37,7 +37,7 @@ resource "azurerm_subnet" "example" {
   delegation {
     name = "Microsoft.Web.hostingEnvironments"
     service_delegation {
-      name    = "Microsoft.Web/hostingEnvironments"
+      name = "Microsoft.Web/hostingEnvironments"
     }
   }
 }

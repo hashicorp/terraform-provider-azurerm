@@ -41,7 +41,7 @@ resource "azurerm_subnet" "example" {
   delegation {
     name = "Microsoft.Network.dnsResolvers"
     service_delegation {
-      name    = "Microsoft.Network/dnsResolvers"
+      name = "Microsoft.Network/dnsResolvers"
     }
   }
 }

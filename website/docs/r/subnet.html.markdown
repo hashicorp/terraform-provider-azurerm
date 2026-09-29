@@ -40,7 +40,7 @@ resource "azurerm_subnet" "example" {
     name = "delegation"
 
     service_delegation {
-      name    = "Microsoft.ContainerInstance/containerGroups"
+      name = "Microsoft.ContainerInstance/containerGroups"
     }
   }
 }
