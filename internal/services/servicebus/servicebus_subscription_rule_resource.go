@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/rules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/subscriptions"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -19,6 +20,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -test-name "basicSqlFilter" -properties "name" -compare-values "namespace_name:subscription_id,resource_group_name:subscription_id,subscription_name:subscription_id,topic_name:subscription_id"
+
+const serviceBusSubscriptionRuleResourceName = "azurerm_servicebus_subscription_rule"
+
 func resourceServiceBusSubscriptionRule() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceServiceBusSubscriptionRuleCreateUpdate,
@@ -26,10 +31,11 @@ func resourceServiceBusSubscriptionRule() *pluginsdk.Resource {
 		Update: resourceServiceBusSubscriptionRuleCreateUpdate,
 		Delete: resourceServiceBusSubscriptionRuleDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := rules.ParseRuleID(id)
-			return err
-		}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&rules.RuleId{}),
+		},
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&rules.RuleId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -210,7 +216,7 @@ func resourceServiceBusSubscriptionRuleCreateUpdate(d *pluginsdk.ResourceData, m
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_servicebus_subscription_rule", id.ID())
+				return tf.ImportAsExistsError(serviceBusSubscriptionRuleResourceName, id.ID())
 			}
 		}
 	}
@@ -254,6 +260,10 @@ func resourceServiceBusSubscriptionRuleCreateUpdate(d *pluginsdk.ResourceData, m
 
 	if d.IsNewResource() {
 		d.SetId(id.ID())
+		if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+			return err
+		}
+
 	}
 
 	return resourceServiceBusSubscriptionRuleRead(d, meta)
@@ -278,10 +288,14 @@ func resourceServiceBusSubscriptionRuleRead(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	return resourceServiceBusSubscriptionRuleFlatten(d, id, resp.Model)
+}
+
+func resourceServiceBusSubscriptionRuleFlatten(d *pluginsdk.ResourceData, id *rules.RuleId, model *rules.Rule) error {
 	d.Set("subscription_id", subscriptions.NewSubscriptions2ID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.TopicName, id.SubscriptionName).ID())
 	d.Set("name", id.RuleName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("filter_type", string(pointer.From(props.FilterType)))
 
@@ -302,7 +316,7 @@ func resourceServiceBusSubscriptionRuleRead(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceServiceBusSubscriptionRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
