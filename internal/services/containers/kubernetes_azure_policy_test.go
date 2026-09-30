@@ -19,9 +19,9 @@ func TestKubernetesAzurePolicyPayload(t *testing.T) {
 		for _, after := range []bool{false, true} {
 			t.Run(fmt.Sprintf("%t_to_%t", before, after), func(t *testing.T) {
 				resource := &pluginsdk.Resource{Schema: schemaKubernetesAddOns()}
-				old := schema.TestResourceDataRaw(t, resource.Schema, map[string]interface{}{"azure_policy_enabled": before})
+				old := schema.TestResourceDataRaw(t, resource.Schema, map[string]any{"azure_policy_enabled": before})
 				old.SetId("existing-cluster")
-				config := terraform.NewResourceConfigRaw(map[string]interface{}{"azure_policy_enabled": after})
+				config := terraform.NewResourceConfigRaw(map[string]any{"azure_policy_enabled": after})
 				diff, err := resource.SimpleDiff(t.Context(), old.State(), config, nil)
 				if err != nil {
 					t.Fatal(err)
@@ -30,7 +30,7 @@ func TestKubernetesAzurePolicyPayload(t *testing.T) {
 				if err != nil {
 					t.Fatal(err)
 				}
-				input := map[string]interface{}{}
+				input := map[string]any{}
 				for key := range resource.Schema {
 					input[key] = data.Get(key)
 				}
@@ -46,7 +46,7 @@ func TestKubernetesAzurePolicyPayload(t *testing.T) {
 				if err != nil {
 					t.Fatal(err)
 				}
-				var payload map[string]interface{}
+				var payload map[string]any
 				if err := json.Unmarshal(wire, &payload); err != nil {
 					t.Fatal(err)
 				}
