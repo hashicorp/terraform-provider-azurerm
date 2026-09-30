@@ -107,11 +107,7 @@ fun BuildSteps.RunAcceptanceTestsForPullRequest(packageName: String) {
         conditions {
             equals("env.SCHEDULE_MATCHES", "true")
         }
-        failureConditions {
-            executionTimeoutMin = 720
-            errorMessage = true
-            testFailure = false
-        }
+        executionMode = BuildStep.ExecutionMode.RUN_ON_FAILURE
     })
 }
 
