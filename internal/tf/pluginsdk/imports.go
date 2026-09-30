@@ -71,8 +71,7 @@ func ImporterValidatingIdentityThen(id resourceids.ResourceId, thenFunc Importer
 			}
 
 			if d.Id() != "" {
-				parser := resourceids.NewParserFromResourceIdType(id)
-				if _, err := parser.Parse(d.Id(), false); err != nil {
+				if err := ValidateResourceId(id, d.Id(), false); err != nil {
 					// NOTE: we're intentionally not wrapping this error, since it's prefixed with `parsing %q:`
 					return []*ResourceData{d}, err
 				}
@@ -80,6 +79,43 @@ func ImporterValidatingIdentityThen(id resourceids.ResourceId, thenFunc Importer
 			}
 
 			if err := ValidateResourceIdentityData(d, id, idType...); err != nil {
+				return nil, err
+			}
+
+			return thenFunc(ctx, d, meta)
+		},
+	}
+}
+
+// ImporterValidatingCompositeIdentity validates the ID provided at import time is valid or that the composite resource identity data provided in the import block is valid
+func ImporterValidatingCompositeIdentity(id resourceids.ResourceId, customNames ...string) *schema.ResourceImporter {
+	thenFunc := func(ctx context.Context, d *ResourceData, meta any) ([]*ResourceData, error) {
+		return []*ResourceData{d}, nil
+	}
+
+	return ImporterValidatingCompositeIdentityThen(id, thenFunc, customNames...)
+}
+
+// ImporterValidatingCompositeIdentityThen validates the ID provided at import time is valid or that the composite resource identity data provided in the import block is valid, then runs thenFunc
+func ImporterValidatingCompositeIdentityThen(id resourceids.ResourceId, thenFunc ImporterFunc, customNames ...string) *schema.ResourceImporter {
+	return &schema.ResourceImporter{
+		StateContext: func(ctx context.Context, d *ResourceData, meta any) ([]*ResourceData, error) {
+			log.Printf("[DEBUG] Importing Resource - parsing %q", d.Id())
+
+			if _, ok := ctx.Deadline(); !ok {
+				var cancel context.CancelFunc
+				ctx, cancel = context.WithTimeout(ctx, d.Timeout(schema.TimeoutRead))
+				defer cancel()
+			}
+
+			if d.Id() != "" {
+				if err := ValidateResourceId(id, d.Id(), false); err != nil {
+					return []*ResourceData{d}, err
+				}
+				return thenFunc(ctx, d, meta)
+			}
+
+			if err := ValidateCompositeResourceIdentityData(d, id, customNames...); err != nil {
 				return nil, err
 			}
 
