@@ -20,11 +20,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type NatGatewayPublicAssociationResource struct{}
+type NatGatewayPublicIpAssociationResource struct{}
 
 func TestAccNatGatewayPublicIpAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_nat_gateway_public_ip_association", "test")
-	r := NatGatewayPublicAssociationResource{}
+	r := NatGatewayPublicIpAssociationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		// intentional as this is a Virtual Resource
 		{
@@ -39,7 +39,7 @@ func TestAccNatGatewayPublicIpAssociation_basic(t *testing.T) {
 
 func TestAccNatGatewayPublicIpAssociation_updateNatGateway(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_nat_gateway_public_ip_association", "test")
-	r := NatGatewayPublicAssociationResource{}
+	r := NatGatewayPublicIpAssociationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		// intentional as this is a Virtual Resource
 		{
@@ -61,7 +61,7 @@ func TestAccNatGatewayPublicIpAssociation_updateNatGateway(t *testing.T) {
 
 func TestAccNatGatewayPublicIpAssociation_ipv6(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_nat_gateway_public_ip_association", "test")
-	r := NatGatewayPublicAssociationResource{}
+	r := NatGatewayPublicIpAssociationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.ipv6(data),
@@ -75,7 +75,7 @@ func TestAccNatGatewayPublicIpAssociation_ipv6(t *testing.T) {
 
 func TestAccNatGatewayPublicIpAssociation_multipleAssociations(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_nat_gateway_public_ip_association", "test")
-	r := NatGatewayPublicAssociationResource{}
+	r := NatGatewayPublicIpAssociationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.multipleAssociations(data),
@@ -89,7 +89,7 @@ func TestAccNatGatewayPublicIpAssociation_multipleAssociations(t *testing.T) {
 
 func TestAccNatGatewayPublicIpAssociation_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_nat_gateway_public_ip_association", "test")
-	r := NatGatewayPublicAssociationResource{}
+	r := NatGatewayPublicIpAssociationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		// intentional as this is a Virtual Resource
 		{
@@ -104,7 +104,7 @@ func TestAccNatGatewayPublicIpAssociation_requiresImport(t *testing.T) {
 
 func TestAccNatGatewayPublicIpAssociation_deleted(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_nat_gateway_public_ip_association", "test")
-	r := NatGatewayPublicAssociationResource{}
+	r := NatGatewayPublicIpAssociationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		// intentional as this is a Virtual Resource
@@ -115,7 +115,7 @@ func TestAccNatGatewayPublicIpAssociation_deleted(t *testing.T) {
 	})
 }
 
-func (t NatGatewayPublicAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t NatGatewayPublicIpAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseCompositeResourceID(state.ID, &natgateways.NatGatewayId{}, &commonids.PublicIPAddressId{})
 	if err != nil {
 		return nil, err
@@ -150,7 +150,7 @@ func (t NatGatewayPublicAssociationResource) Exists(ctx context.Context, clients
 	return pointer.To(found), nil
 }
 
-func (NatGatewayPublicAssociationResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (NatGatewayPublicIpAssociationResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseCompositeResourceID(state.ID, &natgateways.NatGatewayId{}, &commonids.PublicIPAddressId{})
 	if err != nil {
 		return nil, err
@@ -197,7 +197,7 @@ func (NatGatewayPublicAssociationResource) Destroy(ctx context.Context, client *
 	return pointer.To(true), nil
 }
 
-func (r NatGatewayPublicAssociationResource) basic(data acceptance.TestData) string {
+func (r NatGatewayPublicIpAssociationResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -215,7 +215,7 @@ resource "azurerm_nat_gateway_public_ip_association" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r NatGatewayPublicAssociationResource) requiresImport(data acceptance.TestData) string {
+func (r NatGatewayPublicIpAssociationResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -226,7 +226,7 @@ resource "azurerm_nat_gateway_public_ip_association" "import" {
 `, r.basic(data))
 }
 
-func (r NatGatewayPublicAssociationResource) ipv6(data acceptance.TestData) string {
+func (r NatGatewayPublicIpAssociationResource) ipv6(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -244,7 +244,7 @@ resource "azurerm_nat_gateway_public_ip_association" "test" {
 `, r.templateIPv6(data, string(publicipaddresses.PublicIPAddressSkuNameStandardVTwo)), data.RandomInteger)
 }
 
-func (r NatGatewayPublicAssociationResource) multipleAssociations(data acceptance.TestData) string {
+func (r NatGatewayPublicIpAssociationResource) multipleAssociations(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -272,7 +272,7 @@ resource "azurerm_nat_gateway_public_ip_association" "test3" {
 `, r.templateDualStack(data), data.RandomInteger)
 }
 
-func (r NatGatewayPublicAssociationResource) updateNatGateway(data acceptance.TestData) string {
+func (r NatGatewayPublicIpAssociationResource) updateNatGateway(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -293,7 +293,7 @@ resource "azurerm_nat_gateway_public_ip_association" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (NatGatewayPublicAssociationResource) template(data acceptance.TestData) string {
+func (NatGatewayPublicIpAssociationResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -314,7 +314,7 @@ resource "azurerm_public_ip" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (NatGatewayPublicAssociationResource) templateIPv6(data acceptance.TestData, sku string) string {
+func (NatGatewayPublicIpAssociationResource) templateIPv6(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -336,7 +336,7 @@ resource "azurerm_public_ip" "test" {
 `, data.RandomInteger, data.Locations.Primary, sku)
 }
 
-func (NatGatewayPublicAssociationResource) templateDualStack(data acceptance.TestData) string {
+func (NatGatewayPublicIpAssociationResource) templateDualStack(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

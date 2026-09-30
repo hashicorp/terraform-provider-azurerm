@@ -3,6 +3,8 @@
 
 package network
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name nat_gateway_public_ip_association -properties "resource_id1:nat_gateway_id,resource_id2:public_ip_address_id" -no-subscription-id
+
 import (
 	"fmt"
 	"log"
@@ -14,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/natgateways"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/publicipaddresses"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -28,10 +31,11 @@ func resourceNATGatewayPublicIpAssociation() *pluginsdk.Resource {
 		Read:   resourceNATGatewayPublicIpAssociationRead,
 		Delete: resourceNATGatewayPublicIpAssociationDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := commonids.ParseCompositeResourceID(id, &natgateways.NatGatewayId{}, &commonids.PublicIPAddressId{})
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(commonids.NewCompositeResourceID(&natgateways.NatGatewayId{}, &commonids.PublicIPAddressId{})),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(commonids.NewCompositeResourceID(&natgateways.NatGatewayId{}, &commonids.PublicIPAddressId{})),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -134,11 +138,14 @@ func resourceNATGatewayPublicIpAssociationCreate(d *pluginsdk.ResourceData, meta
 		gatewayProps.PublicIPAddresses = pointer.To(publicIpAddresses)
 	}
 
-	if err := client.CreateOrUpdateCallbackThenPoll(ctx, *natGatewayId, *natGateway.Model, sdk.SetIDCallback(meta, &id, d)); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, *natGatewayId, *natGateway.Model, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("updating %s: %+v", natGatewayId, err)
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, id); err != nil {
+		return fmt.Errorf("setting resource identity: %w", err)
+	}
 
 	return resourceNATGatewayPublicIpAssociationRead(d, meta)
 }
@@ -178,7 +185,7 @@ func resourceNATGatewayPublicIpAssociationRead(d *pluginsdk.ResourceData, meta a
 	d.Set("nat_gateway_id", id.First.ID())
 	d.Set("public_ip_address_id", id.Second.ID())
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceNATGatewayPublicIpAssociationDelete(d *pluginsdk.ResourceData, meta any) error {
