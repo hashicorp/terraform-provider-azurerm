@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-06-01/backupinstanceresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-06-01/backupinstances"
 	"github.com/hashicorp/terraform-plugin-framework/list"
@@ -93,8 +94,8 @@ func (DataProtectionBackupInstanceCosmosdbAccountListResource) List(ctx context.
 			rmd := sdk.NewResourceMetaData(metadata.Client, r)
 			rmd.SetID(id)
 
-			model := backupInstanceCosmosdbAccountFlattenModel{
-				Location:          item.Properties.DataSourceInfo.ResourceLocation,
+			model := BackupInstanceCosmosdbAccountModel{
+				Location:          location.NormalizeNilable(item.Properties.DataSourceInfo.ResourceLocation),
 				CosmosdbAccountId: item.Properties.DataSourceInfo.ResourceID,
 				BackupPolicyId:    item.Properties.PolicyInfo.PolicyId,
 				ProtectionState:   pointer.FromEnum(item.Properties.CurrentProtectionState),

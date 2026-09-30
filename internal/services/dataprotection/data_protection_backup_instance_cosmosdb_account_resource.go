@@ -33,13 +33,6 @@ type BackupInstanceCosmosdbAccountModel struct {
 	ProtectionState             string `tfschema:"protection_state"`
 }
 
-type backupInstanceCosmosdbAccountFlattenModel struct {
-	Location          *string
-	CosmosdbAccountId string
-	BackupPolicyId    string
-	ProtectionState   string
-}
-
 const cosmosDBAccountDataSourceType = "Microsoft.DocumentDB/databaseAccounts"
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_instance_cosmosdb_account -service-package-name dataprotection -properties "name" -compare-values "subscription_id:data_protection_backup_vault_id,resource_group_name:data_protection_backup_vault_id,backup_vault_name:data_protection_backup_vault_id"
@@ -198,11 +191,11 @@ func (r DataProtectionBackupInstanceCosmosdbAccountResource) Read() sdk.Resource
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			var model *backupInstanceCosmosdbAccountFlattenModel
+			var model *BackupInstanceCosmosdbAccountModel
 			if resp.Model != nil && resp.Model.Properties != nil {
 				props := resp.Model.Properties
-				model = &backupInstanceCosmosdbAccountFlattenModel{
-					Location:          props.DataSourceInfo.ResourceLocation,
+				model = &BackupInstanceCosmosdbAccountModel{
+					Location:          location.NormalizeNilable(props.DataSourceInfo.ResourceLocation),
 					CosmosdbAccountId: props.DataSourceInfo.ResourceID,
 					BackupPolicyId:    props.PolicyInfo.PolicyId,
 					ProtectionState:   pointer.FromEnum(props.CurrentProtectionState),
@@ -214,14 +207,14 @@ func (r DataProtectionBackupInstanceCosmosdbAccountResource) Read() sdk.Resource
 	}
 }
 
-func (r DataProtectionBackupInstanceCosmosdbAccountResource) flatten(metadata sdk.ResourceMetaData, id *backupinstanceresources.BackupInstanceId, model *backupInstanceCosmosdbAccountFlattenModel) error {
+func (r DataProtectionBackupInstanceCosmosdbAccountResource) flatten(metadata sdk.ResourceMetaData, id *backupinstanceresources.BackupInstanceId, model *BackupInstanceCosmosdbAccountModel) error {
 	state := BackupInstanceCosmosdbAccountModel{
 		Name:                        id.BackupInstanceName,
 		DataProtectionBackupVaultId: backupvaultresources.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.BackupVaultName).ID(),
 	}
 
 	if model != nil {
-		state.Location = location.NormalizeNilable(model.Location)
+		state.Location = model.Location
 
 		accountId, err := cosmosdb.ParseDatabaseAccountIDInsensitively(model.CosmosdbAccountId)
 		if err != nil {
@@ -262,7 +255,7 @@ func (r DataProtectionBackupInstanceCosmosdbAccountResource) Update() sdk.Resour
 
 			existing, err := client.BackupInstancesGet(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("reading %s: %+v", *id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			if existing.Model == nil {
