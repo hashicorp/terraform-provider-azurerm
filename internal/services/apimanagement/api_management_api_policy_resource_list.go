@@ -89,7 +89,7 @@ func (ApiManagementApiPolicyListResource) List(ctx context.Context, request list
 		policy = readResp.Model
 	}
 
-	// Note: there can only be 1 policy at the api_manangement_api level, so we only return 1 result if it exists
+	// Note: there can only be 1 policy at the api_management_api level, so we only return 1 result if it exists
 	stream.Results = func(push func(list.ListResult) bool) {
 		result := request.NewListResult(ctx)
 		result.DisplayName = pointer.From(policy.Name)

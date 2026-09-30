@@ -12,7 +12,7 @@ Lists API Management API Policy resources.
 
 ## Example Usage
 
-### List API Management API Policys in an API Management API
+### List API Management API Policies in an API Management API
 
 ```hcl
 list "azurerm_api_management_api_policy" "example" {
