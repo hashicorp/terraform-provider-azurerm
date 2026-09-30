@@ -87,7 +87,7 @@ func resourceDigitalTwinsEndpointEventGrid() *pluginsdk.Resource {
 	}
 }
 
-func resourceDigitalTwinsEndpointEventGridCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDigitalTwinsEndpointEventGridCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DigitalTwins.EndpointClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -136,7 +136,7 @@ func resourceDigitalTwinsEndpointEventGridCreateUpdate(d *pluginsdk.ResourceData
 	return resourceDigitalTwinsEndpointEventGridRead(d, meta)
 }
 
-func resourceDigitalTwinsEndpointEventGridRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDigitalTwinsEndpointEventGridRead(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DigitalTwins.EndpointClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -171,7 +171,7 @@ func resourceDigitalTwinsEndpointEventGridRead(d *pluginsdk.ResourceData, meta i
 	return nil
 }
 
-func resourceDigitalTwinsEndpointEventGridDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDigitalTwinsEndpointEventGridDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DigitalTwins.EndpointClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

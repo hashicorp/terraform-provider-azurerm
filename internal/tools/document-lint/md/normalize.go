@@ -41,8 +41,8 @@ func tryBlockHeadDetect(line string) bool {
 }
 
 func tryFixBlockHead(line string) string {
-	if strings.HasPrefix(line, "*") {
-		line = strings.TrimSpace(strings.TrimPrefix(line, "*"))
+	if after, ok := strings.CutPrefix(line, "*"); ok {
+		line = strings.TrimSpace(after)
 	}
 
 	if strings.HasPrefix(line, "`") {
@@ -68,7 +68,7 @@ func replaceNBSP(line string) string {
 		return false
 	}
 	var res []rune
-	for _, ch := range []rune(line) { //nolint:gosimple,staticcheck
+	for _, ch := range []rune(line) { //nolint:staticcheck
 		if unicode.IsSpace(ch) && !isNormalSpace(ch) {
 			res = append(res, rune(' '))
 		} else {
