@@ -36,8 +36,8 @@ func TestKubernetesMessageOfTheDayPlan(t *testing.T) {
 			}
 		}
 		t.Run(name, func(t *testing.T) {
-			config := func(message interface{}, omit bool) map[string]interface{} {
-				block := map[string]interface{}{}
+			config := func(message any, omit bool) map[string]any {
+				block := map[string]any{}
 				if !omit {
 					block["message_of_the_day"] = message
 				}
@@ -48,11 +48,11 @@ func TestKubernetesMessageOfTheDayPlan(t *testing.T) {
 				block["vm_size"] = "Standard_DS2_v2"
 				block["node_count"] = 1
 				block["temporary_name_for_rotation"] = "temp"
-				return map[string]interface{}{"default_node_pool": []interface{}{block}}
+				return map[string]any{"default_node_pool": []any{block}}
 			}
 			for _, test := range []struct {
 				name    string
-				message interface{}
+				message any
 				omit    bool
 			}{
 				{name: "clear", message: ""},
@@ -79,7 +79,7 @@ func TestKubernetesMessageOfTheDayPlan(t *testing.T) {
 func TestKubernetesMessageOfTheDayExpand(t *testing.T) {
 	for _, test := range []struct {
 		name    string
-		message interface{}
+		message any
 		omit    bool
 		want    string
 	}{
@@ -90,12 +90,12 @@ func TestKubernetesMessageOfTheDayExpand(t *testing.T) {
 		{name: "literal shell", message: "$(hostname)", want: "$(hostname)"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			block := map[string]interface{}{"name": "default", "vm_size": "Standard_DS2_v2", "node_count": 1}
+			block := map[string]any{"name": "default", "vm_size": "Standard_DS2_v2", "node_count": 1}
 			if !test.omit {
 				block["message_of_the_day"] = test.message
 			}
-			data := schema.TestResourceDataRaw(t, resourceKubernetesCluster().Schema, map[string]interface{}{
-				"default_node_pool": []interface{}{block},
+			data := schema.TestResourceDataRaw(t, resourceKubernetesCluster().Schema, map[string]any{
+				"default_node_pool": []any{block},
 			})
 			profiles, err := ExpandDefaultNodePool(data)
 			if err != nil {
@@ -137,8 +137,8 @@ func TestKubernetesMessageOfTheDayResponse(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			t.Run("default pool", func(t *testing.T) {
-				data := schema.TestResourceDataRaw(t, resourceKubernetesCluster().Schema, map[string]interface{}{
-					"default_node_pool": []interface{}{map[string]interface{}{
+				data := schema.TestResourceDataRaw(t, resourceKubernetesCluster().Schema, map[string]any{
+					"default_node_pool": []any{map[string]any{
 						"name": "default", "vm_size": "Standard_DS2_v2", "node_count": 1, "message_of_the_day": "Previous message",
 					}},
 				})
@@ -157,7 +157,7 @@ func TestKubernetesMessageOfTheDayResponse(t *testing.T) {
 				}
 			})
 			t.Run("standalone pool", func(t *testing.T) {
-				data := schema.TestResourceDataRaw(t, resourceKubernetesClusterNodePool().Schema, map[string]interface{}{
+				data := schema.TestResourceDataRaw(t, resourceKubernetesClusterNodePool().Schema, map[string]any{
 					"message_of_the_day": "Previous message",
 				})
 				id := agentpools.NewAgentPoolID("00000000-0000-0000-0000-000000000000", "test", "test", "pool")
