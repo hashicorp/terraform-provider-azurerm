@@ -45,7 +45,7 @@ func (r StorageMoverSmbMountEndpointResource) ResourceType() string {
 	return "azurerm_storage_mover_smb_mount_endpoint"
 }
 
-func (r StorageMoverSmbMountEndpointResource) ModelObject() interface{} {
+func (r StorageMoverSmbMountEndpointResource) ModelObject() any {
 	return &StorageMoverSmbMountEndpointModel{}
 }
 
