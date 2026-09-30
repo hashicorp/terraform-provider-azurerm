@@ -557,7 +557,8 @@ func windowsVMPasswordImportedState(resourceID, machineID *string) resource.Impo
 			if state.Attributes["virtual_machine_id"] != *machineID {
 				return errors.New("import changed the Azure VM unique ID")
 			}
-			if state.Attributes["admin_password"] != "" || state.Attributes["admin_password_wo"] != "" {
+			adminPassword := state.Attributes["admin_password"]
+			if (adminPassword != "" && adminPassword != "ignored-as-imported") || state.Attributes["admin_password_wo"] != "" {
 				return errors.New("imported VM state contains a password")
 			}
 			return nil
@@ -569,15 +570,18 @@ func windowsVMPasswordImportedState(resourceID, machineID *string) resource.Impo
 func TestWindowsVMPasswordImportedState(t *testing.T) {
 	const password = "sentinel-<secret>&"
 	for name, change := range map[string]map[string]string{
-		"imported":          {},
-		"imported first":    {},
-		"managed version":   {"admin_password_wo_version": "1"},
-		"missing version":   {"admin_password_wo_version": ""},
-		"different VM":      {"virtual_machine_id": "different-vm"},
-		"ordinary password": {"admin_password": password},
-		"write-only value":  {"admin_password_wo": password},
-		"missing VM":        {"id": "different-resource"},
-		"missing identity":  {},
+		"imported":               {},
+		"imported first":         {},
+		"imported placeholder":   {"admin_password": "ignored-as-imported"},
+		"lookalike placeholder":  {"admin_password": "ignored-as-imported-" + password},
+		"write-only placeholder": {"admin_password_wo": "ignored-as-imported"},
+		"managed version":        {"admin_password_wo_version": "1"},
+		"missing version":        {"admin_password_wo_version": ""},
+		"different VM":           {"virtual_machine_id": "different-vm"},
+		"ordinary password":      {"admin_password": password},
+		"write-only value":       {"admin_password_wo": password},
+		"missing VM":             {"id": "different-resource"},
+		"missing identity":       {},
 	} {
 		t.Run(name, func(t *testing.T) {
 			resourceID, machineID := "test-owned-resource", "test-owned-vm"
@@ -600,7 +604,7 @@ func TestWindowsVMPasswordImportedState(t *testing.T) {
 				slices.Reverse(states)
 			}
 			err := windowsVMPasswordImportedState(&resourceID, &machineID)(states)
-			if (err == nil) != (name == "imported" || name == "imported first") {
+			if (err == nil) != (name == "imported" || name == "imported first" || name == "imported placeholder") {
 				t.Fatal("imported password state check returned an unexpected result")
 			}
 			if err != nil && strings.Contains(err.Error(), password) {
