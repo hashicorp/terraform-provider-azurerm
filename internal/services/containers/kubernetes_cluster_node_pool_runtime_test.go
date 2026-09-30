@@ -21,17 +21,17 @@ func TestKubernetesClusterNodePoolWorkloadRuntimePlan(t *testing.T) {
 	tests := []struct {
 		name       string
 		state      string
-		config     map[string]interface{}
+		config     map[string]any
 		unknown    bool
 		wantChange bool
 	}{
-		{name: "omitted OCI", state: "OCIContainer", config: map[string]interface{}{}},
-		{name: "omitted Kata", state: "KataVmIsolation", config: map[string]interface{}{}},
-		{name: "null OCI", state: "OCIContainer", config: map[string]interface{}{"workload_runtime": nil}},
-		{name: "null Kata", state: "KataVmIsolation", config: map[string]interface{}{"workload_runtime": nil}},
-		{name: "explicit OCI", state: "OCIContainer", config: map[string]interface{}{"workload_runtime": "OCIContainer"}},
-		{name: "explicit Kata", state: "KataVmIsolation", config: map[string]interface{}{"workload_runtime": "KataVmIsolation"}},
-		{name: "explicit change", state: "OCIContainer", config: map[string]interface{}{"workload_runtime": "KataVmIsolation"}, wantChange: true},
+		{name: "omitted OCI", state: "OCIContainer", config: map[string]any{}},
+		{name: "omitted Kata", state: "KataVmIsolation", config: map[string]any{}},
+		{name: "null OCI", state: "OCIContainer", config: map[string]any{"workload_runtime": nil}},
+		{name: "null Kata", state: "KataVmIsolation", config: map[string]any{"workload_runtime": nil}},
+		{name: "explicit OCI", state: "OCIContainer", config: map[string]any{"workload_runtime": "OCIContainer"}},
+		{name: "explicit Kata", state: "KataVmIsolation", config: map[string]any{"workload_runtime": "KataVmIsolation"}},
+		{name: "explicit change", state: "OCIContainer", config: map[string]any{"workload_runtime": "KataVmIsolation"}, wantChange: true},
 		{name: "unknown", state: "OCIContainer", unknown: true, wantChange: true},
 	}
 
@@ -63,7 +63,7 @@ func TestKubernetesClusterNodePoolWorkloadRuntimePlan(t *testing.T) {
 				})
 			}
 			for _, invalid := range []string{"", "invalid", "ocicontainer"} {
-				if diagnostics := resource.Validate(terraform.NewResourceConfigRaw(map[string]interface{}{"workload_runtime": invalid})); !diagnostics.HasError() {
+				if diagnostics := resource.Validate(terraform.NewResourceConfigRaw(map[string]any{"workload_runtime": invalid})); !diagnostics.HasError() {
 					t.Errorf("expected validation to reject %q", invalid)
 				}
 			}
