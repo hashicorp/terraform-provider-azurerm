@@ -160,7 +160,7 @@ resource "azurerm_data_protection_backup_policy_cosmosdb_account" "test" {
   retention_rule {
     name           = "Yearly"
     duration       = "P1Y"
-    days_of_week   = ["Monday"]
+    days_of_week   = ["Sunday"]
     months_of_year = ["January"]
     weeks_of_month = ["First"]
   }

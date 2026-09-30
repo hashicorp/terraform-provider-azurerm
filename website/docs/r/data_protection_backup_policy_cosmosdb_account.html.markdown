@@ -31,7 +31,6 @@ resource "azurerm_data_protection_backup_policy_cosmosdb_account" "example" {
   data_protection_backup_vault_id = azurerm_data_protection_backup_vault.example.id
   default_retention_duration      = "P10Y"
   full_backup_schedule            = "R/2026-02-08T10:00:00+00:00/P1W"
-  incremental_backup_enabled      = true
 }
 ```
 
