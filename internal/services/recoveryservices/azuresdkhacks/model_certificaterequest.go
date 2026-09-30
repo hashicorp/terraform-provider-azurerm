@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package azuresdkhacks
 
 import (
@@ -19,7 +22,7 @@ type CertificateCreateOptions struct {
 }
 
 func (c CertificateCreateOptions) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
+	objectMap := make(map[string]any)
 
 	objectMap["validityInHours"] = c.ValidityInHours
 	return json.Marshal(objectMap)

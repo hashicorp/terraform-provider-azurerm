@@ -556,7 +556,7 @@ A `volume` block supports the following:
 
 ---
 
-A `data_protection_replication` block is used when enabling the Cross-Region Replication (CRR) data protection option by deploying two Azure NetApp Files Volumes, one to be a primary volume and the other one will be the secondary, the secondary will have this block and will reference the primary volume, not all volume spec types are supported, please refer to  [Configure application volume groups for the SAP HANA REST API](https://learn.microsoft.com/azure/azure-netapp-files/configure-application-volume-group-sap-hana-api) for detauls. Each volume must be in a supported [region pair](https://docs.microsoft.com/azure/azure-netapp-files/cross-region-replication-introduction#supported-region-pairs).
+A `data_protection_replication` block is used when enabling the Cross-Region Replication (CRR) data protection option by deploying two Azure NetApp Files Volumes, one to be a primary volume and the other one will be the secondary, the secondary will have this block and will reference the primary volume, not all volume spec types are supported, please refer to  [Configure application volume groups for the SAP HANA REST API](https://learn.microsoft.com/azure/azure-netapp-files/configure-application-volume-group-sap-hana-api) for details. Each volume must be in a supported [region pair](https://docs.microsoft.com/azure/azure-netapp-files/cross-region-replication-introduction#supported-region-pairs).
 
 This block supports the following:
 
@@ -578,7 +578,7 @@ A `data_protection_snapshot_policy` block supports the following:
 
 A `export_policy_rule` block supports the following:
 
-* `allowed_clients` - (Required) A comma-sperated list of allowed client IPv4 addresses.
+* `allowed_clients` - (Required) A comma-separated list of allowed client IPv4 addresses.
 
 * `nfsv3_enabled` - (Required) Enables NFSv3. Please note that this cannot be enabled if volume has NFSv4.1 as its protocol.
 

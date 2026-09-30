@@ -473,7 +473,7 @@ func (AutonomousDatabaseCloneFromDatabaseDataSource) Attributes() map[string]*pl
 	}
 }
 
-func (AutonomousDatabaseCloneFromDatabaseDataSource) ModelObject() interface{} {
+func (AutonomousDatabaseCloneFromDatabaseDataSource) ModelObject() any {
 	return &AutonomousDatabaseCloneFromDatabaseDataSourceModel{}
 }
 
