@@ -20,7 +20,7 @@ func (FrontDoorUpgradeV0ToV1) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (FrontDoorUpgradeV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		// this resource was set to "schema version 1" unintentionally.. so we're adding
 		// a "fake" upgrade here to account for it
 		return rawState, nil
@@ -36,7 +36,7 @@ func (FrontDoorUpgradeV1ToV2) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (FrontDoorUpgradeV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		// old
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/frontdoors/{frontDoorName}
 		// new:

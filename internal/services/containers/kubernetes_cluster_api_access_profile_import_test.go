@@ -29,20 +29,20 @@ func TestKubernetesClusterAPIAccessProfileRetainedEmptyImport(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			for _, ranges := range []string{"empty", "null", "omitted"} {
 				t.Run(ranges, func(t *testing.T) {
-					block := map[string]interface{}{}
+					block := map[string]any{}
 					switch ranges {
 					case "empty":
-						block["authorized_ip_ranges"] = []interface{}{}
+						block["authorized_ip_ranges"] = []any{}
 					case "null":
 						block["authorized_ip_ranges"] = nil
 					}
-					config := map[string]interface{}{"api_server_access_profile": []interface{}{block}}
+					config := map[string]any{"api_server_access_profile": []any{block}}
 					imported := schema.TestResourceDataRaw(t, resource.Schema, nil)
 					imported.SetId("existing-cluster")
 					if err := imported.Set("api_server_access_profile", flattenKubernetesClusterAPIAccessProfile(profile, false)); err != nil {
 						t.Fatal(err)
 					}
-					if got := imported.Get("api_server_access_profile").([]interface{}); len(got) != 0 {
+					if got := imported.Get("api_server_access_profile").([]any); len(got) != 0 {
 						t.Fatalf("import must not infer an empty block from API defaults: %#v", got)
 					}
 
@@ -53,8 +53,8 @@ func TestKubernetesClusterAPIAccessProfileRetainedEmptyImport(t *testing.T) {
 					if diff.Empty() || diff.RequiresNew() {
 						t.Fatalf("expected an in-place reconciliation of the configured empty block after import, got %#v", diff)
 					}
-					resource.UpdateContext = func(_ context.Context, d *pluginsdk.ResourceData, _ interface{}) diag.Diagnostics {
-						if err := d.Set("api_server_access_profile", flattenKubernetesClusterAPIAccessProfile(profile, len(d.Get("api_server_access_profile").([]interface{})) > 0)); err != nil {
+					resource.UpdateContext = func(_ context.Context, d *pluginsdk.ResourceData, _ any) diag.Diagnostics {
+						if err := d.Set("api_server_access_profile", flattenKubernetesClusterAPIAccessProfile(profile, len(d.Get("api_server_access_profile").([]any)) > 0)); err != nil {
 							return diag.FromErr(err)
 						}
 						return nil

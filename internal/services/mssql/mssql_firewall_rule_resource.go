@@ -73,7 +73,7 @@ func resourceMsSqlFirewallRule() *pluginsdk.Resource {
 	}
 }
 
-func resourceMsSqlFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.FirewallRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -120,7 +120,7 @@ func resourceMsSqlFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	return resourceMsSqlFirewallRuleRead(d, meta)
 }
 
-func resourceMsSqlFirewallRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlFirewallRuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.FirewallRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -156,7 +156,7 @@ func resourceMsSqlFirewallRuleRead(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceMsSqlFirewallRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlFirewallRuleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.FirewallRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

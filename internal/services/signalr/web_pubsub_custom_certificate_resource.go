@@ -78,7 +78,7 @@ func (r CustomCertWebPubsubResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r CustomCertWebPubsubResource) ModelObject() interface{} {
+func (r CustomCertWebPubsubResource) ModelObject() any {
 	return &CustomCertWebPubsubModel{}
 }
 

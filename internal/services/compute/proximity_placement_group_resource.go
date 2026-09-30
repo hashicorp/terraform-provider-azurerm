@@ -79,14 +79,14 @@ func resourceProximityPlacementGroup() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			pluginsdk.ForceNewIfChange("allowed_vm_sizes", func(ctx context.Context, old, new, meta interface{}) bool {
+			pluginsdk.ForceNewIfChange("allowed_vm_sizes", func(ctx context.Context, old, new, meta any) bool {
 				return len(old.(*pluginsdk.Set).List()) > 0 && len(new.(*pluginsdk.Set).List()) == 0
 			}),
 		),
 	}
 }
 
-func resourceProximityPlacementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceProximityPlacementGroupCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.ProximityPlacementGroupsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -112,7 +112,7 @@ func resourceProximityPlacementGroupCreateUpdate(d *pluginsdk.ResourceData, meta
 	payload := proximityplacementgroups.ProximityPlacementGroup{
 		Location:   location.Normalize(d.Get("location").(string)),
 		Properties: &proximityplacementgroups.ProximityPlacementGroupProperties{},
-		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:       tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v, ok := d.GetOk("allowed_vm_sizes"); ok {
@@ -141,7 +141,7 @@ func resourceProximityPlacementGroupCreateUpdate(d *pluginsdk.ResourceData, meta
 	return resourceProximityPlacementGroupRead(d, meta)
 }
 
-func resourceProximityPlacementGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceProximityPlacementGroupRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.ProximityPlacementGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -190,7 +190,7 @@ func resourceProximityPlacementGroupRead(d *pluginsdk.ResourceData, meta interfa
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceProximityPlacementGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceProximityPlacementGroupDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.ProximityPlacementGroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

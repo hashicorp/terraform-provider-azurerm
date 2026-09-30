@@ -64,7 +64,7 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 		Schema: resourceKubernetesClusterNodePoolSchema(),
 
 		CustomizeDiff: pluginsdk.CustomDiffInSequence(
-			pluginsdk.ForceNewIfChange("os_sku", func(ctx context.Context, old, new, meta interface{}) bool {
+			pluginsdk.ForceNewIfChange("os_sku", func(ctx context.Context, old, new, meta any) bool {
 				oldStr := old.(string)
 				newStr := new.(string)
 
@@ -80,22 +80,22 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				return false
 			}),
 			// The behaviour of the API requires this, but this could be removed when https://github.com/Azure/azure-rest-api-specs/issues/27373 has been addressed
-			pluginsdk.ForceNewIfChange("upgrade_settings.0.drain_timeout_in_minutes", func(ctx context.Context, old, new, meta interface{}) bool {
+			pluginsdk.ForceNewIfChange("upgrade_settings.0.drain_timeout_in_minutes", func(ctx context.Context, old, new, meta any) bool {
 				return old != 0 && new == 0
 			}),
-			pluginsdk.ForceNewIfChange("upgrade_settings.0.undrainable_node_behavior", func(ctx context.Context, old, new, meta interface{}) bool {
+			pluginsdk.ForceNewIfChange("upgrade_settings.0.undrainable_node_behavior", func(ctx context.Context, old, new, meta any) bool {
 				return old != "" && new == ""
 			}),
-			func(ctx context.Context, d *pluginsdk.ResourceDiff, meta interface{}) error {
+			func(ctx context.Context, d *pluginsdk.ResourceDiff, meta any) error {
 				priority := d.Get("priority").(string)
 				isSpot := priority == string(agentpools.ScaleSetPrioritySpot)
 
-				upgradeSettingsRaw := d.Get("upgrade_settings").([]interface{})
+				upgradeSettingsRaw := d.Get("upgrade_settings").([]any)
 				if len(upgradeSettingsRaw) == 0 || upgradeSettingsRaw[0] == nil {
 					return nil
 				}
 
-				upgradeSettings := upgradeSettingsRaw[0].(map[string]interface{})
+				upgradeSettings := upgradeSettingsRaw[0].(map[string]any)
 				maxSurgeRaw := upgradeSettings["max_surge"].(string)
 				maxUnavailableRaw := upgradeSettings["max_unavailable"].(string)
 
@@ -303,6 +303,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 				string(agentpools.OSSKUUbuntuTwoFourZeroFour),
 				string(agentpools.OSSKUWindowsTwoZeroOneNine),
 				string(agentpools.OSSKUWindowsTwoZeroTwoTwo),
+				string(agentpools.OSSKUWindowsTwoZeroTwoFive),
 			}, false),
 		},
 
@@ -418,7 +419,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 	}
 }
 
-func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta any) error {
 	containersClient := meta.(*clients.Client).Containers
 	clustersClient := containersClient.KubernetesClustersClient
 	poolsClient := containersClient.AgentPoolsClient
@@ -502,7 +503,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	osType := d.Get("os_type").(string)
 	priority := d.Get("priority").(string)
 	spotMaxPrice := d.Get("spot_max_price").(float64)
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
 	profile := agentpools.ManagedClusterAgentPoolProfileProperties{
 		OsType:                 pointer.ToEnum[agentpools.OSType](osType),
@@ -517,8 +518,8 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		Tags:                   tags.Expand(t),
 		Type:                   pointer.To(agentpools.AgentPoolTypeVirtualMachineScaleSets),
 		VMSize:                 pointer.To(d.Get("vm_size").(string)),
-		UpgradeSettings:        expandAgentPoolUpgradeSettings(d.Get("upgrade_settings").([]interface{})),
-		WindowsProfile:         expandAgentPoolWindowsProfile(d.Get("windows_profile").([]interface{})),
+		UpgradeSettings:        expandAgentPoolUpgradeSettings(d.Get("upgrade_settings").([]any)),
+		WindowsProfile:         expandAgentPoolWindowsProfile(d.Get("windows_profile").([]any)),
 
 		// this must always be sent during creation, but is optional for auto-scaled clusters during update
 		Count: pointer.To(int64(count)),
@@ -577,7 +578,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		profile.MaxPods = pointer.To(maxPods)
 	}
 
-	if nodeLabels := expandNodeLabels(d.Get("node_labels").(map[string]interface{})); len(*nodeLabels) > 0 {
+	if nodeLabels := expandNodeLabels(d.Get("node_labels").(map[string]any)); len(*nodeLabels) > 0 {
 		profile.NodeLabels = nodeLabels
 	}
 
@@ -585,7 +586,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		profile.NodePublicIPPrefixID = pointer.To(nodePublicIPPrefixID)
 	}
 
-	if nodeTaints := pluginsdk.ExpandStringSlice(d.Get("node_taints").([]interface{})); len(*nodeTaints) > 0 {
+	if nodeTaints := pluginsdk.ExpandStringSlice(d.Get("node_taints").([]any)); len(*nodeTaints) > 0 {
 		profile.NodeTaints = nodeTaints
 	}
 
@@ -653,11 +654,11 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("`max_count` and `min_count` must be set to `null` when auto_scaling_enabled is set to `false`")
 	}
 
-	if kubeletConfig := d.Get("kubelet_config").([]interface{}); len(kubeletConfig) > 0 {
+	if kubeletConfig := d.Get("kubelet_config").([]any); len(kubeletConfig) > 0 {
 		profile.KubeletConfig = expandAgentPoolKubeletConfig(kubeletConfig)
 	}
 
-	if linuxOSConfig := d.Get("linux_os_config").([]interface{}); len(linuxOSConfig) > 0 {
+	if linuxOSConfig := d.Get("linux_os_config").([]any); len(linuxOSConfig) > 0 {
 		if osType != string(managedclusters.OSTypeLinux) {
 			return fmt.Errorf("`linux_os_config` can only be configured when `os_type` is set to `linux`")
 		}
@@ -668,7 +669,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		profile.LinuxOSConfig = linuxOSConfig
 	}
 
-	if networkProfile := d.Get("node_network_profile").([]interface{}); len(networkProfile) > 0 {
+	if networkProfile := d.Get("node_network_profile").([]any); len(networkProfile) > 0 {
 		profile.NetworkProfile = expandAgentPoolNetworkProfile(networkProfile)
 	}
 
@@ -709,7 +710,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	return resourceKubernetesClusterNodePoolRead(d, meta)
 }
 
-func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta any) error {
 	containersClient := meta.(*clients.Client).Containers
 	client := containersClient.AgentPoolsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -754,7 +755,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.HasChange("kubelet_config") {
-		kubeletConfigRaw := d.Get("kubelet_config").([]interface{})
+		kubeletConfigRaw := d.Get("kubelet_config").([]any)
 		props.KubeletConfig = expandAgentPoolKubeletConfig(kubeletConfigRaw)
 	}
 
@@ -763,7 +764,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.HasChange("linux_os_config") {
-		linuxOSConfigRaw := d.Get("linux_os_config").([]interface{})
+		linuxOSConfigRaw := d.Get("linux_os_config").([]any)
 		if d.Get("os_type").(string) != string(managedclusters.OSTypeLinux) {
 			return fmt.Errorf("`linux_os_config` can only be configured when `os_type` is set to `linux`")
 		}
@@ -820,7 +821,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.HasChange("tags") {
-		t := d.Get("tags").(map[string]interface{})
+		t := d.Get("tags").(map[string]any)
 		props.Tags = tags.Expand(t)
 	}
 
@@ -845,7 +846,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.HasChange("upgrade_settings") {
-		upgradeSettingsRaw := d.Get("upgrade_settings").([]interface{})
+		upgradeSettingsRaw := d.Get("upgrade_settings").([]any)
 		props.UpgradeSettings = expandAgentPoolUpgradeSettings(upgradeSettingsRaw)
 	}
 
@@ -880,15 +881,15 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.HasChange("node_labels") {
-		props.NodeLabels = expandNodeLabels(d.Get("node_labels").(map[string]interface{}))
+		props.NodeLabels = expandNodeLabels(d.Get("node_labels").(map[string]any))
 	}
 
 	if d.HasChange("node_taints") {
-		props.NodeTaints = pluginsdk.ExpandStringSlice(d.Get("node_taints").([]interface{}))
+		props.NodeTaints = pluginsdk.ExpandStringSlice(d.Get("node_taints").([]any))
 	}
 
 	if d.HasChange("node_network_profile") {
-		props.NetworkProfile = expandAgentPoolNetworkProfile(d.Get("node_network_profile").([]interface{}))
+		props.NetworkProfile = expandAgentPoolNetworkProfile(d.Get("node_network_profile").([]any))
 	}
 
 	if d.HasChange("zones") {
@@ -1019,7 +1020,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	return resourceKubernetesClusterNodePoolRead(d, meta)
 }
 
-func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta any) error {
 	poolsClient := meta.(*clients.Client).Containers.AgentPoolsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1064,7 +1065,7 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		}
 
 		if v := props.GpuProfile; v != nil {
-			d.Set("gpu_driver", string(pointer.From(v.Driver)))
+			d.Set("gpu_driver", pointer.FromEnum(v.Driver))
 		}
 
 		if props.CreationData != nil {
@@ -1204,7 +1205,7 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 	return tags.FlattenAndSet(d, resp.Model.Properties.Tags)
 }
 
-func resourceKubernetesClusterNodePoolDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKubernetesClusterNodePoolDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Containers.AgentPoolsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1291,12 +1292,12 @@ func upgradeSettingsForDataSourceSchema() *pluginsdk.Schema {
 	}
 }
 
-func expandAgentPoolKubeletConfig(input []interface{}) *agentpools.KubeletConfig {
+func expandAgentPoolKubeletConfig(input []any) *agentpools.KubeletConfig {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 	result := &agentpools.KubeletConfig{
 		CpuCfsQuota: pointer.To(raw["cpu_cfs_quota_enabled"].(bool)),
 		// must be false, otherwise the backend will report error: CustomKubeletConfig.FailSwapOn must be set to false to enable swap file on nodes.
@@ -1332,13 +1333,13 @@ func expandAgentPoolKubeletConfig(input []interface{}) *agentpools.KubeletConfig
 	return result
 }
 
-func expandAgentPoolUpgradeSettings(input []interface{}) *agentpools.AgentPoolUpgradeSettings {
+func expandAgentPoolUpgradeSettings(input []any) *agentpools.AgentPoolUpgradeSettings {
 	setting := &agentpools.AgentPoolUpgradeSettings{}
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	maxSurgeRaw := v["max_surge"].(string)
 	maxUnavailableRaw := v["max_unavailable"].(string)
 
@@ -1363,13 +1364,13 @@ func expandAgentPoolUpgradeSettings(input []interface{}) *agentpools.AgentPoolUp
 	return setting
 }
 
-func flattenAgentPoolUpgradeSettings(input *agentpools.AgentPoolUpgradeSettings) []interface{} {
+func flattenAgentPoolUpgradeSettings(input *agentpools.AgentPoolUpgradeSettings) []any {
 	// The API returns an empty upgrade settings object for spot node pools, so we need to explicitly check whether there's anything in it
 	if input == nil || (input.MaxSurge == nil && input.MaxUnavailable == nil && input.DrainTimeoutInMinutes == nil && input.NodeSoakDurationInMinutes == nil && input.UndrainableNodeBehavior == nil) {
-		return []interface{}{}
+		return []any{}
 	}
 
-	values := make(map[string]interface{})
+	values := make(map[string]any)
 
 	if input.MaxSurge != nil && *input.MaxSurge != "" && *input.MaxSurge != "0" && *input.MaxSurge != "0%" {
 		values["max_surge"] = *input.MaxSurge
@@ -1390,10 +1391,10 @@ func flattenAgentPoolUpgradeSettings(input *agentpools.AgentPoolUpgradeSettings)
 		values["undrainable_node_behavior"] = string(*input.UndrainableNodeBehavior)
 	}
 
-	return []interface{}{values}
+	return []any{values}
 }
 
-func expandNodeLabels(input map[string]interface{}) *map[string]string {
+func expandNodeLabels(input map[string]any) *map[string]string {
 	result := make(map[string]string)
 	for k, v := range input {
 		result[k] = v.(string)
@@ -1401,12 +1402,12 @@ func expandNodeLabels(input map[string]interface{}) *map[string]string {
 	return &result
 }
 
-func expandAgentPoolLinuxOSConfig(input []interface{}) (*agentpools.LinuxOSConfig, error) {
+func expandAgentPoolLinuxOSConfig(input []any) (*agentpools.LinuxOSConfig, error) {
 	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
-	raw := input[0].(map[string]interface{})
-	sysctlConfig, err := expandAgentPoolSysctlConfig(raw["sysctl_config"].([]interface{}))
+	raw := input[0].(map[string]any)
+	sysctlConfig, err := expandAgentPoolSysctlConfig(raw["sysctl_config"].([]any))
 	if err != nil {
 		return nil, err
 	}
@@ -1426,11 +1427,11 @@ func expandAgentPoolLinuxOSConfig(input []interface{}) (*agentpools.LinuxOSConfi
 	return result, nil
 }
 
-func expandAgentPoolSysctlConfig(input []interface{}) (*agentpools.SysctlConfig, error) {
+func expandAgentPoolSysctlConfig(input []any) (*agentpools.SysctlConfig, error) {
 	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 	result := &agentpools.SysctlConfig{
 		NetIPv4TcpTwReuse: pointer.To(raw["net_ipv4_tcp_tw_reuse"].(bool)),
 	}
@@ -1526,9 +1527,9 @@ func expandAgentPoolSysctlConfig(input []interface{}) (*agentpools.SysctlConfig,
 	return result, nil
 }
 
-func flattenAgentPoolLinuxOSConfig(input *agentpools.LinuxOSConfig) ([]interface{}, error) {
+func flattenAgentPoolLinuxOSConfig(input *agentpools.LinuxOSConfig) ([]any, error) {
 	if input == nil {
-		return make([]interface{}, 0), nil
+		return make([]any, 0), nil
 	}
 
 	var swapFileSizeMB int
@@ -1541,8 +1542,8 @@ func flattenAgentPoolLinuxOSConfig(input *agentpools.LinuxOSConfig) ([]interface
 	if err != nil {
 		return nil, err
 	}
-	config := []interface{}{
-		map[string]interface{}{
+	config := []any{
+		map[string]any{
 			"swap_file_size_mb":            swapFileSizeMB,
 			"sysctl_config":                sysctlConfig,
 			"transparent_huge_page_defrag": transparentHugePageDefrag,
@@ -1553,9 +1554,9 @@ func flattenAgentPoolLinuxOSConfig(input *agentpools.LinuxOSConfig) ([]interface
 	return config, nil
 }
 
-func flattenAgentPoolSysctlConfig(input *agentpools.SysctlConfig) ([]interface{}, error) {
+func flattenAgentPoolSysctlConfig(input *agentpools.SysctlConfig) ([]any, error) {
 	if input == nil {
-		return make([]interface{}, 0), nil
+		return make([]any, 0), nil
 	}
 
 	var fsAioMaxNr int
@@ -1679,8 +1680,8 @@ func flattenAgentPoolSysctlConfig(input *agentpools.SysctlConfig) ([]interface{}
 	if input.VMVfsCachePressure != nil {
 		vmVfsCachePressure = int(*input.VMVfsCachePressure)
 	}
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"fs_aio_max_nr":                      fsAioMaxNr,
 			"fs_file_max":                        fsFileMax,
 			"fs_inotify_max_user_watches":        fsInotifyMaxUserWatches,
@@ -1714,21 +1715,21 @@ func flattenAgentPoolSysctlConfig(input *agentpools.SysctlConfig) ([]interface{}
 	}, nil
 }
 
-func expandAgentPoolWindowsProfile(input []interface{}) *agentpools.AgentPoolWindowsProfile {
+func expandAgentPoolWindowsProfile(input []any) *agentpools.AgentPoolWindowsProfile {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	outboundNatEnabled := v["outbound_nat_enabled"].(bool)
 	return &agentpools.AgentPoolWindowsProfile{
 		DisableOutboundNat: pointer.To(!outboundNatEnabled),
 	}
 }
 
-func flattenAgentPoolWindowsProfile(input *agentpools.AgentPoolWindowsProfile) []interface{} {
+func flattenAgentPoolWindowsProfile(input *agentpools.AgentPoolWindowsProfile) []any {
 	if input == nil || input.DisableOutboundNat == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	outboundNatEnabled := true
@@ -1736,32 +1737,32 @@ func flattenAgentPoolWindowsProfile(input *agentpools.AgentPoolWindowsProfile) [
 		outboundNatEnabled = !*input.DisableOutboundNat
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"outbound_nat_enabled": outboundNatEnabled,
 		},
 	}
 }
 
-func expandAgentPoolNetworkProfile(input []interface{}) *agentpools.AgentPoolNetworkProfile {
+func expandAgentPoolNetworkProfile(input []any) *agentpools.AgentPoolNetworkProfile {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	return &agentpools.AgentPoolNetworkProfile{
-		AllowedHostPorts:          expandAgentPoolNetworkProfileAllowedHostPorts(v["allowed_host_ports"].([]interface{})),
-		ApplicationSecurityGroups: pluginsdk.ExpandStringSlice(v["application_security_group_ids"].([]interface{})),
-		NodePublicIPTags:          expandAgentPoolNetworkProfileNodePublicIPTags(v["node_public_ip_tags"].(map[string]interface{})),
+		AllowedHostPorts:          expandAgentPoolNetworkProfileAllowedHostPorts(v["allowed_host_ports"].([]any)),
+		ApplicationSecurityGroups: pluginsdk.ExpandStringSlice(v["application_security_group_ids"].([]any)),
+		NodePublicIPTags:          expandAgentPoolNetworkProfileNodePublicIPTags(v["node_public_ip_tags"].(map[string]any)),
 	}
 }
 
-func expandAgentPoolNetworkProfileAllowedHostPorts(input []interface{}) *[]agentpools.PortRange {
+func expandAgentPoolNetworkProfileAllowedHostPorts(input []any) *[]agentpools.PortRange {
 	if len(input) == 0 {
 		return nil
 	}
 	out := make([]agentpools.PortRange, 0)
 	for _, v := range input {
-		raw := v.(map[string]interface{})
+		raw := v.(map[string]any)
 		var portEnd, portStart int64
 		var protocol agentpools.Protocol
 		if raw["port_end"] != nil {
@@ -1782,7 +1783,7 @@ func expandAgentPoolNetworkProfileAllowedHostPorts(input []interface{}) *[]agent
 	return &out
 }
 
-func expandAgentPoolNetworkProfileNodePublicIPTags(input map[string]interface{}) *[]agentpools.IPTag {
+func expandAgentPoolNetworkProfileNodePublicIPTags(input map[string]any) *[]agentpools.IPTag {
 	if len(input) == 0 {
 		return nil
 	}
@@ -1798,13 +1799,13 @@ func expandAgentPoolNetworkProfileNodePublicIPTags(input map[string]interface{})
 	return &out
 }
 
-func flattenAgentPoolNetworkProfile(input *agentpools.AgentPoolNetworkProfile) []interface{} {
+func flattenAgentPoolNetworkProfile(input *agentpools.AgentPoolNetworkProfile) []any {
 	if input == nil || input.NodePublicIPTags == nil && input.AllowedHostPorts == nil && input.ApplicationSecurityGroups == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"allowed_host_ports":             flattenAgentPoolNetworkProfileAllowedHostPorts(input.AllowedHostPorts),
 			"application_security_group_ids": pluginsdk.FlattenSlice(input.ApplicationSecurityGroups),
 			"node_public_ip_tags":            flattenAgentPoolNetworkProfileNodePublicIPTags(input.NodePublicIPTags),
@@ -1812,13 +1813,13 @@ func flattenAgentPoolNetworkProfile(input *agentpools.AgentPoolNetworkProfile) [
 	}
 }
 
-func flattenAgentPoolNetworkProfileAllowedHostPorts(input *[]agentpools.PortRange) []interface{} {
+func flattenAgentPoolNetworkProfileAllowedHostPorts(input *[]agentpools.PortRange) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
-	out := make([]interface{}, 0)
+	out := make([]any, 0)
 	for _, portRange := range *input {
-		out = append(out, map[string]interface{}{
+		out = append(out, map[string]any{
 			"port_end":   pointer.From(portRange.PortEnd),
 			"port_start": pointer.From(portRange.PortStart),
 			"protocol":   pointer.From(portRange.Protocol),
@@ -1827,11 +1828,11 @@ func flattenAgentPoolNetworkProfileAllowedHostPorts(input *[]agentpools.PortRang
 	return out
 }
 
-func flattenAgentPoolNetworkProfileNodePublicIPTags(input *[]agentpools.IPTag) map[string]interface{} {
+func flattenAgentPoolNetworkProfileNodePublicIPTags(input *[]agentpools.IPTag) map[string]any {
 	if input == nil {
-		return map[string]interface{}{}
+		return map[string]any{}
 	}
-	out := make(map[string]interface{})
+	out := make(map[string]any)
 
 	for _, tag := range *input {
 		if tag.IPTagType != nil {

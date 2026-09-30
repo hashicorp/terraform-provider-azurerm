@@ -26,16 +26,16 @@ var (
 
 type AccountResource struct{}
 
-func (r AccountResource) ModelObject() interface{} {
+func (r AccountResource) ModelObject() any {
 	return &AccountResourceSchema{}
 }
 
 type AccountResourceSchema struct {
-	ApplicationId     string                 `tfschema:"application_id"`
-	BillingPlanId     string                 `tfschema:"billing_plan_id"`
-	Name              string                 `tfschema:"name"`
-	ResourceGroupName string                 `tfschema:"resource_group_name"`
-	Tags              map[string]interface{} `tfschema:"tags"`
+	ApplicationId     string         `tfschema:"application_id"`
+	BillingPlanId     string         `tfschema:"billing_plan_id"`
+	Name              string         `tfschema:"name"`
+	ResourceGroupName string         `tfschema:"resource_group_name"`
+	Tags              map[string]any `tfschema:"tags"`
 }
 
 func (r AccountResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

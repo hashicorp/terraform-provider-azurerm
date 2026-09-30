@@ -1866,7 +1866,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, networkPlugin)
 }
 
-// nolint unparam
+//nolint:unparam
 func (KubernetesClusterResource) advancedNetworkingWithPolicyConfig(data acceptance.TestData, networkPlugin string, networkPolicy string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2052,7 +2052,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.Locations.Primary, data.RandomInteger)
 }
 
-// nolint unparam
+//nolint:unparam
 func (KubernetesClusterResource) advancedNetworkingWithPolicyCompleteConfig(data acceptance.TestData, networkPlugin string, networkPolicy string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2139,7 +2139,6 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, networkPlugin, networkPolicy)
 }
 
-// nolint unparam
 func (KubernetesClusterResource) advancedNetworkingWithPolicyNetworkMode(data acceptance.TestData, networkPlugin string, networkPolicy string, networkMode string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

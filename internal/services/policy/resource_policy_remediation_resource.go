@@ -112,7 +112,7 @@ func resourceResourcePolicyRemediation() *pluginsdk.Resource {
 	}
 }
 
-func resourceResourcePolicyRemediationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceResourcePolicyRemediationCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Policy.RemediationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -150,7 +150,7 @@ func resourceResourcePolicyRemediationCreateUpdate(d *pluginsdk.ResourceData, me
 	return resourceResourcePolicyRemediationRead(d, meta)
 }
 
-func resourceResourcePolicyRemediationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceResourcePolicyRemediationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Policy.RemediationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -175,7 +175,7 @@ func resourceResourcePolicyRemediationRead(d *pluginsdk.ResourceData, meta inter
 	return setRemediationProperties(d, resp.Model.Properties)
 }
 
-func resourceResourcePolicyRemediationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceResourcePolicyRemediationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Policy.RemediationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -215,7 +215,7 @@ func resourceResourcePolicyRemediationDelete(d *pluginsdk.ResourceData, meta int
 }
 
 func resourcePolicyRemediationCancellationRefreshFunc(ctx context.Context, client *remediations.RemediationsClient, id remediations.ScopedRemediationId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		resp, err := client.GetAtResource(ctx, id)
 		if err != nil {
 			return nil, "", fmt.Errorf("issuing read request for %s: %+v", id.ID(), err)
@@ -273,7 +273,7 @@ func waitForRemediationToDelete(ctx context.Context,
 func readRemediationProperties(d *pluginsdk.ResourceData) (prop *remediations.RemediationProperties) {
 	prop = &remediations.RemediationProperties{
 		Filters: &remediations.RemediationFilters{
-			Locations: pluginsdk.ExpandStringSlice(d.Get("location_filters").([]interface{})),
+			Locations: pluginsdk.ExpandStringSlice(d.Get("location_filters").([]any)),
 		},
 		PolicyAssignmentId:          pointer.To(d.Get("policy_assignment_id").(string)),
 		PolicyDefinitionReferenceId: pointer.To(d.Get("policy_definition_reference_id").(string)),
@@ -299,7 +299,7 @@ func setRemediationProperties(d *pluginsdk.ResourceData, prop *remediations.Reme
 	if prop == nil {
 		return nil
 	}
-	locations := []interface{}{}
+	locations := []any{}
 	if filters := prop.Filters; filters != nil {
 		locations = pluginsdk.FlattenSlice(filters.Locations)
 	}

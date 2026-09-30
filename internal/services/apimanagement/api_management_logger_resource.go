@@ -173,7 +173,7 @@ func resourceApiManagementLogger() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementLoggerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementLoggerCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.LoggerClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -181,8 +181,8 @@ func resourceApiManagementLoggerCreate(d *pluginsdk.ResourceData, meta interface
 
 	id := logger.NewLoggerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("name").(string))
 
-	eventHubRaw := d.Get("eventhub").([]interface{})
-	appInsightsRaw := d.Get("application_insights").([]interface{})
+	eventHubRaw := d.Get("eventhub").([]any)
+	appInsightsRaw := d.Get("application_insights").([]any)
 
 	if len(eventHubRaw) == 0 && len(appInsightsRaw) == 0 {
 		return errors.New("either `eventhub` or `application_insights` is required")
@@ -231,7 +231,7 @@ func resourceApiManagementLoggerCreate(d *pluginsdk.ResourceData, meta interface
 	return resourceApiManagementLoggerRead(d, meta)
 }
 
-func resourceApiManagementLoggerRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementLoggerRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.LoggerClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -269,7 +269,7 @@ func resourceApiManagementLoggerRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceApiManagementLoggerUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementLoggerUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.LoggerClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -289,10 +289,10 @@ func resourceApiManagementLoggerUpdate(d *pluginsdk.ResourceData, meta interface
 
 	if hasEventHub {
 		parameters.Properties.LoggerType = pointer.To(logger.LoggerTypeAzureEventHub)
-		parameters.Properties.Credentials = expandApiManagementLoggerEventHub(eventHubRaw.([]interface{}))
+		parameters.Properties.Credentials = expandApiManagementLoggerEventHub(eventHubRaw.([]any))
 	} else if hasAppInsights {
 		parameters.Properties.LoggerType = pointer.To(logger.LoggerTypeApplicationInsights)
-		parameters.Properties.Credentials = expandApiManagementLoggerApplicationInsights(appInsightsRaw.([]interface{}))
+		parameters.Properties.Credentials = expandApiManagementLoggerApplicationInsights(appInsightsRaw.([]any))
 	}
 
 	if _, err := client.Update(ctx, id, parameters, logger.UpdateOperationOptions{}); err != nil {
@@ -302,7 +302,7 @@ func resourceApiManagementLoggerUpdate(d *pluginsdk.ResourceData, meta interface
 	return resourceApiManagementLoggerRead(d, meta)
 }
 
-func resourceApiManagementLoggerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementLoggerDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.LoggerClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -321,9 +321,9 @@ func resourceApiManagementLoggerDelete(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func expandApiManagementLoggerEventHub(input []interface{}) *map[string]string {
+func expandApiManagementLoggerEventHub(input []any) *map[string]string {
 	credentials := make(map[string]string)
-	eventHub := input[0].(map[string]interface{})
+	eventHub := input[0].(map[string]any)
 
 	connectionString := eventHub["connection_string"].(string)
 	endpointAddress := eventHub["endpoint_uri"].(string)
@@ -344,9 +344,9 @@ func expandApiManagementLoggerEventHub(input []interface{}) *map[string]string {
 	return &credentials
 }
 
-func expandApiManagementLoggerApplicationInsights(input []interface{}) *map[string]string {
+func expandApiManagementLoggerApplicationInsights(input []any) *map[string]string {
 	credentials := make(map[string]string)
-	ai := input[0].(map[string]interface{})
+	ai := input[0].(map[string]any)
 	if ai["instrumentation_key"].(string) != "" {
 		credentials["instrumentationKey"] = ai["instrumentation_key"].(string)
 	}
@@ -359,13 +359,13 @@ func expandApiManagementLoggerApplicationInsights(input []interface{}) *map[stri
 	return &credentials
 }
 
-func flattenApiManagementLoggerEventHub(d *pluginsdk.ResourceData, properties *logger.LoggerContractProperties) []interface{} {
-	result := make([]interface{}, 0)
+func flattenApiManagementLoggerEventHub(d *pluginsdk.ResourceData, properties *logger.LoggerContractProperties) []any {
+	result := make([]any, 0)
 	if c := properties.Credentials; c != nil && (*c)["name"] != "" {
-		eventHub := make(map[string]interface{})
+		eventHub := make(map[string]any)
 		eventHub["name"] = (*c)["name"]
-		if existing := d.Get("eventhub").([]interface{}); len(existing) > 0 {
-			existingEventHub := existing[0].(map[string]interface{})
+		if existing := d.Get("eventhub").([]any); len(existing) > 0 {
+			existingEventHub := existing[0].(map[string]any)
 			if conn, ok := existingEventHub["connection_string"]; ok {
 				eventHub["connection_string"] = conn.(string)
 			}
