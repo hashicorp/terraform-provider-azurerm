@@ -42,7 +42,7 @@ func TestKubernetesClusterNodePoolV0ToV1_id(t *testing.T) {
 		},
 		{
 			name: "mixed-case resource segments",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"id":                    "/SUBSCRIPTIONS/12345678-1234-5678-1234-123456789012/RESOURCEGROUPS/Group1/PROVIDERS/microsoft.containerservice/MANAGEDCLUSTERS/Cluster1/AGENTPOOLS/Pool1",
 				"kubernetes_cluster_id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/Group1/providers/Microsoft.ContainerService/managedClusters/Cluster1",
 			},
@@ -102,7 +102,7 @@ func TestKubernetesClusterNodePoolV0ToV1_kubernetes_cluster_id(t *testing.T) {
 		},
 		{
 			name: "mixed-case resource segments",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"id":                    "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/Group1/providers/Microsoft.ContainerService/managedClusters/Cluster1/agentPools/Pool1",
 				"kubernetes_cluster_id": "/SUBSCRIPTIONS/12345678-1234-5678-1234-123456789012/RESOURCEGROUPS/Group1/PROVIDERS/microsoft.containerservice/MANAGEDCLUSTERS/Cluster1",
 			},
