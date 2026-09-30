@@ -55,7 +55,7 @@ func resourceNetworkInterfaceSecurityGroupAssociation() *pluginsdk.Resource {
 	}
 }
 
-func resourceNetworkInterfaceSecurityGroupAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceSecurityGroupAssociationCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -112,7 +112,7 @@ func resourceNetworkInterfaceSecurityGroupAssociationCreate(d *pluginsdk.Resourc
 	return resourceNetworkInterfaceSecurityGroupAssociationRead(d, meta)
 }
 
-func resourceNetworkInterfaceSecurityGroupAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceSecurityGroupAssociationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -149,7 +149,7 @@ func resourceNetworkInterfaceSecurityGroupAssociationRead(d *pluginsdk.ResourceD
 	return nil
 }
 
-func resourceNetworkInterfaceSecurityGroupAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceSecurityGroupAssociationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

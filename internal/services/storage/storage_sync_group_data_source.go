@@ -40,7 +40,7 @@ func dataSourceStorageSyncGroup() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceStorageSyncGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceStorageSyncGroupRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.SyncGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

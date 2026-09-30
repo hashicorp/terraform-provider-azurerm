@@ -42,7 +42,7 @@ func AzureProviderWithTestName(testName string) *schema.Provider {
 //   - a valid UUID - a "pid-" prefix will be added to the ID if it is not already present
 //   - a valid UUID prefixed with "pid-"
 //   - a valid UUID prefixed with "pid-" and suffixed with "-partnercenter"
-func ValidatePartnerID(i interface{}, k string) ([]string, []error) {
+func ValidatePartnerID(i any, k string) ([]string, []error) {
 	uuid := `[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}`
 	return validation.Any(
 		validation.StringIsEmpty,
@@ -353,7 +353,7 @@ func azureProvider(supportLegacyTestSuite bool, testName string) *schema.Provide
 // To configure behavioural aspects of the provider, use the buildClient function instead.
 // This separation allows us to robustly test different authentication scenarios.
 func providerConfigure(p *schema.Provider, testName string) schema.ConfigureContextFunc {
-	return func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+	return func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 		subscriptionId := d.Get("subscription_id").(string)
 		if subscriptionId == "" {
 			if !d.Get("use_cli").(bool) {
@@ -362,7 +362,7 @@ func providerConfigure(p *schema.Provider, testName string) schema.ConfigureCont
 		}
 
 		var auxTenants []string
-		if v, ok := d.Get("auxiliary_tenant_ids").([]interface{}); ok && len(v) > 0 {
+		if v, ok := d.Get("auxiliary_tenant_ids").([]any); ok && len(v) > 0 {
 			auxTenants = *pluginsdk.ExpandStringSlice(v)
 		} else if v := os.Getenv("ARM_AUXILIARY_TENANT_IDS"); v != "" {
 			auxTenants = strings.Split(v, ";")
@@ -472,12 +472,12 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 	}
 
 	additionalProvidersToRegister := make(resourceproviders.ResourceProviders)
-	for _, rp := range d.Get("resource_providers_to_register").([]interface{}) {
+	for _, rp := range d.Get("resource_providers_to_register").([]any) {
 		additionalProvidersToRegister.Add(rp.(string))
 	}
 	requiredResourceProviders.Merge(additionalProvidersToRegister)
 
-	features := expandFeatures(d.Get("features").([]interface{}))
+	features := expandFeatures(d.Get("features").([]any))
 
 	if os.Getenv("ARM_PROVIDER_ENHANCED_VALIDATION") != "" {
 		return nil, diag.Errorf("the environment variable `ARM_PROVIDER_ENHANCED_VALIDATION` has been removed in v5.0 of the AzureRM Provider - please use the `enhanced_validation` block inside the `features` block or the replacement environment variables `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` and `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS` instead")

@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/rolemanagementpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	billingValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/billing/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/billing/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -93,7 +93,7 @@ func (r RoleManagementPolicyDataSource) ResourceType() string {
 	return "azurerm_role_management_policy"
 }
 
-func (r RoleManagementPolicyDataSource) ModelObject() interface{} {
+func (r RoleManagementPolicyDataSource) ModelObject() any {
 	return &RoleManagementPolicyDataSourceModel{}
 }
 
@@ -116,7 +116,7 @@ func (r RoleManagementPolicyDataSource) Arguments() map[string]*pluginsdk.Schema
 				// It seems only user account is allowed to be elevated access.
 				validation.StringMatch(regexp.MustCompile("/providers/Microsoft.Subscription.*"), "Subscription scope is invalid"),
 
-				billingValidate.EnrollmentID,
+				validate.EnrollmentID,
 				commonids.ValidateManagementGroupID,
 				commonids.ValidateSubscriptionID,
 				commonids.ValidateResourceGroupID,

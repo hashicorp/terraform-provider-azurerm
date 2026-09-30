@@ -62,7 +62,7 @@ func resourceLogAnalyticsClusterCustomerManagedKey() *pluginsdk.Resource {
 	}
 }
 
-func resourceLogAnalyticsClusterCustomerManagedKeyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsClusterCustomerManagedKeyCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.ClusterClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -136,7 +136,7 @@ func resourceLogAnalyticsClusterCustomerManagedKeyCreate(d *pluginsdk.ResourceDa
 	return resourceLogAnalyticsClusterCustomerManagedKeyRead(d, meta)
 }
 
-func resourceLogAnalyticsClusterCustomerManagedKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsClusterCustomerManagedKeyUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.ClusterClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -188,7 +188,7 @@ func resourceLogAnalyticsClusterCustomerManagedKeyUpdate(d *pluginsdk.ResourceDa
 	return resourceLogAnalyticsClusterCustomerManagedKeyRead(d, meta)
 }
 
-func resourceLogAnalyticsClusterCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsClusterCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.ClusterClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -239,7 +239,7 @@ func resourceLogAnalyticsClusterCustomerManagedKeyRead(d *pluginsdk.ResourceData
 	return nil
 }
 
-func resourceLogAnalyticsClusterCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsClusterCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.ClusterClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

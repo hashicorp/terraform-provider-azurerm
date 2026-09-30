@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func ApiManagementChildName(v interface{}, k string) (warnings []string, errors []error) {
+func ApiManagementChildName(v any, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	// from the portal: `The field may contain only numbers, letters, underscore (_), and dash (-) sign when preceded and followed by number or a letter.`
@@ -21,7 +21,7 @@ func ApiManagementChildName(v interface{}, k string) (warnings []string, errors 
 	return warnings, errors
 }
 
-func ApiManagementServiceName(v interface{}, k string) (warnings []string, errors []error) {
+func ApiManagementServiceName(v any, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if matched := regexp.MustCompile(`^[0-9a-zA-Z-]{1,50}$`).Match([]byte(value)); !matched {
@@ -32,14 +32,14 @@ func ApiManagementServiceName(v interface{}, k string) (warnings []string, error
 }
 
 // from the portal: `The field may contain only numbers, letters, and dash (-) sign when preceded and followed by number or a letter.`
-func ApiManagementUserName(v interface{}, k string) ([]string, []error) {
+func ApiManagementUserName(v any, k string) ([]string, []error) {
 	return validation.All(
 		validation.StringDoesNotMatch(regexp.MustCompile(`^-|-$`), "may not start or end with '-' character"),
 		validation.StringMatch(regexp.MustCompile(`(^([a-zA-Z0-9-]{1,80})$)`), "may only contain alphanumeric characters and dashes up to 80 characters in length"),
 	)(v, k)
 }
 
-func ApiManagementServicePublisherName(v interface{}, k string) (warnings []string, errors []error) {
+func ApiManagementServicePublisherName(v any, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if matched := regexp.MustCompile(`^.{1,100}$`).Match([]byte(value)); !matched {
@@ -50,14 +50,14 @@ func ApiManagementServicePublisherName(v interface{}, k string) (warnings []stri
 }
 
 // despite the name this only validates length and the absence of whitespace, not that the value is an email address
-func ApiManagementServicePublisherEmail(v interface{}, k string) ([]string, []error) {
+func ApiManagementServicePublisherEmail(v any, k string) ([]string, []error) {
 	return validation.StringMatch(
 		regexp.MustCompile(`^[\S*]{1,100}$`),
 		"may only be up to 100 characters in length and must not contain whitespace",
 	)(v, k)
 }
 
-func ApiManagementApiName(v interface{}, k string) (ws []string, es []error) {
+func ApiManagementApiName(v any, k string) (ws []string, es []error) {
 	value := v.(string)
 
 	if matched := regexp.MustCompile(`^[^*#&+]{1,256}$`).Match([]byte(value)); !matched {
@@ -66,7 +66,7 @@ func ApiManagementApiName(v interface{}, k string) (ws []string, es []error) {
 	return ws, es
 }
 
-func ApiManagementApiPath(v interface{}, k string) (ws []string, es []error) {
+func ApiManagementApiPath(v any, k string) (ws []string, es []error) {
 	value := v.(string)
 
 	if matched := regexp.MustCompile(`^(?:|[\w]|[\w.][\w-/.:]{0,398}[\w-])$`).Match([]byte(value)); !matched {
@@ -75,7 +75,7 @@ func ApiManagementApiPath(v interface{}, k string) (ws []string, es []error) {
 	return ws, es
 }
 
-func ApiManagementBackendName(v interface{}, k string) (warnings []string, errors []error) {
+func ApiManagementBackendName(v any, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	// From https://learn.microsoft.com/rest/api/apimanagement/backend/create-or-update#uri-parameters
@@ -86,7 +86,7 @@ func ApiManagementBackendName(v interface{}, k string) (warnings []string, error
 	return warnings, errors
 }
 
-func ApiManagementNamedValueDisplayName(v interface{}, k string) (warnings []string, errors []error) {
+func ApiManagementNamedValueDisplayName(v any, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	// From the portal: `Name may contain only letters, digits, periods, dash, and underscore.`

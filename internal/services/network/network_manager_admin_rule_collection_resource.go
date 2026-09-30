@@ -32,7 +32,7 @@ func (r ManagerAdminRuleCollectionResource) ResourceType() string {
 	return "azurerm_network_manager_admin_rule_collection"
 }
 
-func (r ManagerAdminRuleCollectionResource) ModelObject() interface{} {
+func (r ManagerAdminRuleCollectionResource) ModelObject() any {
 	return &ManagerAdminRuleCollectionModel{}
 }
 

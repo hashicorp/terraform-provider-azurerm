@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func CloudVMClusterName(i interface{}, k string) ([]string, []error) {
+func CloudVMClusterName(i any, k string) ([]string, []error) {
 	return validation.All(
 		validation.StringLenBetween(1, 255),
 		validation.StringMatch(regexp.MustCompile(`^[\p{L}_]`), "must start with a letter or underscore (_)"),
@@ -18,14 +18,14 @@ func CloudVMClusterName(i interface{}, k string) ([]string, []error) {
 	)(i, k)
 }
 
-func DataStorageSizeInTbs(i interface{}, k string) ([]string, []error) {
+func DataStorageSizeInTbs(i any, k string) ([]string, []error) {
 	return validation.FloatBetween(2, 192)(i, k)
 }
 
-func LicenseModel(i interface{}, k string) ([]string, []error) {
+func LicenseModel(i any, k string) ([]string, []error) {
 	return validation.StringInSlice(cloudvmclusters.PossibleValuesForLicenseModel(), false)(i, k)
 }
 
-func SystemVersion(i interface{}, k string) ([]string, []error) {
+func SystemVersion(i any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile(`(?:19|22|23|24|25)\.[0-9]+(\.[0-9]+)*|[0-9]+(\.[0-9]+)*`), "must match one of the following patterns: (?:19|22|23|24|25).[0-9]+(.[0-9]+)* or [0-9]+(.[0-9]+)*")(i, k)
 }
