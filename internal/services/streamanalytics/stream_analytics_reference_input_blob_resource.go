@@ -113,7 +113,7 @@ func resourceStreamAnalyticsReferenceInputBlob() *pluginsdk.Resource {
 	}
 }
 
-func resourceStreamAnalyticsReferenceInputBlobCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsReferenceInputBlobCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.InputsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -134,7 +134,7 @@ func resourceStreamAnalyticsReferenceInputBlobCreate(d *pluginsdk.ResourceData, 
 		}
 	}
 
-	serializationRaw := d.Get("serialization").([]interface{})
+	serializationRaw := d.Get("serialization").([]any)
 	serialization, err := expandStreamAnalyticsStreamInputSerialization(serializationRaw)
 	if err != nil {
 		return fmt.Errorf("expanding `serialization`: %+v", err)
@@ -171,7 +171,7 @@ func resourceStreamAnalyticsReferenceInputBlobCreate(d *pluginsdk.ResourceData, 
 	return resourceStreamAnalyticsReferenceInputBlobRead(d, meta)
 }
 
-func resourceStreamAnalyticsReferenceInputBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsReferenceInputBlobUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.InputsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -181,7 +181,7 @@ func resourceStreamAnalyticsReferenceInputBlobUpdate(d *pluginsdk.ResourceData, 
 		return err
 	}
 
-	serializationRaw := d.Get("serialization").([]interface{})
+	serializationRaw := d.Get("serialization").([]any)
 	serialization, err := expandStreamAnalyticsStreamInputSerialization(serializationRaw)
 	if err != nil {
 		return fmt.Errorf("expanding `serialization`: %+v", err)
@@ -218,7 +218,7 @@ func resourceStreamAnalyticsReferenceInputBlobUpdate(d *pluginsdk.ResourceData, 
 	return resourceStreamAnalyticsReferenceInputBlobRead(d, meta)
 }
 
-func resourceStreamAnalyticsReferenceInputBlobRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsReferenceInputBlobRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.InputsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -284,7 +284,7 @@ func resourceStreamAnalyticsReferenceInputBlobRead(d *pluginsdk.ResourceData, me
 	return nil
 }
 
-func resourceStreamAnalyticsReferenceInputBlobDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsReferenceInputBlobDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.InputsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()

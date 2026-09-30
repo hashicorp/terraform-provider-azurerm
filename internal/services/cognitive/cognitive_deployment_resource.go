@@ -60,7 +60,7 @@ func (r CognitiveDeploymentResource) ResourceType() string {
 	return "azurerm_cognitive_deployment"
 }
 
-func (r CognitiveDeploymentResource) ModelObject() interface{} {
+func (r CognitiveDeploymentResource) ModelObject() any {
 	return &cognitiveDeploymentModel{}
 }
 
@@ -141,16 +141,10 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"tier": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(deployments.SkuTierFree),
-							string(deployments.SkuTierBasic),
-							string(deployments.SkuTierStandard),
-							string(deployments.SkuTierPremium),
-							string(deployments.SkuTierEnterprise),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringInSlice(deployments.PossibleValuesForSkuTier(), false),
 					},
 
 					"size": {
@@ -184,14 +178,10 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"version_upgrade_option": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(deployments.DeploymentModelVersionUpgradeOptionOnceNewDefaultVersionAvailable),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(deployments.DeploymentModelVersionUpgradeOptionOnceCurrentVersionExpired),
-				string(deployments.DeploymentModelVersionUpgradeOptionOnceNewDefaultVersionAvailable),
-				string(deployments.DeploymentModelVersionUpgradeOptionNoAutoUpgrade),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(deployments.DeploymentModelVersionUpgradeOptionOnceNewDefaultVersionAvailable),
+			ValidateFunc: validation.StringInSlice(deployments.PossibleValuesForDeploymentModelVersionUpgradeOption(), false),
 		},
 	}
 }
@@ -246,8 +236,7 @@ func (r CognitiveDeploymentResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.VersionUpgradeOption != "" {
-				option := deployments.DeploymentModelVersionUpgradeOption(model.VersionUpgradeOption)
-				properties.Properties.VersionUpgradeOption = &option
+				properties.Properties.VersionUpgradeOption = pointer.ToEnum[deployments.DeploymentModelVersionUpgradeOption](model.VersionUpgradeOption)
 			}
 
 			properties.Sku = expandDeploymentSkuModel(model.Sku)
@@ -363,7 +352,7 @@ func (r CognitiveDeploymentResource) flatten(metadata sdk.ResourceMetaData, id *
 
 		state.DynamicThrottlingEnabled = pointer.From(properties.DynamicThrottlingEnabled)
 		state.RaiPolicyName = pointer.From(properties.RaiPolicyName)
-		state.VersionUpgradeOption = string(pointer.From(properties.VersionUpgradeOption))
+		state.VersionUpgradeOption = pointer.FromEnum(properties.VersionUpgradeOption)
 	}
 	if sku := flattenDeploymentSkuModel(model.Sku); sku != nil {
 		state.Sku = sku
@@ -436,8 +425,7 @@ func expandDeploymentSkuModel(inputList []DeploymentSkuModel) *deployments.Sku {
 		s.Size = pointer.To(input.Size)
 	}
 	if input.Tier != "" {
-		tier := deployments.SkuTier(input.Tier)
-		s.Tier = &tier
+		s.Tier = pointer.ToEnum[deployments.SkuTier](input.Tier)
 	}
 	return s
 }
@@ -458,7 +446,7 @@ func flattenDeploymentModelModel(input *deployments.DeploymentModel) []Deploymen
 
 func flattenDeploymentSkuModel(input *deployments.Sku) []DeploymentSkuModel {
 	if input == nil {
-		return nil
+		return []DeploymentSkuModel{}
 	}
 	output := DeploymentSkuModel{
 		Name: input.Name,

@@ -133,7 +133,7 @@ func dataSourceVirtualDesktopHostPool() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceVirtualDesktopHostPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceVirtualDesktopHostPoolRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DesktopVirtualization.HostPoolsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 
