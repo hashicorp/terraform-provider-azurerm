@@ -20,8 +20,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/agentpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/snapshots"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/applicationsecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/publicipprefixes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -181,6 +181,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 							string(agentpools.OSSKUUbuntuTwoFourZeroFour),
 							string(agentpools.OSSKUWindowsTwoZeroOneNine),
 							string(agentpools.OSSKUWindowsTwoZeroTwoTwo),
+							string(agentpools.OSSKUWindowsTwoZeroTwoFive),
 						}, false),
 					},
 
@@ -754,7 +755,7 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 				allowedHostPorts = append(allowedHostPorts, agentpools.PortRange{
 					PortStart: allowedHostPortRaw.PortStart,
 					PortEnd:   allowedHostPortRaw.PortEnd,
-					Protocol:  pointer.ToEnum[agentpools.Protocol](string(pointer.From(allowedHostPortRaw.Protocol))),
+					Protocol:  pointer.ToEnum[agentpools.Protocol](pointer.FromEnum(allowedHostPortRaw.Protocol)),
 				})
 			}
 			networkProfile.AllowedHostPorts = &allowedHostPorts
@@ -840,13 +841,13 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 }
 
 func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.ManagedClusterAgentPoolProfile, error) {
-	input := d.Get("default_node_pool").([]interface{})
+	input := d.Get("default_node_pool").([]any)
 
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 
 	enableAutoScaling := raw["auto_scaling_enabled"].(bool)
 
-	nodeLabelsRaw := raw["node_labels"].(map[string]interface{})
+	nodeLabelsRaw := raw["node_labels"].(map[string]any)
 	nodeLabels := expandNodeLabels(nodeLabelsRaw)
 	var nodeTaints *[]string
 
@@ -855,7 +856,7 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		nodeTaints = pointer.To([]string{"CriticalAddonsOnly=true:NoSchedule"})
 	}
 
-	t := raw["tags"].(map[string]interface{})
+	t := raw["tags"].(map[string]any)
 
 	profile := managedclusters.ManagedClusterAgentPoolProfile{
 		EnableAutoScaling:      pointer.To(enableAutoScaling),
@@ -880,7 +881,7 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		// since this is the "default" node pool we can assume this is a system node pool
 		Mode: pointer.To(managedclusters.AgentPoolModeSystem),
 
-		UpgradeSettings: expandClusterNodePoolUpgradeSettings(raw["upgrade_settings"].([]interface{})),
+		UpgradeSettings: expandClusterNodePoolUpgradeSettings(raw["upgrade_settings"].([]any)),
 
 		// // TODO: support these in time
 		// ScaleSetEvictionPolicy: "",
@@ -1014,11 +1015,11 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		return nil, fmt.Errorf("`max_count`(%d) and `min_count`(%d) must be set to `null` when `auto_scaling_enabled` is set to `false`", maxCount, minCount)
 	}
 
-	if kubeletConfig := raw["kubelet_config"].([]interface{}); len(kubeletConfig) > 0 {
+	if kubeletConfig := raw["kubelet_config"].([]any); len(kubeletConfig) > 0 {
 		profile.KubeletConfig = expandClusterNodePoolKubeletConfig(kubeletConfig)
 	}
 
-	if linuxOSConfig := raw["linux_os_config"].([]interface{}); len(linuxOSConfig) > 0 {
+	if linuxOSConfig := raw["linux_os_config"].([]any); len(linuxOSConfig) > 0 {
 		linuxOSConfig, err := expandClusterNodePoolLinuxOSConfig(linuxOSConfig)
 		if err != nil {
 			return nil, err
@@ -1026,11 +1027,11 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		profile.LinuxOSConfig = linuxOSConfig
 	}
 
-	if networkProfile := raw["node_network_profile"].([]interface{}); len(networkProfile) > 0 {
+	if networkProfile := raw["node_network_profile"].([]any); len(networkProfile) > 0 {
 		profile.NetworkProfile = expandClusterPoolNetworkProfile(networkProfile)
 	}
 
-	if securityProfile := raw["security"].([]interface{}); len(securityProfile) > 0 {
+	if securityProfile := raw["security"].([]any); len(securityProfile) > 0 {
 		profile.SecurityProfile = expandManagedClusterAgentPoolSecurityProfile(securityProfile)
 	}
 
@@ -1039,12 +1040,12 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 	}, nil
 }
 
-func expandClusterNodePoolKubeletConfig(input []interface{}) *managedclusters.KubeletConfig {
+func expandClusterNodePoolKubeletConfig(input []any) *managedclusters.KubeletConfig {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 	result := &managedclusters.KubeletConfig{
 		CpuCfsQuota: pointer.To(raw["cpu_cfs_quota_enabled"].(bool)),
 		// must be false, otherwise the backend will report error: CustomKubeletConfig.FailSwapOn must be set to false to enable swap file on nodes.
@@ -1080,12 +1081,12 @@ func expandClusterNodePoolKubeletConfig(input []interface{}) *managedclusters.Ku
 	return result
 }
 
-func expandClusterNodePoolLinuxOSConfig(input []interface{}) (*managedclusters.LinuxOSConfig, error) {
+func expandClusterNodePoolLinuxOSConfig(input []any) (*managedclusters.LinuxOSConfig, error) {
 	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
-	raw := input[0].(map[string]interface{})
-	sysctlConfig, err := expandClusterNodePoolSysctlConfig(raw["sysctl_config"].([]interface{}))
+	raw := input[0].(map[string]any)
+	sysctlConfig, err := expandClusterNodePoolSysctlConfig(raw["sysctl_config"].([]any))
 	if err != nil {
 		return nil, err
 	}
@@ -1107,11 +1108,11 @@ func expandClusterNodePoolLinuxOSConfig(input []interface{}) (*managedclusters.L
 	return result, nil
 }
 
-func expandClusterNodePoolSysctlConfig(input []interface{}) (*managedclusters.SysctlConfig, error) {
+func expandClusterNodePoolSysctlConfig(input []any) (*managedclusters.SysctlConfig, error) {
 	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 	result := &managedclusters.SysctlConfig{
 		NetIPv4TcpTwReuse: pointer.To(raw["net_ipv4_tcp_tw_reuse"].(bool)),
 	}
@@ -1207,9 +1208,9 @@ func expandClusterNodePoolSysctlConfig(input []interface{}) (*managedclusters.Sy
 	return result, nil
 }
 
-func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProfile, d *pluginsdk.ResourceData) (*[]interface{}, error) {
+func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProfile, d *pluginsdk.ResourceData) (*[]any, error) {
 	if input == nil {
-		return &[]interface{}{}, nil
+		return &[]any{}, nil
 	}
 
 	agentPool, err := findDefaultNodePool(input, d)
@@ -1239,7 +1240,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 
 	gpuDriver := ""
 	if agentPool.GpuProfile != nil {
-		gpuDriver = string(pointer.From(agentPool.GpuProfile.Driver))
+		gpuDriver = pointer.FromEnum(agentPool.GpuProfile.Driver)
 	}
 
 	maxCount := 0
@@ -1351,7 +1352,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 	networkProfile := flattenClusterPoolNetworkProfile(agentPool.NetworkProfile)
 	securityProfile := flattenManagedClusterAgentPoolSecurityProfile(agentPool.SecurityProfile)
 
-	out := map[string]interface{}{
+	out := map[string]any{
 		"auto_scaling_enabled":          enableAutoScaling,
 		"fips_enabled":                  enableFIPS,
 		"gpu_instance":                  gpuInstanceProfile,
@@ -1392,17 +1393,17 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"security":                      securityProfile,
 	}
 
-	return &[]interface{}{
+	return &[]any{
 		out,
 	}, nil
 }
 
-func flattenClusterNodePoolUpgradeSettings(input *managedclusters.AgentPoolUpgradeSettings) []interface{} {
+func flattenClusterNodePoolUpgradeSettings(input *managedclusters.AgentPoolUpgradeSettings) []any {
 	if input == nil || (input.MaxSurge == nil && input.DrainTimeoutInMinutes == nil && input.NodeSoakDurationInMinutes == nil && input.UndrainableNodeBehavior == nil) {
-		return []interface{}{}
+		return []any{}
 	}
 
-	values := make(map[string]interface{})
+	values := make(map[string]any)
 
 	if input.MaxSurge != nil && *input.MaxSurge != "" {
 		values["max_surge"] = *input.MaxSurge
@@ -1420,12 +1421,12 @@ func flattenClusterNodePoolUpgradeSettings(input *managedclusters.AgentPoolUpgra
 		values["undrainable_node_behavior"] = string(*input.UndrainableNodeBehavior)
 	}
 
-	return []interface{}{values}
+	return []any{values}
 }
 
-func flattenClusterNodePoolKubeletConfig(input *managedclusters.KubeletConfig) []interface{} {
+func flattenClusterNodePoolKubeletConfig(input *managedclusters.KubeletConfig) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	var cpuManagerPolicy, cpuCfsQuotaPeriod, topologyManagerPolicy string
@@ -1460,8 +1461,8 @@ func flattenClusterNodePoolKubeletConfig(input *managedclusters.KubeletConfig) [
 		podMaxPids = int(*input.PodMaxPids)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"cpu_manager_policy":        cpuManagerPolicy,
 			"cpu_cfs_quota_enabled":     cpuCfsQuotaEnabled,
 			"cpu_cfs_quota_period":      cpuCfsQuotaPeriod,
@@ -1476,9 +1477,9 @@ func flattenClusterNodePoolKubeletConfig(input *managedclusters.KubeletConfig) [
 	}
 }
 
-func flattenAgentPoolKubeletConfig(input *agentpools.KubeletConfig) []interface{} {
+func flattenAgentPoolKubeletConfig(input *agentpools.KubeletConfig) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	var cpuManagerPolicy, cpuCfsQuotaPeriod, topologyManagerPolicy string
@@ -1513,8 +1514,8 @@ func flattenAgentPoolKubeletConfig(input *agentpools.KubeletConfig) []interface{
 		podMaxPids = int(*input.PodMaxPids)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"cpu_manager_policy":        cpuManagerPolicy,
 			"cpu_cfs_quota_enabled":     cpuCfsQuotaEnabled,
 			"cpu_cfs_quota_period":      cpuCfsQuotaPeriod,
@@ -1529,9 +1530,9 @@ func flattenAgentPoolKubeletConfig(input *agentpools.KubeletConfig) []interface{
 	}
 }
 
-func flattenClusterNodePoolLinuxOSConfig(input *managedclusters.LinuxOSConfig) ([]interface{}, error) {
+func flattenClusterNodePoolLinuxOSConfig(input *managedclusters.LinuxOSConfig) ([]any, error) {
 	if input == nil {
-		return make([]interface{}, 0), nil
+		return make([]any, 0), nil
 	}
 
 	var swapFileSizeMB int
@@ -1545,8 +1546,8 @@ func flattenClusterNodePoolLinuxOSConfig(input *managedclusters.LinuxOSConfig) (
 		return nil, err
 	}
 
-	config := []interface{}{
-		map[string]interface{}{
+	config := []any{
+		map[string]any{
 			"swap_file_size_mb":            swapFileSizeMB,
 			"sysctl_config":                sysctlConfig,
 			"transparent_huge_page_defrag": transparentHugePageDefrag,
@@ -1557,9 +1558,9 @@ func flattenClusterNodePoolLinuxOSConfig(input *managedclusters.LinuxOSConfig) (
 	return config, nil
 }
 
-func flattenClusterNodePoolSysctlConfig(input *managedclusters.SysctlConfig) ([]interface{}, error) {
+func flattenClusterNodePoolSysctlConfig(input *managedclusters.SysctlConfig) ([]any, error) {
 	if input == nil {
-		return make([]interface{}, 0), nil
+		return make([]any, 0), nil
 	}
 
 	var fsAioMaxNr int
@@ -1683,8 +1684,8 @@ func flattenClusterNodePoolSysctlConfig(input *managedclusters.SysctlConfig) ([]
 	if input.VMVfsCachePressure != nil {
 		vmVfsCachePressure = int(*input.VMVfsCachePressure)
 	}
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"fs_aio_max_nr":                      fsAioMaxNr,
 			"fs_file_max":                        fsFileMax,
 			"fs_inotify_max_user_watches":        fsInotifyMaxUserWatches,
@@ -1768,13 +1769,13 @@ func findDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProfile
 	return agentPool, nil
 }
 
-func expandClusterNodePoolUpgradeSettings(input []interface{}) *managedclusters.AgentPoolUpgradeSettings {
+func expandClusterNodePoolUpgradeSettings(input []any) *managedclusters.AgentPoolUpgradeSettings {
 	setting := &managedclusters.AgentPoolUpgradeSettings{}
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	if maxSurgeRaw := v["max_surge"].(string); maxSurgeRaw != "" {
 		setting.MaxSurge = pointer.To(maxSurgeRaw)
 	}
@@ -1792,25 +1793,25 @@ func expandClusterNodePoolUpgradeSettings(input []interface{}) *managedclusters.
 	return setting
 }
 
-func expandClusterPoolNetworkProfile(input []interface{}) *managedclusters.AgentPoolNetworkProfile {
+func expandClusterPoolNetworkProfile(input []any) *managedclusters.AgentPoolNetworkProfile {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	return &managedclusters.AgentPoolNetworkProfile{
-		AllowedHostPorts:          expandClusterPoolNetworkProfileAllowedHostPorts(v["allowed_host_ports"].([]interface{})),
-		ApplicationSecurityGroups: pluginsdk.ExpandStringSlice(v["application_security_group_ids"].([]interface{})),
-		NodePublicIPTags:          expandClusterPoolNetworkProfileNodePublicIPTags(v["node_public_ip_tags"].(map[string]interface{})),
+		AllowedHostPorts:          expandClusterPoolNetworkProfileAllowedHostPorts(v["allowed_host_ports"].([]any)),
+		ApplicationSecurityGroups: pluginsdk.ExpandStringSlice(v["application_security_group_ids"].([]any)),
+		NodePublicIPTags:          expandClusterPoolNetworkProfileNodePublicIPTags(v["node_public_ip_tags"].(map[string]any)),
 	}
 }
 
-func expandClusterPoolNetworkProfileAllowedHostPorts(input []interface{}) *[]managedclusters.PortRange {
+func expandClusterPoolNetworkProfileAllowedHostPorts(input []any) *[]managedclusters.PortRange {
 	if len(input) == 0 {
 		return nil
 	}
 	out := make([]managedclusters.PortRange, 0)
 	for _, v := range input {
-		raw := v.(map[string]interface{})
+		raw := v.(map[string]any)
 		var portEnd, portStart int64
 		var protocol managedclusters.Protocol
 		if raw["port_end"] != nil {
@@ -1831,7 +1832,7 @@ func expandClusterPoolNetworkProfileAllowedHostPorts(input []interface{}) *[]man
 	return &out
 }
 
-func expandClusterPoolNetworkProfileNodePublicIPTags(input map[string]interface{}) *[]managedclusters.IPTag {
+func expandClusterPoolNetworkProfileNodePublicIPTags(input map[string]any) *[]managedclusters.IPTag {
 	if len(input) == 0 {
 		return nil
 	}
@@ -1847,37 +1848,37 @@ func expandClusterPoolNetworkProfileNodePublicIPTags(input map[string]interface{
 	return &out
 }
 
-func expandManagedClusterAgentPoolSecurityProfile(input []interface{}) *managedclusters.AgentPoolSecurityProfile {
+func expandManagedClusterAgentPoolSecurityProfile(input []any) *managedclusters.AgentPoolSecurityProfile {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	return &managedclusters.AgentPoolSecurityProfile{
 		EnableSecureBoot: pointer.To(v["secure_boot_enabled"].(bool)),
 		EnableVTPM:       pointer.To(v["vtpm_enabled"].(bool)),
 	}
 }
 
-func flattenManagedClusterAgentPoolSecurityProfile(input *managedclusters.AgentPoolSecurityProfile) []interface{} {
+func flattenManagedClusterAgentPoolSecurityProfile(input *managedclusters.AgentPoolSecurityProfile) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"secure_boot_enabled": pointer.From(input.EnableSecureBoot),
 			"vtpm_enabled":        pointer.From(input.EnableVTPM),
 		},
 	}
 }
 
-func flattenClusterPoolNetworkProfile(input *managedclusters.AgentPoolNetworkProfile) []interface{} {
+func flattenClusterPoolNetworkProfile(input *managedclusters.AgentPoolNetworkProfile) []any {
 	if input == nil || input.NodePublicIPTags == nil && input.AllowedHostPorts == nil && input.ApplicationSecurityGroups == nil {
-		return []interface{}{}
+		return []any{}
 	}
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"allowed_host_ports":             flattenClusterPoolNetworkProfileAllowedHostPorts(input.AllowedHostPorts),
 			"application_security_group_ids": pluginsdk.FlattenSlice(input.ApplicationSecurityGroups),
 			"node_public_ip_tags":            flattenClusterPoolNetworkProfileNodePublicIPTags(input.NodePublicIPTags),
@@ -1885,13 +1886,13 @@ func flattenClusterPoolNetworkProfile(input *managedclusters.AgentPoolNetworkPro
 	}
 }
 
-func flattenClusterPoolNetworkProfileAllowedHostPorts(input *[]managedclusters.PortRange) []interface{} {
+func flattenClusterPoolNetworkProfileAllowedHostPorts(input *[]managedclusters.PortRange) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
-	out := make([]interface{}, 0)
+	out := make([]any, 0)
 	for _, portRange := range *input {
-		out = append(out, map[string]interface{}{
+		out = append(out, map[string]any{
 			"port_end":   pointer.From(portRange.PortEnd),
 			"port_start": pointer.From(portRange.PortStart),
 			"protocol":   pointer.From(portRange.Protocol),
@@ -1900,11 +1901,11 @@ func flattenClusterPoolNetworkProfileAllowedHostPorts(input *[]managedclusters.P
 	return out
 }
 
-func flattenClusterPoolNetworkProfileNodePublicIPTags(input *[]managedclusters.IPTag) map[string]interface{} {
+func flattenClusterPoolNetworkProfileNodePublicIPTags(input *[]managedclusters.IPTag) map[string]any {
 	if input == nil {
-		return map[string]interface{}{}
+		return map[string]any{}
 	}
-	out := make(map[string]interface{})
+	out := make(map[string]any)
 
 	for _, tag := range *input {
 		if tag.IPTagType != nil {

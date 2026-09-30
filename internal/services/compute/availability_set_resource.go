@@ -102,7 +102,7 @@ func resourceAvailabilitySet() *pluginsdk.Resource {
 	}
 }
 
-func resourceAvailabilitySetCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAvailabilitySetCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.AvailabilitySetsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -127,7 +127,7 @@ func resourceAvailabilitySetCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	updateDomainCount := d.Get("platform_update_domain_count").(int)
 	faultDomainCount := d.Get("platform_fault_domain_count").(int)
 	managed := d.Get("managed").(bool)
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
 	payload := availabilitysets.AvailabilitySet{
 		Location: location.Normalize(d.Get("location").(string)),
@@ -162,7 +162,7 @@ func resourceAvailabilitySetCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	return resourceAvailabilitySetRead(d, meta)
 }
 
-func resourceAvailabilitySetRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAvailabilitySetRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.AvailabilitySetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -214,7 +214,7 @@ func resourceAvailabilitySetFlatten(d *pluginsdk.ResourceData, id *commonids.Ava
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceAvailabilitySetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAvailabilitySetDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.AvailabilitySetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

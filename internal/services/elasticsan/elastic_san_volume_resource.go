@@ -30,7 +30,7 @@ var (
 
 type ElasticSANVolumeResource struct{}
 
-func (r ElasticSANVolumeResource) ModelObject() interface{} {
+func (r ElasticSANVolumeResource) ModelObject() any {
 	return &ElasticSANVolumeResourceModel{}
 }
 
@@ -315,7 +315,7 @@ func FlattenElasticSANVolumeCreateSource(input *volumes.SourceCreationData) []El
 
 	return []ElasticSANVolumeCreateSource{
 		{
-			SourceType: string(pointer.From(input.CreateSource)),
+			SourceType: pointer.FromEnum(input.CreateSource),
 			SourceId:   pointer.From(input.SourceId),
 		},
 	}

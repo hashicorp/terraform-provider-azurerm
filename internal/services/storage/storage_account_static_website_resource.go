@@ -65,7 +65,7 @@ func (a AccountStaticWebsiteResource) Attributes() map[string]*pluginsdk.Schema 
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (a AccountStaticWebsiteResource) ModelObject() interface{} {
+func (a AccountStaticWebsiteResource) ModelObject() any {
 	return &AccountStaticWebsiteResourceModel{}
 }
 
@@ -218,7 +218,7 @@ func (a AccountStaticWebsiteResource) Delete() sdk.ResourceFunc {
 
 			accountDetails, err := storageClient.GetAccount(ctx, *id)
 			if err != nil {
-				// nolint:nilerr // If we don't find the account we can safely assume we don't need to remove the website since it must already be deleted
+				//nolint:nilerr // If we don't find the account we can safely assume we don't need to remove the website since it must already be deleted
 				return nil
 			}
 

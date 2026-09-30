@@ -10,7 +10,7 @@ import (
 )
 
 // WindowsAdminUsername validates that admin_username meets the Azure API requirements for Windows Virtual Machines.
-func WindowsAdminUsername(i interface{}, k string) (warnings []string, errors []error) {
+func WindowsAdminUsername(i any, k string) (warnings []string, errors []error) {
 	// adminUsername must not be empty, can be at most 20 characters, cannot end with a dot and cannot match a disallowed name.
 	return validation.All(
 		validation.StringIsNotWhiteSpace,

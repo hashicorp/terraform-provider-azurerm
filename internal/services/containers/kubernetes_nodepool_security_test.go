@@ -20,28 +20,28 @@ import (
 func TestKubernetesNodePoolSecurity(t *testing.T) {
 	cases := []struct {
 		name       string
-		config     map[string]interface{}
+		config     map[string]any
 		secureBoot bool
 		vtpm       bool
 	}{
 		{name: "omitted"},
-		{name: "empty", config: map[string]interface{}{}},
-		{name: "secure_boot", config: map[string]interface{}{"secure_boot_enabled": true}, secureBoot: true},
-		{name: "vtpm", config: map[string]interface{}{"vtpm_enabled": true}, vtpm: true},
-		{name: "enabled", config: map[string]interface{}{"secure_boot_enabled": true, "vtpm_enabled": true}, secureBoot: true, vtpm: true},
-		{name: "disabled", config: map[string]interface{}{"secure_boot_enabled": false, "vtpm_enabled": false}},
+		{name: "empty", config: map[string]any{}},
+		{name: "secure_boot", config: map[string]any{"secure_boot_enabled": true}, secureBoot: true},
+		{name: "vtpm", config: map[string]any{"vtpm_enabled": true}, vtpm: true},
+		{name: "enabled", config: map[string]any{"secure_boot_enabled": true, "vtpm_enabled": true}, secureBoot: true, vtpm: true},
+		{name: "disabled", config: map[string]any{"secure_boot_enabled": false, "vtpm_enabled": false}},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			pool := map[string]interface{}{"name": "default", "vm_size": "Standard_D2s_v3", "node_count": 1}
-			config := map[string]interface{}{}
+			pool := map[string]any{"name": "default", "vm_size": "Standard_D2s_v3", "node_count": 1}
+			config := map[string]any{}
 			var expectedAgentPool *agentpools.AgentPoolSecurityProfile
 			var expectedDefaultPool *managedclusters.AgentPoolSecurityProfile
-			expectedState := []interface{}{}
+			expectedState := []any{}
 			if tc.config != nil {
-				config["security"] = []interface{}{tc.config}
-				pool["security"] = []interface{}{tc.config}
+				config["security"] = []any{tc.config}
+				pool["security"] = []any{tc.config}
 				expectedAgentPool = &agentpools.AgentPoolSecurityProfile{
 					EnableSecureBoot: pointer.To(tc.secureBoot),
 					EnableVTPM:       pointer.To(tc.vtpm),
@@ -50,19 +50,19 @@ func TestKubernetesNodePoolSecurity(t *testing.T) {
 					EnableSecureBoot: pointer.To(tc.secureBoot),
 					EnableVTPM:       pointer.To(tc.vtpm),
 				}
-				expectedState = []interface{}{map[string]interface{}{"secure_boot_enabled": tc.secureBoot, "vtpm_enabled": tc.vtpm}}
+				expectedState = []any{map[string]any{"secure_boot_enabled": tc.secureBoot, "vtpm_enabled": tc.vtpm}}
 			}
 
 			nodePoolData := schema.TestResourceDataRaw(t, resourceKubernetesClusterNodePool().Schema, config)
-			if actual := expandAgentPoolSecurityProfile(nodePoolData.Get("security").([]interface{})); !reflect.DeepEqual(actual, expectedAgentPool) {
+			if actual := expandAgentPoolSecurityProfile(nodePoolData.Get("security").([]any)); !reflect.DeepEqual(actual, expectedAgentPool) {
 				t.Fatalf("unexpected node pool security: %#v", actual)
 			}
 			if actual := flattenAgentPoolSecurityProfile(expectedAgentPool); !reflect.DeepEqual(actual, expectedState) {
 				t.Fatalf("unexpected node pool security state: %#v", actual)
 			}
 
-			clusterData := schema.TestResourceDataRaw(t, resourceKubernetesCluster().Schema, map[string]interface{}{
-				"default_node_pool": []interface{}{pool},
+			clusterData := schema.TestResourceDataRaw(t, resourceKubernetesCluster().Schema, map[string]any{
+				"default_node_pool": []any{pool},
 			})
 			profiles, err := ExpandDefaultNodePool(clusterData)
 			if err != nil {
@@ -95,20 +95,20 @@ func TestKubernetesNodePoolSecurityOmittedPreservesState(t *testing.T) {
 		name   string
 		schema map[string]*pluginsdk.Schema
 		key    string
-		config map[string]interface{}
+		config map[string]any
 	}{
 		{
 			name:   "node_pool",
 			schema: map[string]*pluginsdk.Schema{"security": nodePoolSchema["security"]},
 			key:    "security",
-			config: map[string]interface{}{},
+			config: map[string]any{},
 		},
 		{
 			name:   "default_node_pool",
 			schema: map[string]*pluginsdk.Schema{"default_node_pool": clusterSchema["default_node_pool"]},
 			key:    "default_node_pool.0.security",
-			config: map[string]interface{}{
-				"default_node_pool": []interface{}{map[string]interface{}{"name": "default", "vm_size": "Standard_D2s_v3", "node_count": 1}},
+			config: map[string]any{
+				"default_node_pool": []any{map[string]any{"name": "default", "vm_size": "Standard_D2s_v3", "node_count": 1}},
 			},
 		},
 	} {
@@ -131,8 +131,8 @@ func TestKubernetesNodePoolSecurityOmittedPreservesState(t *testing.T) {
 						t.Fatal(err)
 					}
 				} else {
-					pool := data.Get("default_node_pool").([]interface{})
-					pool[0].(map[string]interface{})["security"] = security
+					pool := data.Get("default_node_pool").([]any)
+					pool[0].(map[string]any)["security"] = security
 					if err := data.Set("default_node_pool", pool); err != nil {
 						t.Fatal(err)
 					}
