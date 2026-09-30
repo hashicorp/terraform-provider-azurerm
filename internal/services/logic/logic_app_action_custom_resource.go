@@ -58,7 +58,7 @@ func resourceLogicAppActionCustom() *pluginsdk.Resource {
 	}
 }
 
-func resourceLogicAppActionCustomCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppActionCustomCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	workflowId, err := workflows.ParseWorkflowID(d.Get("logic_app_id").(string))
 	if err != nil {
 		return err
@@ -68,7 +68,7 @@ func resourceLogicAppActionCustomCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	bodyRaw := d.Get("body").(string)
 
-	var body map[string]interface{}
+	var body map[string]any
 	if err := json.Unmarshal([]byte(bodyRaw), &body); err != nil {
 		return fmt.Errorf("unmarshalling JSON for Custom Action %q: %+v", id.Name, err)
 	}
@@ -80,7 +80,7 @@ func resourceLogicAppActionCustomCreateUpdate(d *pluginsdk.ResourceData, meta in
 	return resourceLogicAppActionCustomRead(d, meta)
 }
 
-func resourceLogicAppActionCustomRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppActionCustomRead(d *pluginsdk.ResourceData, meta any) error {
 	id, err := parse.ActionID(d.Id())
 	if err != nil {
 		return err
@@ -116,7 +116,7 @@ func resourceLogicAppActionCustomRead(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func resourceLogicAppActionCustomDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppActionCustomDelete(d *pluginsdk.ResourceData, meta any) error {
 	id, err := parse.ActionID(d.Id())
 	if err != nil {
 		return err

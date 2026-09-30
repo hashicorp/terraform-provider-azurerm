@@ -37,7 +37,7 @@ func (StackHCINetworkInterfaceResource) ResourceType() string {
 	return "azurerm_stack_hci_network_interface"
 }
 
-func (StackHCINetworkInterfaceResource) ModelObject() interface{} {
+func (StackHCINetworkInterfaceResource) ModelObject() any {
 	return &StackHCINetworkInterfaceResourceModel{}
 }
 
@@ -49,7 +49,7 @@ type StackHCINetworkInterfaceResourceModel struct {
 	DNSServers        []string                       `tfschema:"dns_servers"`
 	IPConfiguration   []StackHCIIPConfigurationModel `tfschema:"ip_configuration"`
 	MACAddress        string                         `tfschema:"mac_address"`
-	Tags              map[string]interface{}         `tfschema:"tags"`
+	Tags              map[string]any                 `tfschema:"tags"`
 }
 
 type StackHCIIPConfigurationModel struct {
