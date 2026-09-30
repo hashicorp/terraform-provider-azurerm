@@ -617,8 +617,8 @@ func schemaNodePoolLocalDNSProfile() *pluginsdk.Schema {
 	}
 }
 
-func localDNSOverrideSetHash(v interface{}) int {
-	m := v.(map[string]interface{})
+func localDNSOverrideSetHash(v any) int {
+	m := v.(map[string]any)
 	var buf bytes.Buffer
 
 	if val, ok := m["domain"].(string); ok && val != "" {
@@ -1167,7 +1167,7 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		profile.LinuxOSConfig = linuxOSConfig
 	}
 
-	localDNSProfileRaw := raw["local_dns"].([]interface{})
+	localDNSProfileRaw := raw["local_dns"].([]any)
 	if len(localDNSProfileRaw) > 0 || d.HasChange("default_node_pool.0.local_dns") {
 		profile.LocalDNSProfile = expandClusterNodePoolLocalDNSProfile(localDNSProfileRaw)
 	}
@@ -1249,14 +1249,14 @@ func expandClusterNodePoolLinuxOSConfig(input []any) (*managedclusters.LinuxOSCo
 	return result, nil
 }
 
-func expandClusterNodePoolLocalDNSProfile(input []interface{}) *managedclusters.LocalDNSProfile {
+func expandClusterNodePoolLocalDNSProfile(input []any) *managedclusters.LocalDNSProfile {
 	if len(input) == 0 || input[0] == nil {
 		return &managedclusters.LocalDNSProfile{
 			Mode: pointer.To(managedclusters.LocalDNSModeDisabled),
 		}
 	}
 
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 	profile := &managedclusters.LocalDNSProfile{}
 
 	profile.Mode = pointer.ToEnum[managedclusters.LocalDNSMode](raw["mode"].(string))
@@ -1264,7 +1264,7 @@ func expandClusterNodePoolLocalDNSProfile(input []interface{}) *managedclusters.
 	if v, ok := raw["kube_dns_override"].(*pluginsdk.Set); ok && v.Len() > 0 {
 		overrides := make(map[string]managedclusters.LocalDNSOverride)
 		for _, item := range v.List() {
-			overrideData := item.(map[string]interface{})
+			overrideData := item.(map[string]any)
 			overrides[overrideData["domain"].(string)] = expandClusterNodePoolLocalDNSOverride(overrideData)
 		}
 		profile.KubeDNSOverrides = &overrides
@@ -1273,7 +1273,7 @@ func expandClusterNodePoolLocalDNSProfile(input []interface{}) *managedclusters.
 	if v, ok := raw["virtual_network_dns_override"].(*pluginsdk.Set); ok && v.Len() > 0 {
 		overrides := make(map[string]managedclusters.LocalDNSOverride)
 		for _, item := range v.List() {
-			overrideData := item.(map[string]interface{})
+			overrideData := item.(map[string]any)
 			overrides[overrideData["domain"].(string)] = expandClusterNodePoolLocalDNSOverride(overrideData)
 		}
 		profile.VnetDNSOverrides = &overrides
@@ -1282,7 +1282,7 @@ func expandClusterNodePoolLocalDNSProfile(input []interface{}) *managedclusters.
 	return profile
 }
 
-func expandClusterNodePoolLocalDNSOverride(raw map[string]interface{}) managedclusters.LocalDNSOverride {
+func expandClusterNodePoolLocalDNSOverride(raw map[string]any) managedclusters.LocalDNSOverride {
 	var override managedclusters.LocalDNSOverride
 
 	if v, ok := raw["cache_duration_in_seconds"].(int); ok && v != 0 {
@@ -1602,17 +1602,17 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 	}, nil
 }
 
-func flattenClusterNodePoolLocalDNSProfile(input *managedclusters.LocalDNSProfile) []interface{} {
+func flattenClusterNodePoolLocalDNSProfile(input *managedclusters.LocalDNSProfile) []any {
 	if input == nil || pointer.From(input.Mode) == managedclusters.LocalDNSModeDisabled {
-		return []interface{}{}
+		return []any{}
 	}
 
-	values := make(map[string]interface{})
+	values := make(map[string]any)
 
 	values["mode"] = pointer.FromEnum(input.Mode)
 
 	if input.KubeDNSOverrides != nil && len(*input.KubeDNSOverrides) > 0 {
-		overrides := make([]interface{}, 0, len(*input.KubeDNSOverrides))
+		overrides := make([]any, 0, len(*input.KubeDNSOverrides))
 		for k, v := range *input.KubeDNSOverrides {
 			overrideMap := flattenClusterNodePoolLocalDNSOverride(v)
 			overrideMap["domain"] = k
@@ -1622,7 +1622,7 @@ func flattenClusterNodePoolLocalDNSProfile(input *managedclusters.LocalDNSProfil
 	}
 
 	if input.VnetDNSOverrides != nil && len(*input.VnetDNSOverrides) > 0 {
-		overrides := make([]interface{}, 0, len(*input.VnetDNSOverrides))
+		overrides := make([]any, 0, len(*input.VnetDNSOverrides))
 		for k, v := range *input.VnetDNSOverrides {
 			overrideMap := flattenClusterNodePoolLocalDNSOverride(v)
 			overrideMap["domain"] = k
@@ -1631,11 +1631,11 @@ func flattenClusterNodePoolLocalDNSProfile(input *managedclusters.LocalDNSProfil
 		values["virtual_network_dns_override"] = pluginsdk.NewSet(localDNSOverrideSetHash, overrides)
 	}
 
-	return []interface{}{values}
+	return []any{values}
 }
 
-func flattenClusterNodePoolLocalDNSOverride(v managedclusters.LocalDNSOverride) map[string]interface{} {
-	m := make(map[string]interface{})
+func flattenClusterNodePoolLocalDNSOverride(v managedclusters.LocalDNSOverride) map[string]any {
+	m := make(map[string]any)
 	m["cache_duration_in_seconds"] = pointer.From(v.CacheDurationInSeconds)
 	m["forward_destination"] = pointer.From(v.ForwardDestination)
 	m["forward_policy"] = pointer.From(v.ForwardPolicy)

@@ -779,7 +779,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta any
 	}
 
 	if d.HasChange("local_dns") {
-		localDNSProfileRaw := d.Get("local_dns").([]interface{})
+		localDNSProfileRaw := d.Get("local_dns").([]any)
 		props.LocalDNSProfile = expandAgentPoolLocalDNSProfile(localDNSProfileRaw)
 	}
 
@@ -1352,7 +1352,7 @@ func expandAgentPoolLocalDNSProfile(input []any) *agentpools.LocalDNSProfile {
 		}
 	}
 
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 	profile := &agentpools.LocalDNSProfile{}
 
 	if v, ok := raw["mode"].(string); ok && v != "" {
@@ -1362,7 +1362,7 @@ func expandAgentPoolLocalDNSProfile(input []any) *agentpools.LocalDNSProfile {
 	if v, ok := raw["kube_dns_override"].(*pluginsdk.Set); ok && v.Len() > 0 {
 		overrides := make(map[string]agentpools.LocalDNSOverride)
 		for _, item := range v.List() {
-			overrideData := item.(map[string]interface{})
+			overrideData := item.(map[string]any)
 			domain := overrideData["domain"].(string)
 			overrides[domain] = expandAgentPoolLocalDNSOverride(overrideData)
 		}
@@ -1372,7 +1372,7 @@ func expandAgentPoolLocalDNSProfile(input []any) *agentpools.LocalDNSProfile {
 	if v, ok := raw["virtual_network_dns_override"].(*pluginsdk.Set); ok && v.Len() > 0 {
 		overrides := make(map[string]agentpools.LocalDNSOverride)
 		for _, item := range v.List() {
-			overrideData := item.(map[string]interface{})
+			overrideData := item.(map[string]any)
 			domain := overrideData["domain"].(string)
 			overrides[domain] = expandAgentPoolLocalDNSOverride(overrideData)
 		}
@@ -1382,7 +1382,7 @@ func expandAgentPoolLocalDNSProfile(input []any) *agentpools.LocalDNSProfile {
 	return profile
 }
 
-func expandAgentPoolLocalDNSOverride(raw map[string]interface{}) agentpools.LocalDNSOverride {
+func expandAgentPoolLocalDNSOverride(raw map[string]any) agentpools.LocalDNSOverride {
 	var override agentpools.LocalDNSOverride
 
 	if v, ok := raw["cache_duration_in_seconds"].(int); ok && v != 0 {
@@ -1413,12 +1413,12 @@ func expandAgentPoolLocalDNSOverride(raw map[string]interface{}) agentpools.Loca
 	return override
 }
 
-func flattenAgentPoolLocalDNSProfile(input *agentpools.LocalDNSProfile) []interface{} {
+func flattenAgentPoolLocalDNSProfile(input *agentpools.LocalDNSProfile) []any {
 	if input == nil || pointer.From(input.Mode) == agentpools.LocalDNSModeDisabled {
-		return []interface{}{}
+		return []any{}
 	}
 
-	values := make(map[string]interface{})
+	values := make(map[string]any)
 
 	values["mode"] = pointer.From(input.Mode)
 
@@ -1442,11 +1442,11 @@ func flattenAgentPoolLocalDNSProfile(input *agentpools.LocalDNSProfile) []interf
 		values["virtual_network_dns_override"] = pluginsdk.NewSet(localDNSOverrideSetHash, overrides)
 	}
 
-	return []interface{}{values}
+	return []any{values}
 }
 
-func flattenAgentPoolLocalDNSOverride(v agentpools.LocalDNSOverride) map[string]interface{} {
-	m := make(map[string]interface{})
+func flattenAgentPoolLocalDNSOverride(v agentpools.LocalDNSOverride) map[string]any {
+	m := make(map[string]any)
 	m["cache_duration_in_seconds"] = pointer.From(v.CacheDurationInSeconds)
 	m["forward_destination"] = pointer.From(v.ForwardDestination)
 	m["forward_policy"] = pointer.From(v.ForwardPolicy)
