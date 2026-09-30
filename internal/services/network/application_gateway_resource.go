@@ -5106,6 +5106,10 @@ func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceD
 					return err
 				}
 			}
+
+			if v["verify_client_auth_mode"].(string) == string(applicationgateways.ApplicationGatewayClientAuthVerificationModesPassthrough) && v["verify_client_certificate_issuer_dn"].(bool) {
+				return fmt.Errorf("`verify_client_certificate_issuer_dn` cannot be set to `true` when `verify_client_auth_mode` is `Passthrough` for `ssl_profile` %q", v["name"].(string))
+			}
 		}
 	}
 
