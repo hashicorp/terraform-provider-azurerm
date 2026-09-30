@@ -1345,7 +1345,6 @@ func expandAgentPoolKubeletConfig(input []any) *agentpools.KubeletConfig {
 	return result
 }
 
-
 func expandAgentPoolLocalDNSProfile(input []any) *agentpools.LocalDNSProfile {
 	if len(input) == 0 || input[0] == nil {
 		return &agentpools.LocalDNSProfile{
