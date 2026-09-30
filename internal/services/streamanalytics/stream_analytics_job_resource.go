@@ -200,7 +200,7 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 
-		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
+		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i any) error {
 			if d.Get("job_storage_account.0.authentication_mode") == string(streamingjobs.AuthenticationModeMsi) && d.Get("job_storage_account.0.account_key") != "" {
 				return fmt.Errorf("`job_storage_account.0.account_key` cannot be set when `job_storage_account.0.authentication_mode` is `Msi`")
 			}
@@ -209,7 +209,7 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 	}
 }
 
-func resourceStreamAnalyticsJobCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsJobCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.JobsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -270,10 +270,10 @@ func resourceStreamAnalyticsJobCreate(d *pluginsdk.ResourceData, meta interface{
 			OutputErrorPolicy:                  pointer.ToEnum[streamingjobs.OutputErrorPolicy](d.Get("output_error_policy").(string)),
 			JobType:                            pointer.ToEnum[streamingjobs.JobType](jobType),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
-	expandedIdentity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
+	expandedIdentity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -296,7 +296,7 @@ func resourceStreamAnalyticsJobCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if v, ok := d.GetOk("job_storage_account"); ok {
-		props.Properties.JobStorageAccount = expandJobStorageAccount(v.([]interface{}))
+		props.Properties.JobStorageAccount = expandJobStorageAccount(v.([]any))
 	}
 
 	if jobType == string(streamingjobs.JobTypeEdge) {
@@ -327,7 +327,7 @@ func resourceStreamAnalyticsJobCreate(d *pluginsdk.ResourceData, meta interface{
 	return resourceStreamAnalyticsJobRead(d, meta)
 }
 
-func resourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.JobsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -407,7 +407,7 @@ func resourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceStreamAnalyticsJobUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsJobUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.JobsClient
 	transformationsClient := meta.(*clients.Client).StreamAnalytics.TransformationsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -477,7 +477,7 @@ func resourceStreamAnalyticsJobUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("job_storage_account") {
-		storageAccount := d.Get("job_storage_account").([]interface{})
+		storageAccount := d.Get("job_storage_account").([]any)
 		if d.Get("content_storage_policy").(string) == string(streamingjobs.ContentStoragePolicyJobStorageAccount) {
 			if len(storageAccount) == 0 {
 				return fmt.Errorf("`job_storage_account` must be set when `content_storage_policy` is `JobStorageAccount`")
@@ -487,7 +487,7 @@ func resourceStreamAnalyticsJobUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("identity") {
-		expandedIdentity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
+		expandedIdentity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -505,7 +505,7 @@ func resourceStreamAnalyticsJobUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if _, err := client.Update(ctx, *id, *payload, streamingjobs.DefaultUpdateOperationOptions()); err != nil {
@@ -538,7 +538,7 @@ func resourceStreamAnalyticsJobUpdate(d *pluginsdk.ResourceData, meta interface{
 	return resourceStreamAnalyticsJobRead(d, meta)
 }
 
-func resourceStreamAnalyticsJobDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsJobDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.JobsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -555,12 +555,12 @@ func resourceStreamAnalyticsJobDelete(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func expandJobStorageAccount(input []interface{}) *streamingjobs.JobStorageAccount {
+func expandJobStorageAccount(input []any) *streamingjobs.JobStorageAccount {
 	if len(input) == 0 {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	jobStorageAccount := streamingjobs.JobStorageAccount{
 		AuthenticationMode: pointer.ToEnum[streamingjobs.AuthenticationMode](v["authentication_mode"].(string)),
@@ -574,15 +574,15 @@ func expandJobStorageAccount(input []interface{}) *streamingjobs.JobStorageAccou
 	return &jobStorageAccount
 }
 
-func flattenJobStorageAccount(d *pluginsdk.ResourceData, input *streamingjobs.JobStorageAccount) []interface{} {
+func flattenJobStorageAccount(d *pluginsdk.ResourceData, input *streamingjobs.JobStorageAccount) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	accountName := pointer.From(input.AccountName)
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"authentication_mode": string(*input.AuthenticationMode),
 			"account_name":        accountName,
 			"account_key":         d.Get("job_storage_account.0.account_key").(string),

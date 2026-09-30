@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/globalschedules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -69,7 +69,7 @@ func resourceDevTestGlobalVMShutdownSchedule() *pluginsdk.Resource {
 			"timezone": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: computeValidate.VirtualMachineTimeZoneCaseInsensitive(),
+				ValidateFunc: validate.VirtualMachineTimeZoneCaseInsensitive(),
 			},
 
 			"notification_settings": {
@@ -105,7 +105,7 @@ func resourceDevTestGlobalVMShutdownSchedule() *pluginsdk.Resource {
 	}
 }
 
-func resourceDevTestGlobalVMShutdownScheduleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDevTestGlobalVMShutdownScheduleCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DevTestLabs.GlobalLabSchedulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -144,7 +144,7 @@ func resourceDevTestGlobalVMShutdownScheduleCreateUpdate(d *pluginsdk.ResourceDa
 			TargetResourceId: &vmID,
 			TaskType:         pointer.To("ComputeVmShutdownTask"),
 		},
-		Tags: expandTags(d.Get("tags").(map[string]interface{})),
+		Tags: expandTags(d.Get("tags").(map[string]any)),
 	}
 
 	statusEnabled := globalschedules.EnableStatusDisabled
@@ -174,7 +174,7 @@ func resourceDevTestGlobalVMShutdownScheduleCreateUpdate(d *pluginsdk.ResourceDa
 	return resourceDevTestGlobalVMShutdownScheduleRead(d, meta)
 }
 
-func resourceDevTestGlobalVMShutdownScheduleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDevTestGlobalVMShutdownScheduleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DevTestLabs.GlobalLabSchedulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -217,7 +217,7 @@ func resourceDevTestGlobalVMShutdownScheduleRead(d *pluginsdk.ResourceData, meta
 	return nil
 }
 
-func resourceDevTestGlobalVMShutdownScheduleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDevTestGlobalVMShutdownScheduleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DevTestLabs.GlobalLabSchedulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -234,13 +234,13 @@ func resourceDevTestGlobalVMShutdownScheduleDelete(d *pluginsdk.ResourceData, me
 	return nil
 }
 
-func expandDevTestGlobalVMShutdownScheduleRecurrenceDaily(dailyTime interface{}) *globalschedules.DayDetails {
+func expandDevTestGlobalVMShutdownScheduleRecurrenceDaily(dailyTime any) *globalschedules.DayDetails {
 	return &globalschedules.DayDetails{
 		Time: pointer.To(dailyTime.(string)),
 	}
 }
 
-func flattenDevTestGlobalVMShutdownScheduleRecurrenceDaily(dailyRecurrence *globalschedules.DayDetails) interface{} {
+func flattenDevTestGlobalVMShutdownScheduleRecurrenceDaily(dailyRecurrence *globalschedules.DayDetails) any {
 	if dailyRecurrence == nil {
 		return nil
 	}
@@ -249,8 +249,8 @@ func flattenDevTestGlobalVMShutdownScheduleRecurrenceDaily(dailyRecurrence *glob
 }
 
 func expandDevTestGlobalVMShutdownScheduleNotificationSettings(d *pluginsdk.ResourceData) *globalschedules.NotificationSettings {
-	notificationSettingsConfigs := d.Get("notification_settings").([]interface{})
-	notificationSettingsConfig := notificationSettingsConfigs[0].(map[string]interface{})
+	notificationSettingsConfigs := d.Get("notification_settings").([]any)
+	notificationSettingsConfig := notificationSettingsConfigs[0].(map[string]any)
 
 	var notificationStatus globalschedules.EnableStatus
 	if notificationSettingsConfig["enabled"].(bool) {
@@ -267,12 +267,12 @@ func expandDevTestGlobalVMShutdownScheduleNotificationSettings(d *pluginsdk.Reso
 	}
 }
 
-func flattenDevTestGlobalVMShutdownScheduleNotificationSettings(notificationSettings *globalschedules.NotificationSettings) []interface{} {
+func flattenDevTestGlobalVMShutdownScheduleNotificationSettings(notificationSettings *globalschedules.NotificationSettings) []any {
 	if notificationSettings == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 
 	if notificationSettings.WebhookURL != nil {
 		result["webhook_url"] = *notificationSettings.WebhookURL
@@ -285,5 +285,5 @@ func flattenDevTestGlobalVMShutdownScheduleNotificationSettings(notificationSett
 	result["enabled"] = *notificationSettings.Status == globalschedules.EnableStatusEnabled
 	result["email"] = notificationSettings.EmailRecipient
 
-	return []interface{}{result}
+	return []any{result}
 }

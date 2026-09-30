@@ -110,7 +110,7 @@ func (NetworkSecurityPerimeterAccessRuleResource) Attributes() map[string]*plugi
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (NetworkSecurityPerimeterAccessRuleResource) ModelObject() interface{} {
+func (NetworkSecurityPerimeterAccessRuleResource) ModelObject() any {
 	return &NetworkSecurityPerimeterAccessRuleResourceModel{}
 }
 
@@ -125,21 +125,21 @@ func (r NetworkSecurityPerimeterAccessRuleResource) CustomizeDiff() sdk.Resource
 			direction := rd.Get("direction").(string)
 
 			if direction == string(networksecurityperimeteraccessrules.AccessRuleDirectionOutbound) {
-				if v, ok := rd.GetOk("address_prefixes"); ok && len(v.([]interface{})) > 0 {
+				if v, ok := rd.GetOk("address_prefixes"); ok && len(v.([]any)) > 0 {
 					return fmt.Errorf("`address_prefixes` cannot be specified when `direction` is Outbound")
 				}
 
-				if v, ok := rd.GetOk("subscription_ids"); ok && len(v.([]interface{})) > 0 {
+				if v, ok := rd.GetOk("subscription_ids"); ok && len(v.([]any)) > 0 {
 					return fmt.Errorf("`subscription_ids` cannot be specified when `direction` is Outbound")
 				}
 
-				if v, ok := rd.GetOk("service_tags"); ok && len(v.([]interface{})) > 0 {
+				if v, ok := rd.GetOk("service_tags"); ok && len(v.([]any)) > 0 {
 					return fmt.Errorf("`service_tags` cannot be specified when `direction` is Outbound")
 				}
 			}
 
 			if direction == string(networksecurityperimeteraccessrules.AccessRuleDirectionInbound) {
-				if v, ok := rd.GetOk("fqdns"); ok && len(v.([]interface{})) > 0 {
+				if v, ok := rd.GetOk("fqdns"); ok && len(v.([]any)) > 0 {
 					return fmt.Errorf("`fqdns` cannot be specified when `direction` is Inbound")
 				}
 			}

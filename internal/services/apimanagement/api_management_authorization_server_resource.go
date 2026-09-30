@@ -169,7 +169,7 @@ func resourceApiManagementAuthorizationServer() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementAuthorizationServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementAuthorizationServerCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.AuthorizationServersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -207,7 +207,7 @@ func resourceApiManagementAuthorizationServerCreateUpdate(d *pluginsdk.ResourceD
 	resourceOwnerPassword := d.Get("resource_owner_password").(string)
 	resourceOwnerUsername := d.Get("resource_owner_username").(string)
 	supportState := d.Get("support_state").(bool)
-	tokenBodyParametersRaw := d.Get("token_body_parameter").([]interface{})
+	tokenBodyParametersRaw := d.Get("token_body_parameter").([]any)
 	tokenBodyParameters := expandApiManagementAuthorizationServerTokenBodyParameters(tokenBodyParametersRaw)
 
 	params := authorizationserver.AuthorizationServerContract{
@@ -254,7 +254,7 @@ func resourceApiManagementAuthorizationServerCreateUpdate(d *pluginsdk.ResourceD
 	return resourceApiManagementAuthorizationServerRead(d, meta)
 }
 
-func resourceApiManagementAuthorizationServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementAuthorizationServerRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.AuthorizationServersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -319,7 +319,7 @@ func resourceApiManagementAuthorizationServerRead(d *pluginsdk.ResourceData, met
 	return nil
 }
 
-func resourceApiManagementAuthorizationServerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementAuthorizationServerDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.AuthorizationServersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -338,7 +338,7 @@ func resourceApiManagementAuthorizationServerDelete(d *pluginsdk.ResourceData, m
 	return nil
 }
 
-func expandApiManagementAuthorizationServerGrantTypes(input []interface{}) *[]authorizationserver.GrantType {
+func expandApiManagementAuthorizationServerGrantTypes(input []any) *[]authorizationserver.GrantType {
 	outputs := make([]authorizationserver.GrantType, 0)
 
 	for _, v := range input {
@@ -349,8 +349,8 @@ func expandApiManagementAuthorizationServerGrantTypes(input []interface{}) *[]au
 	return &outputs
 }
 
-func flattenApiManagementAuthorizationServerGrantTypes(input []authorizationserver.GrantType) []interface{} {
-	outputs := make([]interface{}, 0)
+func flattenApiManagementAuthorizationServerGrantTypes(input []authorizationserver.GrantType) []any {
+	outputs := make([]any, 0)
 
 	for _, v := range input {
 		outputs = append(outputs, string(v))
@@ -359,7 +359,7 @@ func flattenApiManagementAuthorizationServerGrantTypes(input []authorizationserv
 	return outputs
 }
 
-func expandApiManagementAuthorizationServerAuthorizationMethods(input []interface{}) *[]authorizationserver.AuthorizationMethod {
+func expandApiManagementAuthorizationServerAuthorizationMethods(input []any) *[]authorizationserver.AuthorizationMethod {
 	outputs := make([]authorizationserver.AuthorizationMethod, 0)
 
 	for _, v := range input {
@@ -370,8 +370,8 @@ func expandApiManagementAuthorizationServerAuthorizationMethods(input []interfac
 	return &outputs
 }
 
-func flattenApiManagementAuthorizationServerAuthorizationMethods(input *[]authorizationserver.AuthorizationMethod) []interface{} {
-	outputs := make([]interface{}, 0)
+func flattenApiManagementAuthorizationServerAuthorizationMethods(input *[]authorizationserver.AuthorizationMethod) []any {
+	outputs := make([]any, 0)
 	if input == nil {
 		return outputs
 	}
@@ -383,7 +383,7 @@ func flattenApiManagementAuthorizationServerAuthorizationMethods(input *[]author
 	return outputs
 }
 
-func expandApiManagementAuthorizationServerBearerTokenSendingMethods(input []interface{}) *[]authorizationserver.BearerTokenSendingMethod {
+func expandApiManagementAuthorizationServerBearerTokenSendingMethods(input []any) *[]authorizationserver.BearerTokenSendingMethod {
 	outputs := make([]authorizationserver.BearerTokenSendingMethod, 0)
 
 	for _, v := range input {
@@ -394,8 +394,8 @@ func expandApiManagementAuthorizationServerBearerTokenSendingMethods(input []int
 	return &outputs
 }
 
-func flattenApiManagementAuthorizationServerBearerTokenSendingMethods(input *[]authorizationserver.BearerTokenSendingMethod) []interface{} {
-	outputs := make([]interface{}, 0)
+func flattenApiManagementAuthorizationServerBearerTokenSendingMethods(input *[]authorizationserver.BearerTokenSendingMethod) []any {
+	outputs := make([]any, 0)
 	if input == nil {
 		return outputs
 	}
@@ -407,7 +407,7 @@ func flattenApiManagementAuthorizationServerBearerTokenSendingMethods(input *[]a
 	return outputs
 }
 
-func expandApiManagementAuthorizationServerClientAuthenticationMethods(input []interface{}) *[]authorizationserver.ClientAuthenticationMethod {
+func expandApiManagementAuthorizationServerClientAuthenticationMethods(input []any) *[]authorizationserver.ClientAuthenticationMethod {
 	outputs := make([]authorizationserver.ClientAuthenticationMethod, 0)
 
 	for _, v := range input {
@@ -418,8 +418,8 @@ func expandApiManagementAuthorizationServerClientAuthenticationMethods(input []i
 	return &outputs
 }
 
-func flattenApiManagementAuthorizationServerClientAuthenticationMethods(input *[]authorizationserver.ClientAuthenticationMethod) []interface{} {
-	outputs := make([]interface{}, 0)
+func flattenApiManagementAuthorizationServerClientAuthenticationMethods(input *[]authorizationserver.ClientAuthenticationMethod) []any {
+	outputs := make([]any, 0)
 	if input == nil {
 		return outputs
 	}
@@ -431,11 +431,11 @@ func flattenApiManagementAuthorizationServerClientAuthenticationMethods(input *[
 	return outputs
 }
 
-func expandApiManagementAuthorizationServerTokenBodyParameters(input []interface{}) *[]authorizationserver.TokenBodyParameterContract {
+func expandApiManagementAuthorizationServerTokenBodyParameters(input []any) *[]authorizationserver.TokenBodyParameterContract {
 	outputs := make([]authorizationserver.TokenBodyParameterContract, 0)
 
 	for _, v := range input {
-		vs := v.(map[string]interface{})
+		vs := v.(map[string]any)
 
 		output := authorizationserver.TokenBodyParameterContract{
 			Name:  vs["name"].(string),
@@ -447,14 +447,14 @@ func expandApiManagementAuthorizationServerTokenBodyParameters(input []interface
 	return &outputs
 }
 
-func flattenApiManagementAuthorizationServerTokenBodyParameters(input *[]authorizationserver.TokenBodyParameterContract) []interface{} {
-	outputs := make([]interface{}, 0)
+func flattenApiManagementAuthorizationServerTokenBodyParameters(input *[]authorizationserver.TokenBodyParameterContract) []any {
+	outputs := make([]any, 0)
 	if input == nil {
 		return outputs
 	}
 
 	for _, v := range *input {
-		output := make(map[string]interface{})
+		output := make(map[string]any)
 
 		output["name"] = v.Name
 		output["value"] = v.Value

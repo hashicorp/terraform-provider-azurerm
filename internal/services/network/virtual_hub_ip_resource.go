@@ -89,7 +89,7 @@ func resourceVirtualHubIP() *pluginsdk.Resource {
 	}
 }
 
-func resourceVirtualHubIPCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubIPCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -151,7 +151,7 @@ func resourceVirtualHubIPCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	return resourceVirtualHubIPRead(d, meta)
 }
 
-func resourceVirtualHubIPUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubIPUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -200,7 +200,7 @@ func resourceVirtualHubIPUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	return resourceVirtualHubIPRead(d, meta)
 }
 
-func resourceVirtualHubIPRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubIPRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -241,7 +241,7 @@ func resourceVirtualHubIPRead(d *pluginsdk.ResourceData, meta interface{}) error
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceVirtualHubIPDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubIPDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

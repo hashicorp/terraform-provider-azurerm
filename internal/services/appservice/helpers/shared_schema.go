@@ -292,13 +292,13 @@ func CorsSettingsSchema() *pluginsdk.Schema {
 			if stateCors == nil || planCors == nil {
 				return false
 			}
-			stateAttrs := stateCors.([]interface{})
-			planAttrs := planCors.([]interface{})
+			stateAttrs := stateCors.([]any)
+			planAttrs := planCors.([]any)
 
 			// Fixes https://github.com/hashicorp/terraform-provider-azurerm/issues/22879
 			// If the plan wants to set default values and the state is empty; suppress diff
 			if len(stateAttrs) == 0 && len(planAttrs) > 0 && planAttrs[0] != nil {
-				planAttr := planAttrs[0].(map[string]interface{})
+				planAttr := planAttrs[0].(map[string]any)
 
 				newAllowedOrigins, ok := planAttr["allowed_origins"].(*schema.Set)
 				if !ok {

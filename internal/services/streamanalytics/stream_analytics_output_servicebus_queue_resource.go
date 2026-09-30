@@ -119,7 +119,7 @@ func resourceStreamAnalyticsOutputServiceBusQueue() *pluginsdk.Resource {
 	}
 }
 
-func resourceStreamAnalyticsOutputServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsOutputServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -146,7 +146,7 @@ func resourceStreamAnalyticsOutputServiceBusQueueCreateUpdate(d *pluginsdk.Resou
 	sharedAccessPolicyKey := d.Get("shared_access_policy_key").(string)
 	sharedAccessPolicyName := d.Get("shared_access_policy_name").(string)
 
-	serializationRaw := d.Get("serialization").([]interface{})
+	serializationRaw := d.Get("serialization").([]any)
 	serialization, err := expandStreamAnalyticsOutputSerialization(serializationRaw)
 	if err != nil {
 		return fmt.Errorf("expanding `serialization`: %+v", err)
@@ -157,7 +157,7 @@ func resourceStreamAnalyticsOutputServiceBusQueueCreateUpdate(d *pluginsdk.Resou
 	dataSourceProperties := &outputs.ServiceBusQueueOutputDataSourceProperties{
 		QueueName:             pointer.To(queueName),
 		ServiceBusNamespace:   pointer.To(serviceBusNamespace),
-		PropertyColumns:       pluginsdk.ExpandStringSlice(d.Get("property_columns").([]interface{})),
+		PropertyColumns:       pluginsdk.ExpandStringSlice(d.Get("property_columns").([]any)),
 		SystemPropertyColumns: &systemPropertyColumns,
 		AuthenticationMode:    pointer.ToEnum[outputs.AuthenticationMode](d.Get("authentication_mode").(string)),
 	}
@@ -194,7 +194,7 @@ func resourceStreamAnalyticsOutputServiceBusQueueCreateUpdate(d *pluginsdk.Resou
 	return resourceStreamAnalyticsOutputServiceBusQueueRead(d, meta)
 }
 
-func resourceStreamAnalyticsOutputServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsOutputServiceBusQueueRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -250,7 +250,7 @@ func resourceStreamAnalyticsOutputServiceBusQueueRead(d *pluginsdk.ResourceData,
 	return nil
 }
 
-func resourceStreamAnalyticsOutputServiceBusQueueDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsOutputServiceBusQueueDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

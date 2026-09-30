@@ -102,7 +102,7 @@ func (r ExtendedLocationCustomLocationDataSource) Attributes() map[string]*plugi
 	}
 }
 
-func (r ExtendedLocationCustomLocationDataSource) ModelObject() interface{} {
+func (r ExtendedLocationCustomLocationDataSource) ModelObject() any {
 	return &ExtendedLocationCustomLocationDataSourceModel{}
 }
 

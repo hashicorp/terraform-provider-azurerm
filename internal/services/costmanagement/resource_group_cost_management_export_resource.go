@@ -59,7 +59,7 @@ func (r ResourceGroupCostManagementExportResource) Attributes() map[string]*plug
 	return r.base.attributes()
 }
 
-func (r ResourceGroupCostManagementExportResource) ModelObject() interface{} {
+func (r ResourceGroupCostManagementExportResource) ModelObject() any {
 	return &ResourceGroupCostManagementExportModel{}
 }
 

@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/encryptionscopes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -29,7 +29,7 @@ func dataSourceStorageEncryptionScope() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: storageValidate.StorageEncryptionScopeName,
+				ValidateFunc: validate.StorageEncryptionScopeName,
 			},
 
 			"storage_account_id": {
@@ -51,7 +51,7 @@ func dataSourceStorageEncryptionScope() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceStorageEncryptionScopeRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceStorageEncryptionScopeRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.ResourceManager.EncryptionScopes
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

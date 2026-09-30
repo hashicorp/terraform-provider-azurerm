@@ -71,7 +71,7 @@ func (r DataProtectionBackupPolicyKubernatesClusterResource) ResourceType() stri
 	return "azurerm_data_protection_backup_policy_kubernetes_cluster"
 }
 
-func (r DataProtectionBackupPolicyKubernatesClusterResource) ModelObject() interface{} {
+func (r DataProtectionBackupPolicyKubernatesClusterResource) ModelObject() any {
 	return &BackupPolicyKubernatesClusterModel{}
 }
 

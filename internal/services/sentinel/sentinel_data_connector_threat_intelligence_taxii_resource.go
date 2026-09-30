@@ -106,7 +106,7 @@ func (r DataConnectorThreatIntelligenceTAXIIResource) ResourceType() string {
 	return "azurerm_sentinel_data_connector_threat_intelligence_taxii"
 }
 
-func (r DataConnectorThreatIntelligenceTAXIIResource) ModelObject() interface{} {
+func (r DataConnectorThreatIntelligenceTAXIIResource) ModelObject() any {
 	return &DataConnectorThreatIntelligenceTAXIIModel{}
 }
 

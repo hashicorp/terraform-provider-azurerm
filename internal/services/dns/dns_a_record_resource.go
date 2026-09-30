@@ -98,7 +98,7 @@ func resourceDnsARecord() *pluginsdk.Resource {
 	}
 }
 
-func resourceDnsARecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDnsARecordCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -125,7 +125,7 @@ func resourceDnsARecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	ttl := int64(d.Get("ttl").(int))
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 	targetResourceId := d.Get("target_resource_id").(string)
 	recordsRaw := d.Get("records").(*pluginsdk.Set).List()
 
@@ -160,7 +160,7 @@ func resourceDnsARecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceDnsARecordRead(d, meta)
 }
 
-func resourceDnsARecordRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDnsARecordRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -211,7 +211,7 @@ func resourceDnsARecordFlatten(d *pluginsdk.ResourceData, id *recordsets.RecordT
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceDnsARecordDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDnsARecordDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -228,7 +228,7 @@ func resourceDnsARecordDelete(d *pluginsdk.ResourceData, meta interface{}) error
 	return nil
 }
 
-func expandAzureRmDnsARecords(input []interface{}) *[]recordsets.ARecord {
+func expandAzureRmDnsARecords(input []any) *[]recordsets.ARecord {
 	records := make([]recordsets.ARecord, len(input))
 
 	for i, v := range input {
