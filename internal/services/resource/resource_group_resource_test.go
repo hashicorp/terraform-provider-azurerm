@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/resourcegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -22,6 +22,16 @@ import (
 )
 
 type ResourceGroupResource struct{}
+
+func TestAccResourceGroup_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
+	r := ResourceGroupResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccResourceGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")

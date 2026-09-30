@@ -63,9 +63,20 @@ func (c AdvancedThreatProtectionSettingsClient) UpdatePut(ctx context.Context, i
 
 // UpdatePutThenPoll performs UpdatePut then polls until it's completed
 func (c AdvancedThreatProtectionSettingsClient) UpdatePutThenPoll(ctx context.Context, id FlexibleServerId, input AdvancedThreatProtection) error {
+	return c.UpdatePutCallbackThenPoll(ctx, id, input, nil)
+}
+
+// UpdatePutCallbackThenPoll performs UpdatePut, runs the optional callback function, then polls until it's completed
+func (c AdvancedThreatProtectionSettingsClient) UpdatePutCallbackThenPoll(ctx context.Context, id FlexibleServerId, input AdvancedThreatProtection, callback func() error) error {
 	result, err := c.UpdatePut(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing UpdatePut: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
