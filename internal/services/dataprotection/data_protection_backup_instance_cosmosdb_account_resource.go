@@ -52,7 +52,7 @@ func (r DataProtectionBackupInstanceCosmosdbAccountResource) ResourceType() stri
 	return "azurerm_data_protection_backup_instance_cosmosdb_account"
 }
 
-func (r DataProtectionBackupInstanceCosmosdbAccountResource) ModelObject() interface{} {
+func (r DataProtectionBackupInstanceCosmosdbAccountResource) ModelObject() any {
 	return &BackupInstanceCosmosdbAccountModel{}
 }
 

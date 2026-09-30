@@ -60,7 +60,7 @@ func (r DataProtectionBackupPolicyCosmosdbAccountResource) ResourceType() string
 	return "azurerm_data_protection_backup_policy_cosmosdb_account"
 }
 
-func (r DataProtectionBackupPolicyCosmosdbAccountResource) ModelObject() interface{} {
+func (r DataProtectionBackupPolicyCosmosdbAccountResource) ModelObject() any {
 	return &BackupPolicyCosmosdbAccountModel{}
 }
 
@@ -88,7 +88,7 @@ func (r DataProtectionBackupPolicyCosmosdbAccountResource) Arguments() map[strin
 			ForceNew: true,
 			ValidateFunc: validation.All(
 				validation.ISO8601RepeatingTime,
-				validation.StringMatch(regexp.MustCompile(`/P1W$`), "the repeating time interval must use a weekly recurrence"),
+				validate.BackupPolicyCosmosdbAccountFullBackupSchedule(),
 			),
 		},
 
