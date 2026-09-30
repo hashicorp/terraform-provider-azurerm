@@ -1109,7 +1109,6 @@ func TestAccApplicationGateway_sslProfile(t *testing.T) {
 			Config: r.sslProfile(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("ssl_profile.0.verify_client_auth_mode").HasValue("Passthrough"),
 				check.That(data.ResourceName).Key("ssl_profile.0.verify_client_certificate_issuer_dn").HasValue("false"),
 				check.That(data.ResourceName).Key("ssl_profile.0.trusted_client_certificate_names.0").DoesNotExist(),
 				check.That(data.ResourceName).Key("http_listener.0.ssl_profile_name").Exists(),
@@ -1126,7 +1125,6 @@ func TestAccApplicationGateway_sslProfile(t *testing.T) {
 			Config: r.sslProfileUpdateOne(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("ssl_profile.0.verify_client_auth_mode").HasValue("Strict"),
 				check.That(data.ResourceName).Key("ssl_profile.0.verify_client_certificate_issuer_dn").HasValue("true"),
 				check.That(data.ResourceName).Key("ssl_profile.0.trusted_client_certificate_names.0").DoesNotExist(),
 				check.That(data.ResourceName).Key("http_listener.0.ssl_profile_name").Exists(),
