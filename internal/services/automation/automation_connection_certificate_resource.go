@@ -75,7 +75,7 @@ func resourceAutomationConnectionCertificate() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationConnectionCertificateCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionCertificateCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Connection
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -119,7 +119,7 @@ func resourceAutomationConnectionCertificateCreate(d *pluginsdk.ResourceData, me
 	return resourceAutomationConnectionCertificateRead(d, meta)
 }
 
-func resourceAutomationConnectionCertificateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionCertificateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Connection
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -167,7 +167,7 @@ func resourceAutomationConnectionCertificateUpdate(d *pluginsdk.ResourceData, me
 	return resourceAutomationConnectionCertificateRead(d, meta)
 }
 
-func resourceAutomationConnectionCertificateRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionCertificateRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Connection
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -208,7 +208,7 @@ func resourceAutomationConnectionCertificateRead(d *pluginsdk.ResourceData, meta
 	return nil
 }
 
-func resourceAutomationConnectionCertificateDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionCertificateDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Connection
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

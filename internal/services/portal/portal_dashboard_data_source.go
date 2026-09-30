@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/dashboard"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -51,14 +50,14 @@ func dataSourcePortalDashboard() *pluginsdk.Resource {
 				Type:      pluginsdk.TypeString,
 				Optional:  true,
 				Computed:  true, // azignore:AZS007 - pre-existing violation
-				StateFunc: helpers.NormalizeJson,
+				StateFunc: pluginsdk.NormalizeJson,
 			},
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
 
-func dataSourcePortalDashboardRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourcePortalDashboardRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Portal.DashboardsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

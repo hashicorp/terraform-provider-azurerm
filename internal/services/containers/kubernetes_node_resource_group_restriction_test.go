@@ -24,12 +24,12 @@ import (
 
 func TestKubernetesNodeResourceGroupRestrictionPlan(t *testing.T) {
 	resource := resourceKubernetesCluster()
-	config := func(level interface{}, omit bool) map[string]interface{} {
-		result := map[string]interface{}{
+	config := func(level any, omit bool) map[string]any {
+		result := map[string]any{
 			"name": "test", "location": "westus2", "resource_group_name": "test", "dns_prefix": "test",
-			"default_node_pool": []interface{}{map[string]interface{}{"name": "default", "node_count": 1, "vm_size": "Standard_DS2_v2"}},
-			"identity":          []interface{}{map[string]interface{}{"type": "SystemAssigned"}},
-			"network_profile":   []interface{}{map[string]interface{}{"network_plugin": "kubenet", "load_balancer_sku": "standard"}},
+			"default_node_pool": []any{map[string]any{"name": "default", "node_count": 1, "vm_size": "Standard_DS2_v2"}},
+			"identity":          []any{map[string]any{"type": "SystemAssigned"}},
+			"network_profile":   []any{map[string]any{"network_plugin": "kubenet", "load_balancer_sku": "standard"}},
 		}
 		if !omit {
 			result["node_resource_group_restriction_level"] = level
@@ -39,7 +39,7 @@ func TestKubernetesNodeResourceGroupRestrictionPlan(t *testing.T) {
 	for _, test := range []struct {
 		name    string
 		old     string
-		new     interface{}
+		new     any
 		omit    bool
 		replace bool
 	}{
@@ -82,7 +82,7 @@ func TestKubernetesNodeResourceGroupRestrictionResponse(t *testing.T) {
 			{name: "unrestricted", profile: &managedclusters.ManagedClusterNodeResourceGroupProfile{RestrictionLevel: pointer.To(managedclusters.RestrictionLevelUnrestricted)}, want: "Unrestricted"},
 		} {
 			t.Run(prior+"/"+test.name, func(t *testing.T) {
-				data := schema.TestResourceDataRaw(t, resourceKubernetesCluster().Schema, map[string]interface{}{
+				data := schema.TestResourceDataRaw(t, resourceKubernetesCluster().Schema, map[string]any{
 					"node_resource_group_restriction_level": prior,
 				})
 				id := commonids.NewKubernetesClusterID("00000000-0000-0000-0000-000000000000", "test", "test")

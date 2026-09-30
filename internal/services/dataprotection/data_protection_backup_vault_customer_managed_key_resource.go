@@ -37,7 +37,7 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Identity() resource
 	return &backupvaultresources.BackupVaultId{}
 }
 
-func (r DataProtectionBackupVaultCustomerManagedKeyResource) ModelObject() interface{} {
+func (r DataProtectionBackupVaultCustomerManagedKeyResource) ModelObject() any {
 	return &DataProtectionBackupVaultCustomerManagedKeyResource{}
 }
 
