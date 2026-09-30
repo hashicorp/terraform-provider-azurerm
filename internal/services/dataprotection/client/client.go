@@ -20,7 +20,7 @@ type Client struct {
 	BackupInstanceClient *backupinstanceresources.BackupInstanceResourcesClient
 	ResourceGuardClient  *resourceguardresources.ResourceGuardResourcesClient
 
-	BackupPolicyClient20260601    *basebackuppolicyresources20260601.BaseBackupPolicyResourcesClient
+	BackupPolicyClient20260601 *basebackuppolicyresources20260601.BaseBackupPolicyResourcesClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -60,6 +60,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		BackupInstanceClient: backupInstanceClient,
 		ResourceGuardClient:  resourceGuardClient,
 
-		BackupPolicyClient20260601:    backupPolicyClient20260601,
+		BackupPolicyClient20260601: backupPolicyClient20260601,
 	}, nil
 }
