@@ -107,6 +107,7 @@ fun BuildSteps.RunAcceptanceTestsForPullRequest(packageName: String) {
         conditions {
             equals("env.SCHEDULE_MATCHES", "true")
         }
+        executionMode = BuildStep.ExecutionMode.RUN_ON_FAILURE
     })
 }
 
