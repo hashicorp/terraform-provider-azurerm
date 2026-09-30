@@ -167,9 +167,6 @@ var serviceTestConfigurationOverrides = mapOf(
         // oracle can't be schedule tested on the acctest subscription due to licencing limitations, results in build agent deadlock due to no tests.
         "oracle" to testConfiguration(disableTriggers = true),
 
-        // Orbital is deprecated and can no longer be created - to be removed along with service ref: https://azure.microsoft.com/en-gb/updates?id=azure-orbital-ground-station-retirement
-        "orbital" to testConfiguration(locationOverride = LocationConfiguration("eastus", "southcentralus", "westus2", false), disableTriggers = true),
-
         "paloalto" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus", "westus", false)),
 
         "policy" to testConfiguration(useAltSubscription = true),
@@ -184,9 +181,6 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // Qumulo asked to use canary env for testing, eastasia is a canary region for qumulo
         "qumulo" to testConfiguration(locationOverride = LocationConfiguration("eastasia", "centraluseuap", "westeurope", true)),
-
-        // redisenterprise is costly - Monday, Wednesday, Friday
-        "redisenterprise" to testConfiguration(daysOfWeek = "2,4,6"),
 
         // servicebus quotas are limited and we experience failures if tests
         // execute too quickly as we run out of namespaces in the sub
