@@ -62,7 +62,7 @@ func TestMapFleetToKubernetesFleetManagerDataSourceModel(t *testing.T) {
 	if !reflect.DeepEqual(state.HubProfile, expectedHubProfile) {
 		t.Fatalf("expected hub profile %#v, got %#v", expectedHubProfile, state.HubProfile)
 	}
-	if !reflect.DeepEqual(state.Tags, map[string]interface{}{
+	if !reflect.DeepEqual(state.Tags, map[string]any{
 		"environment": "terraform-acctests",
 		"some_key":    "some-value",
 	}) {

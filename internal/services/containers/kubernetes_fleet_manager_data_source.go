@@ -27,7 +27,7 @@ type KubernetesFleetManagerDataSourceModel struct {
 	Name              string                   `tfschema:"name"`
 	ResourceGroupName string                   `tfschema:"resource_group_name"`
 	HubProfile        []FleetManagerHubProfile `tfschema:"hub_profile"`
-	Tags              map[string]interface{}   `tfschema:"tags"`
+	Tags              map[string]any           `tfschema:"tags"`
 }
 
 func (KubernetesFleetManagerDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -100,7 +100,7 @@ func (KubernetesFleetManagerDataSource) Attributes() map[string]*pluginsdk.Schem
 	}
 }
 
-func (KubernetesFleetManagerDataSource) ModelObject() interface{} {
+func (KubernetesFleetManagerDataSource) ModelObject() any {
 	return &KubernetesFleetManagerDataSourceModel{}
 }
 

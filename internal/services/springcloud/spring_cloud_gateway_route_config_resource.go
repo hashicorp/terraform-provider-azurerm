@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
@@ -184,7 +183,7 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 	}
 }
 
-func resourceSpringCloudGatewayRouteConfigCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudGatewayRouteConfigCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).AppPlatform.GatewayRouteConfigClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -218,18 +217,18 @@ func resourceSpringCloudGatewayRouteConfigCreateUpdate(d *pluginsdk.ResourceData
 			Protocol:      appplatform.GatewayRouteConfigProtocol(d.Get("protocol").(string)),
 			Routes:        expandGatewayRouteConfigGatewayAPIRouteArray(d.Get("route").(*pluginsdk.Set).List()),
 			SsoEnabled:    pointer.To(d.Get("sso_validation_enabled").(bool)),
-			OpenAPI:       expandGatewayRouteConfigOpenApi(d.Get("open_api").([]interface{})),
+			OpenAPI:       expandGatewayRouteConfigOpenApi(d.Get("open_api").([]any)),
 		},
 	}
 
 	filters := d.Get("filters").(*pluginsdk.Set).List()
 	if len(filters) > 0 {
-		gatewayRouteConfigResource.Properties.Filters = helpers.ExpandStringSlice(filters)
+		gatewayRouteConfigResource.Properties.Filters = pluginsdk.ExpandStringSlice(filters)
 	}
 
 	predicates := d.Get("predicates").(*pluginsdk.Set).List()
 	if len(predicates) > 0 {
-		gatewayRouteConfigResource.Properties.Predicates = helpers.ExpandStringSlice(predicates)
+		gatewayRouteConfigResource.Properties.Predicates = pluginsdk.ExpandStringSlice(predicates)
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.SpringName, id.GatewayName, id.RouteConfigName, gatewayRouteConfigResource)
@@ -248,7 +247,7 @@ func resourceSpringCloudGatewayRouteConfigCreateUpdate(d *pluginsdk.ResourceData
 	return resourceSpringCloudGatewayRouteConfigRead(d, meta)
 }
 
-func resourceSpringCloudGatewayRouteConfigRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudGatewayRouteConfigRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.GatewayRouteConfigClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -292,17 +291,17 @@ func resourceSpringCloudGatewayRouteConfigRead(d *pluginsdk.ResourceData, meta i
 		}
 
 		if props.Filters != nil {
-			d.Set("filters", helpers.FlattenStringSlice(props.Filters))
+			d.Set("filters", pluginsdk.FlattenSlice(props.Filters))
 		}
 		if props.Predicates != nil {
-			d.Set("predicates", helpers.FlattenStringSlice(props.Predicates))
+			d.Set("predicates", pluginsdk.FlattenSlice(props.Predicates))
 		}
 		d.Set("sso_validation_enabled", props.SsoEnabled)
 	}
 	return nil
 }
 
-func resourceSpringCloudGatewayRouteConfigDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudGatewayRouteConfigDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.GatewayRouteConfigClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -325,65 +324,65 @@ func resourceSpringCloudGatewayRouteConfigDelete(d *pluginsdk.ResourceData, meta
 	return nil
 }
 
-func expandGatewayRouteConfigGatewayAPIRouteArray(input []interface{}) *[]appplatform.GatewayAPIRoute {
+func expandGatewayRouteConfigGatewayAPIRouteArray(input []any) *[]appplatform.GatewayAPIRoute {
 	results := make([]appplatform.GatewayAPIRoute, 0)
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 		results = append(results, appplatform.GatewayAPIRoute{
 			Title:       pointer.To(v["title"].(string)),
 			Description: pointer.To(v["description"].(string)),
 			URI:         pointer.To(v["uri"].(string)),
 			SsoEnabled:  pointer.To(v["sso_validation_enabled"].(bool)),
 			TokenRelay:  pointer.To(v["token_relay"].(bool)),
-			Predicates:  helpers.ExpandStringSlice(v["predicates"].(*pluginsdk.Set).List()),
-			Filters:     helpers.ExpandStringSlice(v["filters"].(*pluginsdk.Set).List()),
+			Predicates:  pluginsdk.ExpandStringSlice(v["predicates"].(*pluginsdk.Set).List()),
+			Filters:     pluginsdk.ExpandStringSlice(v["filters"].(*pluginsdk.Set).List()),
 			Order:       pointer.To(int32(v["order"].(int))),
-			Tags:        helpers.ExpandStringSlice(v["classification_tags"].(*pluginsdk.Set).List()),
+			Tags:        pluginsdk.ExpandStringSlice(v["classification_tags"].(*pluginsdk.Set).List()),
 		})
 	}
 	return &results
 }
 
-func flattenGatewayRouteConfigGatewayAPIRouteArray(input *[]appplatform.GatewayAPIRoute) []interface{} {
-	results := make([]interface{}, 0)
+func flattenGatewayRouteConfigGatewayAPIRouteArray(input *[]appplatform.GatewayAPIRoute) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		results = append(results, map[string]interface{}{
+		results = append(results, map[string]any{
 			"description":            pointer.From(item.Description),
-			"filters":                helpers.FlattenStringSlice(item.Filters),
+			"filters":                pluginsdk.FlattenSlice(item.Filters),
 			"order":                  pointer.From(item.Order),
-			"predicates":             helpers.FlattenStringSlice(item.Predicates),
+			"predicates":             pluginsdk.FlattenSlice(item.Predicates),
 			"sso_validation_enabled": pointer.From(item.SsoEnabled),
 			"title":                  pointer.From(item.Title),
 			"token_relay":            pointer.From(item.TokenRelay),
 			"uri":                    pointer.From(item.URI),
-			"classification_tags":    helpers.FlattenStringSlice(item.Tags),
+			"classification_tags":    pluginsdk.FlattenSlice(item.Tags),
 		})
 	}
 	return results
 }
 
-func expandGatewayRouteConfigOpenApi(input []interface{}) *appplatform.GatewayRouteConfigOpenAPIProperties {
+func expandGatewayRouteConfigOpenApi(input []any) *appplatform.GatewayRouteConfigOpenAPIProperties {
 	if len(input) == 0 {
 		return nil
 	}
 
-	config := input[0].(map[string]interface{})
+	config := input[0].(map[string]any)
 	return &appplatform.GatewayRouteConfigOpenAPIProperties{
 		URI: pointer.To(config["uri"].(string)),
 	}
 }
 
-func flattenGatewayRouteConfigOpenApi(input *appplatform.GatewayRouteConfigOpenAPIProperties) interface{} {
+func flattenGatewayRouteConfigOpenApi(input *appplatform.GatewayRouteConfigOpenAPIProperties) any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"uri": pointer.From(input.URI),
 		},
 	}

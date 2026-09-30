@@ -20,7 +20,7 @@ var _ pluginsdk.StateUpgrade = KeyResourceV0ToV1{}
 type KeyResourceV1ToV2 struct{}
 
 func (KeyResourceV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		// old:
 		// 	/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/key:name/test/Label/test:label/name
 		// new:
@@ -49,7 +49,7 @@ func (KeyResourceV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 
 		configurationStoreId, err := configurationstores.ParseConfigurationStoreIDInsensitively(parsedOldId.ConfigurationStoreId)
 		if err != nil {
-			return rawState, fmt.Errorf("parseing Configuration Store ID %q: %+v", configurationStoreId, err)
+			return rawState, fmt.Errorf("parsing Configuration Store ID %q: %+v", configurationStoreId, err)
 		}
 
 		domainSuffix, ok := meta.(*clients.Client).Account.Environment.AppConfiguration.DomainSuffix()

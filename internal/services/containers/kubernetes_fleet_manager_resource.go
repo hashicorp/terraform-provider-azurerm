@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package containers
 
 // NOTE: this file is generated - manual changes will be overwritten.
@@ -28,7 +31,7 @@ var (
 
 type KubernetesFleetManagerResource struct{}
 
-func (r KubernetesFleetManagerResource) ModelObject() interface{} {
+func (r KubernetesFleetManagerResource) ModelObject() any {
 	return &KubernetesFleetManagerResourceSchema{}
 }
 
@@ -37,7 +40,7 @@ type KubernetesFleetManagerResourceSchema struct {
 	Name              string                   `tfschema:"name"`
 	ResourceGroupName string                   `tfschema:"resource_group_name"`
 	HubProfile        []FleetManagerHubProfile `tfschema:"hub_profile"`
-	Tags              map[string]interface{}   `tfschema:"tags"`
+	Tags              map[string]any           `tfschema:"tags"`
 }
 
 type FleetManagerHubProfile struct {
