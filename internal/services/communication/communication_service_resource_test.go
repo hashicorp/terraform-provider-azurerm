@@ -79,6 +79,27 @@ func TestAccCommunicationService_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.systemAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.userAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -179,6 +200,47 @@ resource "azurerm_communication_service" "test" {
 
   tags = {
     env = "Test2"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CommunicationServiceResource) systemAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_communication_service" "test" {
+  name                = "acctest-CommunicationService-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  data_location       = "United States"
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CommunicationServiceResource) userAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest-uai-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_communication_service" "test" {
+  name                = "acctest-CommunicationService-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  data_location       = "United States"
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
   }
 }
 `, r.template(data), data.RandomInteger)
