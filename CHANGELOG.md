@@ -7,24 +7,17 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* dependencies: `go-azure-sdk` - upgrade to `v0.20260326.1151219` ([#32047](https://github.com/hashicorp/terraform-provider-azurerm/issues/32047))
-* dependencies: `storage` - update to API version `2025-06-01` ([#32071](https://github.com/hashicorp/terraform-provider-azurerm/issues/32071))
-* Data Source: `azurerm_application_gateway` - export the `backend`, `listener`, and `routing_rule` properties ([#30376](https://github.com/hashicorp/terraform-provider-azurerm/issues/30376))
-* Data Source: `azurerm_logic_app_standard` - export the `site_config.ip_restriction_default_action` property ([#31816](https://github.com/hashicorp/terraform-provider-azurerm/issues/31816))
-* Data Source: `azurerm_mssql_elasticpool` - export the `high_availability_replica_count` property ([#31761](https://github.com/hashicorp/terraform-provider-azurerm/issues/31761))
-* `azurerm_application_gateway` - add support for the `backend`, `listener`, and `routing_rule` properties ([#30376](https://github.com/hashicorp/terraform-provider-azurerm/issues/30376))
-* `azurerm_kubernetes_cluster` - add support for the `Ubuntu2404` OS SKU ([#32070](https://github.com/hashicorp/terraform-provider-azurerm/issues/32070))
-* `azurerm_kubernetes_cluster` - improve validation for `network_profile.0.advanced_networking` ([#31497](https://github.com/hashicorp/terraform-provider-azurerm/issues/31497))
-* `azurerm_kubernetes_cluster_node_pool` - add support for the `Ubuntu2404` OS SKU ([#32070](https://github.com/hashicorp/terraform-provider-azurerm/issues/32070))
-* `azurerm_kusto_attached_database_configuration` - add support for the `database_name_override`, `database_name_prefix`, `sharing.functions_to_exclude`, and `sharing.functions_to_include` properties ([#31470](https://github.com/hashicorp/terraform-provider-azurerm/issues/31470))
-* `azurerm_logic_app_standard` - add support for the `site_config.scm_ip_restriction_default_action` property ([#32043](https://github.com/hashicorp/terraform-provider-azurerm/issues/32043))
-* `azurerm_logic_app_standard` - add support for the `site_config.ip_restriction_default_action` property ([#31816](https://github.com/hashicorp/terraform-provider-azurerm/issues/31816))
-* `azurerm_mssql_elasticpool` - add support for the `high_availability_replica_count` property ([#31761](https://github.com/hashicorp/terraform-provider-azurerm/issues/31761))
-* `azurerm_nat_gateway` - add support for the `StandardV2` SKU ([#31197](https://github.com/hashicorp/terraform-provider-azurerm/issues/31197))
-* `azurerm_public_ip` - add support for the `StandardV2` SKU ([#31197](https://github.com/hashicorp/terraform-provider-azurerm/issues/31197))
-* `azurerm_public_ip_prefix` - add support for the `StandardV2` SKU ([#31197](https://github.com/hashicorp/terraform-provider-azurerm/issues/31197))
-* `azurerm_linux_virtual_machine` - add support for the `os_disk.0.tier` property ([#20723](https://github.com/hashicorp/terraform-provider-azurerm/issues/20723))
-* `azurerm_windows_virtual_machine` - add support for the `os_disk.0.tier` property ([#20723](https://github.com/hashicorp/terraform-provider-azurerm/issues/20723))
+* dependencies: `go-azure-sdk` - update to `v0.20260917.1142820` ([#33495](https://github.com/hashicorp/terraform-provider-azurerm/issues/33495))
+* dependencies: `network` - update API version to `2025-07-01` ([#33441](https://github.com/hashicorp/terraform-provider-azurerm/issues/33441))
+* Data Source: `azurerm_linux_web_app` - export the `virtual_network_image_pull_enabled` property ([#33316](https://github.com/hashicorp/terraform-provider-azurerm/issues/33316))
+* Data Source: `azurerm_network_interface` - export the `auxiliary_mode`, `auxiliary_sku`, `edge_zone`, and `internal_domain_name_suffix` properties ([#33204](https://github.com/hashicorp/terraform-provider-azurerm/issues/33204))
+* Data Source: `azurerm_public_ip` - export the `domain_name_label_scope`, `edge_zone`, `public_ip_prefix_id`, and `sku_tier` properties ([#33193](https://github.com/hashicorp/terraform-provider-azurerm/issues/33193))
+* Data Source: `azurerm_service_plan` - export the `premium_plan_auto_scale_enabled` property ([#33300](https://github.com/hashicorp/terraform-provider-azurerm/issues/33300))
+* Data Source: `azurerm_storage_blob` - export the `cache_control` and `source_uri` properties ([#33318](https://github.com/hashicorp/terraform-provider-azurerm/issues/33318))
+* Data Source: `azurerm_traffic_manager_profile` - export the `maximum_return` property ([#33346](https://github.com/hashicorp/terraform-provider-azurerm/issues/33346))
+* Data Source: `azurerm_web_pubsub` - export the `live_trace` and `identity` properties ([#33373](https://github.com/hashicorp/terraform-provider-azurerm/issues/33373))
+* `azurerm_kubernetes_cluster_node_pool` - add `Windows2025` as a valid value for the `os_sku` property ([#33463](https://github.com/hashicorp/terraform-provider-azurerm/issues/33463))
+* `azurerm_kubernetes_cluster` - add `Windows2025` as a valid value for the `os_sku` property ([#33463](https://github.com/hashicorp/terraform-provider-azurerm/issues/33463))
 
 BUG FIXES:
 
