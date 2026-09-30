@@ -43,7 +43,7 @@ func (r StorageMoverSmbFileShareTargetEndpointResource) ResourceType() string {
 	return "azurerm_storage_mover_smb_file_share_target_endpoint"
 }
 
-func (r StorageMoverSmbFileShareTargetEndpointResource) ModelObject() interface{} {
+func (r StorageMoverSmbFileShareTargetEndpointResource) ModelObject() any {
 	return &StorageMoverSmbFileShareTargetEndpointModel{}
 }
 
