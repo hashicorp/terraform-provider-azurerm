@@ -48,7 +48,8 @@ func resourceVirtualDesktopApplication() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.All(
-					validation.StringLenBetween(3, 24),
+					// NOTE: name string length is incorrect in the API specs, see: https://github.com/Azure/azure-rest-api-specs/issues/46813
+					validation.StringLenBetween(1, 260),
 					validation.StringMatch(
 						regexp.MustCompile(`^[A-Za-z0-9@.\\-_ ]*$`),
 						"Virtual desktop application name must be 3 - 24 characters long and may only contain letters, numbers, spaces, periods, underscores, hyphens, and @.",
