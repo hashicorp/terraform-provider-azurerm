@@ -201,7 +201,7 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			pluginsdk.CustomizeDiffShim(func(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+			pluginsdk.CustomizeDiffShim(func(_ context.Context, d *pluginsdk.ResourceDiff, _ any) error {
 				sku := d.Get("sku").(string)
 				if strings.EqualFold(sku, string(loadbalancers.LoadBalancerSkuNameBasic)) && d.HasChanges("name", "resource_group_name", "location", "edge_zone", "sku", "sku_tier", "frontend_ip_configuration") {
 					return errors.New(loadBalancerBasicSkuCreateDeprecationMessage)
