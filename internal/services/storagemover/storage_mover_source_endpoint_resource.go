@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/endpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/storagemovers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	storageMoverValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storagemover/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storagemover/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -64,7 +64,7 @@ func (r StorageMoverSourceEndpointResource) Arguments() map[string]*pluginsdk.Sc
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: storageMoverValidate.EndpointName(),
+			ValidateFunc: validate.EndpointName(),
 		},
 
 		"storage_mover_id": {

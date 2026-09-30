@@ -43,7 +43,7 @@ func (r StorageMoverNfsFileShareTargetEndpointResource) ResourceType() string {
 	return "azurerm_storage_mover_nfs_file_share_target_endpoint"
 }
 
-func (r StorageMoverNfsFileShareTargetEndpointResource) ModelObject() interface{} {
+func (r StorageMoverNfsFileShareTargetEndpointResource) ModelObject() any {
 	return &StorageMoverNfsFileShareTargetEndpointModel{}
 }
 
