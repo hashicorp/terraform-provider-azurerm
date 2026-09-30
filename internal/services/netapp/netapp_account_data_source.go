@@ -45,7 +45,7 @@ func dataSourceNetAppAccount() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceNetAppAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceNetAppAccountRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NetApp.AccountClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

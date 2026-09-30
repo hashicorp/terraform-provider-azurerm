@@ -32,9 +32,9 @@ type TableEntitiesDataSourceModel struct {
 }
 
 type TableEntityDataSourceModel struct {
-	PartitionKey string                 `tfschema:"partition_key"`
-	RowKey       string                 `tfschema:"row_key"`
-	Properties   map[string]interface{} `tfschema:"properties"`
+	PartitionKey string         `tfschema:"partition_key"`
+	RowKey       string         `tfschema:"row_key"`
+	Properties   map[string]any `tfschema:"properties"`
 }
 
 func (k storageTableEntitiesDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -91,7 +91,7 @@ func (k storageTableEntitiesDataSource) Attributes() map[string]*pluginsdk.Schem
 	}
 }
 
-func (k storageTableEntitiesDataSource) ModelObject() interface{} {
+func (k storageTableEntitiesDataSource) ModelObject() any {
 	return &TableEntitiesDataSourceModel{}
 }
 
@@ -169,12 +169,12 @@ func (k storageTableEntitiesDataSource) Read() sdk.ResourceFunc {
 }
 
 // The api returns extra information that we already have. We'll remove it here before setting it in state.
-func flattenEntityWithMetadata(entity map[string]interface{}) TableEntityDataSourceModel {
+func flattenEntityWithMetadata(entity map[string]any) TableEntityDataSourceModel {
 	delete(entity, "Timestamp")
 
 	result := TableEntityDataSourceModel{}
 
-	properties := map[string]interface{}{}
+	properties := map[string]any{}
 	for k, v := range entity {
 		if k == "PartitionKey" {
 			result.PartitionKey = v.(string)

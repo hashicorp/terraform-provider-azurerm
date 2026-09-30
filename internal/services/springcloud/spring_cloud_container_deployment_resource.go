@@ -165,7 +165,7 @@ func resourceSpringCloudContainerDeployment() *pluginsdk.Resource {
 	}
 }
 
-func resourceSpringCloudContainerDeploymentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudContainerDeploymentCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.DeploymentsClient
 	servicesClient := meta.(*clients.Client).AppPlatform.ServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -219,16 +219,16 @@ func resourceSpringCloudContainerDeploymentCreateUpdate(d *pluginsdk.ResourceDat
 				CustomContainer: &appplatform.CustomContainer{
 					Server:            pointer.To(d.Get("server").(string)),
 					ContainerImage:    pointer.To(d.Get("image").(string)),
-					Command:           pluginsdk.ExpandStringSlice(d.Get("commands").([]interface{})),
-					Args:              pluginsdk.ExpandStringSlice(d.Get("arguments").([]interface{})),
+					Command:           pluginsdk.ExpandStringSlice(d.Get("commands").([]any)),
+					Args:              pluginsdk.ExpandStringSlice(d.Get("arguments").([]any)),
 					LanguageFramework: pointer.To(d.Get("language_framework").(string)),
 				},
 			},
 			DeploymentSettings: &appplatform.DeploymentSettings{
 				AddonConfigs:         addonConfig,
-				Apms:                 expandSpringCloudDeploymentApms(d.Get("application_performance_monitoring_ids").([]interface{})),
-				EnvironmentVariables: expandSpringCloudDeploymentEnvironmentVariables(d.Get("environment_variables").(map[string]interface{})),
-				ResourceRequests:     expandSpringCloudContainerDeploymentResourceRequests(d.Get("quota").([]interface{})),
+				Apms:                 expandSpringCloudDeploymentApms(d.Get("application_performance_monitoring_ids").([]any)),
+				EnvironmentVariables: expandSpringCloudDeploymentEnvironmentVariables(d.Get("environment_variables").(map[string]any)),
+				ResourceRequests:     expandSpringCloudContainerDeploymentResourceRequests(d.Get("quota").([]any)),
 			},
 		},
 	}
@@ -249,7 +249,7 @@ func resourceSpringCloudContainerDeploymentCreateUpdate(d *pluginsdk.ResourceDat
 	return resourceSpringCloudContainerDeploymentRead(d, meta)
 }
 
-func resourceSpringCloudContainerDeploymentRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudContainerDeploymentRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.DeploymentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -305,7 +305,7 @@ func resourceSpringCloudContainerDeploymentRead(d *pluginsdk.ResourceData, meta 
 	return nil
 }
 
-func resourceSpringCloudContainerDeploymentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudContainerDeploymentDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.DeploymentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -328,14 +328,14 @@ func resourceSpringCloudContainerDeploymentDelete(d *pluginsdk.ResourceData, met
 	return nil
 }
 
-func expandSpringCloudContainerDeploymentResourceRequests(input []interface{}) *appplatform.ResourceRequests {
+func expandSpringCloudContainerDeploymentResourceRequests(input []any) *appplatform.ResourceRequests {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 	cpuResult := "1"
 	memResult := "1Gi"
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	if cpuNew := v["cpu"].(string); cpuNew != "" {
 		cpuResult = cpuNew
 	}
@@ -352,7 +352,7 @@ func expandSpringCloudContainerDeploymentResourceRequests(input []interface{}) *
 	return &result
 }
 
-func expandSpringCloudDeploymentApms(input []interface{}) *[]appplatform.ApmReference {
+func expandSpringCloudDeploymentApms(input []any) *[]appplatform.ApmReference {
 	if len(input) == 0 {
 		return nil
 	}
@@ -365,11 +365,11 @@ func expandSpringCloudDeploymentApms(input []interface{}) *[]appplatform.ApmRefe
 	return pointer.To(result)
 }
 
-func flattenSpringCloudDeploymentApms(input *[]appplatform.ApmReference) ([]interface{}, error) {
+func flattenSpringCloudDeploymentApms(input *[]appplatform.ApmReference) ([]any, error) {
 	if input == nil {
-		return []interface{}{}, nil
+		return []any{}, nil
 	}
-	result := make([]interface{}, 0)
+	result := make([]any, 0)
 	for _, v := range *input {
 		id, err := appplatform_rm.ParseApmIDInsensitively(*v.ResourceID)
 		if err != nil {

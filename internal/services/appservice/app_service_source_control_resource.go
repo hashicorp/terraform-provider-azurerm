@@ -130,7 +130,7 @@ func (r SourceControlResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r SourceControlResource) ModelObject() interface{} {
+func (r SourceControlResource) ModelObject() any {
 	return &SourceControlModel{}
 }
 

@@ -12,7 +12,6 @@ import (
 	"strings"
 	"time"
 
-	// nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -60,7 +59,7 @@ type PimEligibleRoleAssignmentScheduleInfoExpiration struct {
 	EndDateTime   string `tfschema:"end_date_time"`
 }
 
-func (PimEligibleRoleAssignmentResource) ModelObject() interface{} {
+func (PimEligibleRoleAssignmentResource) ModelObject() any {
 	return &PimEligibleRoleAssignmentModel{}
 }
 
@@ -346,7 +345,7 @@ func (r PimEligibleRoleAssignmentResource) Create() sdk.ResourceFunc {
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending: []string{"Retry"},
 				Target:  []string{"Created"},
-				Refresh: func() (interface{}, string, error) {
+				Refresh: func() (any, string, error) {
 					// Retry new requests to smooth over AAD replication issues with the subject principal
 					result, err := requestsClient.Create(ctx, requestId, payload)
 					if err != nil {
@@ -614,7 +613,7 @@ func (PimEligibleRoleAssignmentResource) Delete() sdk.ResourceFunc {
 				stateConf := &pluginsdk.StateChangeConf{
 					Pending: []string{"Pending"},
 					Target:  []string{"Submitted", "GoneAway"},
-					Refresh: func() (interface{}, string, error) {
+					Refresh: func() (any, string, error) {
 						// Removal request is not accepted within a minimum duration window, so retry it
 						result, err := requestsClient.Create(ctx, deleteId, payload)
 						if err != nil {
@@ -665,7 +664,7 @@ func (PimEligibleRoleAssignmentResource) Delete() sdk.ResourceFunc {
 }
 
 func pollForRoleEligibilitySchedule(ctx context.Context, client *roleeligibilityschedules.RoleEligibilitySchedulesClient, id parse.PimRoleAssignmentId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		log.Printf("[DEBUG] Polling for %s", id)
 
 		schedule, err := findRoleEligibilitySchedule(ctx, client, id)

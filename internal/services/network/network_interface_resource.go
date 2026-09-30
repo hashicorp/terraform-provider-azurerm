@@ -237,7 +237,7 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 	return r
 }
 
-func resourceNetworkInterfaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkInterfaces
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -285,7 +285,7 @@ func resourceNetworkInterfaceCreate(d *pluginsdk.ResourceData, meta interface{})
 		dnsSettings := networkinterfaces.NetworkInterfaceDnsSettings{}
 
 		if hasDns {
-			dnsRaw := dns.([]interface{})
+			dnsRaw := dns.([]any)
 			dns := expandNetworkInterfaceDnsServers(dnsRaw)
 			dnsSettings.DnsServers = &dns
 		}
@@ -297,7 +297,7 @@ func resourceNetworkInterfaceCreate(d *pluginsdk.ResourceData, meta interface{})
 		properties.DnsSettings = &dnsSettings
 	}
 
-	ipConfigsRaw := d.Get("ip_configuration").([]interface{})
+	ipConfigsRaw := d.Get("ip_configuration").([]any)
 	ipConfigs, err := expandNetworkInterfaceIPConfigurations(ipConfigsRaw)
 	if err != nil {
 		return fmt.Errorf("expanding `ip_configuration`: %+v", err)
@@ -319,7 +319,7 @@ func resourceNetworkInterfaceCreate(d *pluginsdk.ResourceData, meta interface{})
 		ExtendedLocation: expandEdgeZoneModel(d.Get("edge_zone").(string)),
 		Location:         pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties:       &properties,
-		Tags:             tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:             tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if err = client.CreateOrUpdateCallbackThenPoll(ctx, id, iface, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
@@ -334,7 +334,7 @@ func resourceNetworkInterfaceCreate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceNetworkInterfaceRead(d, meta)
 }
 
-func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -392,7 +392,7 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	if d.HasChange("dns_servers") {
 		propsOtherThanTagsUpdated = true
-		dnsServersRaw := d.Get("dns_servers").([]interface{})
+		dnsServersRaw := d.Get("dns_servers").([]any)
 		dnsServers := expandNetworkInterfaceDnsServers(dnsServersRaw)
 
 		payload.Properties.DnsSettings.DnsServers = &dnsServers
@@ -415,7 +415,7 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	if d.HasChange("ip_configuration") {
 		propsOtherThanTagsUpdated = true
-		ipConfigsRaw := d.Get("ip_configuration").([]interface{})
+		ipConfigsRaw := d.Get("ip_configuration").([]any)
 		ipConfigs, err := expandNetworkInterfaceIPConfigurations(ipConfigsRaw)
 		if err != nil {
 			return fmt.Errorf("expanding `ip_configuration`: %+v", err)
@@ -435,7 +435,7 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if d.HasChange("tags") && !attachedToPrivateEndpoint {
-		tagsRaw := d.Get("tags").(map[string]interface{})
+		tagsRaw := d.Get("tags").(map[string]any)
 		payload.Tags = tags.Expand(tagsRaw)
 	}
 
@@ -446,7 +446,7 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if d.HasChange("tags") && attachedToPrivateEndpoint {
-		tagsRaw := d.Get("tags").(map[string]interface{})
+		tagsRaw := d.Get("tags").(map[string]any)
 		tags := networkinterfaces.TagsObject{
 			Tags: tags.Expand(tagsRaw),
 		}
@@ -458,7 +458,7 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceNetworkInterfaceRead(d, meta)
 }
 
-func resourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -555,7 +555,7 @@ func resourceNetworkInterfaceFlatten(d *pluginsdk.ResourceData, id *commonids.Ne
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceNetworkInterfaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -604,11 +604,11 @@ func resourceNetworkInterfaceDelete(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func expandNetworkInterfaceIPConfigurations(input []interface{}) (*[]networkinterfaces.NetworkInterfaceIPConfiguration, error) {
+func expandNetworkInterfaceIPConfigurations(input []any) (*[]networkinterfaces.NetworkInterfaceIPConfiguration, error) {
 	ipConfigs := make([]networkinterfaces.NetworkInterfaceIPConfiguration, 0)
 
 	for _, configRaw := range input {
-		data := configRaw.(map[string]interface{})
+		data := configRaw.(map[string]any)
 
 		subnetId := data["subnet_id"].(string)
 		privateIpAllocationMethod := data["private_ip_address_allocation"].(string)
@@ -671,12 +671,12 @@ func expandNetworkInterfaceIPConfigurations(input []interface{}) (*[]networkinte
 	return &ipConfigs, nil
 }
 
-func flattenNetworkInterfaceIPConfigurations(input *[]networkinterfaces.NetworkInterfaceIPConfiguration) []interface{} {
+func flattenNetworkInterfaceIPConfigurations(input *[]networkinterfaces.NetworkInterfaceIPConfiguration) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	result := make([]interface{}, 0)
+	result := make([]any, 0)
 	for _, ipConfig := range *input {
 		props := ipConfig.Properties
 
@@ -705,7 +705,7 @@ func flattenNetworkInterfaceIPConfigurations(input *[]networkinterfaces.NetworkI
 			gatewayLBFrontendIPConfigId = *props.GatewayLoadBalancer.Id
 		}
 
-		result = append(result, map[string]interface{}{
+		result = append(result, map[string]any{
 			"name":                          pointer.From(ipConfig.Name),
 			"primary":                       pointer.From(props.Primary),
 			"private_ip_address":            pointer.From(props.PrivateIPAddress),
@@ -719,7 +719,7 @@ func flattenNetworkInterfaceIPConfigurations(input *[]networkinterfaces.NetworkI
 	return result
 }
 
-func expandNetworkInterfaceDnsServers(input []interface{}) []string {
+func expandNetworkInterfaceDnsServers(input []any) []string {
 	dnsServers := make([]string, 0)
 	for _, v := range input {
 		dnsServers = append(dnsServers, v.(string))

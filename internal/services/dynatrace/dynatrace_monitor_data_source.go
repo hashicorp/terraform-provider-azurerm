@@ -157,7 +157,7 @@ func (d MonitorsDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (d MonitorsDataSource) ModelObject() interface{} {
+func (d MonitorsDataSource) ModelObject() any {
 	return &MonitorsDataSourceModel{}
 }
 

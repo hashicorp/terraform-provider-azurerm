@@ -42,7 +42,7 @@ func (r WorkspaceNetworkOutboundRulePrivateEndpoint) ResourceType() string {
 	return "azurerm_machine_learning_workspace_network_outbound_rule_private_endpoint"
 }
 
-func (r WorkspaceNetworkOutboundRulePrivateEndpoint) ModelObject() interface{} {
+func (r WorkspaceNetworkOutboundRulePrivateEndpoint) ModelObject() any {
 	return &machineLearningWorkspaceOutboundRulePrivateEndpointModel{}
 }
 

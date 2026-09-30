@@ -113,7 +113,7 @@ func resourceVirtualDesktopApplication() *pluginsdk.Resource {
 	}
 }
 
-func resourceVirtualDesktopApplicationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopApplicationCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DesktopVirtualization.ApplicationsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 
@@ -164,7 +164,7 @@ func resourceVirtualDesktopApplicationCreateUpdate(d *pluginsdk.ResourceData, me
 	return resourceVirtualDesktopApplicationRead(d, meta)
 }
 
-func resourceVirtualDesktopApplicationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopApplicationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DesktopVirtualization.ApplicationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -204,7 +204,7 @@ func resourceVirtualDesktopApplicationRead(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func resourceVirtualDesktopApplicationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopApplicationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DesktopVirtualization.ApplicationsClient
 
 	id, err := application.ParseApplicationID(d.Id())

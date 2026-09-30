@@ -303,7 +303,7 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
-		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta any) error {
 			rawConfig := d.GetRawConfig()
 			if d.Id() != "" && d.HasChange("ip_version_type") && rawConfig.IsKnown() && !rawConfig.IsNull() && rawConfig.GetAttr("ip_version_type").IsKnown() {
 				old, new := d.GetChange("ip_version_type")
@@ -318,9 +318,9 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 				}
 			}
 
-			privateServiceConnections := d.Get("private_service_connection").([]interface{})
+			privateServiceConnections := d.Get("private_service_connection").([]any)
 			for _, psc := range privateServiceConnections {
-				privateServiceConnection := psc.(map[string]interface{})
+				privateServiceConnection := psc.(map[string]any)
 				name := privateServiceConnection["name"].(string)
 
 				// If this is not a manual connection and the message is set return an error since this does not make sense.
@@ -338,7 +338,7 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 	}
 }
 
-func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.PrivateEndpoints
 	dnsClient := meta.(*clients.Client).Network.PrivateDnsZoneGroups
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -360,12 +360,12 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	privateDnsZoneGroup := d.Get("private_dns_zone_group").([]interface{})
+	privateDnsZoneGroup := d.Get("private_dns_zone_group").([]any)
 
 	// Certain child resources like those for cognitive account lock the parent resource to make sure we don't try and update the parent when it's not ready.
 	// Due to that, we'll lock on that resource id to try and prevent those type of errors.
-	privateLinkServiceConnections, privateLinkServiceConnectionIds := expandPrivateLinkEndpointServiceConnection(d.Get("private_service_connection").([]interface{}), false)
-	manualPrivateLinkServiceConnections, manualPrivateLinkServiceConnectionIds := expandPrivateLinkEndpointServiceConnection(d.Get("private_service_connection").([]interface{}), true)
+	privateLinkServiceConnections, privateLinkServiceConnectionIds := expandPrivateLinkEndpointServiceConnection(d.Get("private_service_connection").([]any), false)
+	manualPrivateLinkServiceConnections, manualPrivateLinkServiceConnectionIds := expandPrivateLinkEndpointServiceConnection(d.Get("private_service_connection").([]any), true)
 	privateLinkServiceConnectionIds = append(privateLinkServiceConnectionIds, manualPrivateLinkServiceConnectionIds...)
 	locks.MultipleByID(pointer.To(privateLinkServiceConnectionIds))
 	defer locks.UnlockMultipleByID(pointer.To(privateLinkServiceConnectionIds))
@@ -379,11 +379,11 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			Subnet: &privateendpoints.Subnet{
 				Id: pointer.To(d.Get("subnet_id").(string)),
 			},
-			IPConfigurations:           expandPrivateEndpointIPConfigurations(d.Get("ip_configuration").([]interface{})),
+			IPConfigurations:           expandPrivateEndpointIPConfigurations(d.Get("ip_configuration").([]any)),
 			IPVersionType:              pointer.ToEnum[privateendpoints.PrivateEndpointIPVersionType](d.Get("ip_version_type").(string)),
 			CustomNetworkInterfaceName: pointer.To(d.Get("custom_network_interface_name").(string)),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if err := validatePrivateLinkServiceId(*parameters.Properties.PrivateLinkServiceConnections); err != nil {
@@ -513,7 +513,7 @@ func getCosmosDbResIdInPrivateServiceConnections(p *privateendpoints.PrivateEndp
 	return ids
 }
 
-func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.PrivateEndpoints
 	dnsClient := meta.(*clients.Client).Network.PrivateDnsZoneGroups
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -538,9 +538,9 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	applicationSecurityGroupAssociation := existing.Model.Properties.ApplicationSecurityGroups
 	location := location.Normalize(d.Get("location").(string))
-	privateDnsZoneGroup := d.Get("private_dns_zone_group").([]interface{})
-	privateServiceConnections := d.Get("private_service_connection").([]interface{})
-	ipConfigurations := d.Get("ip_configuration").([]interface{})
+	privateDnsZoneGroup := d.Get("private_dns_zone_group").([]any)
+	privateServiceConnections := d.Get("private_service_connection").([]any)
+	ipConfigurations := d.Get("ip_configuration").([]any)
 	subnetId := d.Get("subnet_id").(string)
 	customNicName := d.Get("custom_network_interface_name").(string)
 	ipVersionType := d.Get("ip_version_type").(string)
@@ -568,7 +568,7 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			IPVersionType:              pointer.ToEnum[privateendpoints.PrivateEndpointIPVersionType](ipVersionType),
 			CustomNetworkInterfaceName: pointer.To(customNicName),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if err = validatePrivateLinkServiceId(*parameters.Properties.PrivateLinkServiceConnections); err != nil {
@@ -613,18 +613,18 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			return err
 		}
 
-		newDnsZoneGroups := d.Get("private_dns_zone_group").([]interface{})
+		newDnsZoneGroups := d.Get("private_dns_zone_group").([]any)
 		newDnsZoneName := ""
 		idHasBeenChanged := false
 		if len(newDnsZoneGroups) > 0 {
-			groupRaw := newDnsZoneGroups[0].(map[string]interface{})
+			groupRaw := newDnsZoneGroups[0].(map[string]any)
 			newDnsZoneName = groupRaw["name"].(string)
 
 			// it is possible to add or remove a private_dns_zone_id, but if an id is added at the same time as one as been removed and the name has not been changed
 			// an existing entry is updated, which is not allowed, so we need to delete the existing private dns zone groups
 			if d.HasChange("private_dns_zone_group.0.private_dns_zone_ids") {
 				o, n := d.GetChange("private_dns_zone_group.0.private_dns_zone_ids")
-				if len(o.([]interface{})) == len(n.([]interface{})) {
+				if len(o.([]any)) == len(n.([]any)) {
 					idHasBeenChanged = true
 				}
 			}
@@ -660,7 +660,7 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	return resourcePrivateEndpointRead(d, meta)
 }
 
-func resourcePrivateEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePrivateEndpointRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.PrivateEndpoints
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -739,8 +739,8 @@ func resourcePrivateEndpointFlatten(ctx context.Context, metaClient *clients.Cli
 					return err
 				}
 
-				privateDnsZoneConfigs := make([]interface{}, 0)
-				privateDnsZoneGroups := make([]interface{}, 0)
+				privateDnsZoneConfigs := make([]any, 0)
+				privateDnsZoneGroups := make([]any, 0)
 				if privateDnsZoneIds != nil {
 					for _, dnsZoneId := range *privateDnsZoneIds {
 						flattened, err := retrieveAndFlattenPrivateDnsZone(ctx, dnsClient, dnsZoneId)
@@ -773,7 +773,7 @@ func resourcePrivateEndpointFlatten(ctx context.Context, metaClient *clients.Cli
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourcePrivateEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePrivateEndpointDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.PrivateEndpoints
 	dnsZoneGroupsClient := meta.(*clients.Client).Network.PrivateDnsZoneGroups
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -843,19 +843,19 @@ func resourcePrivateEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func expandPrivateLinkEndpointServiceConnection(input []interface{}, parseManual bool) (*[]privateendpoints.PrivateLinkServiceConnection, []string) {
+func expandPrivateLinkEndpointServiceConnection(input []any, parseManual bool) (*[]privateendpoints.PrivateLinkServiceConnection, []string) {
 	results := make([]privateendpoints.PrivateLinkServiceConnection, 0)
 	privateConnectionResourceIds := make([]string, 0)
 
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 		privateConnectionResourceId := v["private_connection_resource_id"].(string)
 		if privateConnectionResourceId == "" {
 			privateConnectionResourceId = v["private_connection_resource_alias"].(string)
 		}
 		privateConnectionResourceIds = append(privateConnectionResourceIds, privateConnectionResourceId)
 
-		subresourceNames := v["subresource_names"].([]interface{})
+		subresourceNames := v["subresource_names"].([]any)
 		requestMessage := v["request_message"].(string)
 		isManual := v["is_manual_connection"].(bool)
 		name := v["name"].(string)
@@ -880,11 +880,11 @@ func expandPrivateLinkEndpointServiceConnection(input []interface{}, parseManual
 	return &results, privateConnectionResourceIds
 }
 
-func expandPrivateEndpointIPConfigurations(input []interface{}) *[]privateendpoints.PrivateEndpointIPConfiguration {
+func expandPrivateEndpointIPConfigurations(input []any) *[]privateendpoints.PrivateEndpointIPConfiguration {
 	results := make([]privateendpoints.PrivateEndpointIPConfiguration, 0)
 
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 		privateIPAddress := v["private_ip_address"].(string)
 		subResourceName := v["subresource_name"].(string)
 		memberName := v["member_name"].(string)
@@ -906,15 +906,15 @@ func expandPrivateEndpointIPConfigurations(input []interface{}) *[]privateendpoi
 	return &results
 }
 
-func flattenPrivateEndpointIPConfigurations(ipConfigurations *[]privateendpoints.PrivateEndpointIPConfiguration) []interface{} {
-	results := make([]interface{}, 0)
+func flattenPrivateEndpointIPConfigurations(ipConfigurations *[]privateendpoints.PrivateEndpointIPConfiguration) []any {
+	results := make([]any, 0)
 	if ipConfigurations == nil {
 		return results
 	}
 
 	for _, item := range *ipConfigurations {
 		if props := item.Properties; props != nil {
-			results = append(results, map[string]interface{}{
+			results = append(results, map[string]any{
 				"name":               item.Name,
 				"private_ip_address": props.PrivateIPAddress,
 				"subresource_name":   props.GroupId,
@@ -926,14 +926,14 @@ func flattenPrivateEndpointIPConfigurations(ipConfigurations *[]privateendpoints
 	return results
 }
 
-func flattenCustomDnsConfigs(customDnsConfigs *[]privateendpoints.CustomDnsConfigPropertiesFormat) []interface{} {
-	results := make([]interface{}, 0)
+func flattenCustomDnsConfigs(customDnsConfigs *[]privateendpoints.CustomDnsConfigPropertiesFormat) []any {
+	results := make([]any, 0)
 	if customDnsConfigs == nil {
 		return results
 	}
 
 	for _, item := range *customDnsConfigs {
-		results = append(results, map[string]interface{}{
+		results = append(results, map[string]any{
 			"fqdn":         item.Fqdn,
 			"ip_addresses": pluginsdk.FlattenSlice(item.IPAddresses),
 		})
@@ -942,8 +942,8 @@ func flattenCustomDnsConfigs(customDnsConfigs *[]privateendpoints.CustomDnsConfi
 	return results
 }
 
-func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]privateendpoints.PrivateLinkServiceConnection, manualServiceConnections *[]privateendpoints.PrivateLinkServiceConnection, privateIPAddress string) []interface{} {
-	results := make([]interface{}, 0)
+func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]privateendpoints.PrivateLinkServiceConnection, manualServiceConnections *[]privateendpoints.PrivateLinkServiceConnection, privateIPAddress string) []any {
+	results := make([]any, 0)
 	if serviceConnections == nil && manualServiceConnections == nil {
 		return results
 	}
@@ -951,7 +951,7 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]privateen
 	if serviceConnections != nil {
 		for _, item := range *serviceConnections {
 			privateConnectionId := ""
-			subResourceNames := make([]interface{}, 0)
+			subResourceNames := make([]any, 0)
 
 			if props := item.Properties; props != nil {
 				if v := props.GroupIds; v != nil {
@@ -961,7 +961,7 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]privateen
 					privateConnectionId = *props.PrivateLinkServiceId
 				}
 			}
-			attrs := map[string]interface{}{
+			attrs := map[string]any{
 				"name":                 pointer.From(item.Name),
 				"is_manual_connection": false,
 				"private_ip_address":   privateIPAddress,
@@ -982,7 +982,7 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]privateen
 		for _, item := range *manualServiceConnections {
 			privateConnectionId := ""
 			requestMessage := ""
-			subResourceNames := make([]interface{}, 0)
+			subResourceNames := make([]any, 0)
 
 			if props := item.Properties; props != nil {
 				if v := props.GroupIds; v != nil {
@@ -996,7 +996,7 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]privateen
 				}
 			}
 
-			attrs := map[string]interface{}{
+			attrs := map[string]any{
 				"name":                 pointer.From(item.Name),
 				"is_manual_connection": true,
 				"private_ip_address":   privateIPAddress,
@@ -1017,14 +1017,14 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]privateen
 	return results
 }
 
-func createPrivateDnsZoneGroupForPrivateEndpoint(ctx context.Context, client *privatednszonegroups.PrivateDnsZoneGroupsClient, id privateendpoints.PrivateEndpointId, inputRaw []interface{}) error {
+func createPrivateDnsZoneGroupForPrivateEndpoint(ctx context.Context, client *privatednszonegroups.PrivateDnsZoneGroupsClient, id privateendpoints.PrivateEndpointId, inputRaw []any) error {
 	if len(inputRaw) != 1 {
 		return fmt.Errorf("expected a single Private DNS Zone Groups but got %d", len(inputRaw))
 	}
-	item := inputRaw[0].(map[string]interface{})
+	item := inputRaw[0].(map[string]any)
 
 	dnsZoneGroupId := privatednszonegroups.NewPrivateDnsZoneGroupID(id.SubscriptionId, id.ResourceGroupName, id.PrivateEndpointName, item["name"].(string))
-	privateDnsZoneIdsRaw := item["private_dns_zone_ids"].([]interface{})
+	privateDnsZoneIdsRaw := item["private_dns_zone_ids"].([]any)
 	privateDnsZoneConfigs := make([]privatednszonegroups.PrivateDnsZoneConfig, 0)
 	for _, item := range privateDnsZoneIdsRaw {
 		v := item.(string)
@@ -1098,8 +1098,8 @@ func retrievePrivateDnsZoneGroupsForPrivateEndpoint(ctx context.Context, client 
 }
 
 type flattenedPrivateDnsZoneGroup struct {
-	DnsZoneConfig []interface{}
-	DnsZoneGroup  map[string]interface{}
+	DnsZoneConfig []any
+	DnsZoneGroup  map[string]any
 }
 
 func retrieveAndFlattenPrivateDnsZone(ctx context.Context, client *privatednszonegroups.PrivateDnsZoneGroupsClient, id privatednszonegroups.PrivateDnsZoneGroupId) (*flattenedPrivateDnsZoneGroup, error) {
@@ -1112,7 +1112,7 @@ func retrieveAndFlattenPrivateDnsZone(ctx context.Context, client *privatednszon
 	}
 
 	privateDnsZoneIds := make([]string, 0)
-	dnsZoneConfigs := make([]interface{}, 0)
+	dnsZoneConfigs := make([]any, 0)
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil && props.PrivateDnsZoneConfigs != nil {
@@ -1132,7 +1132,7 @@ func retrieveAndFlattenPrivateDnsZone(ctx context.Context, client *privatednszon
 				privateDnsZoneIds = append(privateDnsZoneIds, privateDnsZoneId)
 
 				recordSets := flattenPrivateDnsZoneGroupRecordSets(configProps.RecordSets)
-				dnsZoneConfigs = append(dnsZoneConfigs, map[string]interface{}{
+				dnsZoneConfigs = append(dnsZoneConfigs, map[string]any{
 					"id":                  parse.NewPrivateDnsZoneConfigID(id.SubscriptionId, id.ResourceGroupName, id.PrivateEndpointName, id.PrivateDnsZoneGroupName, name).ID(),
 					"name":                name,
 					"private_dns_zone_id": privateDnsZoneId,
@@ -1144,7 +1144,7 @@ func retrieveAndFlattenPrivateDnsZone(ctx context.Context, client *privatednszon
 
 	return &flattenedPrivateDnsZoneGroup{
 		DnsZoneConfig: dnsZoneConfigs,
-		DnsZoneGroup: map[string]interface{}{
+		DnsZoneGroup: map[string]any{
 			"id":                   id.ID(),
 			"name":                 id.PrivateDnsZoneGroupName,
 			"private_dns_zone_ids": privateDnsZoneIds,
@@ -1152,8 +1152,8 @@ func retrieveAndFlattenPrivateDnsZone(ctx context.Context, client *privatednszon
 	}, nil
 }
 
-func flattenPrivateDnsZoneGroupRecordSets(input *[]privatednszonegroups.RecordSet) []interface{} {
-	output := make([]interface{}, 0)
+func flattenPrivateDnsZoneGroupRecordSets(input *[]privatednszonegroups.RecordSet) []any {
+	output := make([]any, 0)
 	if input == nil {
 		return output
 	}
@@ -1169,7 +1169,7 @@ func flattenPrivateDnsZoneGroupRecordSets(input *[]privatednszonegroups.RecordSe
 			ipAddresses = *v.IPAddresses
 		}
 
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"fqdn":         pointer.From(v.Fqdn),
 			"ip_addresses": ipAddresses,
 			"name":         pointer.From(v.RecordSetName),

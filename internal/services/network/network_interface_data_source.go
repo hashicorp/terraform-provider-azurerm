@@ -195,7 +195,7 @@ func dataSourceNetworkInterface() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkInterfaces
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -229,7 +229,7 @@ func dataSourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{})
 		d.Set("mac_address", props.MacAddress)
 
 		privateIpAddress := ""
-		privateIpAddresses := make([]interface{}, 0)
+		privateIpAddresses := make([]any, 0)
 		if configs := props.IPConfigurations; configs != nil {
 			for _, config := range *configs {
 				if config.Properties == nil {

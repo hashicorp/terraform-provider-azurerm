@@ -22,7 +22,7 @@ type VirtualMachineRestorePointResource struct{}
 
 var _ sdk.Resource = VirtualMachineRestorePointResource{}
 
-func (r VirtualMachineRestorePointResource) ModelObject() interface{} {
+func (r VirtualMachineRestorePointResource) ModelObject() any {
 	return &VirtualMachineRestorePointResourceModel{}
 }
 

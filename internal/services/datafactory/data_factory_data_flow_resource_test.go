@@ -107,7 +107,7 @@ func (r DataFlowResource) Exists(ctx context.Context, clients *clients.Client, s
 }
 
 func (r DataFlowResource) basic(data acceptance.TestData) string {
-	// nolint: dupword
+	//nolint:dupword
 	return fmt.Sprintf(`
 %s
 
@@ -174,7 +174,7 @@ resource "azurerm_data_factory_data_flow" "import" {
 }
 
 func (r DataFlowResource) complete(data acceptance.TestData) string {
-	// nolint: dupword
+	//nolint:dupword
 	return fmt.Sprintf(`
 %s
 
@@ -333,7 +333,7 @@ EOT
 }
 
 func (DataFlowResource) template(data acceptance.TestData) string {
-	// nolint: dupword
+	//nolint:dupword
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

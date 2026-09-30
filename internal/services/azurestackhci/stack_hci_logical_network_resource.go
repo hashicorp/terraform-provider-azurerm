@@ -36,19 +36,19 @@ func (StackHCILogicalNetworkResource) ResourceType() string {
 	return "azurerm_stack_hci_logical_network"
 }
 
-func (StackHCILogicalNetworkResource) ModelObject() interface{} {
+func (StackHCILogicalNetworkResource) ModelObject() any {
 	return &StackHCILogicalNetworkResourceModel{}
 }
 
 type StackHCILogicalNetworkResourceModel struct {
-	Name              string                 `tfschema:"name"`
-	ResourceGroupName string                 `tfschema:"resource_group_name"`
-	Location          string                 `tfschema:"location"`
-	CustomLocationId  string                 `tfschema:"custom_location_id"`
-	DNSServers        []string               `tfschema:"dns_servers"`
-	Subnet            []StackHCISubnetModel  `tfschema:"subnet"`
-	VirtualSwitchName string                 `tfschema:"virtual_switch_name"`
-	Tags              map[string]interface{} `tfschema:"tags"`
+	Name              string                `tfschema:"name"`
+	ResourceGroupName string                `tfschema:"resource_group_name"`
+	Location          string                `tfschema:"location"`
+	CustomLocationId  string                `tfschema:"custom_location_id"`
+	DNSServers        []string              `tfschema:"dns_servers"`
+	Subnet            []StackHCISubnetModel `tfschema:"subnet"`
+	VirtualSwitchName string                `tfschema:"virtual_switch_name"`
+	Tags              map[string]any        `tfschema:"tags"`
 }
 
 type StackHCISubnetModel struct {

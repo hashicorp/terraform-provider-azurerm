@@ -167,7 +167,7 @@ func resourcePublicIp() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			pluginsdk.CustomizeDiffShim(func(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+			pluginsdk.CustomizeDiffShim(func(_ context.Context, d *pluginsdk.ResourceDiff, _ any) error {
 				sku := d.Get("sku").(string)
 				if strings.EqualFold(sku, string(publicipaddresses.PublicIPAddressSkuNameBasic)) && d.HasChanges(
 					"name",
@@ -187,7 +187,7 @@ func resourcePublicIp() *pluginsdk.Resource {
 
 				return nil
 			}),
-			pluginsdk.CustomizeDiffShim(func(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+			pluginsdk.CustomizeDiffShim(func(_ context.Context, d *pluginsdk.ResourceDiff, _ any) error {
 				skuTier := d.Get("sku_tier").(string)
 				sku := d.Get("sku").(string)
 				if strings.EqualFold(skuTier, string(publicipaddresses.PublicIPAddressSkuTierGlobal)) && !strings.EqualFold(sku, string(publicipaddresses.PublicIPAddressSkuNameStandard)) {
@@ -195,7 +195,7 @@ func resourcePublicIp() *pluginsdk.Resource {
 				}
 				return nil
 			}),
-			pluginsdk.ForceNewIfChange("domain_name_label_scope", func(ctx context.Context, old, new, meta interface{}) bool {
+			pluginsdk.ForceNewIfChange("domain_name_label_scope", func(ctx context.Context, old, new, meta any) bool {
 				return old.(string) != "" || new.(string) == ""
 			}),
 		),
@@ -204,7 +204,7 @@ func resourcePublicIp() *pluginsdk.Resource {
 
 const publicIPBasicSkuCreateDeprecationMessage = "creation of new `Basic` SKU public IP addresses is no longer permitted following its deprecation on March 31, 2025. This also affects `allocation_method` set to `Dynamic`, as it is only available with the `Basic` SKU. For more information, see https://azure.microsoft.com/updates/upgrade-to-standard-sku-public-ip-addresses-in-azure-by-30-september-2025-basic-sku-will-be-retired/"
 
-func resourcePublicIpCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePublicIpCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.PublicIPAddresses
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -252,7 +252,7 @@ func resourcePublicIpCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 				ProtectionMode: pointer.ToEnum[publicipaddresses.DdosSettingsProtectionMode](ddosProtectionMode),
 			},
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	ddosProtectionPlanId, planOk := d.GetOk("ddos_protection_plan_id")
@@ -301,7 +301,7 @@ func resourcePublicIpCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if v, ok := d.GetOk("ip_tags"); ok {
-		ipTags := v.(map[string]interface{})
+		ipTags := v.(map[string]any)
 		newIpTags := []publicipaddresses.IPTag{}
 
 		for key, val := range ipTags {
@@ -327,7 +327,7 @@ func resourcePublicIpCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	return resourcePublicIpRead(d, meta)
 }
 
-func resourcePublicIpUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePublicIpUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.PublicIPAddresses
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -405,7 +405,7 @@ func resourcePublicIpUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChanges("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err = client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
@@ -415,7 +415,7 @@ func resourcePublicIpUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	return resourcePublicIpRead(d, meta)
 }
 
-func resourcePublicIpRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePublicIpRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.PublicIPAddresses
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -496,7 +496,7 @@ func resourcePublicIpFlatten(d *pluginsdk.ResourceData, id *commonids.PublicIPAd
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourcePublicIpDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePublicIpDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.PublicIPAddresses
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -513,8 +513,8 @@ func resourcePublicIpDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func flattenPublicIpPropsIpTags(input *[]publicipaddresses.IPTag) map[string]interface{} {
-	out := make(map[string]interface{})
+func flattenPublicIpPropsIpTags(input *[]publicipaddresses.IPTag) map[string]any {
+	out := make(map[string]any)
 
 	if input != nil {
 		for _, tag := range *input {
