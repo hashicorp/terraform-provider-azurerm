@@ -1,10 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/applicationgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/applicationgateways"
 )
 
 var DeprecatedV1SkuNames = []string{

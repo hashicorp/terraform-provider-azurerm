@@ -20,8 +20,12 @@ on:
   push:
     branches:
       - main # limiting to main branch
+      - release/**
     paths:
       - 'version/VERSION' # and the version file, anything else is redundant for preparing releases
+
+permissions:
+  contents: read
 
 env:
   PKG_NAME: "terraform-provider-azurerm"
@@ -37,13 +41,16 @@ jobs:
       go-version: ${{ steps.get-go-version.outputs.go-version }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: 'go.mod'
+          cache: false
       - name: Detect Go version
         id: get-go-version
         run: |
-          version="$(go list -f {{.GoVersion}} -m)"
+          version="$(go list -f '{{.GoVersion}}' -m)"
           echo "go-version=$version" >> "$GITHUB_OUTPUT"
 
   # Parses the version/VERSION file. Reference: https://github.com/hashicorp/actions-set-product-version/blob/main/README.md
@@ -61,6 +68,8 @@ jobs:
       product-minor-version: ${{ steps.set-product-version.outputs.minor-product-version }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+        with:
+          persist-credentials: false
       - name: Set variables
         id: set-product-version
         uses: hashicorp/actions-set-product-version@d9be602dfa87e201c79a3937c038f19391c9a430 # v2
@@ -76,6 +85,8 @@ jobs:
     steps:
       - name: "Checkout directory"
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+        with:
+          persist-credentials: false
       - name: Generate metadata file
         id: generate-metadata-file
         uses: hashicorp/actions-generate-metadata@a43468dfb100445f2c2aa52cdc3d57b2c982a0f3 # v1
@@ -101,17 +112,20 @@ jobs:
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
         with:
           path: ${{ env.PKG_NAME }}
+          persist-credentials: false
       - name: "Copy manifest from checkout directory to a file with the desired name"
         id: terraform-registry-manifest
         run: |
           name="${{ env.PKG_NAME }}"
-          version="${{ needs.set-product-version.outputs.product-version }}"
+          version="${NEEDS_SET_PRODUCT_VERSION_OUTPUTS_PRODUCT_VERSION}"
 
           source="${name}/terraform-registry-manifest.json"
           destination="${name}_${version}_manifest.json"
 
           cp "$source" "$destination"
           echo "filename=$destination" >> "$GITHUB_OUTPUT"
+        env:
+          NEEDS_SET_PRODUCT_VERSION_OUTPUTS_PRODUCT_VERSION: ${{ needs.set-product-version.outputs.product-version }}
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: terraform-registry-manifest.json
@@ -152,6 +166,8 @@ jobs:
     name: Go ${{ needs.get-go-version.outputs.go-version }} ${{ matrix.goos }} ${{ matrix.goarch }} build
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+        with:
+          persist-credentials: false
       - uses: hashicorp/actions-go-build@dd7ca5a30c402c933e1fe61e0ff7165e5c4ee9e4 # v1
         env:
           CGO_ENABLED: 0
@@ -187,12 +203,14 @@ jobs:
         run: |
           github_dot_com="${{ github.server_url }}"
           owner_with_name="${{ github.repository }}"
-          ref="${{ github.ref }}"
+          ref="${GITHUB_REF}"
 
-          echo "### What's next?" >> "$GITHUB_STEP_SUMMARY"
-          echo "#### For a release branch (see \`.release/ci.hcl\`)" >> $GITHUB_STEP_SUMMARY
-          echo "After this \`build\` workflow run completes succesfully, you can expect the CRT \`prepare\` workflow to begin momentarily." >> "$GITHUB_STEP_SUMMARY"
-          echo "To find the \`prepare\` workflow run, [view the checks for this commit]($github_dot_com/$owner_with_name/commits/$ref)" >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "### What's next?"
+            echo "#### For a release branch (see \`.release/ci.hcl\`)"
+            echo "After this \`build\` workflow run completes successfully, you can expect the CRT \`prepare\` workflow to begin momentarily."
+            echo "To find the \`prepare\` workflow run, [view the checks for this commit]($github_dot_com/$owner_with_name/commits/$ref)"
+          } >> "$GITHUB_STEP_SUMMARY"
 
   notify-on-failure:
     needs: [build, generate-metadata-file, upload-terraform-registry-manifest-artifact, whats-next]

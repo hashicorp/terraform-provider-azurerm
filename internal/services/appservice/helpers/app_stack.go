@@ -4,7 +4,6 @@
 package helpers
 
 import (
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -62,14 +61,14 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"dotnet_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringInSlice([]string{ // Note: DotNet versions are abstracted between API and Portal displayed values, so do not match 1:1. A table of the converted values is provided in the resource doc.
 						"v2.0",
 						"v3.0",
@@ -97,7 +96,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				"php_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringInSlice([]string{
 						PhpVersionSevenPointOne,  // Deprecated
 						PhpVersionSevenPointFour, // Deprecated
@@ -122,6 +121,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 						"~18",
 						"~20",
 						"~22",
+						"~24",
 					}, false),
 					AtLeastOneOf: windowsApplicationStackConstraint,
 				},
@@ -136,7 +136,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				"java_embedded_server_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					ConflictsWith: []string{
 						"site_config.0.application_stack.0.tomcat_version",
 					},
@@ -213,7 +213,8 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				"current_stack": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true, // This will be set to the configured type from above if not explicitly set
+					// Note: O+C because This will be set to the configured type from above if not explicitly set
+					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"dotnet",
 						"dotnetcore",
@@ -328,7 +329,6 @@ type ApplicationStackLinux struct {
 	JavaVersion         string `tfschema:"java_version"`
 	JavaServer          string `tfschema:"java_server"`
 	JavaServerVersion   string `tfschema:"java_server_version"`
-	RubyVersion         string `tfschema:"ruby_version,removedInNextMajorVersion"`
 
 	DockerRegistryUrl      string `tfschema:"docker_registry_url"`
 	DockerRegistryUsername string `tfschema:"docker_registry_username"`
@@ -347,14 +347,10 @@ var linuxApplicationStackConstraint = []string{
 }
 
 func linuxApplicationStackSchema() *pluginsdk.Schema {
-	if !features.FivePointOh() {
-		linuxApplicationStackConstraint = append(linuxApplicationStackConstraint, "site_config.0.application_stack.0.ruby_version")
-	}
-
-	schema := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -393,6 +389,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"8.2",
 						"8.3",
 						"8.4",
+						"8.5",
 					}, false),
 					ExactlyOneOf: linuxApplicationStackConstraint,
 				},
@@ -493,25 +490,10 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		schema.Elem.(*pluginsdk.Resource).Schema["ruby_version"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				"2.6", // Deprecated - accepted but not offered in the portal.
-				"2.7", // EOL 31/03/2023 https://github.com/Azure/app-service-linux-docs/blob/master/Runtime_Support/ruby_support.md Remove Ruby support in 4.0?
-			}, false),
-			ExactlyOneOf: linuxApplicationStackConstraint,
-			Deprecated:   "`site_config.application_stack.ruby_version` has been deprecated and will be removed in v5.0 of the AzureRM provider",
-		}
-	}
-
-	return schema
 }
 
 func linuxApplicationStackSchemaComputed() *pluginsdk.Schema {
-	schema := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
 		Elem: &pluginsdk.Resource{
@@ -579,14 +561,4 @@ func linuxApplicationStackSchemaComputed() *pluginsdk.Schema {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		schema.Elem.(*pluginsdk.Resource).Schema["ruby_version"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Computed:   true,
-			Deprecated: "`site_config.application_stack.ruby_version` has been deprecated and will be removed in v5.0 of the AzureRM provider",
-		}
-	}
-
-	return schema
 }

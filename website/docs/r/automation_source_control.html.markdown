@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `security` - (Required) A `security` block as defined below.
 
-* `source_control_type` - (Required) The source type of Source Control, possible vaules are `VsoGit`, `VsoTfvc` and `GitHub`, and the value is case sensitive.
+* `source_control_type` - (Required) The source type of Source Control, possible values are `VsoGit`, `VsoTfvc` and `GitHub`, and the value is case sensitive.
 
 ---
 

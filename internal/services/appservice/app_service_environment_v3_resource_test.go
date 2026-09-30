@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -114,10 +113,6 @@ func TestAccAppServiceEnvironmentV3_completeUpdate(t *testing.T) {
 }
 
 func TestAccAppServiceEnvironmentV3_completePreflightPlan(t *testing.T) {
-	if !features.FivePointOh() {
-		t.Skip("skipping 5.0 only feature")
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment_v3", "test")
 	r := AppServiceEnvironmentV3Resource{}
 

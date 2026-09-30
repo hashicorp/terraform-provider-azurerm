@@ -50,7 +50,7 @@ func resourceSentinelDataConnectorOfficeATP() *pluginsdk.Resource {
 			"tenant_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
@@ -58,7 +58,7 @@ func resourceSentinelDataConnectorOfficeATP() *pluginsdk.Resource {
 	}
 }
 
-func resourceSentinelDataConnectorOfficeATPCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorOfficeATPCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -110,7 +110,7 @@ func resourceSentinelDataConnectorOfficeATPCreate(d *pluginsdk.ResourceData, met
 	return resourceSentinelDataConnectorOfficeATPRead(d, meta)
 }
 
-func resourceSentinelDataConnectorOfficeATPRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorOfficeATPRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -149,7 +149,7 @@ func resourceSentinelDataConnectorOfficeATPRead(d *pluginsdk.ResourceData, meta 
 	return nil
 }
 
-func resourceSentinelDataConnectorOfficeATPDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorOfficeATPDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

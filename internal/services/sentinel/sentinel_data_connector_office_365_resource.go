@@ -53,7 +53,7 @@ func resourceSentinelDataConnectorOffice365() *pluginsdk.Resource {
 			"tenant_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
@@ -79,7 +79,7 @@ func resourceSentinelDataConnectorOffice365() *pluginsdk.Resource {
 	}
 }
 
-func resourceSentinelDataConnectorOffice365CreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorOffice365CreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -180,7 +180,7 @@ func resourceSentinelDataConnectorOffice365CreateUpdate(d *pluginsdk.ResourceDat
 	return resourceSentinelDataConnectorOffice365Read(d, meta)
 }
 
-func resourceSentinelDataConnectorOffice365Read(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorOffice365Read(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -217,20 +217,17 @@ func resourceSentinelDataConnectorOffice365Read(d *pluginsdk.ResourceData, meta 
 		d.Set("tenant_id", props.TenantId)
 
 		dt := props.DataTypes
-		exchangeEnabled := strings.EqualFold(string(dt.Exchange.State), string(dataconnectors.DataTypeStateEnabled))
-		d.Set("exchange_enabled", exchangeEnabled)
+		d.Set("exchange_enabled", strings.EqualFold(string(dt.Exchange.State), string(dataconnectors.DataTypeStateEnabled)))
 
-		sharePointEnabled := strings.EqualFold(string(dt.SharePoint.State), string(dataconnectors.DataTypeStateEnabled))
-		d.Set("sharepoint_enabled", sharePointEnabled)
+		d.Set("sharepoint_enabled", strings.EqualFold(string(dt.SharePoint.State), string(dataconnectors.DataTypeStateEnabled)))
 
-		teamsEnabled := strings.EqualFold(string(dt.Teams.State), string(dataconnectors.DataTypeStateEnabled))
-		d.Set("teams_enabled", teamsEnabled)
+		d.Set("teams_enabled", strings.EqualFold(string(dt.Teams.State), string(dataconnectors.DataTypeStateEnabled)))
 	}
 
 	return nil
 }
 
-func resourceSentinelDataConnectorOffice365Delete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorOffice365Delete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
