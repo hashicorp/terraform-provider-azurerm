@@ -13,7 +13,7 @@ var defaultParallelism = 20
 var defaultTimeout = 12
 
 // specifies the default version of Terraform Core which should be used for testing
-var defaultTerraformCoreVersion = "1.15.8"
+var defaultTerraformCoreVersion = "1.16.4"
 
 // This represents a cron view of days of the week, Monday - Friday.
 const val defaultDaysOfWeek = "2,3,4,5,6"
@@ -81,7 +81,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "containerapps" to testConfiguration(parallelism = 10, locationOverride = LocationConfiguration("eastus2","westus2","southcentralus", true)),
 
         // The AKS API has a low rate limit
-        "containers" to testConfiguration(parallelism = 5, locationOverride = LocationConfiguration("eastus","westeurope","eastus2", false), timeout = 18),
+        "containers" to testConfiguration(parallelism = 6, locationOverride = LocationConfiguration("eastus","westeurope","eastus2", false), timeout = 18),
 
         // `azurerm_cost_management_scheduled_action` that can be targeted on a cost management view is limited
         "costmanagement" to testConfiguration(parallelism = 4),

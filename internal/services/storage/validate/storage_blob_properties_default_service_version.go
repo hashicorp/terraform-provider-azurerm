@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func BlobPropertiesDefaultServiceVersion(i interface{}, k string) ([]string, []error) {
+func BlobPropertiesDefaultServiceVersion(i any, k string) ([]string, []error) {
 	valid := []string{
 		"2008-10-27",
 		"2009-04-14",

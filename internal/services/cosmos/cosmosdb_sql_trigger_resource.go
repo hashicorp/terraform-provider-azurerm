@@ -74,7 +74,7 @@ func resourceCosmosDbSQLTrigger() *pluginsdk.Resource {
 	}
 }
 
-func resourceCosmosDbSQLTriggerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLTriggerCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -125,7 +125,7 @@ func resourceCosmosDbSQLTriggerCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	return resourceCosmosDbSQLTriggerRead(d, meta)
 }
 
-func resourceCosmosDbSQLTriggerRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLTriggerRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -161,7 +161,7 @@ func resourceCosmosDbSQLTriggerRead(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceCosmosDbSQLTriggerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLTriggerDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)

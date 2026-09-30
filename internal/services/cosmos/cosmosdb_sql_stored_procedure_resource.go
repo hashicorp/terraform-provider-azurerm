@@ -79,7 +79,7 @@ func resourceCosmosDbSQLStoredProcedure() *pluginsdk.Resource {
 	}
 }
 
-func resourceCosmosDbSQLStoredProcedureCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLStoredProcedureCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -116,7 +116,7 @@ func resourceCosmosDbSQLStoredProcedureCreate(d *pluginsdk.ResourceData, meta in
 	return resourceCosmosDbSQLStoredProcedureRead(d, meta)
 }
 
-func resourceCosmosDbSQLStoredProcedureUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLStoredProcedureUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -148,7 +148,7 @@ func resourceCosmosDbSQLStoredProcedureUpdate(d *pluginsdk.ResourceData, meta in
 	return resourceCosmosDbSQLStoredProcedureRead(d, meta)
 }
 
-func resourceCosmosDbSQLStoredProcedureRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLStoredProcedureRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -182,7 +182,7 @@ func resourceCosmosDbSQLStoredProcedureRead(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func resourceCosmosDbSQLStoredProcedureDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLStoredProcedureDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)

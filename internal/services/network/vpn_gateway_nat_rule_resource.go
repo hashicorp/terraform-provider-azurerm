@@ -121,7 +121,7 @@ func resourceVPNGatewayNatRule() *pluginsdk.Resource {
 	}
 }
 
-func resourceVPNGatewayNatRuleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVPNGatewayNatRuleCreate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -155,11 +155,11 @@ func resourceVPNGatewayNatRuleCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if v, ok := d.GetOk("external_mapping"); ok {
-		props.Properties.ExternalMappings = expandVpnGatewayNatRuleMappings(v.([]interface{}))
+		props.Properties.ExternalMappings = expandVpnGatewayNatRuleMappings(v.([]any))
 	}
 
 	if v, ok := d.GetOk("internal_mapping"); ok {
-		props.Properties.InternalMappings = expandVpnGatewayNatRuleMappings(v.([]interface{}))
+		props.Properties.InternalMappings = expandVpnGatewayNatRuleMappings(v.([]any))
 	}
 
 	if v, ok := d.GetOk("ip_configuration_id"); ok {
@@ -175,7 +175,7 @@ func resourceVPNGatewayNatRuleCreate(d *pluginsdk.ResourceData, meta interface{}
 	return resourceVPNGatewayNatRuleRead(d, meta)
 }
 
-func resourceVPNGatewayNatRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVPNGatewayNatRuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -219,7 +219,7 @@ func resourceVPNGatewayNatRuleRead(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceVPNGatewayNatRuleUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVPNGatewayNatRuleUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -252,11 +252,11 @@ func resourceVPNGatewayNatRuleUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if ok := d.HasChange("external_mapping"); ok {
-		props.Properties.ExternalMappings = expandVpnGatewayNatRuleMappings(d.Get("external_mapping").([]interface{}))
+		props.Properties.ExternalMappings = expandVpnGatewayNatRuleMappings(d.Get("external_mapping").([]any))
 	}
 
 	if ok := d.HasChange("internal_mapping"); ok {
-		props.Properties.InternalMappings = expandVpnGatewayNatRuleMappings(d.Get("internal_mapping").([]interface{}))
+		props.Properties.InternalMappings = expandVpnGatewayNatRuleMappings(d.Get("internal_mapping").([]any))
 	}
 
 	if v, ok := d.GetOk("ip_configuration_id"); ok {
@@ -270,7 +270,7 @@ func resourceVPNGatewayNatRuleUpdate(d *pluginsdk.ResourceData, meta interface{}
 	return resourceVPNGatewayNatRuleRead(d, meta)
 }
 
-func resourceVPNGatewayNatRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVPNGatewayNatRuleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -287,11 +287,11 @@ func resourceVPNGatewayNatRuleDelete(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func expandVpnGatewayNatRuleMappings(input []interface{}) *[]virtualwans.VpnNatRuleMapping {
+func expandVpnGatewayNatRuleMappings(input []any) *[]virtualwans.VpnNatRuleMapping {
 	results := make([]virtualwans.VpnNatRuleMapping, 0)
 
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 
 		result := virtualwans.VpnNatRuleMapping{
 			AddressSpace: pointer.To(v["address_space"].(string)),
@@ -307,14 +307,14 @@ func expandVpnGatewayNatRuleMappings(input []interface{}) *[]virtualwans.VpnNatR
 	return &results
 }
 
-func flattenVpnGatewayNatRuleMappings(input *[]virtualwans.VpnNatRuleMapping) []interface{} {
-	results := make([]interface{}, 0)
+func flattenVpnGatewayNatRuleMappings(input *[]virtualwans.VpnNatRuleMapping) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		results = append(results, map[string]interface{}{
+		results = append(results, map[string]any{
 			"address_space": pointer.From(item.AddressSpace),
 			"port_range":    pointer.From(item.PortRange),
 		})

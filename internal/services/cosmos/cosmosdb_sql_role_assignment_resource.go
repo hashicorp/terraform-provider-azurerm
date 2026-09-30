@@ -83,7 +83,7 @@ func resourceCosmosDbSQLRoleAssignment() *pluginsdk.Resource {
 	}
 }
 
-func resourceCosmosDbSQLRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLRoleAssignmentCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -130,7 +130,7 @@ func resourceCosmosDbSQLRoleAssignmentCreate(d *pluginsdk.ResourceData, meta int
 	return resourceCosmosDbSQLRoleAssignmentRead(d, meta)
 }
 
-func resourceCosmosDbSQLRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLRoleAssignmentRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -166,7 +166,7 @@ func resourceCosmosDbSQLRoleAssignmentRead(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func resourceCosmosDbSQLRoleAssignmentUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLRoleAssignmentUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -195,7 +195,7 @@ func resourceCosmosDbSQLRoleAssignmentUpdate(d *pluginsdk.ResourceData, meta int
 	return resourceCosmosDbSQLRoleAssignmentRead(d, meta)
 }
 
-func resourceCosmosDbSQLRoleAssignmentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLRoleAssignmentDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)

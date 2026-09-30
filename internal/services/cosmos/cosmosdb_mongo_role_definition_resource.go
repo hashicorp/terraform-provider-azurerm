@@ -43,7 +43,7 @@ func (r CosmosDbMongoRoleDefinitionResource) ResourceType() string {
 	return "azurerm_cosmosdb_mongo_role_definition"
 }
 
-func (r CosmosDbMongoRoleDefinitionResource) ModelObject() interface{} {
+func (r CosmosDbMongoRoleDefinitionResource) ModelObject() any {
 	return &CosmosDbMongoRoleDefinitionResourceModel{}
 }
 

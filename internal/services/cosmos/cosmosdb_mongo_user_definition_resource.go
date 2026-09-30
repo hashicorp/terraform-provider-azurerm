@@ -32,7 +32,7 @@ func (r CosmosDbMongoUserDefinitionResource) ResourceType() string {
 	return "azurerm_cosmosdb_mongo_user_definition"
 }
 
-func (r CosmosDbMongoUserDefinitionResource) ModelObject() interface{} {
+func (r CosmosDbMongoUserDefinitionResource) ModelObject() any {
 	return &CosmosDbMongoUserDefinitionResourceModel{}
 }
 

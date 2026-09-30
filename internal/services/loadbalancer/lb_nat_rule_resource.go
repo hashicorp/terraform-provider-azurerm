@@ -146,7 +146,7 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmLoadBalancerNatRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerNatRuleCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -215,7 +215,7 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *pluginsdk.ResourceData, meta 
 	return resourceArmLoadBalancerNatRuleRead(d, meta)
 }
 
-func resourceArmLoadBalancerNatRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerNatRuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -278,13 +278,13 @@ func resourceArmLoadBalancerNatRuleRead(d *pluginsdk.ResourceData, meta interfac
 			d.Set("frontend_port_start", int(pointer.From(props.FrontendPortRangeStart)))
 			d.Set("frontend_port_end", int(pointer.From(props.FrontendPortRangeEnd)))
 			d.Set("idle_timeout_in_minutes", int(pointer.From(props.IdleTimeoutInMinutes)))
-			d.Set("protocol", string(pointer.From(props.Protocol)))
+			d.Set("protocol", pointer.FromEnum(props.Protocol))
 		}
 	}
 	return nil
 }
 
-func resourceArmLoadBalancerNatRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerNatRuleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

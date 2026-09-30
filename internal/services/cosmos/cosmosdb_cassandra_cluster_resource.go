@@ -141,7 +141,7 @@ func resourceCassandraCluster() *pluginsdk.Resource {
 	}
 }
 
-func resourceCassandraClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCassandraClusterCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.OpenapisClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -163,7 +163,7 @@ func resourceCassandraClusterCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	expandedIdentity, err := expandCassandraClusterIdentity(d.Get("identity").([]interface{}))
+	expandedIdentity, err := expandCassandraClusterIdentity(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -181,19 +181,19 @@ func resourceCassandraClusterCreate(d *pluginsdk.ResourceData, meta interface{})
 			InitialCassandraAdminPassword: pointer.To(d.Get("default_admin_password").(string)),
 			RepairEnabled:                 pointer.To(d.Get("repair_enabled").(bool)),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v, ok := d.GetOk("client_certificate_pems"); ok {
-		body.Properties.ClientCertificates = expandCassandraClusterCertificate(v.([]interface{}))
+		body.Properties.ClientCertificates = expandCassandraClusterCertificate(v.([]any))
 	}
 
 	if v, ok := d.GetOk("external_gossip_certificate_pems"); ok {
-		body.Properties.ExternalGossipCertificates = expandCassandraClusterCertificate(v.([]interface{}))
+		body.Properties.ExternalGossipCertificates = expandCassandraClusterCertificate(v.([]any))
 	}
 
 	if v, ok := d.GetOk("external_seed_node_ip_addresses"); ok {
-		body.Properties.ExternalSeedNodes = expandCassandraClusterExternalSeedNode(v.([]interface{}))
+		body.Properties.ExternalSeedNodes = expandCassandraClusterExternalSeedNode(v.([]any))
 	}
 
 	if err = client.CassandraClustersCreateUpdateCallbackThenPoll(ctx, id, body, sdk.SetIDCallback(meta, &id, d)); err != nil {
@@ -205,7 +205,7 @@ func resourceCassandraClusterCreate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceCassandraClusterRead(d, meta)
 }
 
-func resourceCassandraClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCassandraClusterRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.OpenapisClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -233,7 +233,7 @@ func resourceCassandraClusterRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 		if props := model.Properties; props != nil {
 			d.Set("delegated_management_subnet_id", props.DelegatedManagementSubnetId)
-			d.Set("authentication_method", string(pointer.From(props.AuthenticationMethod)))
+			d.Set("authentication_method", pointer.FromEnum(props.AuthenticationMethod))
 			d.Set("repair_enabled", props.RepairEnabled)
 			d.Set("version", props.CassandraVersion)
 			d.Set("hours_between_backups", props.HoursBetweenBackups)
@@ -267,7 +267,7 @@ func resourceCassandraClusterRead(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceCassandraClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCassandraClusterUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.OpenapisClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -277,7 +277,7 @@ func resourceCassandraClusterUpdate(d *pluginsdk.ResourceData, meta interface{})
 	name := d.Get("name").(string)
 	id := openapis.NewCassandraClusterID(subscriptionId, resourceGroupName, name)
 
-	expandedIdentity, err := expandCassandraClusterIdentity(d.Get("identity").([]interface{}))
+	expandedIdentity, err := expandCassandraClusterIdentity(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -295,19 +295,19 @@ func resourceCassandraClusterUpdate(d *pluginsdk.ResourceData, meta interface{})
 			InitialCassandraAdminPassword: pointer.To(d.Get("default_admin_password").(string)),
 			RepairEnabled:                 pointer.To(d.Get("repair_enabled").(bool)),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v, ok := d.GetOk("client_certificate_pems"); ok {
-		body.Properties.ClientCertificates = expandCassandraClusterCertificate(v.([]interface{}))
+		body.Properties.ClientCertificates = expandCassandraClusterCertificate(v.([]any))
 	}
 
 	if v, ok := d.GetOk("external_gossip_certificate_pems"); ok {
-		body.Properties.ExternalGossipCertificates = expandCassandraClusterCertificate(v.([]interface{}))
+		body.Properties.ExternalGossipCertificates = expandCassandraClusterCertificate(v.([]any))
 	}
 
 	if v, ok := d.GetOk("external_seed_node_ip_addresses"); ok {
-		body.Properties.ExternalSeedNodes = expandCassandraClusterExternalSeedNode(v.([]interface{}))
+		body.Properties.ExternalSeedNodes = expandCassandraClusterExternalSeedNode(v.([]any))
 	}
 
 	// Though there is update method but Service API complains it isn't implemented
@@ -335,7 +335,7 @@ func resourceCassandraClusterUpdate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceCassandraClusterRead(d, meta)
 }
 
-func resourceCassandraClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCassandraClusterDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.OpenapisClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -353,7 +353,7 @@ func resourceCassandraClusterDelete(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func cosmosdbCassandraClusterStateRefreshFunc(ctx context.Context, client *openapis.OpenapisClient, id openapis.CassandraClusterId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		res, err := client.CassandraClustersGet(ctx, id)
 		if err != nil {
 			return nil, "", fmt.Errorf("polling for %s: %+v", id, err)
@@ -368,7 +368,7 @@ func cosmosdbCassandraClusterStateRefreshFunc(ctx context.Context, client *opena
 	}
 }
 
-func expandCassandraClusterIdentity(input []interface{}) (*identity.SystemAssigned, error) {
+func expandCassandraClusterIdentity(input []any) (*identity.SystemAssigned, error) {
 	expanded, err := identity.ExpandSystemAssigned(input)
 	if err != nil {
 		return nil, err
@@ -379,7 +379,7 @@ func expandCassandraClusterIdentity(input []interface{}) (*identity.SystemAssign
 	}, nil
 }
 
-func expandCassandraClusterCertificate(input []interface{}) *[]openapis.Certificate {
+func expandCassandraClusterCertificate(input []any) *[]openapis.Certificate {
 	results := make([]openapis.Certificate, 0)
 
 	for _, pem := range input {
@@ -392,7 +392,7 @@ func expandCassandraClusterCertificate(input []interface{}) *[]openapis.Certific
 	return &results
 }
 
-func expandCassandraClusterExternalSeedNode(input []interface{}) *[]openapis.SeedNode {
+func expandCassandraClusterExternalSeedNode(input []any) *[]openapis.SeedNode {
 	results := make([]openapis.SeedNode, 0)
 
 	for _, ipAddress := range input {
@@ -405,8 +405,8 @@ func expandCassandraClusterExternalSeedNode(input []interface{}) *[]openapis.See
 	return &results
 }
 
-func flattenCassandraClusterCertificate(input *[]openapis.Certificate) []interface{} {
-	results := make([]interface{}, 0)
+func flattenCassandraClusterCertificate(input *[]openapis.Certificate) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
@@ -418,8 +418,8 @@ func flattenCassandraClusterCertificate(input *[]openapis.Certificate) []interfa
 	return results
 }
 
-func flattenCassandraClusterExternalSeedNode(input *[]openapis.SeedNode) []interface{} {
-	results := make([]interface{}, 0)
+func flattenCassandraClusterExternalSeedNode(input *[]openapis.SeedNode) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
@@ -431,7 +431,7 @@ func flattenCassandraClusterExternalSeedNode(input *[]openapis.SeedNode) []inter
 	return results
 }
 
-func flattenCassandraClusterIdentity(input *identity.SystemAssigned) []interface{} {
+func flattenCassandraClusterIdentity(input *identity.SystemAssigned) []any {
 	var transform *identity.SystemAssigned
 
 	if input != nil {

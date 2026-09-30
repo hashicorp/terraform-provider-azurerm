@@ -78,7 +78,7 @@ func resourceExpressRouteGateway() *pluginsdk.Resource {
 	}
 }
 
-func resourceExpressRouteGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExpressRouteGatewayCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRouteGateways
 	connectionsClient := meta.(*clients.Client).Network.ExpressRouteConnections
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -125,7 +125,7 @@ func resourceExpressRouteGatewayCreate(d *pluginsdk.ResourceData, meta interface
 			},
 			ExpressRouteConnections: connections,
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
@@ -137,7 +137,7 @@ func resourceExpressRouteGatewayCreate(d *pluginsdk.ResourceData, meta interface
 	return resourceExpressRouteGatewayRead(d, meta)
 }
 
-func resourceExpressRouteGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExpressRouteGatewayUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRouteGateways
 	connectionsClient := meta.(*clients.Client).Network.ExpressRouteConnections
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -192,7 +192,7 @@ func resourceExpressRouteGatewayUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
@@ -204,7 +204,7 @@ func resourceExpressRouteGatewayUpdate(d *pluginsdk.ResourceData, meta interface
 	return resourceExpressRouteGatewayRead(d, meta)
 }
 
-func resourceExpressRouteGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExpressRouteGatewayRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRouteGateways
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -247,7 +247,7 @@ func resourceExpressRouteGatewayRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceExpressRouteGatewayDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExpressRouteGatewayDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRouteGateways
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

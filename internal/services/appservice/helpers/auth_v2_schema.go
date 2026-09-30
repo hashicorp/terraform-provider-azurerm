@@ -574,7 +574,7 @@ func flattenAuthV2LoginSettings(input *webapps.Login) []AuthV2Login {
 	}
 
 	if cookie := input.CookieExpiration; cookie != nil {
-		result.CookieExpirationConvention = string(pointer.From(cookie.Convention))
+		result.CookieExpirationConvention = pointer.FromEnum(cookie.Convention)
 		result.CookieExpirationTime = pointer.From(cookie.TimeToExpiration)
 	}
 
@@ -1395,7 +1395,7 @@ func flattenCustomOIDCAuthV2Settings(input *map[string]webapps.CustomOpenIdConne
 				provider.ClientId = pointer.From(reg.ClientId)
 				if reg.ClientCredential != nil {
 					provider.ClientSecretSettingName = pointer.From(reg.ClientCredential.ClientSecretSettingName)
-					provider.ClientCredentialMethod = string(pointer.From(reg.ClientCredential.Method))
+					provider.ClientCredentialMethod = pointer.FromEnum(reg.ClientCredential.Method)
 				}
 				if config := reg.OpenIdConnectConfiguration; config != nil {
 					provider.OpenIDConfigurationEndpoint = pointer.From(config.WellKnownOpenIdConfiguration)
@@ -2146,7 +2146,7 @@ func FlattenAuthV2Settings(input webapps.SiteAuthSettingsV2) []AuthV2Settings {
 
 	if global := settings.GlobalValidation; global != nil {
 		result.RequireAuth = pointer.From(global.RequireAuthentication)
-		result.UnauthenticatedAction = string(pointer.From(global.UnauthenticatedClientAction))
+		result.UnauthenticatedAction = pointer.FromEnum(global.UnauthenticatedClientAction)
 		result.DefaultAuthProvider = pointer.From(global.RedirectToProvider)
 		result.ExcludedPaths = pointer.From(global.ExcludedPaths)
 	}
@@ -2157,7 +2157,7 @@ func FlattenAuthV2Settings(input webapps.SiteAuthSettingsV2) []AuthV2Settings {
 			result.HttpRoutesAPIPrefix = pointer.From(http.Routes.ApiPrefix)
 		}
 		if fp := http.ForwardProxy; fp != nil {
-			result.ForwardProxyConvention = string(pointer.From(fp.Convention))
+			result.ForwardProxyConvention = pointer.FromEnum(fp.Convention)
 			result.ForwardProxyCustomHostHeaderName = pointer.From(fp.CustomHostHeaderName)
 			result.ForwardProxyCustomSchemeHeaderName = pointer.From(fp.CustomProtoHeaderName)
 		}

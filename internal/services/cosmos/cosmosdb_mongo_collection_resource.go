@@ -146,7 +146,7 @@ func resourceCosmosDbMongoCollection() *pluginsdk.Resource {
 	}
 }
 
-func resourceCosmosDbMongoCollectionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbMongoCollectionCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -213,7 +213,7 @@ func resourceCosmosDbMongoCollectionCreate(d *pluginsdk.ResourceData, meta inter
 	return resourceCosmosDbMongoCollectionRead(d, meta)
 }
 
-func resourceCosmosDbMongoCollectionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbMongoCollectionUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.OpenapisClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -287,7 +287,7 @@ func resourceCosmosDbMongoCollectionUpdate(d *pluginsdk.ResourceData, meta inter
 	return resourceCosmosDbMongoCollectionRead(d, meta)
 }
 
-func resourceCosmosDbMongoCollectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbMongoCollectionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -383,7 +383,7 @@ func resourceCosmosDbMongoCollectionRead(d *pluginsdk.ResourceData, meta interfa
 	return nil
 }
 
-func resourceCosmosDbMongoCollectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbMongoCollectionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -401,15 +401,15 @@ func resourceCosmosDbMongoCollectionDelete(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func expandCosmosMongoCollectionIndex(indexes []interface{}, defaultTtl *int) (*[]openapis.MongoIndex, bool) {
+func expandCosmosMongoCollectionIndex(indexes []any, defaultTtl *int) (*[]openapis.MongoIndex, bool) {
 	results := make([]openapis.MongoIndex, 0)
 
 	hasIdKey := false
 
 	if len(indexes) != 0 {
 		for _, v := range indexes {
-			index := v.(map[string]interface{})
-			keys := index["keys"].([]interface{})
+			index := v.(map[string]any)
+			keys := index["keys"].([]any)
 
 			for _, key := range keys {
 				if strings.EqualFold("_id", key.(string)) {
@@ -419,7 +419,7 @@ func expandCosmosMongoCollectionIndex(indexes []interface{}, defaultTtl *int) (*
 
 			results = append(results, openapis.MongoIndex{
 				Key: &openapis.MongoIndexKeys{
-					Keys: pluginsdk.ExpandStringSlice(index["keys"].([]interface{})),
+					Keys: pluginsdk.ExpandStringSlice(index["keys"].([]any)),
 				},
 				Options: &openapis.MongoIndexOptions{
 					Unique: pointer.To(index["unique"].(bool)),
@@ -442,17 +442,17 @@ func expandCosmosMongoCollectionIndex(indexes []interface{}, defaultTtl *int) (*
 	return &results, hasIdKey
 }
 
-func flattenCosmosMongoCollectionIndex(input *[]openapis.MongoIndex, accountIsVersion36 bool) (*[]map[string]interface{}, *[]map[string]interface{}, *int64) {
-	indexes := make([]map[string]interface{}, 0)
-	systemIndexes := make([]map[string]interface{}, 0)
+func flattenCosmosMongoCollectionIndex(input *[]openapis.MongoIndex, accountIsVersion36 bool) (*[]map[string]any, *[]map[string]any, *int64) {
+	indexes := make([]map[string]any, 0)
+	systemIndexes := make([]map[string]any, 0)
 	var ttl *int64
 	if input == nil {
 		return &indexes, &systemIndexes, ttl
 	}
 
 	for _, v := range *input {
-		index := map[string]interface{}{}
-		systemIndex := map[string]interface{}{}
+		index := map[string]any{}
+		systemIndex := map[string]any{}
 
 		if v.Key != nil && v.Key.Keys != nil && len(*v.Key.Keys) > 0 {
 			key := (*v.Key.Keys)[0]

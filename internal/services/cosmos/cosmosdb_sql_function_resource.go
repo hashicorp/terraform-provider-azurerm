@@ -60,7 +60,7 @@ func resourceCosmosDbSQLFunction() *pluginsdk.Resource {
 	}
 }
 
-func resourceCosmosDbSQLFunctionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLFunctionCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -101,7 +101,7 @@ func resourceCosmosDbSQLFunctionCreate(d *pluginsdk.ResourceData, meta interface
 	return resourceCosmosDbSQLFunctionRead(d, meta)
 }
 
-func resourceCosmosDbSQLFunctionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLFunctionUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -133,7 +133,7 @@ func resourceCosmosDbSQLFunctionUpdate(d *pluginsdk.ResourceData, meta interface
 	return resourceCosmosDbSQLFunctionRead(d, meta)
 }
 
-func resourceCosmosDbSQLFunctionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLFunctionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -165,7 +165,7 @@ func resourceCosmosDbSQLFunctionRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceCosmosDbSQLFunctionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLFunctionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)

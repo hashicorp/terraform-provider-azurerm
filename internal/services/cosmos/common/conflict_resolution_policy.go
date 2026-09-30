@@ -8,12 +8,12 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 )
 
-func ExpandCosmosDbConflicResolutionPolicy(inputs []interface{}) *openapis.ConflictResolutionPolicy {
+func ExpandCosmosDbConflicResolutionPolicy(inputs []any) *openapis.ConflictResolutionPolicy {
 	if len(inputs) == 0 || inputs[0] == nil {
 		return nil
 	}
 
-	input := inputs[0].(map[string]interface{})
+	input := inputs[0].(map[string]any)
 	conflict := &openapis.ConflictResolutionPolicy{
 		Mode: pointer.ToEnum[openapis.ConflictResolutionMode](input["mode"].(string)),
 	}
@@ -29,11 +29,11 @@ func ExpandCosmosDbConflicResolutionPolicy(inputs []interface{}) *openapis.Confl
 	return conflict
 }
 
-func FlattenCosmosDbConflictResolutionPolicy(input *openapis.ConflictResolutionPolicy) []interface{} {
+func FlattenCosmosDbConflictResolutionPolicy(input *openapis.ConflictResolutionPolicy) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
-	conflictResolutionPolicy := make(map[string]interface{})
+	conflictResolutionPolicy := make(map[string]any)
 
 	conflictResolutionPolicy["mode"] = input.Mode
 	var path, procedure string
@@ -44,8 +44,8 @@ func FlattenCosmosDbConflictResolutionPolicy(input *openapis.ConflictResolutionP
 		procedure = *input.ConflictResolutionProcedure
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"mode":                          input.Mode,
 			"conflict_resolution_path":      path,
 			"conflict_resolution_procedure": procedure,
