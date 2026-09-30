@@ -30,7 +30,7 @@ var (
 
 type KubernetesFleetAutoUpgradeProfileResource struct{}
 
-func (r KubernetesFleetAutoUpgradeProfileResource) ModelObject() interface{} {
+func (r KubernetesFleetAutoUpgradeProfileResource) ModelObject() any {
 	return &KubernetesFleetAutoUpgradeProfileResourceModel{}
 }
 

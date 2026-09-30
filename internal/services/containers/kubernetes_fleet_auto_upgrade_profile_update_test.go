@@ -52,14 +52,14 @@ func TestKubernetesFleetAutoUpgradeProfileUpdate(t *testing.T) {
 			}
 			client.Client.AuthorizeRequest = nil
 			client.Client.DisableRetries = true
-			props := map[string]interface{}{
+			props := map[string]any{
 				"channel":           "Stable",
 				"disabled":          !test.beforeEnable,
 				"updateStrategyId":  strategyID,
 				"provisioningState": "Succeeded",
 			}
 			if test.beforeImage != "" {
-				props["nodeImageSelection"] = map[string]interface{}{"type": test.beforeImage}
+				props["nodeImageSelection"] = map[string]any{"type": test.beforeImage}
 			}
 			requests := []string{}
 			client.Client.SetTransport(fleetAutoUpgradeProfileTransport(func(request *http.Request) (*http.Response, error) {
@@ -69,7 +69,7 @@ func TestKubernetesFleetAutoUpgradeProfileUpdate(t *testing.T) {
 				}
 				if request.Method == http.MethodPut {
 					var payload struct {
-						Properties map[string]interface{} `json:"properties"`
+						Properties map[string]any `json:"properties"`
 					}
 					if err := json.NewDecoder(request.Body).Decode(&payload); err != nil {
 						t.Fatal(err)
@@ -83,13 +83,13 @@ func TestKubernetesFleetAutoUpgradeProfileUpdate(t *testing.T) {
 						if present {
 							t.Fatalf("selection removal must omit the SDK omitempty field, got %#v", image)
 						}
-					} else if !present || image.(map[string]interface{})["type"] != test.afterImage {
+					} else if !present || image.(map[string]any)["type"] != test.afterImage {
 						t.Fatalf("unexpected selection: %#v", image)
 					}
 				} else if request.Method != http.MethodGet {
 					t.Fatalf("unexpected method: %s", request.Method)
 				}
-				body, err := json.Marshal(map[string]interface{}{"id": id.ID(), "properties": props})
+				body, err := json.Marshal(map[string]any{"id": id.ID(), "properties": props})
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -113,7 +113,7 @@ func TestKubernetesFleetAutoUpgradeProfileUpdate(t *testing.T) {
 			if err := metadata.Encode(&previous); err != nil {
 				t.Fatal(err)
 			}
-			config := map[string]interface{}{
+			config := map[string]any{
 				"name": id.AutoUpgradeProfileName, "kubernetes_fleet_manager_id": fleetID,
 				"channel": "Stable", "update_strategy_id": strategyID,
 			}
@@ -184,7 +184,7 @@ func TestKubernetesFleetAutoUpgradeProfileStrategyDiff(t *testing.T) {
 			}); err != nil {
 				t.Fatal(err)
 			}
-			config := map[string]interface{}{
+			config := map[string]any{
 				"name": id.AutoUpgradeProfileName, "kubernetes_fleet_manager_id": fleetID, "channel": "Stable",
 			}
 			if test.after != "" {
