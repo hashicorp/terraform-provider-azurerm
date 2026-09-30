@@ -255,24 +255,17 @@ if [ -z "$TEAMCITY_ERROR" ]; then
           | .test.id // empty
         ' 2>/dev/null | head -1)
 
-    PR_STATUS=$(echo "$RAW_TEST_RESULTS_JSON" \
+    NEW_FAILURE=$(echo "$RAW_TEST_RESULTS_JSON" \
       | TEST_OCCURRENCE_NAME="$test_occurrence_name" jq -r '
           (.testOccurrence // [])[]
           | select(.name == env.TEST_OCCURRENCE_NAME)
-          | .status
-        ' 2>/dev/null | head -1)
-
-    FIRST_FAILED_BRANCH=$(echo "$RAW_TEST_RESULTS_JSON" \
-      | TEST_OCCURRENCE_NAME="$test_occurrence_name" jq -r '
-          (.testOccurrence // [])[]
-          | select(.name == env.TEST_OCCURRENCE_NAME)
-          | .firstFailed.build.branchName // ""
+          | .newFailure // false
         ' 2>/dev/null | head -1)
 
     test_name=$(test_name_from_occurrence_name "$test_occurrence_name")
 
     IS_NEW="false"
-    if [ "$PR_STATUS" = "FAILURE" ] && [ "$FIRST_FAILED_BRANCH" != "refs/heads/main" ] && [ -n "$FIRST_FAILED_BRANCH" ]; then
+    if [ "$NEW_FAILURE" = "true" ]; then
       IS_NEW="true"
       HAS_NEW_FAILURES="true"
     fi
