@@ -279,24 +279,28 @@ func (r DataProtectionBackupPolicyCosmosdbAccountResource) Read() sdk.ResourceFu
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			vaultId := basebackuppolicyresources.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.BackupVaultName)
-			state := BackupPolicyCosmosdbAccountModel{
-				Name:                        id.BackupPolicyName,
-				DataProtectionBackupVaultId: vaultId.ID(),
-			}
-
-			if model := resp.Model; model != nil {
-				if properties, ok := model.Properties.(basebackuppolicyresources.BackupPolicy); ok {
-					state.DefaultRetentionDuration, state.RetentionRules, state.FullBackupSchedule, state.IncrementalBackupSchedules, state.IncrementalBackupEnabled, state.TimeZone = flattenBackupPolicyCosmosdbAccountPolicyRules(properties.PolicyRules)
-				}
-			}
-
-			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
-				return err
-			}
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
+}
+
+func (r DataProtectionBackupPolicyCosmosdbAccountResource) flatten(metadata sdk.ResourceMetaData, id *basebackuppolicyresources.BackupPolicyId, model *basebackuppolicyresources.BaseBackupPolicyResource) error {
+	vaultId := basebackuppolicyresources.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.BackupVaultName)
+	state := BackupPolicyCosmosdbAccountModel{
+		Name:                        id.BackupPolicyName,
+		DataProtectionBackupVaultId: vaultId.ID(),
+	}
+
+	if model != nil {
+		if properties, ok := model.Properties.(basebackuppolicyresources.BackupPolicy); ok {
+			state.DefaultRetentionDuration, state.RetentionRules, state.FullBackupSchedule, state.IncrementalBackupSchedules, state.IncrementalBackupEnabled, state.TimeZone = flattenBackupPolicyCosmosdbAccountPolicyRules(properties.PolicyRules)
+		}
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+	return metadata.Encode(&state)
 }
 
 func (r DataProtectionBackupPolicyCosmosdbAccountResource) Delete() sdk.ResourceFunc {

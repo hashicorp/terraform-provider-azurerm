@@ -13,7 +13,9 @@ import (
 type Registration struct{}
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
-	return []sdk.FrameworkListWrappedResource{}
+	return []sdk.FrameworkListWrappedResource{
+		DataProtectionBackupPolicyCosmosdbAccountListResource{},
+	}
 }
 
 func (r Registration) Actions() []func() action.Action {
