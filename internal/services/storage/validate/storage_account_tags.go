@@ -10,8 +10,8 @@ import (
 )
 
 // lintignore:V011 // this validates a map of tags; the length checks are on keys and values
-func StorageAccountTags(v interface{}, _ string) (warnings []string, errors []error) {
-	tagsMap := v.(map[string]interface{})
+func StorageAccountTags(v any, _ string) (warnings []string, errors []error) {
+	tagsMap := v.(map[string]any)
 
 	if len(tagsMap) > 50 {
 		errors = append(errors, fmt.Errorf("a maximum of 50 tags can be applied to storage account ARM resource"))

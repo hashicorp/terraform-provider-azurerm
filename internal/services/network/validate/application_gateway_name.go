@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func ApplicationGatewayName(i interface{}, k string) ([]string, []error) {
+func ApplicationGatewayName(i any, k string) ([]string, []error) {
 	// Validate name: 1-80 chars, begin with letter/number, end with letter/number/underscore,
 	// and may contain letters, numbers, underscores, periods, or hyphens in the middle
 	return validation.StringMatch(

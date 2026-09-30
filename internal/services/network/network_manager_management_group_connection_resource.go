@@ -37,7 +37,7 @@ func (r ManagerManagementGroupConnectionResource) ResourceType() string {
 	return "azurerm_network_manager_management_group_connection"
 }
 
-func (r ManagerManagementGroupConnectionResource) ModelObject() interface{} {
+func (r ManagerManagementGroupConnectionResource) ModelObject() any {
 	return &ManagerManagementGroupConnectionModel{}
 }
 

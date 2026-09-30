@@ -60,7 +60,7 @@ func (r ResourceGroupConsumptionBudget) Attributes() map[string]*pluginsdk.Schem
 	return r.base.attributes()
 }
 
-func (r ResourceGroupConsumptionBudget) ModelObject() interface{} {
+func (r ResourceGroupConsumptionBudget) ModelObject() any {
 	return &ResourceGroupConsumptionBudgetModel{}
 }
 

@@ -129,7 +129,7 @@ func (r LocalRuleStack) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r LocalRuleStack) ModelObject() interface{} {
+func (r LocalRuleStack) ModelObject() any {
 	return &LocalRuleStackModel{}
 }
 

@@ -114,7 +114,7 @@ func resourceSentinelAlertRuleFusion() *pluginsdk.Resource {
 	}
 }
 
-func resourceSentinelAlertRuleFusionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleFusionCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -133,7 +133,7 @@ func resourceSentinelAlertRuleFusionCreate(d *pluginsdk.ResourceData, meta inter
 		Properties: &alertrules.FusionAlertRuleProperties{
 			AlertRuleTemplateName: d.Get("alert_rule_template_guid").(string),
 			Enabled:               d.Get("enabled").(bool),
-			SourceSettings:        expandFusionSourceSettings(d.Get("source").([]interface{})),
+			SourceSettings:        expandFusionSourceSettings(d.Get("source").([]any)),
 		},
 	}
 
@@ -146,7 +146,7 @@ func resourceSentinelAlertRuleFusionCreate(d *pluginsdk.ResourceData, meta inter
 	return resourceSentinelAlertRuleFusionRead(d, meta)
 }
 
-func resourceSentinelAlertRuleFusionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleFusionUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -183,7 +183,7 @@ func resourceSentinelAlertRuleFusionUpdate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if d.HasChange("source") {
-		payload.Properties.SourceSettings = expandFusionSourceSettings(d.Get("source").([]interface{}))
+		payload.Properties.SourceSettings = expandFusionSourceSettings(d.Get("source").([]any))
 	}
 
 	// The `Description` is read-only but not specified on the Swagger, tracked on: https://github.com/Azure/azure-rest-api-specs/issues/31330
@@ -200,7 +200,7 @@ func resourceSentinelAlertRuleFusionUpdate(d *pluginsdk.ResourceData, meta inter
 	return resourceSentinelAlertRuleFusionRead(d, meta)
 }
 
-func resourceSentinelAlertRuleFusionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleFusionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -244,7 +244,7 @@ func resourceSentinelAlertRuleFusionRead(d *pluginsdk.ResourceData, meta interfa
 	return nil
 }
 
-func resourceSentinelAlertRuleFusionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleFusionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -261,7 +261,7 @@ func resourceSentinelAlertRuleFusionDelete(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func expandFusionSourceSettings(input []interface{}) *[]alertrules.FusionSourceSettings {
+func expandFusionSourceSettings(input []any) *[]alertrules.FusionSourceSettings {
 	if len(input) == 0 {
 		return nil
 	}
@@ -269,11 +269,11 @@ func expandFusionSourceSettings(input []interface{}) *[]alertrules.FusionSourceS
 	result := make([]alertrules.FusionSourceSettings, 0)
 
 	for _, e := range input {
-		e := e.(map[string]interface{})
+		e := e.(map[string]any)
 		setting := alertrules.FusionSourceSettings{
 			Enabled:        e["enabled"].(bool),
 			SourceName:     e["name"].(string),
-			SourceSubTypes: expandFusionSourceSubTypes(e["sub_type"].([]interface{})),
+			SourceSubTypes: expandFusionSourceSubTypes(e["sub_type"].([]any)),
 		}
 		result = append(result, setting)
 	}
@@ -281,7 +281,7 @@ func expandFusionSourceSettings(input []interface{}) *[]alertrules.FusionSourceS
 	return &result
 }
 
-func expandFusionSourceSubTypes(input []interface{}) *[]alertrules.FusionSourceSubTypeSetting {
+func expandFusionSourceSubTypes(input []any) *[]alertrules.FusionSourceSubTypeSetting {
 	if len(input) == 0 {
 		return nil
 	}
@@ -289,7 +289,7 @@ func expandFusionSourceSubTypes(input []interface{}) *[]alertrules.FusionSourceS
 	result := make([]alertrules.FusionSourceSubTypeSetting, 0)
 
 	for _, e := range input {
-		e := e.(map[string]interface{})
+		e := e.(map[string]any)
 		setting := alertrules.FusionSourceSubTypeSetting{
 			Enabled:           e["enabled"].(bool),
 			SourceSubTypeName: e["name"].(string),
@@ -303,7 +303,7 @@ func expandFusionSourceSubTypes(input []interface{}) *[]alertrules.FusionSourceS
 	return &result
 }
 
-func expandFusionSubTypeSeverityFiltersItems(input []interface{}) *[]alertrules.FusionSubTypeSeverityFiltersItem {
+func expandFusionSubTypeSeverityFiltersItems(input []any) *[]alertrules.FusionSubTypeSeverityFiltersItem {
 	if len(input) == 0 {
 		return nil
 	}
@@ -332,15 +332,15 @@ func expandFusionSubTypeSeverityFiltersItems(input []interface{}) *[]alertrules.
 	return &result
 }
 
-func flattenFusionSourceSettings(input *[]alertrules.FusionSourceSettings) []interface{} {
+func flattenFusionSourceSettings(input *[]alertrules.FusionSourceSettings) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 
 	for _, e := range *input {
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"name":     e.SourceName,
 			"enabled":  e.Enabled,
 			"sub_type": flattenFusionSourceSubTypes(e.SourceSubTypes),
@@ -350,15 +350,15 @@ func flattenFusionSourceSettings(input *[]alertrules.FusionSourceSettings) []int
 	return output
 }
 
-func flattenFusionSourceSubTypes(input *[]alertrules.FusionSourceSubTypeSetting) []interface{} {
+func flattenFusionSourceSubTypes(input *[]alertrules.FusionSourceSubTypeSetting) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 
 	for _, e := range *input {
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"name":               e.SourceSubTypeName,
 			"enabled":            e.Enabled,
 			"severities_allowed": flattenFusionSubTypeSeverityFiltersItems(e.SeverityFilters.Filters),
@@ -368,12 +368,12 @@ func flattenFusionSourceSubTypes(input *[]alertrules.FusionSourceSubTypeSetting)
 	return output
 }
 
-func flattenFusionSubTypeSeverityFiltersItems(input *[]alertrules.FusionSubTypeSeverityFiltersItem) []interface{} {
+func flattenFusionSubTypeSeverityFiltersItems(input *[]alertrules.FusionSubTypeSeverityFiltersItem) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 
 	for _, e := range *input {
 		if e.Enabled {

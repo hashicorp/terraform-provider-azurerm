@@ -105,7 +105,7 @@ func resourceIotHubRoute() *pluginsdk.Resource {
 	}
 }
 
-func resourceIotHubRouteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubRouteCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -127,7 +127,7 @@ func resourceIotHubRouteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	source := devices.RoutingSource(d.Get("source").(string))
 	condition := d.Get("condition").(string)
-	endpointNamesRaw := d.Get("endpoint_names").([]interface{})
+	endpointNamesRaw := d.Get("endpoint_names").([]any)
 	isEnabled := d.Get("enabled").(bool)
 
 	route := devices.RouteProperties{
@@ -190,7 +190,7 @@ func resourceIotHubRouteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	return resourceIotHubRouteRead(d, meta)
 }
 
-func resourceIotHubRouteRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubRouteRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -241,7 +241,7 @@ func resourceIotHubRouteRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func resourceIotHubRouteDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubRouteDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

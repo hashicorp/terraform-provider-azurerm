@@ -41,12 +41,12 @@ func (r ArcKubernetesClusterExtensionResource) ResourceType() string {
 	return "azurerm_arc_kubernetes_cluster_extension"
 }
 
-func (r ArcKubernetesClusterExtensionResource) ModelObject() interface{} {
+func (r ArcKubernetesClusterExtensionResource) ModelObject() any {
 	return &ArcKubernetesClusterExtensionModel{}
 }
 
 func (r ArcKubernetesClusterExtensionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return func(val interface{}, key string) (warns []string, errs []error) {
+	return func(val any, key string) (warns []string, errs []error) {
 		idRaw, ok := val.(string)
 		if !ok {
 			errs = append(errs, fmt.Errorf("expected `id` to be a string but got %+v", val))
@@ -199,7 +199,7 @@ func (r ArcKubernetesClusterExtensionResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			identityValue, err := identity.ExpandSystemAssigned(metadata.ResourceData.Get("identity").([]interface{}))
+			identityValue, err := identity.ExpandSystemAssigned(metadata.ResourceData.Get("identity").([]any))
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}

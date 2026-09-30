@@ -80,7 +80,7 @@ func resourceStorageEncryptionScope() *pluginsdk.Resource {
 	}
 }
 
-func resourceStorageEncryptionScopeCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageEncryptionScopeCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.ResourceManager.EncryptionScopes
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -137,7 +137,7 @@ func resourceStorageEncryptionScopeCreate(d *pluginsdk.ResourceData, meta interf
 	return resourceStorageEncryptionScopeRead(d, meta)
 }
 
-func resourceStorageEncryptionScopeUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageEncryptionScopeUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.ResourceManager.EncryptionScopes
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -182,7 +182,7 @@ func resourceStorageEncryptionScopeUpdate(d *pluginsdk.ResourceData, meta interf
 	return resourceStorageEncryptionScopeRead(d, meta)
 }
 
-func resourceStorageEncryptionScopeRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageEncryptionScopeRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.ResourceManager.EncryptionScopes
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -228,7 +228,7 @@ func resourceStorageEncryptionScopeRead(d *pluginsdk.ResourceData, meta interfac
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceStorageEncryptionScopeDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageEncryptionScopeDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.ResourceManager.EncryptionScopes
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

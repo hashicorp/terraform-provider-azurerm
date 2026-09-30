@@ -99,7 +99,7 @@ func (r ThreatIntelligenceIndicator) ResourceType() string {
 	return "azurerm_sentinel_threat_intelligence_indicator"
 }
 
-func (r ThreatIntelligenceIndicator) ModelObject() interface{} {
+func (r ThreatIntelligenceIndicator) ModelObject() any {
 	return &IndicatorModel{}
 }
 

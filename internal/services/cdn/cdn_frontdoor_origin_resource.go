@@ -173,7 +173,7 @@ func resourceCdnFrontDoorOrigin() *pluginsdk.Resource {
 	}
 }
 
-func resourceCdnFrontDoorOriginCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorOriginCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorOriginsClient
 	profileClient := meta.(*clients.Client).Cdn.FrontDoorProfilesClient
 
@@ -222,7 +222,7 @@ func resourceCdnFrontDoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	enforceCertificateNameCheck := d.Get("certificate_name_check_enabled").(bool)
-	expandedPrivateLink, err := expandCdnFrontDoorOriginPrivateLinkSettings(d.Get("private_link").([]interface{}), pointer.From(profileResp.Model.Sku.Name), enforceCertificateNameCheck)
+	expandedPrivateLink, err := expandCdnFrontDoorOriginPrivateLinkSettings(d.Get("private_link").([]any), pointer.From(profileResp.Model.Sku.Name), enforceCertificateNameCheck)
 	if err != nil {
 		return err
 	}
@@ -253,7 +253,7 @@ func resourceCdnFrontDoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 	return resourceCdnFrontDoorOriginRead(d, meta)
 }
 
-func resourceCdnFrontDoorOriginRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorOriginRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorOriginsClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -300,7 +300,7 @@ func resourceCdnFrontDoorOriginFlatten(d *pluginsdk.ResourceData, id *afdorigins
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceCdnFrontDoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorOriginUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorOriginsClient
 	profileClient := meta.(*clients.Client).Cdn.FrontDoorProfilesClient
 
@@ -372,7 +372,7 @@ func resourceCdnFrontDoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 			return fmt.Errorf("retrieving %s: sku was nil", profileId)
 		}
 
-		privateLinkSettings, err := expandCdnFrontDoorOriginPrivateLinkSettings(d.Get("private_link").([]interface{}), pointer.From(profileModel.Sku.Name), d.Get("certificate_name_check_enabled").(bool))
+		privateLinkSettings, err := expandCdnFrontDoorOriginPrivateLinkSettings(d.Get("private_link").([]any), pointer.From(profileModel.Sku.Name), d.Get("certificate_name_check_enabled").(bool))
 		if err != nil {
 			return err
 		}
@@ -395,7 +395,7 @@ func resourceCdnFrontDoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 	return resourceCdnFrontDoorOriginRead(d, meta)
 }
 
-func resourceCdnFrontDoorOriginDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorOriginDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorOriginsClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -430,7 +430,7 @@ func resourceCdnFrontDoorOriginDelete(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func expandCdnFrontDoorOriginPrivateLinkSettings(input []interface{}, skuName profiles.SkuName, enableCertNameCheck bool) (*afdorigins.SharedPrivateLinkResourceProperties, error) {
+func expandCdnFrontDoorOriginPrivateLinkSettings(input []any, skuName profiles.SkuName, enableCertNameCheck bool) (*afdorigins.SharedPrivateLinkResourceProperties, error) {
 	if len(input) == 0 {
 		// NOTE: This cannot return an empty object, the service team requires this to be set to nil else you will get the following error during creation:
 		// Property 'AfdOrigin.SharedPrivateLinkResource.PrivateLink' is required but it was not set; Property 'AfdOrigin.SharedPrivateLinkResource.RequestMessage' is required but it was not set
@@ -448,7 +448,7 @@ func expandCdnFrontDoorOriginPrivateLinkSettings(input []interface{}, skuName pr
 	// Check if this a Load Balancer Private Link or not, the Load Balancer Private Link requires
 	// that you stand up your own Private Link Service, which is why I am attempting to parse a
 	// Private Link Service ID here...
-	config := input[0].(map[string]interface{})
+	config := input[0].(map[string]any)
 	targetType := config["target_type"].(string)
 	if _, err := privatelinkservices.ParsePrivateLinkServiceID(config["private_link_target_id"].(string)); err != nil && targetType == "" {
 		// It is not a Load Balancer and the Target Type is empty, which is invalid...
@@ -465,9 +465,9 @@ func expandCdnFrontDoorOriginPrivateLinkSettings(input []interface{}, skuName pr
 	}, nil
 }
 
-func flattenCdnFrontDoorOriginPrivateLinkSettings(input *afdorigins.SharedPrivateLinkResourceProperties) []interface{} {
+func flattenCdnFrontDoorOriginPrivateLinkSettings(input *afdorigins.SharedPrivateLinkResourceProperties) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	privateLinkTargetId := ""
@@ -475,8 +475,8 @@ func flattenCdnFrontDoorOriginPrivateLinkSettings(input *afdorigins.SharedPrivat
 		privateLinkTargetId = *input.PrivateLink.Id
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"location":               location.NormalizeNilable(input.PrivateLinkLocation),
 			"private_link_target_id": privateLinkTargetId,
 			"request_message":        pointer.From(input.RequestMessage),

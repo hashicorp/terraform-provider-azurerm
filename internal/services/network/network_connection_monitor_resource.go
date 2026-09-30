@@ -412,7 +412,7 @@ func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
 	}
 }
 
-func resourceNetworkConnectionMonitorCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkConnectionMonitorCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ConnectionMonitors
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -440,7 +440,7 @@ func resourceNetworkConnectionMonitorCreate(d *pluginsdk.ResourceData, meta inte
 
 	properties := connectionmonitors.ConnectionMonitor{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 		Properties: connectionmonitors.ConnectionMonitorParameters{
 			Outputs:            expandNetworkConnectionMonitorOutput(d.Get("output_workspace_resource_ids").(*pluginsdk.Set).List()),
 			TestConfigurations: expandNetworkConnectionMonitorTestConfiguration(d.Get("test_configuration").(*pluginsdk.Set).List()),
@@ -463,7 +463,7 @@ func resourceNetworkConnectionMonitorCreate(d *pluginsdk.ResourceData, meta inte
 	return resourceNetworkConnectionMonitorRead(d, meta)
 }
 
-func resourceNetworkConnectionMonitorUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkConnectionMonitorUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ConnectionMonitors
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -518,7 +518,7 @@ func resourceNetworkConnectionMonitorUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err = client.CreateOrUpdateThenPoll(ctx, *id, payload, connectionmonitors.DefaultCreateOrUpdateOperationOptions()); err != nil {
@@ -530,7 +530,7 @@ func resourceNetworkConnectionMonitorUpdate(d *pluginsdk.ResourceData, meta inte
 	return resourceNetworkConnectionMonitorRead(d, meta)
 }
 
-func resourceNetworkConnectionMonitorRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkConnectionMonitorRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ConnectionMonitors
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -590,7 +590,7 @@ func resourceNetworkConnectionMonitorRead(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func resourceNetworkConnectionMonitorDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkConnectionMonitorDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ConnectionMonitors
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -607,15 +607,15 @@ func resourceNetworkConnectionMonitorDelete(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func expandNetworkConnectionMonitorEndpoint(input []interface{}) *[]connectionmonitors.ConnectionMonitorEndpoint {
+func expandNetworkConnectionMonitorEndpoint(input []any) *[]connectionmonitors.ConnectionMonitorEndpoint {
 	results := make([]connectionmonitors.ConnectionMonitorEndpoint, 0)
 
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 
 		result := connectionmonitors.ConnectionMonitorEndpoint{
 			Name:   v["name"].(string),
-			Filter: expandNetworkConnectionMonitorEndpointFilter(v["filter"].([]interface{})),
+			Filter: expandNetworkConnectionMonitorEndpointFilter(v["filter"].([]any)),
 		}
 
 		if address := v["address"]; address != "" {
@@ -666,12 +666,12 @@ func expandNetworkConnectionMonitorEndpoint(input []interface{}) *[]connectionmo
 	return &results
 }
 
-func expandNetworkConnectionMonitorEndpointFilter(input []interface{}) *connectionmonitors.ConnectionMonitorEndpointFilter {
+func expandNetworkConnectionMonitorEndpointFilter(input []any) *connectionmonitors.ConnectionMonitorEndpointFilter {
 	if len(input) == 0 {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	return &connectionmonitors.ConnectionMonitorEndpointFilter{
 		Type:  pointer.ToEnum[connectionmonitors.ConnectionMonitorEndpointFilterType](v["type"].(string)),
@@ -679,7 +679,7 @@ func expandNetworkConnectionMonitorEndpointFilter(input []interface{}) *connecti
 	}
 }
 
-func expandNetworkConnectionMonitorEndpointFilterItem(input []interface{}) *[]connectionmonitors.ConnectionMonitorEndpointFilterItem {
+func expandNetworkConnectionMonitorEndpointFilterItem(input []any) *[]connectionmonitors.ConnectionMonitorEndpointFilterItem {
 	if len(input) == 0 {
 		return nil
 	}
@@ -687,7 +687,7 @@ func expandNetworkConnectionMonitorEndpointFilterItem(input []interface{}) *[]co
 	results := make([]connectionmonitors.ConnectionMonitorEndpointFilterItem, 0)
 
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 
 		result := connectionmonitors.ConnectionMonitorEndpointFilterItem{
 			Type: pointer.ToEnum[connectionmonitors.ConnectionMonitorEndpointFilterItemType](v["type"].(string)),
@@ -703,19 +703,19 @@ func expandNetworkConnectionMonitorEndpointFilterItem(input []interface{}) *[]co
 	return &results
 }
 
-func expandNetworkConnectionMonitorTestConfiguration(input []interface{}) *[]connectionmonitors.ConnectionMonitorTestConfiguration {
+func expandNetworkConnectionMonitorTestConfiguration(input []any) *[]connectionmonitors.ConnectionMonitorTestConfiguration {
 	results := make([]connectionmonitors.ConnectionMonitorTestConfiguration, 0)
 
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 
 		result := connectionmonitors.ConnectionMonitorTestConfiguration{
 			Name:              v["name"].(string),
-			HTTPConfiguration: expandNetworkConnectionMonitorHTTPConfiguration(v["http_configuration"].([]interface{})),
-			IcmpConfiguration: expandNetworkConnectionMonitorIcmpConfiguration(v["icmp_configuration"].([]interface{})),
+			HTTPConfiguration: expandNetworkConnectionMonitorHTTPConfiguration(v["http_configuration"].([]any)),
+			IcmpConfiguration: expandNetworkConnectionMonitorIcmpConfiguration(v["icmp_configuration"].([]any)),
 			Protocol:          connectionmonitors.ConnectionMonitorTestConfigurationProtocol(v["protocol"].(string)),
-			SuccessThreshold:  expandNetworkConnectionMonitorSuccessThreshold(v["success_threshold"].([]interface{})),
-			TcpConfiguration:  expandNetworkConnectionMonitorTCPConfiguration(v["tcp_configuration"].([]interface{})),
+			SuccessThreshold:  expandNetworkConnectionMonitorSuccessThreshold(v["success_threshold"].([]any)),
+			TcpConfiguration:  expandNetworkConnectionMonitorTCPConfiguration(v["tcp_configuration"].([]any)),
 			TestFrequencySec:  pointer.To(int64(v["test_frequency_in_seconds"].(int))),
 		}
 
@@ -729,12 +729,12 @@ func expandNetworkConnectionMonitorTestConfiguration(input []interface{}) *[]con
 	return &results
 }
 
-func expandNetworkConnectionMonitorHTTPConfiguration(input []interface{}) *connectionmonitors.ConnectionMonitorHTTPConfiguration {
+func expandNetworkConnectionMonitorHTTPConfiguration(input []any) *connectionmonitors.ConnectionMonitorHTTPConfiguration {
 	if len(input) == 0 {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	props := &connectionmonitors.ConnectionMonitorHTTPConfiguration{
 		Method:         pointer.ToEnum[connectionmonitors.HTTPConfigurationMethod](v["method"].(string)),
@@ -757,12 +757,12 @@ func expandNetworkConnectionMonitorHTTPConfiguration(input []interface{}) *conne
 	return props
 }
 
-func expandNetworkConnectionMonitorTCPConfiguration(input []interface{}) *connectionmonitors.ConnectionMonitorTcpConfiguration {
+func expandNetworkConnectionMonitorTCPConfiguration(input []any) *connectionmonitors.ConnectionMonitorTcpConfiguration {
 	if len(input) == 0 {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	result := &connectionmonitors.ConnectionMonitorTcpConfiguration{
 		Port:              pointer.To(int64(v["port"].(int))),
@@ -776,24 +776,24 @@ func expandNetworkConnectionMonitorTCPConfiguration(input []interface{}) *connec
 	return result
 }
 
-func expandNetworkConnectionMonitorIcmpConfiguration(input []interface{}) *connectionmonitors.ConnectionMonitorIcmpConfiguration {
+func expandNetworkConnectionMonitorIcmpConfiguration(input []any) *connectionmonitors.ConnectionMonitorIcmpConfiguration {
 	if len(input) == 0 {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	return &connectionmonitors.ConnectionMonitorIcmpConfiguration{
 		DisableTraceRoute: pointer.To(!v["trace_route_enabled"].(bool)),
 	}
 }
 
-func expandNetworkConnectionMonitorSuccessThreshold(input []interface{}) *connectionmonitors.ConnectionMonitorSuccessThreshold {
+func expandNetworkConnectionMonitorSuccessThreshold(input []any) *connectionmonitors.ConnectionMonitorSuccessThreshold {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	return &connectionmonitors.ConnectionMonitorSuccessThreshold{
 		ChecksFailedPercent: pointer.To(int64(v["checks_failed_percent"].(int))),
@@ -801,7 +801,7 @@ func expandNetworkConnectionMonitorSuccessThreshold(input []interface{}) *connec
 	}
 }
 
-func expandNetworkConnectionMonitorHTTPHeader(input []interface{}) *[]connectionmonitors.HTTPHeader {
+func expandNetworkConnectionMonitorHTTPHeader(input []any) *[]connectionmonitors.HTTPHeader {
 	if len(input) == 0 {
 		return nil
 	}
@@ -809,7 +809,7 @@ func expandNetworkConnectionMonitorHTTPHeader(input []interface{}) *[]connection
 	results := make([]connectionmonitors.HTTPHeader, 0)
 
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 
 		result := connectionmonitors.HTTPHeader{
 			Name:  pointer.To(v["name"].(string)),
@@ -822,11 +822,11 @@ func expandNetworkConnectionMonitorHTTPHeader(input []interface{}) *[]connection
 	return &results
 }
 
-func expandNetworkConnectionMonitorTestGroup(input []interface{}) *[]connectionmonitors.ConnectionMonitorTestGroup {
+func expandNetworkConnectionMonitorTestGroup(input []any) *[]connectionmonitors.ConnectionMonitorTestGroup {
 	results := make([]connectionmonitors.ConnectionMonitorTestGroup, 0)
 
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 
 		result := connectionmonitors.ConnectionMonitorTestGroup{
 			Name:               v["name"].(string),
@@ -842,7 +842,7 @@ func expandNetworkConnectionMonitorTestGroup(input []interface{}) *[]connectionm
 	return &results
 }
 
-func expandNetworkConnectionMonitorOutput(input []interface{}) *[]connectionmonitors.ConnectionMonitorOutput {
+func expandNetworkConnectionMonitorOutput(input []any) *[]connectionmonitors.ConnectionMonitorOutput {
 	results := make([]connectionmonitors.ConnectionMonitorOutput, 0)
 
 	for _, item := range input {
@@ -859,8 +859,8 @@ func expandNetworkConnectionMonitorOutput(input []interface{}) *[]connectionmoni
 	return &results
 }
 
-func flattenNetworkConnectionMonitorEndpoint(input *[]connectionmonitors.ConnectionMonitorEndpoint) []interface{} {
-	results := make([]interface{}, 0)
+func flattenNetworkConnectionMonitorEndpoint(input *[]connectionmonitors.ConnectionMonitorEndpoint) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
@@ -876,7 +876,7 @@ func flattenNetworkConnectionMonitorEndpoint(input *[]connectionmonitors.Connect
 			endpointType = string(*item.Type)
 		}
 
-		v := map[string]interface{}{
+		v := map[string]any{
 			"name":                 item.Name,
 			"address":              pointer.From(item.Address),
 			"coverage_level":       coverageLevel,
@@ -887,7 +887,7 @@ func flattenNetworkConnectionMonitorEndpoint(input *[]connectionmonitors.Connect
 
 		if scope := item.Scope; scope != nil {
 			if includeScope := scope.Include; includeScope != nil {
-				includedAddresses := make([]interface{}, 0)
+				includedAddresses := make([]any, 0)
 
 				for _, includedItem := range *includeScope {
 					if includedAddress := includedItem.Address; includedAddress != nil {
@@ -899,7 +899,7 @@ func flattenNetworkConnectionMonitorEndpoint(input *[]connectionmonitors.Connect
 			}
 
 			if excludeScope := scope.Exclude; excludeScope != nil {
-				excludedAddresses := make([]interface{}, 0)
+				excludedAddresses := make([]any, 0)
 
 				for _, excludedItem := range *excludeScope {
 					if excludedAddress := excludedItem.Address; excludedAddress != nil {
@@ -916,25 +916,25 @@ func flattenNetworkConnectionMonitorEndpoint(input *[]connectionmonitors.Connect
 	return results
 }
 
-func flattenNetworkConnectionMonitorEndpointFilter(input *connectionmonitors.ConnectionMonitorEndpointFilter) []interface{} {
+func flattenNetworkConnectionMonitorEndpointFilter(input *connectionmonitors.ConnectionMonitorEndpointFilter) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
 	var t connectionmonitors.ConnectionMonitorEndpointFilterType
 	if input.Type != nil && string(*input.Type) != "" {
 		t = *input.Type
 	}
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"item": flattenNetworkConnectionMonitorEndpointFilterItem(input.Items),
 			"type": t,
 		},
 	}
 }
 
-func flattenNetworkConnectionMonitorEndpointFilterItem(input *[]connectionmonitors.ConnectionMonitorEndpointFilterItem) []interface{} {
-	results := make([]interface{}, 0)
+func flattenNetworkConnectionMonitorEndpointFilterItem(input *[]connectionmonitors.ConnectionMonitorEndpointFilterItem) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
@@ -945,7 +945,7 @@ func flattenNetworkConnectionMonitorEndpointFilterItem(input *[]connectionmonito
 			t = *item.Type
 		}
 
-		v := map[string]interface{}{
+		v := map[string]any{
 			"address": pointer.From(item.Address),
 			"type":    t,
 		}
@@ -956,8 +956,8 @@ func flattenNetworkConnectionMonitorEndpointFilterItem(input *[]connectionmonito
 	return results
 }
 
-func flattenNetworkConnectionMonitorTestConfiguration(input *[]connectionmonitors.ConnectionMonitorTestConfiguration) []interface{} {
-	results := make([]interface{}, 0)
+func flattenNetworkConnectionMonitorTestConfiguration(input *[]connectionmonitors.ConnectionMonitorTestConfiguration) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
@@ -973,7 +973,7 @@ func flattenNetworkConnectionMonitorTestConfiguration(input *[]connectionmonitor
 			preferredIpVersion = *item.PreferredIPVersion
 		}
 
-		v := map[string]interface{}{
+		v := map[string]any{
 			"name":                      item.Name,
 			"protocol":                  protocol,
 			"http_configuration":        flattenNetworkConnectionMonitorHTTPConfiguration(item.HTTPConfiguration),
@@ -990,9 +990,9 @@ func flattenNetworkConnectionMonitorTestConfiguration(input *[]connectionmonitor
 	return results
 }
 
-func flattenNetworkConnectionMonitorHTTPConfiguration(input *connectionmonitors.ConnectionMonitorHTTPConfiguration) []interface{} {
+func flattenNetworkConnectionMonitorHTTPConfiguration(input *connectionmonitors.ConnectionMonitorHTTPConfiguration) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
 	var method connectionmonitors.HTTPConfigurationMethod
@@ -1000,8 +1000,8 @@ func flattenNetworkConnectionMonitorHTTPConfiguration(input *connectionmonitors.
 		method = *input.Method
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"method":                   method,
 			"path":                     pointer.From(input.Path),
 			"port":                     pointer.From(input.Port),
@@ -1012,9 +1012,9 @@ func flattenNetworkConnectionMonitorHTTPConfiguration(input *connectionmonitors.
 	}
 }
 
-func flattenNetworkConnectionMonitorIcmpConfiguration(input *connectionmonitors.ConnectionMonitorIcmpConfiguration) []interface{} {
+func flattenNetworkConnectionMonitorIcmpConfiguration(input *connectionmonitors.ConnectionMonitorIcmpConfiguration) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
 	var enableTraceRoute bool
@@ -1022,29 +1022,29 @@ func flattenNetworkConnectionMonitorIcmpConfiguration(input *connectionmonitors.
 		enableTraceRoute = !*input.DisableTraceRoute
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"trace_route_enabled": enableTraceRoute,
 		},
 	}
 }
 
-func flattenNetworkConnectionMonitorSuccessThreshold(input *connectionmonitors.ConnectionMonitorSuccessThreshold) []interface{} {
+func flattenNetworkConnectionMonitorSuccessThreshold(input *connectionmonitors.ConnectionMonitorSuccessThreshold) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"checks_failed_percent": pointer.From(input.ChecksFailedPercent),
 			"round_trip_time_ms":    pointer.From(input.RoundTripTimeMs),
 		},
 	}
 }
 
-func flattenNetworkConnectionMonitorTCPConfiguration(input *connectionmonitors.ConnectionMonitorTcpConfiguration) []interface{} {
+func flattenNetworkConnectionMonitorTCPConfiguration(input *connectionmonitors.ConnectionMonitorTcpConfiguration) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
 	var enableTraceRoute bool
@@ -1057,8 +1057,8 @@ func flattenNetworkConnectionMonitorTCPConfiguration(input *connectionmonitors.C
 		destinationPortBehavior = *input.DestinationPortBehavior
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"trace_route_enabled":       enableTraceRoute,
 			"port":                      pointer.From(input.Port),
 			"destination_port_behavior": string(destinationPortBehavior),
@@ -1066,14 +1066,14 @@ func flattenNetworkConnectionMonitorTCPConfiguration(input *connectionmonitors.C
 	}
 }
 
-func flattenNetworkConnectionMonitorHTTPHeader(input *[]connectionmonitors.HTTPHeader) []interface{} {
-	results := make([]interface{}, 0)
+func flattenNetworkConnectionMonitorHTTPHeader(input *[]connectionmonitors.HTTPHeader) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		v := map[string]interface{}{
+		v := map[string]any{
 			"name":  pointer.From(item.Name),
 			"value": pointer.From(item.Value),
 		}
@@ -1084,14 +1084,14 @@ func flattenNetworkConnectionMonitorHTTPHeader(input *[]connectionmonitors.HTTPH
 	return results
 }
 
-func flattenNetworkConnectionMonitorTestGroup(input *[]connectionmonitors.ConnectionMonitorTestGroup) []interface{} {
-	results := make([]interface{}, 0)
+func flattenNetworkConnectionMonitorTestGroup(input *[]connectionmonitors.ConnectionMonitorTestGroup) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		v := map[string]interface{}{
+		v := map[string]any{
 			"name":                     item.Name,
 			"destination_endpoints":    item.Destinations,
 			"source_endpoints":         item.Sources,
@@ -1104,8 +1104,8 @@ func flattenNetworkConnectionMonitorTestGroup(input *[]connectionmonitors.Connec
 	return results
 }
 
-func flattenNetworkConnectionMonitorOutput(input *[]connectionmonitors.ConnectionMonitorOutput) []interface{} {
-	results := make([]interface{}, 0)
+func flattenNetworkConnectionMonitorOutput(input *[]connectionmonitors.ConnectionMonitorOutput) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}

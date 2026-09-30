@@ -68,7 +68,7 @@ func resourceIotHubConsumerGroup() *pluginsdk.Resource {
 	}
 }
 
-func resourceIotHubConsumerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubConsumerGroupCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -113,7 +113,7 @@ func resourceIotHubConsumerGroupCreate(d *pluginsdk.ResourceData, meta interface
 	return resourceIotHubConsumerGroupRead(d, meta)
 }
 
-func resourceIotHubConsumerGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubConsumerGroupRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -141,7 +141,7 @@ func resourceIotHubConsumerGroupRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceIotHubConsumerGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubConsumerGroupDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -112,20 +112,20 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 
 			// Once `cross_region_restore_enabled` is enabled it cannot be disabled.
-			pluginsdk.ForceNewIfChange("cross_region_restore_enabled", func(ctx context.Context, old, new, meta interface{}) bool {
+			pluginsdk.ForceNewIfChange("cross_region_restore_enabled", func(ctx context.Context, old, new, meta any) bool {
 				return old.(bool) && new.(bool) != old.(bool)
 			}),
 
 			// Once `immutability` is enabled it cannot be disabled.
-			pluginsdk.ForceNewIfChange("immutability", func(ctx context.Context, old, new, meta interface{}) bool {
+			pluginsdk.ForceNewIfChange("immutability", func(ctx context.Context, old, new, meta any) bool {
 				return old.(string) == string(backupvaultresources.ImmutabilityStateLocked) && new.(string) != string(backupvaultresources.ImmutabilityStateLocked)
 			}),
 
-			pluginsdk.ForceNewIfChange("soft_delete", func(ctx context.Context, old, new, meta interface{}) bool {
+			pluginsdk.ForceNewIfChange("soft_delete", func(ctx context.Context, old, new, meta any) bool {
 				return old.(string) == string(backupvaultresources.SoftDeleteStateAlwaysOn) && new.(string) != string(backupvaultresources.SoftDeleteStateAlwaysOn)
 			}),
 
-			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v any) error {
 				redundancy := d.Get("redundancy").(string)
 				crossRegionRestore := d.GetRawConfig().AsValueMap()["cross_region_restore_enabled"]
 				if !crossRegionRestore.IsNull() && redundancy != string(backupvaultresources.StorageSettingTypesGeoRedundant) {
@@ -138,7 +138,7 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DataProtection.BackupVaultClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -163,7 +163,7 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 		}
 	}
 
-	expandedIdentity, err := expandBackupVaultDppIdentityDetails(d.Get("identity").([]interface{}))
+	expandedIdentity, err := expandBackupVaultDppIdentityDetails(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -187,7 +187,7 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 			},
 		},
 		Identity: expandedIdentity,
-		Tags:     expandTags(d.Get("tags").(map[string]interface{})),
+		Tags:     expandTags(d.Get("tags").(map[string]any)),
 	}
 
 	if !pluginsdk.IsExplicitlyNullInConfig(d, "cross_region_restore_enabled") {
@@ -223,7 +223,7 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 	return resourceDataProtectionBackupVaultRead(d, meta)
 }
 
-func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataProtection.BackupVaultClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -292,7 +292,7 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta inter
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceDataProtectionBackupVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataProtectionBackupVaultDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataProtection.BackupVaultClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -316,7 +316,7 @@ func resourceDataProtectionBackupVaultDelete(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func expandBackupVaultDppIdentityDetails(input []interface{}) (*backupvaultresources.DppIdentityDetails, error) {
+func expandBackupVaultDppIdentityDetails(input []any) (*backupvaultresources.DppIdentityDetails, error) {
 	config, err := identity.ExpandSystemAndUserAssignedMap(input)
 	if err != nil {
 		return nil, err
@@ -337,7 +337,7 @@ func expandBackupVaultDppIdentityDetails(input []interface{}) (*backupvaultresou
 	return &identity, nil
 }
 
-func flattenBackupVaultDppIdentityDetails(input *backupvaultresources.DppIdentityDetails) (*[]interface{}, error) {
+func flattenBackupVaultDppIdentityDetails(input *backupvaultresources.DppIdentityDetails) (*[]any, error) {
 	var config *identity.SystemAndUserAssignedMap
 	if input != nil {
 		config = &identity.SystemAndUserAssignedMap{

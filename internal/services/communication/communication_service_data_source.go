@@ -91,7 +91,7 @@ func (CommunicationServiceDataSource) Attributes() map[string]*pluginsdk.Schema 
 	}
 }
 
-func (CommunicationServiceDataSource) ModelObject() interface{} {
+func (CommunicationServiceDataSource) ModelObject() any {
 	return &CommunicationServiceDataSourceModel{}
 }
 

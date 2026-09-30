@@ -38,7 +38,7 @@ import (
 
 //go:generate go run ../../tools/generator-tests resourceidentity
 
-func base64EncodedStateFunc(v interface{}) string {
+func base64EncodedStateFunc(v any) string {
 	switch s := v.(type) {
 	case string:
 		return base64.EncodeIfNot(s)
@@ -1692,7 +1692,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 	}
 }
 
-func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ApplicationGateways
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -1714,10 +1714,10 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	http2Enabled := d.Get("http2_enabled").(bool)
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
 	// Gateway ID is needed to link sub-resources together in expand functions
-	trustedRootCertificates, err := expandApplicationGatewayTrustedRootCertificates(d.Get("trusted_root_certificate").([]interface{}))
+	trustedRootCertificates, err := expandApplicationGatewayTrustedRootCertificates(d.Get("trusted_root_certificate").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `trusted_root_certificate`: %+v", err)
 	}
@@ -1751,7 +1751,7 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 
 	gatewayIPConfigurations, _ := expandApplicationGatewayIPConfigurations(d)
 
-	globalConfiguration := expandApplicationGatewayGlobalConfiguration(d.Get("global").([]interface{}))
+	globalConfiguration := expandApplicationGatewayGlobalConfiguration(d.Get("global").([]any))
 
 	httpListeners, err := expandApplicationGatewayHTTPListeners(d, id.ID())
 	if err != nil {
@@ -1769,10 +1769,10 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 		Properties: &applicationgateways.ApplicationGatewayPropertiesFormat{
 			AutoscaleConfiguration:        expandApplicationGatewayAutoscaleConfiguration(d),
 			TrustedRootCertificates:       trustedRootCertificates,
-			CustomErrorConfigurations:     expandApplicationGatewayCustomErrorConfigurations(d.Get("custom_error_configuration").([]interface{})),
+			CustomErrorConfigurations:     expandApplicationGatewayCustomErrorConfigurations(d.Get("custom_error_configuration").([]any)),
 			BackendAddressPools:           expandApplicationGatewayBackendAddressPools(d),
 			BackendHTTPSettingsCollection: expandApplicationGatewayBackendHTTPSettings(d.Get("backend_http_settings").(*schema.Set).List(), id.ID()),
-			BackendSettingsCollection:     expandApplicationGatewayBackendSettings(d.Get("backend").([]interface{}), id),
+			BackendSettingsCollection:     expandApplicationGatewayBackendSettings(d.Get("backend").([]any), id),
 			EnableHTTP2:                   pointer.To(http2Enabled),
 			FrontendIPConfigurations:      expandApplicationGatewayFrontendIPConfigurations(d, id.ID()),
 			FrontendPorts:                 expandApplicationGatewayFrontendPorts(d),
@@ -1789,7 +1789,7 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 			SslCertificates:               sslCertificates,
 			TrustedClientCertificates:     trustedClientCertificates,
 			SslProfiles:                   sslProfiles,
-			SslPolicy:                     expandApplicationGatewaySslPolicy(d.Get("ssl_policy").([]interface{})),
+			SslPolicy:                     expandApplicationGatewaySslPolicy(d.Get("ssl_policy").([]any)),
 
 			RewriteRuleSets: rewriteRuleSets,
 			UrlPathMaps:     urlPathMaps,
@@ -1810,7 +1810,7 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
-		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -1847,7 +1847,7 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 	return resourceApplicationGatewayRead(d, meta)
 }
 
-func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ApplicationGateways
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1869,7 +1869,7 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 	payload := existing.Model
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if payload.Properties == nil {
@@ -1881,7 +1881,7 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("trusted_root_certificate") {
-		trustedRootCertificates, err := expandApplicationGatewayTrustedRootCertificates(d.Get("trusted_root_certificate").([]interface{}))
+		trustedRootCertificates, err := expandApplicationGatewayTrustedRootCertificates(d.Get("trusted_root_certificate").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `trusted_root_certificate`: %+v", err)
 		}
@@ -1946,7 +1946,7 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("global") {
-		payload.Properties.GlobalConfiguration = expandApplicationGatewayGlobalConfiguration(d.Get("global").([]interface{}))
+		payload.Properties.GlobalConfiguration = expandApplicationGatewayGlobalConfiguration(d.Get("global").([]any))
 	}
 
 	if d.HasChange("http_listener") {
@@ -1976,7 +1976,7 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("custom_error_configuration") {
-		payload.Properties.CustomErrorConfigurations = expandApplicationGatewayCustomErrorConfigurations(d.Get("custom_error_configuration").([]interface{}))
+		payload.Properties.CustomErrorConfigurations = expandApplicationGatewayCustomErrorConfigurations(d.Get("custom_error_configuration").([]any))
 	}
 
 	if d.HasChange("backend_address_pool") {
@@ -1988,7 +1988,7 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("backend") {
-		payload.Properties.BackendSettingsCollection = expandApplicationGatewayBackendSettings(d.Get("backend").([]interface{}), *id)
+		payload.Properties.BackendSettingsCollection = expandApplicationGatewayBackendSettings(d.Get("backend").([]any), *id)
 	}
 
 	if d.HasChange("frontend_ip_configuration") {
@@ -2012,7 +2012,7 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("ssl_policy") {
-		payload.Properties.SslPolicy = expandApplicationGatewaySslPolicy(d.Get("ssl_policy").([]interface{}))
+		payload.Properties.SslPolicy = expandApplicationGatewaySslPolicy(d.Get("ssl_policy").([]any))
 	}
 
 	if d.HasChange("zones") {
@@ -2031,7 +2031,7 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
-		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -2080,7 +2080,7 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 	return resourceApplicationGatewayRead(d, meta)
 }
 
-func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ApplicationGateways
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -2286,7 +2286,7 @@ func resourceApplicationGatewaySetFlatten(d *pluginsdk.ResourceData, id *applica
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceApplicationGatewayDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationGatewayDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ApplicationGateways
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -2303,11 +2303,11 @@ func resourceApplicationGatewayDelete(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func expandApplicationGatewayTrustedRootCertificates(certs []interface{}) (*[]applicationgateways.ApplicationGatewayTrustedRootCertificate, error) {
+func expandApplicationGatewayTrustedRootCertificates(certs []any) (*[]applicationgateways.ApplicationGatewayTrustedRootCertificate, error) {
 	results := make([]applicationgateways.ApplicationGatewayTrustedRootCertificate, 0)
 
 	for _, raw := range certs {
-		v := raw.(map[string]interface{})
+		v := raw.(map[string]any)
 
 		name := v["name"].(string)
 		data := v["data"].(string)
@@ -2335,8 +2335,8 @@ func expandApplicationGatewayTrustedRootCertificates(certs []interface{}) (*[]ap
 	return &results, nil
 }
 
-func flattenApplicationGatewayTrustedRootCertificates(certs *[]applicationgateways.ApplicationGatewayTrustedRootCertificate, d *pluginsdk.ResourceData) []interface{} {
-	results := make([]interface{}, 0)
+func flattenApplicationGatewayTrustedRootCertificates(certs *[]applicationgateways.ApplicationGatewayTrustedRootCertificate, d *pluginsdk.ResourceData) []any {
+	results := make([]any, 0)
 	if certs == nil {
 		return results
 	}
@@ -2344,14 +2344,14 @@ func flattenApplicationGatewayTrustedRootCertificates(certs *[]applicationgatewa
 	// since the certificate data isn't returned lets load any existing data
 	nameToDataMap := map[string]string{}
 	if existing, ok := d.GetOk("trusted_root_certificate"); ok && existing != nil {
-		for _, c := range existing.([]interface{}) {
-			b := c.(map[string]interface{})
+		for _, c := range existing.([]any) {
+			b := c.(map[string]any)
 			nameToDataMap[b["name"].(string)] = b["data"].(string)
 		}
 	}
 
 	for _, cert := range *certs {
-		output := map[string]interface{}{}
+		output := map[string]any{}
 
 		if v := cert.Id; v != nil {
 			output["id"] = *v
@@ -2385,7 +2385,7 @@ func expandApplicationGatewayBackendAddressPools(d *pluginsdk.ResourceData) *[]a
 	results := make([]applicationgateways.ApplicationGatewayBackendAddressPool, 0)
 
 	for _, raw := range vs {
-		v := raw.(map[string]interface{})
+		v := raw.(map[string]any)
 		backendAddresses := make([]applicationgateways.ApplicationGatewayBackendAddress, 0)
 
 		if fqdnsConfig, ok := v["fqdns"]; ok {
@@ -2421,15 +2421,15 @@ func expandApplicationGatewayBackendAddressPools(d *pluginsdk.ResourceData) *[]a
 	return &results
 }
 
-func flattenApplicationGatewayBackendAddressPools(input *[]applicationgateways.ApplicationGatewayBackendAddressPool) []interface{} {
-	results := make([]interface{}, 0)
+func flattenApplicationGatewayBackendAddressPools(input *[]applicationgateways.ApplicationGatewayBackendAddressPool) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, config := range *input {
-		ipAddressList := make([]interface{}, 0)
-		fqdnList := make([]interface{}, 0)
+		ipAddressList := make([]any, 0)
+		fqdnList := make([]any, 0)
 
 		if props := config.Properties; props != nil {
 			if props.BackendAddresses != nil {
@@ -2443,7 +2443,7 @@ func flattenApplicationGatewayBackendAddressPools(input *[]applicationgateways.A
 			}
 		}
 
-		output := map[string]interface{}{
+		output := map[string]any{
 			"fqdns":        fqdnList,
 			"ip_addresses": ipAddressList,
 		}
@@ -2462,11 +2462,11 @@ func flattenApplicationGatewayBackendAddressPools(input *[]applicationgateways.A
 	return results
 }
 
-func expandApplicationGatewayBackendHTTPSettings(input []interface{}, gatewayID string) *[]applicationgateways.ApplicationGatewayBackendHTTPSettings {
+func expandApplicationGatewayBackendHTTPSettings(input []any, gatewayID string) *[]applicationgateways.ApplicationGatewayBackendHTTPSettings {
 	results := make([]applicationgateways.ApplicationGatewayBackendHTTPSettings, 0)
 
 	for _, raw := range input {
-		v := raw.(map[string]interface{})
+		v := raw.(map[string]any)
 
 		path := v["path"].(string)
 		port := int64(v["port"].(int))
@@ -2503,7 +2503,7 @@ func expandApplicationGatewayBackendHTTPSettings(input []interface{}, gatewayID 
 		}
 
 		if v["trusted_root_certificate_names"] != nil {
-			trustedRootCertNames := v["trusted_root_certificate_names"].([]interface{})
+			trustedRootCertNames := v["trusted_root_certificate_names"].([]any)
 			trustedRootCertSubResources := make([]applicationgateways.SubResource, 0)
 
 			for _, rawTrustedRootCertName := range trustedRootCertNames {
@@ -2533,14 +2533,14 @@ func expandApplicationGatewayBackendHTTPSettings(input []interface{}, gatewayID 
 	return &results
 }
 
-func flattenApplicationGatewayBackendHTTPSettings(input *[]applicationgateways.ApplicationGatewayBackendHTTPSettings) ([]interface{}, error) {
-	results := make([]interface{}, 0)
+func flattenApplicationGatewayBackendHTTPSettings(input *[]applicationgateways.ApplicationGatewayBackendHTTPSettings) ([]any, error) {
+	results := make([]any, 0)
 	if input == nil {
 		return results, nil
 	}
 
 	for _, v := range *input {
-		output := map[string]interface{}{}
+		output := map[string]any{}
 
 		if v.Id != nil {
 			output["id"] = *v.Id
@@ -2596,7 +2596,7 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]applicationgateways.A
 			}
 			output["sni_validation_enabled"] = sniValidationEnabled
 
-			trustedRootCertificateNames := make([]interface{}, 0)
+			trustedRootCertificateNames := make([]any, 0)
 			if certs := props.TrustedRootCertificates; certs != nil {
 				for _, cert := range *certs {
 					if cert.Id == nil {
@@ -2632,14 +2632,14 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]applicationgateways.A
 	return results, nil
 }
 
-func expandApplicationGatewayConnectionDraining(d map[string]interface{}) *applicationgateways.ApplicationGatewayConnectionDraining {
-	connectionsRaw := d["connection_draining"].([]interface{})
+func expandApplicationGatewayConnectionDraining(d map[string]any) *applicationgateways.ApplicationGatewayConnectionDraining {
+	connectionsRaw := d["connection_draining"].([]any)
 
 	if len(connectionsRaw) == 0 {
 		return nil
 	}
 
-	connectionRaw := connectionsRaw[0].(map[string]interface{})
+	connectionRaw := connectionsRaw[0].(map[string]any)
 
 	return &applicationgateways.ApplicationGatewayConnectionDraining{
 		Enabled:           connectionRaw["enabled"].(bool),
@@ -2647,22 +2647,22 @@ func expandApplicationGatewayConnectionDraining(d map[string]interface{}) *appli
 	}
 }
 
-func flattenApplicationGatewayConnectionDraining(input *applicationgateways.ApplicationGatewayConnectionDraining) []interface{} {
+func flattenApplicationGatewayConnectionDraining(input *applicationgateways.ApplicationGatewayConnectionDraining) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{map[string]interface{}{
+	return []any{map[string]any{
 		"enabled":           input.Enabled,
 		"drain_timeout_sec": input.DrainTimeoutInSec,
 	}}
 }
 
-func expandApplicationGatewayBackendSettings(input []interface{}, appGwID applicationgateways.ApplicationGatewayId) *[]applicationgateways.ApplicationGatewayBackendSettings {
+func expandApplicationGatewayBackendSettings(input []any, appGwID applicationgateways.ApplicationGatewayId) *[]applicationgateways.ApplicationGatewayBackendSettings {
 	results := make([]applicationgateways.ApplicationGatewayBackendSettings, 0)
 
 	for _, raw := range input {
-		v := raw.(map[string]interface{})
+		v := raw.(map[string]any)
 
 		setting := applicationgateways.ApplicationGatewayBackendSettings{
 			Name: pointer.To(v["name"].(string)),
@@ -2678,7 +2678,7 @@ func expandApplicationGatewayBackendSettings(input []interface{}, appGwID applic
 			setting.Properties.HostName = pointer.To(hostName)
 		}
 
-		if trustedRootCertNames := v["trusted_root_certificate_names"].([]interface{}); len(trustedRootCertNames) != 0 {
+		if trustedRootCertNames := v["trusted_root_certificate_names"].([]any); len(trustedRootCertNames) != 0 {
 			trustedRootCertSubResources := make([]applicationgateways.SubResource, 0)
 
 			for _, rawTrustedRootCertName := range trustedRootCertNames {
@@ -2704,14 +2704,14 @@ func expandApplicationGatewayBackendSettings(input []interface{}, appGwID applic
 	return &results
 }
 
-func flattenApplicationGatewayBackendSettings(input *[]applicationgateways.ApplicationGatewayBackendSettings) ([]interface{}, error) {
-	results := make([]interface{}, 0)
+func flattenApplicationGatewayBackendSettings(input *[]applicationgateways.ApplicationGatewayBackendSettings) ([]any, error) {
+	results := make([]any, 0)
 	if input == nil {
 		return results, nil
 	}
 
 	for _, v := range *input {
-		output := map[string]interface{}{
+		output := map[string]any{
 			"id":   pointer.From(v.Id),
 			"name": pointer.From(v.Name),
 		}
@@ -2723,7 +2723,7 @@ func flattenApplicationGatewayBackendSettings(input *[]applicationgateways.Appli
 			output["timeout_in_seconds"] = int(pointer.From(props.Timeout))
 			output["client_ip_preservation_enabled"] = pointer.From(props.EnableL4ClientIPPreservation)
 
-			trustedRootCertificateNames := make([]interface{}, 0)
+			trustedRootCertificateNames := make([]any, 0)
 			if certs := props.TrustedRootCertificates; certs != nil {
 				for _, cert := range *certs {
 					if cert.Id == nil {
@@ -2761,15 +2761,15 @@ func flattenApplicationGatewayBackendSettings(input *[]applicationgateways.Appli
 	return results, nil
 }
 
-func expandApplicationGatewaySslPolicy(vs []interface{}) *applicationgateways.ApplicationGatewaySslPolicy {
+func expandApplicationGatewaySslPolicy(vs []any) *applicationgateways.ApplicationGatewaySslPolicy {
 	policy := applicationgateways.ApplicationGatewaySslPolicy{}
 	disabledSSLProtocols := make([]applicationgateways.ApplicationGatewaySslProtocol, 0)
 
 	if len(vs) > 0 && vs[0] != nil {
-		v := vs[0].(map[string]interface{})
+		v := vs[0].(map[string]any)
 		policyType := applicationgateways.ApplicationGatewaySslPolicyType(v["policy_type"].(string))
 
-		for _, policy := range v["disabled_protocols"].([]interface{}) {
+		for _, policy := range v["disabled_protocols"].([]any) {
 			disabledSSLProtocols = append(disabledSSLProtocols, applicationgateways.ApplicationGatewaySslProtocol(policy.(string)))
 		}
 
@@ -2784,7 +2784,7 @@ func expandApplicationGatewaySslPolicy(vs []interface{}) *applicationgateways.Ap
 			minProtocolVersion := applicationgateways.ApplicationGatewaySslProtocol(v["min_protocol_version"].(string))
 			cipherSuites := make([]applicationgateways.ApplicationGatewaySslCipherSuite, 0)
 
-			for _, cipherSuite := range v["cipher_suites"].([]interface{}) {
+			for _, cipherSuite := range v["cipher_suites"].([]any) {
 				cipherSuites = append(cipherSuites, applicationgateways.ApplicationGatewaySslCipherSuite(cipherSuite.(string)))
 			}
 
@@ -2805,19 +2805,19 @@ func expandApplicationGatewaySslPolicy(vs []interface{}) *applicationgateways.Ap
 	return &policy
 }
 
-func flattenApplicationGatewaySslPolicy(input *applicationgateways.ApplicationGatewaySslPolicy) []interface{} {
-	results := make([]interface{}, 0)
+func flattenApplicationGatewaySslPolicy(input *applicationgateways.ApplicationGatewaySslPolicy) []any {
+	results := make([]any, 0)
 
 	if input == nil {
 		return results
 	}
 
-	output := map[string]interface{}{}
+	output := map[string]any{}
 	output["policy_name"] = input.PolicyName
 	output["policy_type"] = input.PolicyType
 	output["min_protocol_version"] = input.MinProtocolVersion
 
-	cipherSuites := make([]interface{}, 0)
+	cipherSuites := make([]any, 0)
 	if input.CipherSuites != nil {
 		for _, v := range *input.CipherSuites {
 			cipherSuites = append(cipherSuites, string(v))
@@ -2825,7 +2825,7 @@ func flattenApplicationGatewaySslPolicy(input *applicationgateways.ApplicationGa
 	}
 	output["cipher_suites"] = cipherSuites
 
-	disabledSslProtocols := make([]interface{}, 0)
+	disabledSslProtocols := make([]any, 0)
 	if input.DisabledSslProtocols != nil {
 		for _, v := range *input.DisabledSslProtocols {
 			disabledSslProtocols = append(disabledSslProtocols, string(v))
@@ -2843,7 +2843,7 @@ func expandApplicationGatewayHTTPListeners(d *pluginsdk.ResourceData, gatewayID 
 	results := make([]applicationgateways.ApplicationGatewayHTTPListener, 0)
 
 	for _, raw := range vs {
-		v := raw.(map[string]interface{})
+		v := raw.(map[string]any)
 
 		name := v["name"].(string)
 		frontendIPConfigName := v["frontend_ip_configuration_name"].(string)
@@ -2856,7 +2856,7 @@ func expandApplicationGatewayHTTPListeners(d *pluginsdk.ResourceData, gatewayID 
 		frontendPortID := fmt.Sprintf("%s/frontendPorts/%s", gatewayID, frontendPortName)
 		firewallPolicyID := v["firewall_policy_id"].(string)
 
-		customErrorConfigurations := expandApplicationGatewayCustomErrorConfigurations(v["custom_error_configuration"].([]interface{}))
+		customErrorConfigurations := expandApplicationGatewayCustomErrorConfigurations(v["custom_error_configuration"].([]any))
 
 		listener := applicationgateways.ApplicationGatewayHTTPListener{
 			Name: pointer.To(name),
@@ -2914,14 +2914,14 @@ func expandApplicationGatewayHTTPListeners(d *pluginsdk.ResourceData, gatewayID 
 	return &results, nil
 }
 
-func flattenApplicationGatewayHTTPListeners(input *[]applicationgateways.ApplicationGatewayHTTPListener) ([]interface{}, error) {
-	results := make([]interface{}, 0)
+func flattenApplicationGatewayHTTPListeners(input *[]applicationgateways.ApplicationGatewayHTTPListener) ([]any, error) {
+	results := make([]any, 0)
 	if input == nil {
 		return results, nil
 	}
 
 	for _, v := range *input {
-		output := map[string]interface{}{}
+		output := map[string]any{}
 
 		if v.Id != nil {
 			output["id"] = *v.Id
@@ -3009,11 +3009,11 @@ func flattenApplicationGatewayHTTPListeners(input *[]applicationgateways.Applica
 	return results, nil
 }
 
-func expandApplicationGatewayListeners(input []interface{}, appGwID applicationgateways.ApplicationGatewayId) *[]applicationgateways.ApplicationGatewayListener {
+func expandApplicationGatewayListeners(input []any, appGwID applicationgateways.ApplicationGatewayId) *[]applicationgateways.ApplicationGatewayListener {
 	results := make([]applicationgateways.ApplicationGatewayListener, 0)
 
 	for _, raw := range input {
-		v := raw.(map[string]interface{})
+		v := raw.(map[string]any)
 
 		listener := applicationgateways.ApplicationGatewayListener{
 			Name: pointer.To(v["name"].(string)),
@@ -3050,14 +3050,14 @@ func expandApplicationGatewayListeners(input []interface{}, appGwID applicationg
 	return &results
 }
 
-func flattenApplicationGatewayListeners(input *[]applicationgateways.ApplicationGatewayListener) ([]interface{}, error) {
-	results := make([]interface{}, 0)
+func flattenApplicationGatewayListeners(input *[]applicationgateways.ApplicationGatewayListener) ([]any, error) {
+	results := make([]any, 0)
 	if input == nil {
 		return results, nil
 	}
 
 	for _, v := range *input {
-		output := map[string]interface{}{
+		output := map[string]any{
 			"id":   pointer.From(v.Id),
 			"name": pointer.From(v.Name),
 		}
@@ -3120,12 +3120,12 @@ func flattenApplicationGatewayListeners(input *[]applicationgateways.Application
 }
 
 func expandApplicationGatewayIPConfigurations(d *pluginsdk.ResourceData) (*[]applicationgateways.ApplicationGatewayIPConfiguration, bool) {
-	vs := d.Get("gateway_ip_configuration").([]interface{})
+	vs := d.Get("gateway_ip_configuration").([]any)
 	results := make([]applicationgateways.ApplicationGatewayIPConfiguration, 0)
 	stopApplicationGateway := false
 
 	for _, configRaw := range vs {
-		data := configRaw.(map[string]interface{})
+		data := configRaw.(map[string]any)
 
 		name := data["name"].(string)
 		subnetID := data["subnet_id"].(string)
@@ -3143,8 +3143,8 @@ func expandApplicationGatewayIPConfigurations(d *pluginsdk.ResourceData) (*[]app
 
 	if d.HasChange("gateway_ip_configuration") {
 		oldRaw, newRaw := d.GetChange("gateway_ip_configuration")
-		oldVS := oldRaw.([]interface{})
-		newVS := newRaw.([]interface{})
+		oldVS := oldRaw.([]any)
+		newVS := newRaw.([]any)
 
 		// If we're creating the application gateway return the current gateway ip configuration.
 		if len(oldVS) == 0 {
@@ -3157,8 +3157,8 @@ func expandApplicationGatewayIPConfigurations(d *pluginsdk.ResourceData) (*[]app
 		}
 
 		for i, configRaw := range newVS {
-			newData := configRaw.(map[string]interface{})
-			oldData := oldVS[i].(map[string]interface{})
+			newData := configRaw.(map[string]any)
+			oldData := oldVS[i].(map[string]any)
 
 			newSubnetID := newData["subnet_id"].(string)
 			oldSubnetID := oldData["subnet_id"].(string)
@@ -3172,14 +3172,14 @@ func expandApplicationGatewayIPConfigurations(d *pluginsdk.ResourceData) (*[]app
 	return &results, stopApplicationGateway
 }
 
-func flattenApplicationGatewayIPConfigurations(input *[]applicationgateways.ApplicationGatewayIPConfiguration) []interface{} {
-	results := make([]interface{}, 0)
+func flattenApplicationGatewayIPConfigurations(input *[]applicationgateways.ApplicationGatewayIPConfiguration) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, v := range *input {
-		output := map[string]interface{}{}
+		output := map[string]any{}
 
 		if v.Id != nil {
 			output["id"] = *v.Id
@@ -3203,24 +3203,24 @@ func flattenApplicationGatewayIPConfigurations(input *[]applicationgateways.Appl
 	return results
 }
 
-func expandApplicationGatewayGlobalConfiguration(input []interface{}) *applicationgateways.ApplicationGatewayGlobalConfiguration {
+func expandApplicationGatewayGlobalConfiguration(input []any) *applicationgateways.ApplicationGatewayGlobalConfiguration {
 	if len(input) == 0 {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	return &applicationgateways.ApplicationGatewayGlobalConfiguration{
 		EnableRequestBuffering:  pointer.To(v["request_buffering_enabled"].(bool)),
 		EnableResponseBuffering: pointer.To(v["response_buffering_enabled"].(bool)),
 	}
 }
 
-func flattenApplicationGatewayGlobalConfiguration(input *applicationgateways.ApplicationGatewayGlobalConfiguration) []interface{} {
+func flattenApplicationGatewayGlobalConfiguration(input *applicationgateways.ApplicationGatewayGlobalConfiguration) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make(map[string]interface{})
+	output := make(map[string]any)
 
 	if input.EnableRequestBuffering != nil {
 		output["request_buffering_enabled"] = *input.EnableRequestBuffering
@@ -3230,7 +3230,7 @@ func flattenApplicationGatewayGlobalConfiguration(input *applicationgateways.App
 		output["response_buffering_enabled"] = *input.EnableResponseBuffering
 	}
 
-	return []interface{}{output}
+	return []any{output}
 }
 
 func expandApplicationGatewayFrontendPorts(d *pluginsdk.ResourceData) *[]applicationgateways.ApplicationGatewayFrontendPort {
@@ -3238,7 +3238,7 @@ func expandApplicationGatewayFrontendPorts(d *pluginsdk.ResourceData) *[]applica
 	results := make([]applicationgateways.ApplicationGatewayFrontendPort, 0)
 
 	for _, raw := range vs {
-		v := raw.(map[string]interface{})
+		v := raw.(map[string]any)
 
 		name := v["name"].(string)
 		port := int64(v["port"].(int))
@@ -3255,14 +3255,14 @@ func expandApplicationGatewayFrontendPorts(d *pluginsdk.ResourceData) *[]applica
 	return &results
 }
 
-func flattenApplicationGatewayFrontendPorts(input *[]applicationgateways.ApplicationGatewayFrontendPort) []interface{} {
-	results := make([]interface{}, 0)
+func flattenApplicationGatewayFrontendPorts(input *[]applicationgateways.ApplicationGatewayFrontendPort) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, v := range *input {
-		output := map[string]interface{}{}
+		output := map[string]any{}
 
 		if v.Id != nil {
 			output["id"] = *v.Id
@@ -3285,11 +3285,11 @@ func flattenApplicationGatewayFrontendPorts(input *[]applicationgateways.Applica
 }
 
 func expandApplicationGatewayFrontendIPConfigurations(d *pluginsdk.ResourceData, gatewayID string) *[]applicationgateways.ApplicationGatewayFrontendIPConfiguration {
-	vs := d.Get("frontend_ip_configuration").([]interface{})
+	vs := d.Get("frontend_ip_configuration").([]any)
 	results := make([]applicationgateways.ApplicationGatewayFrontendIPConfiguration, 0)
 
 	for _, raw := range vs {
-		v := raw.(map[string]interface{})
+		v := raw.(map[string]any)
 
 		properties := applicationgateways.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{}
 
@@ -3332,14 +3332,14 @@ func expandApplicationGatewayFrontendIPConfigurations(d *pluginsdk.ResourceData,
 	return &results
 }
 
-func flattenApplicationGatewayFrontendIPConfigurations(input *[]applicationgateways.ApplicationGatewayFrontendIPConfiguration) ([]interface{}, error) {
-	results := make([]interface{}, 0)
+func flattenApplicationGatewayFrontendIPConfigurations(input *[]applicationgateways.ApplicationGatewayFrontendIPConfiguration) ([]any, error) {
+	results := make([]any, 0)
 	if input == nil {
 		return results, nil
 	}
 
 	for _, config := range *input {
-		output := make(map[string]interface{})
+		output := make(map[string]any)
 		if config.Id != nil {
 			output["id"] = *config.Id
 		}
@@ -3379,11 +3379,11 @@ func flattenApplicationGatewayFrontendIPConfigurations(input *[]applicationgatew
 	return results, nil
 }
 
-func expandApplicationGatewayProbes(input []interface{}) *[]applicationgateways.ApplicationGatewayProbe {
+func expandApplicationGatewayProbes(input []any) *[]applicationgateways.ApplicationGatewayProbe {
 	results := make([]applicationgateways.ApplicationGatewayProbe, 0)
 
 	for _, raw := range input {
-		v := raw.(map[string]interface{})
+		v := raw.(map[string]any)
 
 		host := v["host"].(string)
 		interval := int64(v["interval"].(int))
@@ -3411,16 +3411,16 @@ func expandApplicationGatewayProbes(input []interface{}) *[]applicationgateways.
 			},
 		}
 
-		matchConfigs := v["match"].([]interface{})
+		matchConfigs := v["match"].([]any)
 		if len(matchConfigs) > 0 {
 			matchBody := ""
 			outputMatch := &applicationgateways.ApplicationGatewayProbeHealthResponseMatch{}
 			if matchConfigs[0] != nil {
-				match := matchConfigs[0].(map[string]interface{})
+				match := matchConfigs[0].(map[string]any)
 				matchBody = match["body"].(string)
 
 				statusCodes := make([]string, 0)
-				for _, statusCode := range match["status_code"].([]interface{}) {
+				for _, statusCode := range match["status_code"].([]any) {
 					statusCodes = append(statusCodes, statusCode.(string))
 				}
 				outputMatch.StatusCodes = &statusCodes
@@ -3439,14 +3439,14 @@ func expandApplicationGatewayProbes(input []interface{}) *[]applicationgateways.
 	return &results
 }
 
-func flattenApplicationGatewayProbes(input *[]applicationgateways.ApplicationGatewayProbe) []interface{} {
-	results := make([]interface{}, 0)
+func flattenApplicationGatewayProbes(input *[]applicationgateways.ApplicationGatewayProbe) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, v := range *input {
-		output := map[string]interface{}{}
+		output := map[string]any{}
 
 		if v.Id != nil {
 			output["id"] = *v.Id
@@ -3495,14 +3495,14 @@ func flattenApplicationGatewayProbes(input *[]applicationgateways.ApplicationGat
 				output["minimum_servers"] = int(*minServers)
 			}
 
-			matches := make([]interface{}, 0)
+			matches := make([]any, 0)
 			if match := props.Match; match != nil {
-				matchConfig := map[string]interface{}{}
+				matchConfig := map[string]any{}
 				if body := match.Body; body != nil {
 					matchConfig["body"] = *body
 				}
 
-				statusCodes := make([]interface{}, 0)
+				statusCodes := make([]any, 0)
 				if match.StatusCodes != nil {
 					for _, status := range *match.StatusCodes {
 						statusCodes = append(statusCodes, status)
@@ -3525,12 +3525,12 @@ func expandApplicationGatewayPrivateLinkConfigurations(d *pluginsdk.ResourceData
 	plConfigResults := make([]applicationgateways.ApplicationGatewayPrivateLinkConfiguration, 0)
 
 	for _, rawPl := range vs {
-		v := rawPl.(map[string]interface{})
+		v := rawPl.(map[string]any)
 		name := v["name"].(string)
-		ipConfigurations := v["ip_configuration"].([]interface{})
+		ipConfigurations := v["ip_configuration"].([]any)
 		ipConfigurationResults := make([]applicationgateways.ApplicationGatewayPrivateLinkIPConfiguration, 0)
 		for _, rawIp := range ipConfigurations {
-			v := rawIp.(map[string]interface{})
+			v := rawIp.(map[string]any)
 			name := v["name"].(string)
 			subnetId := v["subnet_id"].(string)
 			ipConfiguration := applicationgateways.ApplicationGatewayPrivateLinkIPConfiguration{
@@ -3563,14 +3563,14 @@ func expandApplicationGatewayPrivateLinkConfigurations(d *pluginsdk.ResourceData
 	return &plConfigResults
 }
 
-func flattenApplicationGatewayPrivateEndpoints(input *[]applicationgateways.ApplicationGatewayPrivateEndpointConnection) []interface{} {
-	results := make([]interface{}, 0)
+func flattenApplicationGatewayPrivateEndpoints(input *[]applicationgateways.ApplicationGatewayPrivateEndpointConnection) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, endpoint := range *input {
-		result := map[string]interface{}{}
+		result := map[string]any{}
 		if endpoint.Name != nil {
 			result["name"] = *endpoint.Name
 		}
@@ -3581,24 +3581,24 @@ func flattenApplicationGatewayPrivateEndpoints(input *[]applicationgateways.Appl
 	return results
 }
 
-func flattenApplicationGatewayPrivateLinkConfigurations(input *[]applicationgateways.ApplicationGatewayPrivateLinkConfiguration) []interface{} {
-	plConfigResults := make([]interface{}, 0)
+func flattenApplicationGatewayPrivateLinkConfigurations(input *[]applicationgateways.ApplicationGatewayPrivateLinkConfiguration) []any {
+	plConfigResults := make([]any, 0)
 	if input == nil {
 		return plConfigResults
 	}
 
 	for _, plConfig := range *input {
-		plConfigResult := map[string]interface{}{}
+		plConfigResult := map[string]any{}
 		if plConfig.Name != nil {
 			plConfigResult["name"] = *plConfig.Name
 		}
 		if plConfig.Id != nil {
 			plConfigResult["id"] = *plConfig.Id
 		}
-		ipConfigResults := make([]interface{}, 0)
+		ipConfigResults := make([]any, 0)
 		if props := plConfig.Properties; props != nil {
 			for _, ipConfig := range *props.IPConfigurations {
-				ipConfigResult := map[string]interface{}{}
+				ipConfigResult := map[string]any{}
 				if ipConfig.Name != nil {
 					ipConfigResult["name"] = *ipConfig.Name
 				}
@@ -3629,7 +3629,7 @@ func expandApplicationGatewayRequestRoutingRules(d *pluginsdk.ResourceData, gate
 	priorityset := false
 
 	for _, raw := range vs {
-		v := raw.(map[string]interface{})
+		v := raw.(map[string]any)
 
 		name := v["name"].(string)
 		ruleType := v["rule_type"].(string)
@@ -3712,15 +3712,15 @@ func expandApplicationGatewayRequestRoutingRules(d *pluginsdk.ResourceData, gate
 	return &results, nil
 }
 
-func flattenApplicationGatewayRequestRoutingRules(input *[]applicationgateways.ApplicationGatewayRequestRoutingRule) ([]interface{}, error) {
-	results := make([]interface{}, 0)
+func flattenApplicationGatewayRequestRoutingRules(input *[]applicationgateways.ApplicationGatewayRequestRoutingRule) ([]any, error) {
+	results := make([]any, 0)
 	if input == nil {
 		return results, nil
 	}
 
 	for _, config := range *input {
 		if props := config.Properties; props != nil {
-			output := map[string]interface{}{
+			output := map[string]any{
 				"rule_type": pointer.FromEnum(props.RuleType),
 			}
 
@@ -3810,11 +3810,11 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]applicationgateways.A
 	return results, nil
 }
 
-func expandApplicationGatewayRoutingRules(input []interface{}, appGwID applicationgateways.ApplicationGatewayId) *[]applicationgateways.ApplicationGatewayRoutingRule {
+func expandApplicationGatewayRoutingRules(input []any, appGwID applicationgateways.ApplicationGatewayId) *[]applicationgateways.ApplicationGatewayRoutingRule {
 	results := make([]applicationgateways.ApplicationGatewayRoutingRule, 0)
 
 	for _, raw := range input {
-		v := raw.(map[string]interface{})
+		v := raw.(map[string]any)
 
 		rule := applicationgateways.ApplicationGatewayRoutingRule{
 			Name: pointer.To(v["name"].(string)),
@@ -3839,15 +3839,15 @@ func expandApplicationGatewayRoutingRules(input []interface{}, appGwID applicati
 	return &results
 }
 
-func flattenApplicationGatewayRoutingRules(input *[]applicationgateways.ApplicationGatewayRoutingRule) ([]interface{}, error) {
-	results := make([]interface{}, 0)
+func flattenApplicationGatewayRoutingRules(input *[]applicationgateways.ApplicationGatewayRoutingRule) ([]any, error) {
+	results := make([]any, 0)
 	if input == nil {
 		return results, nil
 	}
 
 	for _, config := range *input {
 		if props := config.Properties; props != nil {
-			output := map[string]interface{}{
+			output := map[string]any{
 				"id":       pointer.From(config.Id),
 				"name":     pointer.From(config.Name),
 				"priority": props.Priority,
@@ -3888,17 +3888,17 @@ func flattenApplicationGatewayRoutingRules(input *[]applicationgateways.Applicat
 }
 
 func expandApplicationGatewayRewriteRuleSets(d *pluginsdk.ResourceData) (*[]applicationgateways.ApplicationGatewayRewriteRuleSet, error) {
-	vs := d.Get("rewrite_rule_set").([]interface{})
+	vs := d.Get("rewrite_rule_set").([]any)
 	ruleSets := make([]applicationgateways.ApplicationGatewayRewriteRuleSet, 0)
 
 	for _, raw := range vs {
-		v := raw.(map[string]interface{})
+		v := raw.(map[string]any)
 		rules := make([]applicationgateways.ApplicationGatewayRewriteRule, 0)
 
 		name := v["name"].(string)
 
-		for _, ruleConfig := range v["rewrite_rule"].([]interface{}) {
-			r := ruleConfig.(map[string]interface{})
+		for _, ruleConfig := range v["rewrite_rule"].([]any) {
+			r := ruleConfig.(map[string]any)
 			conditions := make([]applicationgateways.ApplicationGatewayRewriteRuleCondition, 0)
 			requestConfigurations := make([]applicationgateways.ApplicationGatewayHeaderConfiguration, 0)
 			responseConfigurations := make([]applicationgateways.ApplicationGatewayHeaderConfiguration, 0)
@@ -3909,8 +3909,8 @@ func expandApplicationGatewayRewriteRuleSets(d *pluginsdk.ResourceData) (*[]appl
 				RuleSequence: pointer.To(int64(r["rule_sequence"].(int))),
 			}
 
-			for _, rawCondition := range r["condition"].([]interface{}) {
-				c := rawCondition.(map[string]interface{})
+			for _, rawCondition := range r["condition"].([]any) {
+				c := rawCondition.(map[string]any)
 				condition := applicationgateways.ApplicationGatewayRewriteRuleCondition{
 					Variable:   pointer.To(c["variable"].(string)),
 					Pattern:    pointer.To(c["pattern"].(string)),
@@ -3921,8 +3921,8 @@ func expandApplicationGatewayRewriteRuleSets(d *pluginsdk.ResourceData) (*[]appl
 			}
 			rule.Conditions = &conditions
 
-			for _, rawConfig := range r["request_header_configuration"].([]interface{}) {
-				c := rawConfig.(map[string]interface{})
+			for _, rawConfig := range r["request_header_configuration"].([]any) {
+				c := rawConfig.(map[string]any)
 				config := applicationgateways.ApplicationGatewayHeaderConfiguration{
 					HeaderName:  pointer.To(c["header_name"].(string)),
 					HeaderValue: pointer.To(c["header_value"].(string)),
@@ -3930,8 +3930,8 @@ func expandApplicationGatewayRewriteRuleSets(d *pluginsdk.ResourceData) (*[]appl
 				requestConfigurations = append(requestConfigurations, config)
 			}
 
-			for _, rawConfig := range r["response_header_configuration"].([]interface{}) {
-				c := rawConfig.(map[string]interface{})
+			for _, rawConfig := range r["response_header_configuration"].([]any) {
+				c := rawConfig.(map[string]any)
 				config := applicationgateways.ApplicationGatewayHeaderConfiguration{
 					HeaderName:  pointer.To(c["header_name"].(string)),
 					HeaderValue: pointer.To(c["header_value"].(string)),
@@ -3939,8 +3939,8 @@ func expandApplicationGatewayRewriteRuleSets(d *pluginsdk.ResourceData) (*[]appl
 				responseConfigurations = append(responseConfigurations, config)
 			}
 
-			for _, rawConfig := range r["url"].([]interface{}) {
-				c := rawConfig.(map[string]interface{})
+			for _, rawConfig := range r["url"].([]any) {
+				c := rawConfig.(map[string]any)
 				if c["path"] == nil && c["query_string"] == nil {
 					return nil, errors.New("at least one of `path` or `query_string` must be set")
 				}
@@ -3964,7 +3964,7 @@ func expandApplicationGatewayRewriteRuleSets(d *pluginsdk.ResourceData) (*[]appl
 				ResponseHeaderConfigurations: &responseConfigurations,
 			}
 
-			if len(r["url"].([]interface{})) > 0 {
+			if len(r["url"].([]any)) > 0 {
 				rule.ActionSet.UrlConfiguration = &urlConfiguration
 			}
 
@@ -3984,15 +3984,15 @@ func expandApplicationGatewayRewriteRuleSets(d *pluginsdk.ResourceData) (*[]appl
 	return &ruleSets, nil
 }
 
-func flattenApplicationGatewayRewriteRuleSets(input *[]applicationgateways.ApplicationGatewayRewriteRuleSet) []interface{} {
-	results := make([]interface{}, 0)
+func flattenApplicationGatewayRewriteRuleSets(input *[]applicationgateways.ApplicationGatewayRewriteRuleSet) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, config := range *input {
 		if props := config.Properties; props != nil {
-			output := map[string]interface{}{}
+			output := map[string]any{}
 
 			if config.Id != nil {
 				output["id"] = *config.Id
@@ -4003,9 +4003,9 @@ func flattenApplicationGatewayRewriteRuleSets(input *[]applicationgateways.Appli
 			}
 
 			if rulesConfig := props.RewriteRules; rulesConfig != nil {
-				rules := make([]interface{}, 0)
+				rules := make([]any, 0)
 				for _, rule := range *rulesConfig {
-					ruleOutput := map[string]interface{}{}
+					ruleOutput := map[string]any{}
 
 					if rule.Name != nil {
 						ruleOutput["name"] = *rule.Name
@@ -4015,10 +4015,10 @@ func flattenApplicationGatewayRewriteRuleSets(input *[]applicationgateways.Appli
 						ruleOutput["rule_sequence"] = *rule.RuleSequence
 					}
 
-					conditions := make([]interface{}, 0)
+					conditions := make([]any, 0)
 					if rule.Conditions != nil {
 						for _, config := range *rule.Conditions {
-							condition := map[string]interface{}{}
+							condition := map[string]any{}
 
 							if config.Variable != nil {
 								condition["variable"] = *config.Variable
@@ -4041,16 +4041,16 @@ func flattenApplicationGatewayRewriteRuleSets(input *[]applicationgateways.Appli
 					}
 					ruleOutput["condition"] = conditions
 
-					requestConfigs := make([]interface{}, 0)
-					responseConfigs := make([]interface{}, 0)
-					urlConfigs := make([]interface{}, 0)
+					requestConfigs := make([]any, 0)
+					responseConfigs := make([]any, 0)
+					urlConfigs := make([]any, 0)
 
 					if rule.ActionSet != nil {
 						actionSet := *rule.ActionSet
 
 						if actionSet.RequestHeaderConfigurations != nil {
 							for _, config := range *actionSet.RequestHeaderConfigurations {
-								requestConfig := map[string]interface{}{}
+								requestConfig := map[string]any{}
 
 								if config.HeaderName != nil {
 									requestConfig["header_name"] = *config.HeaderName
@@ -4066,7 +4066,7 @@ func flattenApplicationGatewayRewriteRuleSets(input *[]applicationgateways.Appli
 
 						if actionSet.ResponseHeaderConfigurations != nil {
 							for _, config := range *actionSet.ResponseHeaderConfigurations {
-								responseConfig := map[string]interface{}{}
+								responseConfig := map[string]any{}
 
 								if config.HeaderName != nil {
 									responseConfig["header_name"] = *config.HeaderName
@@ -4101,7 +4101,7 @@ func flattenApplicationGatewayRewriteRuleSets(input *[]applicationgateways.Appli
 								components = "path_only"
 							}
 
-							urlConfigs = append(urlConfigs, map[string]interface{}{
+							urlConfigs = append(urlConfigs, map[string]any{
 								"components":   components,
 								"query_string": queryString,
 								"path":         path,
@@ -4129,7 +4129,7 @@ func expandApplicationGatewayRedirectConfigurations(d *pluginsdk.ResourceData, g
 	results := make([]applicationgateways.ApplicationGatewayRedirectConfiguration, 0)
 
 	for _, raw := range vs {
-		v := raw.(map[string]interface{})
+		v := raw.(map[string]any)
 
 		name := v["name"].(string)
 		redirectType := v["redirect_type"].(string)
@@ -4172,15 +4172,15 @@ func expandApplicationGatewayRedirectConfigurations(d *pluginsdk.ResourceData, g
 	return &results, nil
 }
 
-func flattenApplicationGatewayRedirectConfigurations(input *[]applicationgateways.ApplicationGatewayRedirectConfiguration) ([]interface{}, error) {
-	results := make([]interface{}, 0)
+func flattenApplicationGatewayRedirectConfigurations(input *[]applicationgateways.ApplicationGatewayRedirectConfiguration) ([]any, error) {
+	results := make([]any, 0)
 	if input == nil {
 		return results, nil
 	}
 
 	for _, config := range *input {
 		if props := config.Properties; props != nil {
-			output := map[string]interface{}{
+			output := map[string]any{
 				"redirect_type": pointer.FromEnum(props.RedirectType),
 			}
 
@@ -4223,11 +4223,11 @@ func flattenApplicationGatewayRedirectConfigurations(input *[]applicationgateway
 }
 
 func expandApplicationGatewayAutoscaleConfiguration(d *pluginsdk.ResourceData) *applicationgateways.ApplicationGatewayAutoscaleConfiguration {
-	vs := d.Get("autoscale_configuration").([]interface{})
+	vs := d.Get("autoscale_configuration").([]any)
 	if len(vs) == 0 {
 		return nil
 	}
-	v := vs[0].(map[string]interface{})
+	v := vs[0].(map[string]any)
 
 	minCapacity := int64(v["min_capacity"].(int))
 	maxCapacity := int64(v["max_capacity"].(int))
@@ -4243,10 +4243,10 @@ func expandApplicationGatewayAutoscaleConfiguration(d *pluginsdk.ResourceData) *
 	return &configuration
 }
 
-func flattenApplicationGatewayAutoscaleConfiguration(input *applicationgateways.ApplicationGatewayAutoscaleConfiguration) []interface{} {
-	result := make(map[string]interface{})
+func flattenApplicationGatewayAutoscaleConfiguration(input *applicationgateways.ApplicationGatewayAutoscaleConfiguration) []any {
+	result := make(map[string]any)
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	result["min_capacity"] = input.MinCapacity
@@ -4254,12 +4254,12 @@ func flattenApplicationGatewayAutoscaleConfiguration(input *applicationgateways.
 		result["max_capacity"] = *input.MaxCapacity
 	}
 
-	return []interface{}{result}
+	return []any{result}
 }
 
 func expandApplicationGatewaySku(d *pluginsdk.ResourceData) *applicationgateways.ApplicationGatewaySku {
-	vs := d.Get("sku").([]interface{})
-	v := vs[0].(map[string]interface{})
+	vs := d.Get("sku").([]any)
+	v := vs[0].(map[string]any)
 
 	name := v["name"].(string)
 	tier := v["tier"].(string)
@@ -4277,8 +4277,8 @@ func expandApplicationGatewaySku(d *pluginsdk.ResourceData) *applicationgateways
 	return &sku
 }
 
-func flattenApplicationGatewaySku(input *applicationgateways.ApplicationGatewaySku) []interface{} {
-	result := make(map[string]interface{})
+func flattenApplicationGatewaySku(input *applicationgateways.ApplicationGatewaySku) []any {
+	result := make(map[string]any)
 
 	result["name"] = pointer.FromEnum(input.Name)
 	result["tier"] = pointer.FromEnum(input.Tier)
@@ -4286,7 +4286,7 @@ func flattenApplicationGatewaySku(input *applicationgateways.ApplicationGatewayS
 		result["capacity"] = int(*input.Capacity)
 	}
 
-	return []interface{}{result}
+	return []any{result}
 }
 
 func expandApplicationGatewaySslCertificates(d *pluginsdk.ResourceData) (*[]applicationgateways.ApplicationGatewaySslCertificate, error) {
@@ -4294,7 +4294,7 @@ func expandApplicationGatewaySslCertificates(d *pluginsdk.ResourceData) (*[]appl
 	results := make([]applicationgateways.ApplicationGatewaySslCertificate, 0)
 
 	for _, raw := range vs {
-		v := raw.(map[string]interface{})
+		v := raw.(map[string]any)
 
 		name := v["name"].(string)
 		data := v["data"].(string)
@@ -4307,7 +4307,7 @@ func expandApplicationGatewaySslCertificates(d *pluginsdk.ResourceData) (*[]appl
 			Properties: &applicationgateways.ApplicationGatewaySslCertificatePropertiesFormat{},
 		}
 
-		// nolint gocritic
+		//nolint:gocritic
 		if data != "" && kvsid != "" {
 			return nil, fmt.Errorf("only one of `key_vault_secret_id` or `data` must be specified for the `ssl_certificate` block %q", name)
 		} else if data != "" {
@@ -4333,14 +4333,14 @@ func expandApplicationGatewaySslCertificates(d *pluginsdk.ResourceData) (*[]appl
 	return &results, nil
 }
 
-func flattenApplicationGatewaySslCertificates(input *[]applicationgateways.ApplicationGatewaySslCertificate, d *pluginsdk.ResourceData) []interface{} {
-	results := make([]interface{}, 0)
+func flattenApplicationGatewaySslCertificates(input *[]applicationgateways.ApplicationGatewaySslCertificate, d *pluginsdk.ResourceData) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, v := range *input {
-		output := map[string]interface{}{}
+		output := map[string]any{}
 		if v.Name == nil {
 			continue
 		}
@@ -4368,7 +4368,7 @@ func flattenApplicationGatewaySslCertificates(input *[]applicationgateways.Appli
 			existingVals := existing.(*schema.Set).List()
 
 			for _, existingVal := range existingVals {
-				existingCerts := existingVal.(map[string]interface{})
+				existingCerts := existingVal.(map[string]any)
 				existingName := existingCerts["name"].(string)
 
 				if name == existingName {
@@ -4390,11 +4390,11 @@ func flattenApplicationGatewaySslCertificates(input *[]applicationgateways.Appli
 }
 
 func expandApplicationGatewayTrustedClientCertificates(d *pluginsdk.ResourceData) (*[]applicationgateways.ApplicationGatewayTrustedClientCertificate, error) {
-	vs := d.Get("trusted_client_certificate").([]interface{})
+	vs := d.Get("trusted_client_certificate").([]any)
 	results := make([]applicationgateways.ApplicationGatewayTrustedClientCertificate, 0)
 
 	for _, raw := range vs {
-		v := raw.(map[string]interface{})
+		v := raw.(map[string]any)
 
 		name := v["name"].(string)
 		data := v["data"].(string)
@@ -4404,7 +4404,6 @@ func expandApplicationGatewayTrustedClientCertificates(d *pluginsdk.ResourceData
 			Properties: &applicationgateways.ApplicationGatewayTrustedClientCertificatePropertiesFormat{},
 		}
 
-		// nolint gocritic
 		if data != "" {
 			// data must be base64 encoded
 			output.Properties.Data = pointer.To(base64.EncodeIfNot(data))
@@ -4418,14 +4417,14 @@ func expandApplicationGatewayTrustedClientCertificates(d *pluginsdk.ResourceData
 	return &results, nil
 }
 
-func flattenApplicationGatewayTrustedClientCertificates(input *[]applicationgateways.ApplicationGatewayTrustedClientCertificate) []interface{} {
-	results := make([]interface{}, 0)
+func flattenApplicationGatewayTrustedClientCertificates(input *[]applicationgateways.ApplicationGatewayTrustedClientCertificate) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, v := range *input {
-		output := map[string]interface{}{}
+		output := map[string]any{}
 		if v.Name == nil {
 			continue
 		}
@@ -4449,11 +4448,11 @@ func flattenApplicationGatewayTrustedClientCertificates(input *[]applicationgate
 }
 
 func expandApplicationGatewaySslProfiles(d *pluginsdk.ResourceData, gatewayID string) *[]applicationgateways.ApplicationGatewaySslProfile {
-	vs := d.Get("ssl_profile").([]interface{})
+	vs := d.Get("ssl_profile").([]any)
 	results := make([]applicationgateways.ApplicationGatewaySslProfile, 0)
 
 	for _, raw := range vs {
-		v := raw.(map[string]interface{})
+		v := raw.(map[string]any)
 
 		name := v["name"].(string)
 
@@ -4473,7 +4472,7 @@ func expandApplicationGatewaySslProfiles(d *pluginsdk.ResourceData, gatewayID st
 		}
 
 		if v["trusted_client_certificate_names"] != nil {
-			clientCerts := v["trusted_client_certificate_names"].([]interface{})
+			clientCerts := v["trusted_client_certificate_names"].([]any)
 			clientCertSubResources := make([]applicationgateways.SubResource, 0)
 
 			for _, rawClientCert := range clientCerts {
@@ -4487,7 +4486,7 @@ func expandApplicationGatewaySslProfiles(d *pluginsdk.ResourceData, gatewayID st
 			output.Properties.TrustedClientCertificates = &clientCertSubResources
 		}
 
-		sslPolicy := v["ssl_policy"].([]interface{})
+		sslPolicy := v["ssl_policy"].([]any)
 		if len(sslPolicy) > 0 {
 			output.Properties.SslPolicy = expandApplicationGatewaySslPolicy(sslPolicy)
 		} else {
@@ -4499,14 +4498,14 @@ func expandApplicationGatewaySslProfiles(d *pluginsdk.ResourceData, gatewayID st
 	return &results
 }
 
-func flattenApplicationGatewaySslProfiles(input *[]applicationgateways.ApplicationGatewaySslProfile) ([]interface{}, error) {
-	results := make([]interface{}, 0)
+func flattenApplicationGatewaySslProfiles(input *[]applicationgateways.ApplicationGatewaySslProfile) ([]any, error) {
+	results := make([]any, 0)
 	if input == nil {
 		return results, nil
 	}
 
 	for _, v := range *input {
-		output := map[string]interface{}{}
+		output := map[string]any{}
 		if v.Name == nil {
 			continue
 		}
@@ -4529,7 +4528,7 @@ func flattenApplicationGatewaySslProfiles(input *[]applicationgateways.Applicati
 				}
 			}
 
-			trustedClientCertificateNames := make([]interface{}, 0)
+			trustedClientCertificateNames := make([]any, 0)
 			if certs := props.TrustedClientCertificates; certs != nil {
 				for _, cert := range *certs {
 					if cert.Id == nil {
@@ -4556,17 +4555,17 @@ func flattenApplicationGatewaySslProfiles(input *[]applicationgateways.Applicati
 }
 
 func expandApplicationGatewayURLPathMaps(d *pluginsdk.ResourceData, gatewayID string) (*[]applicationgateways.ApplicationGatewayURLPathMap, error) {
-	vs := d.Get("url_path_map").([]interface{})
+	vs := d.Get("url_path_map").([]any)
 	results := make([]applicationgateways.ApplicationGatewayURLPathMap, 0)
 
 	for _, raw := range vs {
-		v := raw.(map[string]interface{})
+		v := raw.(map[string]any)
 
 		name := v["name"].(string)
 
 		pathRules := make([]applicationgateways.ApplicationGatewayPathRule, 0)
-		for _, ruleConfig := range v["path_rule"].([]interface{}) {
-			ruleConfigMap := ruleConfig.(map[string]interface{})
+		for _, ruleConfig := range v["path_rule"].([]any) {
+			ruleConfigMap := ruleConfig.(map[string]any)
 
 			ruleName := ruleConfigMap["name"].(string)
 			backendAddressPoolName := ruleConfigMap["backend_address_pool_name"].(string)
@@ -4575,7 +4574,7 @@ func expandApplicationGatewayURLPathMaps(d *pluginsdk.ResourceData, gatewayID st
 			firewallPolicyID := ruleConfigMap["firewall_policy_id"].(string)
 
 			rulePaths := make([]string, 0)
-			for _, rulePath := range ruleConfigMap["paths"].([]interface{}) {
+			for _, rulePath := range ruleConfigMap["paths"].([]any) {
 				p, ok := rulePath.(string)
 				if ok {
 					rulePaths = append(rulePaths, p)
@@ -4691,14 +4690,14 @@ func expandApplicationGatewayURLPathMaps(d *pluginsdk.ResourceData, gatewayID st
 	return &results, nil
 }
 
-func flattenApplicationGatewayURLPathMaps(input *[]applicationgateways.ApplicationGatewayURLPathMap) ([]interface{}, error) {
-	results := make([]interface{}, 0)
+func flattenApplicationGatewayURLPathMaps(input *[]applicationgateways.ApplicationGatewayURLPathMap) ([]any, error) {
+	results := make([]any, 0)
 	if input == nil {
 		return results, nil
 	}
 
 	for _, v := range *input {
-		output := map[string]interface{}{}
+		output := map[string]any{}
 
 		if v.Id != nil {
 			output["id"] = *v.Id
@@ -4745,10 +4744,10 @@ func flattenApplicationGatewayURLPathMaps(input *[]applicationgateways.Applicati
 				output["default_rewrite_rule_set_id"] = rewriteId.ID()
 			}
 
-			pathRules := make([]interface{}, 0)
+			pathRules := make([]any, 0)
 			if rules := props.PathRules; rules != nil {
 				for _, rule := range *rules {
-					ruleOutput := map[string]interface{}{}
+					ruleOutput := map[string]any{}
 
 					if rule.Id != nil {
 						ruleOutput["id"] = *rule.Id
@@ -4803,7 +4802,7 @@ func flattenApplicationGatewayURLPathMaps(input *[]applicationgateways.Applicati
 							ruleOutput["firewall_policy_id"] = policyId.ID()
 						}
 
-						pathOutputs := make([]interface{}, 0)
+						pathOutputs := make([]any, 0)
 						if paths := ruleProps.Paths; paths != nil {
 							for _, rulePath := range *paths {
 								pathOutputs = append(pathOutputs, rulePath)
@@ -4825,11 +4824,11 @@ func flattenApplicationGatewayURLPathMaps(input *[]applicationgateways.Applicati
 }
 
 func expandApplicationGatewayWafConfig(d *pluginsdk.ResourceData) *applicationgateways.ApplicationGatewayWebApplicationFirewallConfiguration {
-	vs := d.Get("waf_configuration").([]interface{})
+	vs := d.Get("waf_configuration").([]any)
 	if len(vs) == 0 || vs[0] == nil {
 		return nil
 	}
-	v := vs[0].(map[string]interface{})
+	v := vs[0].(map[string]any)
 
 	enabled := v["enabled"].(bool)
 	mode := v["firewall_mode"].(string)
@@ -4847,18 +4846,18 @@ func expandApplicationGatewayWafConfig(d *pluginsdk.ResourceData) *applicationga
 		FileUploadLimitInMb:    pointer.To(int64(fileUploadLimitInMb)),
 		RequestBodyCheck:       pointer.To(requestBodyCheck),
 		MaxRequestBodySizeInKb: pointer.To(int64(maxRequestBodySizeInKb)),
-		DisabledRuleGroups:     expandApplicationGatewayFirewallDisabledRuleGroup(v["disabled_rule_group"].([]interface{})),
-		Exclusions:             expandApplicationGatewayFirewallExclusion(v["exclusion"].([]interface{})),
+		DisabledRuleGroups:     expandApplicationGatewayFirewallDisabledRuleGroup(v["disabled_rule_group"].([]any)),
+		Exclusions:             expandApplicationGatewayFirewallExclusion(v["exclusion"].([]any)),
 	}
 }
 
-func flattenApplicationGatewayWafConfig(input *applicationgateways.ApplicationGatewayWebApplicationFirewallConfiguration) []interface{} {
-	results := make([]interface{}, 0)
+func flattenApplicationGatewayWafConfig(input *applicationgateways.ApplicationGatewayWebApplicationFirewallConfiguration) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
-	output := make(map[string]interface{})
+	output := make(map[string]any)
 
 	output["enabled"] = input.Enabled
 	output["firewall_mode"] = string(input.FirewallMode)
@@ -4889,14 +4888,14 @@ func flattenApplicationGatewayWafConfig(input *applicationgateways.ApplicationGa
 	return results
 }
 
-func expandApplicationGatewayFirewallDisabledRuleGroup(d []interface{}) *[]applicationgateways.ApplicationGatewayFirewallDisabledRuleGroup {
+func expandApplicationGatewayFirewallDisabledRuleGroup(d []any) *[]applicationgateways.ApplicationGatewayFirewallDisabledRuleGroup {
 	if len(d) == 0 {
 		return nil
 	}
 
 	disabledRuleGroups := make([]applicationgateways.ApplicationGatewayFirewallDisabledRuleGroup, 0)
 	for _, disabledRuleGroup := range d {
-		disabledRuleGroupMap := disabledRuleGroup.(map[string]interface{})
+		disabledRuleGroupMap := disabledRuleGroup.(map[string]any)
 
 		ruleGroupName := disabledRuleGroupMap["rule_group_name"].(string)
 
@@ -4905,7 +4904,7 @@ func expandApplicationGatewayFirewallDisabledRuleGroup(d []interface{}) *[]appli
 		}
 
 		rules := make([]int64, 0)
-		for _, rule := range disabledRuleGroupMap["rules"].([]interface{}) {
+		for _, rule := range disabledRuleGroupMap["rules"].([]any) {
 			rules = append(rules, int64(rule.(int)))
 		}
 
@@ -4918,14 +4917,14 @@ func expandApplicationGatewayFirewallDisabledRuleGroup(d []interface{}) *[]appli
 	return &disabledRuleGroups
 }
 
-func flattenApplicationGateWayDisabledRuleGroups(input *[]applicationgateways.ApplicationGatewayFirewallDisabledRuleGroup) []interface{} {
-	ruleGroups := make([]interface{}, 0)
+func flattenApplicationGateWayDisabledRuleGroups(input *[]applicationgateways.ApplicationGatewayFirewallDisabledRuleGroup) []any {
+	ruleGroups := make([]any, 0)
 	for _, ruleGroup := range *input {
-		ruleGroupOutput := map[string]interface{}{}
+		ruleGroupOutput := map[string]any{}
 
 		ruleGroupOutput["rule_group_name"] = ruleGroup.RuleGroupName
 
-		ruleOutputs := make([]interface{}, 0)
+		ruleOutputs := make([]any, 0)
 		if rules := ruleGroup.Rules; rules != nil {
 			for _, rule := range *rules {
 				ruleOutputs = append(ruleOutputs, rule)
@@ -4938,14 +4937,14 @@ func flattenApplicationGateWayDisabledRuleGroups(input *[]applicationgateways.Ap
 	return ruleGroups
 }
 
-func expandApplicationGatewayFirewallExclusion(d []interface{}) *[]applicationgateways.ApplicationGatewayFirewallExclusion {
+func expandApplicationGatewayFirewallExclusion(d []any) *[]applicationgateways.ApplicationGatewayFirewallExclusion {
 	if len(d) == 0 {
 		return nil
 	}
 
 	exclusions := make([]applicationgateways.ApplicationGatewayFirewallExclusion, 0)
 	for _, exclusion := range d {
-		exclusionMap := exclusion.(map[string]interface{})
+		exclusionMap := exclusion.(map[string]any)
 
 		matchVariable := exclusionMap["match_variable"].(string)
 		selectorMatchOperator := exclusionMap["selector_match_operator"].(string)
@@ -4963,10 +4962,10 @@ func expandApplicationGatewayFirewallExclusion(d []interface{}) *[]applicationga
 	return &exclusions
 }
 
-func flattenApplicationGatewayFirewallExclusion(input *[]applicationgateways.ApplicationGatewayFirewallExclusion) []interface{} {
-	exclusionLists := make([]interface{}, 0)
+func flattenApplicationGatewayFirewallExclusion(input *[]applicationgateways.ApplicationGatewayFirewallExclusion) []any {
+	exclusionLists := make([]any, 0)
 	for _, exclusionList := range *input {
-		exclusionListOutput := map[string]interface{}{}
+		exclusionListOutput := map[string]any{}
 		exclusionListOutput["match_variable"] = exclusionList.MatchVariable
 		exclusionListOutput["selector_match_operator"] = exclusionList.SelectorMatchOperator
 		exclusionListOutput["selector"] = exclusionList.Selector
@@ -4975,11 +4974,11 @@ func flattenApplicationGatewayFirewallExclusion(input *[]applicationgateways.App
 	return exclusionLists
 }
 
-func expandApplicationGatewayCustomErrorConfigurations(vs []interface{}) *[]applicationgateways.ApplicationGatewayCustomError {
+func expandApplicationGatewayCustomErrorConfigurations(vs []any) *[]applicationgateways.ApplicationGatewayCustomError {
 	results := make([]applicationgateways.ApplicationGatewayCustomError, 0)
 
 	for _, raw := range vs {
-		v := raw.(map[string]interface{})
+		v := raw.(map[string]any)
 		statusCode := v["status_code"].(string)
 		customErrorPageUrl := v["custom_error_page_url"].(string)
 
@@ -4993,14 +4992,14 @@ func expandApplicationGatewayCustomErrorConfigurations(vs []interface{}) *[]appl
 	return &results
 }
 
-func flattenApplicationGatewayCustomErrorConfigurations(input *[]applicationgateways.ApplicationGatewayCustomError) []interface{} {
-	results := make([]interface{}, 0)
+func flattenApplicationGatewayCustomErrorConfigurations(input *[]applicationgateways.ApplicationGatewayCustomError) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, v := range *input {
-		output := map[string]interface{}{}
+		output := map[string]any{}
 
 		output["status_code"] = v.StatusCode
 
@@ -5014,10 +5013,10 @@ func flattenApplicationGatewayCustomErrorConfigurations(input *[]applicationgate
 	return results
 }
 
-func checkSslPolicy(sslPolicy []interface{}) error {
+func checkSslPolicy(sslPolicy []any) error {
 	if len(sslPolicy) > 0 && sslPolicy[0] != nil {
-		v := sslPolicy[0].(map[string]interface{})
-		disabledProtocols := v["disabled_protocols"].([]interface{})
+		v := sslPolicy[0].(map[string]any)
+		disabledProtocols := v["disabled_protocols"].([]any)
 		policyType := v["policy_type"].(string)
 		if len(disabledProtocols) > 0 && policyType != "" {
 			return fmt.Errorf("setting disabled_protocols is not allowed when policy_type is defined")
@@ -5048,11 +5047,11 @@ func checkBasicSkuFeatures(d *pluginsdk.ResourceDiff) error {
 
 	rewriteRuleSet, hasRewriteRuleSetConfig := d.GetOk("rewrite_rule_set")
 	if hasRewriteRuleSetConfig {
-		for _, ruleSet := range rewriteRuleSet.([]interface{}) {
-			rs := ruleSet.(map[string]interface{})
-			for _, rule := range rs["rewrite_rule"].([]interface{}) {
-				r := rule.(map[string]interface{})
-				if len(r["url"].([]interface{})) > 0 {
+		for _, ruleSet := range rewriteRuleSet.([]any) {
+			rs := ruleSet.(map[string]any)
+			for _, rule := range rs["rewrite_rule"].([]any) {
+				r := rule.(map[string]any)
+				if len(r["url"].([]any)) > 0 {
 					return fmt.Errorf("the Application Gateway does not support `url` inside the `rewrite_rule` blocks for the selected SKU tier %q", applicationgateways.ApplicationGatewaySkuNameBasic)
 				}
 			}
@@ -5062,7 +5061,7 @@ func checkBasicSkuFeatures(d *pluginsdk.ResourceDiff) error {
 	return nil
 }
 
-func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ any) error {
 	_, hasAutoscaleConfig := d.GetOk("autoscale_configuration.0")
 	capacity, hasCapacity := d.GetOk("sku.0.capacity")
 	tier := d.Get("sku.0.tier").(string)
@@ -5075,19 +5074,19 @@ func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceD
 		return fmt.Errorf("the Application Gateway must specify either `capacity` or `autoscale_configuration` for the selected SKU tier %q", tier)
 	}
 
-	if err := checkSslPolicy(d.Get("ssl_policy").([]interface{})); err != nil {
+	if err := checkSslPolicy(d.Get("ssl_policy").([]any)); err != nil {
 		return err
 	}
 
-	sslProfiles := d.Get("ssl_profile").([]interface{})
+	sslProfiles := d.Get("ssl_profile").([]any)
 	if len(sslProfiles) > 0 {
 		for _, profile := range sslProfiles {
 			if profile == nil {
 				continue
 			}
-			v := profile.(map[string]interface{})
+			v := profile.(map[string]any)
 			if policy, ok := v["ssl_policy"]; ok && policy != nil {
-				if err := checkSslPolicy(policy.([]interface{})); err != nil {
+				if err := checkSslPolicy(policy.([]any)); err != nil {
 					return err
 				}
 			}
@@ -5106,7 +5105,7 @@ func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceD
 
 	backendHttpSettings := d.Get("backend_http_settings").(*schema.Set).List()
 	for _, rawSettings := range backendHttpSettings {
-		settings := rawSettings.(map[string]interface{})
+		settings := rawSettings.(map[string]any)
 
 		if settings["sni_name"].(string) != "" && !settings["sni_validation_enabled"].(bool) {
 			return fmt.Errorf("`sni_name` can only be set when `sni_validation_enabled` is set to `true` in `backend_http_settings` block `%s`", settings["name"].(string))
@@ -5125,22 +5124,22 @@ func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceD
 		}
 	}
 
-	for _, raw := range d.Get("backend").([]interface{}) {
-		v := raw.(map[string]interface{})
+	for _, raw := range d.Get("backend").([]any) {
+		v := raw.(map[string]any)
 		if v["host_name"].(string) != "" && strings.EqualFold(v["protocol"].(string), string(applicationgateways.ApplicationGatewayProtocolTcp)) {
 			return fmt.Errorf("`host_name` cannot be set when `protocol` is `Tcp` for `backend` %q", v["name"].(string))
 		}
 	}
 
 	for _, raw := range d.Get("backend_http_settings").(*pluginsdk.Set).List() {
-		v := raw.(map[string]interface{})
+		v := raw.(map[string]any)
 		if v["host_name"].(string) != "" && v["pick_host_name_from_backend_address"].(bool) {
 			return fmt.Errorf("only one of `host_name` or `pick_host_name_from_backend_address` can be set for `backend_http_settings` %q", v["name"].(string))
 		}
 	}
 
 	for _, raw := range d.Get("listener").(*pluginsdk.Set).List() {
-		v := raw.(map[string]interface{})
+		v := raw.(map[string]any)
 		if v["host_names"].(*pluginsdk.Set).Len() > 0 && strings.EqualFold(v["protocol"].(string), string(applicationgateways.ApplicationGatewayProtocolTcp)) {
 			return fmt.Errorf("`host_names` cannot be set when `protocol` is `Tcp` for `listener` %q", v["name"].(string))
 		}
@@ -5150,7 +5149,7 @@ func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceD
 	}
 
 	for _, raw := range d.Get("probe").(*schema.Set).List() {
-		v := raw.(map[string]interface{})
+		v := raw.(map[string]any)
 		protocol := v["protocol"].(string)
 		isHTTPProtocol := strings.EqualFold(protocol, string(applicationgateways.ApplicationGatewayProtocolHTTP)) || strings.EqualFold(protocol, string(applicationgateways.ApplicationGatewayProtocolHTTPS))
 		isTcpTlsProtocol := strings.EqualFold(protocol, string(applicationgateways.ApplicationGatewayProtocolTcp)) || strings.EqualFold(protocol, string(applicationgateways.ApplicationGatewayProtocolTls))
@@ -5167,7 +5166,7 @@ func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceD
 
 		if isTcpTlsProtocol {
 			hasPath := v["path"].(string) != ""
-			matchConfigs := v["match"].([]interface{})
+			matchConfigs := v["match"].([]any)
 			hasMatch := len(matchConfigs) > 0 && matchConfigs[0] != nil
 			if hasHost || hasPickHost || hasPath || hasMatch {
 				return fmt.Errorf("`host`, `pick_host_name_from_backend_http_settings`, `path`, and `match` cannot be set when `protocol` is `Tcp` or `Tls` for `probe` %q", v["name"].(string))
@@ -5188,10 +5187,10 @@ func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceD
 	return nil
 }
 
-func applicationGatewayHttpListnerHash(v interface{}) int {
+func applicationGatewayHttpListnerHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
+	if m, ok := v.(map[string]any); ok {
 		buf.WriteString(m["name"].(string))
 		buf.WriteString(m["frontend_ip_configuration_name"].(string))
 		buf.WriteString(m["frontend_port_name"].(string))
@@ -5214,12 +5213,12 @@ func applicationGatewayHttpListnerHash(v interface{}) int {
 		if v, ok := m["ssl_profile_name"]; ok {
 			buf.WriteString(v.(string))
 		}
-		if customErrorConfiguration, ok := m["custom_error_configuration"].([]interface{}); ok {
+		if customErrorConfiguration, ok := m["custom_error_configuration"].([]any); ok {
 			for _, customErrorAttrs := range customErrorConfiguration {
 				if customErrorAttrs == nil {
 					continue
 				}
-				customError := customErrorAttrs.(map[string]interface{})
+				customError := customErrorAttrs.(map[string]any)
 				if statusCode, ok := customError["status_code"]; ok {
 					buf.WriteString(statusCode.(string))
 				}
@@ -5233,10 +5232,10 @@ func applicationGatewayHttpListnerHash(v interface{}) int {
 	return pluginsdk.HashString(buf.String())
 }
 
-func applicationGatewayBackendSettingsHash(v interface{}) int {
+func applicationGatewayBackendSettingsHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
+	if m, ok := v.(map[string]any); ok {
 		buf.WriteString(m["name"].(string))
 		fmt.Fprintf(&buf, "%d", m["port"].(int))
 		buf.WriteString(m["protocol"].(string))
@@ -5261,18 +5260,18 @@ func applicationGatewayBackendSettingsHash(v interface{}) int {
 		if v, ok := m["request_timeout"]; ok {
 			fmt.Fprintf(&buf, "%d", v.(int))
 		}
-		if connectionDraining, ok := m["connection_draining"].([]interface{}); ok {
+		if connectionDraining, ok := m["connection_draining"].([]any); ok {
 			for _, ac := range connectionDraining {
 				if ac == nil {
 					continue
 				}
-				config := ac.(map[string]interface{})
+				config := ac.(map[string]any)
 				fmt.Fprintf(&buf, "%t", config["enabled"].(bool))
 				fmt.Fprintf(&buf, "%d", config["drain_timeout_sec"].(int))
 			}
 		}
 		if trustedRootCertificateNames, ok := m["trusted_root_certificate_names"]; ok {
-			fmt.Fprintf(&buf, "%s", trustedRootCertificateNames.([]interface{}))
+			fmt.Fprintf(&buf, "%s", trustedRootCertificateNames.([]any))
 		}
 		if v, ok := m["certificate_chain_validation_enabled"]; ok {
 			fmt.Fprintf(&buf, "%t", v.(bool))
@@ -5288,9 +5287,9 @@ func applicationGatewayBackendSettingsHash(v interface{}) int {
 	return pluginsdk.HashString(buf.String())
 }
 
-func applicationGatewaySSLCertificate(v interface{}) int {
+func applicationGatewaySSLCertificate(v any) int {
 	var buf bytes.Buffer
-	if m, ok := v.(map[string]interface{}); ok {
+	if m, ok := v.(map[string]any); ok {
 		buf.WriteString(m["name"].(string))
 
 		if v, ok := m["data"]; ok {
@@ -5307,9 +5306,9 @@ func applicationGatewaySSLCertificate(v interface{}) int {
 	return pluginsdk.HashString(buf.String())
 }
 
-func applicationGatewayBackendAddressPool(v interface{}) int {
+func applicationGatewayBackendAddressPool(v any) int {
 	var buf bytes.Buffer
-	if m, ok := v.(map[string]interface{}); ok {
+	if m, ok := v.(map[string]any); ok {
 		buf.WriteString(m["name"].(string))
 
 		if fqdns, ok := m["fqdns"]; ok {
@@ -5323,9 +5322,9 @@ func applicationGatewayBackendAddressPool(v interface{}) int {
 	return pluginsdk.HashString(buf.String())
 }
 
-func applicationGatewayProbeHash(v interface{}) int {
+func applicationGatewayProbeHash(v any) int {
 	var buf bytes.Buffer
-	if m, ok := v.(map[string]interface{}); ok {
+	if m, ok := v.(map[string]any); ok {
 		buf.WriteString(m["name"].(string))
 		buf.WriteString(m["protocol"].(string))
 		buf.WriteString(m["path"].(string))
@@ -5349,10 +5348,10 @@ func applicationGatewayProbeHash(v interface{}) int {
 			fmt.Fprintf(&buf, "%t", v.(bool))
 		}
 		if match, ok := m["match"]; ok {
-			if attrs := match.([]interface{}); len(attrs) == 1 && attrs[0] != nil {
-				attr := attrs[0].(map[string]interface{})
+			if attrs := match.([]any); len(attrs) == 1 && attrs[0] != nil {
+				attr := attrs[0].(map[string]any)
 				body := attr["body"].(string)
-				statusCodes := attr["status_code"].([]interface{})
+				statusCodes := attr["status_code"].([]any)
 
 				// Only include in hash if it's not the default
 				defaultMatch := body == "" && len(statusCodes) == 1 && statusCodes[0].(string) == "200-399"
@@ -5366,10 +5365,10 @@ func applicationGatewayProbeHash(v interface{}) int {
 	return pluginsdk.HashString(buf.String())
 }
 
-func applicationGatewayListenerHash(v interface{}) int {
+func applicationGatewayListenerHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
+	if m, ok := v.(map[string]any); ok {
 		buf.WriteString(m["name"].(string))
 		buf.WriteString(m["frontend_ip_configuration_name"].(string))
 		buf.WriteString(m["frontend_port_name"].(string))
@@ -5391,10 +5390,10 @@ func applicationGatewayListenerHash(v interface{}) int {
 	return pluginsdk.HashString(buf.String())
 }
 
-func applicationGatewayRoutingRuleHash(v interface{}) int {
+func applicationGatewayRoutingRuleHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
+	if m, ok := v.(map[string]any); ok {
 		buf.WriteString(m["name"].(string))
 		buf.WriteString(m["backend_address_pool_name"].(string))
 		buf.WriteString(m["backend_name"].(string))

@@ -184,7 +184,7 @@ func resourceVirtualMachineScaleSetPacketCapture() *pluginsdk.Resource {
 	}
 }
 
-func resourceVirtualMachineScaleSetPacketCaptureCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualMachineScaleSetPacketCaptureCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.PacketCaptures
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -215,7 +215,7 @@ func resourceVirtualMachineScaleSetPacketCaptureCreate(d *pluginsdk.ResourceData
 		}
 	}
 
-	storageLocation := expandVirtualMachineScaleSetPacketCaptureStorageLocation(d.Get("storage_location").([]interface{}))
+	storageLocation := expandVirtualMachineScaleSetPacketCaptureStorageLocation(d.Get("storage_location").([]any))
 	payload := packetcaptures.PacketCapture{
 		Properties: packetcaptures.PacketCaptureParameters{
 			Target:                  targetResourceId,
@@ -224,12 +224,12 @@ func resourceVirtualMachineScaleSetPacketCaptureCreate(d *pluginsdk.ResourceData
 			BytesToCapturePerPacket: pointer.To(int64(bytesToCapturePerPacket)),
 			TimeLimitInSeconds:      pointer.To(int64(timeLimitInSeconds)),
 			TotalBytesPerSession:    pointer.To(int64(totalBytesPerSession)),
-			Filters:                 expandVirtualMachineScaleSetPacketCaptureFilters(d.Get("filter").([]interface{})),
+			Filters:                 expandVirtualMachineScaleSetPacketCaptureFilters(d.Get("filter").([]any)),
 		},
 	}
 
 	if v, ok := d.GetOk("machine_scope"); ok {
-		payload.Properties.Scope = expandVirtualMachineScaleSetPacketCaptureMachineScope(v.([]interface{}))
+		payload.Properties.Scope = expandVirtualMachineScaleSetPacketCaptureMachineScope(v.([]any))
 	}
 
 	if err := client.CreateCallbackThenPoll(ctx, id, payload, sdk.SetIDCallback(meta, &id, d)); err != nil {
@@ -241,7 +241,7 @@ func resourceVirtualMachineScaleSetPacketCaptureCreate(d *pluginsdk.ResourceData
 	return resourceVirtualMachineScaleSetPacketCaptureRead(d, meta)
 }
 
-func resourceVirtualMachineScaleSetPacketCaptureRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualMachineScaleSetPacketCaptureRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.PacketCaptures
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -293,7 +293,7 @@ func resourceVirtualMachineScaleSetPacketCaptureRead(d *pluginsdk.ResourceData, 
 	return nil
 }
 
-func resourceVirtualMachineScaleSetPacketCaptureDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualMachineScaleSetPacketCaptureDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.PacketCaptures
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -310,8 +310,8 @@ func resourceVirtualMachineScaleSetPacketCaptureDelete(d *pluginsdk.ResourceData
 	return nil
 }
 
-func expandVirtualMachineScaleSetPacketCaptureStorageLocation(input []interface{}) packetcaptures.PacketCaptureStorageLocation {
-	location := input[0].(map[string]interface{})
+func expandVirtualMachineScaleSetPacketCaptureStorageLocation(input []any) packetcaptures.PacketCaptureStorageLocation {
+	location := input[0].(map[string]any)
 
 	storageLocation := packetcaptures.PacketCaptureStorageLocation{}
 
@@ -325,9 +325,9 @@ func expandVirtualMachineScaleSetPacketCaptureStorageLocation(input []interface{
 	return storageLocation
 }
 
-func flattenVirtualMachineScaleSetPacketCaptureStorageLocation(input packetcaptures.PacketCaptureStorageLocation) []interface{} {
-	return []interface{}{
-		map[string]interface{}{
+func flattenVirtualMachineScaleSetPacketCaptureStorageLocation(input packetcaptures.PacketCaptureStorageLocation) []any {
+	return []any{
+		map[string]any{
 			"file_path":          pointer.From(input.FilePath),
 			"storage_account_id": pointer.From(input.StorageId),
 			"storage_path":       pointer.From(input.StoragePath),
@@ -335,14 +335,14 @@ func flattenVirtualMachineScaleSetPacketCaptureStorageLocation(input packetcaptu
 	}
 }
 
-func expandVirtualMachineScaleSetPacketCaptureFilters(input []interface{}) *[]packetcaptures.PacketCaptureFilter {
+func expandVirtualMachineScaleSetPacketCaptureFilters(input []any) *[]packetcaptures.PacketCaptureFilter {
 	if len(input) == 0 {
 		return nil
 	}
 
 	filters := make([]packetcaptures.PacketCaptureFilter, 0)
 	for _, v := range input {
-		inputFilter := v.(map[string]interface{})
+		inputFilter := v.(map[string]any)
 
 		localIPAddress := inputFilter["local_ip_address"].(string)
 		localPort := inputFilter["local_port"].(string) // TODO: should this be an int?
@@ -362,8 +362,8 @@ func expandVirtualMachineScaleSetPacketCaptureFilters(input []interface{}) *[]pa
 	return &filters
 }
 
-func flattenVirtualMachineScaleSetPacketCaptureFilters(input *[]packetcaptures.PacketCaptureFilter) []interface{} {
-	filters := make([]interface{}, 0)
+func flattenVirtualMachineScaleSetPacketCaptureFilters(input *[]packetcaptures.PacketCaptureFilter) []any {
+	filters := make([]any, 0)
 
 	if inFilter := input; inFilter != nil {
 		for _, v := range *inFilter {
@@ -372,7 +372,7 @@ func flattenVirtualMachineScaleSetPacketCaptureFilters(input *[]packetcaptures.P
 				protocol = string(*v.Protocol)
 			}
 
-			filters = append(filters, map[string]interface{}{
+			filters = append(filters, map[string]any{
 				"local_ip_address":  pointer.From(v.LocalIPAddress),
 				"local_port":        pointer.From(v.LocalPort),
 				"protocol":          protocol,
@@ -385,27 +385,27 @@ func flattenVirtualMachineScaleSetPacketCaptureFilters(input *[]packetcaptures.P
 	return filters
 }
 
-func expandVirtualMachineScaleSetPacketCaptureMachineScope(input []interface{}) *packetcaptures.PacketCaptureMachineScope {
+func expandVirtualMachineScaleSetPacketCaptureMachineScope(input []any) *packetcaptures.PacketCaptureMachineScope {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 	output := &packetcaptures.PacketCaptureMachineScope{}
 
-	if exclude := raw["exclude_instance_ids"].([]interface{}); len(exclude) > 0 {
+	if exclude := raw["exclude_instance_ids"].([]any); len(exclude) > 0 {
 		output.Exclude = pluginsdk.ExpandStringSlice(exclude)
 	}
 
-	if include := raw["include_instance_ids"].([]interface{}); len(include) > 0 {
+	if include := raw["include_instance_ids"].([]any); len(include) > 0 {
 		output.Include = pluginsdk.ExpandStringSlice(include)
 	}
 
 	return output
 }
 
-func flattenVirtualMachineScaleSetPacketCaptureMachineScope(input *packetcaptures.PacketCaptureMachineScope) ([]interface{}, error) {
-	outputs := make([]interface{}, 0)
+func flattenVirtualMachineScaleSetPacketCaptureMachineScope(input *packetcaptures.PacketCaptureMachineScope) ([]any, error) {
+	outputs := make([]any, 0)
 	if input == nil || (input.Exclude == nil && input.Include == nil) || (len(*input.Exclude) == 0 && len(*input.Include) == 0) {
 		return outputs, nil
 	}
@@ -420,7 +420,7 @@ func flattenVirtualMachineScaleSetPacketCaptureMachineScope(input *packetcapture
 		return nil, err
 	}
 
-	outputs = append(outputs, map[string]interface{}{
+	outputs = append(outputs, map[string]any{
 		"exclude_instance_ids": excludedInstanceIds,
 		"include_instance_ids": includedInstanceIds,
 	})

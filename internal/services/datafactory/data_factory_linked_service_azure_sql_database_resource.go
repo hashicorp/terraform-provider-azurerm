@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 func resourceDataFactoryLinkedServiceAzureSQLDatabase() *pluginsdk.Resource {
@@ -182,7 +182,7 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabase() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	subscriptionId := meta.(*clients.Client).DataFactory.LinkedServiceClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -224,7 +224,7 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate(d *pluginsdk.R
 	}
 
 	if v, ok := d.GetOk("key_vault_connection_string"); ok {
-		sqlDatabaseProperties.ConnectionString = expandAzureKeyVaultSecretReference(v.([]interface{}))
+		sqlDatabaseProperties.ConnectionString = expandAzureKeyVaultSecretReference(v.([]any))
 	}
 
 	if d.Get("use_managed_identity").(bool) {
@@ -243,7 +243,7 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate(d *pluginsdk.R
 	}
 
 	if v, ok := d.GetOk("key_vault_password"); ok {
-		password := v.([]interface{})
+		password := v.([]any)
 		sqlDatabaseProperties.Password = expandAzureKeyVaultSecretReference(password)
 	}
 
@@ -254,7 +254,7 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate(d *pluginsdk.R
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		azureSQLDatabaseLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]interface{}))
+		azureSQLDatabaseLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
@@ -262,11 +262,11 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate(d *pluginsdk.R
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		azureSQLDatabaseLinkedService.AdditionalProperties = v.(map[string]interface{})
+		azureSQLDatabaseLinkedService.AdditionalProperties = v.(map[string]any)
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		azureSQLDatabaseLinkedService.Annotations = pointer.To(v.([]interface{}))
+		azureSQLDatabaseLinkedService.Annotations = pointer.To(v.([]any))
 	}
 
 	if credentialName := d.Get("credential_name").(string); credentialName != "" {
@@ -288,7 +288,7 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate(d *pluginsdk.R
 	return resourceDataFactoryLinkedServiceAzureSQLDatabaseRead(d, meta)
 }
 
-func resourceDataFactoryLinkedServiceAzureSQLDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceAzureSQLDatabaseRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -332,7 +332,7 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseRead(d *pluginsdk.ResourceD
 	}
 
 	if sql.ConnectionString != nil {
-		if val, ok := sql.ConnectionString.(map[string]interface{}); ok {
+		if val, ok := sql.ConnectionString.(map[string]any); ok {
 			if val["type"] != "SecureString" {
 				if err := d.Set("key_vault_connection_string", flattenAzureKeyVaultConnectionString(val)); err != nil {
 					return fmt.Errorf("setting `key_vault_connection_string`: %+v", err)
@@ -373,7 +373,7 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseRead(d *pluginsdk.ResourceD
 	return nil
 }
 
-func resourceDataFactoryLinkedServiceAzureSQLDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceAzureSQLDatabaseDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

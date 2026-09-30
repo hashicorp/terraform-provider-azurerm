@@ -12,13 +12,19 @@ import (
 	"errors"
 	"fmt"
 	"maps"
+	"net"
 	"os"
 	"path/filepath"
 	"runtime"
 	"slices"
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/hashicorp/go-hclog"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
 	"github.com/hashicorp/terraform-plugin-testing/config"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
@@ -352,16 +358,30 @@ func windowsVMPasswordTestDirectory(t *testing.T) string {
 	for _, name := range []string{"TMPDIR", "TMP", "TEMP", "GOTMPDIR", "TF_ACC_TEMP_DIR"} {
 		t.Setenv(name, workingDir)
 	}
+	if runtime.GOOS != "windows" {
+		// Unix socket paths are length-limited; keep only sockets outside the checkout.
+		socketDir, err := os.MkdirTemp("/tmp", "acctest-plugin-")
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(func() {
+			if err := os.RemoveAll(socketDir); err != nil {
+				t.Error(err)
+			}
+		})
+		t.Setenv("PLUGIN_UNIX_SOCKET_DIR", socketDir)
+	}
 	return workingDir
 }
 
 func TestWindowsVMPasswordTestDirectory(t *testing.T) {
+	t.Setenv("PLUGIN_UNIX_SOCKET_DIR", "inherited-socket-directory")
 	previous := make(map[string]string)
 	wasSet := make(map[string]bool)
-	for _, name := range []string{"TMPDIR", "TMP", "TEMP", "GOTMPDIR", "TF_ACC_TEMP_DIR"} {
+	for _, name := range []string{"TMPDIR", "TMP", "TEMP", "GOTMPDIR", "TF_ACC_TEMP_DIR", "PLUGIN_UNIX_SOCKET_DIR"} {
 		previous[name], wasSet[name] = os.LookupEnv(name)
 	}
-	var directory string
+	var directory, socketDirectory string
 	t.Run("contained", func(t *testing.T) {
 		directory = windowsVMPasswordTestDirectory(t)
 		checkout, err := os.Getwd()
@@ -381,6 +401,20 @@ func TestWindowsVMPasswordTestDirectory(t *testing.T) {
 		for _, name := range []string{"TMPDIR", "TMP", "TEMP", "GOTMPDIR", "TF_ACC_TEMP_DIR"} {
 			if os.Getenv(name) != directory {
 				t.Errorf("%s must point to the private password test directory", name)
+			}
+		}
+		socketDirectory = os.Getenv("PLUGIN_UNIX_SOCKET_DIR")
+		if runtime.GOOS == "windows" {
+			if socketDirectory != previous["PLUGIN_UNIX_SOCKET_DIR"] {
+				t.Fatal("Windows TCP plugins do not need a socket directory override")
+			}
+		} else {
+			info, err := os.Stat(socketDirectory)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !info.IsDir() || info.Mode().Perm() != 0o700 {
+				t.Fatal("plugin socket directory must be private")
 			}
 		}
 		file, err := os.CreateTemp("", "containment-check-")
@@ -403,11 +437,85 @@ func TestWindowsVMPasswordTestDirectory(t *testing.T) {
 	if _, err := os.Stat(directory); !errors.Is(err, os.ErrNotExist) {
 		t.Fatal("password test directory was not removed")
 	}
+	if runtime.GOOS != "windows" {
+		if _, err := os.Stat(socketDirectory); !errors.Is(err, os.ErrNotExist) {
+			t.Fatal("plugin socket directory was not removed")
+		}
+	}
 	for name, expected := range previous {
 		value, set := os.LookupEnv(name)
 		if value != expected || set != wasSet[name] {
 			t.Errorf("%s was not restored after the password test", name)
 		}
+	}
+}
+
+func TestWindowsVMPasswordTestDirectoryProviderStartup(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("go-plugin uses TCP rather than Unix sockets on Windows")
+	}
+
+	checkout := filepath.Join(t.TempDir(), strings.Repeat("checkout-", 16))
+	if err := os.Mkdir(checkout, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	t.Chdir(checkout)
+	t.Setenv("PLUGIN_PROTOCOL_VERSIONS", "5")
+	t.Setenv("PLUGIN_CLIENT_CERT", "")
+	t.Setenv("PLUGIN_UNIX_SOCKET_GROUP", "")
+	t.Setenv("PLUGIN_UNIX_SOCKET_DIR", "")
+
+	workingDir := windowsVMPasswordTestDirectory(t)
+	longSocketPath := filepath.Join(workingDir, "plugin1234567890")
+	if len(longSocketPath) <= 108 {
+		t.Fatal("control must exceed Linux and macOS Unix socket path limits")
+	}
+	listenConfig := net.ListenConfig{}
+	if listener, err := listenConfig.Listen(t.Context(), "unix", longSocketPath); err == nil {
+		if err := listener.Close(); err != nil {
+			t.Error(err)
+		}
+		t.Fatal("control unexpectedly accepted an overlong Unix socket path")
+	}
+
+	// Exercise the harness's startup path without Terraform, Azure or passwords.
+	provider := schema.NewGRPCProviderServer(&schema.Provider{})
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	t.Cleanup(cancel)
+	reattach, closed, serveErr := plugin.DebugServe(ctx, &plugin.ServeOpts{
+		GRPCProviderFunc:    func() tfprotov5.ProviderServer { return provider },
+		NoLogOutputOverride: true,
+		Logger:              hclog.NewNullLogger(),
+	})
+	t.Cleanup(func() {
+		cancel()
+		select {
+		case <-closed:
+			if serveErr == nil {
+				if _, err := os.Stat(reattach.Addr.String); !errors.Is(err, os.ErrNotExist) {
+					t.Error("plugin socket was not removed after shutdown")
+				}
+			}
+		case <-time.After(5 * time.Second):
+			t.Error("provider did not shut down")
+		}
+	})
+	if serveErr != nil {
+		t.Fatalf("provider startup failed: %s", serveErr)
+	}
+	if reattach.Addr.Network != "unix" || reattach.ProtocolVersion != 5 {
+		t.Fatal("provider did not start a protocol 5 Unix socket server")
+	}
+	if filepath.Dir(reattach.Addr.String) != os.Getenv("PLUGIN_UNIX_SOCKET_DIR") {
+		t.Fatal("provider socket escaped the private socket directory")
+	}
+	dialer := net.Dialer{Timeout: time.Second}
+	connection, err := dialer.DialContext(ctx, "unix", reattach.Addr.String)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := connection.Close(); err != nil {
+		t.Fatal(err)
 	}
 }
 
@@ -505,20 +613,20 @@ func TestWindowsVMPasswordImportedState(t *testing.T) {
 // Read the raw state, not terraform show's projection, to include outputs, other
 // resources, deposed instances and provider-private data. Never include values in errors.
 func windowsVMPasswordAbsentFromState(state []byte, passwords []string) error {
-	var value interface{}
+	var value any
 	if err := json.Unmarshal(state, &value); err != nil {
 		return errors.New("could not decode complete Terraform state")
 	}
-	var containsPassword func(interface{}) bool
-	containsPassword = func(value interface{}) bool {
+	var containsPassword func(any) bool
+	containsPassword = func(value any) bool {
 		switch value := value.(type) {
-		case map[string]interface{}:
+		case map[string]any:
 			for key, nested := range value {
 				if containsPassword(key) || containsPassword(nested) {
 					return true
 				}
 			}
-		case []interface{}:
+		case []any:
 			return slices.ContainsFunc(value, containsPassword)
 		case string:
 			decoded, _ := base64.StdEncoding.DecodeString(value)
@@ -527,7 +635,7 @@ func windowsVMPasswordAbsentFromState(state []byte, passwords []string) error {
 					return true
 				}
 			}
-			var private interface{}
+			var private any
 			if json.Unmarshal(decoded, &private) == nil && containsPassword(private) {
 				return true
 			}
@@ -546,15 +654,15 @@ func TestWindowsVMPasswordAbsentFromState(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for name, state := range map[string]interface{}{
-		"ordinary attribute": map[string]interface{}{"resources": []interface{}{map[string]interface{}{"instances": []interface{}{map[string]interface{}{"attributes": map[string]interface{}{"admin_password": password}}}}}},
-		"other resource":     map[string]interface{}{"resources": []interface{}{map[string]interface{}{"type": "azurerm_key_vault_secret", "instances": []interface{}{map[string]interface{}{"attributes": map[string]interface{}{"value": password}}}}}},
-		"output":             map[string]interface{}{"outputs": map[string]interface{}{"secret": map[string]interface{}{"value": password, "sensitive": true}}},
-		"deposed":            map[string]interface{}{"resources": []interface{}{map[string]interface{}{"instances": []interface{}{map[string]interface{}{"deposed": "old", "attributes": map[string]interface{}{"secret": password}}}}}},
-		"private":            map[string]interface{}{"private": base64.StdEncoding.EncodeToString([]byte(password))},
-		"private JSON":       map[string]interface{}{"private": base64.StdEncoding.EncodeToString(private)},
-		"map key":            map[string]interface{}{password: true},
-		"clean":              map[string]interface{}{"resources": []interface{}{map[string]interface{}{"attributes": map[string]interface{}{"admin_password_wo": nil, "admin_password_wo_version": 1}}}},
+	for name, state := range map[string]any{
+		"ordinary attribute": map[string]any{"resources": []any{map[string]any{"instances": []any{map[string]any{"attributes": map[string]any{"admin_password": password}}}}}},
+		"other resource":     map[string]any{"resources": []any{map[string]any{"type": "azurerm_key_vault_secret", "instances": []any{map[string]any{"attributes": map[string]any{"value": password}}}}}},
+		"output":             map[string]any{"outputs": map[string]any{"secret": map[string]any{"value": password, "sensitive": true}}},
+		"deposed":            map[string]any{"resources": []any{map[string]any{"instances": []any{map[string]any{"deposed": "old", "attributes": map[string]any{"secret": password}}}}}},
+		"private":            map[string]any{"private": base64.StdEncoding.EncodeToString([]byte(password))},
+		"private JSON":       map[string]any{"private": base64.StdEncoding.EncodeToString(private)},
+		"map key":            map[string]any{password: true},
+		"clean":              map[string]any{"resources": []any{map[string]any{"attributes": map[string]any{"admin_password_wo": nil, "admin_password_wo_version": 1}}}},
 	} {
 		t.Run(name, func(t *testing.T) {
 			raw, err := json.Marshal(state)

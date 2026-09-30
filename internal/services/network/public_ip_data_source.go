@@ -122,7 +122,7 @@ func dataSourcePublicIP() *pluginsdk.Resource {
 	}
 }
 
-func dataSourcePublicIPRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourcePublicIPRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.PublicIPAddresses
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

@@ -77,7 +77,7 @@ type VirtualMachineScaleSetSkuProfileVMSize struct {
 	Rank int64  `tfschema:"rank"`
 }
 
-func (r OrchestratedVirtualMachineScaleSetDataSource) ModelObject() interface{} {
+func (r OrchestratedVirtualMachineScaleSetDataSource) ModelObject() any {
 	return &OrchestratedVirtualMachineScaleSetDataSourceModel{}
 }
 

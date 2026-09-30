@@ -48,7 +48,7 @@ type AIFoundryModel struct {
 	FriendlyName                string                                     `tfschema:"friendly_name"`
 	DiscoveryUrl                string                                     `tfschema:"discovery_url"`
 	WorkspaceId                 string                                     `tfschema:"workspace_id"`
-	Tags                        map[string]interface{}                     `tfschema:"tags"`
+	Tags                        map[string]any                             `tfschema:"tags"`
 }
 
 type ManagedNetwork struct {
@@ -61,7 +61,7 @@ type Encryption struct {
 	KeyID            string `tfschema:"key_id"`
 }
 
-func (r AIFoundry) ModelObject() interface{} {
+func (r AIFoundry) ModelObject() any {
 	return &AIFoundryModel{}
 }
 
@@ -267,7 +267,7 @@ func (r AIFoundry) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+			expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]any))
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
@@ -397,7 +397,7 @@ func (r AIFoundry) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
-				expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+				expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]any))
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}

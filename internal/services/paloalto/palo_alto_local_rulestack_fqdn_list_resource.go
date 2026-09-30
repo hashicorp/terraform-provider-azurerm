@@ -32,7 +32,7 @@ type LocalRulestackFQDNListModel struct {
 	Description  string   `tfschema:"description"`
 }
 
-func (r LocalRulestackFQDNList) ModelObject() interface{} {
+func (r LocalRulestackFQDNList) ModelObject() any {
 	return &LocalRulestackFQDNListModel{}
 }
 

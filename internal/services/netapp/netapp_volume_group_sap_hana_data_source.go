@@ -27,7 +27,7 @@ func (r NetAppVolumeGroupSAPHanaDataSource) ResourceType() string {
 	return "azurerm_netapp_volume_group_sap_hana"
 }
 
-func (r NetAppVolumeGroupSAPHanaDataSource) ModelObject() interface{} {
+func (r NetAppVolumeGroupSAPHanaDataSource) ModelObject() any {
 	return &models.NetAppVolumeGroupSAPHanaDataSourceModel{}
 }
 

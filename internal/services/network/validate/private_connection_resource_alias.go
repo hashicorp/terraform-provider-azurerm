@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func PrivateConnectionResourceAlias(input interface{}, key string) ([]string, []error) {
+func PrivateConnectionResourceAlias(input any, key string) ([]string, []error) {
 	return validation.StringMatch(
 		regexp.MustCompile(`\.azure\.privatelinkservice$`),
 		"expected to have suffix `.azure.privatelinkservice`",

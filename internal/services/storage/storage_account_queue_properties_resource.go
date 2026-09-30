@@ -245,7 +245,7 @@ func (s AccountQueuePropertiesResource) Attributes() map[string]*pluginsdk.Schem
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (s AccountQueuePropertiesResource) ModelObject() interface{} {
+func (s AccountQueuePropertiesResource) ModelObject() any {
 	return &AccountQueuePropertiesModel{}
 }
 

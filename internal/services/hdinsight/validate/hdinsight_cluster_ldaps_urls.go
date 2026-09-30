@@ -7,6 +7,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func HDInsightClusterLdapsUrls(i interface{}, k string) ([]string, []error) {
+func HDInsightClusterLdapsUrls(i any, k string) ([]string, []error) {
 	return validation.IsURLWithScheme([]string{"ldaps"})(i, k)
 }

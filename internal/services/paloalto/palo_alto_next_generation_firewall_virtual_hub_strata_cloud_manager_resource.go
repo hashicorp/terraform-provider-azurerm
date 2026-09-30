@@ -35,14 +35,14 @@ type NextGenerationFirewallVHubStrataCloudManagerModel struct {
 	MarketplaceOfferId           string                       `tfschema:"marketplace_offer_id"`
 	PlanId                       string                       `tfschema:"plan_id"`
 	Identity                     []identity.ModelUserAssigned `tfschema:"identity"`
-	Tags                         map[string]interface{}       `tfschema:"tags"`
+	Tags                         map[string]any               `tfschema:"tags"`
 }
 
 var _ sdk.ResourceWithUpdate = NextGenerationFirewallVHubStrataCloudManagerResource{}
 
 var _ sdk.ResourceWithCustomizeDiff = NextGenerationFirewallVHubStrataCloudManagerResource{}
 
-func (r NextGenerationFirewallVHubStrataCloudManagerResource) ModelObject() interface{} {
+func (r NextGenerationFirewallVHubStrataCloudManagerResource) ModelObject() any {
 	return &NextGenerationFirewallVHubStrataCloudManagerModel{}
 }
 
