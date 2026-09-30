@@ -48,6 +48,7 @@ var services = mapOf(
         "devcenter" to "Dev Center",
         "devtestlabs" to "Dev Test",
         "digitaltwins" to "Digital Twins",
+        "discovery" to "Discovery",
         "domainservices" to "DomainServices",
         "dynatrace" to "Dynatrace",
         "elastic" to "Elastic",
