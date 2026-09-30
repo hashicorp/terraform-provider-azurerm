@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `full_backup_schedule` - (Required) The repeating time interval that defines the weekly Full backup schedule. Changing this forces a new resource to be created.
 
--> **Note:** The interval must use the format `R/YYYY-MM-DDThh:mm:ss[.fff][Z|(+/-)hh:mm]/P1W`. The supported time formats are exactly `Thh:mm`, `Thh:mm:ss`, and `Thh:mm:ss.fff`; other ISO 8601 variations are not accepted. A time zone suffix of `Z` or `(+/-)hh:mm` is required. 
+-> **Note:** The interval must use the format `R/YYYY-MM-DDThh:mm:ss[.fff][Z|(+/-)hh:mm]/P1W`. The supported time formats are exactly `Thh:mm`, `Thh:mm:ss`, and `Thh:mm:ss.fff`; other ISO 8601 variations are not accepted. A time zone suffix of `Z` or `(+/-)hh:mm` is required.
 
 ~> **Note:** When `incremental_backup_enabled` is `true`, Incremental backups are scheduled automatically at 24-hour intervals on each of the following six days.
 
