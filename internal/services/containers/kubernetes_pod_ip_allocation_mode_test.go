@@ -22,16 +22,16 @@ func TestPodIPAllocationModeValidation(t *testing.T) {
 	static := string(managedclusters.PodIPAllocationModeStaticBlock)
 	tests := []struct {
 		name      string
-		config    map[string]interface{}
+		config    map[string]any
 		wantError bool
 	}{
-		{name: "omitted", config: map[string]interface{}{}},
-		{name: "subnet_without_mode", config: map[string]interface{}{"pod_subnet_id": subnetId}},
-		{name: "dynamic_with_subnet", config: map[string]interface{}{"pod_ip_allocation_mode": dynamic, "pod_subnet_id": subnetId}},
-		{name: "static_with_subnet", config: map[string]interface{}{"pod_ip_allocation_mode": static, "pod_subnet_id": subnetId}},
-		{name: "dynamic_without_subnet", config: map[string]interface{}{"pod_ip_allocation_mode": dynamic}, wantError: true},
-		{name: "static_without_subnet", config: map[string]interface{}{"pod_ip_allocation_mode": static}, wantError: true},
-		{name: "invalid_mode", config: map[string]interface{}{"pod_ip_allocation_mode": "invalid", "pod_subnet_id": subnetId}, wantError: true},
+		{name: "omitted", config: map[string]any{}},
+		{name: "subnet_without_mode", config: map[string]any{"pod_subnet_id": subnetId}},
+		{name: "dynamic_with_subnet", config: map[string]any{"pod_ip_allocation_mode": dynamic, "pod_subnet_id": subnetId}},
+		{name: "static_with_subnet", config: map[string]any{"pod_ip_allocation_mode": static, "pod_subnet_id": subnetId}},
+		{name: "dynamic_without_subnet", config: map[string]any{"pod_ip_allocation_mode": dynamic}, wantError: true},
+		{name: "static_without_subnet", config: map[string]any{"pod_ip_allocation_mode": static}, wantError: true},
+		{name: "invalid_mode", config: map[string]any{"pod_ip_allocation_mode": "invalid", "pod_subnet_id": subnetId}, wantError: true},
 	}
 	for name, resource := range resources {
 		t.Run(name, func(t *testing.T) {
@@ -39,7 +39,7 @@ func TestPodIPAllocationModeValidation(t *testing.T) {
 				t.Run(test.name, func(t *testing.T) {
 					config := test.config
 					if name == "default_node_pool" {
-						config = map[string]interface{}{"default_node_pool": []interface{}{config}}
+						config = map[string]any{"default_node_pool": []any{config}}
 					}
 					diagnostics := resource.Validate(terraform.NewResourceConfigRaw(config))
 					if diagnostics.HasError() != test.wantError {
@@ -73,7 +73,7 @@ func TestPodIPAllocationModeExistingState(t *testing.T) {
 		t.Run(resourceName, func(t *testing.T) {
 			for _, test := range tests {
 				t.Run(test.name, func(t *testing.T) {
-					pool := map[string]interface{}{
+					pool := map[string]any{
 						"name": "test", "vm_size": "Standard_D2s_v3", "node_count": 1,
 						"pod_subnet_id": subnetId,
 					}
@@ -85,11 +85,11 @@ func TestPodIPAllocationModeExistingState(t *testing.T) {
 					config := pool
 					prefix := ""
 					if resourceName == "azurerm_kubernetes_cluster" {
-						config = map[string]interface{}{
+						config = map[string]any{
 							"name": "test", "location": "eastus", "resource_group_name": "test", "dns_prefix": "test",
-							"identity":          []interface{}{map[string]interface{}{"type": "SystemAssigned"}},
-							"network_profile":   []interface{}{map[string]interface{}{"network_plugin": "azure"}},
-							"default_node_pool": []interface{}{pool},
+							"identity":          []any{map[string]any{"type": "SystemAssigned"}},
+							"network_profile":   []any{map[string]any{"network_plugin": "azure"}},
+							"default_node_pool": []any{pool},
 						}
 						resourceId = clusterId
 						prefix = "default_node_pool.0."
@@ -144,7 +144,7 @@ func TestPodIPAllocationModeExistingState(t *testing.T) {
 func TestPodIPAllocationModeDefaultNodePoolExpansion(t *testing.T) {
 	for _, mode := range []string{"", "DynamicIndividual", "StaticBlock"} {
 		t.Run("mode_"+mode, func(t *testing.T) {
-			config := map[string]interface{}{
+			config := map[string]any{
 				"name": "default", "vm_size": "Standard_D2s_v3", "node_count": 1,
 				"pod_subnet_id": commonids.NewSubnetID("00000000-0000-0000-0000-000000000000", "test", "test", "pods").ID(),
 			}
@@ -153,7 +153,7 @@ func TestPodIPAllocationModeDefaultNodePoolExpansion(t *testing.T) {
 			}
 			resource := &pluginsdk.Resource{Schema: map[string]*pluginsdk.Schema{"default_node_pool": containers.SchemaDefaultNodePool()}}
 			data := resource.Data(nil)
-			if err := data.Set("default_node_pool", []interface{}{config}); err != nil {
+			if err := data.Set("default_node_pool", []any{config}); err != nil {
 				t.Fatal(err)
 			}
 			profiles, err := containers.ExpandDefaultNodePool(data)
@@ -168,7 +168,7 @@ func TestPodIPAllocationModeDefaultNodePoolExpansion(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if got := (*flattened)[0].(map[string]interface{})["pod_ip_allocation_mode"]; got != mode {
+			if got := (*flattened)[0].(map[string]any)["pod_ip_allocation_mode"]; got != mode {
 				t.Fatalf("flattened mode = %v, want %q", got, mode)
 			}
 		})
