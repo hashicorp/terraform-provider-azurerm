@@ -21,7 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -parent-id topic_id -test-name base -test-params "(true),(false),(false)"
+//go:generate go run ../../tools/generator-tests resourceidentity -parent-id topic_id -test-name withAliasConnectionString
 
 const serviceBusTopicAuthorizationRuleResourceName = "azurerm_servicebus_topic_authorization_rule"
 
