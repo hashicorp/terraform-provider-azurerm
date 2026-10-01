@@ -3,6 +3,8 @@
 
 package monitor
 
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "resource_uri:target_resource_id,name"
+
 import (
 	"bytes"
 	"context"
@@ -18,11 +20,13 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationrulesnamespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-05-01-preview/diagnosticsettings"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -36,9 +40,15 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 		Update: resourceMonitorDiagnosticSettingUpdate,
 		Delete: resourceMonitorDiagnosticSettingDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := ParseMonitorDiagnosticId(id)
-			return err
+		Importer: pluginsdk.ImporterValidatingIdentity(&diagnosticsettings.ScopedDiagnosticSettingId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&diagnosticsettings.ScopedDiagnosticSettingId{}),
+		},
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.DiagnosticSettingV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -156,7 +166,6 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta any)
 	defer cancel()
 
 	id := diagnosticsettings.NewScopedDiagnosticSettingID(d.Get("target_resource_id").(string), d.Get("name").(string))
-	resourceId := fmt.Sprintf("%s|%s", id.ResourceUri, id.DiagnosticSettingName)
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
@@ -167,7 +176,7 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta any)
 		}
 
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_monitor_diagnostic_setting", resourceId)
+			return tf.ImportAsExistsError("azurerm_monitor_diagnostic_setting", id.ID())
 		}
 	}
 
@@ -251,7 +260,11 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta any)
 		return fmt.Errorf("waiting for Monitor Diagnostic Setting %q for Resource %q to become ready: %s", id.DiagnosticSettingName, id.ResourceUri, err)
 	}
 
-	d.SetId(resourceId)
+	d.SetId(id.ID())
+
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return fmt.Errorf("setting resource identity: %w", err)
+	}
 
 	return resourceMonitorDiagnosticSettingRead(d, meta)
 }
@@ -455,7 +468,7 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta any) e
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceMonitorDiagnosticSettingDelete(d *pluginsdk.ResourceData, meta any) error {
@@ -578,14 +591,17 @@ func expandMonitorDiagnosticsSettingsEnabledMetrics(input []any) []diagnosticset
 }
 
 func ParseMonitorDiagnosticId(monitorId string) (*diagnosticsettings.ScopedDiagnosticSettingId, error) {
-	v := strings.Split(monitorId, "|")
-	if len(v) != 2 {
-		return nil, fmt.Errorf("expected the Monitor Diagnostics ID to be in the format `{resourceId}|{name}` but got %d segments", len(v))
+	if strings.Contains(monitorId, "|") {
+		v := strings.Split(monitorId, "|")
+		if len(v) != 2 {
+			return nil, fmt.Errorf("expected the Monitor Diagnostics ID to be in the format `{resourceId}|{name}` but got %d segments", len(v))
+		}
+
+		identifier := diagnosticsettings.NewScopedDiagnosticSettingID(v[0], v[1])
+		return &identifier, nil
 	}
 
-	// TODO: this can become a Composite Resource ID once https://github.com/hashicorp/go-azure-helpers/pull/208 is released
-	identifier := diagnosticsettings.NewScopedDiagnosticSettingID(v[0], v[1])
-	return &identifier, nil
+	return diagnosticsettings.ParseScopedDiagnosticSettingID(monitorId)
 }
 
 func resourceMonitorDiagnosticLogSettingHash(input any) int {
