@@ -29,7 +29,7 @@ func TestAccServicebusTopicAuthorizationRule_resourceIdentity(t *testing.T) {
 			Config: r.withAliasConnectionString(data),
 			ConfigStateChecks: []statecheck.StateCheck{
 				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_servicebus_topic_authorization_rule.test", checkedFields),
-				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_servicebus_topic_authorization_rule.test", tfjsonpath.New("name"), tfjsonpath.New("topic_id")),
+				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_servicebus_topic_authorization_rule.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_servicebus_topic_authorization_rule.test", tfjsonpath.New("namespace_name"), tfjsonpath.New("topic_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_servicebus_topic_authorization_rule.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("topic_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_servicebus_topic_authorization_rule.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("topic_id")),
