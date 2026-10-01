@@ -3,6 +3,8 @@
 
 package resource
 
+//go:generate go run ../../tools/generator-tests resourceidentity
+
 import (
 	"context"
 	"fmt"
@@ -12,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/managementlocks"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
@@ -27,10 +30,11 @@ func resourceManagementLock() *pluginsdk.Resource {
 		Read:   resourceManagementLockRead,
 		Delete: resourceManagementLockDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := managementlocks.ParseScopedLockID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&managementlocks.ScopedLockId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&managementlocks.ScopedLockId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -112,6 +116,9 @@ func resourceManagementLockCreate(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return fmt.Errorf("setting resource identity: %w", err)
+	}
 	return resourceManagementLockRead(d, meta)
 }
 
@@ -143,7 +150,7 @@ func resourceManagementLockRead(d *pluginsdk.ResourceData, meta any) error {
 		d.Set("notes", model.Properties.Notes)
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceManagementLockDelete(d *pluginsdk.ResourceData, meta any) error {

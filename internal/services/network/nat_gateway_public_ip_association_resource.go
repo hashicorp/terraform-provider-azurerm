@@ -3,7 +3,7 @@
 
 package network
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name nat_gateway_public_ip_association -properties "resource_id1:nat_gateway_id,resource_id2:public_ip_address_id" -no-subscription-id
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "resource_id1:nat_gateway_id,resource_id2:public_ip_address_id"
 
 import (
 	"fmt"

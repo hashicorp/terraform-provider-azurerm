@@ -3,7 +3,10 @@
 
 package maintenance
 
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "scope:virtual_machine_id" -compare-values "name:maintenance_configuration_id" -test-expect-non-empty -has-id-casing-bug
+
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -16,6 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/configurationassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/maintenanceconfigurations"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/migration"
@@ -36,16 +40,20 @@ func resourceArmMaintenanceAssignmentVirtualMachine() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			parsed, err := configurationassignments.ParseScopedConfigurationAssignmentID(id)
+		Importer: pluginsdk.ImporterValidatingIdentityThen(&configurationassignments.ScopedConfigurationAssignmentId{}, func(ctx context.Context, d *pluginsdk.ResourceData, m any) ([]*pluginsdk.ResourceData, error) {
+			id, err := configurationassignments.ParseScopedConfigurationAssignmentID(d.Id())
 			if err != nil {
-				return err
+				return nil, err
 			}
-			if _, err := virtualmachines.ParseVirtualMachineID(parsed.Scope); err != nil {
-				return fmt.Errorf("parsing %q as Virtual Machine ID: %+v", parsed.Scope, err)
+			if _, err := virtualmachines.ParseVirtualMachineID(id.Scope); err != nil {
+				return nil, fmt.Errorf("parsing %q as Virtual Machine ID: %+v", id.Scope, err)
 			}
-			return err
+			return []*pluginsdk.ResourceData{d}, nil
 		}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&configurationassignments.ScopedConfigurationAssignmentId{}),
+		},
 
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.AssignmentVirtualMachineV0ToV1{},
@@ -128,6 +136,9 @@ func resourceArmMaintenanceAssignmentVirtualMachineCreate(d *pluginsdk.ResourceD
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return fmt.Errorf("setting resource identity: %w", err)
+	}
 	return resourceArmMaintenanceAssignmentVirtualMachineRead(d, meta)
 }
 
@@ -177,7 +188,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineRead(d *pluginsdk.ResourceDat
 			d.Set("maintenance_configuration_id", maintenanceConfigurationId)
 		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceArmMaintenanceAssignmentVirtualMachineDelete(d *pluginsdk.ResourceData, meta any) error {

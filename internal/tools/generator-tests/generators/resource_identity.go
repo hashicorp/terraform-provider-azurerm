@@ -46,6 +46,7 @@ type resourceIdentityData struct {
 	TestEnvVars            []string
 	TestExpectNonEmptyPlan bool
 	TestSequential         bool
+	HasIdCasingBug         bool
 	RewriteTag             bool
 }
 
@@ -82,6 +83,8 @@ Optional args:
 	- test-sequential [bool]
 		'test-sequential' generates a lowercase test function name (testAcc... instead of TestAcc...) and uses resource.Test instead of resource.ParallelTest.
 		This is used for resources that need to run in a sequential test suite.
+	- has-id-casing-bug [bool]
+		'has-id-casing-bug' indicates that the Azure service has known casing issues when returning IDs, causing ExpectStateContainsIdentityValueAtPathCaseInsensitive to be used instead of ExpectStateContainsIdentityValueAtPath. Defaults to 'false'.
 
 Example:
 generate-resource-identity -resource-name some_azure_resource -properties "resource_group_name,some_property" -test-params "customSku" -known-values "kind:someApp;linux" -compare-values "parent_resource_name:parent_resource_id,resource_group_name:parent_resource_id"
@@ -132,6 +135,7 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 	argSet.StringVar(&d.TestName, "test-name", "basic", "(Optional) the name of the config that will be used to test Resource Identity. Defaults to `basic`.")
 	argSet.BoolVar(&d.TestExpectNonEmptyPlan, "test-expect-non-empty", false, "(Optional) Whether to expect (and ignore) a non-empty plan, to be used when the API does not return certain values during import. Defaults to `false`.")
 	argSet.BoolVar(&d.TestSequential, "test-sequential", false, "(Optional) generates a lowercase test function name for use in sequential test suites. Defaults to `false`.")
+	argSet.BoolVar(&d.HasIdCasingBug, "has-id-casing-bug", false, "(Optional) Whether the resource has known Azure API ID casing discrepancies, requiring case-insensitive containment matching. Defaults to `false`.")
 
 	if err := argSet.Parse(args); err != nil {
 		errors = append(errors, err)
@@ -183,6 +187,8 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 			} else {
 				d.KnownValues = "subscription_id:data.Subscriptions.Primary"
 			}
+		} else {
+			d.NoSubscriptionID = true
 		}
 	} else if len(d.IdentityProperties) > 0 {
 		d.PropertyNameMap = map[string]string{}
@@ -227,6 +233,10 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 	if goFile != "" {
 		inferred, err := InferIdentityProperties(goFile)
 		if err == nil {
+			if !inferred.HasSubscriptionID {
+				d.NoSubscriptionID = true
+			}
+
 			inferredMap := map[string]string{}
 			for _, prop := range inferred.Properties {
 				inferredMap[prop] = prop
@@ -422,12 +432,16 @@ func (d *resourceIdentityData) exec() error {
 			reResName := regexp.MustCompile(`[ \t]*-resource-name[ \t]+[^ \t\n]+`)
 			rePkgName := regexp.MustCompile(`[ \t]*-service-package-name[ \t]+[^ \t\n]+`)
 			reKnownSub := regexp.MustCompile(`[ \t]*-known-values[ \t]+"subscription_id:data\.Subscriptions\.Primary"`)
+			reNoSub := regexp.MustCompile(`[ \t]*-no-subscription-id\b`)
 
 			newContent := reProp.ReplaceAllString(string(content), "")
 			newContent = reId.ReplaceAllString(newContent, "")
 			newContent = reResName.ReplaceAllString(newContent, "")
 			newContent = rePkgName.ReplaceAllString(newContent, "")
 			newContent = reKnownSub.ReplaceAllString(newContent, "")
+			if d.NoSubscriptionID {
+				newContent = reNoSub.ReplaceAllString(newContent, "")
+			}
 
 			// Clean up double spaces if any on the go generate line
 			reSpaces := regexp.MustCompile(`(go run ../../tools/generator-tests resourceidentity)[ \t]+`)
