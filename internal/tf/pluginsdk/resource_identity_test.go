@@ -284,3 +284,82 @@ func TestImporterValidatingCompositeIdentity(t *testing.T) {
 		t.Fatalf("expected non-nil importer with StateContext")
 	}
 }
+
+func TestSegmentTypeSupported_Scope(t *testing.T) {
+	if !SegmentTypeSupported(resourceids.ScopeSegmentType) {
+		t.Fatalf("expected ScopeSegmentType to be supported")
+	}
+}
+
+func TestGenerateIdentitySchema_Scoped(t *testing.T) {
+	scopedId := commonids.NewChaosStudioTargetID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "target1")
+	schemaFn := GenerateIdentitySchema(&scopedId)
+	idSchema := schemaFn()
+
+	if len(idSchema) != 2 {
+		t.Fatalf("expected 2 schema items (scope, name), got %d: %+v", len(idSchema), idSchema)
+	}
+
+	for _, k := range []string{"scope", "name"} {
+		s, ok := idSchema[k]
+		if !ok {
+			t.Fatalf("expected schema to have %q", k)
+		}
+		if !s.RequiredForImport {
+			t.Fatalf("expected %q to have RequiredForImport=true", k)
+		}
+		if s.Type != schema.TypeString {
+			t.Fatalf("expected %q to be TypeString, got %v", k, s.Type)
+		}
+	}
+}
+
+func TestSetResourceIdentityData_Scoped(t *testing.T) {
+	scopedId := commonids.NewChaosStudioTargetID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "target1")
+
+	r := &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"dummy": {Type: schema.TypeString, Optional: true},
+		},
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: GenerateIdentitySchema(&scopedId),
+		},
+	}
+
+	d := r.TestResourceData()
+	if err := SetResourceIdentityData(d, &scopedId); err != nil {
+		t.Fatalf("expected SetResourceIdentityData to succeed, got: %s", err)
+	}
+
+	identity, err := d.Identity()
+	if err != nil {
+		t.Fatalf("getting identity: %s", err)
+	}
+
+	if v := identity.Get("scope"); v != scopedId.Scope {
+		t.Fatalf("expected scope to be %q, got %q", scopedId.Scope, v)
+	}
+	if v := identity.Get("name"); v != scopedId.TargetName {
+		t.Fatalf("expected name to be %q, got %q", scopedId.TargetName, v)
+	}
+}
+
+func TestValidateResourceIdentityData_Scoped(t *testing.T) {
+	scopedId := commonids.NewChaosStudioTargetID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "target1")
+
+	idSchema := GenerateIdentitySchema(&scopedId)()
+	rawIdentity := map[string]string{
+		"scope": scopedId.Scope,
+		"name":  scopedId.TargetName,
+	}
+
+	d := schema.TestResourceDataWithIdentityRaw(t, map[string]*schema.Schema{}, idSchema, rawIdentity)
+	if err := ValidateResourceIdentityData(d, &scopedId); err != nil {
+		t.Fatalf("expected ValidateResourceIdentityData to succeed, got: %s", err)
+	}
+
+	expectedId := scopedId.ID()
+	if d.Id() != expectedId {
+		t.Fatalf("expected d.Id() to be %q, got %q", expectedId, d.Id())
+	}
+}
