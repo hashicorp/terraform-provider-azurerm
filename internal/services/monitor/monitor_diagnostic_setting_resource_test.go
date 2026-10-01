@@ -18,6 +18,10 @@ import (
 
 type MonitorDiagnosticSettingResource struct{}
 
+func (r MonitorDiagnosticSettingResource) basic(data acceptance.TestData) string {
+	return r.storageAccount(data)
+}
+
 func TestAccMonitorDiagnosticSetting_eventhub(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
 	r := MonitorDiagnosticSettingResource{}

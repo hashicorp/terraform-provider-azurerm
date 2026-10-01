@@ -3,6 +3,8 @@
 
 package monitor
 
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "resource_uri:target_resource_id,name"
+
 import (
 	"context"
 	"fmt"
@@ -10,6 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionruleassociations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionrules"
@@ -85,6 +88,16 @@ func (r DataCollectionRuleAssociationResource) ModelObject() any {
 	return &DataCollectionRuleAssociationModel{}
 }
 
+var (
+	_ sdk.Resource             = DataCollectionRuleAssociationResource{}
+	_ sdk.ResourceWithIdentity = DataCollectionRuleAssociationResource{}
+	_ sdk.ResourceWithUpdate   = DataCollectionRuleAssociationResource{}
+)
+
+func (r DataCollectionRuleAssociationResource) Identity() resourceids.ResourceId {
+	return &datacollectionruleassociations.ScopedDataCollectionRuleAssociationId{}
+}
+
 func (r DataCollectionRuleAssociationResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -126,6 +139,9 @@ func (r DataCollectionRuleAssociationResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return fmt.Errorf("setting resource identity: %w", err)
+			}
 			return nil
 		},
 		Timeout: 30 * time.Minute,
@@ -160,13 +176,17 @@ func (r DataCollectionRuleAssociationResource) Read() sdk.ResourceFunc {
 				}
 			}
 
-			return metadata.Encode(&DataCollectionRuleAssociationModel{
+			if err := metadata.Encode(&DataCollectionRuleAssociationModel{
 				Name:                     id.DataCollectionRuleAssociationName,
 				TargetResourceId:         id.ResourceUri,
 				DataCollectionEndpointId: dataCollectionEndpointId,
 				DataCollectionRuleId:     dataCollectionRuleId,
 				Description:              description,
-			})
+			}); err != nil {
+				return err
+			}
+
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, id)
 		},
 		Timeout: 5 * time.Minute,
 	}
@@ -221,7 +241,8 @@ func (r DataCollectionRuleAssociationResource) Update() sdk.ResourceFunc {
 			if _, err := client.Create(ctx, *id, *existing); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
-			return nil
+
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, id)
 		},
 		Timeout: 30 * time.Minute,
 	}
