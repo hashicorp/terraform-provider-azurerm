@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `applied_scope_type` - (Optional) The scope type to which the reservation benefit is applied. Possible values are `Shared`, `Single`, and `ManagementGroup`. Defaults to `Shared`. Changing this forces a new resource to be created.
 
-* `renew` - (Optional) Whether the reservation automatically renews at the end of the term. Defaults to `true`. Changing this forces a new resource to be created.
+* `renew` - (Optional) Whether the reservation automatically renews at the end of the term. Defaults to `true`. This can be changed in place after purchase.
 
 ## Attributes Reference
 

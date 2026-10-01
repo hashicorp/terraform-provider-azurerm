@@ -99,6 +99,14 @@ type ReservationListResponse struct {
 	Value []ReservationResponse `json:"value"`
 }
 
+type ReservationPatchProperties struct {
+	Renew bool `json:"renew"`
+}
+
+type ReservationPatchRequest struct {
+	Properties *ReservationPatchProperties `json:"properties,omitempty"`
+}
+
 type ReservationReturnProperties struct {
 	ReturnReason string `json:"returnReason,omitempty"`
 	Message      string `json:"message,omitempty"`
@@ -250,6 +258,55 @@ func (c *Client) GetReservations(ctx context.Context, path string) ([]Reservatio
 		return nil, fmt.Errorf("unmarshaling list reservations response: %+v", err)
 	}
 	return result.Value, nil
+}
+
+// UpdateRenew sets the `renew` flag on every reservation of the order
+// (PATCH {order}/reservations/{reservation}). `renew` is a property of the
+// reservation, not of the reservation order.
+func (c *Client) UpdateRenew(ctx context.Context, path string, renew bool) error {
+	reservations, err := c.GetReservations(ctx, path)
+	if err != nil {
+		return err
+	}
+	if len(reservations) == 0 {
+		return fmt.Errorf("no reservations found for %s", path)
+	}
+
+	for _, reservation := range reservations {
+		opts := sdkclient.RequestOptions{
+			ContentType:         "application/json; charset=utf-8",
+			ExpectedStatusCodes: []int{http.StatusOK, http.StatusAccepted},
+			HttpMethod:          http.MethodPatch,
+			Path:                path + "/reservations/" + reservation.Name,
+		}
+
+		req, err := c.ReservationOrdersClient.NewRequest(ctx, opts)
+		if err != nil {
+			return fmt.Errorf("building update renew request: %+v", err)
+		}
+		if err = req.Marshal(ReservationPatchRequest{
+			Properties: &ReservationPatchProperties{Renew: renew},
+		}); err != nil {
+			return fmt.Errorf("marshaling update renew request body: %+v", err)
+		}
+
+		resp, execErr := req.Execute(ctx)
+		if execErr != nil {
+			return fmt.Errorf("executing update renew request: %+v", execErr)
+		}
+
+		if resp.Response != nil && resp.Response.StatusCode == http.StatusAccepted {
+			poller, pollerErr := resourcemanager.PollerFromResponse(resp, c.ReservationOrdersClient)
+			if pollerErr != nil {
+				return fmt.Errorf("building update renew poller: %+v", pollerErr)
+			}
+			if pollerErr = poller.PollUntilDone(ctx); pollerErr != nil {
+				return fmt.Errorf("polling after update renew: %+v", pollerErr)
+			}
+		}
+	}
+
+	return nil
 }
 
 // Return attempts to return (cancel/refund) a PTU reservation order.

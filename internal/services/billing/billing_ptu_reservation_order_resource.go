@@ -126,9 +126,8 @@ func (r BillingPtuReservationOrderResource) Arguments() map[string]*pluginsdk.Sc
 		"renew": {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
-			ForceNew:    true,
 			Default:     true,
-			Description: "Whether the reservation auto-renews at the end of the term. Changing this forces a new resource to be created.",
+			Description: "Whether the reservation auto-renews at the end of the term. This can be changed in place after purchase.",
 		},
 	}
 }
@@ -271,6 +270,25 @@ func (r BillingPtuReservationOrderResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Billing
+
+			id, err := parse.PtuReservationOrderID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			var model BillingPtuReservationOrderResourceModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			// Every other argument is ForceNew, so `renew` is the only in-place update.
+			if metadata.ResourceData.HasChange("renew") {
+				if err := client.UpdateRenew(ctx, id.ID(), model.Renew); err != nil {
+					return fmt.Errorf("updating `renew` for %s: %+v", id, err)
+				}
+			}
+
 			return nil
 		},
 	}
