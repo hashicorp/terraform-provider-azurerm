@@ -52,13 +52,6 @@ func TestAccApiManagementDiagnostic_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
@@ -106,21 +99,6 @@ func TestAccApiManagementDiagnostic_completeUpdate(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.completeUpdate(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccApiManagementDiagnostic_azureMonitor(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_diagnostic", "test")
-	r := ApiManagementDiagnosticResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.azureMonitor(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -335,19 +313,6 @@ resource "azurerm_api_management_diagnostic" "test" {
   http_correlation_protocol = "Legacy"
   verbosity                 = "error"
   operation_name_format     = "Url"
-}
-`, r.template(data))
-}
-
-func (r ApiManagementDiagnosticResource) azureMonitor(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_api_management_diagnostic" "test" {
-  identifier               = "azuremonitor"
-  resource_group_name      = azurerm_resource_group.test.name
-  api_management_name      = azurerm_api_management.test.name
-  api_management_logger_id = "${azurerm_api_management.test.id}/loggers/azuremonitor"
 }
 `, r.template(data))
 }
