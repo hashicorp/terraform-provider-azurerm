@@ -32,7 +32,7 @@ BUG FIXES:
 
 * `azurerm_container_app_job` - the `event_stream_endpoint` and `outbound_ip_addresses` properties are now set into state ([#33513](https://github.com/hashicorp/terraform-provider-azurerm/issues/33513))
 
-## v5.7.0 (September 24, 2026)
+## 5.7.0 (September 24, 2026)
 
 FEATURES:
 
