@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_elastic_cloud_serverless
 
-Manages an Elastic Cloud Serverless project using a `Microsoft.Elastic/monitors` resource.
+Manages an Elastic Cloud Serverless project.
 
 ## Example Usage
 

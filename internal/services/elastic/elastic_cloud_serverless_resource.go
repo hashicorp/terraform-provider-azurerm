@@ -65,6 +65,20 @@ func (r ElasticCloudServerlessResource) Arguments() map[string]*pluginsdk.Schema
 
 		"location": commonschema.Location(),
 
+		"configuration_type": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(elasticmonitorresources.PossibleValuesForConfigurationType(), false),
+		},
+
+		"elastic_cloud_email_address": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.IsEmailAddress,
+		},
+
 		"kind": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -72,11 +86,12 @@ func (r ElasticCloudServerlessResource) Arguments() map[string]*pluginsdk.Schema
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"sku_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+		"offer_id": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[a-z0-9_-]{1,50}$`),
+				"must be between 1 and 50 characters in length and contain only lowercase letters, numbers, hyphens and underscores"),
 		},
 
 		"project_type": {
@@ -90,19 +105,11 @@ func (r ElasticCloudServerlessResource) Arguments() map[string]*pluginsdk.Schema
 			}, false),
 		},
 
-		"configuration_type": {
+		"sku_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringInSlice(elasticmonitorresources.PossibleValuesForConfigurationType(), false),
-		},
-
-		"offer_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[a-z0-9_-]{1,50}$`),
-				"must be between 1 and 50 characters in length and contain only lowercase letters, numbers, hyphens and underscores"),
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"term_id": {
@@ -110,13 +117,6 @@ func (r ElasticCloudServerlessResource) Arguments() map[string]*pluginsdk.Schema
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotWhiteSpace,
-		},
-
-		"elastic_cloud_email_address": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.IsEmailAddress,
 		},
 
 		"generate_api_key": {
@@ -361,8 +361,8 @@ func (r ElasticCloudServerlessResource) flatten(metadata sdk.ResourceMetaData, i
 	}
 
 	if project := props.ProjectDetails; project != nil {
-		state.ConfigurationType = string(pointer.From(project.ConfigurationType))
-		state.ProjectType = string(pointer.From(project.ProjectType))
+		state.ConfigurationType = pointer.FromEnum(project.ConfigurationType)
+		state.ProjectType = pointer.FromEnum(project.ProjectType)
 	}
 
 	if user := props.UserInfo; user != nil {
