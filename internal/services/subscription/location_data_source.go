@@ -38,7 +38,7 @@ func (r LocationDataSource) ResourceType() string {
 	return "azurerm_location"
 }
 
-func (r LocationDataSource) ModelObject() interface{} {
+func (r LocationDataSource) ModelObject() any {
 	return &LocationDataSourceModel{}
 }
 

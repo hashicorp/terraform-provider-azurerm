@@ -43,7 +43,7 @@ func (r MsSqlManagedInstanceStartStopScheduleResource) ResourceType() string {
 	return "azurerm_mssql_managed_instance_start_stop_schedule"
 }
 
-func (r MsSqlManagedInstanceStartStopScheduleResource) ModelObject() interface{} {
+func (r MsSqlManagedInstanceStartStopScheduleResource) ModelObject() any {
 	return &SqlManagedInstanceStartStopScheduleModel{}
 }
 

@@ -141,7 +141,7 @@ func resourceApplicationInsightsWebTests() *pluginsdk.Resource {
 	}
 }
 
-func resourceApplicationInsightsWebTestsCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsWebTestsCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppInsights.WebTestsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -171,7 +171,7 @@ func resourceApplicationInsightsWebTestsCreate(d *pluginsdk.ResourceData, meta i
 	// of the Application Insights component, and the value is "Resource". This tag is injected into the
 	// user-supplied tags map before sending the request. It is generally undocumented but can be seen in
 	// https://learn.microsoft.com/azure/azure-monitor/app/availability?tabs=standard
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 	tagKey := fmt.Sprintf("hidden-link:%s", appInsightsId.ID())
 	t[tagKey] = "Resource"
 
@@ -188,7 +188,7 @@ func resourceApplicationInsightsWebTestsCreate(d *pluginsdk.ResourceData, meta i
 			Timeout:            pointer.To(int64(d.Get("timeout").(int))),
 			Kind:               webtestsapis.WebTestKind(d.Get("kind").(string)),
 			RetryEnabled:       pointer.To(d.Get("retry_enabled").(bool)),
-			Locations:          expandApplicationInsightsWebTestGeoLocations(d.Get("geo_locations").([]interface{})),
+			Locations:          expandApplicationInsightsWebTestGeoLocations(d.Get("geo_locations").([]any)),
 			Configuration: &webtestsapis.WebTestPropertiesConfiguration{
 				WebTest: pointer.To(d.Get("configuration").(string)),
 			},
@@ -208,7 +208,7 @@ func resourceApplicationInsightsWebTestsCreate(d *pluginsdk.ResourceData, meta i
 	return resourceApplicationInsightsWebTestsRead(d, meta)
 }
 
-func resourceApplicationInsightsWebTestsUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsWebTestsUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppInsights.WebTestsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -255,7 +255,7 @@ func resourceApplicationInsightsWebTestsUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if d.HasChange("geo_locations") {
-		props.Locations = expandApplicationInsightsWebTestGeoLocations(d.Get("geo_locations").([]interface{}))
+		props.Locations = expandApplicationInsightsWebTestGeoLocations(d.Get("geo_locations").([]any))
 	}
 
 	if d.HasChange("configuration") {
@@ -275,7 +275,7 @@ func resourceApplicationInsightsWebTestsUpdate(d *pluginsdk.ResourceData, meta i
 			return err
 		}
 
-		t := d.Get("tags").(map[string]interface{})
+		t := d.Get("tags").(map[string]any)
 		tagKey := fmt.Sprintf("hidden-link:%s", appInsightsId.ID())
 		t[tagKey] = "Resource"
 		webTest.Tags = tags.Expand(t)
@@ -288,7 +288,7 @@ func resourceApplicationInsightsWebTestsUpdate(d *pluginsdk.ResourceData, meta i
 	return resourceApplicationInsightsWebTestsRead(d, meta)
 }
 
-func resourceApplicationInsightsWebTestsRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsWebTestsRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppInsights.WebTestsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -359,7 +359,7 @@ func resourceApplicationInsightsWebTestsRead(d *pluginsdk.ResourceData, meta int
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceApplicationInsightsWebTestsDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsWebTestsDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppInsights.WebTestsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -380,7 +380,7 @@ func resourceApplicationInsightsWebTestsDelete(d *pluginsdk.ResourceData, meta i
 	return err
 }
 
-func expandApplicationInsightsWebTestGeoLocations(input []interface{}) []webtestsapis.WebTestGeolocation {
+func expandApplicationInsightsWebTestGeoLocations(input []any) []webtestsapis.WebTestGeolocation {
 	locations := make([]webtestsapis.WebTestGeolocation, 0)
 
 	for _, v := range input {

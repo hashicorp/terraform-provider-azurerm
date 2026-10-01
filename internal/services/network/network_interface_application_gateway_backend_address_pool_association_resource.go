@@ -64,7 +64,7 @@ func resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociation() *
 	}
 }
 
-func resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -154,7 +154,7 @@ func resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationCrea
 	return resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationRead(d, meta)
 }
 
-func resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -217,7 +217,7 @@ func resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationRead
 	return nil
 }
 
-func resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

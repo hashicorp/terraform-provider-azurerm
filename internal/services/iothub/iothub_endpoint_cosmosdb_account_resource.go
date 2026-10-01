@@ -146,7 +146,7 @@ func (r IotHubEndpointCosmosDBAccountResource) ResourceType() string {
 	return "azurerm_iothub_endpoint_cosmosdb_account"
 }
 
-func (r IotHubEndpointCosmosDBAccountResource) ModelObject() interface{} {
+func (r IotHubEndpointCosmosDBAccountResource) ModelObject() any {
 	return &IotHubEndpointCosmosDBAccountResource{}
 }
 

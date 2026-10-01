@@ -75,7 +75,7 @@ func dataSourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorFirewallPoliciesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

@@ -234,7 +234,7 @@ func resourceExpressRouteCircuitPeering() *pluginsdk.Resource {
 	}
 }
 
-func resourceExpressRouteCircuitPeeringCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitPeeringCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRouteCircuitPeerings
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -303,7 +303,7 @@ func resourceExpressRouteCircuitPeeringCreate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if strings.EqualFold(id.PeeringName, string(expressroutecircuitpeerings.ExpressRoutePeeringTypeMicrosoftPeering)) {
-		peerings := d.Get("microsoft_peering_config").([]interface{})
+		peerings := d.Get("microsoft_peering_config").([]any)
 		if len(peerings) == 0 && primaryPeerAddressPrefix != "" {
 			return fmt.Errorf("`microsoft_peering_config` must be specified when config for Ipv4 and `peering_type` is set to `MicrosoftPeering`")
 		}
@@ -323,7 +323,7 @@ func resourceExpressRouteCircuitPeeringCreate(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("`routeFilterId` may only be specified when `peering_type` is set to `MicrosoftPeering`")
 	}
 
-	ipv6Peering := d.Get("ipv6").([]interface{})
+	ipv6Peering := d.Get("ipv6").([]any)
 	if len(ipv6Peering) != 0 && id.PeeringName == string(expressroutecircuitpeerings.ExpressRoutePeeringTypeAzurePublicPeering) {
 		return fmt.Errorf("`ipv6` may only be specified when `peering_type` is `MicrosoftPeering` or `AzurePrivatePeering`")
 	}
@@ -343,7 +343,7 @@ func resourceExpressRouteCircuitPeeringCreate(d *pluginsdk.ResourceData, meta in
 	return resourceExpressRouteCircuitPeeringRead(d, meta)
 }
 
-func resourceExpressRouteCircuitPeeringUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitPeeringUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRouteCircuitPeerings
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -428,7 +428,7 @@ func resourceExpressRouteCircuitPeeringUpdate(d *pluginsdk.ResourceData, meta in
 
 	if d.HasChange("microsoft_peering_config") {
 		if strings.EqualFold(id.PeeringName, string(expressroutecircuitpeerings.ExpressRoutePeeringTypeMicrosoftPeering)) {
-			peerings := d.Get("microsoft_peering_config").([]interface{})
+			peerings := d.Get("microsoft_peering_config").([]any)
 			if len(peerings) == 0 && primaryPeerAddressPrefix != "" {
 				return fmt.Errorf("`microsoft_peering_config` must be specified when config for Ipv4 and `peering_type` is set to `MicrosoftPeering`")
 			}
@@ -450,7 +450,7 @@ func resourceExpressRouteCircuitPeeringUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if d.HasChange("ipv6") {
-		ipv6Peering := d.Get("ipv6").([]interface{})
+		ipv6Peering := d.Get("ipv6").([]any)
 		if len(ipv6Peering) != 0 && id.PeeringName == string(expressroutecircuitpeerings.ExpressRoutePeeringTypeAzurePublicPeering) {
 			return fmt.Errorf("`ipv6` may only be specified when `peering_type` is `MicrosoftPeering` or `AzurePrivatePeering`")
 		}
@@ -471,7 +471,7 @@ func resourceExpressRouteCircuitPeeringUpdate(d *pluginsdk.ResourceData, meta in
 	return resourceExpressRouteCircuitPeeringRead(d, meta)
 }
 
-func resourceExpressRouteCircuitPeeringRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitPeeringRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRouteCircuitPeerings
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -524,7 +524,7 @@ func resourceExpressRouteCircuitPeeringRead(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func resourceExpressRouteCircuitPeeringDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitPeeringDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRouteCircuitPeerings
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -544,19 +544,19 @@ func resourceExpressRouteCircuitPeeringDelete(d *pluginsdk.ResourceData, meta in
 	return err
 }
 
-func expandExpressRouteCircuitPeeringMicrosoftConfig(input []interface{}) *expressroutecircuitpeerings.ExpressRouteCircuitPeeringConfig {
+func expandExpressRouteCircuitPeeringMicrosoftConfig(input []any) *expressroutecircuitpeerings.ExpressRouteCircuitPeeringConfig {
 	if len(input) == 0 {
 		return nil
 	}
-	peering := input[0].(map[string]interface{})
+	peering := input[0].(map[string]any)
 
 	prefixes := make([]string, 0)
-	for _, v := range peering["advertised_public_prefixes"].([]interface{}) {
+	for _, v := range peering["advertised_public_prefixes"].([]any) {
 		prefixes = append(prefixes, v.(string))
 	}
 
 	advertisedCommunities := make([]string, 0)
-	for _, v := range peering["advertised_communities"].([]interface{}) {
+	for _, v := range peering["advertised_communities"].([]any) {
 		advertisedCommunities = append(advertisedCommunities, v.(string))
 	}
 
@@ -568,14 +568,14 @@ func expandExpressRouteCircuitPeeringMicrosoftConfig(input []interface{}) *expre
 	}
 }
 
-func expandExpressRouteCircuitIpv6PeeringConfig(input []interface{}) (*expressroutecircuitpeerings.IPv6ExpressRouteCircuitPeeringConfig, error) {
+func expandExpressRouteCircuitIpv6PeeringConfig(input []any) (*expressroutecircuitpeerings.IPv6ExpressRouteCircuitPeeringConfig, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	peeringConfig := expressroutecircuitpeerings.IPv6ExpressRouteCircuitPeeringConfig{
-		MicrosoftPeeringConfig: expandExpressRouteCircuitPeeringMicrosoftConfig(v["microsoft_peering"].([]interface{})),
+		MicrosoftPeeringConfig: expandExpressRouteCircuitPeeringMicrosoftConfig(v["microsoft_peering"].([]any)),
 		State:                  pointer.To(expressroutecircuitpeerings.ExpressRouteCircuitPeeringStateEnabled),
 	}
 
@@ -605,12 +605,12 @@ func expandExpressRouteCircuitIpv6PeeringConfig(input []interface{}) (*expressro
 	return &peeringConfig, nil
 }
 
-func flattenExpressRouteCircuitPeeringMicrosoftConfig(input *expressroutecircuitpeerings.ExpressRouteCircuitPeeringConfig) interface{} {
+func flattenExpressRouteCircuitPeeringMicrosoftConfig(input *expressroutecircuitpeerings.ExpressRouteCircuitPeeringConfig) any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	config := make(map[string]interface{})
+	config := make(map[string]any)
 	prefixes := make([]string, 0)
 	if customerASN := input.CustomerASN; customerASN != nil {
 		config["customer_asn"] = *customerASN
@@ -627,20 +627,20 @@ func flattenExpressRouteCircuitPeeringMicrosoftConfig(input *expressroutecircuit
 	}
 	config["advertised_public_prefixes"] = prefixes
 
-	return []interface{}{config}
+	return []any{config}
 }
 
-func flattenExpressRouteCircuitIpv6PeeringConfig(input *expressroutecircuitpeerings.IPv6ExpressRouteCircuitPeeringConfig) []interface{} {
+func flattenExpressRouteCircuitIpv6PeeringConfig(input *expressroutecircuitpeerings.IPv6ExpressRouteCircuitPeeringConfig) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
 	routeFilterId := ""
 	if input.RouteFilter != nil && input.RouteFilter.Id != nil {
 		routeFilterId = *input.RouteFilter.Id
 	}
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"microsoft_peering":             flattenExpressRouteCircuitPeeringMicrosoftConfig(input.MicrosoftPeeringConfig),
 			"primary_peer_address_prefix":   pointer.From(input.PrimaryPeerAddressPrefix),
 			"secondary_peer_address_prefix": pointer.From(input.SecondaryPeerAddressPrefix),

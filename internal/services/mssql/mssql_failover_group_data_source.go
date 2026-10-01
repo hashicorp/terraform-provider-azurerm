@@ -49,7 +49,7 @@ func (d MsSqlFailoverGroupDataSource) ResourceType() string {
 	return "azurerm_mssql_failover_group"
 }
 
-func (d MsSqlFailoverGroupDataSource) ModelObject() interface{} {
+func (d MsSqlFailoverGroupDataSource) ModelObject() any {
 	return &MsSqlFailoverGroupDataSourceModel{}
 }
 

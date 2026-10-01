@@ -94,7 +94,7 @@ func (r RoleManagementPolicyResource) ResourceType() string {
 	return "azurerm_role_management_policy"
 }
 
-func (r RoleManagementPolicyResource) ModelObject() interface{} {
+func (r RoleManagementPolicyResource) ModelObject() any {
 	return &RoleManagementPolicyModel{}
 }
 

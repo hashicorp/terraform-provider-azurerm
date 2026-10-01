@@ -120,7 +120,7 @@ func resourceKeyVaultSecret() *pluginsdk.Resource {
 	}
 }
 
-func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -161,7 +161,7 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	contentType := d.Get("content_type").(string)
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
 	parameters := kv.SecretSetParameters{
 		Value:            pointer.To(value),
@@ -236,7 +236,7 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	return resourceKeyVaultSecretRead(d, meta)
 }
 
-func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -266,7 +266,7 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	value := d.Get("value").(string)
 	contentType := d.Get("content_type").(string)
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
 	secretAttributes := &kv.SecretAttributes{}
 
@@ -328,7 +328,7 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	return resourceKeyVaultSecretRead(d, meta)
 }
 
-func resourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -413,7 +413,7 @@ func resourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) err
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceKeyVaultSecretDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKeyVaultSecretDelete(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId

@@ -29,7 +29,7 @@ type NetAppVolumeGroupSAPHanaResource struct{}
 
 var _ sdk.Resource = NetAppVolumeGroupSAPHanaResource{}
 
-func (r NetAppVolumeGroupSAPHanaResource) ModelObject() interface{} {
+func (r NetAppVolumeGroupSAPHanaResource) ModelObject() any {
 	return &models.NetAppVolumeGroupSAPHanaModel{}
 }
 
@@ -164,7 +164,7 @@ func (r NetAppVolumeGroupSAPHanaResource) Arguments() map[string]*pluginsdk.Sche
 					"storage_quota_in_gb": {
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
-						ValidateFunc: validation.IntBetween(100, 102400),
+						ValidateFunc: validation.IntBetween(50, 102400),
 					},
 
 					"throughput_in_mibps": {
@@ -332,10 +332,10 @@ func (r NetAppVolumeGroupSAPHanaResource) CustomizeDiff() sdk.ResourceFunc {
 			rd := metadata.ResourceDiff
 
 			// Validate NFSv3 usage restrictions for SAP HANA volume groups
-			volumes := rd.Get("volume").([]interface{})
+			volumes := rd.Get("volume").([]any)
 			for i, vol := range volumes {
-				volumeMap := vol.(map[string]interface{})
-				protocols := volumeMap["protocols"].([]interface{})
+				volumeMap := vol.(map[string]any)
+				protocols := volumeMap["protocols"].([]any)
 				volumeSpecName := volumeMap["volume_spec_name"].(string)
 
 				// Check if NFSv3 is being used on critical SAP HANA volumes
@@ -354,8 +354,8 @@ func (r NetAppVolumeGroupSAPHanaResource) CustomizeDiff() sdk.ResourceFunc {
 
 				if rd.HasChange(protocolsKey) {
 					old, new := rd.GetChange(protocolsKey)
-					oldProtocols := old.([]interface{})
-					newProtocols := new.([]interface{})
+					oldProtocols := old.([]any)
+					newProtocols := new.([]any)
 
 					// Convert to string slices for validation
 					oldProtocolsStr := make([]string, len(oldProtocols))
@@ -370,11 +370,11 @@ func (r NetAppVolumeGroupSAPHanaResource) CustomizeDiff() sdk.ResourceFunc {
 
 					// Get the export policy rules configuration for this volume
 					exportPolicyRulesKey := fmt.Sprintf("volume.%d.export_policy_rule", i)
-					exportPolicyRules := rd.Get(exportPolicyRulesKey).([]interface{})
+					exportPolicyRules := rd.Get(exportPolicyRulesKey).([]any)
 
 					// For volume groups, kerberos and data replication are not directly supported, so we pass empty values
 					var kerberosEnabled bool
-					var dataReplication []interface{}
+					var dataReplication []any
 
 					validationErrors := validate.ValidateNetAppVolumeProtocolConversion(oldProtocolsStr, newProtocolsStr, kerberosEnabled, dataReplication, exportPolicyRules)
 					for _, err := range validationErrors {
@@ -501,10 +501,10 @@ func (r NetAppVolumeGroupSAPHanaResource) Update() sdk.ResourceFunc {
 						}
 
 						if metadata.ResourceData.HasChange(fmt.Sprintf("%v.export_policy_rule", volumeItem)) {
-							exportPolicyRuleRaw := metadata.ResourceData.Get(fmt.Sprintf("%v.export_policy_rule", volumeItem)).([]interface{})
+							exportPolicyRuleRaw := metadata.ResourceData.Get(fmt.Sprintf("%v.export_policy_rule", volumeItem)).([]any)
 
 							// Validating export policy rules
-							volumeProtocolRaw := metadata.ResourceData.Get(fmt.Sprintf("%v.protocols", volumeItem)).([]interface{})[0]
+							volumeProtocolRaw := metadata.ResourceData.Get(fmt.Sprintf("%v.protocols", volumeItem)).([]any)[0]
 							volumeProtocol := volumeProtocolRaw.(string)
 
 							errors := make([]error, 0)
@@ -512,7 +512,7 @@ func (r NetAppVolumeGroupSAPHanaResource) Update() sdk.ResourceFunc {
 								if ruleRaw != nil {
 									rule := volumegroups.ExportPolicyRule{}
 
-									v := ruleRaw.(map[string]interface{})
+									v := ruleRaw.(map[string]any)
 									rule.Nfsv3 = pointer.To(v["nfsv3_enabled"].(bool))
 									rule.Nfsv41 = pointer.To(v["nfsv41_enabled"].(bool))
 
@@ -527,7 +527,7 @@ func (r NetAppVolumeGroupSAPHanaResource) Update() sdk.ResourceFunc {
 							var protocolOverride []string
 							// Only override export policy protocols if we're also changing volume protocols
 							if metadata.ResourceData.HasChange(fmt.Sprintf("%v.protocols", volumeItem)) {
-								protocolsRaw := metadata.ResourceData.Get(fmt.Sprintf("%v.protocols", volumeItem)).([]interface{})
+								protocolsRaw := metadata.ResourceData.Get(fmt.Sprintf("%v.protocols", volumeItem)).([]any)
 								protocolOverride = make([]string, len(protocolsRaw))
 								for i, p := range protocolsRaw {
 									protocolOverride[i] = p.(string)
@@ -538,7 +538,7 @@ func (r NetAppVolumeGroupSAPHanaResource) Update() sdk.ResourceFunc {
 						}
 
 						if metadata.ResourceData.HasChange(fmt.Sprintf("%v.protocols", volumeItem)) {
-							protocolsRaw := metadata.ResourceData.Get(fmt.Sprintf("%v.protocols", volumeItem)).([]interface{})
+							protocolsRaw := metadata.ResourceData.Get(fmt.Sprintf("%v.protocols", volumeItem)).([]any)
 							protocols := make([]string, len(protocolsRaw))
 							for i, p := range protocolsRaw {
 								protocols[i] = p.(string)
@@ -548,7 +548,7 @@ func (r NetAppVolumeGroupSAPHanaResource) Update() sdk.ResourceFunc {
 
 						if metadata.ResourceData.HasChange(fmt.Sprintf("%v.data_protection_snapshot_policy", volumeItem)) {
 							// Validating that snapshot policies are not being created in a data protection volume
-							dataProtectionReplicationRaw := metadata.ResourceData.Get(fmt.Sprintf("%v.data_protection_replication", volumeItem)).([]interface{})
+							dataProtectionReplicationRaw := metadata.ResourceData.Get(fmt.Sprintf("%v.data_protection_replication", volumeItem)).([]any)
 							dataProtectionReplication := expandNetAppVolumeDataProtectionReplication(dataProtectionReplicationRaw)
 
 							if dataProtectionReplication != nil &&
@@ -557,7 +557,7 @@ func (r NetAppVolumeGroupSAPHanaResource) Update() sdk.ResourceFunc {
 								return fmt.Errorf("snapshot policy cannot be enabled on a data protection volume, %s", volumeId)
 							}
 
-							dataProtectionSnapshotPolicyRaw := metadata.ResourceData.Get(fmt.Sprintf("%v.data_protection_snapshot_policy", volumeItem)).([]interface{})
+							dataProtectionSnapshotPolicyRaw := metadata.ResourceData.Get(fmt.Sprintf("%v.data_protection_snapshot_policy", volumeItem)).([]any)
 							dataProtectionSnapshotPolicy := expandNetAppVolumeDataProtectionSnapshotPolicyPatch(dataProtectionSnapshotPolicyRaw)
 							update.Properties.DataProtection = &volumes.VolumePatchPropertiesDataProtection{
 								Snapshot: dataProtectionSnapshotPolicy,
@@ -570,7 +570,7 @@ func (r NetAppVolumeGroupSAPHanaResource) Update() sdk.ResourceFunc {
 						}
 
 						if metadata.ResourceData.HasChange(fmt.Sprintf("%v.tags", volumeItem)) {
-							tagsRaw := metadata.ResourceData.Get(fmt.Sprintf("%v.tags", volumeItem)).(map[string]interface{})
+							tagsRaw := metadata.ResourceData.Get(fmt.Sprintf("%v.tags", volumeItem)).(map[string]any)
 							update.Tags = tags.Expand(tagsRaw)
 						}
 

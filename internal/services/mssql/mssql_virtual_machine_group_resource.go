@@ -50,7 +50,7 @@ var (
 	_ sdk.ResourceWithUpdate = MsSqlVirtualMachineGroupResource{}
 )
 
-func (r MsSqlVirtualMachineGroupResource) ModelObject() interface{} {
+func (r MsSqlVirtualMachineGroupResource) ModelObject() any {
 	return &MsSqlVirtualMachineGroupModel{}
 }
 

@@ -59,7 +59,7 @@ func (r BillingAccountCostManagementExportResource) Attributes() map[string]*plu
 	return r.base.attributes()
 }
 
-func (r BillingAccountCostManagementExportResource) ModelObject() interface{} {
+func (r BillingAccountCostManagementExportResource) ModelObject() any {
 	return &BillingAccountCostManagementExportModel{}
 }
 

@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func HubRouteTableName(v interface{}, k string) ([]string, []error) {
+func HubRouteTableName(v any, k string) ([]string, []error) {
 	return validation.StringMatch(
 		regexp.MustCompile(`^[^<>%&:?/+]+$`),
 		`must not contain characters from "<>&:?/+%"`,

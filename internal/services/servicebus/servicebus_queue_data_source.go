@@ -121,7 +121,7 @@ func dataSourceServiceBusQueue() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceBus.QueuesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId

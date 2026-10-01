@@ -94,7 +94,7 @@ func resourceApplicationInsightsSmartDetectionRule() *pluginsdk.Resource {
 	}
 }
 
-func resourceApplicationInsightsSmartDetectionRuleUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsSmartDetectionRuleUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppInsights.SmartDetectionRuleClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -126,7 +126,7 @@ func resourceApplicationInsightsSmartDetectionRuleUpdate(d *pluginsdk.ResourceDa
 	return resourceApplicationInsightsSmartDetectionRuleRead(d, meta)
 }
 
-func resourceApplicationInsightsSmartDetectionRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsSmartDetectionRuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppInsights.SmartDetectionRuleClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -157,7 +157,7 @@ func resourceApplicationInsightsSmartDetectionRuleRead(d *pluginsdk.ResourceData
 	return nil
 }
 
-func resourceApplicationInsightsSmartDetectionRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsSmartDetectionRuleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppInsights.SmartDetectionRuleClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -186,7 +186,7 @@ func resourceApplicationInsightsSmartDetectionRuleDelete(d *pluginsdk.ResourceDa
 		Name:                           pointer.To(id.ConfigurationId),
 		Enabled:                        resp.Model.RuleDefinitions.IsEnabledByDefault,
 		SendEmailsToSubscriptionOwners: resp.Model.RuleDefinitions.SupportsEmailNotifications,
-		CustomEmails:                   pluginsdk.ExpandStringSlice([]interface{}{}),
+		CustomEmails:                   pluginsdk.ExpandStringSlice([]any{}),
 	}
 
 	// Application Insights defaults all the Smart Detection Rules so if a user wants to delete a rule, we'll update it back to it's default values.
@@ -208,7 +208,7 @@ func smartDetectionRuleNameDiff(_, old string, new string, _ *pluginsdk.Resource
 	return strings.EqualFold(old, apiNew)
 }
 
-func convertUiNameToApiName(uiName interface{}) string {
+func convertUiNameToApiName(uiName any) string {
 	apiName := uiName.(string)
 	switch uiName.(string) {
 	case "Slow page load time":

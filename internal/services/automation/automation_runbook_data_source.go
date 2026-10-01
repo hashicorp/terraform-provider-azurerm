@@ -92,7 +92,7 @@ func (d AutomationRunbookDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (d AutomationRunbookDataSource) ModelObject() interface{} {
+func (d AutomationRunbookDataSource) ModelObject() any {
 	return &AutomationRunbookDataSourceModel{}
 }
 

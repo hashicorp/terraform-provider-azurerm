@@ -60,7 +60,7 @@ type ReplicaMsSqlVirtualMachineAvailabilityGroupListener struct {
 
 var _ sdk.Resource = MsSqlVirtualMachineAvailabilityGroupListenerResource{}
 
-func (r MsSqlVirtualMachineAvailabilityGroupListenerResource) ModelObject() interface{} {
+func (r MsSqlVirtualMachineAvailabilityGroupListenerResource) ModelObject() any {
 	return &MsSqlVirtualMachineAvailabilityGroupListenerModel{}
 }
 
@@ -396,7 +396,7 @@ func expandMsSqlVirtualMachineAvailabilityGroupListenerLoadBalancerConfiguration
 		}
 		lbConfig.LoadBalancerResourceId = pointer.To(parsedLbId)
 
-		var parsedIds []interface{}
+		var parsedIds []any
 		for _, sqlVmId := range lb.SqlVirtualMachineIds {
 			parsedId, err := sqlvirtualmachines.ParseSqlVirtualMachineID(sqlVmId)
 			if err != nil {
@@ -584,10 +584,10 @@ func flattenMsSqlVirtualMachineAvailabilityGroupListenerReplicas(input *[]availa
 	return results, nil
 }
 
-func ReplicaSchemaMsSqlVirtualMachineAvailabilityGroupListenerHash(v interface{}) int {
+func ReplicaSchemaMsSqlVirtualMachineAvailabilityGroupListenerHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
+	if m, ok := v.(map[string]any); ok {
 		fmt.Fprintf(&buf, "%s-", strings.ToLower(m["sql_virtual_machine_id"].(string)))
 		fmt.Fprintf(&buf, "%s-", m["role"].(string))
 		fmt.Fprintf(&buf, "%s-", m["commit"].(string))

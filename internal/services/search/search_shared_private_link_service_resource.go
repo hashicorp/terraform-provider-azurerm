@@ -87,7 +87,7 @@ func (r SharedPrivateLinkServiceResource) ResourceType() string {
 	return "azurerm_search_shared_private_link_service"
 }
 
-func (r SharedPrivateLinkServiceResource) ModelObject() interface{} {
+func (r SharedPrivateLinkServiceResource) ModelObject() any {
 	return &SharedPrivateLinkServiceModel{}
 }
 

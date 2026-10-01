@@ -104,12 +104,12 @@ func (r ArcKubernetesFluxConfigurationResource) ResourceType() string {
 	return "azurerm_arc_kubernetes_flux_configuration"
 }
 
-func (r ArcKubernetesFluxConfigurationResource) ModelObject() interface{} {
+func (r ArcKubernetesFluxConfigurationResource) ModelObject() any {
 	return &ArcKubernetesFluxConfigurationModel{}
 }
 
 func (r ArcKubernetesFluxConfigurationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return func(val interface{}, key string) (warns []string, errs []error) {
+	return func(val any, key string) (warns []string, errs []error) {
 		idRaw, ok := val.(string)
 		if !ok {
 			errs = append(errs, fmt.Errorf("expected `id` to be a string but got %+v", val))

@@ -134,7 +134,7 @@ func (AssignmentDataSource) Attributes() map[string]*schema.Schema {
 	}
 }
 
-func (AssignmentDataSource) ModelObject() interface{} {
+func (AssignmentDataSource) ModelObject() any {
 	return &AssignmentDataSourceModel{}
 }
 

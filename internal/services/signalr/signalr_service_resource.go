@@ -61,7 +61,7 @@ func resourceArmSignalRService() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SignalR.SignalRClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -84,7 +84,7 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	sku := d.Get("sku").([]interface{})
+	sku := d.Get("sku").([]any)
 	connectivityLogsEnabled := false
 	if v, ok := d.GetOk("connectivity_logs_enabled"); ok {
 		connectivityLogsEnabled = v.(bool)
@@ -107,7 +107,7 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 		serviceMode = v.(string)
 	}
 
-	cors := d.Get("cors").([]interface{})
+	cors := d.Get("cors").([]any)
 	upstreamSettings := d.Get("upstream_endpoint").(*pluginsdk.Set).List()
 
 	expandedFeatures := make([]signalr.SignalRFeature, 0)
@@ -137,7 +137,7 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	identity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
+	identity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -150,7 +150,7 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 			Cors:                     expandSignalRCors(cors),
 			Features:                 &expandedFeatures,
 			Upstream:                 expandUpstreamSettings(upstreamSettings),
-			LiveTraceConfiguration:   expandSignalRLiveTraceConfig(d.Get("live_trace").([]interface{})),
+			LiveTraceConfiguration:   expandSignalRLiveTraceConfig(d.Get("live_trace").([]any)),
 			ResourceLogConfiguration: resourceLogsData,
 			PublicNetworkAccess:      pointer.To(publicNetworkAcc),
 			DisableAadAuth:           pointer.To(!d.Get("aad_auth_enabled").(bool)),
@@ -163,7 +163,7 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 			},
 		},
 		Sku:  expandSignalRServiceSku(sku),
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, resourceType, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
@@ -177,7 +177,7 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 	return resourceArmSignalRServiceRead(d, meta)
 }
 
-func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SignalR.SignalRClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -328,7 +328,7 @@ func resourceArmSignalRServiceFlatten(d *pluginsdk.ResourceData, id *signalr.Sig
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SignalR.SignalRClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -358,7 +358,7 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if d.HasChange("sku") {
-		sku := d.Get("sku").([]interface{})
+		sku := d.Get("sku").([]any)
 		resourceType.Sku = expandSignalRServiceSku(sku)
 		currentSku = resourceType.Sku.Name
 	}
@@ -367,7 +367,7 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		resourceType.Properties = &signalr.SignalRProperties{}
 
 		if d.HasChange("cors") {
-			corsRaw := d.Get("cors").([]interface{})
+			corsRaw := d.Get("cors").([]any)
 			resourceType.Properties.Cors = expandSignalRCors(corsRaw)
 		}
 
@@ -383,7 +383,7 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		if d.HasChange("identity") {
-			identity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
+			identity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]any))
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
@@ -460,12 +460,12 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		if d.HasChange("live_trace") {
-			resourceType.Properties.LiveTraceConfiguration = expandSignalRLiveTraceConfig(d.Get("live_trace").([]interface{}))
+			resourceType.Properties.LiveTraceConfiguration = expandSignalRLiveTraceConfig(d.Get("live_trace").([]any))
 		}
 	}
 
 	if d.HasChange("tags") {
-		tagsRaw := d.Get("tags").(map[string]interface{})
+		tagsRaw := d.Get("tags").(map[string]any)
 		resourceType.Tags = tags.Expand(tagsRaw)
 	}
 
@@ -498,7 +498,7 @@ func resourceArmSignalRServiceUpdate(d *pluginsdk.ResourceData, meta interface{}
 	return resourceArmSignalRServiceRead(d, meta)
 }
 
-func resourceArmSignalRServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmSignalRServiceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SignalR.SignalRClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -547,18 +547,18 @@ func signalRFeature(featureFlag signalr.FeatureFlags, value string) signalr.Sign
 	}
 }
 
-func expandUpstreamSettings(input []interface{}) *signalr.ServerlessUpstreamSettings {
+func expandUpstreamSettings(input []any) *signalr.ServerlessUpstreamSettings {
 	upstreamTemplates := make([]signalr.UpstreamTemplate, 0)
 
 	for _, upstreamSetting := range input {
-		setting := upstreamSetting.(map[string]interface{})
+		setting := upstreamSetting.(map[string]any)
 		auth := signalr.UpstreamAuthSettings{
 			Type: pointer.To(signalr.UpstreamAuthTypeNone),
 		}
 		upstreamTemplate := signalr.UpstreamTemplate{
-			HubPattern:      pointer.To(strings.Join(*pluginsdk.ExpandStringSlice(setting["hub_pattern"].([]interface{})), ",")),
-			EventPattern:    pointer.To(strings.Join(*pluginsdk.ExpandStringSlice(setting["event_pattern"].([]interface{})), ",")),
-			CategoryPattern: pointer.To(strings.Join(*pluginsdk.ExpandStringSlice(setting["category_pattern"].([]interface{})), ",")),
+			HubPattern:      pointer.To(strings.Join(*pluginsdk.ExpandStringSlice(setting["hub_pattern"].([]any)), ",")),
+			EventPattern:    pointer.To(strings.Join(*pluginsdk.ExpandStringSlice(setting["event_pattern"].([]any)), ",")),
+			CategoryPattern: pointer.To(strings.Join(*pluginsdk.ExpandStringSlice(setting["category_pattern"].([]any)), ",")),
 			UrlTemplate:     setting["url_template"].(string),
 			Auth:            &auth,
 		}
@@ -580,26 +580,26 @@ func expandUpstreamSettings(input []interface{}) *signalr.ServerlessUpstreamSett
 	}
 }
 
-func flattenUpstreamSettings(upstreamSettings *signalr.ServerlessUpstreamSettings) []interface{} {
-	result := make([]interface{}, 0)
+func flattenUpstreamSettings(upstreamSettings *signalr.ServerlessUpstreamSettings) []any {
+	result := make([]any, 0)
 	if upstreamSettings == nil || upstreamSettings.Templates == nil {
 		return result
 	}
 
 	for _, settings := range *upstreamSettings.Templates {
-		categoryPattern := make([]interface{}, 0)
+		categoryPattern := make([]any, 0)
 		if settings.CategoryPattern != nil {
 			categoryPatterns := strings.Split(*settings.CategoryPattern, ",")
 			categoryPattern = pluginsdk.FlattenSlice(&categoryPatterns)
 		}
 
-		eventPattern := make([]interface{}, 0)
+		eventPattern := make([]any, 0)
 		if settings.EventPattern != nil {
 			eventPatterns := strings.Split(*settings.EventPattern, ",")
 			eventPattern = pluginsdk.FlattenSlice(&eventPatterns)
 		}
 
-		hubPattern := make([]interface{}, 0)
+		hubPattern := make([]any, 0)
 		if settings.HubPattern != nil {
 			hubPatterns := strings.Split(*settings.HubPattern, ",")
 			hubPattern = pluginsdk.FlattenSlice(&hubPatterns)
@@ -612,7 +612,7 @@ func flattenUpstreamSettings(upstreamSettings *signalr.ServerlessUpstreamSetting
 			}
 		}
 
-		result = append(result, map[string]interface{}{
+		result = append(result, map[string]any{
 			"url_template":              settings.UrlTemplate,
 			"hub_pattern":               hubPattern,
 			"event_pattern":             eventPattern,
@@ -623,14 +623,14 @@ func flattenUpstreamSettings(upstreamSettings *signalr.ServerlessUpstreamSetting
 	return result
 }
 
-func expandSignalRCors(input []interface{}) *signalr.SignalRCorsSettings {
+func expandSignalRCors(input []any) *signalr.SignalRCorsSettings {
 	corsSettings := signalr.SignalRCorsSettings{}
 
 	if len(input) == 0 || input[0] == nil {
 		return &corsSettings
 	}
 
-	setting := input[0].(map[string]interface{})
+	setting := input[0].(map[string]any)
 	origins := setting["allowed_origins"].(*pluginsdk.Set).List()
 
 	allowedOrigins := make([]string, 0)
@@ -643,15 +643,15 @@ func expandSignalRCors(input []interface{}) *signalr.SignalRCorsSettings {
 	return &corsSettings
 }
 
-func flattenSignalRCors(input *signalr.SignalRCorsSettings) []interface{} {
-	results := make([]interface{}, 0)
+func flattenSignalRCors(input *signalr.SignalRCorsSettings) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 
-	allowedOrigins := make([]interface{}, 0)
+	allowedOrigins := make([]any, 0)
 	if s := input.AllowedOrigins; s != nil {
 		for _, v := range *s {
 			allowedOrigins = append(allowedOrigins, v)
@@ -662,17 +662,17 @@ func flattenSignalRCors(input *signalr.SignalRCorsSettings) []interface{} {
 	return append(results, result)
 }
 
-func expandSignalRServiceSku(input []interface{}) *signalr.ResourceSku {
-	v := input[0].(map[string]interface{})
+func expandSignalRServiceSku(input []any) *signalr.ResourceSku {
+	v := input[0].(map[string]any)
 	return &signalr.ResourceSku{
 		Name:     v["name"].(string),
 		Capacity: pointer.To(int64(v["capacity"].(int))),
 	}
 }
 
-func flattenSignalRServiceSku(input *signalr.ResourceSku) []interface{} {
+func flattenSignalRServiceSku(input *signalr.ResourceSku) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	capacity := 0
@@ -680,21 +680,21 @@ func flattenSignalRServiceSku(input *signalr.ResourceSku) []interface{} {
 		capacity = int(*input.Capacity)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"capacity": capacity,
 			"name":     input.Name,
 		},
 	}
 }
 
-func expandSignalRLiveTraceConfig(input []interface{}) *signalr.LiveTraceConfiguration {
+func expandSignalRLiveTraceConfig(input []any) *signalr.LiveTraceConfiguration {
 	resourceCategories := make([]signalr.LiveTraceCategory, 0)
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	enabled := "false"
 	if v["enabled"].(bool) {
@@ -734,8 +734,8 @@ func expandSignalRLiveTraceConfig(input []interface{}) *signalr.LiveTraceConfigu
 	}
 }
 
-func flattenSignalRLiveTraceConfig(input *signalr.LiveTraceConfiguration) []interface{} {
-	result := make([]interface{}, 0)
+func flattenSignalRLiveTraceConfig(input *signalr.LiveTraceConfiguration) []any {
+	result := make([]any, 0)
 	if input == nil {
 		return result
 	}
@@ -769,7 +769,7 @@ func flattenSignalRLiveTraceConfig(input *signalr.LiveTraceConfiguration) []inte
 			}
 		}
 	}
-	return []interface{}{map[string]interface{}{
+	return []any{map[string]any{
 		"enabled":                   enabled,
 		"messaging_logs_enabled":    messagingLogEnabled,
 		"connectivity_logs_enabled": connectivityLogEnabled,
@@ -1068,7 +1068,7 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 }
 
 func signalrServiceProvisioningStateRefreshFunc(ctx context.Context, client *signalr.SignalRClient, id signalr.SignalRId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		res, err := client.Get(ctx, id)
 		if err != nil {
 			return nil, "", fmt.Errorf("polling for the provisioning state of %s: %+v", id, err)

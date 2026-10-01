@@ -55,7 +55,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) ResourceType() string {
 	return "azurerm_mssql_managed_instance_failover_group"
 }
 
-func (r MsSqlManagedInstanceFailoverGroupResource) ModelObject() interface{} {
+func (r MsSqlManagedInstanceFailoverGroupResource) ModelObject() any {
 	return &MsSqlManagedInstanceFailoverGroupModel{}
 }
 

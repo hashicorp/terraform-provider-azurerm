@@ -130,7 +130,7 @@ func (CommunicationServiceResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (CommunicationServiceResource) ModelObject() interface{} {
+func (CommunicationServiceResource) ModelObject() any {
 	return &CommunicationServiceResourceModel{}
 }
 

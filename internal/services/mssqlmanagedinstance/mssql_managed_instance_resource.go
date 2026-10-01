@@ -90,7 +90,7 @@ func (r MsSqlManagedInstanceResource) ResourceType() string {
 	return "azurerm_mssql_managed_instance"
 }
 
-func (r MsSqlManagedInstanceResource) ModelObject() interface{} {
+func (r MsSqlManagedInstanceResource) ModelObject() any {
 	return &MsSqlManagedInstanceModel{}
 }
 
