@@ -6,7 +6,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/topicsauthorizationrule"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/topics"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/list/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -39,7 +39,7 @@ func (ServiceBusTopicAuthorizationRuleListResource) ListResourceConfigSchema(_ c
 			"servicebus_topic_id": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					typehelpers.WrappedStringValidator{Func: topicsauthorizationrule.ValidateTopicID},
+					typehelpers.WrappedStringValidator{Func: topics.ValidateTopicID},
 				},
 			},
 		},
@@ -47,7 +47,7 @@ func (ServiceBusTopicAuthorizationRuleListResource) ListResourceConfigSchema(_ c
 }
 
 func (ServiceBusTopicAuthorizationRuleListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
-	client := metadata.Client.ServiceBus.TopicsAuthClient
+	client := metadata.Client.ServiceBus.TopicsClient
 
 	var data ServiceBusTopicAuthorizationRuleListModel
 	diags := request.Config.Get(ctx, &data)
@@ -56,13 +56,13 @@ func (ServiceBusTopicAuthorizationRuleListResource) List(ctx context.Context, re
 		return
 	}
 
-	parentID, err := topicsauthorizationrule.ParseTopicID(data.TopicId.ValueString())
+	parentID, err := topics.ParseTopicID(data.TopicId.ValueString())
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("parsing Topic ID for `%s`", serviceBusTopicAuthorizationRuleResourceName), err)
 		return
 	}
 
-	resp, err := client.TopicsListAuthorizationRulesComplete(ctx, *parentID)
+	resp, err := client.ListAuthorizationRulesComplete(ctx, *parentID)
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", serviceBusTopicAuthorizationRuleResourceName), err)
 		return
@@ -83,7 +83,7 @@ func (ServiceBusTopicAuthorizationRuleListResource) List(ctx context.Context, re
 			result.DisplayName = pointer.From(item.Name)
 
 			rd := resourceServiceBusTopicAuthorizationRule().Data(&terraform.InstanceState{})
-			id, err := topicsauthorizationrule.ParseTopicAuthorizationRuleIDInsensitively(pointer.From(item.Id))
+			id, err := topics.ParseTopicAuthorizationRuleIDInsensitively(pointer.From(item.Id))
 			if err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("parsing ID for `%s`", serviceBusTopicAuthorizationRuleResourceName), err)
 				return

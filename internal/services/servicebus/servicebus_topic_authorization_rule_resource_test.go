@@ -139,7 +139,7 @@ func TestAccServiceBusTopicAuthorizationRule_withAliasConnectionString(t *testin
 	})
 }
 
-func (t ServicebusTopicAuthorizationRuleResourcegit) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t ServicebusTopicAuthorizationRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := topics.ParseTopicAuthorizationRuleID(state.ID)
 	if err != nil {
 		return nil, err
