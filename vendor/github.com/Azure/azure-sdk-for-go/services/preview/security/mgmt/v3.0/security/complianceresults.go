@@ -20,15 +20,15 @@ type ComplianceResultsClient struct {
 }
 
 // NewComplianceResultsClient creates an instance of the ComplianceResultsClient client.
-func NewComplianceResultsClient(subscriptionID string, ascLocation string) ComplianceResultsClient {
-	return NewComplianceResultsClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
+func NewComplianceResultsClient(subscriptionID string) ComplianceResultsClient {
+	return NewComplianceResultsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
 // NewComplianceResultsClientWithBaseURI creates an instance of the ComplianceResultsClient client using a custom
 // endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
 // stack).
-func NewComplianceResultsClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) ComplianceResultsClient {
-	return ComplianceResultsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
+func NewComplianceResultsClientWithBaseURI(baseURI string, subscriptionID string) ComplianceResultsClient {
+	return ComplianceResultsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // Get security Compliance Result

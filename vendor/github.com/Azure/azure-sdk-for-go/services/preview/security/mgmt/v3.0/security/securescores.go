@@ -21,18 +21,18 @@ type SecureScoresClient struct {
 }
 
 // NewSecureScoresClient creates an instance of the SecureScoresClient client.
-func NewSecureScoresClient(subscriptionID string, ascLocation string) SecureScoresClient {
-	return NewSecureScoresClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
+func NewSecureScoresClient(subscriptionID string) SecureScoresClient {
+	return NewSecureScoresClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
 // NewSecureScoresClientWithBaseURI creates an instance of the SecureScoresClient client using a custom endpoint.  Use
 // this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
-func NewSecureScoresClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) SecureScoresClient {
-	return SecureScoresClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
+func NewSecureScoresClientWithBaseURI(baseURI string, subscriptionID string) SecureScoresClient {
+	return SecureScoresClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// Get get secure score for a specific Security Center initiative within your current scope. For the ASC Default
-// initiative, use 'ascScore'.
+// Get get secure score for a specific Microsoft Defender for Cloud initiative within your current scope. For the ASC
+// Default initiative, use 'ascScore'.
 // Parameters:
 // secureScoreName - the initiative name. For the ASC Default initiative, use 'ascScore' as in the sample
 // request below.
@@ -113,7 +113,7 @@ func (client SecureScoresClient) GetResponder(resp *http.Response) (result Secur
 	return
 }
 
-// List list secure scores for all your Security Center initiatives within your current scope.
+// List list secure scores for all your Microsoft Defender for Cloud initiatives within your current scope.
 func (client SecureScoresClient) List(ctx context.Context) (result SecureScoresListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SecureScoresClient.List")

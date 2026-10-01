@@ -82,7 +82,7 @@ func (client ElasticPoolsClient) CreateOrUpdatePreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-11-01-preview"
+	const APIVersion = "2021-08-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -167,7 +167,7 @@ func (client ElasticPoolsClient) DeletePreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-11-01-preview"
+	const APIVersion = "2021-08-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -248,7 +248,7 @@ func (client ElasticPoolsClient) FailoverPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-11-01-preview"
+	const APIVersion = "2021-08-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -336,7 +336,7 @@ func (client ElasticPoolsClient) GetPreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-11-01-preview"
+	const APIVersion = "2021-08-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -373,7 +373,7 @@ func (client ElasticPoolsClient) GetResponder(resp *http.Response) (result Elast
 // from the Azure Resource Manager API or the portal.
 // serverName - the name of the server.
 // skip - the number of elements in the collection to skip.
-func (client ElasticPoolsClient) ListByServer(ctx context.Context, resourceGroupName string, serverName string, skip *int32) (result ElasticPoolListResultPage, err error) {
+func (client ElasticPoolsClient) ListByServer(ctx context.Context, resourceGroupName string, serverName string, skip *int64) (result ElasticPoolListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ElasticPoolsClient.ListByServer")
 		defer func() {
@@ -412,14 +412,14 @@ func (client ElasticPoolsClient) ListByServer(ctx context.Context, resourceGroup
 }
 
 // ListByServerPreparer prepares the ListByServer request.
-func (client ElasticPoolsClient) ListByServerPreparer(ctx context.Context, resourceGroupName string, serverName string, skip *int32) (*http.Request, error) {
+func (client ElasticPoolsClient) ListByServerPreparer(ctx context.Context, resourceGroupName string, serverName string, skip *int64) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"serverName":        autorest.Encode("path", serverName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-11-01-preview"
+	const APIVersion = "2021-08-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -475,7 +475,7 @@ func (client ElasticPoolsClient) listByServerNextResults(ctx context.Context, la
 }
 
 // ListByServerComplete enumerates all values, automatically crossing page boundaries as required.
-func (client ElasticPoolsClient) ListByServerComplete(ctx context.Context, resourceGroupName string, serverName string, skip *int32) (result ElasticPoolListResultIterator, err error) {
+func (client ElasticPoolsClient) ListByServerComplete(ctx context.Context, resourceGroupName string, serverName string, skip *int64) (result ElasticPoolListResultIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ElasticPoolsClient.ListByServer")
 		defer func() {
@@ -692,7 +692,7 @@ func (client ElasticPoolsClient) UpdatePreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-11-01-preview"
+	const APIVersion = "2021-08-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

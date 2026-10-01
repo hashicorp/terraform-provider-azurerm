@@ -21,15 +21,15 @@ type AdaptiveNetworkHardeningsClient struct {
 }
 
 // NewAdaptiveNetworkHardeningsClient creates an instance of the AdaptiveNetworkHardeningsClient client.
-func NewAdaptiveNetworkHardeningsClient(subscriptionID string, ascLocation string) AdaptiveNetworkHardeningsClient {
-	return NewAdaptiveNetworkHardeningsClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
+func NewAdaptiveNetworkHardeningsClient(subscriptionID string) AdaptiveNetworkHardeningsClient {
+	return NewAdaptiveNetworkHardeningsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
 // NewAdaptiveNetworkHardeningsClientWithBaseURI creates an instance of the AdaptiveNetworkHardeningsClient client
 // using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
 // clouds, Azure stack).
-func NewAdaptiveNetworkHardeningsClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) AdaptiveNetworkHardeningsClient {
-	return AdaptiveNetworkHardeningsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
+func NewAdaptiveNetworkHardeningsClientWithBaseURI(baseURI string, subscriptionID string) AdaptiveNetworkHardeningsClient {
+	return AdaptiveNetworkHardeningsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // Enforce enforces the given rules on the NSG(s) listed in the request

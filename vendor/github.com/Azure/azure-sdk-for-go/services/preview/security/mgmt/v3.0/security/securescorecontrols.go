@@ -21,15 +21,15 @@ type SecureScoreControlsClient struct {
 }
 
 // NewSecureScoreControlsClient creates an instance of the SecureScoreControlsClient client.
-func NewSecureScoreControlsClient(subscriptionID string, ascLocation string) SecureScoreControlsClient {
-	return NewSecureScoreControlsClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
+func NewSecureScoreControlsClient(subscriptionID string) SecureScoreControlsClient {
+	return NewSecureScoreControlsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
 // NewSecureScoreControlsClientWithBaseURI creates an instance of the SecureScoreControlsClient client using a custom
 // endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
 // stack).
-func NewSecureScoreControlsClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) SecureScoreControlsClient {
-	return SecureScoreControlsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
+func NewSecureScoreControlsClientWithBaseURI(baseURI string, subscriptionID string) SecureScoreControlsClient {
+	return SecureScoreControlsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // List get all security controls within a scope

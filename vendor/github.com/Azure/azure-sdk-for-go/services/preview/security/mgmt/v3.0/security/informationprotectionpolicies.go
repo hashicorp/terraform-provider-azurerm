@@ -20,15 +20,15 @@ type InformationProtectionPoliciesClient struct {
 }
 
 // NewInformationProtectionPoliciesClient creates an instance of the InformationProtectionPoliciesClient client.
-func NewInformationProtectionPoliciesClient(subscriptionID string, ascLocation string) InformationProtectionPoliciesClient {
-	return NewInformationProtectionPoliciesClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
+func NewInformationProtectionPoliciesClient(subscriptionID string) InformationProtectionPoliciesClient {
+	return NewInformationProtectionPoliciesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
 // NewInformationProtectionPoliciesClientWithBaseURI creates an instance of the InformationProtectionPoliciesClient
 // client using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI
 // (sovereign clouds, Azure stack).
-func NewInformationProtectionPoliciesClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) InformationProtectionPoliciesClient {
-	return InformationProtectionPoliciesClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
+func NewInformationProtectionPoliciesClientWithBaseURI(baseURI string, subscriptionID string) InformationProtectionPoliciesClient {
+	return InformationProtectionPoliciesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // CreateOrUpdate details of the information protection policy.
@@ -37,7 +37,7 @@ func NewInformationProtectionPoliciesClientWithBaseURI(baseURI string, subscript
 // management group (/providers/Microsoft.Management/managementGroups/mgName).
 // informationProtectionPolicyName - name of the information protection policy.
 // informationProtectionPolicy - information protection policy.
-func (client InformationProtectionPoliciesClient) CreateOrUpdate(ctx context.Context, scope string, informationProtectionPolicyName string, informationProtectionPolicy InformationProtectionPolicy) (result InformationProtectionPolicy, err error) {
+func (client InformationProtectionPoliciesClient) CreateOrUpdate(ctx context.Context, scope string, informationProtectionPolicyName InformationProtectionPolicyName, informationProtectionPolicy InformationProtectionPolicy) (result InformationProtectionPolicy, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/InformationProtectionPoliciesClient.CreateOrUpdate")
 		defer func() {
@@ -71,7 +71,7 @@ func (client InformationProtectionPoliciesClient) CreateOrUpdate(ctx context.Con
 }
 
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client InformationProtectionPoliciesClient) CreateOrUpdatePreparer(ctx context.Context, scope string, informationProtectionPolicyName string, informationProtectionPolicy InformationProtectionPolicy) (*http.Request, error) {
+func (client InformationProtectionPoliciesClient) CreateOrUpdatePreparer(ctx context.Context, scope string, informationProtectionPolicyName InformationProtectionPolicyName, informationProtectionPolicy InformationProtectionPolicy) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"informationProtectionPolicyName": autorest.Encode("path", informationProtectionPolicyName),
 		"scope":                           scope,
@@ -115,7 +115,7 @@ func (client InformationProtectionPoliciesClient) CreateOrUpdateResponder(resp *
 // scope - scope of the query, can be subscription (/subscriptions/0b06d9ea-afe6-4779-bd59-30e5c2d9d13f) or
 // management group (/providers/Microsoft.Management/managementGroups/mgName).
 // informationProtectionPolicyName - name of the information protection policy.
-func (client InformationProtectionPoliciesClient) Get(ctx context.Context, scope string, informationProtectionPolicyName string) (result InformationProtectionPolicy, err error) {
+func (client InformationProtectionPoliciesClient) Get(ctx context.Context, scope string, informationProtectionPolicyName InformationProtectionPolicyName) (result InformationProtectionPolicy, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/InformationProtectionPoliciesClient.Get")
 		defer func() {
@@ -149,7 +149,7 @@ func (client InformationProtectionPoliciesClient) Get(ctx context.Context, scope
 }
 
 // GetPreparer prepares the Get request.
-func (client InformationProtectionPoliciesClient) GetPreparer(ctx context.Context, scope string, informationProtectionPolicyName string) (*http.Request, error) {
+func (client InformationProtectionPoliciesClient) GetPreparer(ctx context.Context, scope string, informationProtectionPolicyName InformationProtectionPolicyName) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"informationProtectionPolicyName": autorest.Encode("path", informationProtectionPolicyName),
 		"scope":                           scope,

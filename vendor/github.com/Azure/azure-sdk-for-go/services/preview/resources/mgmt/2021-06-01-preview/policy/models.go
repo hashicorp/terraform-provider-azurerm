@@ -1938,3 +1938,533 @@ type SystemData struct {
 	// LastModifiedAt - The timestamp of resource last modification (UTC)
 	LastModifiedAt *date.Time `json:"lastModifiedAt,omitempty"`
 }
+
+// Variable the variable.
+type Variable struct {
+	autorest.Response `json:"-"`
+	// VariableProperties - Properties for the variable.
+	*VariableProperties `json:"properties,omitempty"`
+	// SystemData - READ-ONLY; Azure Resource Manager metadata containing createdBy and modifiedBy information.
+	SystemData *SystemData `json:"systemData,omitempty"`
+	// ID - READ-ONLY; The ID of the variable.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the variable.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource (Microsoft.Authorization/variables).
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Variable.
+func (vVar Variable) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if vVar.VariableProperties != nil {
+		objectMap["properties"] = vVar.VariableProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for Variable struct.
+func (vVar *Variable) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var variableProperties VariableProperties
+				err = json.Unmarshal(*v, &variableProperties)
+				if err != nil {
+					return err
+				}
+				vVar.VariableProperties = &variableProperties
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				vVar.SystemData = &systemData
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				vVar.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				vVar.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				vVar.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// VariableColumn the variable column.
+type VariableColumn struct {
+	// ColumnName - The name of this policy variable column.
+	ColumnName *string `json:"columnName,omitempty"`
+}
+
+// VariableListResult list of variables.
+type VariableListResult struct {
+	autorest.Response `json:"-"`
+	// Value - An array of variables.
+	Value *[]Variable `json:"value,omitempty"`
+	// NextLink - READ-ONLY; The URL to use for getting the next set of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VariableListResult.
+func (vlr VariableListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if vlr.Value != nil {
+		objectMap["value"] = vlr.Value
+	}
+	return json.Marshal(objectMap)
+}
+
+// VariableListResultIterator provides access to a complete listing of Variable values.
+type VariableListResultIterator struct {
+	i    int
+	page VariableListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *VariableListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/VariableListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *VariableListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter VariableListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter VariableListResultIterator) Response() VariableListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter VariableListResultIterator) Value() Variable {
+	if !iter.page.NotDone() {
+		return Variable{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the VariableListResultIterator type.
+func NewVariableListResultIterator(page VariableListResultPage) VariableListResultIterator {
+	return VariableListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (vlr VariableListResult) IsEmpty() bool {
+	return vlr.Value == nil || len(*vlr.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (vlr VariableListResult) hasNextLink() bool {
+	return vlr.NextLink != nil && len(*vlr.NextLink) != 0
+}
+
+// variableListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (vlr VariableListResult) variableListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if !vlr.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(vlr.NextLink)))
+}
+
+// VariableListResultPage contains a page of Variable values.
+type VariableListResultPage struct {
+	fn  func(context.Context, VariableListResult) (VariableListResult, error)
+	vlr VariableListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *VariableListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/VariableListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.vlr)
+		if err != nil {
+			return err
+		}
+		page.vlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *VariableListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page VariableListResultPage) NotDone() bool {
+	return !page.vlr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page VariableListResultPage) Response() VariableListResult {
+	return page.vlr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page VariableListResultPage) Values() []Variable {
+	if page.vlr.IsEmpty() {
+		return nil
+	}
+	return *page.vlr.Value
+}
+
+// Creates a new instance of the VariableListResultPage type.
+func NewVariableListResultPage(cur VariableListResult, getNextPage func(context.Context, VariableListResult) (VariableListResult, error)) VariableListResultPage {
+	return VariableListResultPage{
+		fn:  getNextPage,
+		vlr: cur,
+	}
+}
+
+// VariableProperties the variable properties.
+type VariableProperties struct {
+	// Columns - Variable column definitions.
+	Columns *[]VariableColumn `json:"columns,omitempty"`
+}
+
+// VariableValue the variable value.
+type VariableValue struct {
+	autorest.Response `json:"-"`
+	// VariableValueProperties - Properties for the variable value.
+	*VariableValueProperties `json:"properties,omitempty"`
+	// SystemData - READ-ONLY; Azure Resource Manager metadata containing createdBy and modifiedBy information.
+	SystemData *SystemData `json:"systemData,omitempty"`
+	// ID - READ-ONLY; The ID of the variable.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the variable.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource (Microsoft.Authorization/variables/values).
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VariableValue.
+func (vv VariableValue) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if vv.VariableValueProperties != nil {
+		objectMap["properties"] = vv.VariableValueProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for VariableValue struct.
+func (vv *VariableValue) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var variableValueProperties VariableValueProperties
+				err = json.Unmarshal(*v, &variableValueProperties)
+				if err != nil {
+					return err
+				}
+				vv.VariableValueProperties = &variableValueProperties
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				vv.SystemData = &systemData
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				vv.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				vv.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				vv.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// VariableValueColumnValue the name value tuple for this variable value column.
+type VariableValueColumnValue struct {
+	// ColumnName - Column name for the variable value
+	ColumnName *string `json:"columnName,omitempty"`
+	// ColumnValue - Column value for the variable value; this can be an integer, double, boolean, null or a string.
+	ColumnValue interface{} `json:"columnValue,omitempty"`
+}
+
+// VariableValueListResult list of variable values.
+type VariableValueListResult struct {
+	autorest.Response `json:"-"`
+	// Value - An array of variable values.
+	Value *[]VariableValue `json:"value,omitempty"`
+	// NextLink - READ-ONLY; The URL to use for getting the next set of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VariableValueListResult.
+func (vvlr VariableValueListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if vvlr.Value != nil {
+		objectMap["value"] = vvlr.Value
+	}
+	return json.Marshal(objectMap)
+}
+
+// VariableValueListResultIterator provides access to a complete listing of VariableValue values.
+type VariableValueListResultIterator struct {
+	i    int
+	page VariableValueListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *VariableValueListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/VariableValueListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *VariableValueListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter VariableValueListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter VariableValueListResultIterator) Response() VariableValueListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter VariableValueListResultIterator) Value() VariableValue {
+	if !iter.page.NotDone() {
+		return VariableValue{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the VariableValueListResultIterator type.
+func NewVariableValueListResultIterator(page VariableValueListResultPage) VariableValueListResultIterator {
+	return VariableValueListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (vvlr VariableValueListResult) IsEmpty() bool {
+	return vvlr.Value == nil || len(*vvlr.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (vvlr VariableValueListResult) hasNextLink() bool {
+	return vvlr.NextLink != nil && len(*vvlr.NextLink) != 0
+}
+
+// variableValueListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (vvlr VariableValueListResult) variableValueListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if !vvlr.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(vvlr.NextLink)))
+}
+
+// VariableValueListResultPage contains a page of VariableValue values.
+type VariableValueListResultPage struct {
+	fn   func(context.Context, VariableValueListResult) (VariableValueListResult, error)
+	vvlr VariableValueListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *VariableValueListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/VariableValueListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.vvlr)
+		if err != nil {
+			return err
+		}
+		page.vvlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *VariableValueListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page VariableValueListResultPage) NotDone() bool {
+	return !page.vvlr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page VariableValueListResultPage) Response() VariableValueListResult {
+	return page.vvlr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page VariableValueListResultPage) Values() []VariableValue {
+	if page.vvlr.IsEmpty() {
+		return nil
+	}
+	return *page.vvlr.Value
+}
+
+// Creates a new instance of the VariableValueListResultPage type.
+func NewVariableValueListResultPage(cur VariableValueListResult, getNextPage func(context.Context, VariableValueListResult) (VariableValueListResult, error)) VariableValueListResultPage {
+	return VariableValueListResultPage{
+		fn:   getNextPage,
+		vvlr: cur,
+	}
+}
+
+// VariableValueProperties the variable value properties.
+type VariableValueProperties struct {
+	// Values - Variable value column value array.
+	Values *[]VariableValueColumnValue `json:"values,omitempty"`
+}

@@ -567,7 +567,7 @@ func (client DefinitionsClient) GetBuiltInResponder(resp *http.Response) (result
 }
 
 // List this operation retrieves a list of all the policy definitions in a given subscription that match the optional
-// given $filter. Valid values for $filter are: 'atExactScope()', 'policyType -eq {value}' or 'category eq '{value}''.
+// given $filter. Valid values for $filter are: 'atExactScope()', 'policyType -eq {value}' or 'category eq '{value}”.
 // If $filter is not provided, the unfiltered list includes all policy definitions associated with the subscription,
 // including those that apply directly or from management groups that contain the given subscription. If
 // $filter=atExactScope() is provided, the returned list only includes all policy definitions that at the given
@@ -577,7 +577,7 @@ func (client DefinitionsClient) GetBuiltInResponder(resp *http.Response) (result
 // match the {value}.
 // Parameters:
 // filter - the filter to apply on the operation. Valid values for $filter are: 'atExactScope()', 'policyType
-// -eq {value}' or 'category eq '{value}''. If $filter is not provided, no filtering is performed. If
+// -eq {value}' or 'category eq '{value}”. If $filter is not provided, no filtering is performed. If
 // $filter=atExactScope() is provided, the returned list only includes all policy definitions that at the given
 // scope. If $filter='policyType -eq {value}' is provided, the returned list only includes all policy
 // definitions whose type match the {value}. Possible policyType values are NotSpecified, BuiltIn, Custom, and
@@ -718,7 +718,7 @@ func (client DefinitionsClient) ListComplete(ctx context.Context, filter string,
 // category match the {value}.
 // Parameters:
 // filter - the filter to apply on the operation. Valid values for $filter are: 'atExactScope()', 'policyType
-// -eq {value}' or 'category eq '{value}''. If $filter is not provided, no filtering is performed. If
+// -eq {value}' or 'category eq '{value}”. If $filter is not provided, no filtering is performed. If
 // $filter=atExactScope() is provided, the returned list only includes all policy definitions that at the given
 // scope. If $filter='policyType -eq {value}' is provided, the returned list only includes all policy
 // definitions whose type match the {value}. Possible policyType values are NotSpecified, BuiltIn, Custom, and
@@ -850,7 +850,7 @@ func (client DefinitionsClient) ListBuiltInComplete(ctx context.Context, filter 
 
 // ListByManagementGroup this operation retrieves a list of all the policy definitions in a given management group that
 // match the optional given $filter. Valid values for $filter are: 'atExactScope()', 'policyType -eq {value}' or
-// 'category eq '{value}''. If $filter is not provided, the unfiltered list includes all policy definitions associated
+// 'category eq '{value}”. If $filter is not provided, the unfiltered list includes all policy definitions associated
 // with the management group, including those that apply directly or from management groups that contain the given
 // management group. If $filter=atExactScope() is provided, the returned list only includes all policy definitions that
 // at the given management group. If $filter='policyType -eq {value}' is provided, the returned list only includes all
@@ -860,7 +860,7 @@ func (client DefinitionsClient) ListBuiltInComplete(ctx context.Context, filter 
 // Parameters:
 // managementGroupID - the ID of the management group.
 // filter - the filter to apply on the operation. Valid values for $filter are: 'atExactScope()', 'policyType
-// -eq {value}' or 'category eq '{value}''. If $filter is not provided, no filtering is performed. If
+// -eq {value}' or 'category eq '{value}”. If $filter is not provided, no filtering is performed. If
 // $filter=atExactScope() is provided, the returned list only includes all policy definitions that at the given
 // scope. If $filter='policyType -eq {value}' is provided, the returned list only includes all policy
 // definitions whose type match the {value}. Possible policyType values are NotSpecified, BuiltIn, Custom, and

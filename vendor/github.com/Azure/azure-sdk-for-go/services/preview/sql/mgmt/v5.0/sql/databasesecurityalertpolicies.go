@@ -78,7 +78,7 @@ func (client DatabaseSecurityAlertPoliciesClient) CreateOrUpdatePreparer(ctx con
 	pathParameters := map[string]interface{}{
 		"databaseName":            autorest.Encode("path", databaseName),
 		"resourceGroupName":       autorest.Encode("path", resourceGroupName),
-		"securityAlertPolicyName": autorest.Encode("path", "default"),
+		"securityAlertPolicyName": autorest.Encode("path", "Default"),
 		"serverName":              autorest.Encode("path", serverName),
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
@@ -161,7 +161,7 @@ func (client DatabaseSecurityAlertPoliciesClient) GetPreparer(ctx context.Contex
 	pathParameters := map[string]interface{}{
 		"databaseName":            autorest.Encode("path", databaseName),
 		"resourceGroupName":       autorest.Encode("path", resourceGroupName),
-		"securityAlertPolicyName": autorest.Encode("path", "default"),
+		"securityAlertPolicyName": autorest.Encode("path", "Default"),
 		"serverName":              autorest.Encode("path", serverName),
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}

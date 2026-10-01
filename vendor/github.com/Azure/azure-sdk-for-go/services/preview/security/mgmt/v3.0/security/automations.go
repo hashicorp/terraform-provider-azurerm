@@ -21,14 +21,14 @@ type AutomationsClient struct {
 }
 
 // NewAutomationsClient creates an instance of the AutomationsClient client.
-func NewAutomationsClient(subscriptionID string, ascLocation string) AutomationsClient {
-	return NewAutomationsClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
+func NewAutomationsClient(subscriptionID string) AutomationsClient {
+	return NewAutomationsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
 // NewAutomationsClientWithBaseURI creates an instance of the AutomationsClient client using a custom endpoint.  Use
 // this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
-func NewAutomationsClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) AutomationsClient {
-	return AutomationsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
+func NewAutomationsClientWithBaseURI(baseURI string, subscriptionID string) AutomationsClient {
+	return AutomationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // CreateOrUpdate creates or updates a security automation. If a security automation is already created and a

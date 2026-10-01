@@ -22,15 +22,15 @@ type RegulatoryComplianceAssessmentsClient struct {
 }
 
 // NewRegulatoryComplianceAssessmentsClient creates an instance of the RegulatoryComplianceAssessmentsClient client.
-func NewRegulatoryComplianceAssessmentsClient(subscriptionID string, ascLocation string) RegulatoryComplianceAssessmentsClient {
-	return NewRegulatoryComplianceAssessmentsClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
+func NewRegulatoryComplianceAssessmentsClient(subscriptionID string) RegulatoryComplianceAssessmentsClient {
+	return NewRegulatoryComplianceAssessmentsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
 // NewRegulatoryComplianceAssessmentsClientWithBaseURI creates an instance of the RegulatoryComplianceAssessmentsClient
 // client using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI
 // (sovereign clouds, Azure stack).
-func NewRegulatoryComplianceAssessmentsClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) RegulatoryComplianceAssessmentsClient {
-	return RegulatoryComplianceAssessmentsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
+func NewRegulatoryComplianceAssessmentsClientWithBaseURI(baseURI string, subscriptionID string) RegulatoryComplianceAssessmentsClient {
+	return RegulatoryComplianceAssessmentsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // Get supported regulatory compliance details and state for selected assessment

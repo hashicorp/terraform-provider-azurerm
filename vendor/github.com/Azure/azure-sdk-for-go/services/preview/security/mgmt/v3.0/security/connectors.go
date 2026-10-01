@@ -21,14 +21,14 @@ type ConnectorsClient struct {
 }
 
 // NewConnectorsClient creates an instance of the ConnectorsClient client.
-func NewConnectorsClient(subscriptionID string, ascLocation string) ConnectorsClient {
-	return NewConnectorsClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
+func NewConnectorsClient(subscriptionID string) ConnectorsClient {
+	return NewConnectorsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
 // NewConnectorsClientWithBaseURI creates an instance of the ConnectorsClient client using a custom endpoint.  Use this
 // when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
-func NewConnectorsClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) ConnectorsClient {
-	return ConnectorsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
+func NewConnectorsClientWithBaseURI(baseURI string, subscriptionID string) ConnectorsClient {
+	return ConnectorsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // CreateOrUpdate create a cloud account connector or update an existing one. Connect to your cloud account. For AWS,

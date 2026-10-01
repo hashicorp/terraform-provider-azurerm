@@ -21,17 +21,17 @@ type PricingsClient struct {
 }
 
 // NewPricingsClient creates an instance of the PricingsClient client.
-func NewPricingsClient(subscriptionID string, ascLocation string) PricingsClient {
-	return NewPricingsClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
+func NewPricingsClient(subscriptionID string) PricingsClient {
+	return NewPricingsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
 // NewPricingsClientWithBaseURI creates an instance of the PricingsClient client using a custom endpoint.  Use this
 // when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
-func NewPricingsClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) PricingsClient {
-	return PricingsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
+func NewPricingsClientWithBaseURI(baseURI string, subscriptionID string) PricingsClient {
+	return PricingsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// Get gets a provided Security Center pricing configuration in the subscription.
+// Get gets a provided Microsoft Defender for Cloud pricing configuration in the subscription.
 // Parameters:
 // pricingName - name of the pricing configuration
 func (client PricingsClient) Get(ctx context.Context, pricingName string) (result Pricing, err error) {
@@ -80,7 +80,7 @@ func (client PricingsClient) GetPreparer(ctx context.Context, pricingName string
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01"
+	const APIVersion = "2022-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -111,7 +111,7 @@ func (client PricingsClient) GetResponder(resp *http.Response) (result Pricing, 
 	return
 }
 
-// List lists Security Center pricing configurations in the subscription.
+// List lists Microsoft Defender for Cloud pricing configurations in the subscription.
 func (client PricingsClient) List(ctx context.Context) (result PricingList, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/PricingsClient.List")
@@ -157,7 +157,7 @@ func (client PricingsClient) ListPreparer(ctx context.Context) (*http.Request, e
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01"
+	const APIVersion = "2022-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -188,7 +188,7 @@ func (client PricingsClient) ListResponder(resp *http.Response) (result PricingL
 	return
 }
 
-// Update updates a provided Security Center pricing configuration in the subscription.
+// Update updates a provided Microsoft Defender for Cloud pricing configuration in the subscription.
 // Parameters:
 // pricingName - name of the pricing configuration
 // pricing - pricing object
@@ -238,7 +238,7 @@ func (client PricingsClient) UpdatePreparer(ctx context.Context, pricingName str
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01"
+	const APIVersion = "2022-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

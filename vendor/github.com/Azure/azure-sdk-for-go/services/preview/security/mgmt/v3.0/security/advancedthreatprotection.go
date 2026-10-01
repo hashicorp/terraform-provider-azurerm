@@ -20,15 +20,15 @@ type AdvancedThreatProtectionClient struct {
 }
 
 // NewAdvancedThreatProtectionClient creates an instance of the AdvancedThreatProtectionClient client.
-func NewAdvancedThreatProtectionClient(subscriptionID string, ascLocation string) AdvancedThreatProtectionClient {
-	return NewAdvancedThreatProtectionClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
+func NewAdvancedThreatProtectionClient(subscriptionID string) AdvancedThreatProtectionClient {
+	return NewAdvancedThreatProtectionClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
 // NewAdvancedThreatProtectionClientWithBaseURI creates an instance of the AdvancedThreatProtectionClient client using
 // a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
 // clouds, Azure stack).
-func NewAdvancedThreatProtectionClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) AdvancedThreatProtectionClient {
-	return AdvancedThreatProtectionClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
+func NewAdvancedThreatProtectionClientWithBaseURI(baseURI string, subscriptionID string) AdvancedThreatProtectionClient {
+	return AdvancedThreatProtectionClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // Create creates or updates the Advanced Threat Protection settings on a specified resource.

@@ -21,22 +21,24 @@ type TasksClient struct {
 }
 
 // NewTasksClient creates an instance of the TasksClient client.
-func NewTasksClient(subscriptionID string, ascLocation string) TasksClient {
-	return NewTasksClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
+func NewTasksClient(subscriptionID string) TasksClient {
+	return NewTasksClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
 // NewTasksClientWithBaseURI creates an instance of the TasksClient client using a custom endpoint.  Use this when
 // interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
-func NewTasksClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) TasksClient {
-	return TasksClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
+func NewTasksClientWithBaseURI(baseURI string, subscriptionID string) TasksClient {
+	return TasksClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // GetResourceGroupLevelTask recommended tasks that will help improve the security of the subscription proactively
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
+// ascLocation - the location where ASC stores the data of the subscription. can be retrieved from Get
+// locations
 // taskName - name of the task object, will be a GUID
-func (client TasksClient) GetResourceGroupLevelTask(ctx context.Context, resourceGroupName string, taskName string) (result Task, err error) {
+func (client TasksClient) GetResourceGroupLevelTask(ctx context.Context, resourceGroupName string, ascLocation string, taskName string) (result Task, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/TasksClient.GetResourceGroupLevelTask")
 		defer func() {
@@ -57,7 +59,7 @@ func (client TasksClient) GetResourceGroupLevelTask(ctx context.Context, resourc
 		return result, validation.NewError("security.TasksClient", "GetResourceGroupLevelTask", err.Error())
 	}
 
-	req, err := client.GetResourceGroupLevelTaskPreparer(ctx, resourceGroupName, taskName)
+	req, err := client.GetResourceGroupLevelTaskPreparer(ctx, resourceGroupName, ascLocation, taskName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.TasksClient", "GetResourceGroupLevelTask", nil, "Failure preparing request")
 		return
@@ -80,9 +82,9 @@ func (client TasksClient) GetResourceGroupLevelTask(ctx context.Context, resourc
 }
 
 // GetResourceGroupLevelTaskPreparer prepares the GetResourceGroupLevelTask request.
-func (client TasksClient) GetResourceGroupLevelTaskPreparer(ctx context.Context, resourceGroupName string, taskName string) (*http.Request, error) {
+func (client TasksClient) GetResourceGroupLevelTaskPreparer(ctx context.Context, resourceGroupName string, ascLocation string, taskName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"ascLocation":       autorest.Encode("path", client.AscLocation),
+		"ascLocation":       autorest.Encode("path", ascLocation),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 		"taskName":          autorest.Encode("path", taskName),
@@ -121,8 +123,10 @@ func (client TasksClient) GetResourceGroupLevelTaskResponder(resp *http.Response
 
 // GetSubscriptionLevelTask recommended tasks that will help improve the security of the subscription proactively
 // Parameters:
+// ascLocation - the location where ASC stores the data of the subscription. can be retrieved from Get
+// locations
 // taskName - name of the task object, will be a GUID
-func (client TasksClient) GetSubscriptionLevelTask(ctx context.Context, taskName string) (result Task, err error) {
+func (client TasksClient) GetSubscriptionLevelTask(ctx context.Context, ascLocation string, taskName string) (result Task, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/TasksClient.GetSubscriptionLevelTask")
 		defer func() {
@@ -139,7 +143,7 @@ func (client TasksClient) GetSubscriptionLevelTask(ctx context.Context, taskName
 		return result, validation.NewError("security.TasksClient", "GetSubscriptionLevelTask", err.Error())
 	}
 
-	req, err := client.GetSubscriptionLevelTaskPreparer(ctx, taskName)
+	req, err := client.GetSubscriptionLevelTaskPreparer(ctx, ascLocation, taskName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.TasksClient", "GetSubscriptionLevelTask", nil, "Failure preparing request")
 		return
@@ -162,9 +166,9 @@ func (client TasksClient) GetSubscriptionLevelTask(ctx context.Context, taskName
 }
 
 // GetSubscriptionLevelTaskPreparer prepares the GetSubscriptionLevelTask request.
-func (client TasksClient) GetSubscriptionLevelTaskPreparer(ctx context.Context, taskName string) (*http.Request, error) {
+func (client TasksClient) GetSubscriptionLevelTaskPreparer(ctx context.Context, ascLocation string, taskName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"ascLocation":    autorest.Encode("path", client.AscLocation),
+		"ascLocation":    autorest.Encode("path", ascLocation),
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 		"taskName":       autorest.Encode("path", taskName),
 	}
@@ -326,8 +330,10 @@ func (client TasksClient) ListComplete(ctx context.Context, filter string) (resu
 
 // ListByHomeRegion recommended tasks that will help improve the security of the subscription proactively
 // Parameters:
+// ascLocation - the location where ASC stores the data of the subscription. can be retrieved from Get
+// locations
 // filter - oData filter. Optional.
-func (client TasksClient) ListByHomeRegion(ctx context.Context, filter string) (result TaskListPage, err error) {
+func (client TasksClient) ListByHomeRegion(ctx context.Context, ascLocation string, filter string) (result TaskListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/TasksClient.ListByHomeRegion")
 		defer func() {
@@ -345,7 +351,7 @@ func (client TasksClient) ListByHomeRegion(ctx context.Context, filter string) (
 	}
 
 	result.fn = client.listByHomeRegionNextResults
-	req, err := client.ListByHomeRegionPreparer(ctx, filter)
+	req, err := client.ListByHomeRegionPreparer(ctx, ascLocation, filter)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.TasksClient", "ListByHomeRegion", nil, "Failure preparing request")
 		return
@@ -372,9 +378,9 @@ func (client TasksClient) ListByHomeRegion(ctx context.Context, filter string) (
 }
 
 // ListByHomeRegionPreparer prepares the ListByHomeRegion request.
-func (client TasksClient) ListByHomeRegionPreparer(ctx context.Context, filter string) (*http.Request, error) {
+func (client TasksClient) ListByHomeRegionPreparer(ctx context.Context, ascLocation string, filter string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"ascLocation":    autorest.Encode("path", client.AscLocation),
+		"ascLocation":    autorest.Encode("path", ascLocation),
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
@@ -434,7 +440,7 @@ func (client TasksClient) listByHomeRegionNextResults(ctx context.Context, lastR
 }
 
 // ListByHomeRegionComplete enumerates all values, automatically crossing page boundaries as required.
-func (client TasksClient) ListByHomeRegionComplete(ctx context.Context, filter string) (result TaskListIterator, err error) {
+func (client TasksClient) ListByHomeRegionComplete(ctx context.Context, ascLocation string, filter string) (result TaskListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/TasksClient.ListByHomeRegion")
 		defer func() {
@@ -445,7 +451,7 @@ func (client TasksClient) ListByHomeRegionComplete(ctx context.Context, filter s
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListByHomeRegion(ctx, filter)
+	result.page, err = client.ListByHomeRegion(ctx, ascLocation, filter)
 	return
 }
 
@@ -453,8 +459,10 @@ func (client TasksClient) ListByHomeRegionComplete(ctx context.Context, filter s
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
+// ascLocation - the location where ASC stores the data of the subscription. can be retrieved from Get
+// locations
 // filter - oData filter. Optional.
-func (client TasksClient) ListByResourceGroup(ctx context.Context, resourceGroupName string, filter string) (result TaskListPage, err error) {
+func (client TasksClient) ListByResourceGroup(ctx context.Context, resourceGroupName string, ascLocation string, filter string) (result TaskListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/TasksClient.ListByResourceGroup")
 		defer func() {
@@ -476,7 +484,7 @@ func (client TasksClient) ListByResourceGroup(ctx context.Context, resourceGroup
 	}
 
 	result.fn = client.listByResourceGroupNextResults
-	req, err := client.ListByResourceGroupPreparer(ctx, resourceGroupName, filter)
+	req, err := client.ListByResourceGroupPreparer(ctx, resourceGroupName, ascLocation, filter)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.TasksClient", "ListByResourceGroup", nil, "Failure preparing request")
 		return
@@ -503,9 +511,9 @@ func (client TasksClient) ListByResourceGroup(ctx context.Context, resourceGroup
 }
 
 // ListByResourceGroupPreparer prepares the ListByResourceGroup request.
-func (client TasksClient) ListByResourceGroupPreparer(ctx context.Context, resourceGroupName string, filter string) (*http.Request, error) {
+func (client TasksClient) ListByResourceGroupPreparer(ctx context.Context, resourceGroupName string, ascLocation string, filter string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"ascLocation":       autorest.Encode("path", client.AscLocation),
+		"ascLocation":       autorest.Encode("path", ascLocation),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
@@ -566,7 +574,7 @@ func (client TasksClient) listByResourceGroupNextResults(ctx context.Context, la
 }
 
 // ListByResourceGroupComplete enumerates all values, automatically crossing page boundaries as required.
-func (client TasksClient) ListByResourceGroupComplete(ctx context.Context, resourceGroupName string, filter string) (result TaskListIterator, err error) {
+func (client TasksClient) ListByResourceGroupComplete(ctx context.Context, resourceGroupName string, ascLocation string, filter string) (result TaskListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/TasksClient.ListByResourceGroup")
 		defer func() {
@@ -577,7 +585,7 @@ func (client TasksClient) ListByResourceGroupComplete(ctx context.Context, resou
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListByResourceGroup(ctx, resourceGroupName, filter)
+	result.page, err = client.ListByResourceGroup(ctx, resourceGroupName, ascLocation, filter)
 	return
 }
 
@@ -586,9 +594,11 @@ func (client TasksClient) ListByResourceGroupComplete(ctx context.Context, resou
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
+// ascLocation - the location where ASC stores the data of the subscription. can be retrieved from Get
+// locations
 // taskName - name of the task object, will be a GUID
 // taskUpdateActionType - type of the action to do on the task
-func (client TasksClient) UpdateResourceGroupLevelTaskState(ctx context.Context, resourceGroupName string, taskName string, taskUpdateActionType string) (result autorest.Response, err error) {
+func (client TasksClient) UpdateResourceGroupLevelTaskState(ctx context.Context, resourceGroupName string, ascLocation string, taskName string, taskUpdateActionType TaskUpdateActionType) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/TasksClient.UpdateResourceGroupLevelTaskState")
 		defer func() {
@@ -609,7 +619,7 @@ func (client TasksClient) UpdateResourceGroupLevelTaskState(ctx context.Context,
 		return result, validation.NewError("security.TasksClient", "UpdateResourceGroupLevelTaskState", err.Error())
 	}
 
-	req, err := client.UpdateResourceGroupLevelTaskStatePreparer(ctx, resourceGroupName, taskName, taskUpdateActionType)
+	req, err := client.UpdateResourceGroupLevelTaskStatePreparer(ctx, resourceGroupName, ascLocation, taskName, taskUpdateActionType)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.TasksClient", "UpdateResourceGroupLevelTaskState", nil, "Failure preparing request")
 		return
@@ -632,9 +642,9 @@ func (client TasksClient) UpdateResourceGroupLevelTaskState(ctx context.Context,
 }
 
 // UpdateResourceGroupLevelTaskStatePreparer prepares the UpdateResourceGroupLevelTaskState request.
-func (client TasksClient) UpdateResourceGroupLevelTaskStatePreparer(ctx context.Context, resourceGroupName string, taskName string, taskUpdateActionType string) (*http.Request, error) {
+func (client TasksClient) UpdateResourceGroupLevelTaskStatePreparer(ctx context.Context, resourceGroupName string, ascLocation string, taskName string, taskUpdateActionType TaskUpdateActionType) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"ascLocation":          autorest.Encode("path", client.AscLocation),
+		"ascLocation":          autorest.Encode("path", ascLocation),
 		"resourceGroupName":    autorest.Encode("path", resourceGroupName),
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 		"taskName":             autorest.Encode("path", taskName),
@@ -674,9 +684,11 @@ func (client TasksClient) UpdateResourceGroupLevelTaskStateResponder(resp *http.
 // UpdateSubscriptionLevelTaskState recommended tasks that will help improve the security of the subscription
 // proactively
 // Parameters:
+// ascLocation - the location where ASC stores the data of the subscription. can be retrieved from Get
+// locations
 // taskName - name of the task object, will be a GUID
 // taskUpdateActionType - type of the action to do on the task
-func (client TasksClient) UpdateSubscriptionLevelTaskState(ctx context.Context, taskName string, taskUpdateActionType string) (result autorest.Response, err error) {
+func (client TasksClient) UpdateSubscriptionLevelTaskState(ctx context.Context, ascLocation string, taskName string, taskUpdateActionType TaskUpdateActionType) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/TasksClient.UpdateSubscriptionLevelTaskState")
 		defer func() {
@@ -693,7 +705,7 @@ func (client TasksClient) UpdateSubscriptionLevelTaskState(ctx context.Context, 
 		return result, validation.NewError("security.TasksClient", "UpdateSubscriptionLevelTaskState", err.Error())
 	}
 
-	req, err := client.UpdateSubscriptionLevelTaskStatePreparer(ctx, taskName, taskUpdateActionType)
+	req, err := client.UpdateSubscriptionLevelTaskStatePreparer(ctx, ascLocation, taskName, taskUpdateActionType)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.TasksClient", "UpdateSubscriptionLevelTaskState", nil, "Failure preparing request")
 		return
@@ -716,9 +728,9 @@ func (client TasksClient) UpdateSubscriptionLevelTaskState(ctx context.Context, 
 }
 
 // UpdateSubscriptionLevelTaskStatePreparer prepares the UpdateSubscriptionLevelTaskState request.
-func (client TasksClient) UpdateSubscriptionLevelTaskStatePreparer(ctx context.Context, taskName string, taskUpdateActionType string) (*http.Request, error) {
+func (client TasksClient) UpdateSubscriptionLevelTaskStatePreparer(ctx context.Context, ascLocation string, taskName string, taskUpdateActionType TaskUpdateActionType) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"ascLocation":          autorest.Encode("path", client.AscLocation),
+		"ascLocation":          autorest.Encode("path", ascLocation),
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 		"taskName":             autorest.Encode("path", taskName),
 		"taskUpdateActionType": autorest.Encode("path", taskUpdateActionType),

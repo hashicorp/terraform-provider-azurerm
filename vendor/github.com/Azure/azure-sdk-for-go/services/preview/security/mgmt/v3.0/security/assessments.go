@@ -21,14 +21,14 @@ type AssessmentsClient struct {
 }
 
 // NewAssessmentsClient creates an instance of the AssessmentsClient client.
-func NewAssessmentsClient(subscriptionID string, ascLocation string) AssessmentsClient {
-	return NewAssessmentsClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
+func NewAssessmentsClient(subscriptionID string) AssessmentsClient {
+	return NewAssessmentsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
 // NewAssessmentsClientWithBaseURI creates an instance of the AssessmentsClient client using a custom endpoint.  Use
 // this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
-func NewAssessmentsClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) AssessmentsClient {
-	return AssessmentsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
+func NewAssessmentsClientWithBaseURI(baseURI string, subscriptionID string) AssessmentsClient {
+	return AssessmentsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // CreateOrUpdate create a security assessment on your resource. An assessment metadata that describes this assessment
@@ -37,7 +37,7 @@ func NewAssessmentsClientWithBaseURI(baseURI string, subscriptionID string, ascL
 // resourceID - the identifier of the resource.
 // assessmentName - the Assessment Key - Unique key for the assessment type
 // assessment - calculated assessment on a pre-defined assessment metadata
-func (client AssessmentsClient) CreateOrUpdate(ctx context.Context, resourceID string, assessmentName string, assessment Assessment) (result Assessment, err error) {
+func (client AssessmentsClient) CreateOrUpdate(ctx context.Context, resourceID string, assessmentName string, assessment Assessment) (result AssessmentResponse, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AssessmentsClient.CreateOrUpdate")
 		defer func() {
@@ -51,19 +51,7 @@ func (client AssessmentsClient) CreateOrUpdate(ctx context.Context, resourceID s
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: assessment,
 			Constraints: []validation.Constraint{{Target: "assessment.AssessmentProperties", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "assessment.AssessmentProperties.Status", Name: validation.Null, Rule: true, Chain: nil},
-					{Target: "assessment.AssessmentProperties.Metadata", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "assessment.AssessmentProperties.Metadata.DisplayName", Name: validation.Null, Rule: true, Chain: nil},
-							{Target: "assessment.AssessmentProperties.Metadata.PartnerData", Name: validation.Null, Rule: false,
-								Chain: []validation.Constraint{{Target: "assessment.AssessmentProperties.Metadata.PartnerData.PartnerName", Name: validation.Null, Rule: true, Chain: nil},
-									{Target: "assessment.AssessmentProperties.Metadata.PartnerData.Secret", Name: validation.Null, Rule: true, Chain: nil},
-								}},
-						}},
-					{Target: "assessment.AssessmentProperties.PartnersData", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "assessment.AssessmentProperties.PartnersData.PartnerName", Name: validation.Null, Rule: true, Chain: nil},
-							{Target: "assessment.AssessmentProperties.PartnersData.Secret", Name: validation.Null, Rule: true, Chain: nil},
-						}},
-				}}}}}); err != nil {
+				Chain: []validation.Constraint{{Target: "assessment.AssessmentProperties.Status", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
 		return result, validation.NewError("security.AssessmentsClient", "CreateOrUpdate", err.Error())
 	}
 
@@ -96,7 +84,7 @@ func (client AssessmentsClient) CreateOrUpdatePreparer(ctx context.Context, reso
 		"resourceId":     resourceID,
 	}
 
-	const APIVersion = "2020-01-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -119,7 +107,7 @@ func (client AssessmentsClient) CreateOrUpdateSender(req *http.Request) (*http.R
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
 // closes the http.Response Body.
-func (client AssessmentsClient) CreateOrUpdateResponder(resp *http.Response) (result Assessment, err error) {
+func (client AssessmentsClient) CreateOrUpdateResponder(resp *http.Response) (result AssessmentResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
@@ -174,7 +162,7 @@ func (client AssessmentsClient) DeletePreparer(ctx context.Context, resourceID s
 		"resourceId":     resourceID,
 	}
 
-	const APIVersion = "2020-01-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -209,7 +197,7 @@ func (client AssessmentsClient) DeleteResponder(resp *http.Response) (result aut
 // resourceID - the identifier of the resource.
 // assessmentName - the Assessment Key - Unique key for the assessment type
 // expand - oData expand. Optional.
-func (client AssessmentsClient) Get(ctx context.Context, resourceID string, assessmentName string, expand ExpandEnum) (result Assessment, err error) {
+func (client AssessmentsClient) Get(ctx context.Context, resourceID string, assessmentName string, expand ExpandEnum) (result AssessmentResponse, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AssessmentsClient.Get")
 		defer func() {
@@ -249,7 +237,7 @@ func (client AssessmentsClient) GetPreparer(ctx context.Context, resourceID stri
 		"resourceId":     resourceID,
 	}
 
-	const APIVersion = "2020-01-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -273,7 +261,7 @@ func (client AssessmentsClient) GetSender(req *http.Request) (*http.Response, er
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client AssessmentsClient) GetResponder(resp *http.Response) (result Assessment, err error) {
+func (client AssessmentsClient) GetResponder(resp *http.Response) (result AssessmentResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -331,7 +319,7 @@ func (client AssessmentsClient) ListPreparer(ctx context.Context, scope string) 
 		"scope": scope,
 	}
 
-	const APIVersion = "2020-01-01"
+	const APIVersion = "2021-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

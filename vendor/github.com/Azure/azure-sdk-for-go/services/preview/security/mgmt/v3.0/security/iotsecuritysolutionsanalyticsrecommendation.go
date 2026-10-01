@@ -23,15 +23,15 @@ type IotSecuritySolutionsAnalyticsRecommendationClient struct {
 
 // NewIotSecuritySolutionsAnalyticsRecommendationClient creates an instance of the
 // IotSecuritySolutionsAnalyticsRecommendationClient client.
-func NewIotSecuritySolutionsAnalyticsRecommendationClient(subscriptionID string, ascLocation string) IotSecuritySolutionsAnalyticsRecommendationClient {
-	return NewIotSecuritySolutionsAnalyticsRecommendationClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
+func NewIotSecuritySolutionsAnalyticsRecommendationClient(subscriptionID string) IotSecuritySolutionsAnalyticsRecommendationClient {
+	return NewIotSecuritySolutionsAnalyticsRecommendationClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
 // NewIotSecuritySolutionsAnalyticsRecommendationClientWithBaseURI creates an instance of the
 // IotSecuritySolutionsAnalyticsRecommendationClient client using a custom endpoint.  Use this when interacting with an
 // Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
-func NewIotSecuritySolutionsAnalyticsRecommendationClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) IotSecuritySolutionsAnalyticsRecommendationClient {
-	return IotSecuritySolutionsAnalyticsRecommendationClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
+func NewIotSecuritySolutionsAnalyticsRecommendationClientWithBaseURI(baseURI string, subscriptionID string) IotSecuritySolutionsAnalyticsRecommendationClient {
+	return IotSecuritySolutionsAnalyticsRecommendationClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // Get use this method to get the aggregated security analytics recommendation of yours IoT Security solution. This

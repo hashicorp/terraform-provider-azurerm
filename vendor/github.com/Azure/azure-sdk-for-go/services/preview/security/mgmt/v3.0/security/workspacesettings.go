@@ -21,15 +21,15 @@ type WorkspaceSettingsClient struct {
 }
 
 // NewWorkspaceSettingsClient creates an instance of the WorkspaceSettingsClient client.
-func NewWorkspaceSettingsClient(subscriptionID string, ascLocation string) WorkspaceSettingsClient {
-	return NewWorkspaceSettingsClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
+func NewWorkspaceSettingsClient(subscriptionID string) WorkspaceSettingsClient {
+	return NewWorkspaceSettingsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
 // NewWorkspaceSettingsClientWithBaseURI creates an instance of the WorkspaceSettingsClient client using a custom
 // endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
 // stack).
-func NewWorkspaceSettingsClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) WorkspaceSettingsClient {
-	return WorkspaceSettingsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
+func NewWorkspaceSettingsClientWithBaseURI(baseURI string, subscriptionID string) WorkspaceSettingsClient {
+	return WorkspaceSettingsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // Create creating settings about where we should store your security data and logs

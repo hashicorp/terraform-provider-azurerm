@@ -21,20 +21,20 @@ type SettingsClient struct {
 }
 
 // NewSettingsClient creates an instance of the SettingsClient client.
-func NewSettingsClient(subscriptionID string, ascLocation string) SettingsClient {
-	return NewSettingsClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
+func NewSettingsClient(subscriptionID string) SettingsClient {
+	return NewSettingsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
 // NewSettingsClientWithBaseURI creates an instance of the SettingsClient client using a custom endpoint.  Use this
 // when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
-func NewSettingsClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) SettingsClient {
-	return SettingsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
+func NewSettingsClientWithBaseURI(baseURI string, subscriptionID string) SettingsClient {
+	return SettingsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// Get settings of different configurations in security center
+// Get settings of different configurations in Microsoft Defender for Cloud
 // Parameters:
 // settingName - the name of the setting
-func (client SettingsClient) Get(ctx context.Context, settingName string) (result SettingModel, err error) {
+func (client SettingsClient) Get(ctx context.Context, settingName SettingName4) (result SettingModel, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SettingsClient.Get")
 		defer func() {
@@ -74,13 +74,13 @@ func (client SettingsClient) Get(ctx context.Context, settingName string) (resul
 }
 
 // GetPreparer prepares the Get request.
-func (client SettingsClient) GetPreparer(ctx context.Context, settingName string) (*http.Request, error) {
+func (client SettingsClient) GetPreparer(ctx context.Context, settingName SettingName4) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"settingName":    autorest.Encode("path", settingName),
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2022-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -111,7 +111,7 @@ func (client SettingsClient) GetResponder(resp *http.Response) (result SettingMo
 	return
 }
 
-// List settings about different configurations in security center
+// List settings about different configurations in Microsoft Defender for Cloud
 func (client SettingsClient) List(ctx context.Context) (result SettingsListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SettingsClient.List")
@@ -162,7 +162,7 @@ func (client SettingsClient) ListPreparer(ctx context.Context) (*http.Request, e
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2022-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -230,11 +230,11 @@ func (client SettingsClient) ListComplete(ctx context.Context) (result SettingsL
 	return
 }
 
-// Update updating settings about different configurations in security center
+// Update updating settings about different configurations in Microsoft Defender for Cloud
 // Parameters:
 // settingName - the name of the setting
 // setting - setting object
-func (client SettingsClient) Update(ctx context.Context, settingName string, setting BasicSetting) (result SettingModel, err error) {
+func (client SettingsClient) Update(ctx context.Context, settingName SettingName5, setting BasicSetting) (result SettingModel, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SettingsClient.Update")
 		defer func() {
@@ -274,13 +274,13 @@ func (client SettingsClient) Update(ctx context.Context, settingName string, set
 }
 
 // UpdatePreparer prepares the Update request.
-func (client SettingsClient) UpdatePreparer(ctx context.Context, settingName string, setting BasicSetting) (*http.Request, error) {
+func (client SettingsClient) UpdatePreparer(ctx context.Context, settingName SettingName5, setting BasicSetting) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"settingName":    autorest.Encode("path", settingName),
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-06-01"
+	const APIVersion = "2022-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
