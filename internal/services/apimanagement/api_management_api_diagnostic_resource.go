@@ -95,10 +95,9 @@ func resourceApiManagementApiDiagnostic() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"metrics": {
+			"metrics_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
 			},
 
 			"http_correlation_protocol": {
@@ -136,6 +135,10 @@ func resourceApiManagementApiDiagnostic() *pluginsdk.Resource {
 				if d.Get("identifier") != "applicationinsights" {
 					return fmt.Errorf("`operation_name_format` cannot be set when `identifier` is not `applicationinsights`")
 				}
+			}
+
+			if v := d.GetRawConfig().AsValueMap()["metrics_enabled"]; !v.IsNull() && d.Get("identifier") != "applicationinsights" {
+				return fmt.Errorf("`metrics_enabled` can only be set when `identifier` is set to `applicationinsights`")
 			}
 
 			return nil
@@ -241,8 +244,8 @@ func resourceApiManagementApiDiagnosticCreateUpdate(d *pluginsdk.ResourceData, m
 		parameters.Properties.HTTPCorrelationProtocol = pointer.To(apidiagnostic.HTTPCorrelationProtocol(httpCorrelationProtocol.(string)))
 	}
 
-	if metrics, ok := d.GetOk("metrics"); ok {
-		parameters.Properties.Metrics = pointer.To(metrics.(bool))
+	if v := d.GetRawConfig().AsValueMap()["metrics_enabled"]; !v.IsNull() {
+		parameters.Properties.Metrics = pointer.To(d.Get("metrics_enabled").(bool))
 	}
 
 	frontendRequest, frontendRequestSet := d.GetOk("frontend_request")
@@ -321,7 +324,7 @@ func resourceApiManagementApiDiagnosticRead(d *pluginsdk.ResourceData, meta inte
 			d.Set("always_log_errors", pointer.From(props.AlwaysLog) == apidiagnostic.AlwaysLogAllErrors)
 			d.Set("verbosity", pointer.From(props.Verbosity))
 			d.Set("log_client_ip", pointer.From(props.LogClientIP))
-			d.Set("metrics", pointer.From(props.Metrics))
+			d.Set("metrics_enabled", pointer.From(props.Metrics))
 			d.Set("http_correlation_protocol", pointer.From(props.HTTPCorrelationProtocol))
 			if frontend := props.Frontend; frontend != nil {
 				d.Set("frontend_request", flattenApiManagementApiDiagnosticHTTPMessageDiagnostic(frontend.Request))
