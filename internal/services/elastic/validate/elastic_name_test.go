@@ -8,7 +8,7 @@ import "testing"
 func TestElasticName(t *testing.T) {
 	testData := []struct {
 		name     string
-		input    interface{}
+		input    any
 		expected bool
 	}{
 		{

@@ -324,7 +324,7 @@ func (r ElasticCloudServerlessResource) Identity() resourceids.ResourceId {
 	return &elasticmonitorresources.MonitorId{}
 }
 
-func (r ElasticCloudServerlessResource) ModelObject() interface{} {
+func (r ElasticCloudServerlessResource) ModelObject() any {
 	return &ElasticCloudServerlessResourceModel{}
 }
 
