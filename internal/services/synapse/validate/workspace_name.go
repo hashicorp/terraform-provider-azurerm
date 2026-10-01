@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func WorkspaceName(i interface{}, k string) ([]string, []error) {
+func WorkspaceName(i any, k string) ([]string, []error) {
 	// The name attribute rules are :
 	// 1. can contain only lowercase letters, numbers or hyphens
 	// 2. must start and end with a lowercase letter or number

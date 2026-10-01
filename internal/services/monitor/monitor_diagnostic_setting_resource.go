@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	authRuleParse "github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationrulesnamespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationrulesnamespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-05-01-preview/diagnosticsettings"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -75,7 +75,7 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 			"eventhub_authorization_rule_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: authRuleParse.ValidateAuthorizationRuleID,
+				ValidateFunc: authorizationrulesnamespaces.ValidateAuthorizationRuleID,
 				AtLeastOneOf: []string{"eventhub_authorization_rule_id", "log_analytics_workspace_id", "storage_account_id", "partner_solution_id"},
 			},
 
@@ -103,7 +103,6 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 			"log_analytics_destination_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				ForceNew: false,
 				Computed: true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice([]string{
 					"Dedicated",
@@ -151,7 +150,7 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 	}
 }
 
-func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.DiagnosticSettingsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -257,7 +256,7 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 	return resourceMonitorDiagnosticSettingRead(d, meta)
 }
 
-func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.DiagnosticSettingsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -374,7 +373,7 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta inte
 	return resourceMonitorDiagnosticSettingRead(d, meta)
 }
 
-func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.DiagnosticSettingsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -408,7 +407,7 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 			eventhubAuthorizationRuleId := ""
 			if props.EventHubAuthorizationRuleId != nil && *props.EventHubAuthorizationRuleId != "" {
 				authRuleId := pointer.From(props.EventHubAuthorizationRuleId)
-				parsedId, err := authRuleParse.ParseAuthorizationRuleIDInsensitively(authRuleId)
+				parsedId, err := authorizationrulesnamespaces.ParseAuthorizationRuleIDInsensitively(authRuleId)
 				if err != nil {
 					return err
 				}
@@ -459,7 +458,7 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func resourceMonitorDiagnosticSettingDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorDiagnosticSettingDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.DiagnosticSettingsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -492,11 +491,11 @@ func resourceMonitorDiagnosticSettingDelete(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func expandMonitorDiagnosticsSettingsEnabledLogs(input []interface{}) (*[]diagnosticsettings.DiagnosticsLogSettings, error) {
+func expandMonitorDiagnosticsSettingsEnabledLogs(input []any) (*[]diagnosticsettings.DiagnosticsLogSettings, error) {
 	results := make([]diagnosticsettings.DiagnosticsLogSettings, 0)
 
 	for _, raw := range input {
-		v := raw.(map[string]interface{})
+		v := raw.(map[string]any)
 
 		category := v["category"].(string)
 		categoryGroup := v["category_group"].(string)
@@ -520,14 +519,14 @@ func expandMonitorDiagnosticsSettingsEnabledLogs(input []interface{}) (*[]diagno
 	return &results, nil
 }
 
-func flattenMonitorDiagnosticEnabledLogs(input *[]diagnosticsettings.DiagnosticsLogSettings) []interface{} {
-	enabledLogs := make([]interface{}, 0)
+func flattenMonitorDiagnosticEnabledLogs(input *[]diagnosticsettings.DiagnosticsLogSettings) []any {
+	enabledLogs := make([]any, 0)
 	if input == nil {
 		return enabledLogs
 	}
 
 	for _, v := range *input {
-		output := make(map[string]interface{})
+		output := make(map[string]any)
 
 		if !v.Enabled {
 			continue
@@ -542,14 +541,14 @@ func flattenMonitorDiagnosticEnabledLogs(input *[]diagnosticsettings.Diagnostics
 	return enabledLogs
 }
 
-func flattenMonitorDiagnosticEnabledMetrics(input *[]diagnosticsettings.DiagnosticsMetricSettings) []interface{} {
-	enabledLogs := make([]interface{}, 0)
+func flattenMonitorDiagnosticEnabledMetrics(input *[]diagnosticsettings.DiagnosticsMetricSettings) []any {
+	enabledLogs := make([]any, 0)
 	if input == nil {
 		return enabledLogs
 	}
 
 	for _, v := range *input {
-		output := make(map[string]interface{})
+		output := make(map[string]any)
 
 		if !v.Enabled {
 			continue
@@ -561,11 +560,11 @@ func flattenMonitorDiagnosticEnabledMetrics(input *[]diagnosticsettings.Diagnost
 	return enabledLogs
 }
 
-func expandMonitorDiagnosticsSettingsEnabledMetrics(input []interface{}) []diagnosticsettings.DiagnosticsMetricSettings {
+func expandMonitorDiagnosticsSettingsEnabledMetrics(input []any) []diagnosticsettings.DiagnosticsMetricSettings {
 	results := make([]diagnosticsettings.DiagnosticsMetricSettings, 0)
 
 	for _, raw := range input {
-		v := raw.(map[string]interface{})
+		v := raw.(map[string]any)
 
 		output := diagnosticsettings.DiagnosticsMetricSettings{
 			Category: pointer.To(v["category"].(string)),
@@ -589,9 +588,9 @@ func ParseMonitorDiagnosticId(monitorId string) (*diagnosticsettings.ScopedDiagn
 	return &identifier, nil
 }
 
-func resourceMonitorDiagnosticLogSettingHash(input interface{}) int {
+func resourceMonitorDiagnosticLogSettingHash(input any) int {
 	var buf bytes.Buffer
-	if rawData, ok := input.(map[string]interface{}); ok {
+	if rawData, ok := input.(map[string]any); ok {
 		if category, ok := rawData["category"]; ok {
 			fmt.Fprintf(&buf, "%s-", category.(string))
 		}
