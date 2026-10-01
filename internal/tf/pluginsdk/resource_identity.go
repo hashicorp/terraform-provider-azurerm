@@ -51,6 +51,7 @@ func SegmentTypeSupported(segment resourceids.SegmentType) bool {
 		resourceids.ResourceGroupSegmentType,
 		resourceids.UserSpecifiedSegmentType,
 		resourceids.ResourceIDSegmentType,
+		resourceids.ScopeSegmentType,
 	}
 
 	return slices.Contains(supportedSegmentTypes, segment)
@@ -152,16 +153,15 @@ func ValidateResourceIdentityData(d *schema.ResourceData, id resourceids.Resourc
 		return validateCompositeResourceIdentityData(d, identity, id, identityType(idType))
 	}
 
-	identityString := "/"
+	var components []string
 	segments := id.Segments()
 	numSegments := len(segments)
 	for idx, segment := range segments {
 		switch segment.Type {
 		case resourceids.StaticSegmentType, resourceids.ResourceProviderSegmentType:
-			identityString += pointer.From(segment.FixedValue) + "/"
-		}
+			components = append(components, pointer.From(segment.FixedValue))
 
-		if SegmentTypeSupported(segment.Type) {
+		case resourceids.ScopeSegmentType:
 			name := SegmentName(segment, identityType(idType), numSegments, idx)
 
 			field, ok := identity.GetOk(name)
@@ -182,11 +182,41 @@ func ValidateResourceIdentityData(d *schema.ResourceData, id resourceids.Resourc
 				return fmt.Errorf("error setting id: %+v", err)
 			}
 
-			identityString += value + "/"
+			trimmed := strings.Trim(value, "/")
+			if trimmed == "" && value == "/" {
+				components = append(components, "")
+			} else {
+				components = append(components, trimmed)
+			}
+
+		default:
+			if SegmentTypeSupported(segment.Type) {
+				name := SegmentName(segment, identityType(idType), numSegments, idx)
+
+				field, ok := identity.GetOk(name)
+				if !ok {
+					return fmt.Errorf("getting %q in resource identity", name)
+				}
+
+				value, ok := field.(string)
+				if !ok {
+					return fmt.Errorf("converting %q to string", name)
+				}
+
+				if value == "" {
+					return fmt.Errorf("%q cannot be empty", name)
+				}
+
+				if err := identity.Set(name, value); err != nil {
+					return fmt.Errorf("error setting id: %+v", err)
+				}
+
+				components = append(components, strings.Trim(value, "/"))
+			}
 		}
 	}
 
-	identityString = strings.TrimRight(identityString, "/")
+	identityString := "/" + strings.Join(components, "/")
 
 	if err := ValidateResourceId(id, identityString, true); err != nil {
 		return fmt.Errorf("parsing after building Resource ID: %s", err)

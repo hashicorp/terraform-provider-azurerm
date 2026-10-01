@@ -188,6 +188,10 @@ func (t ManagementLockResource) Exists(ctx context.Context, clients *clients.Cli
 	return pointer.To(resp.Model != nil), nil
 }
 
+func (r ManagementLockResource) basic(data acceptance.TestData) string {
+	return r.resourceGroupReadOnlyBasic(data)
+}
+
 func (ManagementLockResource) resourceGroupReadOnlyBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

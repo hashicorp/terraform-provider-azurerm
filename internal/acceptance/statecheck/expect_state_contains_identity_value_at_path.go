@@ -20,6 +20,7 @@ type expectStateContainsIdentityValueAtPath struct {
 	resourceAddress  string
 	identityAttrPath tfjsonpath.Path
 	stateAttrPath    tfjsonpath.Path
+	caseInsensitive  bool
 }
 
 func (e expectStateContainsIdentityValueAtPath) CheckState(ctx context.Context, req statecheck.CheckStateRequest, resp *statecheck.CheckStateResponse) {
@@ -85,7 +86,12 @@ func (e expectStateContainsIdentityValueAtPath) CheckState(ctx context.Context, 
 		return
 	}
 
-	if !strings.Contains(stateString, identityString) {
+	matches := strings.Contains(stateString, identityString)
+	if e.caseInsensitive {
+		matches = strings.Contains(strings.ToLower(stateString), strings.ToLower(identityString))
+	}
+
+	if !matches {
 		resp.Error = fmt.Errorf(
 			"expected state (%[1]s.%[2]s) to contain identity value (%[1]s.%[3]s): identity value: %[4]v, state value: %[5]v",
 			e.resourceAddress,
@@ -104,5 +110,21 @@ func ExpectStateContainsIdentityValueAtPath(resourceAddress string, identityAttr
 		resourceAddress:  resourceAddress,
 		identityAttrPath: identityAttrPath,
 		stateAttrPath:    stateAttrPath,
+		caseInsensitive:  false,
+	}
+}
+
+// ExpectStateContainsIdentityValueAtPathCaseInsensitive returns a StateCheck that verifies whether a string state attribute
+// contains a string identity attribute, ignoring character casing.
+//
+// CAUTION: The use of this check should be strictly limited to resources where the Azure API has known casing issues
+// due to the service not returning the value in the casing it was sent (e.g. forcing resource IDs or names to lowercase).
+// In all standard cases, prefer ExpectStateContainsIdentityValueAtPath to preserve strict case expectation with Terraform state.
+func ExpectStateContainsIdentityValueAtPathCaseInsensitive(resourceAddress string, identityAttrPath, stateAttrPath tfjsonpath.Path) statecheck.StateCheck {
+	return expectStateContainsIdentityValueAtPath{
+		resourceAddress:  resourceAddress,
+		identityAttrPath: identityAttrPath,
+		stateAttrPath:    stateAttrPath,
+		caseInsensitive:  true,
 	}
 }
