@@ -102,6 +102,7 @@ func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
 		MonitorActionGroupListResource{},
 		MonitorActivityLogAlertListResource{},
+		MonitorDiagnosticSettingListResource{},
 		MonitorMetricAlertListResource{},
 		MonitorScheduledQueryRulesAlertListResource{},
 		MonitorWorkspaceListResource{},
