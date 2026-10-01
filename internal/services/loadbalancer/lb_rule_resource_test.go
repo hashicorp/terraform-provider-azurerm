@@ -116,8 +116,8 @@ func TestAccAzureRMLoadBalancerRule_disappears(t *testing.T) {
 func TestAccAzureRMLoadBalancerRule_inconsistentReads(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")
 	r := LoadBalancerRule{}
-	p := LoadBalancerProbe{}
-	b := LoadBalancerBackendAddressPool{}
+	p := LbProbeResource{}
+	b := LbBackendAddressPoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
