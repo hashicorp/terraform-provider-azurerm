@@ -1500,7 +1500,7 @@ func TestAccKubernetesCluster_nodeResourceGroupRestrictionLevelRemoval(t *testin
 
 	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
-			Config: r.nodeResourceGroupRestrictionLevel(data, "Unrestricted"),
+			Config: r.nodeResourceGroupRestrictionLevelRemoval(data, "Unrestricted"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("node_resource_group_restriction_level").HasValue("Unrestricted"),
@@ -1508,7 +1508,7 @@ func TestAccKubernetesCluster_nodeResourceGroupRestrictionLevelRemoval(t *testin
 		},
 		data.ImportStep(),
 		{
-			Config: r.nodeResourceGroupRestrictionLevel(data, ""),
+			Config: r.nodeResourceGroupRestrictionLevelRemoval(data, ""),
 			ConfigPlanChecks: resource.ConfigPlanChecks{
 				PreApply: []plancheck.PlanCheck{
 					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionDestroyBeforeCreate),
@@ -1540,14 +1540,24 @@ func TestAccKubernetesCluster_nodeResourceGroupRestrictionLevelOmitted(t *testin
 	})
 }
 
-func (KubernetesClusterResource) nodeResourceGroupRestrictionLevel(data acceptance.TestData, restrictionLevel string) string {
+func (r KubernetesClusterResource) nodeResourceGroupRestrictionLevel(data acceptance.TestData, restrictionLevel string) string {
+	return r.nodeResourceGroupRestrictionLevelTemplate(data, restrictionLevel, "features {}")
+}
+
+func (r KubernetesClusterResource) nodeResourceGroupRestrictionLevelRemoval(data acceptance.TestData, restrictionLevel string) string {
+	return r.nodeResourceGroupRestrictionLevelTemplate(data, restrictionLevel, `features {
+    persist_id_on_create_before_polling_for_completion = true
+  }`)
+}
+
+func (KubernetesClusterResource) nodeResourceGroupRestrictionLevelTemplate(data acceptance.TestData, restrictionLevel, features string) string {
 	restriction := ""
 	if restrictionLevel != "" {
 		restriction = fmt.Sprintf("node_resource_group_restriction_level = %q", restrictionLevel)
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  %[4]s
 }
 
 resource "azurerm_resource_group" "test" {
@@ -1581,5 +1591,5 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, restriction)
+`, data.RandomInteger, data.Locations.Primary, restriction, features)
 }
