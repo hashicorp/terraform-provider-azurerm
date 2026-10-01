@@ -33,14 +33,14 @@ type ApplianceDataSourceModel struct {
 	Identity          []identity.ModelSystemAssigned `tfschema:"identity"`
 	Provider          appliances.Provider            `tfschema:"infrastructure_provider"`
 	PublicKeyBase64   string                         `tfschema:"public_key_base64"`
-	Tags              map[string]interface{}         `tfschema:"tags"`
+	Tags              map[string]any                 `tfschema:"tags"`
 }
 
 func (r ArcResourceBridgeApplianceDataSource) ResourceType() string {
 	return "azurerm_arc_resource_bridge_appliance"
 }
 
-func (r ArcResourceBridgeApplianceDataSource) ModelObject() interface{} {
+func (r ArcResourceBridgeApplianceDataSource) ModelObject() any {
 	return &ApplianceDataSourceModel{}
 }
 

@@ -47,15 +47,15 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
-			if filterRaw := d.Get("advanced_filter"); len(filterRaw.([]interface{})) == 1 {
-				filters := filterRaw.([]interface{})[0].(map[string]interface{})
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(_ context.Context, d *pluginsdk.ResourceDiff, _ any) error {
+			if filterRaw := d.Get("advanced_filter"); len(filterRaw.([]any)) == 1 {
+				filters := filterRaw.([]any)[0].(map[string]any)
 				valueCount := 0
 				for _, valRaw := range filters {
-					for _, val := range valRaw.([]interface{}) {
-						v := val.(map[string]interface{})
+					for _, val := range valRaw.([]any) {
+						v := val.(map[string]any)
 						if values, ok := v["values"]; ok {
-							valueCount += len(values.([]interface{}))
+							valueCount += len(values.([]any))
 						} else if _, ok := v["value"]; ok {
 							valueCount++
 						}
@@ -159,7 +159,7 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 	}
 }
 
-func resourceEventGridEventSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventGridEventSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).EventGrid.EventSubscriptions
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -196,12 +196,12 @@ func resourceEventGridEventSubscriptionCreateUpdate(d *pluginsdk.ResourceData, m
 		ExpirationTimeUtc:   pointer.To(d.Get("expiration_time_utc").(string)),
 		EventDeliverySchema: pointer.ToEnum[eventsubscriptions.EventDeliverySchema](d.Get("event_delivery_schema").(string)),
 		Filter:              filter,
-		Labels:              pluginsdk.ExpandStringSlice(d.Get("labels").([]interface{})),
+		Labels:              pluginsdk.ExpandStringSlice(d.Get("labels").([]any)),
 		RetryPolicy:         expandEventSubscriptionRetryPolicy(d),
 	}
 
 	if v, ok := d.GetOk("delivery_identity"); ok {
-		deliveryIdentityRaw := v.([]interface{})
+		deliveryIdentityRaw := v.([]any)
 		deliveryIdentity, err := expandEventSubscriptionIdentity(deliveryIdentityRaw)
 		if err != nil {
 			return fmt.Errorf("expanding `delivery_identity`: %+v", err)
@@ -219,7 +219,7 @@ func resourceEventGridEventSubscriptionCreateUpdate(d *pluginsdk.ResourceData, m
 		if deadLetterDestination == nil {
 			return fmt.Errorf("`dead_letter_identity`: `storage_blob_dead_letter_destination` must be specified")
 		}
-		deadLetterIdentityRaw := v.([]interface{})
+		deadLetterIdentityRaw := v.([]any)
 		deadLetterIdentity, err := expandEventSubscriptionIdentity(deadLetterIdentityRaw)
 		if err != nil {
 			return fmt.Errorf("expanding `dead_letter_identity`: %+v", err)
@@ -251,7 +251,7 @@ func resourceEventGridEventSubscriptionCreateUpdate(d *pluginsdk.ResourceData, m
 	return resourceEventGridEventSubscriptionRead(d, meta)
 }
 
-func resourceEventGridEventSubscriptionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventGridEventSubscriptionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).EventGrid.EventSubscriptions
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -302,7 +302,7 @@ func resourceEventGridEventSubscriptionRead(d *pluginsdk.ResourceData, meta inte
 			d.Set("event_delivery_schema", eventDeliverySchema)
 
 			destination := props.Destination
-			deliveryIdentityFlattened := make([]interface{}, 0)
+			deliveryIdentityFlattened := make([]any, 0)
 			if deliveryIdentity := props.DeliveryWithResourceIdentity; deliveryIdentity != nil {
 				destination = deliveryIdentity.Destination
 				deliveryIdentityFlattened = flattenEventSubscriptionIdentity(deliveryIdentity.Identity)
@@ -311,7 +311,7 @@ func resourceEventGridEventSubscriptionRead(d *pluginsdk.ResourceData, meta inte
 				return fmt.Errorf("setting `delivery_identity` for %s: %+v", *id, err)
 			}
 
-			existingMappingsFromState := expandEventSubscriptionDeliveryAttributeMappings(d.Get("delivery_property").([]interface{}))
+			existingMappingsFromState := expandEventSubscriptionDeliveryAttributeMappings(d.Get("delivery_property").([]any))
 			if err := d.Set("delivery_property", flattenEventSubscriptionDeliveryAttributeMappings(destination, existingMappingsFromState)); err != nil {
 				return fmt.Errorf("setting `delivery_property` for %s: %+v", *id, err)
 			}
@@ -332,7 +332,7 @@ func resourceEventGridEventSubscriptionRead(d *pluginsdk.ResourceData, meta inte
 			}
 
 			deadLetterDestination := props.DeadLetterDestination
-			deadLetterIdentityFlattened := make([]interface{}, 0)
+			deadLetterIdentityFlattened := make([]any, 0)
 			if deadLetterIdentity := props.DeadLetterWithResourceIdentity; deadLetterIdentity != nil {
 				deadLetterDestination = deadLetterIdentity.DeadLetterDestination
 				deadLetterIdentityFlattened = flattenEventSubscriptionIdentity(deadLetterIdentity.Identity)
@@ -369,7 +369,7 @@ func resourceEventGridEventSubscriptionRead(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func resourceEventGridEventSubscriptionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventGridEventSubscriptionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).EventGrid.EventSubscriptions
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

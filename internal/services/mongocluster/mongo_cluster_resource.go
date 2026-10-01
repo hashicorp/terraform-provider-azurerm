@@ -73,7 +73,7 @@ type Restore struct {
 	SourceId       string `tfschema:"source_id"`
 }
 
-func (r MongoClusterResource) ModelObject() interface{} {
+func (r MongoClusterResource) ModelObject() any {
 	return &MongoClusterResourceModel{}
 }
 
@@ -681,10 +681,10 @@ func (r MongoClusterResource) Read() sdk.ResourceFunc {
 					}
 
 					if v := props.HighAvailability; v != nil {
-						state.HighAvailabilityMode = string(pointer.From(v.TargetMode))
+						state.HighAvailabilityMode = pointer.FromEnum(v.TargetMode)
 					}
 					state.CosmosDBNetworkBypassEnabled = pointer.From(props.NetworkBypassMode) == mongoclusters.NetworkBypassModeAzureCosmosDB
-					state.PublicNetworkAccess = string(pointer.From(props.PublicNetworkAccess))
+					state.PublicNetworkAccess = pointer.FromEnum(props.PublicNetworkAccess)
 
 					if v := props.Storage; v != nil {
 						state.StorageSizeInGb = pointer.From(v.SizeGb)
@@ -829,7 +829,7 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 			// But since service API does not allow explicitly setting `identity.userAssignedIdentities` to `nil` when the identity type is `None`,
 			// otherwise it will throw a schema validation error, Terraform can only dynamically treat this change as forceNew.
 			// 2. Service API will fail when identity type is changed from `None` to `UserAssigned`.
-			if oldVal, newVal := metadata.ResourceDiff.GetChange("identity"); (len(oldVal.([]interface{})) > 0 && len(newVal.([]interface{})) == 0) || (len(oldVal.([]interface{})) == 0 && len(newVal.([]interface{})) > 0) {
+			if oldVal, newVal := metadata.ResourceDiff.GetChange("identity"); (len(oldVal.([]any)) > 0 && len(newVal.([]any)) == 0) || (len(oldVal.([]any)) == 0 && len(newVal.([]any)) > 0) {
 				if err := metadata.ResourceDiff.ForceNew("identity"); err != nil {
 					return err
 				}

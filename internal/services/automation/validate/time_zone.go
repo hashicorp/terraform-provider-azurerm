@@ -5,7 +5,7 @@ package validate
 
 import "github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 
-func AzureTimeZoneString() func(interface{}, string) ([]string, []error) {
+func AzureTimeZoneString() func(any, string) ([]string, []error) {
 	// List collected from https://support.microsoft.com/en-gb/help/973627/microsoft-time-zone-index-values
 	// TODO look into programmatic retrieval https://docs.microsoft.com/rest/api/maps/timezone/gettimezoneenumwindows
 	validTimeZones := []string{

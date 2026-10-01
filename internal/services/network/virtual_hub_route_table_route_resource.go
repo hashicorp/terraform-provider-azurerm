@@ -92,7 +92,7 @@ func resourceVirtualHubRouteTableRoute() *pluginsdk.Resource {
 	}
 }
 
-func resourceVirtualHubRouteTableRouteCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubRouteTableRouteCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -163,7 +163,7 @@ func resourceVirtualHubRouteTableRouteCreate(d *pluginsdk.ResourceData, meta int
 	return resourceVirtualHubRouteTableRouteRead(d, meta)
 }
 
-func resourceVirtualHubRouteTableRouteUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubRouteTableRouteUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -225,7 +225,7 @@ func resourceVirtualHubRouteTableRouteUpdate(d *pluginsdk.ResourceData, meta int
 	return resourceVirtualHubRouteTableRouteRead(d, meta)
 }
 
-func resourceVirtualHubRouteTableRouteRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubRouteTableRouteRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -277,7 +277,7 @@ func resourceVirtualHubRouteTableRouteRead(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func resourceVirtualHubRouteTableRouteDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubRouteTableRouteDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
