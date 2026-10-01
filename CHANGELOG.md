@@ -1,3 +1,37 @@
+## 5.8.0 (October 1, 2026)
+
+FEATURES:
+
+* **New Action**: `azurerm_data_protection_resource_guard_unlock_delete` ([#28306](https://github.com/hashicorp/terraform-provider-azurerm/issues/28306))
+* **New Data Source**: `azurerm_oracle_autonomous_database_cross_region_disaster_recovery` ([#30167](https://github.com/hashicorp/terraform-provider-azurerm/issues/30167))
+* **New List Resource**: `azurerm_dns_a_record` ([#33263](https://github.com/hashicorp/terraform-provider-azurerm/issues/33263))
+* **New List Resource**: `azurerm_dns_cname_record` ([#33264](https://github.com/hashicorp/terraform-provider-azurerm/issues/33264))
+* **New List Resource**: `azurerm_dns_txt_record` ([#33269](https://github.com/hashicorp/terraform-provider-azurerm/issues/33269))
+* **New List Resource**: `azurerm_lb_probe` ([#33459](https://github.com/hashicorp/terraform-provider-azurerm/issues/33459))
+* **New List Resource**: `azurerm_monitor_workspace` ([#33375](https://github.com/hashicorp/terraform-provider-azurerm/issues/33375))
+* **New List Resource**: `azurerm_postgresql_flexible_server_firewall_rule` ([#33377](https://github.com/hashicorp/terraform-provider-azurerm/issues/33377))
+* **New List Resource**: `azurerm_storage_account_network_rules` ([#33447](https://github.com/hashicorp/terraform-provider-azurerm/issues/33447))
+* **New List Resource**: `azurerm_storage_container` ([#33523](https://github.com/hashicorp/terraform-provider-azurerm/issues/33523))
+* **New Resource**: `azurerm_oracle_autonomous_database_cross_region_disaster_recovery` ([#30167](https://github.com/hashicorp/terraform-provider-azurerm/issues/30167))
+
+ENHANCEMENTS:
+
+* dependencies: `communication` - update API version to `2026-03-18` ([#32802](https://github.com/hashicorp/terraform-provider-azurerm/issues/32802))
+* dependencies: `go-azure-sdk` - update to `v0.20260928.1201942` ([#33524](https://github.com/hashicorp/terraform-provider-azurerm/issues/33524))
+* `azurerm_linux_function_app_slot` - add support for `7.6` to the `site_config.application_stack.powershell_core_version` property ([#33520](https://github.com/hashicorp/terraform-provider-azurerm/issues/33520))
+* `azurerm_linux_function_app` - add support for `7.6` to the `site_config.application_stack.powershell_core_version` property ([#33520](https://github.com/hashicorp/terraform-provider-azurerm/issues/33520))
+* `azurerm_mysql_flexible_database` - suppress persistent diffs on `charset` and `collation` when using the `utf8` aliases as the API now returns `utf8mb3` prefixed values ([#33138](https://github.com/hashicorp/terraform-provider-azurerm/issues/33138))
+* `azurerm_netapp_volume_group_oracle` - allow `volume.storage_quota_in_gb` minimum of 50 (previously 100) ([#33518](https://github.com/hashicorp/terraform-provider-azurerm/issues/33518))
+* `azurerm_netapp_volume_group_sap_hana` - allow `volume.storage_quota_in_gb` minimum of 50 (previously 100) ([#33518](https://github.com/hashicorp/terraform-provider-azurerm/issues/33518))
+* `azurerm_postgresql_flexible_server` - improve validation for `storage_mb` to allow increments of 1024 for `storage_type` of `PremiumV22_LRS` ([#33197](https://github.com/hashicorp/terraform-provider-azurerm/issues/33197))
+* `azurerm_public_ip_prefix` - support updating `sku` in-place. ([#33480](https://github.com/hashicorp/terraform-provider-azurerm/issues/33480))
+* `azurerm_storage_account` - prevent replacement of resource when `account_kind` changes from `StorageV2` to `Storage` as `Storage` is deprecated and can no longer be used to create accounts ([#33531](https://github.com/hashicorp/terraform-provider-azurerm/issues/33531))
+* `azurerm_storage_container` - add Resource Identity support ([#33523](https://github.com/hashicorp/terraform-provider-azurerm/issues/33523))
+
+BUG FIXES:
+
+* `azurerm_container_app_job` - the `event_stream_endpoint` and `outbound_ip_addresses` properties are now set into state ([#33513](https://github.com/hashicorp/terraform-provider-azurerm/issues/33513))
+
 ## v5.7.0 (September 24, 2026)
 
 FEATURES:
