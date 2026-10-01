@@ -50,7 +50,7 @@ resource "azurerm_data_protection_backup_policy_cosmosdb_account" "test" {
   name                            = "acctest-dbp-cosmos-${count.index}-%d"
   data_protection_backup_vault_id = azurerm_data_protection_backup_vault.test.id
   default_retention_duration      = "P10Y"
-  full_backup_schedule            = "R/2026-02-08T10:00:00+00:00/P1W"
+  backup_schedule                 = "R/2026-02-08T10:00:00+00:00/P1W"
 }
 
 resource "azurerm_data_protection_backup_policy_disk" "other" {

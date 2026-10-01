@@ -113,7 +113,7 @@ resource "azurerm_data_protection_backup_policy_cosmosdb_account" "test" {
   name                            = "acctest-dbp-cosmos-%d"
   data_protection_backup_vault_id = azurerm_data_protection_backup_vault.test.id
   default_retention_duration      = "P10Y"
-  full_backup_schedule            = "R/2026-02-08T10:00:00+00:00/P1W"
+  backup_schedule                 = "R/2026-02-08T10:00:00+00:00/P1W"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -125,9 +125,9 @@ func (r DataProtectionBackupPolicyCosmosdbAccountResource) requiresImport(data a
 resource "azurerm_data_protection_backup_policy_cosmosdb_account" "import" {
   name                            = azurerm_data_protection_backup_policy_cosmosdb_account.test.name
   data_protection_backup_vault_id = azurerm_data_protection_backup_policy_cosmosdb_account.test.data_protection_backup_vault_id
-  incremental_backup_enabled      = azurerm_data_protection_backup_policy_cosmosdb_account.test.incremental_backup_enabled
+  daily_backup_enabled            = azurerm_data_protection_backup_policy_cosmosdb_account.test.daily_backup_enabled
   default_retention_duration      = azurerm_data_protection_backup_policy_cosmosdb_account.test.default_retention_duration
-  full_backup_schedule            = azurerm_data_protection_backup_policy_cosmosdb_account.test.full_backup_schedule
+  backup_schedule                 = azurerm_data_protection_backup_policy_cosmosdb_account.test.backup_schedule
 }
 `, r.basic(data))
 }
@@ -140,15 +140,15 @@ resource "azurerm_data_protection_backup_policy_cosmosdb_account" "test" {
   name                            = "acctest-dbp-cosmos-%d"
   data_protection_backup_vault_id = azurerm_data_protection_backup_vault.test.id
   default_retention_duration      = "P10Y"
-  full_backup_schedule            = "R/2026-02-08T10:00:00+00:00/P1W"
+  backup_schedule                 = "R/2026-02-08T10:00:00+00:00/P1W"
 
-  incremental_backup_enabled = false
-  time_zone                  = "Coordinated Universal Time"
+  daily_backup_enabled = false
+  time_zone             = "Coordinated Universal Time"
 
   retention_rule {
-    name              = "Monthly"
-    duration          = "P10Y"
-    absolute_criteria = "FirstOfMonth"
+    name            = "Monthly"
+    duration        = "P10Y"
+    backup_occurrence = "FirstOfMonth"
   }
 
   retention_rule {

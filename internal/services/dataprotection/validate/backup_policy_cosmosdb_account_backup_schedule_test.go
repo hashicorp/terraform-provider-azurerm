@@ -5,7 +5,7 @@ package validate
 
 import "testing"
 
-func TestBackupPolicyCosmosdbAccountFullBackupSchedule(t *testing.T) {
+func TestBackupPolicyCosmosdbAccountBackupSchedule(t *testing.T) {
 	testCases := []struct {
 		input    string
 		expected bool
@@ -68,9 +68,9 @@ func TestBackupPolicyCosmosdbAccountFullBackupSchedule(t *testing.T) {
 		},
 	}
 
-	validator := BackupPolicyCosmosdbAccountFullBackupSchedule()
+	validator := BackupPolicyCosmosdbAccountBackupSchedule()
 	for _, testCase := range testCases {
-		_, errors := validator(testCase.input, "full_backup_schedule")
+		_, errors := validator(testCase.input, "backup_schedule")
 		result := len(errors) == 0
 		if result != testCase.expected {
 			t.Fatalf("expected validation result for %q to be %t, got %t", testCase.input, testCase.expected, result)
