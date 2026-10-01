@@ -71,7 +71,7 @@ func resourceMsSqlTransparentDataEncryption() *pluginsdk.Resource {
 	}
 }
 
-func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.EncryptionProtectorClient
 	serverKeysClient := meta.(*clients.Client).MSSQL.ServerKeysClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -144,7 +144,7 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceDat
 	return resourceMsSqlTransparentDataEncryptionRead(d, meta)
 }
 
-func resourceMsSqlTransparentDataEncryptionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlTransparentDataEncryptionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.EncryptionProtectorClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -196,7 +196,7 @@ func resourceMsSqlTransparentDataEncryptionRead(d *pluginsdk.ResourceData, meta 
 	return nil
 }
 
-func resourceMsSqlTransparentDataEncryptionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlTransparentDataEncryptionDelete(d *pluginsdk.ResourceData, meta any) error {
 	// Note that encryption protector cannot be deleted. It can only be updated between AzureKeyVault
 	// and SystemManaged. For safety, when this resource is deleted, we're resetting the key type
 	// to service managed to prevent accidental lockout if someone were to delete the keys from key vault

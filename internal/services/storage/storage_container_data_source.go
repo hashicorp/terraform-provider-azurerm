@@ -72,7 +72,7 @@ func dataSourceStorageContainer() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceStorageContainerRead(d *pluginsdk.ResourceData, meta any) error {
 	containerClient := meta.(*clients.Client).Storage.ResourceManager.BlobContainers
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -94,7 +94,7 @@ func dataSourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{})
 	if model := container.Model; model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("name", containerName)
-			d.Set("container_access_type", containerAccessTypeConversionMap[string(pointer.From(props.PublicAccess))])
+			d.Set("container_access_type", containerAccessTypeConversionMap[pointer.FromEnum(props.PublicAccess)])
 
 			d.Set("default_encryption_scope", props.DefaultEncryptionScope)
 			d.Set("encryption_scope_override_enabled", !pointer.From(props.DenyEncryptionScopeOverride))

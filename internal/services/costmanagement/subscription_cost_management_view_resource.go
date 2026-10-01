@@ -60,7 +60,7 @@ func (r SubscriptionCostManagementViewResource) Attributes() map[string]*plugins
 	return r.base.attributes()
 }
 
-func (r SubscriptionCostManagementViewResource) ModelObject() interface{} {
+func (r SubscriptionCostManagementViewResource) ModelObject() any {
 	return &SubscriptionCostManagementViewModel{}
 }
 
