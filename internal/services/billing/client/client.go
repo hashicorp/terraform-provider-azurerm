@@ -74,7 +74,6 @@ type ReservationOrderResponseProperties struct {
 	BillingPlan      string `json:"billingPlan"`
 	BillingScopeId   string `json:"billingScopeId"`
 	AppliedScopeType string `json:"appliedScopeType"`
-	Renew            bool   `json:"renew"`
 }
 
 type ReservationOrderResponse struct {
@@ -83,6 +82,21 @@ type ReservationOrderResponse struct {
 	Location   string                              `json:"location,omitempty"`
 	Sku        *ReservationOrderSku                `json:"sku,omitempty"`
 	Properties *ReservationOrderResponseProperties `json:"properties,omitempty"`
+}
+
+// ReservationResponseProperties is the subset of a reservation (a child of the
+// reservation order) we need. Renew is only exposed here, not on the order.
+type ReservationResponseProperties struct {
+	Renew bool `json:"renew"`
+}
+
+type ReservationResponse struct {
+	Name       string                         `json:"name"`
+	Properties *ReservationResponseProperties `json:"properties,omitempty"`
+}
+
+type ReservationListResponse struct {
+	Value []ReservationResponse `json:"value"`
 }
 
 type ReservationReturnProperties struct {
@@ -208,6 +222,34 @@ func (c *Client) Get(ctx context.Context, path string) (*ReservationOrderRespons
 		return nil, fmt.Errorf("unmarshaling get response: %+v", err)
 	}
 	return &result, nil
+}
+
+// GetReservations lists the reservations of a PTU reservation order
+// (GET {order}/reservations). The `renew` flag is a property of the reservation,
+// not of the order, so it must be read from here.
+func (c *Client) GetReservations(ctx context.Context, path string) ([]ReservationResponse, error) {
+	opts := sdkclient.RequestOptions{
+		ContentType:         "application/json; charset=utf-8",
+		ExpectedStatusCodes: []int{http.StatusOK},
+		HttpMethod:          http.MethodGet,
+		Path:                path + "/reservations",
+	}
+
+	req, err := c.ReservationOrdersClient.NewRequest(ctx, opts)
+	if err != nil {
+		return nil, fmt.Errorf("building list reservations request: %+v", err)
+	}
+
+	resp, execErr := req.Execute(ctx)
+	if execErr != nil {
+		return nil, fmt.Errorf("executing list reservations request: %+v", execErr)
+	}
+
+	var result ReservationListResponse
+	if err = resp.Unmarshal(&result); err != nil {
+		return nil, fmt.Errorf("unmarshaling list reservations response: %+v", err)
+	}
+	return result.Value, nil
 }
 
 // Return attempts to return (cancel/refund) a PTU reservation order.

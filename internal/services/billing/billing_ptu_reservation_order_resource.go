@@ -224,7 +224,6 @@ func (r BillingPtuReservationOrderResource) Read() sdk.ResourceFunc {
 			if existing.Properties != nil {
 				state.Name = existing.Properties.DisplayName
 				state.Capacity = existing.Properties.OriginalQuantity
-				state.Renew = existing.Properties.Renew
 				// Azure omits certain fields (e.g. appliedScopeType, term, billingPlan,
 				// billingScopeId) when they are at their default / "Shared" values. Only
 				// overwrite state when the API actually returns a non-empty value so we
@@ -247,6 +246,20 @@ func (r BillingPtuReservationOrderResource) Read() sdk.ResourceFunc {
 			}
 			if existing.Location != "" {
 				state.Location = existing.Location
+			}
+
+			// `renew` is not part of the reservation order payload, it lives on the
+			// reservation itself. Reading it from the order always yields false and
+			// causes a permanent `false -> true` diff, so read it from the reservation.
+			reservations, err := client.GetReservations(ctx, id.ID())
+			if err != nil {
+				return fmt.Errorf("retrieving reservations for %s: %+v", id, err)
+			}
+			for _, reservation := range reservations {
+				if reservation.Properties != nil {
+					state.Renew = reservation.Properties.Renew
+					break
+				}
 			}
 
 			return metadata.Encode(&state)
