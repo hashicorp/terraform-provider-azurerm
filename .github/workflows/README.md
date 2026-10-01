@@ -34,10 +34,6 @@ The PR comment workflows only need `pull-requests: write`. The
 and [label](https://docs.github.com/en/rest/issues/labels#remove-a-label-from-an-issue)
 APIs accept this permission for pull requests, despite their `issues` namespace.
 
-`issue-remove-label.yaml` serves both issues and PRs, so it inherits its caller's
-permissions. Callers must explicitly grant `issues: write` for issues,
-`pull-requests: write` for PRs, or both when handling either.
-
 Fork-PR tokens remain read-only. Keep untrusted checks on `pull_request` and use
 the artifact relay below for privileged labelling; do not move untrusted checkout
 or execution into `pull_request_target`.
