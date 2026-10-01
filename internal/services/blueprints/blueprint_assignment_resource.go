@@ -138,7 +138,7 @@ func resourceBlueprintAssignment() *pluginsdk.Resource {
 	}
 }
 
-func resourceBlueprintAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBlueprintAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Blueprints.AssignmentsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -173,12 +173,12 @@ func resourceBlueprintAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 		lockMode := lockModeRaw.(string)
 		assignmentLockSettings.Mode = pointer.ToEnum[assignment.AssignmentLockMode](lockMode)
 		if lockMode != "None" {
-			excludedPrincipalsRaw := d.Get("lock_exclude_principals").([]interface{})
+			excludedPrincipalsRaw := d.Get("lock_exclude_principals").([]any)
 			if len(excludedPrincipalsRaw) != 0 {
 				assignmentLockSettings.ExcludedPrincipals = pluginsdk.ExpandStringSlice(excludedPrincipalsRaw)
 			}
 
-			excludedActionsRaw := d.Get("lock_exclude_actions").([]interface{})
+			excludedActionsRaw := d.Get("lock_exclude_actions").([]any)
 			if len(excludedActionsRaw) != 0 {
 				assignmentLockSettings.ExcludedActions = pluginsdk.ExpandStringSlice(excludedActionsRaw)
 			}
@@ -186,7 +186,7 @@ func resourceBlueprintAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 		payload.Properties.Locks = assignmentLockSettings
 	}
 
-	i, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
+	i, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -233,7 +233,7 @@ func resourceBlueprintAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 	return resourceBlueprintAssignmentRead(d, meta)
 }
 
-func resourceBlueprintAssignmentRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBlueprintAssignmentRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Blueprints.AssignmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -282,7 +282,7 @@ func resourceBlueprintAssignmentRead(d *pluginsdk.ResourceData, meta interface{}
 
 		// Locks
 		if locks := p.Locks; locks != nil {
-			d.Set("lock_mode", string(pointer.From(locks.Mode)))
+			d.Set("lock_mode", pointer.FromEnum(locks.Mode))
 			if locks.ExcludedPrincipals != nil {
 				d.Set("lock_exclude_principals", locks.ExcludedPrincipals)
 			}
@@ -303,7 +303,7 @@ func resourceBlueprintAssignmentRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceBlueprintAssignmentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBlueprintAssignmentDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Blueprints.AssignmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

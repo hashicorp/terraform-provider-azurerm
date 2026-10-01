@@ -80,7 +80,7 @@ func resourceMsSqlJobAgent() *pluginsdk.Resource {
 	}
 }
 
-func resourceMsSqlJobAgentCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlJobAgentCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.JobAgentsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -114,10 +114,10 @@ func resourceMsSqlJobAgentCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		Sku: &jobagents.Sku{
 			Name: d.Get("sku").(string),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
-	expandedIdentity, err := expandJobAgentIdentity(d.Get("identity").([]interface{}))
+	expandedIdentity, err := expandJobAgentIdentity(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -134,7 +134,7 @@ func resourceMsSqlJobAgentCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceMsSqlJobAgentRead(d, meta)
 }
 
-func resourceMsSqlJobAgentUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlJobAgentUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.JobAgentsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -157,7 +157,7 @@ func resourceMsSqlJobAgentUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	params := existing.Model
 
 	if d.HasChanges("identity") {
-		expandedIdentity, err := expandJobAgentIdentity(d.Get("identity").([]interface{}))
+		expandedIdentity, err := expandJobAgentIdentity(d.Get("identity").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -171,7 +171,7 @@ func resourceMsSqlJobAgentUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChanges("tags") {
-		params.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		params.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err = client.CreateOrUpdateThenPoll(ctx, id, *params); err != nil {
@@ -181,7 +181,7 @@ func resourceMsSqlJobAgentUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceMsSqlJobAgentRead(d, meta)
 }
 
-func resourceMsSqlJobAgentRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlJobAgentRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.JobAgentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -229,7 +229,7 @@ func resourceMssqlJobAgentSetFlatten(d *pluginsdk.ResourceData, id *jobagents.Jo
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceMsSqlJobAgentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlJobAgentDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.JobAgentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -246,7 +246,7 @@ func resourceMsSqlJobAgentDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
-func expandJobAgentIdentity(input []interface{}) (*jobagents.JobAgentIdentity, error) {
+func expandJobAgentIdentity(input []any) (*jobagents.JobAgentIdentity, error) {
 	expanded, err := identity.ExpandUserAssignedMap(input)
 	if err != nil {
 		return nil, err
@@ -270,7 +270,7 @@ func expandJobAgentIdentity(input []interface{}) (*jobagents.JobAgentIdentity, e
 	return result, nil
 }
 
-func flattenJobAgentIdentity(input *jobagents.JobAgentIdentity) ([]interface{}, error) {
+func flattenJobAgentIdentity(input *jobagents.JobAgentIdentity) ([]any, error) {
 	if input == nil {
 		result, err := identity.FlattenUserAssignedMap(&identity.UserAssignedMap{Type: identity.TypeNone})
 		if err != nil {

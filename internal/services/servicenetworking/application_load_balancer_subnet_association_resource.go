@@ -23,10 +23,10 @@ import (
 type ApplicationLoadBalancerSubnetAssociationResource struct{}
 
 type AssociationResourceModel struct {
-	Name                      string                 `tfschema:"name"`
-	ApplicationLoadBalancerId string                 `tfschema:"application_load_balancer_id"`
-	SubnetId                  string                 `tfschema:"subnet_id"`
-	Tags                      map[string]interface{} `tfschema:"tags"`
+	Name                      string         `tfschema:"name"`
+	ApplicationLoadBalancerId string         `tfschema:"application_load_balancer_id"`
+	SubnetId                  string         `tfschema:"subnet_id"`
+	Tags                      map[string]any `tfschema:"tags"`
 }
 
 var _ sdk.ResourceWithUpdate = ApplicationLoadBalancerSubnetAssociationResource{}
@@ -52,7 +52,7 @@ func (t ApplicationLoadBalancerSubnetAssociationResource) Attributes() map[strin
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (t ApplicationLoadBalancerSubnetAssociationResource) ModelObject() interface{} {
+func (t ApplicationLoadBalancerSubnetAssociationResource) ModelObject() any {
 	return &AssociationResourceModel{}
 }
 

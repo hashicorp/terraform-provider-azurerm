@@ -12,11 +12,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
-	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub"
+	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub" // azignore:AZG010 - package name does not match its path
 )
 
 func dataSourceIotHub() *pluginsdk.Resource {
@@ -31,7 +31,7 @@ func dataSourceIotHub() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: iothubValidate.IoTHubName,
+				ValidateFunc: validate.IoTHubName,
 			},
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
@@ -47,7 +47,7 @@ func dataSourceIotHub() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceIotHubRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	subscriptionId := meta.(*clients.Client).IoTHub.ResourceClient.SubscriptionID
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -82,7 +82,7 @@ func dataSourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func dataSourceFlattenIotHubIdentityDetails(input *devices.ArmIdentity) (*[]interface{}, error) {
+func dataSourceFlattenIotHubIdentityDetails(input *devices.ArmIdentity) (*[]any, error) {
 	var transform *identity.SystemAndUserAssignedMap
 
 	if input != nil {

@@ -19,23 +19,23 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ArmLoadBalancerBackendAddressPoolListResource struct{}
+type LoadBalancerBackendAddressPoolListResource struct{}
 
 type ArmLoadBalancerBackendAddressPoolListModel struct {
 	LoadBalancerId types.String `tfsdk:"loadbalancer_id"`
 }
 
-var _ sdk.FrameworkListWrappedResource = new(ArmLoadBalancerBackendAddressPoolListResource)
+var _ sdk.FrameworkListWrappedResource = new(LoadBalancerBackendAddressPoolListResource)
 
-func (ArmLoadBalancerBackendAddressPoolListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
+func (LoadBalancerBackendAddressPoolListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
 	response.TypeName = backendAddressPoolResourceName
 }
 
-func (ArmLoadBalancerBackendAddressPoolListResource) ResourceFunc() *pluginsdk.Resource {
+func (LoadBalancerBackendAddressPoolListResource) ResourceFunc() *pluginsdk.Resource {
 	return resourceArmLoadBalancerBackendAddressPool()
 }
 
-func (ArmLoadBalancerBackendAddressPoolListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
+func (LoadBalancerBackendAddressPoolListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"loadbalancer_id": schema.StringAttribute{
@@ -48,7 +48,7 @@ func (ArmLoadBalancerBackendAddressPoolListResource) ListResourceConfigSchema(_ 
 	}
 }
 
-func (ArmLoadBalancerBackendAddressPoolListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
+func (LoadBalancerBackendAddressPoolListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.LoadBalancers.LoadBalancersClient
 
 	var data ArmLoadBalancerBackendAddressPoolListModel

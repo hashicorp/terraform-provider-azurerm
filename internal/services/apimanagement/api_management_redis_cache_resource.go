@@ -87,7 +87,7 @@ func resourceApiManagementRedisCache() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementRedisCacheCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementRedisCacheCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).ApiManagement.CacheClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -143,7 +143,7 @@ func resourceApiManagementRedisCacheCreateUpdate(d *pluginsdk.ResourceData, meta
 	return resourceApiManagementRedisCacheRead(d, meta)
 }
 
-func resourceApiManagementRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementRedisCacheRead(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).ApiManagement.CacheClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -186,7 +186,7 @@ func resourceApiManagementRedisCacheRead(d *pluginsdk.ResourceData, meta interfa
 	return nil
 }
 
-func resourceApiManagementRedisCacheDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementRedisCacheDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.CacheClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

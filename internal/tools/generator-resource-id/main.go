@@ -944,7 +944,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/%[2]s/parse"
 )
 
-func %[1]sID(input interface{}, key string) (warnings []string, errors []error) {
+func %[1]sID(input any, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %%q to be a string", key))
