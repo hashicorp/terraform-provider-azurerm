@@ -19,7 +19,7 @@ import (
 type MonitorDiagnosticSettingResource struct{}
 
 func (r MonitorDiagnosticSettingResource) basic(data acceptance.TestData) string {
-	return r.storageAccount(data)
+	return r.managementGroup(data)
 }
 
 func TestAccMonitorDiagnosticSetting_eventhub(t *testing.T) {
