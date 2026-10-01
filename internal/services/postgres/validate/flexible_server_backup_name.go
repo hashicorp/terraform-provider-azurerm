@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func FlexibleServerBackupName(i interface{}, k string) ([]string, []error) {
+func FlexibleServerBackupName(i any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile(`^[-\w\._]+$`), "is not a valid backup name")(i, k)
 }

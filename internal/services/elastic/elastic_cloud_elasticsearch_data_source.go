@@ -132,7 +132,7 @@ func dataSourceElasticsearch() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceElasticsearchRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceElasticsearchRead(d *schema.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Elastic.MonitorClient
 	hostingTypeClient := meta.(*clients.Client).Elastic.ServerlessMonitorClient
 	logsClient := meta.(*clients.Client).Elastic.TagRuleClient

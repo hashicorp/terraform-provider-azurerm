@@ -55,7 +55,7 @@ func (r StorageDiscoveryWorkspaceResource) ResourceType() string {
 	return "azurerm_storage_discovery_workspace"
 }
 
-func (r StorageDiscoveryWorkspaceResource) ModelObject() interface{} {
+func (r StorageDiscoveryWorkspaceResource) ModelObject() any {
 	return &StorageDiscoveryWorkspaceModel{}
 }
 
@@ -421,17 +421,17 @@ func flattenStorageDiscoveryScopes(input []storagediscoveryworkspaces.StorageDis
 	return result
 }
 
-func storageDiscoveryScopeReplacementPath(oldRaw, newRaw interface{}) string {
-	oldScopes := oldRaw.([]interface{})
-	newScopes := newRaw.([]interface{})
+func storageDiscoveryScopeReplacementPath(oldRaw, newRaw any) string {
+	oldScopes := oldRaw.([]any)
+	newScopes := newRaw.([]any)
 
-	oldScopesByName := make(map[string]map[string]interface{}, len(oldScopes))
+	oldScopesByName := make(map[string]map[string]any, len(oldScopes))
 	for _, item := range oldScopes {
 		if item == nil {
 			continue
 		}
 
-		scope := item.(map[string]interface{})
+		scope := item.(map[string]any)
 		oldScopesByName[scope["display_name"].(string)] = scope
 	}
 
@@ -440,7 +440,7 @@ func storageDiscoveryScopeReplacementPath(oldRaw, newRaw interface{}) string {
 			continue
 		}
 
-		newScope := item.(map[string]interface{})
+		newScope := item.(map[string]any)
 		oldScope, exists := oldScopesByName[newScope["display_name"].(string)]
 		if !exists {
 			continue
@@ -459,7 +459,7 @@ func storageDiscoveryScopeReplacementPath(oldRaw, newRaw interface{}) string {
 		if replacementField != "" {
 			// ForceNew requires a positional change. When a scope moves, its filters
 			// can match those previously at its new index, but its display name changes.
-			if index >= len(oldScopes) || oldScopes[index] == nil || oldScopes[index].(map[string]interface{})["display_name"] != newScope["display_name"] {
+			if index >= len(oldScopes) || oldScopes[index] == nil || oldScopes[index].(map[string]any)["display_name"] != newScope["display_name"] {
 				replacementField = "display_name"
 			}
 			return fmt.Sprintf("scope.%d.%s", index, replacementField)
@@ -469,8 +469,8 @@ func storageDiscoveryScopeReplacementPath(oldRaw, newRaw interface{}) string {
 	return ""
 }
 
-func validateStorageDiscoveryScopes(raw interface{}) error {
-	scopes := raw.([]interface{})
+func validateStorageDiscoveryScopes(raw any) error {
+	scopes := raw.([]any)
 	displayNames := make(map[string]struct{}, len(scopes))
 
 	for _, item := range scopes {
@@ -478,7 +478,7 @@ func validateStorageDiscoveryScopes(raw interface{}) error {
 			continue
 		}
 
-		scope := item.(map[string]interface{})
+		scope := item.(map[string]any)
 		displayName := scope["display_name"].(string)
 		if displayName == "" {
 			continue

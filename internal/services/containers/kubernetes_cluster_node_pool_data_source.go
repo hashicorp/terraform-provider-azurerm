@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/agentpools"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -170,7 +169,7 @@ func dataSourceKubernetesClusterNodePool() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta any) error {
 	clustersClient := meta.(*clients.Client).Containers.KubernetesClustersClient
 	poolsClient := meta.(*clients.Client).Containers.AgentPoolsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -219,7 +218,7 @@ func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta int
 
 		gpuDriver := ""
 		if props.GpuProfile != nil {
-			gpuDriver = string(pointer.From(props.GpuProfile.Driver))
+			gpuDriver = pointer.FromEnum(props.GpuProfile.Driver)
 		}
 		d.Set("gpu_driver", gpuDriver)
 
@@ -259,7 +258,7 @@ func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta int
 
 		d.Set("node_public_ip_prefix_id", props.NodePublicIPPrefixID)
 
-		if err := d.Set("node_taints", helpers.FlattenStringSlice(props.NodeTaints)); err != nil {
+		if err := d.Set("node_taints", pluginsdk.FlattenSlice(props.NodeTaints)); err != nil {
 			return fmt.Errorf("setting `node_taints`: %+v", err)
 		}
 

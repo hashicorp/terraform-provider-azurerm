@@ -40,7 +40,7 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) ResourceType()
 	return "azurerm_mssql_managed_instance_active_directory_administrator"
 }
 
-func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) ModelObject() interface{} {
+func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) ModelObject() any {
 	return &MsSqlManagedInstanceActiveDirectoryAdministratorModel{}
 }
 
