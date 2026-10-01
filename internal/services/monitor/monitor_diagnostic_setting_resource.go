@@ -407,6 +407,10 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta any) e
 		return fmt.Errorf("retrieving Monitor Diagnostics Setting %q for Resource %q: %+v", id.DiagnosticSettingName, id.ResourceUri, err)
 	}
 
+	return resourceMonitorDiagnosticSettingFlatten(d, id, resp.Model)
+}
+
+func resourceMonitorDiagnosticSettingFlatten(d *pluginsdk.ResourceData, id *diagnosticsettings.ScopedDiagnosticSettingId, model *diagnosticsettings.DiagnosticSettingsResource) error {
 	d.Set("name", id.DiagnosticSettingName)
 	resourceUri := id.ResourceUri
 	if v, err := commonids.ParseKustoClusterIDInsensitively(resourceUri); err == nil {
@@ -414,7 +418,7 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta any) e
 	}
 	d.Set("target_resource_id", resourceUri)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("eventhub_name", props.EventHubName)
 			eventhubAuthorizationRuleId := ""
@@ -453,16 +457,16 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta any) e
 			}
 
 			logAnalyticsDestinationType := ""
-			if resp.Model.Properties.LogAnalyticsDestinationType != nil && *resp.Model.Properties.LogAnalyticsDestinationType != "" {
-				logAnalyticsDestinationType = *resp.Model.Properties.LogAnalyticsDestinationType
+			if model.Properties.LogAnalyticsDestinationType != nil && *model.Properties.LogAnalyticsDestinationType != "" {
+				logAnalyticsDestinationType = *model.Properties.LogAnalyticsDestinationType
 			}
 			d.Set("log_analytics_destination_type", logAnalyticsDestinationType)
 
-			if err = d.Set("enabled_log", flattenMonitorDiagnosticEnabledLogs(resp.Model.Properties.Logs)); err != nil {
+			if err := d.Set("enabled_log", flattenMonitorDiagnosticEnabledLogs(model.Properties.Logs)); err != nil {
 				return fmt.Errorf("setting `enabled_log`: %+v", err)
 			}
 
-			if err = d.Set("enabled_metric", flattenMonitorDiagnosticEnabledMetrics(resp.Model.Properties.Metrics)); err != nil {
+			if err := d.Set("enabled_metric", flattenMonitorDiagnosticEnabledMetrics(model.Properties.Metrics)); err != nil {
 				return fmt.Errorf("setting `enabled_metric`: %+v", err)
 			}
 		}
@@ -601,7 +605,11 @@ func ParseMonitorDiagnosticId(monitorId string) (*diagnosticsettings.ScopedDiagn
 		return &identifier, nil
 	}
 
-	return diagnosticsettings.ParseScopedDiagnosticSettingID(monitorId)
+	if !strings.HasPrefix(monitorId, "/") {
+		monitorId = "/" + monitorId
+	}
+
+	return diagnosticsettings.ParseScopedDiagnosticSettingIDInsensitively(monitorId)
 }
 
 func resourceMonitorDiagnosticLogSettingHash(input any) int {
