@@ -204,7 +204,7 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 	}
 }
 
-func resourceCdnFrontDoorCustomDomainCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorCustomDomainCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.AFDCustomDomainsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -231,7 +231,7 @@ func resourceCdnFrontDoorCustomDomainCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	dnsZone := d.Get("dns_zone_id").(string)
-	tls := d.Get("tls").([]interface{})
+	tls := d.Get("tls").([]any)
 
 	props := afddomains.AFDDomain{
 		Properties: &afddomains.AFDDomainProperties{
@@ -259,7 +259,7 @@ func resourceCdnFrontDoorCustomDomainCreate(d *pluginsdk.ResourceData, meta inte
 	return resourceCdnFrontDoorCustomDomainRead(d, meta)
 }
 
-func resourceCdnFrontDoorCustomDomainRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorCustomDomainRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.AFDCustomDomainsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -305,7 +305,7 @@ func resourceCdnFrontDoorCustomDomainRead(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.AFDCustomDomainsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -326,7 +326,7 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("tls") {
-		tlsSettings := d.Get("tls").([]interface{})
+		tlsSettings := d.Get("tls").([]any)
 		tls, err := expandAfdDomainTlsParameters(d, tlsSettings)
 		if err != nil {
 			return err
@@ -351,7 +351,7 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 	return resourceCdnFrontDoorCustomDomainRead(d, meta)
 }
 
-func resourceCdnFrontDoorCustomDomainDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorCustomDomainDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.AFDCustomDomainsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -379,7 +379,7 @@ func resourceCdnFrontDoorCustomDomainDelete(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func expandAfdDomainTlsParameters(d *pluginsdk.ResourceData, input []interface{}) (*afddomains.AFDDomainHTTPSParameters, error) {
+func expandAfdDomainTlsParameters(d *pluginsdk.ResourceData, input []any) (*afddomains.AFDDomainHTTPSParameters, error) {
 	// NOTE: With the Frontdoor service, they do not treat an empty object like an empty object
 	// if it is not nil they assume it is fully defined and then end up throwing errors when they
 	// attempt to get a value from one of the fields.
@@ -387,7 +387,7 @@ func expandAfdDomainTlsParameters(d *pluginsdk.ResourceData, input []interface{}
 		return nil, nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	certType := v["certificate_type"].(string)
 	secretRaw := v["cdn_frontdoor_secret_id"].(string)
@@ -405,7 +405,7 @@ func expandAfdDomainTlsParameters(d *pluginsdk.ResourceData, input []interface{}
 
 	minTlsVersion := v["minimum_version"].(string)
 
-	cipherSuiteRaw := v["cipher_suite"].([]interface{})
+	cipherSuiteRaw := v["cipher_suite"].([]any)
 
 	tls := afddomains.AFDDomainHTTPSParameters{
 		CertificateType: afddomains.AfdCertificateType(certType),
@@ -440,13 +440,13 @@ func expandAfdDomainTlsParameters(d *pluginsdk.ResourceData, input []interface{}
 	}
 
 	if len(cipherSuiteRaw) > 0 && cipherSuiteRaw[0] != nil {
-		cipherSuite := cipherSuiteRaw[0].(map[string]interface{})
+		cipherSuite := cipherSuiteRaw[0].(map[string]any)
 
 		if cipherSuiteType := cipherSuite["type"].(string); cipherSuiteType != "" {
 			tls.CipherSuiteSetType = pointer.ToEnum[afddomains.AfdCipherSuiteSetType](cipherSuiteType)
 		}
 
-		if customCiphersRaw := cipherSuite["custom_ciphers"].([]interface{}); len(customCiphersRaw) > 0 {
+		if customCiphersRaw := cipherSuite["custom_ciphers"].([]any); len(customCiphersRaw) > 0 {
 			tls.CustomizedCipherSuiteSet = expandAfdCustomizedCipherSuiteSet(customCiphersRaw)
 		}
 	}
@@ -454,12 +454,12 @@ func expandAfdDomainTlsParameters(d *pluginsdk.ResourceData, input []interface{}
 	return &tls, nil
 }
 
-func expandAfdCustomizedCipherSuiteSet(input []interface{}) *afddomains.AFDDomainHTTPSCustomizedCipherSuiteSet {
+func expandAfdCustomizedCipherSuiteSet(input []any) *afddomains.AFDDomainHTTPSCustomizedCipherSuiteSet {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	result := &afddomains.AFDDomainHTTPSCustomizedCipherSuiteSet{}
 
@@ -513,9 +513,9 @@ func resourceCdnFrontDoorCustomDomainCipherSuiteConfigured(d *pluginsdk.Resource
 	return !cipherBlock.IsNull()
 }
 
-func flattenAfdDomainHttpsParameters(input *afddomains.AFDDomainHTTPSParameters, includeDefaultCipherSuite bool) []interface{} {
+func flattenAfdDomainHttpsParameters(input *afddomains.AFDDomainHTTPSParameters, includeDefaultCipherSuite bool) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	secretId := ""
@@ -527,7 +527,7 @@ func flattenAfdDomainHttpsParameters(input *afddomains.AFDDomainHTTPSParameters,
 
 	minTlsVersion := ""
 	if input.MinimumTlsVersion != nil {
-		minTlsVersion = string(pointer.From(input.MinimumTlsVersion))
+		minTlsVersion = pointer.FromEnum(input.MinimumTlsVersion)
 	}
 
 	// Azure omits `minimumTlsVersion` when the value is `TLS12`, so we default the field to
@@ -539,7 +539,7 @@ func flattenAfdDomainHttpsParameters(input *afddomains.AFDDomainHTTPSParameters,
 	customCiphers := flattenAfdCustomizedCipherSuiteSet(input.CustomizedCipherSuiteSet)
 	cipherSuiteType := ""
 	if input.CipherSuiteSetType != nil {
-		cipherSuiteType = string(pointer.From(input.CipherSuiteSetType))
+		cipherSuiteType = pointer.FromEnum(input.CipherSuiteSetType)
 	}
 
 	// Azure always returns the default `TLS12_2022` cipher suite even when users never
@@ -561,39 +561,39 @@ func flattenAfdDomainHttpsParameters(input *afddomains.AFDDomainHTTPSParameters,
 		includeCipherSuite = true
 	}
 
-	cipherSuite := make([]interface{}, 0)
+	cipherSuite := make([]any, 0)
 	if includeCipherSuite {
-		cipherSuite = []interface{}{
-			map[string]interface{}{
+		cipherSuite = []any{
+			map[string]any{
 				"type":           cipherSuiteType,
 				"custom_ciphers": customCiphers,
 			},
 		}
 	}
 
-	result := map[string]interface{}{
+	result := map[string]any{
 		"cdn_frontdoor_secret_id": secretId,
 		"certificate_type":        string(input.CertificateType),
 		"cipher_suite":            cipherSuite,
 		"minimum_version":         minTlsVersion,
 	}
 
-	return []interface{}{result}
+	return []any{result}
 }
 
-func flattenAfdCustomizedCipherSuiteSet(input *afddomains.AFDDomainHTTPSCustomizedCipherSuiteSet) []interface{} {
+func flattenAfdCustomizedCipherSuiteSet(input *afddomains.AFDDomainHTTPSCustomizedCipherSuiteSet) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	tls12Suites := make([]interface{}, 0)
+	tls12Suites := make([]any, 0)
 	if input.CipherSuiteSetForTls12 != nil {
 		for _, suite := range *input.CipherSuiteSetForTls12 {
 			tls12Suites = append(tls12Suites, string(suite))
 		}
 	}
 
-	tls13Suites := make([]interface{}, 0)
+	tls13Suites := make([]any, 0)
 	if input.CipherSuiteSetForTls13 != nil {
 		for _, suite := range *input.CipherSuiteSetForTls13 {
 			tls13Suites = append(tls13Suites, string(suite))
@@ -601,11 +601,11 @@ func flattenAfdCustomizedCipherSuiteSet(input *afddomains.AFDDomainHTTPSCustomiz
 	}
 
 	if len(tls12Suites) == 0 && len(tls13Suites) == 0 {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"tls12": tls12Suites,
 			"tls13": tls13Suites,
 		},
@@ -624,9 +624,9 @@ func flattenAfdDNSZoneResourceReference(input *afddomains.ResourceReference) str
 	return ""
 }
 
-func frontDoorCustomDomainHostNameCustomizeDiff(_ context.Context, diff *pluginsdk.ResourceDiff, _ interface{}) error {
+func frontDoorCustomDomainHostNameCustomizeDiff(_ context.Context, diff *pluginsdk.ResourceDiff, _ any) error {
 	tlsAny := diff.Get("tls")
-	tlsRaw, ok := tlsAny.([]interface{})
+	tlsRaw, ok := tlsAny.([]any)
 	if !ok {
 		return errors.New("unexpected value for `tls`: expected list")
 	}
@@ -634,7 +634,7 @@ func frontDoorCustomDomainHostNameCustomizeDiff(_ context.Context, diff *plugins
 		return nil
 	}
 
-	tls, ok := tlsRaw[0].(map[string]interface{})
+	tls, ok := tlsRaw[0].(map[string]any)
 	if !ok {
 		return errors.New("unexpected value for `tls`: expected object")
 	}
@@ -666,9 +666,9 @@ func frontDoorCustomDomainHostNameCustomizeDiff(_ context.Context, diff *plugins
 	return nil
 }
 
-func frontDoorCustomDomainTlsCustomizeDiff(_ context.Context, diff *pluginsdk.ResourceDiff, _ interface{}) error {
+func frontDoorCustomDomainTlsCustomizeDiff(_ context.Context, diff *pluginsdk.ResourceDiff, _ any) error {
 	tlsAny := diff.Get("tls")
-	tlsRaw, ok := tlsAny.([]interface{})
+	tlsRaw, ok := tlsAny.([]any)
 	if !ok {
 		return errors.New("unexpected value for `tls`: expected list")
 	}
@@ -676,7 +676,7 @@ func frontDoorCustomDomainTlsCustomizeDiff(_ context.Context, diff *pluginsdk.Re
 		return nil
 	}
 
-	tls, ok := tlsRaw[0].(map[string]interface{})
+	tls, ok := tlsRaw[0].(map[string]any)
 	if !ok {
 		return errors.New("unexpected value for `tls`: expected object")
 	}
@@ -712,7 +712,7 @@ func frontDoorCustomDomainTlsCustomizeDiff(_ context.Context, diff *pluginsdk.Re
 		return nil
 	}
 
-	cipherSuiteRaw, ok := cipherSuiteAny.([]interface{})
+	cipherSuiteRaw, ok := cipherSuiteAny.([]any)
 	if !ok {
 		return errors.New("unexpected value for `tls.cipher_suite`: expected list")
 	}
@@ -723,7 +723,7 @@ func frontDoorCustomDomainTlsCustomizeDiff(_ context.Context, diff *pluginsdk.Re
 		return nil
 	}
 
-	cipherSuite, ok := cipherSuiteRaw[0].(map[string]interface{})
+	cipherSuite, ok := cipherSuiteRaw[0].(map[string]any)
 	if !ok {
 		return errors.New("unexpected value for `tls.cipher_suite`: expected object")
 	}
@@ -735,9 +735,9 @@ func frontDoorCustomDomainTlsCustomizeDiff(_ context.Context, diff *pluginsdk.Re
 	if !ok {
 		return errors.New("unexpected value for `tls.cipher_suite.type`: expected string")
 	}
-	customCiphersRaw := make([]interface{}, 0)
+	customCiphersRaw := make([]any, 0)
 	if raw, exists := cipherSuite["custom_ciphers"]; exists && raw != nil {
-		v, ok := raw.([]interface{})
+		v, ok := raw.([]any)
 		if !ok {
 			return errors.New("unexpected value for `tls.cipher_suite.custom_ciphers`: expected list")
 		}
@@ -753,7 +753,7 @@ func frontDoorCustomDomainTlsCustomizeDiff(_ context.Context, diff *pluginsdk.Re
 			return errors.New("at least one cipher suite must be selected in `custom_ciphers` when `type` is set to `Customized`")
 		}
 
-		customCiphers, ok := customCiphersRaw[0].(map[string]interface{})
+		customCiphers, ok := customCiphersRaw[0].(map[string]any)
 		if !ok {
 			return errors.New("unexpected value for `tls.cipher_suite.custom_ciphers`: expected object")
 		}

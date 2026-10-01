@@ -91,7 +91,7 @@ client := metadata.Client.Resource.GroupsClient
 
 Since we're creating a Resource for a Resource Group, which is a part of the Resources API - we'll want to create an empty Go file within the Service Package for Resources, which is located at `./internal/services/resource`.
 
-In this case, this'd be a file called `resource_group_example_resource.go`, which we'll start out with the following:
+In this case, this would be a file called `resource_group_example_resource.go`, which we'll start out with the following:
 
 > **Note:** We'd normally name this file `resource_group_resource.go` - but there's an existing Resource for Resource Groups, so we're appending `example` to the name throughout this guide.
 
