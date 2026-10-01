@@ -1494,6 +1494,36 @@ func TestAccKubernetesCluster_nodeResourceGroupRestrictionLevel(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_nodeResourceGroupRestrictionLevelRemoval(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
+		{
+			Config: r.nodeResourceGroupRestrictionLevel(data, "Unrestricted"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("node_resource_group_restriction_level").HasValue("Unrestricted"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.nodeResourceGroupRestrictionLevel(data, ""),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionDestroyBeforeCreate),
+					plancheck.ExpectResourceAction("azurerm_resource_group.test", plancheck.ResourceActionNoop),
+				},
+			},
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("node_resource_group_restriction_level").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesCluster_nodeResourceGroupRestrictionLevelOmitted(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
