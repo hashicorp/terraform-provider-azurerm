@@ -113,18 +113,28 @@ jobs:
         with:
           go-version: '1.26'
 
+      # tctest is pinned in .tools/go.mod; only that directory is checked out (from main, this is a
+      # comment-triggered workflow so PR code is never built) and make builds the binary from it
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+        with:
+          sparse-checkout: |
+            .tools
+            GNUmakefile
+          sparse-checkout-cone-mode: false
+
       - name: Cache tctest binary
         id: cache-tctest
         uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
-          path: ~/go/bin/tctest
-          # keep this key in sync with the pinned version installed below
-          key: tctest-${{ runner.os }}-v1.3.1
+          path: .tools/bin/tctest
+          key: tctest-${{ runner.os }}-${{ hashFiles('.tools/go.mod', '.tools/go.sum') }}
 
-      - name: Install tctest
+      - name: Build tctest (version pinned in .tools/go.mod)
         if: steps.cache-tctest.outputs.cache-hit != 'true'
-        run: |
-          go install github.com/katbyte/tctest@v1.3.1
+        run: make .tools/bin/tctest
+
+      - name: Add tctest to PATH
+        run: echo "$PWD/.tools/bin" >> "$GITHUB_PATH"
 
       - name: Get PR commit SHA
         id: get-pr-sha

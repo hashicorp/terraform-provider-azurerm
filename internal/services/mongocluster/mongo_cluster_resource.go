@@ -31,29 +31,30 @@ var _ sdk.ResourceWithUpdate = MongoClusterResource{}
 var _ sdk.ResourceWithCustomizeDiff = MongoClusterResource{}
 
 type MongoClusterResourceModel struct {
-	Name                  string                         `tfschema:"name"`
-	ResourceGroupName     string                         `tfschema:"resource_group_name"`
-	Location              string                         `tfschema:"location"`
-	AdministratorUserName string                         `tfschema:"administrator_username"`
-	AdministratorPassword string                         `tfschema:"administrator_password"`
-	AuthenticationMethods []string                       `tfschema:"authentication_methods"`
-	CreateMode            string                         `tfschema:"create_mode"`
-	CustomerManagedKey    []CustomerManagedKey           `tfschema:"customer_managed_key"`
-	DataApiModeEnabled    bool                           `tfschema:"data_api_mode_enabled"`
-	Identity              []identity.ModelUserAssigned   `tfschema:"identity"`
-	Restore               []Restore                      `tfschema:"restore"`
-	ShardCount            int64                          `tfschema:"shard_count"`
-	SourceLocation        string                         `tfschema:"source_location"`
-	SourceServerId        string                         `tfschema:"source_server_id"`
-	ComputeTier           string                         `tfschema:"compute_tier"`
-	HighAvailabilityMode  string                         `tfschema:"high_availability_mode"`
-	PublicNetworkAccess   string                         `tfschema:"public_network_access"`
-	PreviewFeatures       []string                       `tfschema:"preview_features"`
-	StorageSizeInGb       int64                          `tfschema:"storage_size_in_gb"`
-	StorageType           string                         `tfschema:"storage_type"`
-	ConnectionStrings     []MongoClusterConnectionString `tfschema:"connection_strings"`
-	Tags                  map[string]string              `tfschema:"tags"`
-	Version               string                         `tfschema:"version"`
+	Name                         string                         `tfschema:"name"`
+	ResourceGroupName            string                         `tfschema:"resource_group_name"`
+	Location                     string                         `tfschema:"location"`
+	AdministratorUserName        string                         `tfschema:"administrator_username"`
+	AdministratorPassword        string                         `tfschema:"administrator_password"`
+	AuthenticationMethods        []string                       `tfschema:"authentication_methods"`
+	CreateMode                   string                         `tfschema:"create_mode"`
+	CustomerManagedKey           []CustomerManagedKey           `tfschema:"customer_managed_key"`
+	DataApiModeEnabled           bool                           `tfschema:"data_api_mode_enabled"`
+	Identity                     []identity.ModelUserAssigned   `tfschema:"identity"`
+	Restore                      []Restore                      `tfschema:"restore"`
+	ShardCount                   int64                          `tfschema:"shard_count"`
+	SourceLocation               string                         `tfschema:"source_location"`
+	SourceServerId               string                         `tfschema:"source_server_id"`
+	ComputeTier                  string                         `tfschema:"compute_tier"`
+	HighAvailabilityMode         string                         `tfschema:"high_availability_mode"`
+	CosmosDBNetworkBypassEnabled bool                           `tfschema:"cosmos_db_network_bypass_enabled"`
+	PublicNetworkAccess          string                         `tfschema:"public_network_access"`
+	PreviewFeatures              []string                       `tfschema:"preview_features"`
+	StorageSizeInGb              int64                          `tfschema:"storage_size_in_gb"`
+	StorageType                  string                         `tfschema:"storage_type"`
+	ConnectionStrings            []MongoClusterConnectionString `tfschema:"connection_strings"`
+	Tags                         map[string]string              `tfschema:"tags"`
+	Version                      string                         `tfschema:"version"`
 }
 
 type MongoClusterConnectionString struct {
@@ -255,6 +256,12 @@ func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 
+		"cosmos_db_network_bypass_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
 		"public_network_access": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -437,6 +444,13 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 			}
 			metadata.SetID(id)
 
+			// `networkBypassMode` can only be set by a separate PATCH request after the cluster is created, so enable it after the cluster exists.
+			if state.CosmosDBNetworkBypassEnabled {
+				if err := updateMongoClusterCosmosDBNetworkBypassEnabled(ctx, client, id, true); err != nil {
+					return fmt.Errorf("enabling `cosmos_db_network_bypass_enabled` for %s: %+v", id, err)
+				}
+			}
+
 			// `data_api_mode_enabled` can only be enabled after the resource is created
 			if state.CreateMode == string(mongoclusters.CreateModeDefault) && state.DataApiModeEnabled {
 				updatePayload := mongoclusters.MongoClusterUpdate{
@@ -500,6 +514,18 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 			// `data_api_mode_enabled` is only supported for `Default` create mode
 			if state.CreateMode != string(mongoclusters.CreateModeDefault) {
 				payload.Properties.DataApi = nil
+			}
+
+			cosmosDBNetworkBypassEnabledChanged := metadata.ResourceData.HasChange("cosmos_db_network_bypass_enabled")
+			if cosmosDBNetworkBypassEnabledChanged {
+				// Azure blocks public network access changes while bypass is enabled, so disable bypass before the main update if it's intended to be updated to `false`.
+				if !state.CosmosDBNetworkBypassEnabled {
+					if err := updateMongoClusterCosmosDBNetworkBypassEnabled(ctx, client, *id, false); err != nil {
+						return fmt.Errorf("disabling `cosmos_db_network_bypass_enabled` for %s: %+v", *id, err)
+					}
+				}
+
+				payload.Properties.NetworkBypassMode = pointer.To(mongoclusters.NetworkBypassModeNone)
 			}
 
 			// upgrades involving Free or M25(Burstable) compute tier require first upgrading the compute tier, after which other configurations can be updated.
@@ -573,6 +599,13 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+
+			// Azure requires disabled public access and Entra-only authentication before bypass can be enabled, so we must ensure these conditions are met before attempting to enable it.
+			if cosmosDBNetworkBypassEnabledChanged && state.CosmosDBNetworkBypassEnabled {
+				if err := updateMongoClusterCosmosDBNetworkBypassEnabled(ctx, client, *id, true); err != nil {
+					return fmt.Errorf("enabling `cosmos_db_network_bypass_enabled` for %s: %+v", *id, err)
+				}
 			}
 
 			return nil
@@ -650,6 +683,7 @@ func (r MongoClusterResource) Read() sdk.ResourceFunc {
 					if v := props.HighAvailability; v != nil {
 						state.HighAvailabilityMode = string(pointer.From(v.TargetMode))
 					}
+					state.CosmosDBNetworkBypassEnabled = pointer.From(props.NetworkBypassMode) == mongoclusters.NetworkBypassModeAzureCosmosDB
 					state.PublicNetworkAccess = string(pointer.From(props.PublicNetworkAccess))
 
 					if v := props.Storage; v != nil {
@@ -779,6 +813,10 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 				return fmt.Errorf("`data_api_mode_enabled` can only be set when `create_mode` is `Default`")
 			}
 
+			if err := validateMongoClusterCosmosDBNetworkBypassEnabled(metadata, state); err != nil {
+				return err
+			}
+
 			// Service team confirmed that `data_api_mode_enabled` can only be updated to `Enabled` after the cluster has been created
 			if oldVal, newVal := metadata.ResourceDiff.GetChange("data_api_mode_enabled"); oldVal.(bool) && !newVal.(bool) && state.CreateMode == string(mongoclusters.CreateModeDefault) {
 				if err := metadata.ResourceDiff.ForceNew("data_api_mode_enabled"); err != nil {
@@ -800,6 +838,49 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+func validateMongoClusterCosmosDBNetworkBypassEnabled(metadata sdk.ResourceMetaData, state MongoClusterResourceModel) error {
+	rawConfig := metadata.ResourceDiff.GetRawConfig()
+	if !rawConfig.IsKnown() || rawConfig.IsNull() {
+		return nil
+	}
+
+	rawConfigMap := rawConfig.AsValueMap()
+	cosmosDBNetworkBypassEnabled := rawConfigMap["cosmos_db_network_bypass_enabled"]
+	if !cosmosDBNetworkBypassEnabled.IsKnown() || cosmosDBNetworkBypassEnabled.IsNull() || !state.CosmosDBNetworkBypassEnabled {
+		return nil
+	}
+
+	if !rawConfigMap["public_network_access"].IsKnown() || !rawConfigMap["authentication_methods"].IsKnown() {
+		return nil
+	}
+
+	if state.PublicNetworkAccess != string(mongoclusters.PublicNetworkAccessDisabled) {
+		return errors.New("`public_network_access` must be `Disabled` when `cosmos_db_network_bypass_enabled` is `true`")
+	}
+
+	if len(state.AuthenticationMethods) != 1 || state.AuthenticationMethods[0] != string(mongoclusters.AuthenticationModeMicrosoftEntraID) {
+		return errors.New("`authentication_methods` must contain only `MicrosoftEntraID` when `cosmos_db_network_bypass_enabled` is `true`")
+	}
+
+	return nil
+}
+
+// updateMongoClusterCosmosDBNetworkBypassEnabled updates the `networkBypassMode` of a MongoDB cluster to enable or disable the Cosmos DB network bypass feature. This field can only be modified via a separate PATCH request after the cluster is created.
+func updateMongoClusterCosmosDBNetworkBypassEnabled(ctx context.Context, client *mongoclusters.MongoClustersClient, id mongoclusters.MongoClusterId, enabled bool) error {
+	mode := mongoclusters.NetworkBypassModeNone
+	if enabled {
+		mode = mongoclusters.NetworkBypassModeAzureCosmosDB
+	}
+
+	payload := mongoclusters.MongoClusterUpdate{
+		Properties: &mongoclusters.MongoClusterUpdateProperties{
+			NetworkBypassMode: pointer.To(mode),
+		},
+	}
+
+	return client.UpdateThenPoll(ctx, id, payload)
 }
 
 func expandPreviewFeatures(input []string) *[]mongoclusters.PreviewFeature {

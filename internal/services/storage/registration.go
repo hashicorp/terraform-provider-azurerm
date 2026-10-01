@@ -92,6 +92,7 @@ func (r Registration) Resources() []sdk.Resource {
 		AccountTablePropertiesResource{},
 		LocalUserResource{},
 		StorageContainerImmutabilityPolicyResource{},
+		StorageDiscoveryWorkspaceResource{},
 		SyncServerEndpointResource{},
 	}
 }

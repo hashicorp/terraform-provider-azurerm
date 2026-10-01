@@ -585,7 +585,7 @@ func flattenNetAppVolumeSnapshotPolicyWeeklySchedule(input *snapshotpolicies.Wee
 
 	weekDays := make([]interface{}, 0)
 	if input.Day != nil {
-		for _, day := range strings.Split(*input.Day, ",") {
+		for day := range strings.SplitSeq(*input.Day, ",") {
 			weekDays = append(weekDays, day)
 		}
 	}
@@ -607,7 +607,7 @@ func flattenNetAppVolumeSnapshotPolicyMonthlySchedule(input *snapshotpolicies.Mo
 
 	daysOfMonth := make([]interface{}, 0)
 	if input.DaysOfMonth != nil {
-		for _, day := range strings.Split(*input.DaysOfMonth, ",") {
+		for day := range strings.SplitSeq(*input.DaysOfMonth, ",") {
 			intDay, _ := strconv.Atoi(day)
 			daysOfMonth = append(daysOfMonth, intDay)
 		}

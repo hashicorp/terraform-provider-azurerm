@@ -109,8 +109,7 @@ func resourceArmLoadBalancerProbe() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeSet,
 				Computed: true,
 				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringIsNotEmpty,
+					Type: pluginsdk.TypeString,
 				},
 				Set: pluginsdk.HashString,
 			},

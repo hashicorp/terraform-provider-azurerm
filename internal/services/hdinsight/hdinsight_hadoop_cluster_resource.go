@@ -6,6 +6,7 @@ package hdinsight
 import (
 	"fmt"
 	"log"
+	"maps"
 	"strings"
 	"time"
 
@@ -32,10 +33,8 @@ import (
 // NOTE: this isn't a recommended way of building resources in Terraform
 // this pattern is used to work around a generic but pedantic API endpoint
 var hdInsightHadoopClusterHeadNodeDefinition = HDInsightNodeDefinition{
-	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         2,
 	MaxInstanceCount:         pointer.To(2),
-	CanSpecifyDisks:          false,
 	FixedMinInstanceCount:    pointer.To(int64(1)),
 	FixedTargetInstanceCount: pointer.To(int64(2)),
 }
@@ -43,16 +42,13 @@ var hdInsightHadoopClusterHeadNodeDefinition = HDInsightNodeDefinition{
 var hdInsightHadoopClusterWorkerNodeDefinition = HDInsightNodeDefinition{
 	CanSpecifyInstanceCount: true,
 	MinInstanceCount:        1,
-	CanSpecifyDisks:         false,
 	CanAutoScaleByCapacity:  true,
 	CanAutoScaleOnSchedule:  true,
 }
 
 var hdInsightHadoopClusterZookeeperNodeDefinition = HDInsightNodeDefinition{
-	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         3,
 	MaxInstanceCount:         pointer.To(3),
-	CanSpecifyDisks:          false,
 	FixedMinInstanceCount:    pointer.To(int64(1)),
 	FixedTargetInstanceCount: pointer.To(int64(3)),
 }
@@ -228,9 +224,7 @@ func resourceHDInsightHadoopClusterCreate(d *pluginsdk.ResourceData, meta interf
 
 	metastoresRaw := d.Get("metastores").([]interface{})
 	metastores := expandHDInsightsMetastore(metastoresRaw)
-	for k, v := range metastores {
-		configurations[k] = v
-	}
+	maps.Copy(configurations, metastores)
 
 	networkPropertiesRaw := d.Get("network").([]interface{})
 	networkProperties := ExpandHDInsightsNetwork(networkPropertiesRaw)

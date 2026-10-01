@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"maps"
 	"net/http"
 	"time"
 
@@ -882,9 +883,7 @@ func flattenMonitorMetricAlertAction(input *[]metricalerts.MetricAlertAction) (r
 
 		props := make(map[string]string)
 		if action.WebHookProperties != nil {
-			for pk, pv := range *action.WebHookProperties {
-				props[pk] = pv
-			}
+			maps.Copy(props, *action.WebHookProperties)
 		}
 		v["webhook_properties"] = props
 

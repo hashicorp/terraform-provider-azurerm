@@ -253,8 +253,8 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 				// TODO: in time this could be worth a series of overrides
 
 				// handles "GallerieName" and `DataFactoriesName`
-				if strings.HasSuffix(key, "ies") {
-					key = strings.TrimSuffix(key, "ies")
+				if before, ok := strings.CutSuffix(key, "ies"); ok {
+					key = before
 					key = fmt.Sprintf("%sy", key)
 				}
 				switch {

@@ -144,7 +144,7 @@ func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, met
 	operationID := parsedLocation.Path["operationResults"]
 
 	// `inquire` API is an async operation and the results should be tracked using location header or Azure-async-url.
-	//  The Azure-AsyncOperation is not included in swagger, so call location (https://docs.microsoft.com/en-us/rest/api/backup/protection-container-operation-results/get)
+	//  The Azure-AsyncOperation is not included in swagger, so call location (https://docs.microsoft.com/rest/api/backup/protection-container-operation-results/get)
 	//  to wait the operation successfully completes.
 	state := &pluginsdk.StateChangeConf{
 		MinTimeout: 10 * time.Second,

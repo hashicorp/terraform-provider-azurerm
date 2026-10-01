@@ -369,8 +369,6 @@ func expandOciArtifacts(input []interface{}) *[]fhirservices.ServiceOciArtifactE
 
 		artifact := fhirservices.ServiceOciArtifactEntry{
 			LoginServer: pointer.To(artifactRaw["login_server"].(string)),
-			ImageName:   nil,
-			Digest:      nil,
 		}
 		if image := artifactRaw["image_name"].(string); image != "" {
 			artifact.ImageName = &image

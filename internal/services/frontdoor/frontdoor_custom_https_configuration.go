@@ -53,8 +53,7 @@ type flattenedCustomHttpsConfiguration struct {
 
 func flattenCustomHttpsConfiguration(properties *frontdoors.FrontendEndpointProperties) flattenedCustomHttpsConfiguration {
 	result := flattenedCustomHttpsConfiguration{
-		CustomHTTPSConfiguration:       make([]interface{}, 0),
-		CustomHTTPSProvisioningEnabled: false,
+		CustomHTTPSConfiguration: make([]interface{}, 0),
 	}
 
 	if properties == nil {

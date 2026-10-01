@@ -382,7 +382,6 @@ func (m ConfigurationResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			meta.Logger.Infof("deleting %s", id)
 			client := meta.Client.Nginx.NginxConfiguration
 
 			if err := client.ConfigurationsDeleteThenPoll(ctx, *id); err != nil {

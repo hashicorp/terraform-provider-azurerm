@@ -393,8 +393,8 @@ func flattenEventListener(listener *[]webpubsub.EventListener) []interface{} {
 				listenerBlock["system_event_name_filter"] = helpers.FlattenStringSlice(eventNameFilter.SystemEvents)
 			}
 			if eventNameFilter.UserEventPattern != nil && *eventNameFilter.UserEventPattern != "" {
-				v := strings.Split(*eventNameFilter.UserEventPattern, ",")
-				for _, s := range v {
+				v := strings.SplitSeq(*eventNameFilter.UserEventPattern, ",")
+				for s := range v {
 					userNameFilterList = append(userNameFilterList, s)
 				}
 				listenerBlock["user_event_name_filter"] = userNameFilterList

@@ -28,6 +28,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
-      - name: Install markdownlint-cli2
-        run: npm install -g markdownlint-cli2@0.23.2
+      # make npm installs the markdownlint-cli2 version pinned in GNUmakefile into .tools
       - run: make markdownlint

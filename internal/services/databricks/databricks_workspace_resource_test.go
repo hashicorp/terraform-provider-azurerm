@@ -583,7 +583,7 @@ func TestAccDatabricksWorkspace_enhancedComplianceSecurityWithInvalidComplianceS
 //
 // There are certain condition that automatically enables Unity Catalog assignment for newly created workspaces.
 // The "isUcEnabled" prop can be used to determine if workspace has Unity Catalog enabled.
-// See MS doc: https://learn.microsoft.com/en-us/azure/databricks/data-governance/unity-catalog/enable-workspaces
+// See MS doc: https://learn.microsoft.com/azure/databricks/data-governance/unity-catalog/enable-workspaces
 //
 // The expected behaviour of force deletion with regards to isUcEnabled is as follows:
 //

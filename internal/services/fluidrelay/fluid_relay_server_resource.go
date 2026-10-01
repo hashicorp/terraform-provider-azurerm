@@ -346,7 +346,6 @@ func (s Server) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			meta.Logger.Infof("deleting %s", id)
 			if _, err := client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", id, err)
 			}

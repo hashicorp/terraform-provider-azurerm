@@ -5,6 +5,7 @@ package hdinsight
 
 import (
 	"fmt"
+	"maps"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -184,9 +185,7 @@ func flattenHDInsightsDataSourceComponentVersions(input *map[string]string) map[
 	output := make(map[string]string)
 
 	if input != nil {
-		for k, v := range *input {
-			output[k] = v
-		}
+		maps.Copy(output, *input)
 	}
 
 	return output

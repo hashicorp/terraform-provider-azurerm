@@ -217,8 +217,6 @@ func resourceBastionHostCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Println("[INFO] preparing arguments for Azure Bastion Host creation.")
-
 	id := bastionhosts.NewBastionHostID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	scaleUnits := d.Get("scale_units").(int)

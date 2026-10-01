@@ -93,7 +93,7 @@ func dataSourceNetworkSecurityGroup() *pluginsdk.Resource {
 
 						"source_application_security_group_ids": {
 							Type:     pluginsdk.TypeSet,
-							Optional: true,
+							Computed: true,
 							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 							Set:      pluginsdk.HashString,
 						},
@@ -112,7 +112,7 @@ func dataSourceNetworkSecurityGroup() *pluginsdk.Resource {
 
 						"destination_application_security_group_ids": {
 							Type:     pluginsdk.TypeSet,
-							Optional: true,
+							Computed: true,
 							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 							Set:      pluginsdk.HashString,
 						},

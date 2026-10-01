@@ -6,6 +6,7 @@ package hdinsight
 import (
 	"fmt"
 	"log"
+	"maps"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -26,25 +27,20 @@ import (
 // NOTE: this isn't a recommended way of building resources in Terraform
 // this pattern is used to work around a generic but pedantic API endpoint
 var hdInsightInteractiveQueryClusterHeadNodeDefinition = HDInsightNodeDefinition{
-	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         2,
 	MaxInstanceCount:         pointer.To(2),
-	CanSpecifyDisks:          false,
 	FixedTargetInstanceCount: pointer.To(int64(2)),
 }
 
 var hdInsightInteractiveQueryClusterWorkerNodeDefinition = HDInsightNodeDefinition{
 	CanSpecifyInstanceCount: true,
 	MinInstanceCount:        1,
-	CanSpecifyDisks:         false,
 	CanAutoScaleOnSchedule:  true,
 }
 
 var hdInsightInteractiveQueryClusterZookeeperNodeDefinition = HDInsightNodeDefinition{
-	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         3,
 	MaxInstanceCount:         pointer.To(3),
-	CanSpecifyDisks:          false,
 	FixedTargetInstanceCount: pointer.To(int64(3)),
 }
 
@@ -177,9 +173,7 @@ func resourceHDInsightInteractiveQueryClusterCreate(d *pluginsdk.ResourceData, m
 
 	metastoresRaw := d.Get("metastores").([]interface{})
 	metastores := expandHDInsightsMetastore(metastoresRaw)
-	for k, v := range metastores {
-		configurations[k] = v
-	}
+	maps.Copy(configurations, metastores)
 
 	networkPropertiesRaw := d.Get("network").([]interface{})
 	networkProperties := ExpandHDInsightsNetwork(networkPropertiesRaw)

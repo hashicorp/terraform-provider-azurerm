@@ -5,6 +5,7 @@ package validate
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2022-03-01/devices"
@@ -26,20 +27,14 @@ func DataboxEdgeDeviceSkuName(v interface{}, k string) (warnings []string, error
 	validTiers := devices.PossibleValuesForSkuTier()
 
 	// Validate the SKU Name section
-	for _, str := range validSkus {
-		if skuParts[0] == str {
-			validSku = true
-			break
-		}
+	if slices.Contains(validSkus, skuParts[0]) {
+		validSku = true
 	}
 
 	if len(skuParts) > 1 {
 		// Validate the SKU Tier section
-		for _, str := range validTiers {
-			if skuParts[1] == str {
-				validTier = true
-				break
-			}
+		if slices.Contains(validTiers, skuParts[1]) {
+			validTier = true
 		}
 	}
 

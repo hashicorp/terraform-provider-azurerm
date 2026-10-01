@@ -5,7 +5,6 @@ package storage
 
 import (
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -119,7 +118,6 @@ func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	id := blobs.NewBlobID(*accountId, containerName, name)
 
-	log.Printf("[INFO] Retrieving %s", id)
 	input := blobs.GetPropertiesInput{}
 	props, err := blobsClient.GetProperties(ctx, containerName, name, input)
 	if err != nil {

@@ -307,7 +307,6 @@ func expandBackupPolicyDiskDefaultAzureRetentionRule(input interface{}) baseback
 func expandBackupPolicyDiskTaggingCriteriaArray(input []interface{}) *[]basebackuppolicyresources.TaggingCriteria {
 	results := []basebackuppolicyresources.TaggingCriteria{
 		{
-			Criteria:        nil,
 			IsDefault:       true,
 			TaggingPriority: 99,
 			TagInfo: basebackuppolicyresources.RetentionTag{
@@ -320,7 +319,6 @@ func expandBackupPolicyDiskTaggingCriteriaArray(input []interface{}) *[]baseback
 		v := item.(map[string]interface{})
 		results = append(results, basebackuppolicyresources.TaggingCriteria{
 			Criteria:        expandBackupPolicyDiskCriteriaArray(v["criteria"].([]interface{})),
-			IsDefault:       false,
 			TaggingPriority: int64(v["priority"].(int)),
 			TagInfo: basebackuppolicyresources.RetentionTag{
 				Id:      pointer.To(v["name"].(string) + "_"),

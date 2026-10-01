@@ -530,7 +530,7 @@ resource "azurerm_virtual_network" "test" {
 
 func (r VirtualNetworkResource) tagCount(data acceptance.TestData) string {
 	tags := ""
-	for i := 0; i < 50; i++ {
+	for i := range 50 {
 		tags += fmt.Sprintf("t%d = \"v%d\"\n", i, i)
 	}
 

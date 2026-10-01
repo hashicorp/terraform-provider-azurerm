@@ -31,7 +31,7 @@ func (c *Client) populateCache(ctx context.Context, subscriptionId commonids.Sub
 	//
 	// @tombuildsstuff: I vaguely recall the `ListBySubscription` API having a low rate limit (5x/second?)
 	// however the rate-limits defined here seem to apply only to Managed HSMs and not Key Vaults?
-	// https://learn.microsoft.com/en-us/azure/key-vault/general/service-limits
+	// https://learn.microsoft.com/azure/key-vault/general/service-limits
 	//
 	// Finally, it's worth noting that we intentionally List ALL the Key Vaults within a Subscription
 	// to be able to cache ALL of them - prior to looking up the specific Key Vault we're interested

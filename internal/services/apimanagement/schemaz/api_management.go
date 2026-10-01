@@ -284,15 +284,14 @@ func ExpandApiManagementOperationParameterContract(d *pluginsdk.ResourceData, sc
 		}
 
 		output := apioperation.ParameterContract{
-			Name:         name,
-			Description:  pointer.To(description),
-			Type:         paramType,
-			Required:     pointer.To(required),
-			DefaultValue: nil,
-			Values:       helpers.ExpandStringSlice(valuesRaw),
-			SchemaId:     pointer.To(schemaId),
-			TypeName:     pointer.To(typeName),
-			Examples:     pointer.To(examples),
+			Name:        name,
+			Description: pointer.To(description),
+			Type:        paramType,
+			Required:    pointer.To(required),
+			Values:      helpers.ExpandStringSlice(valuesRaw),
+			SchemaId:    pointer.To(schemaId),
+			TypeName:    pointer.To(typeName),
+			Examples:    pointer.To(examples),
 		}
 
 		// DefaultValue must be included in Values, else it returns error

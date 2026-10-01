@@ -1349,7 +1349,7 @@ func validateUserIdentity(userIdentity *pool.UserIdentity) error {
 }
 
 func validateBatchPoolCrossFieldRules(pool *pool.PoolProperties) error {
-	// Perform validation across multiple fields as per https://docs.microsoft.com/en-us/rest/api/batchmanagement/pool/create#resourcefile
+	// Perform validation across multiple fields as per https://docs.microsoft.com/rest/api/batchmanagement/pool/create#resourcefile
 
 	if pool.StartTask != nil {
 		startTask := *pool.StartTask

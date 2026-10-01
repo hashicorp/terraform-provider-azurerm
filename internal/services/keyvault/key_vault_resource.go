@@ -616,7 +616,7 @@ func resourceKeyVaultFlatten(ctx context.Context, managementClient *dataplane.Ba
 		d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
 
 		// @tombuildsstuff: the API doesn't return this field if it's not configured
-		// however https://docs.microsoft.com/en-us/azure/key-vault/general/soft-delete-overview
+		// however https://docs.microsoft.com/azure/key-vault/general/soft-delete-overview
 		// defaults this to 90 days, as such we're going to have to assume that for the moment
 		// in lieu of anything being returned
 		softDeleteRetentionDays := 90

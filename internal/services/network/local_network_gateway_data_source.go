@@ -60,12 +60,12 @@ func dataSourceLocalNetworkGateway() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"asn": {
 							Type:     pluginsdk.TypeInt,
-							Required: true,
+							Computed: true,
 						},
 
 						"bgp_peering_address": {
 							Type:     pluginsdk.TypeString,
-							Required: true,
+							Computed: true,
 						},
 
 						"peer_weight": {

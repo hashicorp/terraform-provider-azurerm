@@ -309,9 +309,7 @@ func resourceStreamAnalyticsJobCreate(d *pluginsdk.ResourceData, meta interface{
 				Id: pointer.To(streamAnalyticsCluster.(string)),
 			}
 		} else {
-			props.Properties.Cluster = &streamingjobs.ClusterInfo{
-				Id: nil,
-			}
+			props.Properties.Cluster = &streamingjobs.ClusterInfo{}
 		}
 	}
 
