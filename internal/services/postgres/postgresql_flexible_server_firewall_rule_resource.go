@@ -130,7 +130,6 @@ func resourcePostgresqlFlexibleServerFirewallRuleCreateUpdate(d *pluginsdk.Resou
 }
 
 func resourcePostgresqlFlexibleServerFirewallRuleRead(d *pluginsdk.ResourceData, meta any) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Postgres.FlexibleServerFirewallRuleClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
