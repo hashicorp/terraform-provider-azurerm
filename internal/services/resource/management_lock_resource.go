@@ -142,10 +142,14 @@ func resourceManagementLockRead(d *pluginsdk.ResourceData, meta any) error {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	return resourceManagementLockFlatten(d, id, resp.Model)
+}
+
+func resourceManagementLockFlatten(d *pluginsdk.ResourceData, id *managementlocks.ScopedLockId, model *managementlocks.ManagementLockObject) error {
 	d.Set("name", id.LockName)
 	d.Set("scope", id.Scope)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("lock_level", string(model.Properties.Level))
 		d.Set("notes", model.Properties.Notes)
 	}

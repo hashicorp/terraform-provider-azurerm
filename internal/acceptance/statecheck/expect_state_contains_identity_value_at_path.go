@@ -110,7 +110,6 @@ func ExpectStateContainsIdentityValueAtPath(resourceAddress string, identityAttr
 		resourceAddress:  resourceAddress,
 		identityAttrPath: identityAttrPath,
 		stateAttrPath:    stateAttrPath,
-		caseInsensitive:  false,
 	}
 }
 
