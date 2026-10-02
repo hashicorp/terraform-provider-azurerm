@@ -22,6 +22,17 @@ func (r BatchApplicationResource) basicForResourceIdentity(data acceptance.TestD
 	return r.template(data, "")
 }
 
+func TestAccBatchApplication_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_application", "test")
+	r := BatchApplicationResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.template(data, ""),
+		},
+	}, "")
+}
+
 func TestAccBatchApplication_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_application", "test")
 	r := BatchApplicationResource{}

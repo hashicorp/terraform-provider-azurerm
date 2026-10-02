@@ -13,6 +13,16 @@ import (
 
 type AutomationVariableObjectDataSource struct{}
 
+func TestAccDataSourceAzureRMAutomationVariableObject_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_automation_variable_object", "test")
+	r := AutomationVariableObjectDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceAzureRMAutomationVariableObject_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_automation_variable_object", "test")
 	r := AutomationVariableObjectDataSource{}

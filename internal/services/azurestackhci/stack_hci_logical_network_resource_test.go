@@ -25,6 +25,17 @@ const (
 	customLocationIdEnv = "ARM_TEST_STACK_HCI_CUSTOM_LOCATION_ID"
 )
 
+func TestAccStackHCILogicalNetwork_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stack_hci_logical_network", "test")
+	r := StackHCILogicalNetworkResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccStackHCILogicalNetwork_dynamic(t *testing.T) {
 	if os.Getenv(customLocationIdEnv) == "" {
 		t.Skipf("skipping since %q has not been specified", customLocationIdEnv)

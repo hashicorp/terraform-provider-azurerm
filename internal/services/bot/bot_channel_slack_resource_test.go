@@ -20,6 +20,17 @@ import (
 
 type BotChannelSlackResource struct{}
 
+func TestAccBotChannelSlack_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_bot_channel_slack", "test")
+	r := BotChannelSlackResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccBotChannelSlack_basic(t *testing.T) {
 	if ok := skipSlackChannel(); ok {
 		t.Skip("Skipping as one of `ARM_TEST_SLACK_CLIENT_ID`, `ARM_TEST_SLACK_CLIENT_SECRET`, or `ARM_TEST_SLACK_VERIFICATION_TOKEN` was not specified")

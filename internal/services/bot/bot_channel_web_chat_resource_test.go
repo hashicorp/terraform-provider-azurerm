@@ -19,6 +19,16 @@ import (
 
 type BotChannelWebChatResource struct{}
 
+func TestAccBotChannelWebChat_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_bot_channel_web_chat", "test")
+	r := BotChannelWebChatResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccBotChannelWebChat_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_web_chat", "test")
 	r := BotChannelWebChatResource{}

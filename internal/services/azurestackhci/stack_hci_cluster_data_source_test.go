@@ -13,6 +13,16 @@ import (
 
 type StackHCIClusterDataSource struct{}
 
+func TestAccStackHCIClusterDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_stack_hci_cluster", "test")
+	r := StackHCIClusterDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccStackHCIClusterDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_stack_hci_cluster", "test")
 	r := StackHCIClusterDataSource{}

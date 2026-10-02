@@ -21,6 +21,17 @@ type StackHCIExtensionResource struct{}
 
 const arcSettingIdEnv = "ARM_TEST_STACK_HCI_ARC_SETTING_ID"
 
+func TestAccStackHCIExtension_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stack_hci_extension", "test")
+	r := StackHCIExtensionResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccStackHCIExtension_basic(t *testing.T) {
 	arcSettingId := os.Getenv(arcSettingIdEnv)
 	if arcSettingId == "" {

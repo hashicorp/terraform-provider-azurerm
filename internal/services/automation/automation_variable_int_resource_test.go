@@ -16,6 +16,16 @@ import (
 
 type AutomationVariableIntResource struct{}
 
+func TestAccAutomationVariableInt_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_variable_int", "test")
+	r := AutomationVariableIntResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccAutomationVariableInt_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_variable_int", "test")
 	r := AutomationVariableIntResource{}
