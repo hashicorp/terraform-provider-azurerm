@@ -44,7 +44,7 @@ An `agent_profile` block supports the following:
 
 * `subnet_id` - (Optional) The ID of the subnet which the Fleet hub node will join on startup. Changing this forces a new resource to be created.
 
-~> **Note:** Custom subnets are supported only for private Fleet hubs. The Fleet resource provider's service principal must have the `Network Contributor` role on the subnet.
+~> **Note:** Custom subnets are supported only for private Fleet hubs. The virtual network address range must not overlap with the AKS default service range of `10.0.0.0/16`. The Fleet resource provider's service principal must have the `Network Contributor` role on the subnet.
 
 * `virtual_machine_size` - (Optional) The virtual machine size of the Fleet hub. Changing this forces a new resource to be created.
 
@@ -62,7 +62,7 @@ A `hub_profile` block supports the following:
 
 * `api_server_access_profile` - (Optional) An `api_server_access_profile` block as defined above. Changing this forces a new resource to be created.
 
-* `dns_prefix` - (Optional) DNS prefix used to create the FQDN for the Fleet hub. Changing this forces a new resource to be created.
+* `dns_prefix` - (Optional) DNS prefix used to create the FQDN for the Fleet hub. This must be omitted when `api_server_access_profile.enable_private_cluster` is set to `true`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

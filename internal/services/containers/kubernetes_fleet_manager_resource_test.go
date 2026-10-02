@@ -162,6 +162,10 @@ func TestAccKubernetesFleetManager_privateHub(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config:   r.privateHub(data, subnetId, false, "initial"),
+			PlanOnly: true,
+		},
+		{
 			Config: r.privateHub(data, subnetId, false, "updated"),
 			Check: acceptance.ComposeTestCheckFunc(
 				hubCheck,
@@ -229,6 +233,7 @@ func TestKubernetesFleetManagerPrivateHubConfig(t *testing.T) {
 		phase             string
 	}{
 		{name: "create", configureProfiles: true, phase: "initial"},
+		{name: "profile_omission_plan", configureProfiles: false, phase: "initial"},
 		{name: "profile_omission_update", configureProfiles: false, phase: "updated"},
 	} {
 		t.Run(test.name, func(t *testing.T) {

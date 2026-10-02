@@ -43,8 +43,9 @@ to use them before running this test; a previous successful run is not evidence
 that its prerequisites still exist.
 
 The test creates one private Fleet hub using `Standard_D2as_v7`, checks its
-resource and data-source state, imports it without ignored fields, and updates
-tags with both optional hub profiles omitted. Private hubs must omit `dns_prefix`.
+resource and data-source state, and imports it without ignored fields. It checks
+for an empty plan when both optional hub profiles are omitted, then updates tags
+with those profiles still omitted. Private hubs must omit `dns_prefix`.
 The test harness destroys the Fleet and its test resource group. It does not
 create or delete the supplied subnet or its role assignment; the prerequisite
 owner must retain them until Fleet teardown completes and then clean them up.
