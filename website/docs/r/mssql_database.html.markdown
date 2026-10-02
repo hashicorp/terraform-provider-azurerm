@@ -251,7 +251,7 @@ The following arguments are supported:
 
 ~> **Note:** When the `sku_name` is `DW100c`, the `transparent_data_encryption_key_automatic_rotation_enabled` and the `transparent_data_encryption_key_vault_key_id` properties should not be specified, as database-level CMK is not supported for Data Warehouse SKUs.
 
-* `zone_redundant` - (Optional) Whether or not this database is zone redundant, which means the replicas of this database will be spread across multiple availability zones. This property is only settable for Premium and Business Critical databases.
+* `zone_redundant` - (Optional) Whether or not this database is zone redundant, which means the replicas of this database will be spread across multiple availability zones. This property is only settable for Premium and Business Critical databases. When omitted, the value is derived by the service - for example, a database created in a zone redundant elastic pool inherits the zone redundancy of the pool.
 
 * `secondary_type` - (Optional) How do you want your replica to be made? Valid values include `Geo`, `Named` and `Standby`. Defaults to `Geo`. Changing this forces a new resource to be created.
 
