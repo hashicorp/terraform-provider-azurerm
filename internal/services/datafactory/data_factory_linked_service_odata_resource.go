@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -16,8 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 func resourceArmDataFactoryLinkedServiceOData() *pluginsdk.Resource {
@@ -124,7 +124,7 @@ func resourceArmDataFactoryLinkedServiceOData() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmDataFactoryLinkedServiceODataCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryLinkedServiceODataCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	subscriptionId := meta.(*clients.Client).DataFactory.LinkedServiceClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -138,15 +138,17 @@ func resourceArmDataFactoryLinkedServiceODataCreateUpdate(d *pluginsdk.ResourceD
 	id := parse.NewLinkedServiceID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Data Factory OData Anonymous %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
+			if err != nil {
+				if !response.WasNotFound(existing.Response.Response) {
+					return fmt.Errorf("checking for presence of existing Data Factory OData Anonymous %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_data_factory_linked_service_odata", id.ID())
+			if !response.WasNotFound(existing.Response.Response) {
+				return tf.ImportAsExistsError("azurerm_data_factory_linked_service_odata", id.ID())
+			}
 		}
 	}
 
@@ -162,9 +164,9 @@ func resourceArmDataFactoryLinkedServiceODataCreateUpdate(d *pluginsdk.ResourceD
 	// There are multiple authentication paths. If support for those get added, we can easily add them in
 	// a similar format to the below while not messing up the other attributes in ODataLinkedServiceTypeProperties
 	if v, ok := d.GetOk("basic_authentication"); ok {
-		attrs := v.([]interface{})
+		attrs := v.([]any)
 		if len(attrs) != 0 && attrs[0] != nil {
-			raw := attrs[0].(map[string]interface{})
+			raw := attrs[0].(map[string]any)
 			odataLinkedService.AuthenticationType = datafactory.ODataAuthenticationTypeBasic
 			odataLinkedService.UserName = raw["username"].(string)
 			odataLinkedService.Password = datafactory.SecureString{
@@ -175,7 +177,7 @@ func resourceArmDataFactoryLinkedServiceODataCreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		odataLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]interface{}))
+		odataLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
@@ -183,12 +185,11 @@ func resourceArmDataFactoryLinkedServiceODataCreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		odataLinkedService.AdditionalProperties = v.(map[string]interface{})
+		odataLinkedService.AdditionalProperties = v.(map[string]any)
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		odataLinkedService.Annotations = &annotations
+		odataLinkedService.Annotations = pointer.To(v.([]any))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -204,7 +205,7 @@ func resourceArmDataFactoryLinkedServiceODataCreateUpdate(d *pluginsdk.ResourceD
 	return resourceArmDataFactoryLinkedServiceODataRead(d, meta)
 }
 
-func resourceArmDataFactoryLinkedServiceODataRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryLinkedServiceODataRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -218,7 +219,7 @@ func resourceArmDataFactoryLinkedServiceODataRead(d *pluginsdk.ResourceData, met
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -237,7 +238,7 @@ func resourceArmDataFactoryLinkedServiceODataRead(d *pluginsdk.ResourceData, met
 	props := odata.ODataLinkedServiceTypeProperties
 	d.Set("url", props.URL)
 	if props.AuthenticationType == datafactory.ODataAuthenticationTypeBasic {
-		if err := d.Set("basic_authentication", []interface{}{map[string]interface{}{
+		if err := d.Set("basic_authentication", []any{map[string]any{
 			"username": props.UserName,
 			// `password` isn't returned from the api so we'll set it to `*****` here to be able to check for diffs during plan
 			"password": "*****",
@@ -249,13 +250,11 @@ func resourceArmDataFactoryLinkedServiceODataRead(d *pluginsdk.ResourceData, met
 	d.Set("additional_properties", odata.AdditionalProperties)
 	d.Set("description", odata.Description)
 
-	annotations := flattenDataFactoryAnnotations(odata.Annotations)
-	if err := d.Set("annotations", annotations); err != nil {
+	if err := d.Set("annotations", flattenDataFactoryAnnotations(odata.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
-	parameters := flattenLinkedServiceParameters(odata.Parameters)
-	if err := d.Set("parameters", parameters); err != nil {
+	if err := d.Set("parameters", flattenLinkedServiceParameters(odata.Parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 
@@ -268,7 +267,7 @@ func resourceArmDataFactoryLinkedServiceODataRead(d *pluginsdk.ResourceData, met
 	return nil
 }
 
-func resourceArmDataFactoryLinkedServiceODataDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryLinkedServiceODataDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -278,9 +277,9 @@ func resourceArmDataFactoryLinkedServiceODataDelete(d *pluginsdk.ResourceData, m
 		return err
 	}
 
-	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
-		if !utils.ResponseWasNotFound(response) {
+		if !response.WasNotFound(resp.Response) {
 			return fmt.Errorf("deleting Data Factory OData %s: %+v", *id, err)
 		}
 	}

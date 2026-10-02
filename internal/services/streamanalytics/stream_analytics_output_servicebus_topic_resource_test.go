@@ -185,7 +185,6 @@ func (r StreamAnalyticsOutputServiceBusTopicResource) Exists(ctx context.Context
 }
 
 func (r StreamAnalyticsOutputServiceBusTopicResource) avro(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -202,11 +201,10 @@ resource "azurerm_stream_analytics_output_servicebus_topic" "test" {
     type = "Avro"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputServiceBusTopicResource) csv(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -225,11 +223,10 @@ resource "azurerm_stream_analytics_output_servicebus_topic" "test" {
     field_delimiter = ","
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputServiceBusTopicResource) json(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -248,11 +245,10 @@ resource "azurerm_stream_analytics_output_servicebus_topic" "test" {
     format   = "LineSeparated"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputServiceBusTopicResource) authenticationModeMsi(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -270,11 +266,10 @@ resource "azurerm_stream_analytics_output_servicebus_topic" "test" {
     format   = "LineSeparated"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputServiceBusTopicResource) propertyColumns(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -294,11 +289,10 @@ resource "azurerm_stream_analytics_output_servicebus_topic" "test" {
     format   = "LineSeparated"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputServiceBusTopicResource) updated(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -328,11 +322,10 @@ resource "azurerm_stream_analytics_output_servicebus_topic" "test" {
     type = "Avro"
   }
 }
-`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputServiceBusTopicResource) systemPropertyColumns(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -357,11 +350,10 @@ resource "azurerm_stream_analytics_output_servicebus_topic" "test" {
     CorrelationId = "79b839ac-be78-4542-8185-098170483986"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputServiceBusTopicResource) updateSystemPropertyColumns(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -385,11 +377,10 @@ resource "azurerm_stream_analytics_output_servicebus_topic" "test" {
     CorrelationId = "79b839ac-be78-4542-8185-098170483986"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputServiceBusTopicResource) requiresImport(data acceptance.TestData) string {
-	template := r.json(data)
 	return fmt.Sprintf(`
 %s
 
@@ -410,7 +401,7 @@ resource "azurerm_stream_analytics_output_servicebus_topic" "import" {
     }
   }
 }
-`, template)
+`, r.json(data))
 }
 
 func (r StreamAnalyticsOutputServiceBusTopicResource) template(data acceptance.TestData) string {

@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type CustomCertSignalrServiceResource struct{}
+type SignalrServiceCustomCertificateResource struct{}
 
 func TestAccCustomCertSignalrService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service_custom_certificate", "test")
-	r := CustomCertSignalrServiceResource{}
+	r := SignalrServiceCustomCertificateResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,19 +36,20 @@ func TestAccCustomCertSignalrService_basic(t *testing.T) {
 
 func TestAccCustomCertSignalrService_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service_custom_certificate", "test")
-	r := CustomCertSignalrServiceResource{}
+	r := SignalrServiceCustomCertificateResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func (r CustomCertSignalrServiceResource) basic(data acceptance.TestData) string {
+func (r SignalrServiceCustomCertificateResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -81,6 +82,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctestkeyvault%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -148,7 +150,7 @@ resource "azurerm_signalr_service_custom_certificate" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString)
 }
 
-func (r CustomCertSignalrServiceResource) requiresImport(data acceptance.TestData) string {
+func (r SignalrServiceCustomCertificateResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -160,7 +162,7 @@ resource "azurerm_signalr_service_custom_certificate" "import" {
 `, r.basic(data))
 }
 
-func (r CustomCertSignalrServiceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r SignalrServiceCustomCertificateResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := signalr.ParseCustomCertificateID(state.ID)
 	if err != nil {
 		return nil, err

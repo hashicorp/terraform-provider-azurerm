@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	prefixlistlocalrulestack "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/prefixlistresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/prefixlistresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -98,7 +98,7 @@ func TestAccLocalRulestackPrefixList_update(t *testing.T) {
 }
 
 func (r LocalRuleStackPrefixList) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := prefixlistlocalrulestack.ParseLocalRulestackPrefixListID(state.ID)
+	id, err := prefixlistresources.ParseLocalRulestackPrefixListID(state.ID)
 	if err != nil {
 		return nil, err
 	}

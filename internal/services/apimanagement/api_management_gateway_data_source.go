@@ -67,7 +67,7 @@ func dataSourceApiManagementGateway() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceApiManagementGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceApiManagementGatewayRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.GatewayClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

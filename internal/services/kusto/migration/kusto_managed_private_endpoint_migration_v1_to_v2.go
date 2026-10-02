@@ -60,7 +60,7 @@ func (s KustoManagedPrivateEndpointV1ToV2) Schema() map[string]*pluginsdk.Schema
 }
 
 func (s KustoManagedPrivateEndpointV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		oldId := rawState["id"].(string)
 		newId, err := managedprivateendpoints.ParseManagedPrivateEndpointIDInsensitively(oldId)
 		if err != nil {

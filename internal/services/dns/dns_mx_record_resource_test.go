@@ -90,7 +90,7 @@ func TestAccDnsMxRecord_updateRecords(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDnsMxRecord_withTags(t *testing.T) {
+func TestAccDnsMxRecord_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_mx_record", "test")
 	r := DnsMxRecordResource{}
 

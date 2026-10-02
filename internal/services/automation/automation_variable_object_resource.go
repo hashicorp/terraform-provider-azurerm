@@ -34,18 +34,18 @@ func resourceAutomationVariableObject() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationVariableObjectCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	return resourceAutomationVariableCreateUpdate(d, meta, "Object")
+func resourceAutomationVariableObjectCreate(d *pluginsdk.ResourceData, meta any) error {
+	return resourceAutomationVariableCreate(d, meta, "Object")
 }
 
-func resourceAutomationVariableObjectUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	return resourceAutomationVariableCreateUpdate(d, meta, "Object")
+func resourceAutomationVariableObjectUpdate(d *pluginsdk.ResourceData, meta any) error {
+	return resourceAutomationVariableUpdate(d, meta, "Object")
 }
 
-func resourceAutomationVariableObjectRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationVariableObjectRead(d *pluginsdk.ResourceData, meta any) error {
 	return resourceAutomationVariableRead(d, meta, "Object")
 }
 
-func resourceAutomationVariableObjectDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationVariableObjectDelete(d *pluginsdk.ResourceData, meta any) error {
 	return resourceAutomationVariableDelete(d, meta, "Object")
 }

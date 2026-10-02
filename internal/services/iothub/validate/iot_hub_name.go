@@ -8,7 +8,7 @@ import (
 	"regexp"
 )
 
-func IoTHubName(v interface{}, k string) (warnings []string, errors []error) {
+func IoTHubName(v any, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	// Portal: The value must contain only alphanumeric characters or the following: -

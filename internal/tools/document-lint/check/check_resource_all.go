@@ -105,7 +105,9 @@ func (d *DiffResult) ToString() string {
 			`------
 %d issues found in %d resources
 ------`,
-			count, resourceCount))
+			count, resourceCount,
+		),
+	)
 	return bs.String()
 }
 

@@ -148,6 +148,13 @@ resource "azurerm_subnet" "target" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
+resource "azurerm_subnet" "test" {
+  name                 = "test"
+  resource_group_name  = azurerm_resource_group.target.name
+  virtual_network_name = azurerm_virtual_network.target.name
+  address_prefixes     = ["10.0.3.0/24"]
+}
+
 data "azurerm_recovery_services_vault" "vault" {
   name                = "%[2]s"
   resource_group_name = "%[3]s"
@@ -184,6 +191,7 @@ resource "azurerm_site_recovery_vmware_replicated_vm" "test" {
   network_interface {
     source_mac_address = "%[10]s"
     target_subnet_name = azurerm_subnet.target.name
+    test_subnet_name   = azurerm_subnet.test.name
     is_primary         = true
   }
 

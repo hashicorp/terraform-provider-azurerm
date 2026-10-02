@@ -26,16 +26,16 @@ var (
 
 type AccountResource struct{}
 
-func (r AccountResource) ModelObject() interface{} {
+func (r AccountResource) ModelObject() any {
 	return &AccountResourceSchema{}
 }
 
 type AccountResourceSchema struct {
-	ApplicationId     string                 `tfschema:"application_id"`
-	BillingPlanId     string                 `tfschema:"billing_plan_id"`
-	Name              string                 `tfschema:"name"`
-	ResourceGroupName string                 `tfschema:"resource_group_name"`
-	Tags              map[string]interface{} `tfschema:"tags"`
+	ApplicationId     string         `tfschema:"application_id"`
+	BillingPlanId     string         `tfschema:"billing_plan_id"`
+	Name              string         `tfschema:"name"`
+	ResourceGroupName string         `tfschema:"resource_group_name"`
+	Tags              map[string]any `tfschema:"tags"`
 }
 
 func (r AccountResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -88,14 +88,16 @@ func (r AccountResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := graphservicesprods.NewAccountID(subscriptionId, config.ResourceGroupName, config.Name)
 
-			existing, err := client.AccountsGet(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.AccountsGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport("azurerm_graph_services_account", id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport("azurerm_graph_services_account", id)
+				}
 			}
 
 			payload := graphservicesprods.AccountResource{
@@ -106,7 +108,7 @@ func (r AccountResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.AccountsCreateAndUpdateThenPoll(ctx, id, payload); err != nil {
+			if err := client.AccountsCreateAndUpdateCallbackThenPoll(ctx, id, payload, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

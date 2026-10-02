@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
 type ExpressRouteCircuitPeeringDataSource struct{}
@@ -34,4 +35,31 @@ data "azurerm_express_route_circuit_peering" "data" {
   resource_group_name        = azurerm_express_route_circuit_peering.test.resource_group_name
 }
 `, ExpressRouteCircuitPeeringResource{}.privatePeering(data))
+}
+
+func testAccDataSourceExpressRouteCircuitPeering_microsoftPeering(t *testing.T) {
+	dataSource := acceptance.BuildTestData(t, "data.azurerm_express_route_circuit_peering", "data")
+	d := ExpressRouteCircuitPeeringDataSource{}
+
+	dataSource.DataSourceTestInSequence(t, []acceptance.TestStep{
+		{
+			Config: d.microsoftPeering(dataSource),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(dataSource.ResourceName).Key("microsoft_peering_config.#").HasValue("1"),
+				check.That(dataSource.ResourceName).Key("ipv6.#").HasValue("1"),
+			),
+		},
+	})
+}
+
+func (d ExpressRouteCircuitPeeringDataSource) microsoftPeering(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_express_route_circuit_peering" "data" {
+  peering_type               = azurerm_express_route_circuit_peering.test.peering_type
+  express_route_circuit_name = azurerm_express_route_circuit_peering.test.express_route_circuit_name
+  resource_group_name        = azurerm_express_route_circuit_peering.test.resource_group_name
+}
+`, ExpressRouteCircuitPeeringResource{}.msPeeringIpv6(data))
 }

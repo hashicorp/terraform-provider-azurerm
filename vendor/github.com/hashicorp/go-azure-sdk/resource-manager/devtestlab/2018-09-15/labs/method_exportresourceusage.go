@@ -61,9 +61,20 @@ func (c LabsClient) ExportResourceUsage(ctx context.Context, id LabId, input Exp
 
 // ExportResourceUsageThenPoll performs ExportResourceUsage then polls until it's completed
 func (c LabsClient) ExportResourceUsageThenPoll(ctx context.Context, id LabId, input ExportResourceUsageParameters) error {
+	return c.ExportResourceUsageCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ExportResourceUsageCallbackThenPoll performs ExportResourceUsage, runs the optional callback function, then polls until it's completed
+func (c LabsClient) ExportResourceUsageCallbackThenPoll(ctx context.Context, id LabId, input ExportResourceUsageParameters, callback func() error) error {
 	result, err := c.ExportResourceUsage(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ExportResourceUsage: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

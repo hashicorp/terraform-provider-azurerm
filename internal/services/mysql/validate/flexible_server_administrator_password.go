@@ -8,7 +8,8 @@ import (
 	"regexp"
 )
 
-func FlexibleServerAdministratorPassword(i interface{}, k string) (warnings []string, errors []error) {
+// lintignore:V011,V001 // the length check is combined with password complexity rules
+func FlexibleServerAdministratorPassword(i any, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))

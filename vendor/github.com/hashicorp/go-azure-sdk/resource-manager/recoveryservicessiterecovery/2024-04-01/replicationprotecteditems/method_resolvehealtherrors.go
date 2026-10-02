@@ -62,9 +62,20 @@ func (c ReplicationProtectedItemsClient) ResolveHealthErrors(ctx context.Context
 
 // ResolveHealthErrorsThenPoll performs ResolveHealthErrors then polls until it's completed
 func (c ReplicationProtectedItemsClient) ResolveHealthErrorsThenPoll(ctx context.Context, id ReplicationProtectedItemId, input ResolveHealthInput) error {
+	return c.ResolveHealthErrorsCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ResolveHealthErrorsCallbackThenPoll performs ResolveHealthErrors, runs the optional callback function, then polls until it's completed
+func (c ReplicationProtectedItemsClient) ResolveHealthErrorsCallbackThenPoll(ctx context.Context, id ReplicationProtectedItemId, input ResolveHealthInput, callback func() error) error {
 	result, err := c.ResolveHealthErrors(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ResolveHealthErrors: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

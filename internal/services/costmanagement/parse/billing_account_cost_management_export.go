@@ -17,13 +17,6 @@ type BillingAccountCostManagementExportId struct {
 	ExportName         string
 }
 
-func NewBillingAccountCostManagementExportID(billingAccountName, exportName string) BillingAccountCostManagementExportId {
-	return BillingAccountCostManagementExportId{
-		BillingAccountName: billingAccountName,
-		ExportName:         exportName,
-	}
-}
-
 func (id BillingAccountCostManagementExportId) String() string {
 	segments := []string{
 		fmt.Sprintf("Export Name %q", id.ExportName),

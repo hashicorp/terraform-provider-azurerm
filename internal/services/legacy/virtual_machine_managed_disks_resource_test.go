@@ -675,9 +675,10 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "${var.prefix}-keyvault"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  name                       = "${var.prefix}-keyvault"
+  resource_group_name        = "${azurerm_resource_group.test.name}"
+  rbac_authorization_enabled = false
+  location                   = "${azurerm_resource_group.test.location}"
 
   sku_name = "standard"
 

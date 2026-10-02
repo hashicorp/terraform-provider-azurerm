@@ -62,9 +62,20 @@ func (c ManagedDatabasesClient) CompleteMove(ctx context.Context, id commonids.S
 
 // CompleteMoveThenPoll performs CompleteMove then polls until it's completed
 func (c ManagedDatabasesClient) CompleteMoveThenPoll(ctx context.Context, id commonids.SqlManagedInstanceDatabaseId, input ManagedDatabaseMoveDefinition) error {
+	return c.CompleteMoveCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CompleteMoveCallbackThenPoll performs CompleteMove, runs the optional callback function, then polls until it's completed
+func (c ManagedDatabasesClient) CompleteMoveCallbackThenPoll(ctx context.Context, id commonids.SqlManagedInstanceDatabaseId, input ManagedDatabaseMoveDefinition, callback func() error) error {
 	result, err := c.CompleteMove(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CompleteMove: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

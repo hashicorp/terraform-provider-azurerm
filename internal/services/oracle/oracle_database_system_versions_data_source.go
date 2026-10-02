@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package oracle
 
 import (
@@ -98,7 +101,7 @@ func (d DatabaseVersionsDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (d DatabaseVersionsDataSource) ModelObject() interface{} {
+func (d DatabaseVersionsDataSource) ModelObject() any {
 	return &DatabaseVersionsModel{}
 }
 

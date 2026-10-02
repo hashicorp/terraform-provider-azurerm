@@ -37,7 +37,7 @@ func (v AutomationVariablesDataSource) ResourceType() string {
 	return "azurerm_automation_variables"
 }
 
-func (v AutomationVariablesDataSource) ModelObject() interface{} {
+func (v AutomationVariablesDataSource) ModelObject() any {
 	return &AutomationVariablesDataSourceModel{}
 }
 
@@ -150,7 +150,7 @@ func (v AutomationVariablesDataSource) Read() sdk.ResourceFunc {
 				}
 
 				datePattern := regexp.MustCompile(`"\\/Date\((-?[0-9]+)\)\\/"`)
-				var objVar map[string]interface{}
+				var objVar map[string]any
 
 				if pointer.From(v.Properties.IsEncrypted) {
 					var_encrypt = append(var_encrypt, helper.EncryptedVariable{

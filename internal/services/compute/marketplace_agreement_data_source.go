@@ -5,7 +5,6 @@ package compute
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -62,7 +61,7 @@ func dataSourceMarketplaceAgreement() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceMarketplaceAgreementRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceMarketplaceAgreementRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.MarketplaceAgreementsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -70,8 +69,6 @@ func dataSourceMarketplaceAgreementRead(d *pluginsdk.ResourceData, meta interfac
 
 	// The Resource ID for this is the Plan ID, however we have to retrieve information about the signed plan
 	id := agreements.NewPlanID(subscriptionId, d.Get("publisher").(string), d.Get("offer").(string), d.Get("plan").(string))
-
-	log.Printf("[DEBUG] retrieving %s", id)
 
 	getId := agreements.NewOfferPlanID(id.SubscriptionId, id.PublisherId, id.OfferId, id.PlanId)
 	term, err := client.MarketplaceAgreementsGet(ctx, getId)

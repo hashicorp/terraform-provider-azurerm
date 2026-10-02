@@ -50,7 +50,7 @@ func (dw *DataSourceWrapper) DataSource() (*schema.Resource, error) {
 
 	resource := schema.Resource{
 		Schema: *resourceSchema,
-		ReadContext: dw.diagnosticsWrapper(func(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+		ReadContext: dw.diagnosticsWrapper(func(ctx context.Context, d *schema.ResourceData, meta any) error {
 			metaData := runArgs(d, meta, dw.logger)
 			return dw.dataSource.Read().Func(ctx, metaData)
 		}),
@@ -75,6 +75,6 @@ and we recommend using the %[2]q datasource instead.
 	return &resource, nil
 }
 
-func (dw *DataSourceWrapper) diagnosticsWrapper(in func(ctx context.Context, d *schema.ResourceData, meta interface{}) error) schema.ReadContextFunc {
+func (dw *DataSourceWrapper) diagnosticsWrapper(in func(ctx context.Context, d *schema.ResourceData, meta any) error) schema.ReadContextFunc {
 	return diagnosticsWrapper(in, dw.logger)
 }

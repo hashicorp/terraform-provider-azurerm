@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/dataconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -168,8 +169,7 @@ func (KustoEventHubDataConnectionResource) Exists(ctx context.Context, clients *
 		if !ok {
 			return nil, fmt.Errorf("%s is not an EventHubDataConnection", id.String())
 		}
-		exists := value.Properties != nil
-		return &exists, nil
+		return pointer.To(value.Properties != nil), nil
 	} else {
 		return nil, fmt.Errorf("response model is empty")
 	}
@@ -392,11 +392,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctesteventhub-%d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 1
-  message_retention   = 1
+  name              = "acctesteventhub-%d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 1
+  message_retention = 1
 }
 
 resource "azurerm_eventhub_consumer_group" "test" {

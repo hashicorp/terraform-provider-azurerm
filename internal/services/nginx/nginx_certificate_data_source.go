@@ -94,7 +94,7 @@ func (m CertificateDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (m CertificateDataSource) ModelObject() interface{} {
+func (m CertificateDataSource) ModelObject() any {
 	return &CertificateDataSourceModel{}
 }
 

@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/advisor/2023-01-01/getrecommendations"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -31,18 +32,29 @@ func dataSourceAdvisorRecommendations() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(getrecommendations.CategoryHighAvailability),
-						string(getrecommendations.CategorySecurity),
-						string(getrecommendations.CategoryPerformance),
-						string(getrecommendations.CategoryCost),
-						string(getrecommendations.CategoryOperationalExcellence),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice(getrecommendations.PossibleValuesForCategory(), false),
 				},
 			},
 
 			"filter_by_resource_groups": commonschema.ResourceGroupNameSetOptional(),
+
+			"filter_by_resource_ids": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: azure.ValidateResourceID,
+				},
+			},
+
+			"filter_by_recommendation_type_guids": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
 
 			"recommendations": {
 				Type:     pluginsdk.TypeList,
@@ -55,6 +67,11 @@ func dataSourceAdvisorRecommendations() *pluginsdk.Resource {
 						},
 
 						"description": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
@@ -103,7 +120,7 @@ func dataSourceAdvisorRecommendations() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceAdvisorRecommendationsRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceAdvisorRecommendationsRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Advisor.RecommendationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -117,28 +134,34 @@ func dataSourceAdvisorRecommendationsRead(d *pluginsdk.ResourceData, meta interf
 	if resGroups := expandAzureRmAdvisorRecommendationsMapString("ResourceGroup", d.Get("filter_by_resource_groups").(*pluginsdk.Set).List()); resGroups != "" {
 		filterList = append(filterList, resGroups)
 	}
+	if resIDs := expandAzureRmAdvisorRecommendationsMapString("ResourceId", d.Get("filter_by_resource_ids").(*pluginsdk.Set).List()); resIDs != "" {
+		filterList = append(filterList, resIDs)
+	}
+	if recommendationTypeGuids := expandAzureRmAdvisorRecommendationsMapString("RecommendationTypeGuid", d.Get("filter_by_recommendation_type_guids").(*pluginsdk.Set).List()); recommendationTypeGuids != "" {
+		filterList = append(filterList, recommendationTypeGuids)
+	}
 
 	opts := getrecommendations.RecommendationsListOperationOptions{}
 	if len(filterList) > 0 {
 		opts.Filter = pointer.To(strings.Join(filterList, " and "))
 	}
 
-	recomendations, err := client.RecommendationsListComplete(ctx, id, opts)
+	recommendations, err := client.RecommendationsListComplete(ctx, id, opts)
 	if err != nil {
 		return fmt.Errorf("loading Advisor Recommendation for %q: %+v", id, err)
 	}
 
-	if err := d.Set("recommendations", flattenAzureRmAdvisorRecommendations(recomendations.Items)); err != nil {
+	if err := d.Set("recommendations", flattenAzureRmAdvisorRecommendations(recommendations.Items)); err != nil {
 		return fmt.Errorf("setting `recommendations`: %+v", err)
 	}
 
-	d.SetId("avdisor/recommendations/" + time.Now().UTC().String())
+	d.SetId(fmt.Sprintf("advisor/recommendations/%s/%d", id.SubscriptionId, pluginsdk.HashString(strings.Join(filterList, " and "))))
 
 	return nil
 }
 
-func flattenAzureRmAdvisorRecommendations(recommends []getrecommendations.ResourceRecommendationBase) []interface{} {
-	result := make([]interface{}, 0)
+func flattenAzureRmAdvisorRecommendations(recommends []getrecommendations.ResourceRecommendationBase) []any {
+	result := make([]any, 0)
 
 	if len(recommends) == 0 {
 		return result
@@ -146,7 +169,7 @@ func flattenAzureRmAdvisorRecommendations(recommends []getrecommendations.Resour
 
 	for _, r := range recommends {
 		var description string
-		var suppressionIds []interface{}
+		var suppressionIds []any
 
 		v := r.Properties
 
@@ -158,10 +181,11 @@ func flattenAzureRmAdvisorRecommendations(recommends []getrecommendations.Resour
 			suppressionIds = flattenSuppressionSlice(v.SuppressionIds)
 		}
 
-		result = append(result, map[string]interface{}{
-			"category":               string(pointer.From(v.Category)),
+		result = append(result, map[string]any{
+			"category":               pointer.FromEnum(v.Category),
 			"description":            description,
-			"impact":                 string(pointer.From(v.Impact)),
+			"id":                     pointer.From(r.Id),
+			"impact":                 pointer.FromEnum(v.Impact),
 			"recommendation_name":    pointer.From(r.Name),
 			"recommendation_type_id": pointer.From(v.RecommendationTypeId),
 			"resource_name":          pointer.From(v.ImpactedValue),
@@ -174,7 +198,7 @@ func flattenAzureRmAdvisorRecommendations(recommends []getrecommendations.Resour
 	return result
 }
 
-func expandAzureRmAdvisorRecommendationsMapString(t string, input []interface{}) string {
+func expandAzureRmAdvisorRecommendationsMapString(t string, input []any) string {
 	if len(input) == 0 {
 		return ""
 	}
@@ -185,8 +209,8 @@ func expandAzureRmAdvisorRecommendationsMapString(t string, input []interface{})
 	return "(" + strings.Join(result, " or ") + ")"
 }
 
-func flattenSuppressionSlice(input *[]string) []interface{} {
-	result := make([]interface{}, 0)
+func flattenSuppressionSlice(input *[]string) []any {
+	result := make([]any, 0)
 	if input != nil {
 		for _, item := range *input {
 			result = append(result, item)

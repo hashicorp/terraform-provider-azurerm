@@ -8,7 +8,7 @@ provider "azurerm" {
 locals {
   custom_data = <<CUSTOMDATA
 
-  echo 1 > C:/custom_data_exampe
+  echo 1 > C:/custom_data_example
 
 CUSTOMDATA
 }

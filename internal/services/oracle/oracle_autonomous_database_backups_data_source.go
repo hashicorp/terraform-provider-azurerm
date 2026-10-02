@@ -148,7 +148,7 @@ func (a AutonomousDatabaseBackupsDataSource) Attributes() map[string]*pluginsdk.
 	}
 }
 
-func (a AutonomousDatabaseBackupsDataSource) ModelObject() interface{} {
+func (a AutonomousDatabaseBackupsDataSource) ModelObject() any {
 	return &AutonomousDatabaseBackupsListDataModel{}
 }
 

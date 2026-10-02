@@ -58,7 +58,7 @@ func (m APIKeyDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (m APIKeyDataSource) ModelObject() interface{} {
+func (m APIKeyDataSource) ModelObject() any {
 	return &APIKeyDataSourceModel{}
 }
 

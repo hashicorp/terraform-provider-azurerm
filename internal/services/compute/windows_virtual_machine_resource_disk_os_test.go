@@ -407,7 +407,7 @@ func TestAccWindowsVirtualMachine_diskOSImportManagedDisk(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("bypass_platform_safety_checks_on_user_schedule_enabled"),
 		{
 			// This step does nothing except flip the delete OS disk with VM to true to avoid the RG preventing being deleted
 			Config: r.diskOSImportManagedDiskUpdate(data),
@@ -441,7 +441,7 @@ func TestAccWindowsVirtualMachine_diskOSImportManagedDiskUpdateSize(t *testing.T
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("bypass_platform_safety_checks_on_user_schedule_enabled"),
 		{
 			// This step does nothing except flip the delete OS disk with VM to true to avoid the RG preventing being deleted
 			Config: r.diskOSImportManagedDiskWithSize(data, 140),
@@ -745,6 +745,7 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctestkv%s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "standard"
   purge_protection_enabled    = true
@@ -1215,6 +1216,8 @@ resource "azurerm_windows_virtual_machine" "test" {
   size                = "Standard_DC2as_v5"
   admin_username      = "adminuser"
   admin_password      = "P@$$w0rd1234!"
+  patch_mode          = "AutomaticByPlatform"
+
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -1227,8 +1230,8 @@ resource "azurerm_windows_virtual_machine" "test" {
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
-    offer     = "windows-cvm"
-    sku       = "2022-datacenter-cvm"
+    offer     = "WindowsServer"
+    sku       = "2022-datacenter-azure-edition-core"
     version   = "latest"
   }
 
@@ -1255,12 +1258,15 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                = local.vm_name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  size                = "Standard_DC2as_v5"
-  admin_username      = "adminuser"
-  admin_password      = "P@$$w0rd1234!"
+  name                       = local.vm_name
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  size                       = "Standard_DC2as_v5"
+  admin_username             = "adminuser"
+  admin_password             = "P@$$w0rd1234!"
+  patch_mode                 = "AutomaticByPlatform"
+  encryption_at_host_enabled = true
+
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -1274,8 +1280,8 @@ resource "azurerm_windows_virtual_machine" "test" {
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
-    offer     = "windows-cvm"
-    sku       = "2022-datacenter-cvm"
+    offer     = "WindowsServer"
+    sku       = "2022-datacenter-azure-edition-core"
     version   = "latest"
   }
 
@@ -1293,6 +1299,7 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctestkv%[3]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
   sku_name                    = "premium"
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   enabled_for_disk_encryption = true

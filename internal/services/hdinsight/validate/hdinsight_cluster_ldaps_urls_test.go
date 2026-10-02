@@ -15,7 +15,12 @@ func TestHDInsightClusterLdapsUrls(t *testing.T) {
 			expected: false,
 		},
 		{
+			// scheme only, no host
 			input:    "ldaps://",
+			expected: false,
+		},
+		{
+			input:    "ldaps://example.com:636",
 			expected: true,
 		},
 		{

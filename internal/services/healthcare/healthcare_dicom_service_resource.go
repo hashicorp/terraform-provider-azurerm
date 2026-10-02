@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -20,12 +21,13 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2024-03-31/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceHealthcareApisDicomService() *pluginsdk.Resource {
@@ -213,11 +215,10 @@ func resourceHealthcareApisDicomService() *pluginsdk.Resource {
 	}
 }
 
-func resourceHealthcareApisDicomServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceHealthcareApisDicomServiceCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceDicomServiceClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for AzureRM Healthcare Dicom Service creation.")
 
 	workspace, err := workspaces.ParseWorkspaceID(d.Get("workspace_id").(string))
 	if err != nil {
@@ -226,7 +227,7 @@ func resourceHealthcareApisDicomServiceCreate(d *pluginsdk.ResourceData, meta in
 
 	id := dicomservices.NewDicomServiceID(workspace.SubscriptionId, workspace.ResourceGroupName, workspace.WorkspaceName, d.Get("name").(string))
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -239,12 +240,12 @@ func resourceHealthcareApisDicomServiceCreate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
-	i, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+	i, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
 	parameters := dicomservices.DicomService{
 		Identity: i,
@@ -259,7 +260,7 @@ func resourceHealthcareApisDicomServiceCreate(d *pluginsdk.ResourceData, meta in
 		parameters.Properties.EnableDataPartitions = pointer.To(v.(bool))
 	}
 
-	cors := expandDicomServiceCorsConfiguration(d.Get("cors").([]interface{}))
+	cors := expandDicomServiceCorsConfiguration(d.Get("cors").([]any))
 	if cors != nil {
 		parameters.Properties.CorsConfiguration = cors
 	}
@@ -272,7 +273,7 @@ func resourceHealthcareApisDicomServiceCreate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
-	storage := expandStorageConfiguration(d.Get("storage").([]interface{}))
+	storage := expandStorageConfiguration(d.Get("storage").([]any))
 	if storage != nil {
 		parameters.Properties.StorageConfiguration = storage
 	}
@@ -281,9 +282,8 @@ func resourceHealthcareApisDicomServiceCreate(d *pluginsdk.ResourceData, meta in
 		parameters.Properties.PublicNetworkAccess = pointer.To(dicomservices.PublicNetworkAccessDisabled)
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
-	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if err = client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -291,7 +291,7 @@ func resourceHealthcareApisDicomServiceCreate(d *pluginsdk.ResourceData, meta in
 	return resourceHealthcareApisDicomServiceRead(d, meta)
 }
 
-func resourceHealthcareApisDicomServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceHealthcareApisDicomServiceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceDicomServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -355,7 +355,7 @@ func resourceHealthcareApisDicomServiceRead(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func resourceHealthcareApisDicomServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceHealthcareApisDicomServiceUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceDicomServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -381,7 +381,7 @@ func resourceHealthcareApisDicomServiceUpdate(d *pluginsdk.ResourceData, meta in
 	payload := existing.Model
 
 	if d.HasChange("cors") {
-		payload.Properties.CorsConfiguration = expandDicomServiceCorsConfiguration(d.Get("cors").([]interface{}))
+		payload.Properties.CorsConfiguration = expandDicomServiceCorsConfiguration(d.Get("cors").([]any))
 	}
 
 	if d.HasChange("encryption_key_url") {
@@ -401,7 +401,7 @@ func resourceHealthcareApisDicomServiceUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if d.HasChange("identity") {
-		i, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		i, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -418,8 +418,7 @@ func resourceHealthcareApisDicomServiceUpdate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, *id, *payload)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -427,7 +426,7 @@ func resourceHealthcareApisDicomServiceUpdate(d *pluginsdk.ResourceData, meta in
 	return resourceHealthcareApisDicomServiceRead(d, meta)
 }
 
-func resourceHealthcareApisDicomServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceHealthcareApisDicomServiceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceDicomServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -437,42 +436,22 @@ func resourceHealthcareApisDicomServiceDelete(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("parsing Dicom service error: %+v", err)
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting Healthcare Dicom Service %s: %+v", id, err)
 	}
 
 	log.Printf("[DEBUG] Waiting for %s to be deleted..", id)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"Pending"},
-		Target:                    []string{"Deleted"},
-		Refresh:                   dicomServiceStateStatusCodeRefreshFunc(ctx, client, *id),
-		Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
-		ContinuousTargetOccurence: 3,
-		PollInterval:              10 * time.Second,
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	poller := custompollers.NewEventualConsistencyPoller(3, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.Get(pollerCtx, *id)
+		return resp.HttpResponse, err
+	}, custompollers.DefaultDeletionEventualConsistencyPollerOptions())
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to be deleted: %+v", id, err)
 	}
 	return nil
 }
 
-func dicomServiceStateStatusCodeRefreshFunc(ctx context.Context, client *dicomservices.DicomServicesClient, id dicomservices.DicomServiceId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			if response.WasNotFound(resp.HttpResponse) {
-				return resp, "Deleted", nil
-			}
-			return nil, "Error", fmt.Errorf("polling for the status of %s: %+v", id, err)
-		}
-
-		return resp, "Pending", nil
-	}
-}
-
-func updateTags(d *pluginsdk.ResourceData, meta interface{}) error {
+func updateTags(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceDicomServiceClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -483,28 +462,27 @@ func updateTags(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	update := dicomservices.DicomServicePatchResource{
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
-	err = client.UpdateThenPoll(ctx, *id, update)
-	if err != nil {
+	if err = client.UpdateThenPoll(ctx, *id, update); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	return nil
 }
 
-func flattenDicomAuthentication(input *dicomservices.DicomServiceAuthenticationConfiguration) []interface{} {
+func flattenDicomAuthentication(input *dicomservices.DicomServiceAuthenticationConfiguration) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	authBlock := make(map[string]interface{})
+	authBlock := make(map[string]any)
 	if input.Authority != nil {
 		authBlock["authority"] = *input.Authority
 	}
 
-	audience := make([]interface{}, 0)
+	audience := make([]any, 0)
 	if input.Audiences != nil {
 		for _, data := range *input.Audiences {
 			audience = append(audience, data)
@@ -512,17 +490,17 @@ func flattenDicomAuthentication(input *dicomservices.DicomServiceAuthenticationC
 	}
 	authBlock["audience"] = audience
 
-	return []interface{}{authBlock}
+	return []any{authBlock}
 }
 
-func flattenDicomServicePrivateEndpoint(input *[]dicomservices.PrivateEndpointConnection) []interface{} {
-	results := make([]interface{}, 0)
+func flattenDicomServicePrivateEndpoint(input *[]dicomservices.PrivateEndpointConnection) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, endpoint := range *input {
-		result := map[string]interface{}{}
+		result := map[string]any{}
 		if endpoint.Name != nil {
 			result["name"] = *endpoint.Name
 		}
@@ -534,11 +512,11 @@ func flattenDicomServicePrivateEndpoint(input *[]dicomservices.PrivateEndpointCo
 	return results
 }
 
-func expandStorageConfiguration(input []interface{}) *dicomservices.StorageConfiguration {
+func expandStorageConfiguration(input []any) *dicomservices.StorageConfiguration {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
-	storageSettings := input[0].(map[string]interface{})
+	storageSettings := input[0].(map[string]any)
 
 	var storageResourceId *string
 	if v, ok := storageSettings["storage_account_id"]; ok {
@@ -556,12 +534,12 @@ func expandStorageConfiguration(input []interface{}) *dicomservices.StorageConfi
 	}
 }
 
-func flattenStorageConfiguration(configuration *dicomservices.StorageConfiguration) (interface{}, error) {
+func flattenStorageConfiguration(configuration *dicomservices.StorageConfiguration) (any, error) {
 	if configuration == nil {
-		return []interface{}{}, nil
+		return []any{}, nil
 	}
 
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 	if configuration.FileSystemName != nil {
 		result["file_system_name"] = pointer.From(configuration.FileSystemName)
 	}
@@ -574,27 +552,27 @@ func flattenStorageConfiguration(configuration *dicomservices.StorageConfigurati
 		result["storage_account_id"] = id.ID()
 	}
 
-	return []interface{}{result}, nil
+	return []any{result}, nil
 }
 
-func expandDicomServiceCorsConfiguration(inputList []interface{}) *dicomservices.CorsConfiguration {
+func expandDicomServiceCorsConfiguration(inputList []any) *dicomservices.CorsConfiguration {
 	if len(inputList) == 0 {
 		return nil
 	}
 
-	input := inputList[0].(map[string]interface{})
+	input := inputList[0].(map[string]any)
 	output := dicomservices.CorsConfiguration{}
 
 	if v, ok := input["allowed_origins"]; ok {
-		output.Origins = utils.ExpandStringSlice(v.([]interface{}))
+		output.Origins = pluginsdk.ExpandStringSlice(v.([]any))
 	}
 
 	if v, ok := input["allowed_headers"]; ok {
-		output.Headers = utils.ExpandStringSlice(v.([]interface{}))
+		output.Headers = pluginsdk.ExpandStringSlice(v.([]any))
 	}
 
 	if v, ok := input["allowed_methods"]; ok {
-		output.Methods = utils.ExpandStringSlice(v.([]interface{}))
+		output.Methods = pluginsdk.ExpandStringSlice(v.([]any))
 	}
 
 	if v, ok := input["max_age_in_seconds"]; ok {
@@ -608,27 +586,27 @@ func expandDicomServiceCorsConfiguration(inputList []interface{}) *dicomservices
 	return &output
 }
 
-func flattenDicomServiceCorsConfiguration(input *dicomservices.CorsConfiguration) []interface{} {
-	outputList := make([]interface{}, 0)
+func flattenDicomServiceCorsConfiguration(input *dicomservices.CorsConfiguration) []any {
+	outputList := make([]any, 0)
 	if input == nil {
 		return outputList
 	}
 
-	output := make(map[string]interface{})
+	output := make(map[string]any)
 	output["allow_credentials"] = pointer.From(input.AllowCredentials)
 
 	if input.Headers != nil {
-		output["allowed_headers"] = utils.FlattenStringSlice(input.Headers)
+		output["allowed_headers"] = pluginsdk.FlattenSlice(input.Headers)
 	}
 
 	output["max_age_in_seconds"] = pointer.From(input.MaxAge)
 
 	if input.Methods != nil {
-		output["allowed_methods"] = utils.FlattenStringSlice(input.Methods)
+		output["allowed_methods"] = pluginsdk.FlattenSlice(input.Methods)
 	}
 
 	if input.Origins != nil {
-		output["allowed_origins"] = utils.FlattenStringSlice(input.Origins)
+		output["allowed_origins"] = pluginsdk.FlattenSlice(input.Origins)
 	}
 
 	return append(outputList, output)

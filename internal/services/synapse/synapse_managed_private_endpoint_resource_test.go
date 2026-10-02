@@ -9,12 +9,13 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/data-plane/synapse/2021-06-01-preview/managedprivateendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SynapseManagedPrivateEndpointResource struct{}
@@ -55,24 +56,20 @@ func (r SynapseManagedPrivateEndpointResource) Exists(ctx context.Context, clien
 		return nil, err
 	}
 
-	suffix, ok := client.Account.Environment.Synapse.DomainSuffix()
-	if !ok {
-		return nil, fmt.Errorf("could not determine Synapse domain suffix for environment %q", client.Account.Environment.Name)
-	}
-
-	managedPrivateEndpointsClient, err := client.Synapse.ManagedPrivateEndpointsClient(id.WorkspaceName, *suffix)
+	baseURI, err := synapse.NewSynapseWorkspaceBaseURI(client.Account.Environment, id.WorkspaceName)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := managedPrivateEndpointsClient.Get(ctx, id.ManagedVirtualNetworkName, id.Name)
+
+	managedPrivateEndpointsClient := client.Synapse.ManagedPrivateEndpointsClient.Clone(baseURI)
+	dataPlaneID := managedprivateendpoints.NewManagedPrivateEndpointID(baseURI, id.ManagedVirtualNetworkName, id.Name)
+
+	resp, err := managedPrivateEndpointsClient.Get(ctx, dataPlaneID)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return pointer.To(false), nil
-		}
-		return nil, fmt.Errorf("retrieving Synapse Managed Private Endpoints (Workspace %q / Resource Group %q): %+v", id.WorkspaceName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %w", id, err)
 	}
 
-	return pointer.To(true), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r SynapseManagedPrivateEndpointResource) basic(data acceptance.TestData) string {

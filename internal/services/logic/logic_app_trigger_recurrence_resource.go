@@ -120,16 +120,16 @@ func resourceLogicAppTriggerRecurrence() *pluginsdk.Resource {
 			"time_zone": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validate.TriggerRecurrenceTimeZone(),
 			},
 		},
 	}
 }
 
-func resourceLogicAppTriggerRecurrenceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	trigger := map[string]interface{}{
-		"recurrence": map[string]interface{}{
+func resourceLogicAppTriggerRecurrenceCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
+	trigger := map[string]any{
+		"recurrence": map[string]any{
 			"frequency": d.Get("frequency").(string),
 			"interval":  d.Get("interval").(int),
 		},
@@ -137,15 +137,15 @@ func resourceLogicAppTriggerRecurrenceCreateUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	if v, ok := d.GetOk("start_time"); ok {
-		trigger["recurrence"].(map[string]interface{})["startTime"] = v.(string)
+		trigger["recurrence"].(map[string]any)["startTime"] = v.(string)
 	}
 
 	if v, ok := d.GetOk("time_zone"); ok {
-		trigger["recurrence"].(map[string]interface{})["timeZone"] = v.(string)
+		trigger["recurrence"].(map[string]any)["timeZone"] = v.(string)
 	}
 
 	if v, ok := d.GetOk("schedule"); ok {
-		trigger["recurrence"].(map[string]interface{})["schedule"] = expandLogicAppTriggerRecurrenceSchedule(v.([]interface{}))
+		trigger["recurrence"].(map[string]any)["schedule"] = expandLogicAppTriggerRecurrenceSchedule(v.([]any))
 	}
 
 	workflowId, err := workflows.ParseWorkflowID(d.Get("logic_app_id").(string))
@@ -162,7 +162,7 @@ func resourceLogicAppTriggerRecurrenceCreateUpdate(d *pluginsdk.ResourceData, me
 	return resourceLogicAppTriggerRecurrenceRead(d, meta)
 }
 
-func resourceLogicAppTriggerRecurrenceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppTriggerRecurrenceRead(d *pluginsdk.ResourceData, meta any) error {
 	id, err := workflowtriggers.ParseTriggerID(d.Id())
 	if err != nil {
 		return err
@@ -189,7 +189,7 @@ func resourceLogicAppTriggerRecurrenceRead(d *pluginsdk.ResourceData, meta inter
 		return fmt.Errorf("`recurrence` was nil for HTTP Trigger %s", id)
 	}
 
-	recurrence, ok := v.(map[string]interface{})
+	recurrence, ok := v.(map[string]any)
 	if !ok {
 		return fmt.Errorf("parsing `recurrence` for HTTP Trigger %s", id)
 	}
@@ -211,13 +211,13 @@ func resourceLogicAppTriggerRecurrenceRead(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if schedule := recurrence["schedule"]; schedule != nil {
-		d.Set("schedule", flattenLogicAppTriggerRecurrenceSchedule(schedule.(map[string]interface{})))
+		d.Set("schedule", flattenLogicAppTriggerRecurrenceSchedule(schedule.(map[string]any)))
 	}
 
 	return nil
 }
 
-func resourceLogicAppTriggerRecurrenceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppTriggerRecurrenceDelete(d *pluginsdk.ResourceData, meta any) error {
 	id, err := workflowtriggers.ParseTriggerID(d.Id())
 	if err != nil {
 		return err
@@ -225,21 +225,20 @@ func resourceLogicAppTriggerRecurrenceDelete(d *pluginsdk.ResourceData, meta int
 
 	workflowId := workflows.NewWorkflowID(id.SubscriptionId, id.ResourceGroupName, id.WorkflowName)
 
-	err = resourceLogicAppTriggerRemove(d, meta, workflowId, id.TriggerName)
-	if err != nil {
+	if err = resourceLogicAppTriggerRemove(d, meta, workflowId, id.TriggerName); err != nil {
 		return fmt.Errorf("removing Trigger %s: %+v", id, err)
 	}
 
 	return nil
 }
 
-func expandLogicAppTriggerRecurrenceSchedule(input []interface{}) map[string]interface{} {
-	output := make(map[string]interface{})
+func expandLogicAppTriggerRecurrenceSchedule(input []any) map[string]any {
+	output := make(map[string]any)
 	if len(input) == 0 || input[0] == nil {
 		return output
 	}
 
-	attrs := input[0].(map[string]interface{})
+	attrs := input[0].(map[string]any)
 	if hoursRaw, ok := attrs["at_these_hours"]; ok {
 		hoursSet := hoursRaw.(*pluginsdk.Set).List()
 		hours := make([]int, 0)
@@ -274,8 +273,8 @@ func expandLogicAppTriggerRecurrenceSchedule(input []interface{}) map[string]int
 	return output
 }
 
-func flattenLogicAppTriggerRecurrenceSchedule(input map[string]interface{}) []interface{} {
-	attrs := make(map[string]interface{})
+func flattenLogicAppTriggerRecurrenceSchedule(input map[string]any) []any {
+	attrs := make(map[string]any)
 
 	if hours := input["hours"]; hours != nil {
 		attrs["at_these_hours"] = hours
@@ -287,5 +286,5 @@ func flattenLogicAppTriggerRecurrenceSchedule(input map[string]interface{}) []in
 		attrs["on_these_days"] = days
 	}
 
-	return []interface{}{attrs}
+	return []any{attrs}
 }

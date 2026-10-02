@@ -29,7 +29,7 @@ type FunctionAppActiveSlotModel struct {
 
 var _ sdk.ResourceWithUpdate = FunctionAppActiveSlotResource{}
 
-func (r FunctionAppActiveSlotResource) ModelObject() interface{} {
+func (r FunctionAppActiveSlotResource) ModelObject() any {
 	return &FunctionAppActiveSlotModel{}
 }
 

@@ -11,8 +11,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecurityperimeterassociations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecurityperimeterprofiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networksecurityperimeterassociations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networksecurityperimeterprofiles"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -72,7 +72,7 @@ func (NetworkSecurityPerimeterAssociationResource) Attributes() map[string]*plug
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (NetworkSecurityPerimeterAssociationResource) ModelObject() interface{} {
+func (NetworkSecurityPerimeterAssociationResource) ModelObject() any {
 	return &NetworkSecurityPerimeterAssociationResourceModel{}
 }
 
@@ -100,12 +100,14 @@ func (r NetworkSecurityPerimeterAssociationResource) Create() sdk.ResourceFunc {
 
 			id := networksecurityperimeterassociations.NewResourceAssociationID(subscriptionId, profileId.ResourceGroupName, profileId.NetworkSecurityPerimeterName, config.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			param := networksecurityperimeterassociations.NspAssociation{
@@ -116,11 +118,11 @@ func (r NetworkSecurityPerimeterAssociationResource) Create() sdk.ResourceFunc {
 					PrivateLinkResource: &networksecurityperimeterassociations.SubResource{
 						Id: pointer.To(config.ResourceId),
 					},
-					AccessMode: pointer.To(networksecurityperimeterassociations.AssociationAccessMode(config.AccessMode)),
+					AccessMode: pointer.ToEnum[networksecurityperimeterassociations.AssociationAccessMode](config.AccessMode),
 				},
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, id, param); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -160,10 +162,10 @@ func (r NetworkSecurityPerimeterAssociationResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("access_mode") {
-				existing.Model.Properties.AccessMode = pointer.To(networksecurityperimeterassociations.AssociationAccessMode(config.AccessMode))
+				existing.Model.Properties.AccessMode = pointer.ToEnum[networksecurityperimeterassociations.AssociationAccessMode](config.AccessMode)
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -207,7 +209,7 @@ func (NetworkSecurityPerimeterAssociationResource) Read() sdk.ResourceFunc {
 						state.ResourceId = pointer.From(props.PrivateLinkResource.Id)
 					}
 
-					state.AccessMode = string(pointer.From(props.AccessMode))
+					state.AccessMode = pointer.FromEnum(props.AccessMode)
 				}
 			}
 

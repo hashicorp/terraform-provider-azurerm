@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/azurefirewalls"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/azurefirewalls"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceFirewallNetworkRuleCollection() *pluginsdk.Resource {
@@ -65,12 +64,9 @@ func resourceFirewallNetworkRuleCollection() *pluginsdk.Resource {
 			},
 
 			"action": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(azurefirewalls.AzureFirewallRCActionTypeAllow),
-					string(azurefirewalls.AzureFirewallRCActionTypeDeny),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(azurefirewalls.PossibleValuesForAzureFirewallRCActionType(), false),
 			},
 
 			"rule": {
@@ -122,13 +118,8 @@ func resourceFirewallNetworkRuleCollection() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeList,
 							Required: true,
 							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(azurefirewalls.AzureFirewallNetworkRuleProtocolAny),
-									string(azurefirewalls.AzureFirewallNetworkRuleProtocolICMP),
-									string(azurefirewalls.AzureFirewallNetworkRuleProtocolTCP),
-									string(azurefirewalls.AzureFirewallNetworkRuleProtocolUDP),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice(azurefirewalls.PossibleValuesForAzureFirewallNetworkRuleProtocol(), false),
 							},
 						},
 					},
@@ -138,7 +129,7 @@ func resourceFirewallNetworkRuleCollection() *pluginsdk.Resource {
 	}
 }
 
-func resourceFirewallNetworkRuleCollectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceFirewallNetworkRuleCollectionCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.AzureFirewalls
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -172,7 +163,7 @@ func resourceFirewallNetworkRuleCollectionCreateUpdate(d *pluginsdk.ResourceData
 	}
 	ruleCollections := *props.NetworkRuleCollections
 
-	networkRules, err := expandFirewallNetworkRules(d.Get("rule").([]interface{}))
+	networkRules, err := expandFirewallNetworkRules(d.Get("rule").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding Firewall Network Rules: %+v", err)
 	}
@@ -181,7 +172,7 @@ func resourceFirewallNetworkRuleCollectionCreateUpdate(d *pluginsdk.ResourceData
 		Name: pointer.To(name),
 		Properties: &azurefirewalls.AzureFirewallNetworkRuleCollectionPropertiesFormat{
 			Action: &azurefirewalls.AzureFirewallRCAction{
-				Type: pointer.To(azurefirewalls.AzureFirewallRCActionType(d.Get("action").(string))),
+				Type: pointer.ToEnum[azurefirewalls.AzureFirewallRCActionType](d.Get("action").(string)),
 			},
 			Priority: pointer.To(int64(priority)),
 			Rules:    networkRules,
@@ -210,17 +201,24 @@ func resourceFirewallNetworkRuleCollectionCreateUpdate(d *pluginsdk.ResourceData
 
 		ruleCollections[index] = newRuleCollection
 	} else {
+		exists := false
 		if d.IsNewResource() && index != -1 {
-			return tf.ImportAsExistsError("azurerm_firewall_network_rule_collection", id)
+			exists = true
+			if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				return tf.ImportAsExistsError("azurerm_firewall_network_rule_collection", id)
+			}
 		}
 
 		// first double check it doesn't already exist
-		ruleCollections = append(ruleCollections, newRuleCollection)
+		if !exists {
+			ruleCollections = append(ruleCollections, newRuleCollection)
+		}
 	}
 
 	firewall.Model.Properties.NetworkRuleCollections = &ruleCollections
 
-	if err := client.CreateOrUpdateThenPoll(ctx, firewallId, *firewall.Model); err != nil {
+	// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
+	if err := client.CreateOrUpdateThenPoll(ctx, firewallId, *firewall.Model, azurefirewalls.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("creating/updating Network Rule Collection %q in Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
 	}
 
@@ -257,7 +255,7 @@ func resourceFirewallNetworkRuleCollectionCreateUpdate(d *pluginsdk.ResourceData
 	return resourceFirewallNetworkRuleCollectionRead(d, meta)
 }
 
-func resourceFirewallNetworkRuleCollectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceFirewallNetworkRuleCollectionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.AzureFirewalls
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -316,15 +314,14 @@ func resourceFirewallNetworkRuleCollectionRead(d *pluginsdk.ResourceData, meta i
 
 	if props := rule.Properties; props != nil {
 		if action := props.Action; action != nil {
-			d.Set("action", string(pointer.From(action.Type)))
+			d.Set("action", pointer.FromEnum(action.Type))
 		}
 
 		if priority := props.Priority; priority != nil {
 			d.Set("priority", int(*priority))
 		}
 
-		flattenedRules := flattenFirewallNetworkRuleCollectionRules(props.Rules)
-		if err := d.Set("rule", flattenedRules); err != nil {
+		if err := d.Set("rule", flattenFirewallNetworkRuleCollectionRules(props.Rules)); err != nil {
 			return fmt.Errorf("setting `rule`: %+v", err)
 		}
 	}
@@ -332,7 +329,7 @@ func resourceFirewallNetworkRuleCollectionRead(d *pluginsdk.ResourceData, meta i
 	return nil
 }
 
-func resourceFirewallNetworkRuleCollectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceFirewallNetworkRuleCollectionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.AzureFirewalls
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -381,29 +378,29 @@ func resourceFirewallNetworkRuleCollectionDelete(d *pluginsdk.ResourceData, meta
 	}
 	props.NetworkRuleCollections = &networkRules
 
-	if err = client.CreateOrUpdateThenPoll(ctx, firewallId, *firewall.Model); err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, firewallId, *firewall.Model, azurefirewalls.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("deleting Network Rule Collection %q from Firewall %q (Resource Group %q): %+v", id.NetworkRuleCollectionName, id.AzureFirewallName, id.ResourceGroup, err)
 	}
 
 	return nil
 }
 
-func expandFirewallNetworkRules(input []interface{}) (*[]azurefirewalls.AzureFirewallNetworkRule, error) {
+func expandFirewallNetworkRules(input []any) (*[]azurefirewalls.AzureFirewallNetworkRule, error) {
 	rules := make([]azurefirewalls.AzureFirewallNetworkRule, 0)
 
 	for _, nwRule := range input {
-		rule := nwRule.(map[string]interface{})
+		rule := nwRule.(map[string]any)
 
 		name := rule["name"].(string)
 		description := rule["description"].(string)
 
 		sourceAddresses := make([]string, 0)
-		for _, v := range rule["source_addresses"].([]interface{}) {
+		for _, v := range rule["source_addresses"].([]any) {
 			sourceAddresses = append(sourceAddresses, v.(string))
 		}
 
 		sourceIpGroups := make([]string, 0)
-		for _, v := range rule["source_ip_groups"].([]interface{}) {
+		for _, v := range rule["source_ip_groups"].([]any) {
 			sourceIpGroups = append(sourceIpGroups, v.(string))
 		}
 
@@ -412,17 +409,17 @@ func expandFirewallNetworkRules(input []interface{}) (*[]azurefirewalls.AzureFir
 		}
 
 		destinationAddresses := make([]string, 0)
-		for _, v := range rule["destination_addresses"].([]interface{}) {
+		for _, v := range rule["destination_addresses"].([]any) {
 			destinationAddresses = append(destinationAddresses, v.(string))
 		}
 
 		destinationIpGroups := make([]string, 0)
-		for _, v := range rule["destination_ip_groups"].([]interface{}) {
+		for _, v := range rule["destination_ip_groups"].([]any) {
 			destinationIpGroups = append(destinationIpGroups, v.(string))
 		}
 
 		destinationFqdns := make([]string, 0)
-		for _, v := range rule["destination_fqdns"].([]interface{}) {
+		for _, v := range rule["destination_fqdns"].([]any) {
 			destinationFqdns = append(destinationFqdns, v.(string))
 		}
 
@@ -431,7 +428,7 @@ func expandFirewallNetworkRules(input []interface{}) (*[]azurefirewalls.AzureFir
 		}
 
 		destinationPorts := make([]string, 0)
-		for _, v := range rule["destination_ports"].([]interface{}) {
+		for _, v := range rule["destination_ports"].([]any) {
 			destinationPorts = append(destinationPorts, v.(string))
 		}
 
@@ -447,7 +444,7 @@ func expandFirewallNetworkRules(input []interface{}) (*[]azurefirewalls.AzureFir
 		}
 
 		nrProtocols := make([]azurefirewalls.AzureFirewallNetworkRuleProtocol, 0)
-		for _, v := range rule["protocols"].([]interface{}) {
+		for _, v := range rule["protocols"].([]any) {
 			s := azurefirewalls.AzureFirewallNetworkRuleProtocol(v.(string))
 			nrProtocols = append(nrProtocols, s)
 		}
@@ -458,8 +455,8 @@ func expandFirewallNetworkRules(input []interface{}) (*[]azurefirewalls.AzureFir
 	return &rules, nil
 }
 
-func flattenFirewallNetworkRuleCollectionRules(rules *[]azurefirewalls.AzureFirewallNetworkRule) []interface{} {
-	outputs := make([]interface{}, 0)
+func flattenFirewallNetworkRuleCollectionRules(rules *[]azurefirewalls.AzureFirewallNetworkRule) []any {
+	outputs := make([]any, 0)
 	if rules == nil {
 		return outputs
 	}
@@ -468,12 +465,12 @@ func flattenFirewallNetworkRuleCollectionRules(rules *[]azurefirewalls.AzureFire
 		var (
 			name            string
 			description     string
-			sourceAddresses []interface{}
-			sourceIPGroups  []interface{}
-			destAddresses   []interface{}
-			destIPGroups    []interface{}
-			destPorts       []interface{}
-			destFqdns       []interface{}
+			sourceAddresses []any
+			sourceIPGroups  []any
+			destAddresses   []any
+			destIPGroups    []any
+			destPorts       []any
+			destFqdns       []any
 		)
 
 		if rule.Name != nil {
@@ -483,22 +480,22 @@ func flattenFirewallNetworkRuleCollectionRules(rules *[]azurefirewalls.AzureFire
 			description = *rule.Description
 		}
 		if rule.SourceAddresses != nil {
-			sourceAddresses = utils.FlattenStringSlice(rule.SourceAddresses)
+			sourceAddresses = pluginsdk.FlattenSlice(rule.SourceAddresses)
 		}
 		if rule.SourceIPGroups != nil {
-			sourceIPGroups = utils.FlattenStringSlice(rule.SourceIPGroups)
+			sourceIPGroups = pluginsdk.FlattenSlice(rule.SourceIPGroups)
 		}
 		if rule.DestinationAddresses != nil {
-			destAddresses = utils.FlattenStringSlice(rule.DestinationAddresses)
+			destAddresses = pluginsdk.FlattenSlice(rule.DestinationAddresses)
 		}
 		if rule.DestinationIPGroups != nil {
-			destIPGroups = utils.FlattenStringSlice(rule.DestinationIPGroups)
+			destIPGroups = pluginsdk.FlattenSlice(rule.DestinationIPGroups)
 		}
 		if rule.DestinationPorts != nil {
-			destPorts = utils.FlattenStringSlice(rule.DestinationPorts)
+			destPorts = pluginsdk.FlattenSlice(rule.DestinationPorts)
 		}
 		if rule.DestinationFqdns != nil {
-			destFqdns = utils.FlattenStringSlice(rule.DestinationFqdns)
+			destFqdns = pluginsdk.FlattenSlice(rule.DestinationFqdns)
 		}
 		protocols := make([]string, 0)
 		if rule.Protocols != nil {
@@ -506,7 +503,7 @@ func flattenFirewallNetworkRuleCollectionRules(rules *[]azurefirewalls.AzureFire
 				protocols = append(protocols, string(protocol))
 			}
 		}
-		outputs = append(outputs, map[string]interface{}{
+		outputs = append(outputs, map[string]any{
 			"name":                  name,
 			"description":           description,
 			"source_addresses":      sourceAddresses,
@@ -515,7 +512,7 @@ func flattenFirewallNetworkRuleCollectionRules(rules *[]azurefirewalls.AzureFire
 			"destination_ip_groups": destIPGroups,
 			"destination_ports":     destPorts,
 			"destination_fqdns":     destFqdns,
-			"protocols":             utils.FlattenStringSlice(&protocols),
+			"protocols":             pluginsdk.FlattenSlice(&protocols),
 		})
 	}
 	return outputs

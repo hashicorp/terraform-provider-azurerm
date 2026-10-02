@@ -8,6 +8,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -123,13 +124,13 @@ func dataSourceImages() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceImagesRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceImagesRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.ImagesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	filterTags := tags.Expand(d.Get("tags_filter").(map[string]interface{}))
+	filterTags := tags.Expand(d.Get("tags_filter").(map[string]any))
 
 	resourceGroupId := commonids.NewResourceGroupID(subscriptionId, d.Get("resource_group_name").(string))
 	resp, err := client.ListByResourceGroupComplete(ctx, resourceGroupId)
@@ -144,13 +145,11 @@ func dataSourceImagesRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	if len(virtualMachineImages) == 0 {
 		return fmt.Errorf("no images were found that match the specified tags")
 	}
-	flattenedImages := flattenImages(virtualMachineImages)
-	if err := d.Set("images", flattenedImages); err != nil {
+	if err := d.Set("images", flattenImages(virtualMachineImages)); err != nil {
 		return fmt.Errorf("setting `images`: %+v", err)
 	}
 
-	resourceId := resourceIdForImagesDataSource(resourceGroupId, *filterTags)
-	d.SetId(resourceId)
+	d.SetId(resourceIdForImagesDataSource(resourceGroupId, *filterTags))
 
 	d.Set("resource_group_name", resourceGroupId.ResourceGroupName)
 
@@ -177,8 +176,8 @@ func resourceIdForImagesDataSource(resourceGroupId commonids.ResourceGroupId, fi
 	return fmt.Sprintf("resourceGroups/%s/tags/%s/images", resourceGroupId.ResourceGroupName, tagsId)
 }
 
-func flattenImages(input []images.Image) []interface{} {
-	output := make([]interface{}, 0)
+func flattenImages(input []images.Image) []any {
+	output := make([]any, 0)
 	for _, item := range input {
 		output = append(output, flattenImage(item))
 	}
@@ -210,15 +209,12 @@ func filterToImagesMatchingTags(input []images.Image, filterTags map[string]stri
 	return output
 }
 
-func flattenImage(input images.Image) map[string]interface{} {
-	name := ""
-	if input.Name != nil {
-		name = *input.Name
-	}
+func flattenImage(input images.Image) map[string]any {
+	name := pointer.From(input.Name)
 
 	zoneResilient := false
-	osDisk := make([]interface{}, 0)
-	dataDisks := make([]interface{}, 0)
+	osDisk := make([]any, 0)
+	dataDisks := make([]any, 0)
 	if props := input.Properties; props != nil {
 		osDisk = flattenImagesOSDisk(props.StorageProfile)
 		dataDisks = flattenImagesDataDisks(props.StorageProfile)
@@ -228,7 +224,7 @@ func flattenImage(input images.Image) map[string]interface{} {
 		}
 	}
 
-	return map[string]interface{}{
+	return map[string]any{
 		"location":       location.Normalize(input.Location),
 		"data_disk":      dataDisks,
 		"name":           name,
@@ -238,15 +234,12 @@ func flattenImage(input images.Image) map[string]interface{} {
 	}
 }
 
-func flattenImagesOSDisk(input *images.ImageStorageProfile) []interface{} {
-	output := make([]interface{}, 0)
+func flattenImagesOSDisk(input *images.ImageStorageProfile) []any {
+	output := make([]any, 0)
 
 	if input != nil {
 		if v := input.OsDisk; v != nil {
-			blobUri := ""
-			if uri := v.BlobUri; uri != nil {
-				blobUri = *uri
-			}
+			blobUri := pointer.From(v.BlobUri)
 			caching := ""
 			if v.Caching != nil {
 				caching = string(*v.Caching)
@@ -263,7 +256,7 @@ func flattenImagesOSDisk(input *images.ImageStorageProfile) []interface{} {
 			if set := v.DiskEncryptionSet; set != nil && set.Id != nil {
 				diskEncryptionSetId = *set.Id
 			}
-			output = append(output, map[string]interface{}{
+			output = append(output, map[string]any{
 				"blob_uri":               blobUri,
 				"caching":                caching,
 				"managed_disk_id":        managedDiskId,
@@ -278,16 +271,13 @@ func flattenImagesOSDisk(input *images.ImageStorageProfile) []interface{} {
 	return output
 }
 
-func flattenImagesDataDisks(input *images.ImageStorageProfile) []interface{} {
-	output := make([]interface{}, 0)
+func flattenImagesDataDisks(input *images.ImageStorageProfile) []any {
+	output := make([]any, 0)
 
 	if input != nil {
 		if v := input.DataDisks; v != nil {
 			for _, disk := range *input.DataDisks {
-				blobUri := ""
-				if disk.BlobUri != nil {
-					blobUri = *disk.BlobUri
-				}
+				blobUri := pointer.From(disk.BlobUri)
 				caching := ""
 				if disk.Caching != nil {
 					caching = string(*disk.Caching)
@@ -300,7 +290,7 @@ func flattenImagesDataDisks(input *images.ImageStorageProfile) []interface{} {
 				if disk.ManagedDisk != nil && disk.ManagedDisk.Id != nil {
 					managedDiskId = *disk.ManagedDisk.Id
 				}
-				output = append(output, map[string]interface{}{
+				output = append(output, map[string]any{
 					"blob_uri":        blobUri,
 					"caching":         caching,
 					"lun":             int(disk.Lun),

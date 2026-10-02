@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/providerjson"
-	schema_rules "github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/schema-rules"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/schemarules"
 )
 
 type Differ struct {
@@ -80,7 +80,7 @@ func compareNodeResource(base providerjson.SchemaJSON, current providerjson.Sche
 		}
 	}
 
-	for _, v := range schema_rules.BreakingChangeRules {
+	for _, v := range schemarules.BreakingChangeRules {
 		if err := v.Check(base, current, nodeName); err != nil {
 			errs = append(errs, *err)
 		}
@@ -98,7 +98,7 @@ func compareNodeDataSource(base providerjson.SchemaJSON, current providerjson.Sc
 		}
 	}
 
-	for _, v := range schema_rules.BreakingChangeRulesDataSource {
+	for _, v := range schemarules.BreakingChangeRulesDataSource {
 		if err := v.Check(base, current, nodeName); err != nil {
 			errs = append(errs, *err)
 		}

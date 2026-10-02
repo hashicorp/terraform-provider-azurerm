@@ -36,12 +36,8 @@ resource "azurerm_monitor_diagnostic_setting" "example" {
     category = "SQLSecurityAuditEvents"
   }
 
-  metric {
-    category = "AllMetrics"
-  }
-
   lifecycle {
-    ignore_changes = [enabled_log, metric]
+    ignore_changes = [enabled_log]
   }
 }
 

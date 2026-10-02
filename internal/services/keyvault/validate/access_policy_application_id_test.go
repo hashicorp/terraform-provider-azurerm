@@ -7,6 +7,7 @@ package validate
 
 import "testing"
 
+// lintignore:AT003 // unit test for a generated Resource ID whose Type Name begins with `Acc`
 func TestAccessPolicyApplicationID(t *testing.T) {
 	cases := []struct {
 		Input string

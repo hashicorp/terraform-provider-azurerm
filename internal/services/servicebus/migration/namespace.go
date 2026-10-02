@@ -78,7 +78,7 @@ func (NamespaceV0ToV1) Schema() map[string]*pluginsdk.Schema {
 
 func (NamespaceV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	// this should have been applied from pre-0.12 migration system; backporting just in-case
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		skuName := rawState["sku"].(string)
 		if !strings.EqualFold(skuName, "Premium") {
 			delete(rawState, "capacity")

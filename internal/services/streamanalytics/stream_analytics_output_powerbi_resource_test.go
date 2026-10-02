@@ -86,7 +86,6 @@ func TestAccStreamAnalyticsOutputPowerBI_complete(t *testing.T) {
 }
 
 func (r StreamAnalyticsOutputPowerBIResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -98,11 +97,10 @@ resource "azurerm_stream_analytics_output_powerbi" "test" {
   group_id                = "85b3dbca-5974-4067-9669-67a141095a76"
   group_name              = "some-test-group-name"
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputPowerBIResource) updated(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -114,11 +112,10 @@ resource "azurerm_stream_analytics_output_powerbi" "test" {
   group_id                = "e18ff5df-fb66-4f6d-8f27-88c4dcbfc002"
   group_name              = "some-updated-group-id"
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputPowerBIResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -132,7 +129,7 @@ resource "azurerm_stream_analytics_output_powerbi" "test" {
   token_user_principal_name = "bobsmith@contoso.com"
   token_user_display_name   = "Bob Smith"
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputPowerBIResource) template(data acceptance.TestData) string {

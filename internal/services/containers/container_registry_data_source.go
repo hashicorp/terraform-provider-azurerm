@@ -30,7 +30,7 @@ func dataSourceContainerRegistry() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceContainerRegistryRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Containers.ContainerRegistryClient.Registries
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

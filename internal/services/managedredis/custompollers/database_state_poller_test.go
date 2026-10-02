@@ -105,7 +105,7 @@ func TestDatabaseStatePoller_UnexpectedState(t *testing.T) {
 			HttpResponse: &http.Response{StatusCode: 200},
 			Model: &databases.Database{
 				Properties: &databases.DatabaseCreateProperties{
-					ResourceState: pointer.To(databases.ResourceState("UnexpectedState")),
+					ResourceState: pointer.ToEnum[databases.ResourceState]("UnexpectedState"),
 				},
 			},
 		},

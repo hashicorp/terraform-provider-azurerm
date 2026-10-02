@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	billingValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/billing/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/validate"
@@ -59,9 +60,10 @@ func resourceSubscription() *pluginsdk.Resource {
 			},
 
 			"alias": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true, // O+C - This value is supplied by the provider if omitted so must remain `Computed`
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// Note: O+C - This value is supplied by the provider if omitted so must remain `Computed`
+				Computed:     true,
 				ForceNew:     true,
 				Description:  "The Alias Name of the subscription. If omitted a new UUID will be generated for this property.",
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -87,10 +89,7 @@ func resourceSubscription() *pluginsdk.Resource {
 				ForceNew:    true,
 				Description: "The workload type for the Subscription. Possible values are `Production` (default) and `DevTest`.",
 				// Other RP's have updated Constants with contextual prefixes so these are likely to change
-				ValidateFunc: validation.StringInSlice([]string{
-					string(subscriptionAlias.WorkloadProduction),
-					string(subscriptionAlias.WorkloadDevTest),
-				}, false),
+				ValidateFunc: validation.StringInSlice(subscriptionAlias.PossibleValuesForWorkload(), false),
 				// Workload is not exposed in any way, so must be ignored if the resource is imported.
 				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 					return new == ""
@@ -102,7 +101,8 @@ func resourceSubscription() *pluginsdk.Resource {
 				Description: "The GUID of the Subscription.",
 				ForceNew:    true,
 				Optional:    true,
-				Computed:    true, // O+C This must remain computed due to the unique nature of this resource - See resource documentation for notes.
+				// Note: O+C because Azure returns a computed value when a new subscription is created
+				Computed: true,
 				ExactlyOneOf: []string{
 					"subscription_id",
 					"billing_scope_id",
@@ -121,7 +121,7 @@ func resourceSubscription() *pluginsdk.Resource {
 	}
 }
 
-func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta any) error {
 	aliasClient := meta.(*clients.Client).Subscription.AliasClient
 	client := meta.(*clients.Client).Subscription.SubscriptionsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -136,15 +136,18 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	id := subscriptionAlias.NewAliasID(aliasName)
-	existing, err := aliasClient.AliasGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existence of Subscription by Alias %q: %+v", id.AliasName, err)
-		}
-	}
 
-	if model := existing.Model; model != nil && model.Properties != nil {
-		return tf.ImportAsExistsError("azurerm_subscription", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := aliasClient.AliasGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existence of Subscription by Alias %q: %+v", id.AliasName, err)
+			}
+		}
+
+		if model := existing.Model; model != nil && model.Properties != nil {
+			return tf.ImportAsExistsError("azurerm_subscription", id.ID())
+		}
 	}
 
 	locks.ByName(aliasName, SubscriptionResourceName)
@@ -212,9 +215,10 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		req.Properties.BillingScope = pointer.To(d.Get("billing_scope_id").(string))
 	}
 
-	if err := aliasClient.AliasCreateThenPoll(ctx, id, req); err != nil {
+	if err := aliasClient.AliasCreateCallbackThenPoll(ctx, id, req, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating new Subscription (Alias %q): %+v", aliasName, err)
 	}
+	d.SetId(id.ID())
 
 	alias, err := aliasClient.AliasGet(ctx, id)
 	if err != nil || alias.Model == nil || alias.Model.Properties == nil || alias.Model.Properties.SubscriptionId == nil {
@@ -234,24 +238,22 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if d.HasChange("tags") {
 		tagsClient := meta.(*clients.Client).Resource.TagsClient
-		t := tags.Expand(d.Get("tags").(map[string]interface{}))
+		t := tags.Expand(d.Get("tags").(map[string]any))
 		scope := commonids.NewScopeID(commonids.NewSubscriptionID(*alias.Model.Properties.SubscriptionId).ID())
 		tagsResource := tagsSdk.TagsResource{
 			Properties: tagsSdk.Tags{
 				Tags: t,
 			},
 		}
-		if _, err = tagsClient.CreateOrUpdateAtScope(ctx, scope, tagsResource); err != nil {
+		if _, err := tagsClient.CreateOrUpdateAtScope(ctx, scope, tagsResource); err != nil {
 			return fmt.Errorf("setting tags on %s: %+v", id, err)
 		}
 	}
 
-	d.SetId(id.ID())
-
 	return resourceSubscriptionRead(d, meta)
 }
 
-func resourceSubscriptionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSubscriptionUpdate(d *pluginsdk.ResourceData, meta any) error {
 	aliasClient := meta.(*clients.Client).Subscription.AliasClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -284,7 +286,7 @@ func resourceSubscriptionUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if d.HasChange("tags") {
 		tagsClient := meta.(*clients.Client).Resource.TagsClient
-		t := tags.Expand(d.Get("tags").(map[string]interface{}))
+		t := tags.Expand(d.Get("tags").(map[string]any))
 		scope := commonids.NewScopeID(subscriptionId.ID())
 		tagsResource := tagsSdk.TagsResource{
 			Properties: tagsSdk.Tags{
@@ -299,7 +301,7 @@ func resourceSubscriptionUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceSubscriptionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSubscriptionRead(d *pluginsdk.ResourceData, meta any) error {
 	aliasClient := meta.(*clients.Client).Subscription.AliasClient
 	client := meta.(*clients.Client).Subscription.SubscriptionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -362,7 +364,7 @@ func resourceSubscriptionRead(d *pluginsdk.ResourceData, meta interface{}) error
 // used and purged from active use it can never be recovered nor the UUID reused.
 // Note Cancelling a Subscription leaves it in one of several states, `Disabled` for a Subscription with no Resources or
 // Alias assignments, `Warned` for Cancelled with "something" associated with it.
-func resourceSubscriptionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSubscriptionDelete(d *pluginsdk.ResourceData, meta any) error {
 	aliasClient := meta.(*clients.Client).Subscription.AliasClient
 	client := meta.(*clients.Client).Subscription.SubscriptionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -381,10 +383,7 @@ func resourceSubscriptionDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	if err != nil || alias.Model == nil || alias.Model.Properties == nil {
 		return fmt.Errorf("could not read Alias %q for Subscription: %+v", id.AliasName, err)
 	}
-	subscriptionId := ""
-	if subscriptionIdRaw := alias.Model.Properties.SubscriptionId; subscriptionIdRaw != nil {
-		subscriptionId = *subscriptionIdRaw
-	}
+	subscriptionId := pointer.From(alias.Model.Properties.SubscriptionId)
 	locks.ByID(subscriptionId)
 	defer locks.UnlockByID(subscriptionId)
 
@@ -445,7 +444,7 @@ func resourceSubscriptionDelete(d *pluginsdk.ResourceData, meta interface{}) err
 
 func waitForSubscriptionStateToSettle(ctx context.Context, client *subscriptions.SubscriptionsClient, subscriptionId commonids.SubscriptionId, targetState string, timeout time.Duration) error {
 	stateConf := &pluginsdk.StateChangeConf{
-		Refresh: func() (result interface{}, state string, err error) {
+		Refresh: func() (result any, state string, err error) {
 			status, err := client.Get(ctx, subscriptionId)
 			if err != nil {
 				return status, "Failed", err
@@ -490,7 +489,7 @@ func waitForSubscriptionStateToSettle(ctx context.Context, client *subscriptions
 		if !ok {
 			return fmt.Errorf("failure in parsing response while waiting for Subscription %q to become %q: %+v", subscriptionId, targetState, err)
 		}
-		actualState := string(pointer.From(sub.State))
+		actualState := pointer.FromEnum(sub.State)
 		return fmt.Errorf("waiting for Subscription %q to become %q, currently %q", subscriptionId, targetState, actualState)
 	}
 

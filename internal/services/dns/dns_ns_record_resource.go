@@ -86,7 +86,7 @@ func resourceDnsNsRecord() *pluginsdk.Resource {
 	}
 }
 
-func resourceDnsNsRecordCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDnsNsRecordCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -97,21 +97,24 @@ func resourceDnsNsRecordCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	zoneName := d.Get("zone_name").(string)
 
 	id := recordsets.NewRecordTypeID(subscriptionId, resGroup, zoneName, recordsets.RecordTypeNS, name)
-	existing, err := client.Get(ctx, id)
-	if err != nil {
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+		}
+
 		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			return tf.ImportAsExistsError("azurerm_dns_ns_record", id.ID())
 		}
 	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_dns_ns_record", id.ID())
-	}
-
 	ttl := int64(d.Get("ttl").(int))
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
-	recordsRaw := d.Get("records").([]interface{})
+	recordsRaw := d.Get("records").([]any)
 	records := expandAzureRmDnsNsRecords(recordsRaw)
 
 	parameters := recordsets.RecordSet{
@@ -131,7 +134,7 @@ func resourceDnsNsRecordCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	return resourceDnsNsRecordRead(d, meta)
 }
 
-func resourceDnsNsRecordUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDnsNsRecordUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -153,13 +156,12 @@ func resourceDnsNsRecordUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("records") {
-		recordsRaw := d.Get("records").([]interface{})
-		records := expandAzureRmDnsNsRecords(recordsRaw)
-		existing.Model.Properties.NSRecords = records
+		recordsRaw := d.Get("records").([]any)
+		existing.Model.Properties.NSRecords = expandAzureRmDnsNsRecords(recordsRaw)
 	}
 
 	if d.HasChange("tags") {
-		t := d.Get("tags").(map[string]interface{})
+		t := d.Get("tags").(map[string]any)
 		existing.Model.Properties.Metadata = tags.Expand(t)
 	}
 
@@ -174,7 +176,7 @@ func resourceDnsNsRecordUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	return resourceDnsNsRecordRead(d, meta)
 }
 
-func resourceDnsNsRecordRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDnsNsRecordRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -215,7 +217,7 @@ func resourceDnsNsRecordRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func resourceDnsNsRecordDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDnsNsRecordDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -232,12 +234,12 @@ func resourceDnsNsRecordDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func flattenAzureRmDnsNsRecords(records *[]recordsets.NsRecord) []interface{} {
+func flattenAzureRmDnsNsRecords(records *[]recordsets.NsRecord) []any {
 	if records == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	results := make([]interface{}, 0)
+	results := make([]any, 0)
 	for _, record := range *records {
 		if record.Nsdname == nil {
 			continue
@@ -249,13 +251,11 @@ func flattenAzureRmDnsNsRecords(records *[]recordsets.NsRecord) []interface{} {
 	return results
 }
 
-func expandAzureRmDnsNsRecords(input []interface{}) *[]recordsets.NsRecord {
+func expandAzureRmDnsNsRecords(input []any) *[]recordsets.NsRecord {
 	records := make([]recordsets.NsRecord, 0)
 	for _, v := range input {
-		record := v.(string)
-
 		records = append(records, recordsets.NsRecord{
-			Nsdname: &record,
+			Nsdname: pointer.To(v.(string)),
 		})
 	}
 	return &records

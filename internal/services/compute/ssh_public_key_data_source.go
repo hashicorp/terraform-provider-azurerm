@@ -49,7 +49,7 @@ func dataSourceSshPublicKey() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceSshPublicKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceSshPublicKeyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.SSHPublicKeysClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

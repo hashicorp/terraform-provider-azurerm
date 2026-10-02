@@ -11,11 +11,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	firewalls "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -93,7 +92,7 @@ func TestAccNextGenerationFirewallVNetPanoramaResource_update(t *testing.T) {
 }
 
 func (r NextGenerationFirewallVNetPanoramaResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := firewalls.ParseFirewallID(state.ID)
+	id, err := firewallresources.ParseFirewallID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -110,35 +109,6 @@ func (r NextGenerationFirewallVNetPanoramaResource) Exists(ctx context.Context, 
 }
 
 func (r NextGenerationFirewallVNetPanoramaResource) basic(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%[1]s
-
-resource "azurerm_palo_alto_next_generation_firewall_virtual_network_panorama" "test" {
-  name                   = "acctest-ngfwvnp-%[2]d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  panorama_base64_config = "%[3]s"
-  plan_id                = "panw-cngfw-payg"
-
-  network_profile {
-    public_ip_address_ids = [azurerm_public_ip.test.id]
-
-    vnet_configuration {
-      virtual_network_id  = azurerm_virtual_network.test.id
-      trusted_subnet_id   = azurerm_subnet.test1.id
-      untrusted_subnet_id = azurerm_subnet.test2.id
-    }
-  }
-
-  depends_on = [azurerm_subnet_network_security_group_association.test1, azurerm_subnet_network_security_group_association.test2]
-}
-`, r.template(data), data.RandomInteger, os.Getenv("ARM_PALO_ALTO_PANORAMA_CONFIG"))
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

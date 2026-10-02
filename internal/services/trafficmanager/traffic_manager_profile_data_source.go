@@ -44,6 +44,11 @@ func dataSourceArmTrafficManagerProfile() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"maximum_return": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
+
 			"dns_config": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -139,7 +144,7 @@ func dataSourceArmTrafficManagerProfile() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceArmTrafficManagerProfileRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceArmTrafficManagerProfileRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).TrafficManager.ProfilesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -169,6 +174,7 @@ func dataSourceArmTrafficManagerProfileRead(d *pluginsdk.ResourceData, meta inte
 				trafficRoutingMethod = string(*profile.TrafficRoutingMethod)
 			}
 			d.Set("traffic_routing_method", trafficRoutingMethod)
+			d.Set("maximum_return", profile.MaxReturn)
 
 			d.Set("dns_config", flattenAzureRMTrafficManagerProfileDNSConfig(profile.DnsConfig))
 			d.Set("monitor_config", flattenAzureRMTrafficManagerProfileMonitorConfig(profile.MonitorConfig))

@@ -13,10 +13,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	arckubernetes "github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2024-01-01/connectedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2024-01-01/connectedclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -37,7 +37,7 @@ func resourceArcKubernetesCluster() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := arckubernetes.ParseConnectedClusterID(id)
+			_, err := connectedclusters.ParseConnectedClusterID(id)
 			return err
 		}),
 
@@ -58,7 +58,7 @@ func resourceArcKubernetesCluster() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azValidate.Base64EncodedString,
+				ValidateFunc: validation.StringIsBase64,
 			},
 
 			"identity": commonschema.SystemAssignedIdentityRequiredForceNew(),
@@ -105,41 +105,43 @@ func resourceArcKubernetesCluster() *pluginsdk.Resource {
 	}
 }
 
-func resourceArcKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArcKubernetesClusterCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ArcKubernetes.ArcKubernetesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := arckubernetes.NewConnectedClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := connectedclusters.NewConnectedClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.ConnectedClusterGet(ctx, id)
-	if err != nil {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.ConnectedClusterGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
+		}
+
 		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
+			return tf.ImportAsExistsError("azurerm_arc_kubernetes_cluster", id.ID())
 		}
 	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_arc_kubernetes_cluster", id.ID())
-	}
-
-	identityValue, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
+	identityValue, err := identity.ExpandSystemAssigned(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
 	location := location.Normalize(d.Get("location").(string))
-	props := arckubernetes.ConnectedCluster{
+	props := connectedclusters.ConnectedCluster{
 		Identity: *identityValue,
 		Location: location,
-		Properties: arckubernetes.ConnectedClusterProperties{
+		Properties: connectedclusters.ConnectedClusterProperties{
 			AgentPublicKeyCertificate: d.Get("agent_public_key_certificate").(string),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
-	if err := client.ConnectedClusterCreateThenPoll(ctx, id, props); err != nil {
+	if err := client.ConnectedClusterCreateCallbackThenPoll(ctx, id, props, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -147,12 +149,12 @@ func resourceArcKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interfac
 	return resourceArcKubernetesClusterRead(d, meta)
 }
 
-func resourceArcKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArcKubernetesClusterRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ArcKubernetes.ArcKubernetesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := arckubernetes.ParseConnectedClusterID(d.Id())
+	id, err := connectedclusters.ParseConnectedClusterID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -193,18 +195,18 @@ func resourceArcKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func resourceArcKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArcKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ArcKubernetes.ArcKubernetesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := arckubernetes.ParseConnectedClusterID(d.Id())
+	id, err := connectedclusters.ParseConnectedClusterID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	props := arckubernetes.ConnectedClusterPatch{
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	props := connectedclusters.ConnectedClusterPatch{
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if _, err := client.ConnectedClusterUpdate(ctx, *id, props); err != nil {
@@ -214,12 +216,12 @@ func resourceArcKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interfac
 	return resourceArcKubernetesClusterRead(d, meta)
 }
 
-func resourceArcKubernetesClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArcKubernetesClusterDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ArcKubernetes.ArcKubernetesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := arckubernetes.ParseConnectedClusterID(d.Id())
+	id, err := connectedclusters.ParseConnectedClusterID(d.Id())
 	if err != nil {
 		return err
 	}

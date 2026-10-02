@@ -42,7 +42,7 @@ func dataSourceProximityPlacementGroup() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceProximityPlacementGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceProximityPlacementGroupRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.ProximityPlacementGroupsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

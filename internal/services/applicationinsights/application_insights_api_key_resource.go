@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	apikeys "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentapikeysapis"
-	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentapikeysapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/migration"
@@ -26,7 +26,7 @@ func resourceApplicationInsightsAPIKey() *pluginsdk.Resource {
 		Delete: resourceApplicationInsightsAPIKeyDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := apikeys.ParseApiKeyID(id)
+			_, err := componentapikeysapis.ParseApiKeyID(id)
 			return err
 		}),
 
@@ -54,7 +54,7 @@ func resourceApplicationInsightsAPIKey() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: components.ValidateComponentID,
+				ValidateFunc: componentsapis.ValidateComponentID,
 			},
 
 			"read_permissions": {
@@ -88,36 +88,38 @@ func resourceApplicationInsightsAPIKey() *pluginsdk.Resource {
 	}
 }
 
-func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppInsights.APIKeysClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	appInsightsId, err := apikeys.ParseComponentID(d.Get("application_insights_id").(string))
+	appInsightsId, err := componentapikeysapis.ParseComponentID(d.Get("application_insights_id").(string))
 	if err != nil {
 		return err
 	}
 
 	name := d.Get("name").(string)
 
-	var existingAPIKeyList apikeys.APIKeysListOperationResponse
-	var existingAPIKeyId *apikeys.ApiKeyId
-	existingAPIKeyList, err = client.APIKeysList(ctx, *appInsightsId)
-	if err != nil {
-		if !response.WasNotFound(existingAPIKeyList.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing Application Insights API key list for %s: %+v", appInsightsId, err)
-		}
-	}
-
-	if existingAPIKeyList.Model != nil && len(existingAPIKeyList.Model.Value) > 0 {
-		for _, existingAPIKey := range existingAPIKeyList.Model.Value {
-			existingAPIKeyId, err = apikeys.ParseApiKeyIDInsensitively(*existingAPIKey.Id)
-			if err != nil {
-				return err
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		var existingAPIKeyList componentapikeysapis.APIKeysListOperationResponse
+		var existingAPIKeyId *componentapikeysapis.ApiKeyId
+		existingAPIKeyList, err = client.APIKeysList(ctx, *appInsightsId)
+		if err != nil {
+			if !response.WasNotFound(existingAPIKeyList.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing Application Insights API key list for %s: %+v", appInsightsId, err)
 			}
+		}
 
-			if name == *existingAPIKey.Name {
-				return tf.ImportAsExistsError("azurerm_application_insights_api_key", existingAPIKeyId.ID())
+		if existingAPIKeyList.Model != nil && len(existingAPIKeyList.Model.Value) > 0 {
+			for _, existingAPIKey := range existingAPIKeyList.Model.Value {
+				existingAPIKeyId, err = componentapikeysapis.ParseApiKeyIDInsensitively(*existingAPIKey.Id)
+				if err != nil {
+					return err
+				}
+
+				if name == *existingAPIKey.Name {
+					return tf.ImportAsExistsError("azurerm_application_insights_api_key", existingAPIKeyId.ID())
+				}
 			}
 		}
 	}
@@ -127,7 +129,7 @@ func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta int
 	if len(*linkedReadProperties) == 0 && len(*linkedWriteProperties) == 0 {
 		return fmt.Errorf("at least one read or write permission must be defined")
 	}
-	apiKeyProperties := apikeys.APIKeyRequest{
+	apiKeyProperties := componentapikeysapis.APIKeyRequest{
 		Name:                  &name,
 		LinkedReadProperties:  linkedReadProperties,
 		LinkedWriteProperties: linkedWriteProperties,
@@ -143,7 +145,7 @@ func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta int
 	}
 
 	// API returns lower case on resourceGroups and apiKeys
-	id, err := apikeys.ParseApiKeyIDInsensitively(*resp.Model.Id)
+	id, err := componentapikeysapis.ParseApiKeyIDInsensitively(*resp.Model.Id)
 	if err != nil {
 		return err
 	}
@@ -155,18 +157,18 @@ func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta int
 	return resourceApplicationInsightsAPIKeyRead(d, meta)
 }
 
-func resourceApplicationInsightsAPIKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsAPIKeyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppInsights.APIKeysClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := apikeys.ParseApiKeyID(d.Id())
+	id, err := componentapikeysapis.ParseApiKeyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	appInsightsId := components.NewComponentID(subscriptionId, id.ResourceGroupName, id.ComponentName)
+	appInsightsId := componentsapis.NewComponentID(subscriptionId, id.ResourceGroupName, id.ComponentName)
 
 	result, err := client.APIKeysGet(ctx, *id)
 	if err != nil {
@@ -183,14 +185,12 @@ func resourceApplicationInsightsAPIKeyRead(d *pluginsdk.ResourceData, meta inter
 	if model := result.Model; model != nil {
 		d.Set("name", model.Name)
 		if props := model.LinkedReadProperties; props != nil {
-			readProps := flattenApplicationInsightsAPIKeyLinkedProperties(props)
-			if err := d.Set("read_permissions", readProps); err != nil {
+			if err := d.Set("read_permissions", flattenApplicationInsightsAPIKeyLinkedProperties(props)); err != nil {
 				return fmt.Errorf("flattening `read_permissions `: %s", err)
 			}
 		}
 		if props := model.LinkedWriteProperties; props != nil {
-			writeProps := flattenApplicationInsightsAPIKeyLinkedProperties(props)
-			if err := d.Set("write_permissions", writeProps); err != nil {
+			if err := d.Set("write_permissions", flattenApplicationInsightsAPIKeyLinkedProperties(props)); err != nil {
 				return fmt.Errorf("flattening `write_permissions `: %s", err)
 			}
 		}
@@ -199,12 +199,12 @@ func resourceApplicationInsightsAPIKeyRead(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func resourceApplicationInsightsAPIKeyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsAPIKeyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppInsights.APIKeysClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := apikeys.ParseApiKeyID(d.Id())
+	id, err := componentapikeysapis.ParseApiKeyID(d.Id())
 	if err != nil {
 		return err
 	}

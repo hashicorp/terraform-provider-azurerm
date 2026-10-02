@@ -32,7 +32,7 @@ func (r PrivateDNSResolverDnsResolverDataSource) ResourceType() string {
 	return "azurerm_private_dns_resolver"
 }
 
-func (r PrivateDNSResolverDnsResolverDataSource) ModelObject() interface{} {
+func (r PrivateDNSResolverDnsResolverDataSource) ModelObject() any {
 	return &PrivateDNSResolverDnsResolverDataSourceModel{}
 }
 
@@ -77,7 +77,8 @@ func (r PrivateDNSResolverDnsResolverDataSource) Read() sdk.ResourceFunc {
 			}
 
 			id := dnsresolvers.NewDnsResolverID(
-				metadata.Client.Account.SubscriptionId, state.ResourceGroupName, state.Name)
+				metadata.Client.Account.SubscriptionId, state.ResourceGroupName, state.Name,
+			)
 			resp, err := client.Get(ctx, id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", id, err)

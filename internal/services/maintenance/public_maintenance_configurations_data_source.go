@@ -112,7 +112,7 @@ func dataSourcePublicMaintenanceConfigurations() *pluginsdk.Resource {
 	}
 }
 
-func dataSourcePublicMaintenanceConfigurationsRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourcePublicMaintenanceConfigurationsRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Maintenance.PublicConfigurationsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -127,7 +127,7 @@ func dataSourcePublicMaintenanceConfigurationsRead(d *pluginsdk.ResourceData, me
 		return fmt.Errorf("retrieving Public Maintenance Configurations: %+v", err)
 	}
 
-	filteredPublicConfigs := make([]interface{}, 0)
+	filteredPublicConfigs := make([]any, 0)
 
 	recurEveryFilterRaw := d.Get("recur_every").(string)
 	recurEveryFilter := recurEveryFilterRaw
@@ -185,8 +185,8 @@ func dataSourcePublicMaintenanceConfigurationsRead(d *pluginsdk.ResourceData, me
 	return nil
 }
 
-func flattenPublicMaintenanceConfiguration(config publicmaintenanceconfigurations.MaintenanceConfiguration) map[string]interface{} {
-	output := make(map[string]interface{})
+func flattenPublicMaintenanceConfiguration(config publicmaintenanceconfigurations.MaintenanceConfiguration) map[string]any {
+	output := make(map[string]any)
 
 	output["name"] = ""
 	if config.Name != nil {

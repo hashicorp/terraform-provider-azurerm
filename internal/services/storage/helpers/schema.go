@@ -24,7 +24,7 @@ func ImporterValidatingStorageResourceId(validateFunc StorageIDValidationFunc) *
 // the storage domain suffix for the current environment/cloud, so that the domain component of the ID can be validated.
 func ImporterValidatingStorageResourceIdThen(validateFunc StorageIDValidationFunc, thenFunc pluginsdk.ImporterFunc) *schema.ResourceImporter {
 	return &schema.ResourceImporter{
-		StateContext: func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+		StateContext: func(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
 			storageDomainSuffix := meta.(*clients.Client).Storage.StorageDomainSuffix
 			log.Printf("[DEBUG] Importing Storage Resource - parsing %q using domain suffix %q", d.Id(), storageDomainSuffix)
 			if err := validateFunc(d.Id(), storageDomainSuffix); err != nil {

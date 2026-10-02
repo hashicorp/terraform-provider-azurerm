@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func FileNameFormat(v interface{}, k string) (warnings []string, errors []error) {
+func FileNameFormat(v any, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	requiredComponents := []string{

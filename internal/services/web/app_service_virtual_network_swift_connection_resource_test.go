@@ -7,14 +7,15 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type AppServiceVirtualNetworkSwiftConnectionResource struct{}
@@ -94,29 +95,28 @@ func (r AppServiceVirtualNetworkSwiftConnectionResource) Exists(ctx context.Cont
 	if err != nil {
 		return nil, err
 	}
+	appID := commonids.NewAppServiceID(id.SubscriptionId, id.ResourceGroup, id.SiteName)
 
-	resp, err := clients.Web.AppServicesClient.GetSwiftVirtualNetworkConnection(ctx, id.ResourceGroup, id.SiteName)
+	resp, err := clients.Web.WebAppsClient.GetSwiftVirtualNetworkConnection(ctx, appID)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return pointer.To(false), nil
-		}
-		return nil, fmt.Errorf("retrieving %s: %+v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %w", id, err)
 	}
 
-	return pointer.To(resp.SwiftVirtualNetworkProperties != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
-func (t AppServiceVirtualNetworkSwiftConnectionResource) disappears(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+func (r AppServiceVirtualNetworkSwiftConnectionResource) disappears(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 	id, err := parse.VirtualNetworkSwiftConnectionID(state.ID)
 	if err != nil {
 		return err
 	}
+	appID := commonids.NewAppServiceID(id.SubscriptionId, id.ResourceGroup, id.SiteName)
 
-	resp, err := clients.Web.AppServicesClient.DeleteSwiftVirtualNetwork(ctx, id.ResourceGroup, id.SiteName)
-	if err != nil {
-		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("deleting %s: %+v", id.String(), err)
-		}
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Minute)
+	defer cancel()
+
+	if _, err := clients.Web.WebAppsClient.DeleteSwiftVirtualNetwork(ctx, appID); err != nil {
+		return fmt.Errorf("deleting %s: %w", id, err)
 	}
 
 	return nil
@@ -145,12 +145,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-appservice-%d"
-  location = "%s"
+  name     = "acctestRG-appservice-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctest-VNET-%d"
+  name                = "acctest-VNET-%[1]d"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -191,56 +191,56 @@ resource "azurerm_subnet" "test2" {
   }
 }
 
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctest-ASP-%d"
+resource "azurerm_service_plan" "test" {
+  name                = "acctest-ASP-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  os_type             = "Windows"
+  sku_name            = "S1"
+}
 
-  sku {
-    tier = "Standard"
-    size = "S1"
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctest-AS-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
+
+  lifecycle {
+    ignore_changes = [virtual_network_subnet_id]
   }
 }
-
-resource "azurerm_app_service" "test" {
-  name                = "acctest-AS-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  app_service_plan_id = azurerm_app_service_plan.test.id
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
-func (AppServiceVirtualNetworkSwiftConnectionResource) basic(data acceptance.TestData) string {
-	template := AppServiceVirtualNetworkSwiftConnectionResource{}.base(data)
+func (r AppServiceVirtualNetworkSwiftConnectionResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_app_service_virtual_network_swift_connection" "test" {
-  app_service_id = azurerm_app_service.test.id
+  app_service_id = azurerm_windows_web_app.test.id
   subnet_id      = azurerm_subnet.test1.id
 
   depends_on = [
     azurerm_subnet.test2
   ]
 }
-`, template)
+`, r.base(data))
 }
 
-func (AppServiceVirtualNetworkSwiftConnectionResource) update(data acceptance.TestData) string {
-	template := AppServiceVirtualNetworkSwiftConnectionResource{}.base(data)
+func (r AppServiceVirtualNetworkSwiftConnectionResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_app_service_virtual_network_swift_connection" "test" {
-  app_service_id = azurerm_app_service.test.id
+  app_service_id = azurerm_windows_web_app.test.id
   subnet_id      = azurerm_subnet.test2.id
 }
-`, template)
+`, r.base(data))
 }
 
-func (AppServiceVirtualNetworkSwiftConnectionResource) requiresImport(data acceptance.TestData) string {
-	template := AppServiceVirtualNetworkSwiftConnectionResource{}.basic(data)
+func (r AppServiceVirtualNetworkSwiftConnectionResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -248,7 +248,7 @@ resource "azurerm_app_service_virtual_network_swift_connection" "import" {
   app_service_id = azurerm_app_service_virtual_network_swift_connection.test.app_service_id
   subnet_id      = azurerm_app_service_virtual_network_swift_connection.test.subnet_id
 }
-`, template)
+`, r.basic(data))
 }
 
 func (AppServiceVirtualNetworkSwiftConnectionResource) functionAppBasic(data acceptance.TestData) string {
@@ -258,12 +258,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-appservice-%d"
-  location = "%s"
+  name     = "acctestRG-appservice-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctest-VNET-%d"
+  name                = "acctest-VNET-%[1]d"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -289,36 +289,39 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
+  name                     = "acctestsa%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctest-ASP-%d"
+resource "azurerm_service_plan" "test" {
+  name                = "acctest-ASP-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  os_type             = "Windows"
+  sku_name            = "S1"
+}
 
-  sku {
-    tier = "Standard"
-    size = "S1"
+resource "azurerm_windows_function_app" "test" {
+  name                       = "acctest-FA-%[1]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
+
+  lifecycle {
+    ignore_changes = [virtual_network_subnet_id]
   }
 }
 
-resource "azurerm_function_app" "test" {
-  name                       = "acctest-FA-%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
-}
-
 resource "azurerm_app_service_virtual_network_swift_connection" "test" {
-  app_service_id = azurerm_function_app.test.id
+  app_service_id = azurerm_windows_function_app.test.id
   subnet_id      = azurerm_subnet.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

@@ -14,7 +14,11 @@ Building on the example found in [adding a new resource](guide-new-resource.md) 
 
 Our hypothetical property `logging_enabled` will be user configurable and thus will need to be added to the `Arguments` list.
 
-The position of the new property is determined based on the order found in [adding a new resource](guide-new-resource.md#step-3-scaffold-an-emptynew-resource) and will end up looking like the code block below. Here is an example for a typed resource:
+The position of the new property is determined based on the order found in [adding a new resource](guide-new-resource.md#step-3-scaffold-an-emptynew-resource).
+
+> **Warning:** do not reorder existing properties in the same PR, as doing so degrades diff readability. Make any reordering changes in a separate follow-up PR instead.
+
+Once added, the schema will end up looking like the code block below. Here is an example for a typed resource:
 
 ```go
 func (ResourceGroupExampleResource) Arguments() map[string]*pluginsdk.Schema {
@@ -23,9 +27,9 @@ func (ResourceGroupExampleResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 		},
-		
+
 		"location": commonschema.Location(),
-		
+
 		"logging_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
@@ -40,7 +44,7 @@ func (ResourceGroupExampleResource) Arguments() map[string]*pluginsdk.Schema {
 
 * Ensure there is appropriate validation, at the very least `validation.StringIsNotEmpty` should be set for strings where a validation pattern cannot be determined.
 
-* When adding multiple properties or blocks thought should be given on how to map these, see [schema design considerations](schema-design-considerations.md) for specific examples. 
+* When adding multiple properties or blocks thought should be given on how to map these, see [schema design considerations](schema-design-considerations.md) for specific examples.
 
 ### Create function
 
@@ -96,7 +100,7 @@ return metadata.Encode(&state)
 
 * Lastly, don't forget to update the docs with this new property!
 
-* Property ordering within the docs follows the same conventions as in the Schema.
+* Property ordering within the docs should follow the conventions in the [documentation standards guide](reference-documentation-standards.md).
 
 * `Computed` only values should be added under `Attributes Reference`
 
@@ -145,21 +149,21 @@ func resource() *pluginsdk.Resource {
         },
     }
 
-    if !features.FivePointOh() {
+    if !features.SixPointOh() {
         resource["compression_enabled"] = &pluginsdk.Schema{
             Type:          pluginsdk.TypeBool,
             Optional:      true,
             Computed:      true,
             ConflictsWith: []string{"enable_compression"}
         }
-        
+
         resource["enable_compression"] = &pluginsdk.Schema{
             Type:	   pluginsdk.TypeBool,
             Optional:   true,
             Computed:   true,
             Deprecated: "This property has been renamed to `compression_enabled` and will be removed in v5.0 of the provider",
             ConflictsWith: []string{"compression_enabled"}
-        }   
+        }
     }
 
     return resource
@@ -178,8 +182,8 @@ func (r ExampleResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		}
 	}
-	
-	if !features.FivePointOh() {
+
+	if !features.SixPointOh() {
 		schema["compression_enabled"] = &pluginsdk.Schema{
 			Type:	       pluginsdk.TypeBool,
 			Optional:      true,
@@ -193,9 +197,9 @@ func (r ExampleResource) Arguments() map[string]*pluginsdk.Schema {
 			Computed:   true,
 			Deprecated: "This property has been renamed to `compression_enabled` and will be removed in v5.0 of the provider",
 			ConflictsWith: []string{"compression_enabled"}
-		}   
+		}
 	}
-	
+
 	return schema
 }
 ```
@@ -206,12 +210,12 @@ Also make sure to feature flag the behaviour in the `Create()`, `Update()` and `
 func myResourceCreate() {
     ...
     enableCompression := false
-    if !features.FivePointOh() {
+    if !features.SixPointOh() {
         if v, ok := d.GetOkExists("enable_compression"); ok {
             enableCompression = v.(bool)
-        }       
+        }
     }
-    
+
     if v, ok := d.GetOkExists("compression_enabled"); ok {
         enableCompression = v.(bool)
     }
@@ -220,8 +224,8 @@ func myResourceCreate() {
 func myResourceRead() {
     ...
 	d.Set("compression_enabled", props.EnableCompression)
-    
-    if !features.FivePointOh() {
+
+    if !features.SixPointOh() {
         d.Set("enable_compression", props.EnableCompression)
     }
     ...
@@ -229,14 +233,15 @@ func myResourceRead() {
 ```
 
 Here is an example for a typed resource:
+
 ```go
 func (r ExampleResource) Create() sdk.ResourceFunc {
 	...
 	compressionEnabled := false
-	if !features.FivePointOh() {
+	if !features.SixPointOh() {
 		compressionEnabled = model.EnableCompression
 	}
-	
+
 	compressionEnabled = model.CompressionEnabled
 	...
 }
@@ -244,15 +249,17 @@ func (r ExampleResource) Create() sdk.ResourceFunc {
 func (r ExampleResource) Read() sdk.ResourceFunc {
 	...
 	state.CompressionEnabled = pointer.From(props.CompressionEnabled)
-	
-	if !features.FivePointOh() {
+
+	if !features.SixPointOh() {
 		state.EnableCompression = pointer.From(props.CompressionEnabled)
-	}   
+	}
 	...
 }
 ```
 
-When deprecating a property in a Typed Resource, it is important to ensure that the Go struct representing the schema is correctly tagged to prevent the SDK decoding the removed property when the major version beta / feature flag is in use. In these cases the struct tags must be updated to include `,removedInNextMajorVersion`.  
+When deprecating a property in a Typed Resource, it is important to ensure that the Go struct representing the schema is correctly tagged to prevent the SDK decoding the removed property when the major version beta / feature flag is in use. In these cases the struct tags must be updated to include `removedInNextMajorVersion`.
+
+Here is an example for using the `removedInNextMajorVersion` tag:
 
 ```go
 type ExampleResourceModel struct {

@@ -19,15 +19,6 @@ type SubnetId struct {
 	Name               string
 }
 
-func NewSubnetID(subscriptionId, resourceGroup, virtualNetworkName, name string) SubnetId {
-	return SubnetId{
-		SubscriptionId:     subscriptionId,
-		ResourceGroup:      resourceGroup,
-		VirtualNetworkName: virtualNetworkName,
-		Name:               name,
-	}
-}
-
 func (id SubnetId) String() string {
 	segments := []string{
 		fmt.Sprintf("Name %q", id.Name),

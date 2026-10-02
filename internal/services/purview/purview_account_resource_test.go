@@ -19,7 +19,7 @@ import (
 
 type PurviewAccountResource struct{}
 
-func TestAccPurviewAccountSequential(t *testing.T) {
+func TestAccPurviewAccount_sequential(t *testing.T) {
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"purviewAccount": {
 			"basic":                        testAccPurviewAccount_basic,

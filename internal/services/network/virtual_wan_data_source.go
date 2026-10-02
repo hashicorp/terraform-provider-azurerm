@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -72,7 +72,7 @@ func dataSourceVirtualWan() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceVirtualWanRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceVirtualWanRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -118,11 +118,11 @@ func dataSourceVirtualWanRead(d *pluginsdk.ResourceData, meta interface{}) error
 	return nil
 }
 
-func flattenVirtualWanProperties(input *[]virtualwans.SubResource) []interface{} {
+func flattenVirtualWanProperties(input *[]virtualwans.SubResource) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 	for _, v := range *input {
 		if v.Id != nil {
 			output = append(output, *v.Id)

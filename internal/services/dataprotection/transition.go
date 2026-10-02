@@ -5,7 +5,7 @@ package dataprotection
 
 import "github.com/hashicorp/go-azure-helpers/lang/pointer"
 
-func expandTags(input map[string]interface{}) *map[string]string {
+func expandTags(input map[string]any) *map[string]string {
 	output := make(map[string]string)
 	for k, v := range input {
 		output[k] = v.(string)

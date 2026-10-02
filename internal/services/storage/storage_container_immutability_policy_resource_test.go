@@ -12,7 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/blobcontainers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/immutabilitypolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -120,7 +120,7 @@ func (r StorageContainerImmutabilityPolicyResource) Exists(ctx context.Context, 
 
 	containerId := commonids.NewStorageContainerID(id.SubscriptionId, id.ResourceGroup, id.StorageAccountName, id.ContainerName)
 
-	resp, err := client.Storage.ResourceManager.BlobContainers.GetImmutabilityPolicy(ctx, containerId, blobcontainers.DefaultGetImmutabilityPolicyOperationOptions())
+	resp, err := client.Storage.ResourceManager.ImmutabilityPolicies.BlobContainersGetImmutabilityPolicy(ctx, containerId, immutabilitypolicies.DefaultBlobContainersGetImmutabilityPolicyOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}

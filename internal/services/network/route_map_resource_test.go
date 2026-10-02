@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -119,7 +119,7 @@ func randString() string {
 	charSet := "abcdefghijklmnopqrstuvwxyz"
 	strlen := 5
 	result := make([]byte, strlen)
-	for i := 0; i < strlen; i++ {
+	for i := range strlen {
 		result[i] = charSet[rand.Intn(len(charSet))]
 	}
 	return string(result)

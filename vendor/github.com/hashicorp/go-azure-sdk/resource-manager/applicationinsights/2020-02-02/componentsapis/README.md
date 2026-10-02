@@ -151,7 +151,7 @@ if model := read.Model; model != nil {
 ctx := context.TODO()
 id := componentsapis.NewComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "componentName")
 
-payload := componentsapis.TagsResource{
+payload := componentsapis.ApplicationInsightsCommonTypesTagsResource{
 	// ...
 }
 

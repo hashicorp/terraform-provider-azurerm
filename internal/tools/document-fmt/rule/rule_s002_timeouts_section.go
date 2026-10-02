@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/markdown"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/template"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/util"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 type S002 struct{}
@@ -76,7 +76,7 @@ func (r S002) Run(rd *data.TerraformNodeData, fix bool) []error {
 		section = &markdown.TimeoutsSection{}
 		content, err := template.Render(rd, section.Template())
 		if err != nil {
-			log.WithFields(log.Fields{
+			logrus.WithFields(logrus.Fields{
 				"name": rd.Name,
 				"type": rd.Type,
 			}).Error(fmt.Errorf("%s: Failed to render template: %+v", IdAndName(r), err))
@@ -86,7 +86,7 @@ func (r S002) Run(rd *data.TerraformNodeData, fix bool) []error {
 		section.SetContent(content)
 		sections, err := markdown.InsertAfterSection(section, rd.Document.Sections, &markdown.AttributesSection{})
 		if err != nil {
-			log.WithFields(log.Fields{
+			logrus.WithFields(logrus.Fields{
 				"name": rd.Name,
 				"type": rd.Type,
 			}).Error(fmt.Errorf("%s: Failed to insert new templated section: %+v", IdAndName(r), err))

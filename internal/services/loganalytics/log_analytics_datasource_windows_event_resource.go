@@ -97,7 +97,7 @@ type dataSourceWindowsEventEventType struct {
 	EventType string `json:"eventType"`
 }
 
-func resourceLogAnalyticsDataSourceWindowsEventCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsDataSourceWindowsEventCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.DataSourcesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -105,15 +105,17 @@ func resourceLogAnalyticsDataSourceWindowsEventCreateUpdate(d *pluginsdk.Resourc
 
 	id := datasources.NewDataSourceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("workspace_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			resp, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(resp.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(resp.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_log_analytics_datasource_windows_event", id.ID())
+			if !response.WasNotFound(resp.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_log_analytics_datasource_windows_event", id.ID())
+			}
 		}
 	}
 
@@ -129,11 +131,14 @@ func resourceLogAnalyticsDataSourceWindowsEventCreateUpdate(d *pluginsdk.Resourc
 		return fmt.Errorf("creating Windows Event %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
+
 	return resourceLogAnalyticsDataSourceWindowsEventRead(d, meta)
 }
 
-func resourceLogAnalyticsDataSourceWindowsEventRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsDataSourceWindowsEventRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.DataSourcesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -160,7 +165,7 @@ func resourceLogAnalyticsDataSourceWindowsEventRead(d *pluginsdk.ResourceData, m
 
 	if model := resp.Model; model != nil {
 		if props := resp.Model.Properties; props != nil {
-			propStr, err := pluginsdk.FlattenJsonToString(props.(map[string]interface{}))
+			propStr, err := pluginsdk.FlattenJsonToString(props.(map[string]any))
 			if err != nil {
 				return fmt.Errorf("failed to flatten properties map to json: %+v", err)
 			}
@@ -178,7 +183,7 @@ func resourceLogAnalyticsDataSourceWindowsEventRead(d *pluginsdk.ResourceData, m
 	return nil
 }
 
-func resourceLogAnalyticsDataSourceWindowsEventDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsDataSourceWindowsEventDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.DataSourcesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -195,8 +200,8 @@ func resourceLogAnalyticsDataSourceWindowsEventDelete(d *pluginsdk.ResourceData,
 	return nil
 }
 
-func flattenLogAnalyticsDataSourceWindowsEventEventType(eventTypes []dataSourceWindowsEventEventType) []interface{} {
-	output := make([]interface{}, 0)
+func flattenLogAnalyticsDataSourceWindowsEventEventType(eventTypes []dataSourceWindowsEventEventType) []any {
+	output := make([]any, 0)
 	for _, e := range eventTypes {
 		// The casing isn't preserved by the API for event types, so we need to normalise it here until
 		// https://github.com/Azure/azure-rest-api-specs/issues/18163 is fixed
@@ -205,7 +210,7 @@ func flattenLogAnalyticsDataSourceWindowsEventEventType(eventTypes []dataSourceW
 	return output
 }
 
-func expandLogAnalyticsDataSourceWindowsEventEventType(input []interface{}) []dataSourceWindowsEventEventType {
+func expandLogAnalyticsDataSourceWindowsEventEventType(input []any) []dataSourceWindowsEventEventType {
 	output := []dataSourceWindowsEventEventType{}
 	for _, eventType := range input {
 		output = append(output, dataSourceWindowsEventEventType{eventType.(string)})

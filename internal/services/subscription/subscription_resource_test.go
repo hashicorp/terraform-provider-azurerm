@@ -32,7 +32,8 @@ func TestAccSubscriptionResource_basic(t *testing.T) {
 		{
 			Config: r.basicEnrollmentAccount(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 	})
@@ -50,7 +51,8 @@ func TestAccSubscriptionResource_requiresImport(t *testing.T) {
 		{
 			Config: r.basicEnrollmentAccount(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
 	})
@@ -67,13 +69,15 @@ func TestAccSubscriptionResource_update(t *testing.T) {
 		{
 			Config: r.basicEnrollmentAccount(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep("billing_scope_id"),
 		{
 			Config: r.basicEnrollmentAccountUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep("billing_scope_id"),
 	})
@@ -91,7 +95,8 @@ func TestAccSubscriptionResource_devTest(t *testing.T) {
 		{
 			Config: r.basicEnrollmentAccountDevTest(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 	})

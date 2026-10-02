@@ -34,7 +34,7 @@ type LoadTestDataSourceModel struct {
 	Tags              map[string]string                          `tfschema:"tags"`
 }
 
-func (r LoadTestDataSource) ModelObject() interface{} {
+func (r LoadTestDataSource) ModelObject() any {
 	return &LoadTestDataSourceModel{}
 }
 
@@ -158,7 +158,7 @@ func (r LoadTestDataSource) Read() sdk.ResourceFunc {
 						})
 
 						if encryptionIdentity.Type != nil {
-							loadTest.Encryption[0].Identity[0].Type = string(pointer.From(encryptionIdentity.Type))
+							loadTest.Encryption[0].Identity[0].Type = pointer.FromEnum(encryptionIdentity.Type)
 						}
 					}
 				}

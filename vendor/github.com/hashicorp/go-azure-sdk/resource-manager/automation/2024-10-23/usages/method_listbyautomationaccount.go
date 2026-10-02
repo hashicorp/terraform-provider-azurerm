@@ -15,7 +15,24 @@ import (
 type ListByAutomationAccountOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *UsageListResult
+	Model        *[]Usage
+}
+
+type ListByAutomationAccountCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []Usage
+}
+
+type ListByAutomationAccountCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByAutomationAccountCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByAutomationAccount ...
@@ -26,6 +43,7 @@ func (c UsagesClient) ListByAutomationAccount(ctx context.Context, id Automation
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByAutomationAccountCustomPager{},
 		Path:       fmt.Sprintf("%s/usages", id.ID()),
 	}
 
@@ -35,7 +53,7 @@ func (c UsagesClient) ListByAutomationAccount(ctx context.Context, id Automation
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -44,11 +62,44 @@ func (c UsagesClient) ListByAutomationAccount(ctx context.Context, id Automation
 		return
 	}
 
-	var model UsageListResult
-	result.Model = &model
-	if err = resp.Unmarshal(result.Model); err != nil {
+	var values struct {
+		Values *[]Usage `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// ListByAutomationAccountComplete retrieves all the results into a single object
+func (c UsagesClient) ListByAutomationAccountComplete(ctx context.Context, id AutomationAccountId) (ListByAutomationAccountCompleteResult, error) {
+	return c.ListByAutomationAccountCompleteMatchingPredicate(ctx, id, UsageOperationPredicate{})
+}
+
+// ListByAutomationAccountCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c UsagesClient) ListByAutomationAccountCompleteMatchingPredicate(ctx context.Context, id AutomationAccountId, predicate UsageOperationPredicate) (result ListByAutomationAccountCompleteResult, err error) {
+	items := make([]Usage, 0)
+
+	resp, err := c.ListByAutomationAccount(ctx, id)
+	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = ListByAutomationAccountCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

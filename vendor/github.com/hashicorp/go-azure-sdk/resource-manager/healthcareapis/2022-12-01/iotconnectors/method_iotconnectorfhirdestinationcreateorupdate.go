@@ -63,9 +63,20 @@ func (c IotConnectorsClient) IotConnectorFhirDestinationCreateOrUpdate(ctx conte
 
 // IotConnectorFhirDestinationCreateOrUpdateThenPoll performs IotConnectorFhirDestinationCreateOrUpdate then polls until it's completed
 func (c IotConnectorsClient) IotConnectorFhirDestinationCreateOrUpdateThenPoll(ctx context.Context, id FhirDestinationId, input IotFhirDestination) error {
+	return c.IotConnectorFhirDestinationCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// IotConnectorFhirDestinationCreateOrUpdateCallbackThenPoll performs IotConnectorFhirDestinationCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c IotConnectorsClient) IotConnectorFhirDestinationCreateOrUpdateCallbackThenPoll(ctx context.Context, id FhirDestinationId, input IotFhirDestination, callback func() error) error {
 	result, err := c.IotConnectorFhirDestinationCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing IotConnectorFhirDestinationCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

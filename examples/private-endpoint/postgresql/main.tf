@@ -23,23 +23,29 @@ resource "azurerm_subnet" "endpoint" {
   virtual_network_name = azurerm_virtual_network.example.name
   address_prefixes     = ["10.0.2.0/24"]
 
-  private_endpoint_network_policies = "Disabled"
+  delegation {
+    name = "fs"
+    service_delegation {
+      name = "Microsoft.DBforPostgreSQL/flexibleServers"
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+      ]
+    }
+  }
 }
 
-resource "azurerm_postgresql_server" "example" {
+resource "azurerm_postgresql_flexible_server" "example" {
   name                = "${var.prefix}-postgresql"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 
-  administrator_login          = "psqladmin"
-  administrator_login_password = "H@Sh1CoR3!"
-  auto_grow_enabled            = true
-  backup_retention_days        = 7
-  geo_redundant_backup_enabled = false
-  sku_name                     = "GP_Gen5_2"
-  ssl_enforcement_enabled      = true
-  storage_mb                   = 51200
-  version                      = "11"
+  administrator_login    = "psqladmin"
+  administrator_password = "H@Sh1CoR3!"
+  backup_retention_days  = 7
+  delegated_subnet_id    = azurerm_subnet.endpoint.id
+  sku_name               = "GP_Standard_D2s_v3"
+  storage_mb             = 32768
+  version                = "11"
 }
 
 resource "azurerm_private_endpoint" "example" {
@@ -51,7 +57,7 @@ resource "azurerm_private_endpoint" "example" {
   private_service_connection {
     name                           = "tfex-postgresql-connection"
     is_manual_connection           = false
-    private_connection_resource_id = azurerm_postgresql_server.example.id
+    private_connection_resource_id = azurerm_postgresql_flexible_server.example.id
     subresource_names              = ["postgresqlServer"]
   }
 }

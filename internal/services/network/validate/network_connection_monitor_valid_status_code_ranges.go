@@ -10,7 +10,8 @@ import (
 	"strings"
 )
 
-func NetworkConnectionMonitorValidStatusCodeRanges(v interface{}, k string) (warnings []string, errors []error) {
+// lintignore:V001 // the regex checks are combined with numeric range comparisons
+func NetworkConnectionMonitorValidStatusCodeRanges(v any, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if len(value) == 0 {

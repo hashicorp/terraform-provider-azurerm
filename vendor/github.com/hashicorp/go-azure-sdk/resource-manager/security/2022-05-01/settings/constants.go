@@ -56,6 +56,7 @@ func parseSettingKind(input string) (*SettingKind, error) {
 type SettingName string
 
 const (
+	SettingNameCurrent                        SettingName = "current"
 	SettingNameMCAS                           SettingName = "MCAS"
 	SettingNameSentinel                       SettingName = "Sentinel"
 	SettingNameWDATP                          SettingName = "WDATP"
@@ -65,6 +66,7 @@ const (
 
 func PossibleValuesForSettingName() []string {
 	return []string{
+		string(SettingNameCurrent),
 		string(SettingNameMCAS),
 		string(SettingNameSentinel),
 		string(SettingNameWDATP),
@@ -88,6 +90,7 @@ func (s *SettingName) UnmarshalJSON(bytes []byte) error {
 
 func parseSettingName(input string) (*SettingName, error) {
 	vals := map[string]SettingName{
+		"current":                            SettingNameCurrent,
 		"mcas":                               SettingNameMCAS,
 		"sentinel":                           SettingNameSentinel,
 		"wdatp":                              SettingNameWDATP,

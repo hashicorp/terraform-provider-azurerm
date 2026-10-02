@@ -11,9 +11,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/deviceupdate/2022-10-01/deviceupdates"
+	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -132,6 +136,59 @@ func TestAccIotHubDeviceUpdateInstance_tags(t *testing.T) {
 	})
 }
 
+func TestAccIotHubDeviceUpdateInstance_writeOnlyConnectionString(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub_device_update_instance", "test")
+	r := IotHubDeviceUpdateInstanceResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []resource.TestStep{
+			{
+				Config: r.writeOnlyPassword(data, "azurerm_storage_account.test.primary_connection_string", 1),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("diagnostic_storage_account.0.connection_string_wo_version"),
+			{
+				Config: r.writeOnlyPassword(data, "azurerm_storage_account.test.secondary_connection_string", 2),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("diagnostic_storage_account.0.connection_string_wo_version"),
+		},
+	})
+}
+
+func TestAccIotHubDeviceUpdateInstance_updateToWriteOnlyConnectionString(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub_device_update_instance", "test")
+	r := IotHubDeviceUpdateInstanceResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []resource.TestStep{
+			{
+				Config: r.complete(data),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("diagnostic_storage_account.0.connection_string"),
+			{
+				Config: r.writeOnlyPassword(data, "azurerm_storage_account.test.primary_connection_string", 1),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("diagnostic_storage_account.0.connection_string", "diagnostic_storage_account.0.connection_string_wo_version"),
+			{
+				Config: r.complete(data),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("diagnostic_storage_account.0.connection_string"),
+		},
+	})
+}
+
 func (r IotHubDeviceUpdateInstanceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := deviceupdates.ParseInstanceID(state.ID)
 	if err != nil {
@@ -180,20 +237,18 @@ resource "azurerm_iothub_device_update_account" "test" {
 }
 
 func (r IotHubDeviceUpdateInstanceResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_iothub_device_update_instance" "test" {
-  name                     = "acc-dui-%s"
+  name                     = "acc-dui-%[2]s"
   device_update_account_id = azurerm_iothub_device_update_account.test.id
   iothub_id                = azurerm_iothub.test.id
 }
-`, template, data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
 func (r IotHubDeviceUpdateInstanceResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -220,24 +275,22 @@ resource "azurerm_iothub_device_update_instance" "test" {
     environment = "AccTest"
   }
 }
-`, template, data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
 func (r IotHubDeviceUpdateInstanceResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_iothub_device_update_instance" "import" {
   name                     = azurerm_iothub_device_update_instance.test.name
   device_update_account_id = azurerm_iothub_device_update_instance.test.device_update_account_id
   iothub_id                = azurerm_iothub_device_update_instance.test.iothub_id
 }
-`, config)
+`, r.basic(data))
 }
 
 func (r IotHubDeviceUpdateInstanceResource) diagnosticStorageAccount(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -260,11 +313,10 @@ resource "azurerm_iothub_device_update_instance" "test" {
     id                = azurerm_storage_account.test.id
   }
 }
-`, template, data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
 func (r IotHubDeviceUpdateInstanceResource) diagnosticStorageAccountUpdated(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -294,46 +346,43 @@ resource "azurerm_iothub_device_update_instance" "test" {
     id                = azurerm_storage_account.test2.id
   }
 }
-`, template, data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
 func (r IotHubDeviceUpdateInstanceResource) diagnosticEnabled(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_iothub_device_update_instance" "test" {
-  name                     = "acc-dui-%s"
+  name                     = "acc-dui-%[2]s"
   device_update_account_id = azurerm_iothub_device_update_account.test.id
   iothub_id                = azurerm_iothub.test.id
 
   diagnostic_enabled = true
 }
-`, template, data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
 func (r IotHubDeviceUpdateInstanceResource) diagnosticDisabled(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_iothub_device_update_instance" "test" {
-  name                     = "acc-dui-%s"
+  name                     = "acc-dui-%[2]s"
   device_update_account_id = azurerm_iothub_device_update_account.test.id
   iothub_id                = azurerm_iothub.test.id
 
   diagnostic_enabled = false
 }
-`, template, data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
 func (r IotHubDeviceUpdateInstanceResource) tags(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_iothub_device_update_instance" "test" {
-  name                     = "acc-dui-%s"
+  name                     = "acc-dui-%[2]s"
   device_update_account_id = azurerm_iothub_device_update_account.test.id
   iothub_id                = azurerm_iothub.test.id
 
@@ -341,16 +390,15 @@ resource "azurerm_iothub_device_update_instance" "test" {
     environment = "AccTest"
   }
 }
-`, template, data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
 func (r IotHubDeviceUpdateInstanceResource) tagsUpdated(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_iothub_device_update_instance" "test" {
-  name                     = "acc-dui-%s"
+  name                     = "acc-dui-%[2]s"
   device_update_account_id = azurerm_iothub_device_update_account.test.id
   iothub_id                = azurerm_iothub.test.id
 
@@ -359,5 +407,34 @@ resource "azurerm_iothub_device_update_instance" "test" {
     purpose     = "Testing"
   }
 }
-`, template, data.RandomString)
+`, r.template(data), data.RandomString)
+}
+
+func (r IotHubDeviceUpdateInstanceResource) writeOnlyPassword(data acceptance.TestData, reference string, version int) string {
+	return fmt.Sprintf(`
+%[1]s
+
+%[2]s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_iothub_device_update_instance" "test" {
+  name                     = "acc-dui-%[3]s"
+  device_update_account_id = azurerm_iothub_device_update_account.test.id
+  iothub_id                = azurerm_iothub.test.id
+  diagnostic_enabled       = true
+
+  diagnostic_storage_account {
+    connection_string_wo         = ephemeral.azurerm_key_vault_secret.test.value
+    connection_string_wo_version = %[4]d
+    id                           = azurerm_storage_account.test.id
+  }
+}
+`, r.template(data), acceptance.WriteOnlyKeyVaultSecretFromAttributeTemplate(data, reference), data.RandomString, version)
 }

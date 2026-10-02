@@ -57,9 +57,20 @@ func (c BackupVaultResourcesClient) ExportJobsTrigger(ctx context.Context, id Ba
 
 // ExportJobsTriggerThenPoll performs ExportJobsTrigger then polls until it's completed
 func (c BackupVaultResourcesClient) ExportJobsTriggerThenPoll(ctx context.Context, id BackupVaultId) error {
+	return c.ExportJobsTriggerCallbackThenPoll(ctx, id, nil)
+}
+
+// ExportJobsTriggerCallbackThenPoll performs ExportJobsTrigger, runs the optional callback function, then polls until it's completed
+func (c BackupVaultResourcesClient) ExportJobsTriggerCallbackThenPoll(ctx context.Context, id BackupVaultId, callback func() error) error {
 	result, err := c.ExportJobsTrigger(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ExportJobsTrigger: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

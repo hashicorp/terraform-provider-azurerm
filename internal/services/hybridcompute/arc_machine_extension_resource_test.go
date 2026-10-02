@@ -108,10 +108,9 @@ func (r ArcMachineExtensionResource) Exists(ctx context.Context, clients *client
 
 	client := clients.HybridCompute.MachineExtensionsClient
 	resp, err := client.Get(ctx, *id)
-	exists := false
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return &exists, nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}

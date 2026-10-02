@@ -59,9 +59,20 @@ func (c ManagedInstancesClient) RefreshStatus(ctx context.Context, id commonids.
 
 // RefreshStatusThenPoll performs RefreshStatus then polls until it's completed
 func (c ManagedInstancesClient) RefreshStatusThenPoll(ctx context.Context, id commonids.SqlManagedInstanceId) error {
+	return c.RefreshStatusCallbackThenPoll(ctx, id, nil)
+}
+
+// RefreshStatusCallbackThenPoll performs RefreshStatus, runs the optional callback function, then polls until it's completed
+func (c ManagedInstancesClient) RefreshStatusCallbackThenPoll(ctx context.Context, id commonids.SqlManagedInstanceId, callback func() error) error {
 	result, err := c.RefreshStatus(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing RefreshStatus: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

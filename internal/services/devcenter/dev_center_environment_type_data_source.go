@@ -46,7 +46,7 @@ func (DevCenterEnvironmentTypeDataSource) Attributes() map[string]*pluginsdk.Sch
 	}
 }
 
-func (DevCenterEnvironmentTypeDataSource) ModelObject() interface{} {
+func (DevCenterEnvironmentTypeDataSource) ModelObject() any {
 	return &DevCenterEnvironmentTypeDataSourceModel{}
 }
 

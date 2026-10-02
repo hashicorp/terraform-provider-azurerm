@@ -35,7 +35,7 @@ func (r AadB2cDirectoryDataSource) ResourceType() string {
 	return "azurerm_aadb2c_directory"
 }
 
-func (r AadB2cDirectoryDataSource) ModelObject() interface{} {
+func (r AadB2cDirectoryDataSource) ModelObject() any {
 	return &AadB2cDirectoryDataSourceModel{}
 }
 

@@ -74,7 +74,6 @@ func (RedisCacheV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 
-		// TODO 4.0: change this from enable_* to *_enabled
 		"enable_non_ssl_port": {
 			Type:     pluginsdk.TypeBool,
 			Default:  false,
@@ -325,7 +324,7 @@ func (RedisCacheV0ToV1) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (RedisCacheV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		oldIdRaw := rawState["id"].(string)
 		oldId, err := redis.ParseRediIDInsensitively(oldIdRaw)
 		if err != nil {

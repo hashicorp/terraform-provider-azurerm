@@ -62,9 +62,20 @@ func (c ManagedDatabasesClient) CancelMove(ctx context.Context, id commonids.Sql
 
 // CancelMoveThenPoll performs CancelMove then polls until it's completed
 func (c ManagedDatabasesClient) CancelMoveThenPoll(ctx context.Context, id commonids.SqlManagedInstanceDatabaseId, input ManagedDatabaseMoveDefinition) error {
+	return c.CancelMoveCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CancelMoveCallbackThenPoll performs CancelMove, runs the optional callback function, then polls until it's completed
+func (c ManagedDatabasesClient) CancelMoveCallbackThenPoll(ctx context.Context, id commonids.SqlManagedInstanceDatabaseId, input ManagedDatabaseMoveDefinition, callback func() error) error {
 	result, err := c.CancelMove(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CancelMove: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -375,7 +375,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name    = "TestNetworkProfile"
+    name    = "TestNetworkProfile-%[1]d"
     primary = true
 
     ip_configuration {
@@ -885,12 +885,13 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_key_vault" "test" {
   count = 2
 
-  name                   = "acctestkv${count.index}%[4]s"
-  location               = azurerm_resource_group.test.location
-  resource_group_name    = azurerm_resource_group.test.name
-  tenant_id              = data.azurerm_client_config.current.tenant_id
-  sku_name               = "standard"
-  enabled_for_deployment = true
+  name                       = "acctestkv${count.index}%[4]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  enabled_for_deployment     = true
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id

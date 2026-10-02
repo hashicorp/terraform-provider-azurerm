@@ -57,9 +57,20 @@ func (c VirtualMachinesClient) UnClaim(ctx context.Context, id VirtualMachineId)
 
 // UnClaimThenPoll performs UnClaim then polls until it's completed
 func (c VirtualMachinesClient) UnClaimThenPoll(ctx context.Context, id VirtualMachineId) error {
+	return c.UnClaimCallbackThenPoll(ctx, id, nil)
+}
+
+// UnClaimCallbackThenPoll performs UnClaim, runs the optional callback function, then polls until it's completed
+func (c VirtualMachinesClient) UnClaimCallbackThenPoll(ctx context.Context, id VirtualMachineId, callback func() error) error {
 	result, err := c.UnClaim(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing UnClaim: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -10,15 +10,6 @@ const (
 	DatabaseModuleRedisTimeSeries = "RedisTimeSeries"
 )
 
-func PossibleValuesForDatabaseModule() []string {
-	return []string{
-		DatabaseModuleRedisBloom,
-		DatabaseModuleRediSearch,
-		DatabaseModuleRedisJSON,
-		DatabaseModuleRedisTimeSeries,
-	}
-}
-
 func DatabaseModulesSupportingGeoReplication() []string {
 	return []string{
 		DatabaseModuleRediSearch,

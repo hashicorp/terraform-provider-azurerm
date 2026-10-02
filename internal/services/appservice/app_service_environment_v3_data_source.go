@@ -191,7 +191,7 @@ func (r AppServiceEnvironmentV3DataSource) Attributes() map[string]*pluginsdk.Sc
 	}
 }
 
-func (r AppServiceEnvironmentV3DataSource) ModelObject() interface{} {
+func (r AppServiceEnvironmentV3DataSource) ModelObject() any {
 	return &AppServiceEnvironmentV3Model{}
 }
 
@@ -226,7 +226,7 @@ func (r AppServiceEnvironmentV3DataSource) Read() sdk.ResourceFunc {
 				state.Location = location.Normalize(model.Location)
 				if props := model.Properties; props != nil {
 					state.SubnetId = props.VirtualNetwork.Id
-					state.InternalLoadBalancingMode = string(pointer.From(props.InternalLoadBalancingMode))
+					state.InternalLoadBalancingMode = pointer.FromEnum(props.InternalLoadBalancingMode)
 					state.DedicatedHostCount = pointer.From(props.DedicatedHostCount)
 					state.PricingTier = pointer.From(props.MultiSize)
 					state.ClusterSetting = flattenClusterSettingsModel(props.ClusterSettings)

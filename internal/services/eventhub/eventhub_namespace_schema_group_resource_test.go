@@ -26,7 +26,8 @@ func TestAccEventHubNamespaceSchemaRegistry_basic(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 	})
@@ -40,7 +41,8 @@ func TestAccEventHubNamespaceSchemaRegistry_schemaTypeJson(t *testing.T) {
 		{
 			Config: r.schemaType(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 	})

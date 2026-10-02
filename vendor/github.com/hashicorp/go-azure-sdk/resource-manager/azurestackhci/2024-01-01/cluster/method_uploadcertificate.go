@@ -60,9 +60,20 @@ func (c ClusterClient) UploadCertificate(ctx context.Context, id ClusterId, inpu
 
 // UploadCertificateThenPoll performs UploadCertificate then polls until it's completed
 func (c ClusterClient) UploadCertificateThenPoll(ctx context.Context, id ClusterId, input UploadCertificateRequest) error {
+	return c.UploadCertificateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// UploadCertificateCallbackThenPoll performs UploadCertificate, runs the optional callback function, then polls until it's completed
+func (c ClusterClient) UploadCertificateCallbackThenPoll(ctx context.Context, id ClusterId, input UploadCertificateRequest, callback func() error) error {
 	result, err := c.UploadCertificate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing UploadCertificate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

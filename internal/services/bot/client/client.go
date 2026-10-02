@@ -6,7 +6,7 @@ package client
 import (
 	"fmt"
 
-	emailchannel_2022_09_15 "github.com/hashicorp/go-azure-sdk/resource-manager/botservice/2022-09-15/channel"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/botservice/2022-09-15/channel"
 	healthbot_2025_05_25 "github.com/hashicorp/go-azure-sdk/resource-manager/healthbot/2025-05-25"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -17,7 +17,7 @@ type Client struct {
 	BotClient          *botservice.BotsClient
 	ConnectionClient   *botservice.BotConnectionClient
 	ChannelClient      *botservice.ChannelsClient
-	EmailChannelClient *emailchannel_2022_09_15.ChannelClient
+	EmailChannelClient *channel.ChannelClient
 	HealthBotClient    *healthbot_2025_05_25.Client
 }
 
@@ -31,7 +31,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	channelClient := botservice.NewChannelsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&channelClient.Client, o.ResourceManagerAuthorizer)
 
-	emailChannelClient, err := emailchannel_2022_09_15.NewChannelClientWithBaseURI(o.Environment.ResourceManager)
+	emailChannelClient, err := channel.NewChannelClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building EmailChannels client: %+v", err)
 	}

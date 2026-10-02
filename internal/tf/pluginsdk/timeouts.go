@@ -11,7 +11,7 @@ import (
 
 type ResourceTimeout = schema.ResourceTimeout
 
-func DefaultTimeout(tx interface{}) *time.Duration {
+func DefaultTimeout(tx any) *time.Duration {
 	return schema.DefaultTimeout(tx)
 }
 

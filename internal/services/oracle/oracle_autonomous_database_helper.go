@@ -17,7 +17,7 @@ func FlattenLongTermBackUpScheduleDetails(longTermBackUpScheduleDetails *autonom
 	output := make([]LongTermBackUpScheduleDetails, 0)
 	if longTermBackUpScheduleDetails != nil {
 		return append(output, LongTermBackUpScheduleDetails{
-			RepeatCadence:         string(pointer.From(longTermBackUpScheduleDetails.RepeatCadence)),
+			RepeatCadence:         pointer.FromEnum(longTermBackUpScheduleDetails.RepeatCadence),
 			TimeOfBackup:          pointer.From(longTermBackUpScheduleDetails.TimeOfBackup),
 			RetentionPeriodInDays: pointer.From(longTermBackUpScheduleDetails.RetentionPeriodInDays),
 			Enabled:               !pointer.From(longTermBackUpScheduleDetails.IsDisabled),

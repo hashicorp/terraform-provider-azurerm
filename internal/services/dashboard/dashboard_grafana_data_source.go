@@ -115,7 +115,7 @@ func dataSourceDashboardGrafana() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceDashboardGrafanaRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceDashboardGrafanaRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Dashboard.GrafanaResourceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -216,15 +216,10 @@ func dataSourceDashboardGrafanaRead(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-// AzureMonitorWorkspaceIntegration represents a struct for Azure Monitor Workspace Integration
-type AzureMonitorWorkspaceIntegration struct {
-	AzureMonitorWorkspaceResourceId *string `json:"azureMonitorWorkspaceResourceId,omitempty"`
-}
-
-func flattenAzureMonitorWorkspaceIntegrations(integrations []managedgrafanas.AzureMonitorWorkspaceIntegration) []interface{} {
-	result := make([]interface{}, len(integrations))
+func flattenAzureMonitorWorkspaceIntegrations(integrations []managedgrafanas.AzureMonitorWorkspaceIntegration) []any {
+	result := make([]any, len(integrations))
 	for i, integration := range integrations {
-		result[i] = map[string]interface{}{
+		result[i] = map[string]any{
 			"resource_id": integration.AzureMonitorWorkspaceResourceId,
 		}
 	}

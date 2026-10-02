@@ -29,7 +29,7 @@ var (
 
 type ElasticSANResource struct{}
 
-func (r ElasticSANResource) ModelObject() interface{} {
+func (r ElasticSANResource) ModelObject() any {
 	return &ElasticSANResourceModel{}
 }
 
@@ -40,7 +40,7 @@ type ElasticSANResourceModel struct {
 	Name                 string                       `tfschema:"name"`
 	ResourceGroupName    string                       `tfschema:"resource_group_name"`
 	Sku                  []ElasticSANResourceSkuModel `tfschema:"sku"`
-	Tags                 map[string]interface{}       `tfschema:"tags"`
+	Tags                 map[string]any               `tfschema:"tags"`
 	TotalIops            int64                        `tfschema:"total_iops"`
 	TotalMBps            int64                        `tfschema:"total_mbps"`
 	TotalSizeInTiB       int64                        `tfschema:"total_size_in_tib"`
@@ -193,14 +193,16 @@ func (r ElasticSANResource) Create() sdk.ResourceFunc {
 
 			id := elasticsans.NewElasticSanID(subscriptionId, config.ResourceGroupName, config.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			payload := elasticsans.ElasticSan{
@@ -217,7 +219,7 @@ func (r ElasticSANResource) Create() sdk.ResourceFunc {
 				payload.Properties.AvailabilityZones = pointer.To(zones.Expand(config.Zones))
 			}
 
-			if err := client.CreateThenPoll(ctx, id, payload); err != nil {
+			if err := client.CreateCallbackThenPoll(ctx, id, payload, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -347,7 +349,7 @@ func ExpandSku(input []ElasticSANResourceSkuModel) elasticsans.Sku {
 	}
 
 	if input[0].Tier != "" {
-		output.Tier = pointer.To(elasticsans.SkuTier(input[0].Tier))
+		output.Tier = pointer.ToEnum[elasticsans.SkuTier](input[0].Tier)
 	}
 
 	return output
@@ -357,7 +359,7 @@ func FlattenSku(input elasticsans.Sku) []ElasticSANResourceSkuModel {
 	return []ElasticSANResourceSkuModel{
 		{
 			Name: string(input.Name),
-			Tier: string(pointer.From(input.Tier)),
+			Tier: pointer.FromEnum(input.Tier),
 		},
 	}
 }

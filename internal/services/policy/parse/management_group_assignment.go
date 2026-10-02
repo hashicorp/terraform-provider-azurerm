@@ -18,13 +18,6 @@ type ManagementGroupAssignmentId struct {
 	PolicyAssignmentName string
 }
 
-func NewManagementGroupAssignmentID(managementGroupName, policyAssignmentName string) ManagementGroupAssignmentId {
-	return ManagementGroupAssignmentId{
-		ManagementGroupName:  managementGroupName,
-		PolicyAssignmentName: policyAssignmentName,
-	}
-}
-
 func (id ManagementGroupAssignmentId) String() string {
 	segments := []string{
 		fmt.Sprintf("Policy Assignment Name %q", id.PolicyAssignmentName),

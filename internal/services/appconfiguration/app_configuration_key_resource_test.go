@@ -391,6 +391,7 @@ resource "azurerm_key_vault" "example" {
   name                       = "a-v-%d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.test.tenant_id
   sku_name                   = "premium"
   soft_delete_retention_days = 7
@@ -426,6 +427,11 @@ resource "azurerm_app_configuration_key" "test" {
   type                   = "vault"
   label                  = "acctest-ackeylabel-%d"
   vault_key_reference    = azurerm_key_vault_secret.example.id
+
+  tags = {
+    environment = "development"
+    hello       = "world"
+  }
 }
 `, t.base(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -452,6 +458,7 @@ resource "azurerm_key_vault" "example" {
   name                       = "a-v2-%d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.test.tenant_id
   sku_name                   = "premium"
   soft_delete_retention_days = 7

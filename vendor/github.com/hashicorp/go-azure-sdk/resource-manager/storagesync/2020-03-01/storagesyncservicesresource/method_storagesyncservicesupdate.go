@@ -62,9 +62,20 @@ func (c StorageSyncServicesResourceClient) StorageSyncServicesUpdate(ctx context
 
 // StorageSyncServicesUpdateThenPoll performs StorageSyncServicesUpdate then polls until it's completed
 func (c StorageSyncServicesResourceClient) StorageSyncServicesUpdateThenPoll(ctx context.Context, id StorageSyncServiceId, input StorageSyncServiceUpdateParameters) error {
+	return c.StorageSyncServicesUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// StorageSyncServicesUpdateCallbackThenPoll performs StorageSyncServicesUpdate, runs the optional callback function, then polls until it's completed
+func (c StorageSyncServicesResourceClient) StorageSyncServicesUpdateCallbackThenPoll(ctx context.Context, id StorageSyncServiceId, input StorageSyncServiceUpdateParameters, callback func() error) error {
 	result, err := c.StorageSyncServicesUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing StorageSyncServicesUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

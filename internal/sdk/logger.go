@@ -10,12 +10,12 @@ type Logger interface {
 
 	// Infof prints out a message prefixed with `[INFO]` formatted
 	// with the specified arguments
-	Infof(format string, args ...interface{})
+	Infof(format string, args ...any)
 
 	// Warn prints out a message prefixed with `[WARN]` formatted verbatim
 	Warn(message string)
 
 	// Warnf prints out a message prefixed with `[WARN]` formatted
 	// with the specified arguments
-	Warnf(format string, args ...interface{})
+	Warnf(format string, args ...any)
 }

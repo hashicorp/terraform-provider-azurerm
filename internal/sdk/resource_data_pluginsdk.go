@@ -14,16 +14,16 @@ type PluginSdkResourceData struct {
 	resourceData *pluginsdk.ResourceData
 }
 
-func (p *PluginSdkResourceData) GetOk(key string) (interface{}, bool) {
+func (p *PluginSdkResourceData) GetOk(key string) (any, bool) {
 	return p.resourceData.GetOk(key)
 }
 
-func (p *PluginSdkResourceData) GetOkExists(key string) (interface{}, bool) {
+func (p *PluginSdkResourceData) GetOkExists(key string) (any, bool) {
 	//lint:ignore SA1019 Wrapper for compatibility
 	return p.resourceData.GetOkExists(key) //nolint:staticcheck
 }
 
-func (p *PluginSdkResourceData) GetChange(key string) (interface{}, interface{}) {
+func (p *PluginSdkResourceData) GetChange(key string) (any, any) {
 	return p.resourceData.GetChange(key)
 }
 
@@ -37,16 +37,16 @@ func NewPluginSdkResourceData(d *pluginsdk.ResourceData) *PluginSdkResourceData 
 // in Create and Update functions this will return from the config
 // in Read, Exists and Import functions this will return from the state
 // NOTE: this should not be called from Delete functions.
-func (p *PluginSdkResourceData) Get(key string) interface{} {
+func (p *PluginSdkResourceData) Get(key string) any {
 	return p.resourceData.Get(key)
 }
 
-func (p *PluginSdkResourceData) GetFromConfig(key string) interface{} {
+func (p *PluginSdkResourceData) GetFromConfig(key string) any {
 	// p.resourceData.GetRawConfig() ?
 	return nil
 }
 
-func (p *PluginSdkResourceData) GetFromState(key string) interface{} {
+func (p *PluginSdkResourceData) GetFromState(key string) any {
 	// p.resourceData.GetRawState() ?
 	return nil
 }
@@ -67,7 +67,7 @@ func (p *PluginSdkResourceData) Id() string {
 	return p.resourceData.Id()
 }
 
-func (p *PluginSdkResourceData) Set(key string, value interface{}) error {
+func (p *PluginSdkResourceData) Set(key string, value any) error {
 	// lintignore:R001
 	return p.resourceData.Set(key, value)
 }

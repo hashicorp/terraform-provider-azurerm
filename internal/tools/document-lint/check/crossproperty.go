@@ -131,7 +131,7 @@ func diffCodeMiss(rt, path string, f *model.Field, s *schema2.Schema) (res []Che
 	}
 
 	if f != nil && f.FormatErr != "" {
-		if strings.Contains(f.FormatErr, md.BlcokNotDefined) && s != nil {
+		if strings.Contains(f.FormatErr, md.BlockNotDefined) && s != nil {
 			// document line mark as block but to block defined in the document.
 			// if schema is not a block neither, then should update the document
 			if _, ok := s.Elem.(*pluginsdk.Resource); !ok {

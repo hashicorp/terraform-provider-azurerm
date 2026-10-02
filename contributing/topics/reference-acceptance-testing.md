@@ -163,7 +163,7 @@ func TestAccExampleResource_basic(t *testing.T) {
 
 At a minimum, a Data Source requires:
 
-* A `basic` test ([Example](#Example---Data-Source---Basic)) - this tests the minimum fields (e.g. all Required fields) for this Data Source.
+* A `basic` test ([Example](#example---data-source---basic)) - this tests the minimum fields (e.g. all Required fields) for this Data Source.
 
 However, more complex Data Sources can warrant additional acceptance tests - consideration should be given during the development of each Data Source to what's important to be tested.
 
@@ -171,13 +171,13 @@ However, more complex Data Sources can warrant additional acceptance tests - con
 
 At a minimum, a Resource requires:
 
-* A `basic` test ([Example](#Example---Resource---Basic)) - this tests the minimum fields (e.g. all Required fields) for this Resource.
+* A `basic` test ([Example](#example---resource---basic)) - this tests the minimum fields (e.g. all Required fields) for this Resource.
 
-* A `requiresImport` test ([Example](#Example---Resource---Requires-Import)) - this test exercises the logic in the `create` function of a resource that checks for the prior existence of the resource and being created and expects an error. The acceptance test package provides a helper function is provided to be used in the test, called `RequiresImportErrorStep` for this purpose.
+* A `requiresImport` test ([Example](#example---resource---requires-import)) - this test exercises the logic in the `create` function of a resource that checks for the prior existence of the resource and being created and expects an error. The acceptance test package provides a helper function is provided to be used in the test, called `RequiresImportErrorStep` for this purpose.
 
-* A `complete` test ([Example](#Example---Resource---Complete)) - this tests all possible fields (e.g. all Required/Optional fields) for this Resource.
+* A `complete` test ([Example](#example---resource---complete)) - this tests all possible fields (e.g. all Required/Optional fields) for this Resource.
 
-* A `update` test ([Example](#Example---Resource---Update)) - This test exercises a change of values for any properties that can be updated by executing consecutive configurations to change a resource in a predictable manner. Properties which are `ForceNew` should not be tested in this way.
+* A `update` test ([Example](#example---resource---update)) - This test exercises a change of values for any properties that can be updated by executing consecutive configurations to change a resource in a predictable manner. Properties which are `ForceNew` should not be tested in this way.
 
 However, more complex Resource generally warrant additional acceptance tests - consideration should be given during the development of each Resource to what's important to be tested.
 
@@ -187,36 +187,35 @@ A Data Source generally has one or two Required properties and a number of Compu
 
 Since the Data Source primarily exposes Computed-only fields which aren't specified in the Terraform Configuration, we typically assert that these computed fields have a/an expected value - which differs from the Acceptance Tests for the Resource where we'll use an Import step to confirm that the Terraform Configuration matches the imported state.
 
+When one config helper is only being threaded into `fmt.Sprintf` once, pass it directly as the argument instead of assigning a temporary variable first.
+
 ```go
-func TestAccExampleDataSource_complete(t *testing.T) {
+func TestAccExampleDataSource_basic(t *testing.T) {
         data := acceptance.BuildTestData(t, "data.azurerm_example_resource", "test")
         r := ExampleDataSource{}
 
-        data.ResourceTest(t, r, []acceptance.TestStep{
+        data.DataSourceTest(t, []acceptance.TestStep{
                 {
-                        Config: r.complete(data),
+                        Config: r.basic(data),
                         Check: acceptance.ComposeTestCheckFunc(
                             check.That(data.ResourceName).Key("example_property").HasValue("bar"),
                             check.That(data.ResourceName).Key("example_optional_bool").HasValue("false"),
                             check.That(data.ResourceName).Key("example_optional_string").HasValue("foo"),
                         ),
                 },
-                data.ImportStep(),
         })
 }
 
-func (ExampleDataSource) complete(data acceptance.TestData) string {
-	template := ExampleResource{}.basic(data)
+func (ExampleDataSource) basic(data acceptance.TestData) string {
     return fmt.Sprintf(`
 %[1]s
 
 data "azurerm_example_resource" "test" {
   name = azurerm_example_resource.test.name
 }
-`, template)
+`, ExampleResource{}.complete(data))
 }
 ```
-
 
 ---
 
@@ -325,8 +324,7 @@ func TestAccExampleResource_basic(t *testing.T) {
 }
 
 func (r ExampleResource) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data)
-    return fmt.Sprintf(`
+        return fmt.Sprintf(`
 %[1]s
 
 resource "azurerm_example_resource" "import" {
@@ -334,7 +332,7 @@ resource "azurerm_example_resource" "import" {
   location         = azurerm_example_resource.example.location
   example_property = azurerm_example_resource.example.example_property
 }
-`, template)
+`, r.basic(data))
 }
 ```
 

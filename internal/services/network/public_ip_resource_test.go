@@ -12,7 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/publicipaddresses"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/publicipaddresses"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -108,6 +108,31 @@ func TestAccPublicIp_standard_withDNSLabel(t *testing.T) {
 				check.That(data.ResourceName).Key("ip_address").Exists(),
 				check.That(data.ResourceName).Key("allocation_method").HasValue("Static"),
 				check.That(data.ResourceName).Key("domain_name_label").HasValue(dnl),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccPublicIp_staticWithReverseFqdn(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	r := PublicIpResource{}
+	dnl := fmt.Sprintf("acctestdnl-%d", data.RandomInteger)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.standard_withReverseFqdn(data, dnl),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("domain_name_label").HasValue(dnl),
+				check.That(data.ResourceName).Key("reverse_fqdn").HasValue(fmt.Sprintf("%s.%s.cloudapp.azure.com.", dnl, data.Locations.Primary)),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -696,6 +721,29 @@ resource "azurerm_public_ip" "test" {
   sku                 = "Standard"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, ipVersion)
+}
+
+func (PublicIpResource) standard_withReverseFqdn(data acceptance.TestData, dnsNameLabel string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpublicip-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+  domain_name_label   = "%s"
+  reverse_fqdn        = "%s.%s.cloudapp.azure.com."
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, dnsNameLabel, dnsNameLabel, data.Locations.Primary)
 }
 
 func (PublicIpResource) update(data acceptance.TestData) string {

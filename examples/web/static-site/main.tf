@@ -13,7 +13,7 @@ provider "azurerm" {
 }
 
 output "hostname" {
-  value = azurerm_static_site.test.default_host_name
+  value = azurerm_static_web_app.test.default_host_name
 }
 
 provider "github" {
@@ -26,16 +26,18 @@ resource "azurerm_resource_group" "test" {
   location = "west europe"
 }
 
-resource "azurerm_static_site" "test" {
+resource "azurerm_static_web_app" "test" {
   name                = "example"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  sku_tier            = "Free"
+  sku_size            = "Free"
 }
 
 resource "github_actions_secret" "test" {
   repository      = "my-first-static-web-app"
   secret_name     = local.api_token_var
-  plaintext_value = azurerm_static_site.test.api_key
+  plaintext_value = azurerm_static_web_app.test.api_key
 }
 
 # This will cause github provider crash, until https://github.com/integrations/terraform-provider-github/pull/732 is merged.

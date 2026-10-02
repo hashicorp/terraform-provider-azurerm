@@ -61,9 +61,20 @@ func (c CloudEndpointResourceClient) CloudEndpointsPostRestore(ctx context.Conte
 
 // CloudEndpointsPostRestoreThenPoll performs CloudEndpointsPostRestore then polls until it's completed
 func (c CloudEndpointResourceClient) CloudEndpointsPostRestoreThenPoll(ctx context.Context, id CloudEndpointId, input PostRestoreRequest) error {
+	return c.CloudEndpointsPostRestoreCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CloudEndpointsPostRestoreCallbackThenPoll performs CloudEndpointsPostRestore, runs the optional callback function, then polls until it's completed
+func (c CloudEndpointResourceClient) CloudEndpointsPostRestoreCallbackThenPoll(ctx context.Context, id CloudEndpointId, input PostRestoreRequest, callback func() error) error {
 	result, err := c.CloudEndpointsPostRestore(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CloudEndpointsPostRestore: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

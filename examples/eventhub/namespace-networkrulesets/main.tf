@@ -22,7 +22,10 @@ resource "azurerm_subnet" "example1" {
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example1.name
   address_prefixes     = ["10.0.1.0/24"]
-  service_endpoints    = ["Microsoft.EventHub"]
+
+  service_endpoint {
+    service = "Microsoft.EventHub"
+  }
 }
 
 resource "azurerm_virtual_network" "example2" {
@@ -37,7 +40,10 @@ resource "azurerm_subnet" "example2" {
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example2.name
   address_prefixes     = ["10.1.1.0/24"]
-  service_endpoints    = ["Microsoft.EventHub"]
+
+  service_endpoint {
+    service = "Microsoft.EventHub"
+  }
 }
 
 resource "azurerm_eventhub_namespace" "example" {

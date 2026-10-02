@@ -43,5 +43,5 @@ data "azurerm_dns_a_record" "test" {
   resource_group_name = azurerm_resource_group.test.name
   zone_name           = azurerm_dns_zone.test.name
 }
-`, TestAccDnsARecordResource{}.basic(data))
+`, DnsARecordResource{}.basic(data))
 }

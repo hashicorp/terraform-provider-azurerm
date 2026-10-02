@@ -42,7 +42,7 @@ func dataSourceHealthcareWorkspace() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceHealthcareWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceHealthcareWorkspaceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

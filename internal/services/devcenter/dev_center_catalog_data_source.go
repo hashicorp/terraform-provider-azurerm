@@ -56,7 +56,7 @@ func (DevCenterCatalogDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (DevCenterCatalogDataSource) ModelObject() interface{} {
+func (DevCenterCatalogDataSource) ModelObject() any {
 	return &DevCenterCatalogDataSourceModel{}
 }
 

@@ -1,0 +1,26 @@
+---
+name: Increment Milestone
+
+# On a v*.*.* release tag, creates the next patch-version milestone via
+# scripts/automation/milestone-increment.sh.
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  increment-milestone:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: "Increment Milestone"
+        shell: bash
+        run: bash ./scripts/automation/milestone-increment.sh -u https://api.github.com/repos/${{ github.repository }}/milestones -r "${GITHUB_REF_NAME}" -t ${{secrets.GITHUB_TOKEN}}

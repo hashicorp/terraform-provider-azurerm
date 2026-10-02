@@ -32,7 +32,7 @@ func (d MsSqlTransparentDataEncryptionV0ToV1) Schema() map[string]*pluginsdk.Sch
 }
 
 func (d MsSqlTransparentDataEncryptionV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		log.Printf("[DEBUG] Upgrading from Transparent Data Encryption V0 to V1..")
 		existing := rawState["auto_rotation_enabled"]
 		if existing == nil {

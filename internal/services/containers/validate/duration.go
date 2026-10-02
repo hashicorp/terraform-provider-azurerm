@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func Duration(i interface{}, k string) (warnings []string, errors []error) {
+func Duration(i any, k string) (warnings []string, errors []error) {
 	value, ok := i.(string)
 	if !ok {
 		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
@@ -17,11 +17,13 @@ func Duration(i interface{}, k string) (warnings []string, errors []error) {
 	duration, err := time.ParseDuration(value)
 	if err != nil {
 		errors = append(errors, fmt.Errorf(
-			"%q cannot be parsed as a duration: %s", k, err))
+			"%q cannot be parsed as a duration: %s", k, err,
+		))
 	}
 	if duration < 0 {
 		errors = append(errors, fmt.Errorf(
-			"%q must be greater than zero", k))
+			"%q must not be negative", k,
+		))
 	}
 	return warnings, errors
 }

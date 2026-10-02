@@ -46,7 +46,7 @@ func resourceApiManagementProductGroup() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementProductGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementProductGroupCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ProductGroupsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -54,15 +54,17 @@ func resourceApiManagementProductGroupCreate(d *pluginsdk.ResourceData, meta int
 
 	id := productgroup.NewProductGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("product_id").(string), d.Get("group_name").(string))
 
-	exists, err := client.CheckEntityExists(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(exists.HttpResponse) {
-			return fmt.Errorf("checking for present of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		exists, err := client.CheckEntityExists(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(exists.HttpResponse) {
+				return fmt.Errorf("checking for present of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(exists.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_api_management_product_group", id.ID())
+		if !response.WasNotFound(exists.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_api_management_product_group", id.ID())
+		}
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id); err != nil {
@@ -74,7 +76,7 @@ func resourceApiManagementProductGroupCreate(d *pluginsdk.ResourceData, meta int
 	return resourceApiManagementProductGroupRead(d, meta)
 }
 
-func resourceApiManagementProductGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementProductGroupRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ProductGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -103,7 +105,7 @@ func resourceApiManagementProductGroupRead(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func resourceApiManagementProductGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementProductGroupDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ProductGroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

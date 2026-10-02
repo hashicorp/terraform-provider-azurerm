@@ -37,6 +37,64 @@ func TestKubernetesAdminUserName(t *testing.T) {
 	}
 }
 
+func TestKubernetesClusterName(t *testing.T) {
+	cases := []struct {
+		ClusterName string
+		Errors      int
+	}{
+		{
+			ClusterName: "",
+			Errors:      1,
+		},
+		{
+			ClusterName: "A",
+			Errors:      0,
+		},
+		{
+			ClusterName: "abc123",
+			Errors:      0,
+		},
+		{
+			ClusterName: "hello-world",
+			Errors:      0,
+		},
+		{
+			ClusterName: "hello_world",
+			Errors:      0,
+		},
+		{
+			ClusterName: "Hello-World",
+			Errors:      0,
+		},
+		{
+			ClusterName: "thisnamendsinahyphen-",
+			Errors:      1,
+		},
+		{
+			ClusterName: "thisnameis64charactersitisverylongandlongandlong1234567890123456",
+			Errors:      1,
+		},
+		{
+			ClusterName: "thisnameisonly63charactersbutitisstillverylongandlongandlong123",
+			Errors:      0,
+		},
+		{
+			ClusterName: "ABC!123",
+			Errors:      1,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.ClusterName, func(t *testing.T) {
+			_, errors := KubernetesClusterName(tc.ClusterName, "test")
+
+			if len(errors) != tc.Errors {
+				t.Fatalf("Expected ClusterName to return %d error(s) not %d", tc.Errors, len(errors))
+			}
+		})
+	}
+}
+
 func TestKubernetesAgentPoolName(t *testing.T) {
 	cases := []struct {
 		AgentPoolName string

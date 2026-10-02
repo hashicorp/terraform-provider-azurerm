@@ -9,6 +9,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -47,8 +48,7 @@ func TestAccContainerRegistryTaskSchedule_basic(t *testing.T) {
 }
 
 func (r ContainerRegistryTaskScheduleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	ret := false
-	return &ret, nil
+	return pointer.To(false), nil
 }
 
 func (r ContainerRegistryTaskScheduleResource) basic(data acceptance.TestData, tpl func(data acceptance.TestData) string) string {

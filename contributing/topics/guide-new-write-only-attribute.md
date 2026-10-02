@@ -1,12 +1,13 @@
-# Guide: Adding a new Write-Only Attribute 
+# Guide: Adding a new Write-Only Attribute
 
-This guide covers how to add a new Write-Only (WO) Attribute to a resource. A WO Attribute can accept ephemeral values and is never persisted in state. 
+This guide covers how to add a new Write-Only (WO) Attribute to a resource. A WO Attribute can accept ephemeral values and is never persisted in state.
 
 > **Note:** Write-Only Attributes are only available in Terraform version 1.11 or higher.
 
 Good candidates for WO Attributes are sensitive user supplied properties, e.g. passwords, certificates, and keys, can be added in addition to an existing sensitive property.
 
 There are however limitations on what can be added as a WO Attribute, the original sensitive property:
+
 * Cannot be `ForceNew`
 * Cannot be `Computed`
 * Cannot be within a set of nested blocks or set or nested attributes
@@ -44,13 +45,14 @@ As a result we add two new properties to the schema, `password_wo` and `password
 	Optional:      true,
 	WriteOnly:     true, 
 	RequiredWith:  []string{"password_wo_version"} // this must be set to ensure the "trigger" property is provided with the wo attribute 
-	ConflictsWith: []string{"password_wo_version"} // this must be set to prevent both the sensitive `password` and the wo attribute `password_wo` from being set
+	ConflictsWith: []string{"password"} // this must be set to prevent both the sensitive `password` and the wo attribute `password_wo` from being set
 }
 
 "password_wo_version": {
 	Type:         pluginsdk.TypeInt,
 	Optional:     true,
 	RequiredWith: []string{"password_wo"} // this must be set to ensure the "trigger" property is provided with the wo attribute
+	ValidateFunc: validation.IntAtLeast(1) // in SDKv2, `0` will be set into state regardless, prevent users from setting version to `0` so we can properly track changes
 }
 
 ... // omitted for brevity
@@ -152,6 +154,7 @@ func (r SomeDatabase) ValidateRawResourceConfig() []schema.ValidateRawResourceCo
 ## Adding Tests
 
 To cover our bases we should test the following paths for a WO attribute:
+
 * Creating a resource with the WO attribute
 * Updating a resource with the WO attribute
 * Updating a resource that uses the original sensitive property to the WO attribute

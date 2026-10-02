@@ -30,7 +30,7 @@ func TestAccWindowsVirtualMachineScaleSet_imagesAutomaticUpdate(t *testing.T) {
 		},
 		data.ImportStep(
 			"admin_password",
-			"enable_automatic_updates",
+			"automatic_updates_enabled",
 		),
 		{
 			Config: r.imagesAutomaticUpdate(data, "2019-Datacenter"),
@@ -40,7 +40,7 @@ func TestAccWindowsVirtualMachineScaleSet_imagesAutomaticUpdate(t *testing.T) {
 		},
 		data.ImportStep(
 			"admin_password",
-			"enable_automatic_updates",
+			"automatic_updates_enabled",
 		),
 	})
 }
@@ -58,7 +58,7 @@ func TestAccWindowsVirtualMachineScaleSet_imagesDisableAutomaticUpdate(t *testin
 		},
 		data.ImportStep(
 			"admin_password",
-			"enable_automatic_updates",
+			"automatic_updates_enabled",
 		),
 		{
 			Config: r.imagesDisableAutomaticUpdate(data, "2019-Datacenter"),
@@ -68,7 +68,7 @@ func TestAccWindowsVirtualMachineScaleSet_imagesDisableAutomaticUpdate(t *testin
 		},
 		data.ImportStep(
 			"admin_password",
-			"enable_automatic_updates",
+			"automatic_updates_enabled",
 		),
 	})
 }
@@ -79,18 +79,14 @@ func TestAccWindowsVirtualMachineScaleSet_imagesFromCapturedVirtualMachineImage(
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			// provision a standard Virtual Machine with an Unmanaged Disk
+			// provision a Virtual Machine and generalize it
 			Config: r.imagesFromVirtualMachinePrerequisitesWithVM(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClientForResource(WindowsVirtualMachineResource{}.generalizeVirtualMachine, "azurerm_virtual_machine.source"),
+				data.CheckWithClientForResource(WindowsVirtualMachineResource{}.generalizeVirtualMachine, "azurerm_windows_virtual_machine.source"),
 			),
 		},
 		{
-			// then delete the Virtual Machine
-			Config: r.imagesFromVirtualMachinePrerequisites(data),
-		},
-		{
-			// then capture two images of the Virtual Machine
+			// then capture two images from its managed OS disk
 			Config: r.imagesFromVirtualMachinePrerequisitesWithImage(data),
 		},
 		{
@@ -271,7 +267,6 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   admin_password      = "P@ssword1234!"
   health_probe_id     = azurerm_lb_probe.test.id
   upgrade_mode        = "Automatic"
-
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
@@ -298,8 +293,8 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   automatic_os_upgrade_policy {
-    disable_automatic_rollback  = true
-    enable_automatic_os_upgrade = true
+    automatic_rollback_enabled   = false
+    automatic_os_upgrade_enabled = true
   }
 
   rolling_upgrade_policy {
@@ -309,7 +304,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     pause_time_between_batches              = "PT30S"
   }
 
-  enable_automatic_updates = false
+  automatic_updates_enabled = false
 
   depends_on = ["azurerm_lb_rule.test"]
 }
@@ -353,8 +348,8 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   automatic_os_upgrade_policy {
-    disable_automatic_rollback  = false
-    enable_automatic_os_upgrade = false
+    automatic_rollback_enabled   = true
+    automatic_os_upgrade_enabled = false
   }
 
   rolling_upgrade_policy {
@@ -369,18 +364,18 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 
 func (r WindowsVirtualMachineScaleSetResource) imagesFromVirtualMachinePrerequisites(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_public_ip" "source" {
-  name                = "source-%d"
+  name                = "source-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
-  sku                 = "Basic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_network_interface" "source" {
-  name                = "sourcenic-%d"
+  name                = "sourcenic-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -391,59 +386,42 @@ resource "azurerm_network_interface" "source" {
     public_ip_address_id          = azurerm_public_ip.source.id
   }
 }
-
-resource "azurerm_storage_account" "test" {
-  name                            = "accsa%s"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  account_tier                    = "Standard"
-  account_replication_type        = "LRS"
-  allow_nested_items_to_be_public = true
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "blob"
-}
-`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomString)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r WindowsVirtualMachineScaleSetResource) imagesFromVirtualMachinePrerequisitesWithVM(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_virtual_machine" "source" {
+resource "azurerm_windows_virtual_machine" "source" {
   name                  = "source"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.source.id]
-  vm_size               = "Standard_F2"
+  size                  = "Standard_F2"
+  computer_name         = "source"
+  admin_username        = "mradministrator"
+  admin_password        = "P@ssword1234!"
+  provision_vm_agent    = true
 
-  storage_image_reference {
+  os_disk {
+    name                 = "osdisk1"
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+    disk_size_gb         = 128
+  }
+
+  source_image_reference {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
-    sku       = "2019-Datacenter"
+    sku       = "2022-Datacenter"
     version   = "latest"
   }
+}
 
-  storage_os_disk {
-    name          = "osdisk1"
-    vhd_uri       = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/osdisk.vhd"
-    caching       = "ReadWrite"
-    create_option = "FromImage"
-    disk_size_gb  = 128
-  }
-
-  os_profile {
-    computer_name  = "source"
-    admin_username = "mradministrator"
-    admin_password = "P@ssword1234!"
-  }
-
-  os_profile_windows_config {
-    provision_vm_agent = true
-  }
+data "azurerm_managed_disk" "source" {
+  name                = azurerm_windows_virtual_machine.source.os_disk.0.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, r.imagesFromVirtualMachinePrerequisites(data))
 }
@@ -458,11 +436,12 @@ resource "azurerm_image" "first" {
   resource_group_name = azurerm_resource_group.test.name
 
   os_disk {
-    os_type  = "Windows"
-    os_state = "Generalized"
-    blob_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/osdisk.vhd"
-    size_gb  = 128
-    caching  = "None"
+    os_type         = "Windows"
+    os_state        = "Generalized"
+    managed_disk_id = data.azurerm_managed_disk.source.id
+    size_gb         = 128
+    caching         = "None"
+    storage_type    = "Standard_LRS"
   }
 }
 
@@ -472,16 +451,17 @@ resource "azurerm_image" "second" {
   resource_group_name = azurerm_resource_group.test.name
 
   os_disk {
-    os_type  = "Windows"
-    os_state = "Generalized"
-    blob_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/osdisk.vhd"
-    size_gb  = 128
-    caching  = "None"
+    os_type         = "Windows"
+    os_state        = "Generalized"
+    managed_disk_id = data.azurerm_managed_disk.source.id
+    size_gb         = 128
+    caching         = "None"
+    storage_type    = "Standard_LRS"
   }
 
   depends_on = ["azurerm_image.first"]
 }
-`, r.imagesFromVirtualMachinePrerequisites(data))
+`, r.imagesFromVirtualMachinePrerequisitesWithVM(data))
 }
 
 func (r WindowsVirtualMachineScaleSetResource) imagesFromVirtualMachine(data acceptance.TestData, image string) string {

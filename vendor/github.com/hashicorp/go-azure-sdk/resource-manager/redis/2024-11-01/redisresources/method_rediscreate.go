@@ -62,9 +62,20 @@ func (c RedisResourcesClient) RedisCreate(ctx context.Context, id RediId, input 
 
 // RedisCreateThenPoll performs RedisCreate then polls until it's completed
 func (c RedisResourcesClient) RedisCreateThenPoll(ctx context.Context, id RediId, input RedisCreateParameters) error {
+	return c.RedisCreateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// RedisCreateCallbackThenPoll performs RedisCreate, runs the optional callback function, then polls until it's completed
+func (c RedisResourcesClient) RedisCreateCallbackThenPoll(ctx context.Context, id RediId, input RedisCreateParameters, callback func() error) error {
 	result, err := c.RedisCreate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing RedisCreate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

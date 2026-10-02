@@ -61,9 +61,20 @@ func (c StaticSitesClient) CreateZipDeploymentForStaticSite(ctx context.Context,
 
 // CreateZipDeploymentForStaticSiteThenPoll performs CreateZipDeploymentForStaticSite then polls until it's completed
 func (c StaticSitesClient) CreateZipDeploymentForStaticSiteThenPoll(ctx context.Context, id StaticSiteId, input StaticSiteZipDeploymentARMResource) error {
+	return c.CreateZipDeploymentForStaticSiteCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CreateZipDeploymentForStaticSiteCallbackThenPoll performs CreateZipDeploymentForStaticSite, runs the optional callback function, then polls until it's completed
+func (c StaticSitesClient) CreateZipDeploymentForStaticSiteCallbackThenPoll(ctx context.Context, id StaticSiteId, input StaticSiteZipDeploymentARMResource, callback func() error) error {
 	result, err := c.CreateZipDeploymentForStaticSite(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateZipDeploymentForStaticSite: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

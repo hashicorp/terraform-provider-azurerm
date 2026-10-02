@@ -53,8 +53,8 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_bot_channel_alexa":              resourceBotChannelAlexa(),
-		"azurerm_bot_channel_directline":         resourceBotChannelDirectline(),
 		"azurerm_bot_channel_direct_line_speech": resourceBotChannelDirectLineSpeech(),
+		"azurerm_bot_channel_directline":         resourceBotChannelDirectline(),
 		"azurerm_bot_channel_email":              resourceBotChannelEmail(),
 		"azurerm_bot_channel_facebook":           resourceBotChannelFacebook(),
 		"azurerm_bot_channel_line":               resourceBotChannelLine(),
@@ -64,8 +64,8 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_bot_channel_web_chat":           resourceBotChannelWebChat(),
 		"azurerm_bot_channels_registration":      resourceBotChannelsRegistration(),
 		"azurerm_bot_connection":                 resourceArmBotConnection(),
-		"azurerm_healthbot":                      resourceHealthbotService(),
 		"azurerm_bot_web_app":                    resourceBotWebApp(),
+		"azurerm_healthbot":                      resourceHealthbotService(),
 	}
 }
 

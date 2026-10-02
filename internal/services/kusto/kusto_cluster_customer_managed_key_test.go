@@ -295,6 +295,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctestkv%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   purge_protection_enabled   = true
@@ -384,6 +385,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctest%[1]s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -460,7 +462,7 @@ resource "azurerm_key_vault_certificate" "cert" {
 }
 
 // Purge Protection must be enabled to configure Managed HSM Key
-// https://learn.microsoft.com/en-us/azure/data-explorer/security#store-customer-managed-keys-in-azure-key-vault
+// https://learn.microsoft.com/azure/data-explorer/security#store-customer-managed-keys-in-azure-key-vault
 resource "azurerm_key_vault_managed_hardware_security_module" "test" {
   name                       = "kvHsm%[3]d"
   resource_group_name        = azurerm_resource_group.test.name
@@ -574,6 +576,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctestkv%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   purge_protection_enabled   = true

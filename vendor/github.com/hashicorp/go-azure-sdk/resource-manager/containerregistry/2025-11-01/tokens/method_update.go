@@ -62,9 +62,20 @@ func (c TokensClient) Update(ctx context.Context, id TokenId, input TokenUpdateP
 
 // UpdateThenPoll performs Update then polls until it's completed
 func (c TokensClient) UpdateThenPoll(ctx context.Context, id TokenId, input TokenUpdateParameters) error {
+	return c.UpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// UpdateCallbackThenPoll performs Update, runs the optional callback function, then polls until it's completed
+func (c TokensClient) UpdateCallbackThenPoll(ctx context.Context, id TokenId, input TokenUpdateParameters, callback func() error) error {
 	result, err := c.Update(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Update: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

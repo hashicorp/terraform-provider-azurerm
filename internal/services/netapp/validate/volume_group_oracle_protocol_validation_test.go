@@ -13,7 +13,7 @@ func TestValidateNetAppVolumeGroupOracleProtocolConversion(t *testing.T) {
 		VolumeSpecName      string
 		OldProtocols        []string
 		NewProtocols        []string
-		ExportPolicyRules   []interface{}
+		ExportPolicyRules   []any
 		ExpectedErrors      int
 		ExpectedErrorString string
 	}{
@@ -22,7 +22,7 @@ func TestValidateNetAppVolumeGroupOracleProtocolConversion(t *testing.T) {
 			VolumeSpecName:    "data",
 			OldProtocols:      []string{"NFSv3"},
 			NewProtocols:      []string{"NFSv4.1"},
-			ExportPolicyRules: []interface{}{},
+			ExportPolicyRules: []any{},
 			ExpectedErrors:    0,
 		},
 		{
@@ -30,7 +30,7 @@ func TestValidateNetAppVolumeGroupOracleProtocolConversion(t *testing.T) {
 			VolumeSpecName:    "data",
 			OldProtocols:      []string{"NFSv4.1"},
 			NewProtocols:      []string{"NFSv3"},
-			ExportPolicyRules: []interface{}{},
+			ExportPolicyRules: []any{},
 			ExpectedErrors:    0,
 		},
 		{
@@ -38,7 +38,7 @@ func TestValidateNetAppVolumeGroupOracleProtocolConversion(t *testing.T) {
 			VolumeSpecName:    "logs",
 			OldProtocols:      []string{"NFSv3"},
 			NewProtocols:      []string{"NFSv4.1"},
-			ExportPolicyRules: []interface{}{},
+			ExportPolicyRules: []any{},
 			ExpectedErrors:    0,
 		},
 		{
@@ -46,7 +46,7 @@ func TestValidateNetAppVolumeGroupOracleProtocolConversion(t *testing.T) {
 			VolumeSpecName:    "logs",
 			OldProtocols:      []string{"NFSv4.1"},
 			NewProtocols:      []string{"NFSv3"},
-			ExportPolicyRules: []interface{}{},
+			ExportPolicyRules: []any{},
 			ExpectedErrors:    0,
 		},
 		{
@@ -54,7 +54,7 @@ func TestValidateNetAppVolumeGroupOracleProtocolConversion(t *testing.T) {
 			VolumeSpecName:    "binary",
 			OldProtocols:      []string{"NFSv3"},
 			NewProtocols:      []string{"NFSv4.1"},
-			ExportPolicyRules: []interface{}{},
+			ExportPolicyRules: []any{},
 			ExpectedErrors:    0,
 		},
 		{
@@ -62,7 +62,7 @@ func TestValidateNetAppVolumeGroupOracleProtocolConversion(t *testing.T) {
 			VolumeSpecName:    "binary",
 			OldProtocols:      []string{"NFSv4.1"},
 			NewProtocols:      []string{"NFSv3"},
-			ExportPolicyRules: []interface{}{},
+			ExportPolicyRules: []any{},
 			ExpectedErrors:    0,
 		},
 		{
@@ -70,7 +70,7 @@ func TestValidateNetAppVolumeGroupOracleProtocolConversion(t *testing.T) {
 			VolumeSpecName:    "data",
 			OldProtocols:      []string{"NFSv3"},
 			NewProtocols:      []string{"NFSv3"},
-			ExportPolicyRules: []interface{}{},
+			ExportPolicyRules: []any{},
 			ExpectedErrors:    0,
 		},
 		{
@@ -78,7 +78,7 @@ func TestValidateNetAppVolumeGroupOracleProtocolConversion(t *testing.T) {
 			VolumeSpecName:    "data",
 			OldProtocols:      []string{},
 			NewProtocols:      []string{"NFSv3"},
-			ExportPolicyRules: []interface{}{},
+			ExportPolicyRules: []any{},
 			ExpectedErrors:    0,
 		},
 		{
@@ -86,9 +86,9 @@ func TestValidateNetAppVolumeGroupOracleProtocolConversion(t *testing.T) {
 			VolumeSpecName: "data",
 			OldProtocols:   []string{"NFSv3"},
 			NewProtocols:   []string{"NFSv4.1"},
-			ExportPolicyRules: []interface{}{
-				map[string]interface{}{
-					"protocols_enabled": []interface{}{"NFSv4.1"},
+			ExportPolicyRules: []any{
+				map[string]any{
+					"protocols_enabled": []any{"NFSv4.1"},
 				},
 			},
 			ExpectedErrors: 0,
@@ -98,9 +98,9 @@ func TestValidateNetAppVolumeGroupOracleProtocolConversion(t *testing.T) {
 			VolumeSpecName: "logs",
 			OldProtocols:   []string{"NFSv4.1"},
 			NewProtocols:   []string{"NFSv3"},
-			ExportPolicyRules: []interface{}{
-				map[string]interface{}{
-					"protocol": []interface{}{"NFSv3"}, // Will be updated to match new volume protocol
+			ExportPolicyRules: []any{
+				map[string]any{
+					"protocol": []any{"NFSv3"}, // Will be updated to match new volume protocol
 				},
 			},
 			ExpectedErrors: 0, // Export policy validation is skipped during protocol conversion
@@ -110,12 +110,12 @@ func TestValidateNetAppVolumeGroupOracleProtocolConversion(t *testing.T) {
 			VolumeSpecName: "binary",
 			OldProtocols:   []string{"NFSv3"},
 			NewProtocols:   []string{"NFSv4.1"},
-			ExportPolicyRules: []interface{}{
-				map[string]interface{}{
-					"protocols_enabled": []interface{}{"NFSv4.1"},
+			ExportPolicyRules: []any{
+				map[string]any{
+					"protocols_enabled": []any{"NFSv4.1"},
 				},
-				map[string]interface{}{
-					"protocol": []interface{}{"NFSv4.1"},
+				map[string]any{
+					"protocol": []any{"NFSv4.1"},
 				},
 			},
 			ExpectedErrors: 0,
@@ -125,7 +125,7 @@ func TestValidateNetAppVolumeGroupOracleProtocolConversion(t *testing.T) {
 			VolumeSpecName:      "data",
 			OldProtocols:        []string{"NFSv3", "CIFS"},
 			NewProtocols:        []string{"NFSv4.1"},
-			ExportPolicyRules:   []interface{}{},
+			ExportPolicyRules:   []any{},
 			ExpectedErrors:      2, // Both dual-protocol and CIFS conversion errors
 			ExpectedErrorString: "cannot change the NFS version of a dual-protocol volume",
 		},
@@ -134,7 +134,7 @@ func TestValidateNetAppVolumeGroupOracleProtocolConversion(t *testing.T) {
 			VolumeSpecName:      "logs",
 			OldProtocols:        []string{"NFSv3"},
 			NewProtocols:        []string{"NFSv4.1", "CIFS"},
-			ExportPolicyRules:   []interface{}{},
+			ExportPolicyRules:   []any{},
 			ExpectedErrors:      2, // Both dual-protocol and CIFS conversion errors
 			ExpectedErrorString: "cannot change the NFS version of a dual-protocol volume",
 		},
@@ -143,9 +143,9 @@ func TestValidateNetAppVolumeGroupOracleProtocolConversion(t *testing.T) {
 			VolumeSpecName: "custom-oracle-volume",
 			OldProtocols:   []string{"NFSv3"},
 			NewProtocols:   []string{"NFSv4.1"},
-			ExportPolicyRules: []interface{}{
-				map[string]interface{}{
-					"protocols_enabled": []interface{}{"NFSv4.1"},
+			ExportPolicyRules: []any{
+				map[string]any{
+					"protocols_enabled": []any{"NFSv4.1"},
 				},
 			},
 			ExpectedErrors: 0,
@@ -161,7 +161,7 @@ func TestValidateNetAppVolumeGroupOracleProtocolConversion(t *testing.T) {
 			if len(tc.OldProtocols) > 0 && !slicesEqual(tc.OldProtocols, tc.NewProtocols) {
 				// For volume groups, kerberos and data replication are not directly supported
 				var kerberosEnabled bool
-				var dataReplication []interface{}
+				var dataReplication []any
 
 				conversionErrors := ValidateNetAppVolumeProtocolConversion(tc.OldProtocols, tc.NewProtocols, kerberosEnabled, dataReplication, tc.ExportPolicyRules)
 				errors = append(errors, conversionErrors...)

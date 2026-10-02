@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/rolemanagementpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	billingValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/billing/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/billing/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -93,7 +93,7 @@ func (r RoleManagementPolicyDataSource) ResourceType() string {
 	return "azurerm_role_management_policy"
 }
 
-func (r RoleManagementPolicyDataSource) ModelObject() interface{} {
+func (r RoleManagementPolicyDataSource) ModelObject() any {
 	return &RoleManagementPolicyDataSourceModel{}
 }
 
@@ -112,11 +112,11 @@ func (r RoleManagementPolicyDataSource) Arguments() map[string]*pluginsdk.Schema
 			Required:    true,
 			ValidateFunc: validation.Any(
 				// Elevated access for a global admin is needed to assign roles in this scope:
-				// https://docs.microsoft.com/en-us/azure/role-based-access-control/elevate-access-global-admin#azure-cli
+				// https://docs.microsoft.com/azure/role-based-access-control/elevate-access-global-admin#azure-cli
 				// It seems only user account is allowed to be elevated access.
 				validation.StringMatch(regexp.MustCompile("/providers/Microsoft.Subscription.*"), "Subscription scope is invalid"),
 
-				billingValidate.EnrollmentID,
+				validate.EnrollmentID,
 				commonids.ValidateManagementGroupID,
 				commonids.ValidateSubscriptionID,
 				commonids.ValidateResourceGroupID,
@@ -394,7 +394,7 @@ func (r RoleManagementPolicyDataSource) Read() sdk.ResourceFunc {
 											for ia, pa := range *primaryApprovers {
 												state.ActivationRules[0].ApprovalStages[0].PrimaryApprovers[ia] = RoleManagementPolicyDataSourceApprover{
 													ID:   pointer.From(pa.Id),
-													Type: string(pointer.From(pa.UserType)),
+													Type: pointer.FromEnum(pa.UserType),
 												}
 											}
 										}
@@ -514,7 +514,7 @@ func (r RoleManagementPolicyDataSource) Read() sdk.ResourceFunc {
 
 func flattenNotificationDataSourceSettings(rule rolemanagementpolicies.RoleManagementPolicyNotificationRule) *RoleManagementPolicyDataSourceNotificationSettings {
 	return &RoleManagementPolicyDataSourceNotificationSettings{
-		NotificationLevel:    string(pointer.From(rule.NotificationLevel)),
+		NotificationLevel:    pointer.FromEnum(rule.NotificationLevel),
 		DefaultRecipients:    pointer.From(rule.IsDefaultRecipientsEnabled),
 		AdditionalRecipients: pointer.From(rule.NotificationRecipients),
 	}

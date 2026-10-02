@@ -58,9 +58,20 @@ func (c NamedValueClient) RefreshSecret(ctx context.Context, id NamedValueId) (r
 
 // RefreshSecretThenPoll performs RefreshSecret then polls until it's completed
 func (c NamedValueClient) RefreshSecretThenPoll(ctx context.Context, id NamedValueId) error {
+	return c.RefreshSecretCallbackThenPoll(ctx, id, nil)
+}
+
+// RefreshSecretCallbackThenPoll performs RefreshSecret, runs the optional callback function, then polls until it's completed
+func (c NamedValueClient) RefreshSecretCallbackThenPoll(ctx context.Context, id NamedValueId, callback func() error) error {
 	result, err := c.RefreshSecret(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing RefreshSecret: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

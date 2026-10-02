@@ -52,7 +52,7 @@ func resourceApiManagementApiTag() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementApiTagCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementApiTagCreate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	tagClient := meta.(*clients.Client).ApiManagement.TagClient
 	client := meta.(*clients.Client).ApiManagement.ApiTagClient
@@ -68,22 +68,24 @@ func resourceApiManagementApiTagCreate(d *pluginsdk.ResourceData, meta interface
 
 	id := apitag.NewApiTagID(subscriptionId, apiId.ResourceGroupName, apiId.ServiceName, apiId.ApiId, d.Get("name").(string))
 
-	tagExists, err := tagClient.Get(ctx, tagId)
-	if err != nil {
-		if !response.WasNotFound(tagExists.HttpResponse) {
-			return fmt.Errorf("checking for presence of Tag %q: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		tagExists, err := tagClient.Get(ctx, tagId)
+		if err != nil {
+			if !response.WasNotFound(tagExists.HttpResponse) {
+				return fmt.Errorf("checking for presence of Tag %q: %s", id, err)
+			}
 		}
-	}
 
-	tagAssignmentExist, err := client.TagGetByApi(ctx, id)
-	if err != nil {
+		tagAssignmentExist, err := client.TagGetByApi(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(tagAssignmentExist.HttpResponse) {
+				return fmt.Errorf("checking for presence of Tag Assignment %q: %s", id, err)
+			}
+		}
+
 		if !response.WasNotFound(tagAssignmentExist.HttpResponse) {
-			return fmt.Errorf("checking for presence of Tag Assignment %q: %s", id, err)
+			return tf.ImportAsExistsError("azurerm_api_management_api_tag", id.ID())
 		}
-	}
-
-	if !response.WasNotFound(tagAssignmentExist.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_api_management_api_tag", id.ID())
 	}
 
 	if _, err := client.TagAssignToApi(ctx, id); err != nil {
@@ -95,7 +97,7 @@ func resourceApiManagementApiTagCreate(d *pluginsdk.ResourceData, meta interface
 	return resourceApiManagementApiTagRead(d, meta)
 }
 
-func resourceApiManagementApiTagRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementApiTagRead(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).ApiManagement.ApiTagClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -126,7 +128,7 @@ func resourceApiManagementApiTagRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceApiManagementApiTagDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementApiTagDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ApiTagClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -60,9 +60,20 @@ func (c ConfigurationsClient) Put(ctx context.Context, id ConfigurationId, input
 
 // PutThenPoll performs Put then polls until it's completed
 func (c ConfigurationsClient) PutThenPoll(ctx context.Context, id ConfigurationId, input ConfigurationForUpdate) error {
+	return c.PutCallbackThenPoll(ctx, id, input, nil)
+}
+
+// PutCallbackThenPoll performs Put, runs the optional callback function, then polls until it's completed
+func (c ConfigurationsClient) PutCallbackThenPoll(ctx context.Context, id ConfigurationId, input ConfigurationForUpdate, callback func() error) error {
 	result, err := c.Put(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Put: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

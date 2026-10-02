@@ -50,7 +50,7 @@ func TestMetaDataKeys(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		value := map[string]interface{}{
+		value := map[string]any{
 			v.Input: "hello",
 		}
 		warnings, errors := MetaDataKeys(value, "field")

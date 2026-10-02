@@ -10,7 +10,7 @@ import (
 func TestIPv6Compression(t *testing.T) {
 	cases := []struct {
 		Name   string
-		Input  interface{}
+		Input  any
 		Output string
 		Valid  bool
 	}{

@@ -65,13 +65,13 @@ resource "azurerm_private_dns_resolver_inbound_endpoint" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name which should be used for this Private DNS Resolver Inbound Endpoint. Changing this forces a new Private DNS Resolver Inbound Endpoint to be created.
+* `name` - (Required) Specifies the name which should be used for this Private DNS Resolver Inbound Endpoint. Changing this forces a new resource to be created.
 
-* `private_dns_resolver_id` - (Required) Specifies the ID of the Private DNS Resolver Inbound Endpoint. Changing this forces a new Private DNS Resolver Inbound Endpoint to be created.
+* `private_dns_resolver_id` - (Required) Specifies the ID of the Private DNS Resolver Inbound Endpoint. Changing this forces a new resource to be created.
 
-* `ip_configurations` - (Required) One `ip_configurations` block as defined below. Changing this forces a new Private DNS Resolver Inbound Endpoint to be created.
+* `ip_configurations` - (Required) One `ip_configurations` block as defined below. Changing this forces a new resource to be created.
 
-* `location` - (Required) Specifies the Azure Region where the Private DNS Resolver Inbound Endpoint should exist. Changing this forces a new Private DNS Resolver Inbound Endpoint to be created.
+* `location` - (Required) Specifies the Azure Region where the Private DNS Resolver Inbound Endpoint should exist. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Private DNS Resolver Inbound Endpoint.
 
@@ -79,11 +79,11 @@ The following arguments are supported:
 
 An `ip_configurations` block supports the following:
 
-* `subnet_id` - (Required) The subnet ID of the IP configuration.
+* `subnet_id` - (Required) The subnet ID of the IP configuration. Changing this forces a new resource to be created.
 
-* `private_ip_address` - (Optional) Private IP address of the IP configuration.
+* `private_ip_address` - (Optional) Private IP address of the IP configuration. Changing this forces a new resource to be created.
 
-* `private_ip_allocation_method` - (Optional) Private IP address allocation method. Allowed value is `Dynamic` and `Static`. Defaults to `Dynamic`.
+* `private_ip_allocation_method` - (Optional) Private IP address allocation method. Possible values are `Dynamic` and `Static`. Defaults to `Dynamic`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

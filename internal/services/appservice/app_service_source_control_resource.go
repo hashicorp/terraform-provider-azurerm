@@ -48,7 +48,7 @@ func (r SourceControlResource) Arguments() map[string]*pluginsdk.Schema {
 		"repo_url": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 			RequiredWith: []string{
@@ -60,7 +60,7 @@ func (r SourceControlResource) Arguments() map[string]*pluginsdk.Schema {
 		"branch": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 			RequiredWith: []string{
@@ -130,7 +130,7 @@ func (r SourceControlResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r SourceControlResource) ModelObject() interface{} {
+func (r SourceControlResource) ModelObject() any {
 	return &SourceControlModel{}
 }
 
@@ -155,12 +155,14 @@ func (r SourceControlResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			existing, err := client.GetConfiguration(ctx, *id)
-			if err != nil || existing.Model == nil || existing.Model.Properties == nil {
-				return fmt.Errorf("checking for existing Source Control configuration on %s: %+v", id, err)
-			}
-			if pointer.From(existing.Model.Properties.ScmType) != webapps.ScmTypeNone {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetConfiguration(ctx, *id)
+				if err != nil || existing.Model == nil || existing.Model.Properties == nil {
+					return fmt.Errorf("checking for existing Source Control configuration on %s: %+v", id, err)
+				}
+				if pointer.From(existing.Model.Properties.ScmType) != webapps.ScmTypeNone {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			if appSourceControl.LocalGitSCM {
@@ -253,7 +255,7 @@ func (r SourceControlResource) Read() sdk.ResourceFunc {
 				props := model.Properties
 				state = SourceControlModel{
 					AppID:                     id.ID(),
-					SCMType:                   string(pointer.From(siteConfig.Model.Properties.ScmType)),
+					SCMType:                   pointer.FromEnum(siteConfig.Model.Properties.ScmType),
 					RepoURL:                   pointer.From(props.RepoURL),
 					Branch:                    pointer.From(props.Branch),
 					ManualIntegration:         pointer.From(props.IsManualIntegration),

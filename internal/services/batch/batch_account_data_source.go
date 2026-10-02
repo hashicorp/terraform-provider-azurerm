@@ -91,7 +91,7 @@ func dataSourceBatchAccount() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceBatchAccountRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Batch.AccountClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -121,7 +121,7 @@ func dataSourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			if autoStorage := props.AutoStorage; autoStorage != nil {
 				d.Set("storage_account_id", autoStorage.StorageAccountId)
 			}
-			d.Set("pool_allocation_mode", string(pointer.From(props.PoolAllocationMode)))
+			d.Set("pool_allocation_mode", pointer.FromEnum(props.PoolAllocationMode))
 			poolAllocationMode := d.Get("pool_allocation_mode").(string)
 
 			if encryption := props.Encryption; encryption != nil {
@@ -140,7 +140,7 @@ func dataSourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 				}
 
 				// set empty keyvault reference which is not needed in Batch Service allocation mode.
-				d.Set("key_vault_reference", []interface{}{})
+				d.Set("key_vault_reference", []any{})
 			} else if poolAllocationMode == string(batchaccount.PoolAllocationModeUserSubscription) {
 				if err := d.Set("key_vault_reference", flattenBatchAccountKeyvaultReference(props.KeyVaultReference)); err != nil {
 					return fmt.Errorf("flattening `key_vault_reference`: %+v", err)

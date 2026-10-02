@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -17,8 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 func resourceDataFactoryTriggerBlobEvent() *pluginsdk.Resource {
@@ -148,7 +148,7 @@ func resourceDataFactoryTriggerBlobEvent() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryTriggerBlobEventCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryTriggerBlobEventCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.TriggersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -161,14 +161,16 @@ func resourceDataFactoryTriggerBlobEventCreateUpdate(d *pluginsdk.ResourceData, 
 
 	id := parse.NewTriggerID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
+			if err != nil {
+				if !response.WasNotFound(existing.Response.Response) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_data_factory_trigger_blob_event", id.ID())
+			if !response.WasNotFound(existing.Response.Response) {
+				return tf.ImportAsExistsError("azurerm_data_factory_trigger_blob_event", id.ID())
+			}
 		}
 	}
 	if !d.IsNewResource() {
@@ -193,12 +195,11 @@ func resourceDataFactoryTriggerBlobEventCreateUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		blobEventProps.Annotations = &annotations
+		blobEventProps.Annotations = pointer.To(v.([]any))
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		blobEventProps.AdditionalProperties = v.(map[string]interface{})
+		blobEventProps.AdditionalProperties = v.(map[string]any)
 	}
 
 	if v, ok := d.GetOk("blob_path_begins_with"); ok {
@@ -232,7 +233,7 @@ func resourceDataFactoryTriggerBlobEventCreateUpdate(d *pluginsdk.ResourceData, 
 	return resourceDataFactoryTriggerBlobEventRead(d, meta)
 }
 
-func resourceDataFactoryTriggerBlobEventRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryTriggerBlobEventRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.TriggersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -245,7 +246,7 @@ func resourceDataFactoryTriggerBlobEventRead(d *pluginsdk.ResourceData, meta int
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -286,7 +287,7 @@ func resourceDataFactoryTriggerBlobEventRead(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func resourceDataFactoryTriggerBlobEventDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryTriggerBlobEventDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.TriggersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -311,7 +312,7 @@ func resourceDataFactoryTriggerBlobEventDelete(d *pluginsdk.ResourceData, meta i
 	return nil
 }
 
-func expandDataFactoryTriggerBlobEvents(input []interface{}) *[]datafactory.BlobEventTypes {
+func expandDataFactoryTriggerBlobEvents(input []any) *[]datafactory.BlobEventTypes {
 	result := make([]datafactory.BlobEventTypes, 0)
 	for _, item := range input {
 		result = append(result, datafactory.BlobEventTypes(item.(string)))
@@ -319,14 +320,14 @@ func expandDataFactoryTriggerBlobEvents(input []interface{}) *[]datafactory.Blob
 	return &result
 }
 
-func expandDataFactoryTriggerPipeline(input []interface{}) *[]datafactory.TriggerPipelineReference {
+func expandDataFactoryTriggerPipeline(input []any) *[]datafactory.TriggerPipelineReference {
 	if len(input) == 0 {
 		return nil
 	}
 
 	result := make([]datafactory.TriggerPipelineReference, 0)
 	for _, item := range input {
-		raw := item.(map[string]interface{})
+		raw := item.(map[string]any)
 
 		// issue https://github.com/hashicorp/terraform-plugin-sdk/issues/588
 		// once it's resolved, we could remove the check empty logic
@@ -340,37 +341,37 @@ func expandDataFactoryTriggerPipeline(input []interface{}) *[]datafactory.Trigge
 				ReferenceName: pointer.To(raw["name"].(string)),
 				Type:          pointer.To("PipelineReference"),
 			},
-			Parameters: raw["parameters"].(map[string]interface{}),
+			Parameters: raw["parameters"].(map[string]any),
 		})
 	}
 	return &result
 }
 
-func flattenDataFactoryTriggerBlobEvents(input *[]datafactory.BlobEventTypes) []interface{} {
+func flattenDataFactoryTriggerBlobEvents(input *[]datafactory.BlobEventTypes) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	result := make([]interface{}, 0)
+	result := make([]any, 0)
 	for _, item := range *input {
 		result = append(result, string(item))
 	}
 	return result
 }
 
-func flattenDataFactoryTriggerPipeline(input *[]datafactory.TriggerPipelineReference) []interface{} {
+func flattenDataFactoryTriggerPipeline(input *[]datafactory.TriggerPipelineReference) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	result := make([]interface{}, 0)
+	result := make([]any, 0)
 	for _, item := range *input {
 		name := ""
 		if item.PipelineReference != nil && item.PipelineReference.ReferenceName != nil {
 			name = *item.PipelineReference.ReferenceName
 		}
 
-		result = append(result, map[string]interface{}{
+		result = append(result, map[string]any{
 			"name":       name,
 			"parameters": item.Parameters,
 		})

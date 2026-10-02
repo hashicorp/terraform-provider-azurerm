@@ -17,7 +17,7 @@ var _ pluginsdk.StateUpgrade = SnapshotV0ToV1{}
 type SnapshotV0ToV1 struct{}
 
 func (SnapshotV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		oldIdRaw := rawState["id"].(string)
 		oldId, err := snapshots.ParseSnapshotIDInsensitively(oldIdRaw)
 		if err != nil {

@@ -285,9 +285,7 @@ func main() {
 		fmt.Println("Usage: go run main.go <path to changelog>")
 		return
 	}
-	filePath := os.Args[1]
-
-	if err := formatChangelog(filePath); err != nil {
+	if err := formatChangelog(os.Args[1]); err != nil {
 		fmt.Println(fmt.Errorf("formatting changelog: %+v", err))
 		return
 	}

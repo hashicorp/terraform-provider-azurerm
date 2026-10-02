@@ -62,9 +62,20 @@ func (c RedisResourcesClient) RedisImportData(ctx context.Context, id RediId, in
 
 // RedisImportDataThenPoll performs RedisImportData then polls until it's completed
 func (c RedisResourcesClient) RedisImportDataThenPoll(ctx context.Context, id RediId, input ImportRDBParameters) error {
+	return c.RedisImportDataCallbackThenPoll(ctx, id, input, nil)
+}
+
+// RedisImportDataCallbackThenPoll performs RedisImportData, runs the optional callback function, then polls until it's completed
+func (c RedisResourcesClient) RedisImportDataCallbackThenPoll(ctx context.Context, id RediId, input ImportRDBParameters, callback func() error) error {
 	result, err := c.RedisImportData(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing RedisImportData: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

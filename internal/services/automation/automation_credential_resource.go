@@ -5,7 +5,6 @@ package automation
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -73,25 +72,25 @@ func resourceAutomationCredential() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationCredentialCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationCredentialCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Credential
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Automation Credential creation.")
-
 	id := credential.NewCredentialID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_automation_credential", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_automation_credential", id.ID())
+		}
 	}
 
 	description := d.Get("description").(string)
@@ -114,12 +113,10 @@ func resourceAutomationCredentialCreate(d *pluginsdk.ResourceData, meta interfac
 	return resourceAutomationCredentialRead(d, meta)
 }
 
-func resourceAutomationCredentialUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationCredentialUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Credential
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for AzureRM Automation Credential update.")
 
 	id, err := credential.ParseCredentialID(d.Id())
 	if err != nil {
@@ -160,7 +157,7 @@ func resourceAutomationCredentialUpdate(d *pluginsdk.ResourceData, meta interfac
 	return resourceAutomationCredentialRead(d, meta)
 }
 
-func resourceAutomationCredentialRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationCredentialRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Credential
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -194,7 +191,7 @@ func resourceAutomationCredentialRead(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func resourceAutomationCredentialDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationCredentialDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Credential
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

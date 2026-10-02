@@ -66,7 +66,7 @@ func (r *EphemeralResourceMetadata) Defaults(req ephemeral.ConfigureRequest, res
 
 // DecodeOpen performs a Get on the OpenRequest config and attempts to load it into the interface cfg. cfg *must* be a pointer to the struct.
 // returns true if successful, false if there is an error diagnostic raised. Any error diags are written directly to the response
-func (r *EphemeralResourceMetadata) DecodeOpen(ctx context.Context, req ephemeral.OpenRequest, resp *ephemeral.OpenResponse, cfg interface{}) bool {
+func (r *EphemeralResourceMetadata) DecodeOpen(ctx context.Context, req ephemeral.OpenRequest, resp *ephemeral.OpenResponse, cfg any) bool {
 	resp.Diagnostics.Append(req.Config.Get(ctx, cfg)...)
 
 	return !resp.Diagnostics.HasError()

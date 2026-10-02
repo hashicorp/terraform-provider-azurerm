@@ -67,7 +67,7 @@ func (NotificationHubNamespaceResourceV0ToV1) Schema() map[string]*pluginsdk.Sch
 }
 
 func (NotificationHubNamespaceResourceV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		oldIdRaw := rawState["id"].(string)
 		oldId, err := namespaces.ParseNamespaceIDInsensitively(oldIdRaw)
 		if err != nil {

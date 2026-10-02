@@ -62,9 +62,20 @@ func (c BackupInstanceResourcesClient) BackupInstancesValidateForRestore(ctx con
 
 // BackupInstancesValidateForRestoreThenPoll performs BackupInstancesValidateForRestore then polls until it's completed
 func (c BackupInstanceResourcesClient) BackupInstancesValidateForRestoreThenPoll(ctx context.Context, id BackupInstanceId, input ValidateRestoreRequestObject) error {
+	return c.BackupInstancesValidateForRestoreCallbackThenPoll(ctx, id, input, nil)
+}
+
+// BackupInstancesValidateForRestoreCallbackThenPoll performs BackupInstancesValidateForRestore, runs the optional callback function, then polls until it's completed
+func (c BackupInstanceResourcesClient) BackupInstancesValidateForRestoreCallbackThenPoll(ctx context.Context, id BackupInstanceId, input ValidateRestoreRequestObject, callback func() error) error {
 	result, err := c.BackupInstancesValidateForRestore(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing BackupInstancesValidateForRestore: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

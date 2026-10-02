@@ -10,7 +10,7 @@ import (
 )
 
 // Verifies that there and no duplicate CIDRs in the passed input based on CIDR type (e.g. IPv4 or IPv6)
-func FrontDoorRuleCidrOverlap(input []interface{}, key string) (warnings []string, errors []error) {
+func FrontDoorRuleCidrOverlap(input []any, key string) (warnings []string, errors []error) {
 	// verify there are no duplicates in the CIDRs
 	if len(input) > 1 {
 		tmp := make(map[string]bool)

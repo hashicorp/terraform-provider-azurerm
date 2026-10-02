@@ -146,7 +146,7 @@ func (sbu BlobUpload) uploadBlockBlobFromContent(ctx context.Context) error {
 	}
 	defer os.Remove(tmpFile.Name())
 
-	if _, err = tmpFile.Write([]byte(sbu.SourceContent)); err != nil {
+	if _, err = tmpFile.WriteString(sbu.SourceContent); err != nil {
 		return fmt.Errorf("writing Source Content to Temp File: %s", err)
 	}
 	defer tmpFile.Close()
@@ -206,7 +206,7 @@ func (sbu BlobUpload) uploadPageBlobFromContent(ctx context.Context) error {
 	}
 	defer os.Remove(tmpFile.Name())
 
-	if _, err = tmpFile.Write([]byte(sbu.SourceContent)); err != nil {
+	if _, err = tmpFile.WriteString(sbu.SourceContent); err != nil {
 		return fmt.Errorf("writing Source Content to Temp File: %s", err)
 	}
 	defer tmpFile.Close()
@@ -285,7 +285,7 @@ func (sbu BlobUpload) pageUploadFromSource(ctx context.Context, file io.ReaderAt
 	}
 	close(pages)
 
-	for i := 0; i < workerCount; i++ {
+	for range workerCount {
 		go sbu.blobPageUploadWorker(ctx, blobPageUploadContext{
 			blobSize: fileSize,
 			pages:    pages,
@@ -371,10 +371,7 @@ type blobPageUploadContext struct {
 func (sbu BlobUpload) blobPageUploadWorker(ctx context.Context, uploadCtx blobPageUploadContext) {
 	for page := range uploadCtx.pages {
 		start := page.offset
-		end := page.offset + page.section.Size() - 1
-		if end > uploadCtx.blobSize-1 {
-			end = uploadCtx.blobSize - 1
-		}
+		end := min(page.offset+page.section.Size()-1, uploadCtx.blobSize-1)
 		size := end - start + 1
 
 		chunk := make([]byte, size)

@@ -18,13 +18,14 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/managedcassandras"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceCassandraDatacenter() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceCassandraDatacenterCreate,
 		Read:   resourceCassandraDatacenterRead,
 		Update: resourceCassandraDatacenterUpdate,
@@ -126,11 +127,9 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	return resource
 }
 
-func resourceCassandraDatacenterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCassandraDatacenterCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.ManagedCassandraClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -141,14 +140,16 @@ func resourceCassandraDatacenterCreate(d *pluginsdk.ResourceData, meta interface
 	}
 	id := managedcassandras.NewDataCenterID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.CassandraClusterName, d.Get("name").(string))
 
-	existing, err := client.CassandraDataCentersGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.CassandraDataCentersGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_cosmosdb_cassandra_datacenter", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_cosmosdb_cassandra_datacenter", id.ID())
+		}
 	}
 
 	payload := managedcassandras.DataCenterResource{
@@ -178,7 +179,7 @@ func resourceCassandraDatacenterCreate(d *pluginsdk.ResourceData, meta interface
 		payload.Properties.Sku = pointer.To(v.(string))
 	}
 
-	if err = client.CassandraDataCentersCreateUpdateThenPoll(ctx, id, payload); err != nil {
+	if err = client.CassandraDataCentersCreateUpdateCallbackThenPoll(ctx, id, payload, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %q: %+v", id, err)
 	}
 
@@ -187,7 +188,7 @@ func resourceCassandraDatacenterCreate(d *pluginsdk.ResourceData, meta interface
 	return resourceCassandraDatacenterRead(d, meta)
 }
 
-func resourceCassandraDatacenterRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCassandraDatacenterRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.ManagedCassandraClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -231,7 +232,7 @@ func resourceCassandraDatacenterRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceCassandraDatacenterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCassandraDatacenterUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.ManagedCassandraClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -287,7 +288,7 @@ func resourceCassandraDatacenterUpdate(d *pluginsdk.ResourceData, meta interface
 	return resourceCassandraDatacenterRead(d, meta)
 }
 
-func resourceCassandraDatacenterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCassandraDatacenterDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.ManagedCassandraClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -305,7 +306,7 @@ func resourceCassandraDatacenterDelete(d *pluginsdk.ResourceData, meta interface
 }
 
 func cassandraDatacenterStateRefreshFunc(ctx context.Context, client *managedcassandras.ManagedCassandrasClient, id managedcassandras.DataCenterId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		res, err := client.CassandraDataCentersGet(ctx, id)
 		if err != nil {
 			return nil, "", fmt.Errorf("polling for %s: %+v", id, err)
@@ -320,8 +321,8 @@ func cassandraDatacenterStateRefreshFunc(ctx context.Context, client *managedcas
 	}
 }
 
-func flattenCassandraDatacenterSeedNodes(input *[]managedcassandras.SeedNode) []interface{} {
-	results := make([]interface{}, 0)
+func flattenCassandraDatacenterSeedNodes(input *[]managedcassandras.SeedNode) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}

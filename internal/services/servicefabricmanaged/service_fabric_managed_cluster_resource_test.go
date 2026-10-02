@@ -29,7 +29,8 @@ func TestAccServiceFabricManagedCluster_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-				check.That(data.ResourceName).Key("tags.Test").HasValue("value")),
+				check.That(data.ResourceName).Key("tags.Test").HasValue("value"),
+			),
 		},
 		data.ImportStep("password"),
 	})
@@ -45,7 +46,8 @@ func TestAccServiceFabricManagedCluster_withCustomSettings(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-				check.That(data.ResourceName).Key("tags.Test").HasValue("value")),
+				check.That(data.ResourceName).Key("tags.Test").HasValue("value"),
+			),
 		},
 		data.ImportStep("password"),
 	})
@@ -62,7 +64,8 @@ func TestAccServiceFabricManagedCluster_importError(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-				check.That(data.ResourceName).Key("tags.Test").HasValue("value")),
+				check.That(data.ResourceName).Key("tags.Test").HasValue("value"),
+			),
 		},
 		{
 			Config:      r.requiresImport(data, nodeTypeData1),
@@ -84,7 +87,8 @@ func TestAccServiceFabricManagedCluster_full(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-				check.That(data.ResourceName).Key("tags.Test").HasValue("value")),
+				check.That(data.ResourceName).Key("tags.Test").HasValue("value"),
+			),
 		},
 		data.ImportStep("password"),
 		{
@@ -101,14 +105,16 @@ func TestAccServiceFabricManagedCluster_full(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("node_type.#").HasValue("1"),
-				check.That(data.ResourceName).Key("node_type.0.name").HasValue("test1")),
+				check.That(data.ResourceName).Key("node_type.0.name").HasValue("test1"),
+			),
 		},
 		{
 			Config: r.basic(data, nodeTypeData1Altered),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("node_type.#").HasValue("1"),
-				check.That(data.ResourceName).Key("node_type.0.data_disk_size_gb").HasValue("140")),
+				check.That(data.ResourceName).Key("node_type.0.data_disk_size_gb").HasValue("140"),
+			),
 		},
 	})
 }

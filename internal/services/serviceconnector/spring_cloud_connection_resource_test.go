@@ -35,7 +35,7 @@ func (r ServiceConnectorSpringCloudResource) Exists(ctx context.Context, client 
 	return pointer.To(true), nil
 }
 
-func TestAccServiceConnectorSpringCloudCosmosdb_basic(t *testing.T) {
+func TestAccServiceConnectorSpringCloud_cosmosdbBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_connection", "test")
 	r := ServiceConnectorSpringCloudResource{}
 
@@ -50,7 +50,7 @@ func TestAccServiceConnectorSpringCloudCosmosdb_basic(t *testing.T) {
 	})
 }
 
-func TestAccServiceConnectorSpringCloudCosmosdb_secretAuth(t *testing.T) {
+func TestAccServiceConnectorSpringCloud_cosmosdbSecretAuth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_connection", "test")
 	r := ServiceConnectorSpringCloudResource{}
 
@@ -65,7 +65,7 @@ func TestAccServiceConnectorSpringCloudCosmosdb_secretAuth(t *testing.T) {
 	})
 }
 
-func TestAccServiceConnectorSpringCloudCosmosdb_servicePrincipalSecretAuth(t *testing.T) {
+func TestAccServiceConnectorSpringCloud_cosmosdbServicePrincipalSecretAuth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_connection", "test")
 	r := ServiceConnectorSpringCloudResource{}
 
@@ -80,7 +80,7 @@ func TestAccServiceConnectorSpringCloudCosmosdb_servicePrincipalSecretAuth(t *te
 	})
 }
 
-func TestAccServiceConnectorSpringCloudCosmosdb_userAssignedIdentity(t *testing.T) {
+func TestAccServiceConnectorSpringCloud_cosmosdbUserAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_connection", "test")
 	r := ServiceConnectorSpringCloudResource{}
 
@@ -95,7 +95,7 @@ func TestAccServiceConnectorSpringCloudCosmosdb_userAssignedIdentity(t *testing.
 	})
 }
 
-func TestAccServiceConnectorSpringCloudStorageBlob_basic(t *testing.T) {
+func TestAccServiceConnectorSpringCloud_storageBlobBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_connection", "test")
 	r := ServiceConnectorSpringCloudResource{}
 
@@ -110,7 +110,7 @@ func TestAccServiceConnectorSpringCloudStorageBlob_basic(t *testing.T) {
 	})
 }
 
-func TestAccServiceConnectorSpringCloudStorageBlob_secretStore(t *testing.T) {
+func TestAccServiceConnectorSpringCloud_storageBlobSecretStore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_connection", "test")
 	r := ServiceConnectorSpringCloudResource{}
 
@@ -366,12 +366,13 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                     = "accAKV-%[3]s"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "accAKV-%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
 }
 
 resource "azurerm_spring_cloud_service" "test" {

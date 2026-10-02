@@ -25,6 +25,10 @@ func TestAccAttestationProviderDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("resource_group_name").MatchesOtherKey(check.That(resource.ResourceName).Key("resource_group_name")),
 				check.That(data.ResourceName).Key("location").MatchesOtherKey(check.That(resource.ResourceName).Key("location")),
 				check.That(data.ResourceName).Key("attestation_uri").Exists(),
+				check.That(data.ResourceName).Key("open_enclave_policy_base64").MatchesOtherKey(check.That(resource.ResourceName).Key("open_enclave_policy_base64")),
+				check.That(data.ResourceName).Key("sgx_enclave_policy_base64").MatchesOtherKey(check.That(resource.ResourceName).Key("sgx_enclave_policy_base64")),
+				check.That(data.ResourceName).Key("tpm_policy_base64").MatchesOtherKey(check.That(resource.ResourceName).Key("tpm_policy_base64")),
+				check.That(data.ResourceName).Key("sev_snp_policy_base64").MatchesOtherKey(check.That(resource.ResourceName).Key("sev_snp_policy_base64")),
 			),
 		},
 	})

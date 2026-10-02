@@ -75,7 +75,11 @@ An `application_insights` block supports the following:
 
 * `instrumentation_key` - (Optional) The instrumentation key used to push data to Application Insights.
 
+* `identity_client_id` - (Optional) The Client Id of the User Assigned Identity, or `SystemAssigned` to use the System Assigned Identity, that has the "Monitoring Metrics Publisher" role on the target Application Insights resource. Requires `connection_string` to be set. Cannot be used with `instrumentation_key`.
+
 ~> **Note:** Either `connection_string` or `instrumentation_key` have to be specified.
+
+~> **Note:** `identity_client_id` enables AAD-based ingestion to Application Insights using a Managed Identity on the API Management Service and is required when local authentication is disabled on the Application Insights resource. Set it to the Client Id of a User Assigned Identity, or to `SystemAssigned` to use the System Assigned Identity.
 
 ---
 

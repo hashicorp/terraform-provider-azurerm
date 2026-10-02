@@ -21,6 +21,19 @@ type ResourceManagementPrivateLinkAssociationTestResource struct {
 	uuid string
 }
 
+func TestAccResourceManagementPrivateLinkAssociation_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_management_private_link_association", "test")
+	randomUUID, _ := uuid.GenerateUUID()
+	r := ResourceManagementPrivateLinkAssociationTestResource{
+		uuid: randomUUID,
+	}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccResourceManagementPrivateLinkAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_management_private_link_association", "test")
 	randomUUID, _ := uuid.GenerateUUID()

@@ -27,9 +27,9 @@ func (s BaseFunctionPropertiesImpl) FunctionProperties() BaseFunctionPropertiesI
 
 var _ FunctionProperties = RawFunctionPropertiesImpl{}
 
-// RawFunctionPropertiesImpl is returned when the Discriminated Value doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+// RawFunctionPropertiesImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawFunctionPropertiesImpl struct {
 	functionProperties BaseFunctionPropertiesImpl
 	Type               string
@@ -38,6 +38,10 @@ type RawFunctionPropertiesImpl struct {
 
 func (s RawFunctionPropertiesImpl) FunctionProperties() BaseFunctionPropertiesImpl {
 	return s.functionProperties
+}
+
+func (s RawFunctionPropertiesImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
 }
 
 func UnmarshalFunctionPropertiesImplementation(input []byte) (FunctionProperties, error) {

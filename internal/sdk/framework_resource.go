@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 const removedSummary = "Resource removed from state"
@@ -290,7 +291,7 @@ type FrameworkWrappedResource interface {
 
 	ImportState(ctx context.Context, request resource.ImportStateRequest, response *resource.ImportStateResponse, metadata ResourceMetadata)
 
-	Identity() (resourceids.ResourceId, ResourceTypeForIdentity)
+	Identity() (resourceids.ResourceId, pluginsdk.ResourceTypeForIdentity)
 }
 
 // FrameworkWrappedResourceWithUpdate provides an extension to the base resource for resources that can be updated.

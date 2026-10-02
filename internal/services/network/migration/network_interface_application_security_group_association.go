@@ -32,7 +32,7 @@ func (NetworkInterfaceApplicationSecurityGroupAssociationV0ToV1) Schema() map[st
 }
 
 func (NetworkInterfaceApplicationSecurityGroupAssociationV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		// after shipping support for this Resource Azure's since changed the behaviour to require that all IP Configurations
 		// are connected to the same Application Security Group
 		applicationSecurityGroupId := rawState["application_security_group_id"].(string)

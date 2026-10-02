@@ -76,7 +76,7 @@ func dataSourceDnsCaaRecord() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceDnsCaaRecordRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceDnsCaaRecordRead(d *pluginsdk.ResourceData, meta any) error {
 	recordSetsClient := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

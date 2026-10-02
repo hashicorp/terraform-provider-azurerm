@@ -37,7 +37,7 @@ func TestValidateTopLevelObjectInvalidInterface(t *testing.T) {
 	type Person struct {
 		Name string `tfschema:"name"`
 	}
-	var p interface{} = Person{}
+	var p any = Person{}
 	if err := ValidateModelObject(&p); err == nil {
 		t.Fatalf("expected an error but didn't get one")
 	}

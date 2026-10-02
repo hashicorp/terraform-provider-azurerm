@@ -56,9 +56,20 @@ func (c BackupAutomaticAndOnDemandsClient) BackupsAutomaticAndOnDemandCreate(ctx
 
 // BackupsAutomaticAndOnDemandCreateThenPoll performs BackupsAutomaticAndOnDemandCreate then polls until it's completed
 func (c BackupAutomaticAndOnDemandsClient) BackupsAutomaticAndOnDemandCreateThenPoll(ctx context.Context, id BackupId) error {
+	return c.BackupsAutomaticAndOnDemandCreateCallbackThenPoll(ctx, id, nil)
+}
+
+// BackupsAutomaticAndOnDemandCreateCallbackThenPoll performs BackupsAutomaticAndOnDemandCreate, runs the optional callback function, then polls until it's completed
+func (c BackupAutomaticAndOnDemandsClient) BackupsAutomaticAndOnDemandCreateCallbackThenPoll(ctx context.Context, id BackupId, callback func() error) error {
 	result, err := c.BackupsAutomaticAndOnDemandCreate(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing BackupsAutomaticAndOnDemandCreate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

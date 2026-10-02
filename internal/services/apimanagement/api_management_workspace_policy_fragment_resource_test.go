@@ -59,7 +59,7 @@ func TestAccApiManagementWorkspacePolicyFragment_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// Because of API behavior, Workspace Policy Fragments are always imported as `xml`.
+		// Because of API behaviour, Workspace Policy Fragments are always imported as `xml`.
 		// As a result, the `xml_format` and `xml_content`properties should be ignored when set to `rawxml`.
 		data.ImportStep("xml_format", "xml_content"),
 	})
@@ -76,7 +76,7 @@ func TestAccApiManagementWorkspacePolicyFragment_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// Because of API behavior, Workspace Policy Fragments are always imported as `xml`.
+		// Because of API behaviour, Workspace Policy Fragments are always imported as `xml`.
 		// As a result, the `xml_format` and `xml_content`properties should be ignored when set to `rawxml`.
 		data.ImportStep("xml_format", "xml_content"),
 		{
@@ -99,7 +99,7 @@ func TestAccApiManagementWorkspacePolicyFragment_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// Because of API behavior, Workspace Policy Fragments are always imported as `xml`.
+		// Because of API behaviour, Workspace Policy Fragments are always imported as `xml`.
 		// As a result, the `xml_format` and `xml_content`properties should be ignored when set to `rawxml`.
 		data.ImportStep("xml_format", "xml_content"),
 	})

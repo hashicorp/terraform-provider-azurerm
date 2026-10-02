@@ -28,14 +28,14 @@ func ListOrder(key, old, new string, d *schema.ResourceData) bool {
 		return false
 	}
 
-	sOld := make([]string, len(oldData.([]interface{})))
-	sNew := make([]string, len(newData.([]interface{})))
+	sOld := make([]string, len(oldData.([]any)))
+	sNew := make([]string, len(newData.([]any)))
 
-	for i, v := range oldData.([]interface{}) {
+	for i, v := range oldData.([]any) {
 		sOld[i] = fmt.Sprint(v)
 	}
 
-	for i, v := range newData.([]interface{}) {
+	for i, v := range newData.([]any) {
 		sNew[i] = fmt.Sprint(v)
 	}
 

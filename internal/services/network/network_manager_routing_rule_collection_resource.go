@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/routingrulecollections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/routingrulecollections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -31,7 +31,7 @@ func (ManagerRoutingRuleCollectionResource) ResourceType() string {
 	return "azurerm_network_manager_routing_rule_collection"
 }
 
-func (ManagerRoutingRuleCollectionResource) ModelObject() interface{} {
+func (ManagerRoutingRuleCollectionResource) ModelObject() any {
 	return &ManagerRoutingRuleCollectionResourceModel{}
 }
 
@@ -100,12 +100,14 @@ func (r ManagerRoutingRuleCollectionResource) Create() sdk.ResourceFunc {
 
 			id := routingrulecollections.NewRuleCollectionID(subscriptionId, routingConfigurationId.ResourceGroupName, routingConfigurationId.NetworkManagerName, routingConfigurationId.RoutingConfigurationName, config.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			payload := routingrulecollections.RoutingRuleCollection{

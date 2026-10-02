@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/auth"
@@ -63,17 +64,13 @@ func BuildWithTestName(testName string) (*clients.Client, error) {
 
 			EnableAuthenticatingUsingClientCertificate: true,
 			EnableAuthenticatingUsingClientSecret:      true,
-			EnableAuthenticatingUsingAzureCLI:          false,
-			EnableAuthenticatingUsingManagedIdentity:   false,
-			EnableAuthenticationUsingOIDC:              false,
-			EnableAuthenticationUsingGitHubOIDC:        false,
 		}
 
 		clientBuilder := clients.ClientBuilder{
 			AuthConfig:        &authConfig,
 			TerraformVersion:  os.Getenv("TERRAFORM_CORE_VERSION"),
 			Features:          features.Default(),
-			StorageUseAzureAD: false,
+			StorageUseAzureAD: strings.EqualFold(os.Getenv("ARM_STORAGE_USE_AZUREAD"), "true"),
 			SubscriptionID:    os.Getenv("ARM_SUBSCRIPTION_ID"),
 			TestName:          testName,
 		}
