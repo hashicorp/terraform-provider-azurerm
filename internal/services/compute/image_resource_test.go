@@ -23,6 +23,16 @@ import (
 
 type ImageResource struct{}
 
+func TestAccImage_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_image", "test")
+	r := ImageResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.setupManagedDisks(data),
+		},
+	}, "")
+}
+
 func TestAccImage_standaloneImage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_image", "test")
 	r := ImageResource{}

@@ -13,6 +13,16 @@ import (
 
 type ConfidentialLedgerDataSource struct{}
 
+func TestAccConfidentialLedgerDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_confidential_ledger", "test")
+	r := ConfidentialLedgerDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccConfidentialLedgerDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_confidential_ledger", "test")
 

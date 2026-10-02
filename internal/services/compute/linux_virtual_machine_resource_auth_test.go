@@ -11,6 +11,17 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
+func TestAccLinuxVirtualMachine_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.authPassword(data),
+		},
+	}, "")
+}
+
 func TestAccLinuxVirtualMachine_authPassword(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 	r := LinuxVirtualMachineResource{}

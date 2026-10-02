@@ -43,6 +43,17 @@ func (r ContainerAppEnvironmentCustomDomainResource) Exists(ctx context.Context,
 	return pointer.To(false), nil
 }
 
+func TestAccContainerAppEnvironmentCustomDomainResource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment_custom_domain", "test")
+	r := ContainerAppEnvironmentCustomDomainResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccContainerAppEnvironmentCustomDomainResource_basic(t *testing.T) {
 	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
 		t.Skipf("Skipping as either ARM_TEST_DNS_ZONE or ARM_TEST_DATA_RESOURCE_GROUP is not set")

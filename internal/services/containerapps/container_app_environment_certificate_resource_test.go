@@ -19,6 +19,16 @@ import (
 
 type ContainerAppEnvironmentCertificateResource struct{}
 
+func TestAccContainerAppEnvironmentCertificate_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment_certificate", "test")
+	r := ContainerAppEnvironmentCertificateResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccContainerAppEnvironmentCertificate_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_environment_certificate", "test")
 	r := ContainerAppEnvironmentCertificateResource{}

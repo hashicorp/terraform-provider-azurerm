@@ -22,6 +22,16 @@ import (
 
 type ManagedDiskResource struct{}
 
+func TestAccManagedDisk_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	r := ManagedDiskResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.empty(data),
+		},
+	}, "")
+}
+
 func TestAccManagedDisk_empty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
 	r := ManagedDiskResource{}

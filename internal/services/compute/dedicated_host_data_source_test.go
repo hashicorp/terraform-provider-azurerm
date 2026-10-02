@@ -13,6 +13,16 @@ import (
 
 type DedicatedHostDataSource struct{}
 
+func TestAccDataSourceAzureRMDedicatedHost_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_dedicated_host", "test")
+	r := DedicatedHostDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceAzureRMDedicatedHost_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_dedicated_host", "test")
 	r := DedicatedHostDataSource{}
