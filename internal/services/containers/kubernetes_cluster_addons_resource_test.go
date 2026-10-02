@@ -49,7 +49,7 @@ func TestAccKubernetesCluster_addonProfileAzurePolicy(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			// Enable with V2
+			// Enable Azure Policy
 			Config: r.addonProfileAzurePolicyConfig(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -65,7 +65,7 @@ func TestAccKubernetesCluster_addonProfileAzurePolicy(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			// Enable with V2
+			// Re-enable Azure Policy
 			Config: r.addonProfileAzurePolicyConfig(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
