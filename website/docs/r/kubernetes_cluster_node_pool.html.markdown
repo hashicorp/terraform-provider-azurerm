@@ -160,6 +160,8 @@ The following arguments are supported:
 
 * `windows_profile` - (Optional) A `windows_profile` block as documented below. Changing this forces a new resource to be created.
 
+~> **Note:** Omitting or removing this block retains the Windows profile returned by Azure. Set `outbound_nat_enabled` explicitly to change it.
+
 * `workload_runtime` - (Optional) Used to specify the workload runtime. Allowed values are `KataVmIsolation`, `OCIContainer` and `WasmWasi`.
 
 ~> **Note:** `KataVmIsolation` requires `os_sku` to be set to `AzureLinux` and the selected VM size must support nested virtualization.
@@ -327,6 +329,8 @@ A `upgrade_settings` block supports the following:
 A `windows_profile` block supports the following:
 
 * `outbound_nat_enabled` - (Optional) Should the Windows nodes in this Node Pool have outbound NAT enabled? Defaults to `true`. Changing this forces a new resource to be created.
+
+~> **Note:** Setting this to `false` is not supported when the cluster uses Azure CNI Overlay networking.
 
 -> **Note:** If a percentage is provided, the number of surge nodes is calculated from the current node count on the cluster. Node surge can allow a cluster to have more nodes than `max_count` during an upgrade. Ensure that your cluster has enough [IP space](https://docs.microsoft.com/azure/aks/upgrade-cluster#customize-node-surge-upgrade) during an upgrade.
 

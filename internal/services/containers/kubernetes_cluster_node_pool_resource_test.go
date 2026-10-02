@@ -1104,9 +1104,66 @@ func TestAccKubernetesClusterNodePool_windowsProfileOutboundNatEnabled(t *testin
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.windowsProfileOutboundNatEnabled(data),
+			Config: r.windowsProfileOutboundNat(data, pointer.To(true), ""),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("windows_profile.0.outbound_nat_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("node_count").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.windowsProfileOutboundNat(data, nil, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("windows_profile.0.outbound_nat_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("node_count").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.windowsProfileOutboundNat(data, nil, "prod"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("windows_profile.0.outbound_nat_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("tags.Environment").HasValue("prod"),
+				check.That(data.ResourceName).Key("node_count").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesClusterNodePool_windowsProfileOutboundNatDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.windowsProfileOutboundNat(data, pointer.To(false), ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("windows_profile.0.outbound_nat_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("node_count").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.windowsProfileOutboundNat(data, nil, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("windows_profile.0.outbound_nat_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("node_count").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.windowsProfileOutboundNat(data, nil, "prod"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("windows_profile.0.outbound_nat_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("tags.Environment").HasValue("prod"),
+				check.That(data.ResourceName).Key("node_count").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -1487,6 +1544,90 @@ func TestAccKubernetesClusterNodePool_VMSizeOmitted(t *testing.T) {
 		},
 		data.ImportStep("vm_size"),
 	})
+}
+
+func TestAccKubernetesClusterNodePool_updateWindowsNodePoolTags(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.windowsNodePoolWithTags(data, "dev"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.Environment").HasValue("dev"),
+				data.CheckWithClient(r.checkWindowsProfile(t, false)),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config:   r.windowsNodePoolWithTags(data, "dev"),
+			PlanOnly: true,
+		},
+		{
+			Config: r.windowsNodePoolWithTags(data, "prod"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.Environment").HasValue("prod"),
+				data.CheckWithClient(r.checkWindowsProfile(t, true)),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config:   r.windowsNodePoolWithTags(data, "prod"),
+			PlanOnly: true,
+		},
+	})
+}
+
+func (KubernetesClusterNodePoolResource) checkWindowsProfile(t *testing.T, requireProfile bool) acceptance.ClientCheckFunc {
+	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+		ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+		defer cancel()
+
+		id, err := agentpools.ParseAgentPoolID(state.ID)
+		if err != nil {
+			return err
+		}
+		resp, err := clients.Containers.AgentPoolsClient.Get(ctx, *id)
+		if err != nil {
+			return fmt.Errorf("reading %s: %+v", *id, err)
+		}
+		if resp.Model == nil || resp.Model.Properties == nil {
+			return fmt.Errorf("reading %s: `properties` was nil", *id)
+		}
+
+		profile := resp.Model.Properties.WindowsProfile
+		disabled := "unset"
+		if profile != nil && profile.DisableOutboundNat != nil {
+			disabled = fmt.Sprintf("%t", *profile.DisableOutboundNat)
+		}
+		t.Logf("Windows profile after tag %q: API present=%t, disableOutboundNat=%s, state count=%q, outbound_nat_enabled=%q",
+			state.Attributes["tags.Environment"], profile != nil, disabled,
+			state.Attributes["windows_profile.#"], state.Attributes["windows_profile.0.outbound_nat_enabled"])
+		return checkWindowsProfileState(profile, state.Attributes, requireProfile)
+	}
+}
+
+func checkWindowsProfileState(profile *agentpools.AgentPoolWindowsProfile, attributes map[string]string, requireProfile bool) error {
+	if profile == nil || profile.DisableOutboundNat == nil {
+		if requireProfile {
+			return fmt.Errorf("Azure returned no outbound NAT setting for the never-configured windows_profile after the tag update (profile present=%t)", profile != nil)
+		}
+		if attributes["windows_profile.#"] != "0" || attributes["windows_profile.0.outbound_nat_enabled"] != "" {
+			return fmt.Errorf("state contains a Windows profile without an API outbound NAT setting")
+		}
+		return nil
+	}
+
+	if attributes["windows_profile.#"] != "1" {
+		return fmt.Errorf("expected one Windows profile in state for the API outbound NAT setting, got %q", attributes["windows_profile.#"])
+	}
+	expected := fmt.Sprintf("%t", !*profile.DisableOutboundNat)
+	if actual := attributes["windows_profile.0.outbound_nat_enabled"]; actual != expected {
+		return fmt.Errorf("state outbound_nat_enabled=%q does not match API disableOutboundNat=%t", actual, *profile.DisableOutboundNat)
+	}
+	return nil
 }
 
 func (r KubernetesClusterNodePoolResource) autoScaleConfig(data acceptance.TestData) string {
@@ -3413,7 +3554,24 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, currentKubernetesVersion)
 }
 
-func (KubernetesClusterNodePoolResource) windowsProfileOutboundNatEnabled(data acceptance.TestData) string {
+func (KubernetesClusterNodePoolResource) windowsProfileOutboundNat(data acceptance.TestData, enabled *bool, tagValue string) string {
+	windowsProfile := ""
+	if enabled != nil {
+		windowsProfile = fmt.Sprintf(`
+  windows_profile {
+    outbound_nat_enabled = %t
+  }
+`, *enabled)
+	}
+	tags := ""
+	if tagValue != "" {
+		tags = fmt.Sprintf(`
+  tags = {
+    Environment = %q
+  }
+`, tagValue)
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3449,22 +3607,26 @@ resource "azurerm_kubernetes_cluster" "test" {
     network_plugin = "azure"
     outbound_type  = "managedNATGateway"
   }
+  windows_profile {
+    admin_username = "azureuser"
+    admin_password = "P@55W0rd1234!%[5]s"
+  }
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "user"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_D2s_v3"
+  node_count            = 1
   os_type               = "Windows"
   os_sku                = "Windows2022"
-  windows_profile {
-    outbound_nat_enabled = true
-  }
+%[3]s
+%[4]s
   upgrade_settings {
     max_surge = "10%%"
   }
 }
-`, data.Locations.Primary, data.RandomInteger)
+`, data.Locations.Primary, data.RandomInteger, windowsProfile, tags, data.RandomString)
 }
 
 func (KubernetesClusterNodePoolResource) nodeIPTags(data acceptance.TestData) string {
@@ -4185,4 +4347,30 @@ resource "azurerm_kubernetes_cluster_node_pool" "pool2" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r KubernetesClusterNodePoolResource) windowsNodePoolWithTags(data acceptance.TestData, tagValue string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "pool1"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  os_type               = "Windows"
+  os_sku                = "Windows2022"
+  node_count            = 1
+  upgrade_settings {
+    max_surge = "10%%"
+  }
+
+  tags = {
+    Environment = %q
+  }
+}
+`, r.templateWindowsConfig(data), tagValue)
 }
