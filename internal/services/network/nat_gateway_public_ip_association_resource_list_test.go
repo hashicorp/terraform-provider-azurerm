@@ -38,8 +38,8 @@ func TestAccNatGatewayPublicIpAssociation_list(t *testing.T) {
 					querycheck.ExpectIdentity(
 						"azurerm_nat_gateway_public_ip_association.list",
 						map[string]knownvalue.Check{
-							"resource_id1": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
-							"resource_id2": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"nat_gateway_id":       knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"public_ip_address_id": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
 						},
 					),
 				},
@@ -52,8 +52,8 @@ func TestAccNatGatewayPublicIpAssociation_list(t *testing.T) {
 					querycheck.ExpectIdentity(
 						"azurerm_nat_gateway_public_ip_association.list",
 						map[string]knownvalue.Check{
-							"resource_id1": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
-							"resource_id2": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"nat_gateway_id":       knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"public_ip_address_id": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
 						},
 					),
 				},
@@ -66,8 +66,8 @@ func TestAccNatGatewayPublicIpAssociation_list(t *testing.T) {
 					querycheck.ExpectIdentity(
 						"azurerm_nat_gateway_public_ip_association.list",
 						map[string]knownvalue.Check{
-							"resource_id1": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
-							"resource_id2": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"nat_gateway_id":       knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"public_ip_address_id": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
 						},
 					),
 				},
@@ -92,7 +92,7 @@ func (NatGatewayPublicIpAssociationResource) basicListQueryByResourceGroup() str
 list "azurerm_nat_gateway_public_ip_association" "list" {
   provider = azurerm
   config {
-    resource_group_id = azurerm_resource_group.test.id
+    resource_group_name = azurerm_resource_group.test.name
   }
 }
 `

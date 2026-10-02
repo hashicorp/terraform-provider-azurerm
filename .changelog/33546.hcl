@@ -3,7 +3,7 @@ change "resource-enhancement" {
 }
 
 change "new-list-resource" {
-  body = "**New List Resource:** `azurerm_monitor_diagnostic_setting`"
+  body = "**New List Resource**: `azurerm_monitor_diagnostic_setting`"
 }
 
 change "resource-enhancement" {
@@ -11,7 +11,7 @@ change "resource-enhancement" {
 }
 
 change "new-list-resource" {
-  body = "**New List Resource:** `azurerm_nat_gateway_public_ip_association`"
+  body = "**New List Resource**: `azurerm_nat_gateway_public_ip_association`"
 }
 
 change "resource-enhancement" {
@@ -19,7 +19,7 @@ change "resource-enhancement" {
 }
 
 change "new-list-resource" {
-  body = "**New List Resource:** `azurerm_management_lock`"
+  body = "**New List Resource**: `azurerm_management_lock`"
 }
 
 change "resource-enhancement" {
@@ -27,5 +27,9 @@ change "resource-enhancement" {
 }
 
 change "new-list-resource" {
-  body = "**New List Resource:** `azurerm_maintenance_assignment_virtual_machine`"
+  body = "**New List Resource**: `azurerm_maintenance_assignment_virtual_machine`"
+}
+
+change "resource-enhancement" {
+  body = "`azurerm_monitor_data_collection_rule_association` - add Resource Identity support"
 }

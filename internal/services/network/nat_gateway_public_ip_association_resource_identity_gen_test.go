@@ -17,8 +17,8 @@ func TestAccNatGatewayPublicIpAssociation_resourceIdentity(t *testing.T) {
 	r := NatGatewayPublicIpAssociationResource{}
 
 	checkedFields := map[string]struct{}{
-		"resource_id1": {},
-		"resource_id2": {},
+		"nat_gateway_id":       {},
+		"public_ip_address_id": {},
 	}
 
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
@@ -26,8 +26,8 @@ func TestAccNatGatewayPublicIpAssociation_resourceIdentity(t *testing.T) {
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
 				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_nat_gateway_public_ip_association.test", checkedFields),
-				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_nat_gateway_public_ip_association.test", tfjsonpath.New("resource_id1"), tfjsonpath.New("nat_gateway_id")),
-				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_nat_gateway_public_ip_association.test", tfjsonpath.New("resource_id2"), tfjsonpath.New("public_ip_address_id")),
+				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_nat_gateway_public_ip_association.test", tfjsonpath.New("nat_gateway_id"), tfjsonpath.New("nat_gateway_id")),
+				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_nat_gateway_public_ip_association.test", tfjsonpath.New("public_ip_address_id"), tfjsonpath.New("public_ip_address_id")),
 			},
 		},
 		data.ImportBlockWithResourceIdentityStep(false),
