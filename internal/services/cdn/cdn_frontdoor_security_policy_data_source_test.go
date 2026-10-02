@@ -13,6 +13,16 @@ import (
 
 type CdnFrontDoorSecurityPolicyDataSource struct{}
 
+func TestAccCdnFrontDoorSecurityPolicyDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_cdn_frontdoor_security_policy", "test")
+	r := CdnFrontDoorSecurityPolicyDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccCdnFrontDoorSecurityPolicyDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_cdn_frontdoor_security_policy", "test")
 	d := CdnFrontDoorSecurityPolicyDataSource{}

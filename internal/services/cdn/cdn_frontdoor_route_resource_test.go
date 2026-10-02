@@ -22,6 +22,16 @@ type CdnFrontDoorRouteResource struct{}
 // in the meantime I will use the link_to_default_domain_enabled to make the
 // Frontdoor endpoint our "Custom Domain".
 
+func TestAccCdnFrontDoorRoute_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_route", "test")
+	r := CdnFrontDoorRouteResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccCdnFrontDoorRoute_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_route", "test")
 	r := CdnFrontDoorRouteResource{}

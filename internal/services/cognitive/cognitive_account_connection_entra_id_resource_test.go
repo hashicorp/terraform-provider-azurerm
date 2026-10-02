@@ -20,6 +20,16 @@ import (
 
 type CognitiveAccountConnectionEntraIdResource struct{}
 
+func TestAccCognitiveAccountConnectionEntraID_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection_entra_id", "test")
+	r := CognitiveAccountConnectionEntraIdResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccCognitiveAccountConnectionEntraID_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection_entra_id", "test")
 	r := CognitiveAccountConnectionEntraIdResource{}
