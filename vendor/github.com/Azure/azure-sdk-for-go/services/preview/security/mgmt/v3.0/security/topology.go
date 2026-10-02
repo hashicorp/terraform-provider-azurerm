@@ -21,24 +21,22 @@ type TopologyClient struct {
 }
 
 // NewTopologyClient creates an instance of the TopologyClient client.
-func NewTopologyClient(subscriptionID string) TopologyClient {
-	return NewTopologyClientWithBaseURI(DefaultBaseURI, subscriptionID)
+func NewTopologyClient(subscriptionID string, ascLocation string) TopologyClient {
+	return NewTopologyClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
 }
 
 // NewTopologyClientWithBaseURI creates an instance of the TopologyClient client using a custom endpoint.  Use this
 // when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
-func NewTopologyClientWithBaseURI(baseURI string, subscriptionID string) TopologyClient {
-	return TopologyClient{NewWithBaseURI(baseURI, subscriptionID)}
+func NewTopologyClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) TopologyClient {
+	return TopologyClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
 }
 
 // Get gets a specific topology component.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
-// ascLocation - the location where ASC stores the data of the subscription. can be retrieved from Get
-// locations
 // topologyResourceName - name of a topology resources collection.
-func (client TopologyClient) Get(ctx context.Context, resourceGroupName string, ascLocation string, topologyResourceName string) (result TopologyResource, err error) {
+func (client TopologyClient) Get(ctx context.Context, resourceGroupName string, topologyResourceName string) (result TopologyResource, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/TopologyClient.Get")
 		defer func() {
@@ -59,7 +57,7 @@ func (client TopologyClient) Get(ctx context.Context, resourceGroupName string, 
 		return result, validation.NewError("security.TopologyClient", "Get", err.Error())
 	}
 
-	req, err := client.GetPreparer(ctx, resourceGroupName, ascLocation, topologyResourceName)
+	req, err := client.GetPreparer(ctx, resourceGroupName, topologyResourceName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.TopologyClient", "Get", nil, "Failure preparing request")
 		return
@@ -82,9 +80,9 @@ func (client TopologyClient) Get(ctx context.Context, resourceGroupName string, 
 }
 
 // GetPreparer prepares the Get request.
-func (client TopologyClient) GetPreparer(ctx context.Context, resourceGroupName string, ascLocation string, topologyResourceName string) (*http.Request, error) {
+func (client TopologyClient) GetPreparer(ctx context.Context, resourceGroupName string, topologyResourceName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"ascLocation":          autorest.Encode("path", ascLocation),
+		"ascLocation":          autorest.Encode("path", client.AscLocation),
 		"resourceGroupName":    autorest.Encode("path", resourceGroupName),
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 		"topologyResourceName": autorest.Encode("path", topologyResourceName),
@@ -241,10 +239,7 @@ func (client TopologyClient) ListComplete(ctx context.Context) (result TopologyL
 }
 
 // ListByHomeRegion gets a list that allows to build a topology view of a subscription and location.
-// Parameters:
-// ascLocation - the location where ASC stores the data of the subscription. can be retrieved from Get
-// locations
-func (client TopologyClient) ListByHomeRegion(ctx context.Context, ascLocation string) (result TopologyListPage, err error) {
+func (client TopologyClient) ListByHomeRegion(ctx context.Context) (result TopologyListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/TopologyClient.ListByHomeRegion")
 		defer func() {
@@ -262,7 +257,7 @@ func (client TopologyClient) ListByHomeRegion(ctx context.Context, ascLocation s
 	}
 
 	result.fn = client.listByHomeRegionNextResults
-	req, err := client.ListByHomeRegionPreparer(ctx, ascLocation)
+	req, err := client.ListByHomeRegionPreparer(ctx)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.TopologyClient", "ListByHomeRegion", nil, "Failure preparing request")
 		return
@@ -289,9 +284,9 @@ func (client TopologyClient) ListByHomeRegion(ctx context.Context, ascLocation s
 }
 
 // ListByHomeRegionPreparer prepares the ListByHomeRegion request.
-func (client TopologyClient) ListByHomeRegionPreparer(ctx context.Context, ascLocation string) (*http.Request, error) {
+func (client TopologyClient) ListByHomeRegionPreparer(ctx context.Context) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"ascLocation":    autorest.Encode("path", ascLocation),
+		"ascLocation":    autorest.Encode("path", client.AscLocation),
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
@@ -348,7 +343,7 @@ func (client TopologyClient) listByHomeRegionNextResults(ctx context.Context, la
 }
 
 // ListByHomeRegionComplete enumerates all values, automatically crossing page boundaries as required.
-func (client TopologyClient) ListByHomeRegionComplete(ctx context.Context, ascLocation string) (result TopologyListIterator, err error) {
+func (client TopologyClient) ListByHomeRegionComplete(ctx context.Context) (result TopologyListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/TopologyClient.ListByHomeRegion")
 		defer func() {
@@ -359,6 +354,6 @@ func (client TopologyClient) ListByHomeRegionComplete(ctx context.Context, ascLo
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListByHomeRegion(ctx, ascLocation)
+	result.page, err = client.ListByHomeRegion(ctx)
 	return
 }

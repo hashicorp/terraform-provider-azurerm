@@ -21,25 +21,23 @@ type ExternalSecuritySolutionsClient struct {
 }
 
 // NewExternalSecuritySolutionsClient creates an instance of the ExternalSecuritySolutionsClient client.
-func NewExternalSecuritySolutionsClient(subscriptionID string) ExternalSecuritySolutionsClient {
-	return NewExternalSecuritySolutionsClientWithBaseURI(DefaultBaseURI, subscriptionID)
+func NewExternalSecuritySolutionsClient(subscriptionID string, ascLocation string) ExternalSecuritySolutionsClient {
+	return NewExternalSecuritySolutionsClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
 }
 
 // NewExternalSecuritySolutionsClientWithBaseURI creates an instance of the ExternalSecuritySolutionsClient client
 // using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
 // clouds, Azure stack).
-func NewExternalSecuritySolutionsClientWithBaseURI(baseURI string, subscriptionID string) ExternalSecuritySolutionsClient {
-	return ExternalSecuritySolutionsClient{NewWithBaseURI(baseURI, subscriptionID)}
+func NewExternalSecuritySolutionsClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) ExternalSecuritySolutionsClient {
+	return ExternalSecuritySolutionsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
 }
 
 // Get gets a specific external Security Solution.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
-// ascLocation - the location where ASC stores the data of the subscription. can be retrieved from Get
-// locations
 // externalSecuritySolutionsName - name of an external security solution.
-func (client ExternalSecuritySolutionsClient) Get(ctx context.Context, resourceGroupName string, ascLocation string, externalSecuritySolutionsName string) (result ExternalSecuritySolutionModel, err error) {
+func (client ExternalSecuritySolutionsClient) Get(ctx context.Context, resourceGroupName string, externalSecuritySolutionsName string) (result ExternalSecuritySolutionModel, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ExternalSecuritySolutionsClient.Get")
 		defer func() {
@@ -60,7 +58,7 @@ func (client ExternalSecuritySolutionsClient) Get(ctx context.Context, resourceG
 		return result, validation.NewError("security.ExternalSecuritySolutionsClient", "Get", err.Error())
 	}
 
-	req, err := client.GetPreparer(ctx, resourceGroupName, ascLocation, externalSecuritySolutionsName)
+	req, err := client.GetPreparer(ctx, resourceGroupName, externalSecuritySolutionsName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.ExternalSecuritySolutionsClient", "Get", nil, "Failure preparing request")
 		return
@@ -83,9 +81,9 @@ func (client ExternalSecuritySolutionsClient) Get(ctx context.Context, resourceG
 }
 
 // GetPreparer prepares the Get request.
-func (client ExternalSecuritySolutionsClient) GetPreparer(ctx context.Context, resourceGroupName string, ascLocation string, externalSecuritySolutionsName string) (*http.Request, error) {
+func (client ExternalSecuritySolutionsClient) GetPreparer(ctx context.Context, resourceGroupName string, externalSecuritySolutionsName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"ascLocation":                   autorest.Encode("path", ascLocation),
+		"ascLocation":                   autorest.Encode("path", client.AscLocation),
 		"externalSecuritySolutionsName": autorest.Encode("path", externalSecuritySolutionsName),
 		"resourceGroupName":             autorest.Encode("path", resourceGroupName),
 		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
@@ -242,10 +240,7 @@ func (client ExternalSecuritySolutionsClient) ListComplete(ctx context.Context) 
 }
 
 // ListByHomeRegion gets a list of external Security Solutions for the subscription and location.
-// Parameters:
-// ascLocation - the location where ASC stores the data of the subscription. can be retrieved from Get
-// locations
-func (client ExternalSecuritySolutionsClient) ListByHomeRegion(ctx context.Context, ascLocation string) (result ExternalSecuritySolutionListPage, err error) {
+func (client ExternalSecuritySolutionsClient) ListByHomeRegion(ctx context.Context) (result ExternalSecuritySolutionListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ExternalSecuritySolutionsClient.ListByHomeRegion")
 		defer func() {
@@ -263,7 +258,7 @@ func (client ExternalSecuritySolutionsClient) ListByHomeRegion(ctx context.Conte
 	}
 
 	result.fn = client.listByHomeRegionNextResults
-	req, err := client.ListByHomeRegionPreparer(ctx, ascLocation)
+	req, err := client.ListByHomeRegionPreparer(ctx)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.ExternalSecuritySolutionsClient", "ListByHomeRegion", nil, "Failure preparing request")
 		return
@@ -290,9 +285,9 @@ func (client ExternalSecuritySolutionsClient) ListByHomeRegion(ctx context.Conte
 }
 
 // ListByHomeRegionPreparer prepares the ListByHomeRegion request.
-func (client ExternalSecuritySolutionsClient) ListByHomeRegionPreparer(ctx context.Context, ascLocation string) (*http.Request, error) {
+func (client ExternalSecuritySolutionsClient) ListByHomeRegionPreparer(ctx context.Context) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"ascLocation":    autorest.Encode("path", ascLocation),
+		"ascLocation":    autorest.Encode("path", client.AscLocation),
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
@@ -349,7 +344,7 @@ func (client ExternalSecuritySolutionsClient) listByHomeRegionNextResults(ctx co
 }
 
 // ListByHomeRegionComplete enumerates all values, automatically crossing page boundaries as required.
-func (client ExternalSecuritySolutionsClient) ListByHomeRegionComplete(ctx context.Context, ascLocation string) (result ExternalSecuritySolutionListIterator, err error) {
+func (client ExternalSecuritySolutionsClient) ListByHomeRegionComplete(ctx context.Context) (result ExternalSecuritySolutionListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ExternalSecuritySolutionsClient.ListByHomeRegion")
 		defer func() {
@@ -360,6 +355,6 @@ func (client ExternalSecuritySolutionsClient) ListByHomeRegionComplete(ctx conte
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListByHomeRegion(ctx, ascLocation)
+	result.page, err = client.ListByHomeRegion(ctx)
 	return
 }

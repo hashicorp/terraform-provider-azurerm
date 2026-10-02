@@ -21,15 +21,15 @@ type AllowedConnectionsClient struct {
 }
 
 // NewAllowedConnectionsClient creates an instance of the AllowedConnectionsClient client.
-func NewAllowedConnectionsClient(subscriptionID string) AllowedConnectionsClient {
-	return NewAllowedConnectionsClientWithBaseURI(DefaultBaseURI, subscriptionID)
+func NewAllowedConnectionsClient(subscriptionID string, ascLocation string) AllowedConnectionsClient {
+	return NewAllowedConnectionsClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
 }
 
 // NewAllowedConnectionsClientWithBaseURI creates an instance of the AllowedConnectionsClient client using a custom
 // endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
 // stack).
-func NewAllowedConnectionsClientWithBaseURI(baseURI string, subscriptionID string) AllowedConnectionsClient {
-	return AllowedConnectionsClient{NewWithBaseURI(baseURI, subscriptionID)}
+func NewAllowedConnectionsClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) AllowedConnectionsClient {
+	return AllowedConnectionsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
 }
 
 // Get gets the list of all possible traffic between resources for the subscription and location, based on connection
@@ -37,10 +37,8 @@ func NewAllowedConnectionsClientWithBaseURI(baseURI string, subscriptionID strin
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
-// ascLocation - the location where ASC stores the data of the subscription. can be retrieved from Get
-// locations
 // connectionType - the type of allowed connections (Internal, External)
-func (client AllowedConnectionsClient) Get(ctx context.Context, resourceGroupName string, ascLocation string, connectionType ConnectionType) (result AllowedConnectionsResource, err error) {
+func (client AllowedConnectionsClient) Get(ctx context.Context, resourceGroupName string, connectionType ConnectionType) (result AllowedConnectionsResource, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AllowedConnectionsClient.Get")
 		defer func() {
@@ -61,7 +59,7 @@ func (client AllowedConnectionsClient) Get(ctx context.Context, resourceGroupNam
 		return result, validation.NewError("security.AllowedConnectionsClient", "Get", err.Error())
 	}
 
-	req, err := client.GetPreparer(ctx, resourceGroupName, ascLocation, connectionType)
+	req, err := client.GetPreparer(ctx, resourceGroupName, connectionType)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AllowedConnectionsClient", "Get", nil, "Failure preparing request")
 		return
@@ -84,9 +82,9 @@ func (client AllowedConnectionsClient) Get(ctx context.Context, resourceGroupNam
 }
 
 // GetPreparer prepares the Get request.
-func (client AllowedConnectionsClient) GetPreparer(ctx context.Context, resourceGroupName string, ascLocation string, connectionType ConnectionType) (*http.Request, error) {
+func (client AllowedConnectionsClient) GetPreparer(ctx context.Context, resourceGroupName string, connectionType ConnectionType) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"ascLocation":       autorest.Encode("path", ascLocation),
+		"ascLocation":       autorest.Encode("path", client.AscLocation),
 		"connectionType":    autorest.Encode("path", connectionType),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
@@ -243,10 +241,7 @@ func (client AllowedConnectionsClient) ListComplete(ctx context.Context) (result
 }
 
 // ListByHomeRegion gets the list of all possible traffic between resources for the subscription and location.
-// Parameters:
-// ascLocation - the location where ASC stores the data of the subscription. can be retrieved from Get
-// locations
-func (client AllowedConnectionsClient) ListByHomeRegion(ctx context.Context, ascLocation string) (result AllowedConnectionsListPage, err error) {
+func (client AllowedConnectionsClient) ListByHomeRegion(ctx context.Context) (result AllowedConnectionsListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AllowedConnectionsClient.ListByHomeRegion")
 		defer func() {
@@ -264,7 +259,7 @@ func (client AllowedConnectionsClient) ListByHomeRegion(ctx context.Context, asc
 	}
 
 	result.fn = client.listByHomeRegionNextResults
-	req, err := client.ListByHomeRegionPreparer(ctx, ascLocation)
+	req, err := client.ListByHomeRegionPreparer(ctx)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AllowedConnectionsClient", "ListByHomeRegion", nil, "Failure preparing request")
 		return
@@ -291,9 +286,9 @@ func (client AllowedConnectionsClient) ListByHomeRegion(ctx context.Context, asc
 }
 
 // ListByHomeRegionPreparer prepares the ListByHomeRegion request.
-func (client AllowedConnectionsClient) ListByHomeRegionPreparer(ctx context.Context, ascLocation string) (*http.Request, error) {
+func (client AllowedConnectionsClient) ListByHomeRegionPreparer(ctx context.Context) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"ascLocation":    autorest.Encode("path", ascLocation),
+		"ascLocation":    autorest.Encode("path", client.AscLocation),
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
@@ -350,7 +345,7 @@ func (client AllowedConnectionsClient) listByHomeRegionNextResults(ctx context.C
 }
 
 // ListByHomeRegionComplete enumerates all values, automatically crossing page boundaries as required.
-func (client AllowedConnectionsClient) ListByHomeRegionComplete(ctx context.Context, ascLocation string) (result AllowedConnectionsListIterator, err error) {
+func (client AllowedConnectionsClient) ListByHomeRegionComplete(ctx context.Context) (result AllowedConnectionsListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AllowedConnectionsClient.ListByHomeRegion")
 		defer func() {
@@ -361,6 +356,6 @@ func (client AllowedConnectionsClient) ListByHomeRegionComplete(ctx context.Cont
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListByHomeRegion(ctx, ascLocation)
+	result.page, err = client.ListByHomeRegion(ctx)
 	return
 }

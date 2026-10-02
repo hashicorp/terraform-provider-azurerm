@@ -1,7 +1,7 @@
 module github.com/hashicorp/terraform-provider-azurerm
 
 require (
-	github.com/Azure/azure-sdk-for-go v68.0.0+incompatible
+	github.com/Azure/azure-sdk-for-go v66.0.0+incompatible
 	github.com/Azure/go-autorest/autorest v0.11.30
 	github.com/Azure/go-autorest/autorest/date v0.3.1
 	github.com/Azure/go-autorest/autorest/to v0.4.1

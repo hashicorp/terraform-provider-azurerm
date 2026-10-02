@@ -20,15 +20,15 @@ type DeviceSecurityGroupsClient struct {
 }
 
 // NewDeviceSecurityGroupsClient creates an instance of the DeviceSecurityGroupsClient client.
-func NewDeviceSecurityGroupsClient(subscriptionID string) DeviceSecurityGroupsClient {
-	return NewDeviceSecurityGroupsClientWithBaseURI(DefaultBaseURI, subscriptionID)
+func NewDeviceSecurityGroupsClient(subscriptionID string, ascLocation string) DeviceSecurityGroupsClient {
+	return NewDeviceSecurityGroupsClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
 }
 
 // NewDeviceSecurityGroupsClientWithBaseURI creates an instance of the DeviceSecurityGroupsClient client using a custom
 // endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
 // stack).
-func NewDeviceSecurityGroupsClientWithBaseURI(baseURI string, subscriptionID string) DeviceSecurityGroupsClient {
-	return DeviceSecurityGroupsClient{NewWithBaseURI(baseURI, subscriptionID)}
+func NewDeviceSecurityGroupsClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) DeviceSecurityGroupsClient {
+	return DeviceSecurityGroupsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
 }
 
 // CreateOrUpdate use this method to creates or updates the device security group on a specified IoT Hub resource.
