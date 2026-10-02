@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
-  "github.com/hashicorp/go-cty/cty"
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -396,7 +396,7 @@ func resourceVpnGatewayConnectionResourceCreate(d *pluginsdk.ResourceData, meta 
 		payload.Properties.TrafficSelectorPolicies = expandVpnGatewayConnectionTrafficSelectorPolicy(v.(*pluginsdk.Set).List())
 	}
 
-	payload.Properties.VpnLinkConnections, err = expandVpnGatewayConnectionVpnSiteLinkConnections(d.Get("vpn_link").([]interface{}), d)
+	payload.Properties.VpnLinkConnections, err = expandVpnGatewayConnectionVpnSiteLinkConnections(d.Get("vpn_link").([]any), d)
 	if err != nil {
 		return err
 	}
@@ -903,9 +903,9 @@ func flattenVpnGatewayConnectionCustomBgpAddresses(input *[]virtualwans.GatewayC
 	return results
 }
 
-func vpnGatewayConnectionCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+func vpnGatewayConnectionCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ any) error {
 	if vpnLinks, ok := d.GetOk("vpn_link"); ok {
-		for i := range vpnLinks.([]interface{}) {
+		for i := range vpnLinks.([]any) {
 			vpnLink := d.GetRawConfig().AsValueMap()["vpn_link"].AsValueSlice()[i].AsValueMap()
 			sharedKeyOk := !vpnLink["shared_key"].IsNull()
 			// Not sure if `GetRawConfig` can be used with `WriteOnly` property, but from the tests it seems to work
