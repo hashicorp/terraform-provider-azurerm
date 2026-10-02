@@ -35,10 +35,10 @@ var _ resource.ResourceWithIdentity = &FrameworkResourceWrapper{}
 
 var _ list.ListResource = &FrameworkResourceWrapper{}
 
-type EmbeddedFrameworkResourceModel interface{}
+type EmbeddedFrameworkResourceModel any
 
 func (r *FrameworkResourceWrapper) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
-	response.TypeName = r.FrameworkWrappedResource.ResourceType()
+	response.TypeName = r.ResourceType()
 }
 
 func (r *FrameworkResourceWrapper) Schema(ctx context.Context, request resource.SchemaRequest, response *resource.SchemaResponse) {
@@ -66,7 +66,7 @@ func (r *FrameworkResourceWrapper) Create(ctx context.Context, request resource.
 		return
 	}
 
-	createTimeout, diags := customTimeouts.Create(ctx, r.ResourceMetadata.TimeoutCreate)
+	createTimeout, diags := customTimeouts.Create(ctx, r.TimeoutCreate)
 	if diags.HasError() {
 		response.Diagnostics.Append(diags...)
 		return
@@ -74,9 +74,9 @@ func (r *FrameworkResourceWrapper) Create(ctx context.Context, request resource.
 
 	ctx, cancel := context.WithTimeout(ctx, createTimeout)
 	defer cancel()
-	model := r.FrameworkWrappedResource.ModelObject()
+	model := r.ModelObject()
 
-	r.ResourceMetadata.DecodeCreate(ctx, request, response, model)
+	r.DecodeCreate(ctx, request, response, model)
 	if response.Diagnostics.HasError() {
 		return
 	}
@@ -86,7 +86,7 @@ func (r *FrameworkResourceWrapper) Create(ctx context.Context, request resource.
 		return
 	}
 
-	r.ResourceMetadata.EncodeCreate(ctx, response, model)
+	r.EncodeCreate(ctx, response, model)
 	if response.Diagnostics.HasError() {
 		return
 	}
@@ -102,7 +102,7 @@ func (r *FrameworkResourceWrapper) Read(ctx context.Context, request resource.Re
 		return
 	}
 
-	readTimeout, diags := customTimeouts.Read(ctx, r.ResourceMetadata.TimeoutRead)
+	readTimeout, diags := customTimeouts.Read(ctx, r.TimeoutRead)
 	if diags.HasError() {
 		response.Diagnostics.Append(diags...)
 		return
@@ -111,9 +111,9 @@ func (r *FrameworkResourceWrapper) Read(ctx context.Context, request resource.Re
 	ctx, cancel := context.WithTimeout(ctx, readTimeout)
 	defer cancel()
 
-	state := r.FrameworkWrappedResource.ModelObject()
+	state := r.ModelObject()
 
-	r.ResourceMetadata.DecodeRead(ctx, request, response, state)
+	r.DecodeRead(ctx, request, response, state)
 
 	if response.Diagnostics.HasError() {
 		return
@@ -133,7 +133,7 @@ func (r *FrameworkResourceWrapper) Read(ctx context.Context, request resource.Re
 		}
 	}
 
-	r.ResourceMetadata.EncodeRead(ctx, response, state)
+	r.EncodeRead(ctx, response, state)
 	if response.Diagnostics.HasError() {
 		return
 	}
@@ -149,7 +149,7 @@ func (r *FrameworkResourceWrapper) Update(ctx context.Context, request resource.
 			return
 		}
 
-		updateTimeout, diags := customTimeouts.Update(ctx, *r.ResourceMetadata.TimeoutUpdate)
+		updateTimeout, diags := customTimeouts.Update(ctx, *r.TimeoutUpdate)
 		if diags.HasError() {
 			response.Diagnostics.Append(diags...)
 			return
@@ -158,10 +158,10 @@ func (r *FrameworkResourceWrapper) Update(ctx context.Context, request resource.
 		ctx, cancel := context.WithTimeout(ctx, updateTimeout)
 		defer cancel()
 
-		plan := r.FrameworkWrappedResource.ModelObject()
-		state := r.FrameworkWrappedResource.ModelObject()
+		plan := r.ModelObject()
+		state := r.ModelObject()
 
-		r.ResourceMetadata.DecodeUpdate(ctx, request, response, plan, state)
+		r.DecodeUpdate(ctx, request, response, plan, state)
 		if response.Diagnostics.HasError() {
 			return
 		}
@@ -171,9 +171,9 @@ func (r *FrameworkResourceWrapper) Update(ctx context.Context, request resource.
 			return
 		}
 
-		r.ResourceMetadata.EncodeUpdate(ctx, response, plan)
+		r.EncodeUpdate(ctx, response, plan)
 	} else {
-		SetResponseErrorDiagnostic(response, "Update called on non-updatable resource", fmt.Sprintf("resource type %s does not implement Update", r.FrameworkWrappedResource.ResourceType()))
+		SetResponseErrorDiagnostic(response, "Update called on non-updatable resource", fmt.Sprintf("resource type %s does not implement Update", r.ResourceType()))
 	}
 }
 
@@ -184,7 +184,7 @@ func (r *FrameworkResourceWrapper) Delete(ctx context.Context, request resource.
 		return
 	}
 
-	deleteTimeout, diags := customTimeouts.Delete(ctx, r.ResourceMetadata.TimeoutDelete)
+	deleteTimeout, diags := customTimeouts.Delete(ctx, r.TimeoutDelete)
 	if diags.HasError() {
 		response.Diagnostics.Append(diags...)
 		return
@@ -193,8 +193,8 @@ func (r *FrameworkResourceWrapper) Delete(ctx context.Context, request resource.
 	ctx, cancel := context.WithTimeout(ctx, deleteTimeout)
 	defer cancel()
 
-	state := r.FrameworkWrappedResource.ModelObject()
-	r.ResourceMetadata.DecodeDelete(ctx, request, response, state)
+	state := r.ModelObject()
+	r.DecodeDelete(ctx, request, response, state)
 	if response.Diagnostics.HasError() {
 		return
 	}
@@ -240,7 +240,7 @@ func (r *FrameworkResourceWrapper) ModifyPlan(ctx context.Context, request resou
 }
 
 func (r *FrameworkResourceWrapper) IdentitySchema(_ context.Context, _ resource.IdentitySchemaRequest, response *resource.IdentitySchemaResponse) {
-	response.IdentitySchema = GenerateIdentitySchema(r.FrameworkWrappedResource.Identity())
+	response.IdentitySchema = GenerateIdentitySchema(r.Identity())
 }
 
 // SetIdentityOnCreate sets the identity attributes on the response based on the resource ID.
@@ -254,7 +254,7 @@ func (r *FrameworkResourceWrapper) SetIdentityOnRead(ctx context.Context, respon
 }
 
 func (r *FrameworkResourceWrapper) setIdentity(ctx context.Context, state *tfsdk.State, identity *tfsdk.ResourceIdentity, diags *diag.Diagnostics) {
-	if id, idType := r.FrameworkWrappedResource.Identity(); id != nil {
+	if id, idType := r.Identity(); id != nil {
 		parser := resourceids.NewParserFromResourceIdType(id)
 		idVal := ""
 		state.GetAttribute(ctx, path.Root("id"), &idVal)
@@ -300,7 +300,7 @@ func (r *FrameworkResourceWrapper) ListResourceConfigSchema(ctx context.Context,
 		return
 	}
 
-	response.Diagnostics.AddError("resource does not support list", fmt.Sprintf("the resource type %s does not support list/search", r.FrameworkWrappedResource.ResourceType()))
+	response.Diagnostics.AddError("resource does not support list", fmt.Sprintf("the resource type %s does not support list/search", r.ResourceType()))
 }
 
 // AssertResourceModelType is a helper function to assist in checking the Resource or Data Source model type and

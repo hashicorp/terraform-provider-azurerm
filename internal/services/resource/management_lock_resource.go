@@ -72,7 +72,7 @@ func resourceManagementLock() *pluginsdk.Resource {
 	}
 }
 
-func resourceManagementLockCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagementLockCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Resource.LocksClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -115,7 +115,7 @@ func resourceManagementLockCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	return resourceManagementLockRead(d, meta)
 }
 
-func resourceManagementLockRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagementLockRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Resource.LocksClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -146,7 +146,7 @@ func resourceManagementLockRead(d *pluginsdk.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceManagementLockDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagementLockDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Resource.LocksClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

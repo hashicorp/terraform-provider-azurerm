@@ -12,11 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/data-plane/synapse/2021-06-01-preview/managedprivateendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -67,7 +66,7 @@ func resourceSynapseManagedPrivateEndpoint() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.PrivateLinkSubResourceName,
+				ValidateFunc: validate.PrivateLinkSubResourceName,
 			},
 
 			"fully_qualified_domain_names": {
@@ -83,7 +82,7 @@ func resourceSynapseManagedPrivateEndpoint() *pluginsdk.Resource {
 	}
 }
 
-func resourceSynapseManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, meta any) error {
 	workspaceClient := meta.(*clients.Client).Synapse.WorkspacesClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -127,7 +126,7 @@ func resourceSynapseManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, meta
 
 	payload := managedprivateendpoints.ManagedPrivateEndpoint{
 		Properties: &managedprivateendpoints.ManagedPrivateEndpointProperties{
-			Fqdns:                 helpers.ExpandStringSlice(d.Get("fully_qualified_domain_names").([]any)),
+			Fqdns:                 pluginsdk.ExpandStringSlice(d.Get("fully_qualified_domain_names").([]any)),
 			GroupId:               pointer.To(d.Get("subresource_name").(string)),
 			PrivateLinkResourceId: pointer.To(d.Get("target_resource_id").(string)),
 		},
@@ -149,7 +148,7 @@ func resourceSynapseManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, meta
 	return resourceSynapseManagedPrivateEndpointRead(d, meta)
 }
 
-func resourceSynapseManagedPrivateEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseManagedPrivateEndpointRead(d *pluginsdk.ResourceData, meta any) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -188,7 +187,7 @@ func resourceSynapseManagedPrivateEndpointRead(d *pluginsdk.ResourceData, meta i
 	return nil
 }
 
-func resourceSynapseManagedPrivateEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseManagedPrivateEndpointDelete(d *pluginsdk.ResourceData, meta any) error {
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

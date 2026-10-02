@@ -1,8 +1,8 @@
 name: Workflow YAML Lint
 
 # Lints the repo's YAML (workflows, configs) with yamllint; rules live in .yamllint.yml.
-# yamllint is preinstalled on ubuntu-latest and auto-detects GitHub Actions, emitting
-# ::error annotations that show up inline on the PR diff.
+# make pip installs the version pinned in GNUmakefile into .tools/venv; yamllint auto-detects
+# GitHub Actions, emitting ::error annotations that show up inline on the PR diff.
 
 permissions:
   contents: read
@@ -25,4 +25,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+        with:
+          persist-credentials: false
       - run: make yamllint

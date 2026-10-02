@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package cognitive
 
 import (
@@ -43,7 +46,7 @@ func (r CognitiveAccountProjectResource) ResourceType() string {
 	return "azurerm_cognitive_account_project"
 }
 
-func (r CognitiveAccountProjectResource) ModelObject() interface{} {
+func (r CognitiveAccountProjectResource) ModelObject() any {
 	return &CognitiveAccountProjectModel{}
 }
 

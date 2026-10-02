@@ -82,7 +82,6 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 
 		filter := fmt.Sprintf("(resourceType eq 'Microsoft.Sql/servers') and ((name eq '%s'))", linkDatabase.ServerName)
 		listOptions := resources.ListOperationOptions{
-			Expand: nil,
 			Filter: pointer.To(filter),
 			Top:    pointer.To(int64(100)),
 		}

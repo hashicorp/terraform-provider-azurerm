@@ -130,7 +130,7 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 							Optional: true,
 						},
 
-						// Returned value of the `virtual_network_rule` array does not honor the input order,
+						// Returned value of the `virtual_network_rule` array does not honour the input order,
 						// possibly a service design, thus changed to TypeSet
 						"virtual_network_rule": {
 							Type:       pluginsdk.TypeSet,
@@ -241,7 +241,7 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v any) error {
 				oldSku, newSku := d.GetChange("sku")
 				if d.HasChange("sku") {
 					if strings.EqualFold(newSku.(string), string(namespaces.SkuNamePremium)) || strings.EqualFold(oldSku.(string), string(namespaces.SkuTierPremium)) {
@@ -256,7 +256,7 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 	}
 }
 
-func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Eventhub.NamespacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -283,10 +283,10 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 	location := location.Normalize(d.Get("location").(string))
 	sku := d.Get("sku").(string)
 	capacity := int32(d.Get("capacity").(int))
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 	autoInflateEnabled := d.Get("auto_inflate_enabled").(bool)
 
-	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -341,7 +341,7 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 			return fmt.Errorf("network_rulesets cannot be used when the SKU is basic")
 		}
 
-		ruleSetProperties, err := expandEventHubNamespaceNetworkRuleset(ruleSets.([]interface{}))
+		ruleSetProperties, err := expandEventHubNamespaceNetworkRuleset(ruleSets.([]any))
 		if err != nil {
 			return err
 		}
@@ -363,7 +363,7 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 	return resourceEventHubNamespaceRead(d, meta)
 }
 
-func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Eventhub.NamespacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -377,7 +377,7 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 	location := location.Normalize(d.Get("location").(string))
 	sku := d.Get("sku").(string)
 	capacity := int32(d.Get("capacity").(int))
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 	autoInflateEnabled := d.Get("auto_inflate_enabled").(bool)
 
 	publicNetworkEnabled := namespaces.PublicNetworkAccessEnabled
@@ -387,7 +387,7 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	disableLocalAuth := !d.Get("local_authentication_enabled").(bool)
 
-	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -455,7 +455,7 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		ruleSets := d.Get("network_rulesets")
-		ruleSetProperties, err := expandEventHubNamespaceNetworkRuleset(ruleSets.([]interface{}))
+		ruleSetProperties, err := expandEventHubNamespaceNetworkRuleset(ruleSets.([]any))
 		if err != nil {
 			return err
 		}
@@ -477,7 +477,7 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 	return resourceEventHubNamespaceRead(d, meta)
 }
 
-func resourceEventHubNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Eventhub.NamespacesClient
 	authorizationKeysClient := meta.(*clients.Client).Eventhub.NamespaceAuthorizationRulesClient
 	ruleSetsClient := meta.(*clients.Client).Eventhub.NetworkRuleSetsClient
@@ -530,7 +530,7 @@ func resourceEventHubNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) 
 				publicNetworkAccess = false
 			}
 			d.Set("public_network_access_enabled", publicNetworkAccess)
-			d.Set("minimum_tls_version", string(pointer.From(props.MinimumTlsVersion)))
+			d.Set("minimum_tls_version", pointer.FromEnum(props.MinimumTlsVersion))
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
@@ -570,7 +570,7 @@ func resourceEventHubNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceEventHubNamespaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Eventhub.NamespacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -590,12 +590,12 @@ func resourceEventHubNamespaceDelete(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func expandEventHubNamespaceNetworkRuleset(input []interface{}) (*networkrulesets.NetworkRuleSetProperties, error) {
+func expandEventHubNamespaceNetworkRuleset(input []any) (*networkrulesets.NetworkRuleSetProperties, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
 
-	block := input[0].(map[string]interface{})
+	block := input[0].(map[string]any)
 
 	publicNetworkAccess := networkrulesets.PublicNetworkAccessFlagEnabled
 	if !block["public_network_access_enabled"].(bool) {
@@ -617,7 +617,7 @@ func expandEventHubNamespaceNetworkRuleset(input []interface{}) (*networkruleset
 		if len(value) > 0 {
 			var rules []networkrulesets.NWRuleSetVirtualNetworkRules
 			for _, r := range value {
-				rblock := r.(map[string]interface{})
+				rblock := r.(map[string]any)
 				rules = append(rules, networkrulesets.NWRuleSetVirtualNetworkRules{
 					Subnet: &networkrulesets.Subnet{
 						Id: pointer.To(rblock["subnet_id"].(string)),
@@ -630,11 +630,11 @@ func expandEventHubNamespaceNetworkRuleset(input []interface{}) (*networkruleset
 		}
 	}
 
-	if v, ok := block["ip_rule"].([]interface{}); ok {
+	if v, ok := block["ip_rule"].([]any); ok {
 		if len(v) > 0 {
 			var rules []networkrulesets.NWRuleSetIPRules
 			for _, r := range v {
-				rblock := r.(map[string]interface{})
+				rblock := r.(map[string]any)
 				rules = append(rules, networkrulesets.NWRuleSetIPRules{
 					IPMask: pointer.To(rblock["ip_mask"].(string)),
 					Action: func() *networkrulesets.NetworkRuleIPAction {
@@ -656,15 +656,15 @@ func expandEventHubNamespaceNetworkRuleset(input []interface{}) (*networkruleset
 	return &ruleset, nil
 }
 
-func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets.NamespacesGetNetworkRuleSetOperationResponse) ([]interface{}, error) {
+func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets.NamespacesGetNetworkRuleSetOperationResponse) ([]any, error) {
 	if ruleset.Model == nil || ruleset.Model.Properties == nil {
-		return []interface{}{}, nil
+		return []any{}, nil
 	}
 
-	vnetBlocks := make([]interface{}, 0)
+	vnetBlocks := make([]any, 0)
 	if vnetRules := ruleset.Model.Properties.VirtualNetworkRules; vnetRules != nil {
 		for _, vnetRule := range *vnetRules {
-			block := make(map[string]interface{})
+			block := make(map[string]any)
 
 			if s := vnetRule.Subnet; s != nil {
 				if v := s.Id; v != nil {
@@ -686,10 +686,10 @@ func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets.NamespacesGe
 			vnetBlocks = append(vnetBlocks, block)
 		}
 	}
-	ipBlocks := make([]interface{}, 0)
+	ipBlocks := make([]any, 0)
 	if ipRules := ruleset.Model.Properties.IPRules; ipRules != nil {
 		for _, ipRule := range *ipRules {
-			block := make(map[string]interface{})
+			block := make(map[string]any)
 
 			action := ""
 			if ipRule.Action != nil {
@@ -710,7 +710,7 @@ func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets.NamespacesGe
 
 	publicNetworkAccess := ruleset.Model.Properties.PublicNetworkAccess == nil || *ruleset.Model.Properties.PublicNetworkAccess != networkrulesets.PublicNetworkAccessFlagDisabled
 
-	return []interface{}{map[string]interface{}{
+	return []any{map[string]any{
 		"default_action":                 string(*ruleset.Model.Properties.DefaultAction),
 		"public_network_access_enabled":  publicNetworkAccess,
 		"virtual_network_rule":           vnetBlocks,
@@ -721,10 +721,10 @@ func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets.NamespacesGe
 
 // The resource id of subnet_id that's being returned by API is always lower case &
 // the default caseDiff suppress func is not working in TypeSet
-func resourceVnetRuleHash(v interface{}) int {
+func resourceVnetRuleHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
+	if m, ok := v.(map[string]any); ok {
 		if v, ok := m["subnet_id"]; ok {
 			fmt.Fprintf(&buf, "%s-", strings.ToLower(v.(string)))
 		}
@@ -735,7 +735,7 @@ func resourceVnetRuleHash(v interface{}) int {
 	return pluginsdk.HashString(buf.String())
 }
 
-func eventhubTLSVersionDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) (err error) {
+func eventhubTLSVersionDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ any) (err error) {
 	old, new := d.GetChange("minimum_tls_version")
 	if old != "" && new == "" {
 		err = fmt.Errorf("`minimum_tls_version` has been set before, please set a valid value for this property ")
@@ -744,7 +744,7 @@ func eventhubTLSVersionDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ in
 }
 
 func eventHubNamespaceProvisioningStateRefreshFunc(ctx context.Context, client *namespaces.NamespacesClient, id namespaces.NamespaceId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		res, err := client.Get(ctx, id)
 
 		provisioningState := "Pending"
