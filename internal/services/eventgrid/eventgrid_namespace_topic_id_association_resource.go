@@ -52,7 +52,7 @@ func (EventGridNamespaceTopicIdAssociationResource) Attributes() map[string]*plu
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (EventGridNamespaceTopicIdAssociationResource) ModelObject() interface{} {
+func (EventGridNamespaceTopicIdAssociationResource) ModelObject() any {
 	return &EventGridNamespaceTopicIdAssociationModel{}
 }
 
