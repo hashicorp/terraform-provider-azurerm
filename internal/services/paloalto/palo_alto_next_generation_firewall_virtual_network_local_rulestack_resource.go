@@ -14,9 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	firewalls "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources"
-	localrulestacks "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulestackresources"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulestackresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/schema"
@@ -37,17 +36,17 @@ type NextGenerationFirewallVnetLocalRulestackModel struct {
 	MarketplaceOfferId string                       `tfschema:"marketplace_offer_id"`
 	PlanId             string                       `tfschema:"plan_id"`
 	Identity           []identity.ModelUserAssigned `tfschema:"identity"`
-	Tags               map[string]interface{}       `tfschema:"tags"`
+	Tags               map[string]any               `tfschema:"tags"`
 }
 
 var _ sdk.ResourceWithUpdate = NextGenerationFirewallVNetLocalRulestackResource{}
 
-func (r NextGenerationFirewallVNetLocalRulestackResource) ModelObject() interface{} {
+func (r NextGenerationFirewallVNetLocalRulestackResource) ModelObject() any {
 	return &NextGenerationFirewallVnetLocalRulestackModel{}
 }
 
 func (r NextGenerationFirewallVNetLocalRulestackResource) Arguments() map[string]*pluginsdk.Schema {
-	args := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -60,7 +59,7 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Arguments() map[string
 		"rulestack_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: localrulestacks.ValidateLocalRulestackID,
+			ValidateFunc: localrulestackresources.ValidateLocalRulestackID,
 		},
 
 		"network_profile": schema.VnetNetworkProfileSchema(),
@@ -89,12 +88,6 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Arguments() map[string
 
 		"tags": commonschema.Tags(),
 	}
-
-	if !features.FivePointOh() {
-		args["plan_id"].Default = "panw-cloud-ngfw-payg"
-	}
-
-	return args
 }
 
 func (r NextGenerationFirewallVNetLocalRulestackResource) Attributes() map[string]*pluginsdk.Schema {
@@ -118,19 +111,21 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Create() sdk.ResourceF
 				return err
 			}
 
-			id := firewalls.NewFirewallID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
+			id := firewallresources.NewFirewallID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := client.FirewallsGet(ctx, id)
-			if err != nil {
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.FirewallsGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
+				}
 				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
 				}
 			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
-			}
 
-			ruleStackID, err := localrulestacks.ParseLocalRulestackID(model.RuleStackId)
+			ruleStackID, err := localrulestackresources.ParseLocalRulestackID(model.RuleStackId)
 			if err != nil {
 				return err
 			}
@@ -142,26 +137,26 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Create() sdk.ResourceF
 
 			loc := location.Normalize(ruleStack.Model.Location)
 
-			expandedIdentity, err := expandUserAssignedIdentityToLegacy(model.Identity)
+			expandedIdentity, err := identity.ExpandUserAssignedMapFromModel(model.Identity)
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 
-			firewall := firewalls.FirewallResource{
+			firewall := firewallresources.FirewallResource{
 				Location: loc,
-				Properties: firewalls.FirewallDeploymentProperties{
-					AssociatedRulestack: &firewalls.RulestackDetails{
+				Properties: firewallresources.FirewallDeploymentProperties{
+					AssociatedRulestack: &firewallresources.RulestackDetails{
 						ResourceId: pointer.To(ruleStackID.ID()),
 						Location:   pointer.To(location.Normalize(ruleStack.Model.Location)),
 					},
 					DnsSettings: schema.ExpandDNSSettings(model.DNSSettings),
-					MarketplaceDetails: firewalls.MarketplaceDetails{
+					MarketplaceDetails: firewallresources.MarketplaceDetails{
 						OfferId:     model.MarketplaceOfferId,
 						PublisherId: "paloaltonetworks",
 					},
 					NetworkProfile: schema.ExpandNetworkProfileVnet(model.NetworkProfile),
-					PlanData: firewalls.PlanData{
-						BillingCycle: firewalls.BillingCycleMONTHLY,
+					PlanData: firewallresources.PlanData{
+						BillingCycle: firewallresources.BillingCycleMONTHLY,
 						PlanId:       model.PlanId,
 					},
 					FrontEndSettings: schema.ExpandDestinationNAT(model.FrontEnd),
@@ -173,10 +168,9 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Create() sdk.ResourceF
 			locks.ByID(ruleStackID.ID())
 			defer locks.UnlockByID(ruleStackID.ID())
 
-			if err = client.FirewallsCreateOrUpdateThenPoll(ctx, id, firewall); err != nil {
+			if err = client.FirewallsCreateOrUpdateCallbackThenPoll(ctx, id, firewall, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
 
 			return nil
@@ -190,7 +184,7 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Read() sdk.ResourceFun
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.FirewallResources
 
-			id, err := firewalls.ParseFirewallID(metadata.ResourceData.Id())
+			id, err := firewallresources.ParseFirewallID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -224,11 +218,11 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Read() sdk.ResourceFun
 
 				state.PlanId = props.PlanData.PlanId
 
-				flattenedIdentity, err := flattenUserAssignedIdentityFromLegacy(model.Identity)
+				flattenedIdentity, err := identity.FlattenUserAssignedMapToModel(model.Identity)
 				if err != nil {
 					return fmt.Errorf("flattening `identity`: %+v", err)
 				}
-				state.Identity = flattenedIdentity
+				state.Identity = pointer.From(flattenedIdentity)
 
 				state.Tags = tags.Flatten(existing.Model.Tags)
 			}
@@ -244,7 +238,7 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Delete() sdk.ResourceF
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.FirewallResources
 
-			id, err := firewalls.ParseFirewallID(metadata.ResourceData.Id())
+			id, err := firewallresources.ParseFirewallID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -259,7 +253,7 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Delete() sdk.ResourceF
 }
 
 func (r NextGenerationFirewallVNetLocalRulestackResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return firewalls.ValidateFirewallID
+	return firewallresources.ValidateFirewallID
 }
 
 func (r NextGenerationFirewallVNetLocalRulestackResource) Update() sdk.ResourceFunc {
@@ -268,7 +262,7 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Update() sdk.ResourceF
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.FirewallResources
 
-			id, err := firewalls.ParseFirewallID(metadata.ResourceData.Id())
+			id, err := firewallresources.ParseFirewallID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -291,18 +285,15 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Update() sdk.ResourceF
 			props := firewall.Properties
 
 			if metadata.ResourceData.HasChange("rulestack_id") {
-				ruleStackID, err := localrulestacks.ParseLocalRulestackID(model.RuleStackId)
+				ruleStackID, err := localrulestackresources.ParseLocalRulestackID(model.RuleStackId)
 				if err != nil {
 					return err
 				}
 
-				ruleStack := &firewalls.RulestackDetails{
+				props.AssociatedRulestack = &firewallresources.RulestackDetails{
 					Location:    props.AssociatedRulestack.Location,
-					ResourceId:  nil,
 					RulestackId: pointer.To(ruleStackID.ID()),
 				}
-
-				props.AssociatedRulestack = ruleStack
 				locks.ByID(ruleStackID.ID())
 				defer locks.UnlockByID(ruleStackID.ID())
 			}
@@ -326,7 +317,7 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Update() sdk.ResourceF
 			firewall.Properties = props
 
 			if metadata.ResourceData.HasChange("identity") {
-				expandedIdentity, err := expandUserAssignedIdentityToLegacy(model.Identity)
+				expandedIdentity, err := identity.ExpandUserAssignedMapFromModel(model.Identity)
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
@@ -344,32 +335,4 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Update() sdk.ResourceF
 			return nil
 		},
 	}
-}
-
-func expandUserAssignedIdentityToLegacy(input []identity.ModelUserAssigned) (*identity.LegacySystemAndUserAssignedMap, error) {
-	expanded, err := identity.ExpandUserAssignedMapFromModel(input)
-	if err != nil {
-		return nil, err
-	}
-
-	return &identity.LegacySystemAndUserAssignedMap{
-		Type:        expanded.Type,
-		IdentityIds: expanded.IdentityIds,
-	}, nil
-}
-
-func flattenUserAssignedIdentityFromLegacy(input *identity.LegacySystemAndUserAssignedMap) ([]identity.ModelUserAssigned, error) {
-	if input == nil {
-		return []identity.ModelUserAssigned{}, nil
-	}
-
-	flattened, err := identity.FlattenUserAssignedMapToModel(&identity.UserAssignedMap{
-		Type:        input.Type,
-		IdentityIds: input.IdentityIds,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return *flattened, nil
 }
