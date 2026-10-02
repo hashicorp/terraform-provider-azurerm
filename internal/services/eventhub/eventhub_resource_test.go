@@ -801,10 +801,14 @@ resource "azurerm_role_assignment" "saOwnerRoleAssignment" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name              = "acctesteh%s"
-  namespace_id      = azurerm_eventhub_namespace.test.id
-  partition_count   = 2
-  message_retention = 7
+  name            = "acctesteh%s"
+  namespace_id    = azurerm_eventhub_namespace.test.id
+  partition_count = 2
+
+  retention_description {
+    cleanup_policy                    = "Compact"
+    tombstone_retention_time_in_hours = 7
+  }
 
   capture_description {
     enabled             = %s
@@ -949,7 +953,7 @@ resource "azurerm_storage_account" "second" {
 }
 
 resource "azurerm_storage_container" "second" {
-  name                  = "acctest%s"
+  name                  = "acctest%s2"
   storage_account_id    = azurerm_storage_account.second.id
   container_access_type = "private"
 }
@@ -993,6 +997,11 @@ resource "azurerm_eventhub" "test" {
   namespace_id      = azurerm_eventhub_namespace.test.id
   partition_count   = 2
   message_retention = 7
+
+  retention_description {
+    cleanup_policy                    = "Compact"
+    tombstone_retention_time_in_hours = 7
+  }
 
   capture_description {
     enabled             = %s
