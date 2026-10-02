@@ -229,6 +229,8 @@ The following arguments are supported:
 
 * `shared_key` - (Optional) The shared IPSec key. A key could be provided if a Site-to-Site, VNet-to-VNet or ExpressRoute connection is created.
 
+~> **Note:** `shared_key` and `key_vault_certificate` cannot be specified together.
+
 * `connection_mode` - (Optional) Connection mode to use. Possible values are `Default`, `InitiatorOnly` and `ResponderOnly`. Defaults to `Default`. Changing this value will force a resource to be created.
 
 * `connection_protocol` - (Optional) The IKE protocol version to use. Possible values are `IKEv1` and `IKEv2`, values are `IKEv1` and `IKEv2`. Defaults to `IKEv2`. Changing this forces a new resource to be created.
@@ -253,6 +255,10 @@ The following arguments are supported:
 * `ipsec_policy` - (Optional) A `ipsec_policy` block which is documented below.
     Only a single policy can be defined for a connection. For details on
     custom policies refer to [the relevant section in the Azure documentation](https://docs.microsoft.com/azure/vpn-gateway/vpn-gateway-ipsecikepolicy-rm-powershell).
+
+* `key_vault_certificate` - (Optional) A `key_vault_certificate` block which is documented below.
+
+~> **Note:** `shared_key` and `key_vault_certificate` cannot be specified together.
 
 * `traffic_selector_policy` - (Optional) One or more `traffic_selector_policy` blocks which are documented below.
     A `traffic_selector_policy` allows to specify a traffic selector policy proposal to be used in a virtual network gateway connection.
@@ -288,6 +294,16 @@ The `ipsec_policy` block supports:
 * `sa_datasize` - (Optional) The IPSec SA payload size in KB. Must be at least `1024` KB. Defaults to `102400000` KB.
 
 * `sa_lifetime` - (Optional) The IPSec SA lifetime in seconds. Must be at least `300` seconds. Defaults to `27000` seconds.
+
+---
+
+The `key_vault_certificate` block supports:
+
+* `inbound_certificate_chains` - (Required) The inbound authentication certificate public keys.
+
+* `inbound_certificate_subject_name` - (Required) The inbound authentication certificate subject name.
+
+* `outbound_certificate_path` - (Required) Keyvault secret ID for outbound authentication certificate.
 
 ---
 
