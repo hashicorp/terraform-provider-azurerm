@@ -137,9 +137,8 @@ func InferIdentityProperties(filePath string) (*InferredIdentity, error) {
 			compositeProperties = []string{"resource_id1", "resource_id2"}
 		}
 		return &InferredIdentity{
-			Properties:        compositeProperties,
-			HasSubscriptionID: false,
-			IsVirtual:         isVirtual,
+			Properties: compositeProperties,
+			IsVirtual:  isVirtual,
 		}, nil
 	}
 
@@ -308,7 +307,7 @@ func toSnakeCase(s string) string {
 
 func findProviderRoot() string {
 	dir := "."
-	for i := 0; i < 6; i++ {
+	for range 6 {
 		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
 			return dir
 		}

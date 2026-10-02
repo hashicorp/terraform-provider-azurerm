@@ -145,8 +145,7 @@ func resourceScopedBudgetExample() *pluginsdk.Resource {
 
 func TestResourceIdentityData_parseArgs_NoSubscriptionID(t *testing.T) {
 	// Test 1: From GOFILE pointing to a composite ID resource
-	filePath := filepath.Join(findProviderRoot(), "internal", "services", "network", "nat_gateway_public_ip_association_resource.go")
-	t.Setenv("GOFILE", filePath)
+	t.Setenv("GOFILE", filepath.Join(findProviderRoot(), "internal", "services", "network", "nat_gateway_public_ip_association_resource.go"))
 
 	data := &resourceIdentityData{}
 	args := []string{"-properties", "resource_id1:nat_gateway_id,resource_id2:public_ip_address_id"}
