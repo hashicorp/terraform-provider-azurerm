@@ -796,8 +796,8 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 
 ### `azurerm_linux_web_app`
 
-* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
 * The `site_config.application_stack.ruby_version` property has been removed.
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
 
 ### `azurerm_linux_web_app_slot`
 
@@ -1148,12 +1148,10 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 ### `azurerm_windows_web_app`
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
-* The `virtual_network_image_pull_enabled` property now defaults to `false`.
 
 ### `azurerm_windows_web_app_slot`
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
-* The `virtual_network_image_pull_enabled` property now defaults to `false`.
 
 ## Breaking Changes in Data Sources
 
@@ -1204,10 +1202,6 @@ The `security_policies.firewall.association.domain.cdn_frontdoor_domain_id` prop
 
 * The deprecated `enable_floating_ip` property has been removed in favour of the `floating_ip_enabled` property.
 * The deprecated `enable_tcp_reset` property has been removed in favour of the `tcp_reset_enabled` property.
-
-### `azurerm_linux_web_app`
-
-* The `site_config.application_stack.ruby_version` property has been removed.
 
 ### `azurerm_logic_app_standard`
 
