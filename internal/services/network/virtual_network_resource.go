@@ -648,7 +648,7 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta any) error {
 	if d.HasChange("summarized_gateway_prefixes") {
 		if summarizedGatewayPrefixes, ok := d.GetOk("summarized_gateway_prefixes"); ok {
 			payload.Properties.SummarizedGatewayPrefixes = &virtualnetworks.AddressSpace{
-				AddressPrefixes: pointer.To(expandVirtualNetworkSummarizedGatewayAddressPrefixes(summarizedGatewayPrefixes.([]interface{}))),
+				AddressPrefixes: pointer.To(expandVirtualNetworkSummarizedGatewayAddressPrefixes(summarizedGatewayPrefixes.([]any))),
 			}
 		} else {
 			payload.Properties.SummarizedGatewayPrefixes = nil
@@ -967,7 +967,7 @@ func expandVirtualNetworkProperties(ctx context.Context, client virtualnetworks.
 
 	if summarizedGatewayPrefixes, ok := d.GetOk("summarized_gateway_prefixes"); ok {
 		properties.SummarizedGatewayPrefixes = &virtualnetworks.AddressSpace{
-			AddressPrefixes: pointer.To(expandVirtualNetworkSummarizedGatewayAddressPrefixes(summarizedGatewayPrefixes.([]interface{}))),
+			AddressPrefixes: pointer.To(expandVirtualNetworkSummarizedGatewayAddressPrefixes(summarizedGatewayPrefixes.([]any))),
 		}
 	}
 
@@ -1363,10 +1363,10 @@ func checkPrefixOverlap(prefixes []netip.Prefix) error {
 	return nil
 }
 
-func virtualNetworkCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+func virtualNetworkCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ any) error {
 	if rawSummarizedGatewayPrefixes, ok := d.GetOk("summarized_gateway_prefixes"); ok {
 		// Check if `summarized_gateway_prefixes` list of prefixes overlap with each other according to portal
-		summarizedGatewayPrefixes := rawSummarizedGatewayPrefixes.([]interface{})
+		summarizedGatewayPrefixes := rawSummarizedGatewayPrefixes.([]any)
 		ipv4Prefixes := make([]netip.Prefix, 0)
 		ipv6Prefixes := make([]netip.Prefix, 0)
 
