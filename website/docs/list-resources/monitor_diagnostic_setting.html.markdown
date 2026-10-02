@@ -28,4 +28,3 @@ list "azurerm_monitor_diagnostic_setting" "example" {
 This list resource supports the following arguments:
 
 * `target_resource_id` - (Required) The ID of the Target Azure Resource to query Diagnostic Settings for.
-

@@ -412,8 +412,7 @@ func getCompositeResourceComponents(id resourceids.ResourceId) ([]resourceids.Re
 		}
 		if f.Kind() == reflect.Pointer && f.IsNil() {
 			elemType := f.Type().Elem()
-			newVal := reflect.New(elemType)
-			if rId, ok := reflect.TypeAssert[resourceids.ResourceId](newVal); ok {
+			if rId, ok := reflect.TypeAssert[resourceids.ResourceId](reflect.New(elemType)); ok {
 				return rId, true
 			}
 		}

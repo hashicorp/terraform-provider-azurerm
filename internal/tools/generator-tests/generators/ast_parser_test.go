@@ -12,7 +12,11 @@ import (
 
 func TestInferIdentityProperties_CompositeResource(t *testing.T) {
 	// Test against the actual nat_gateway_public_ip_association_resource.go
-	filePath := filepath.Join(findProviderRoot(), "internal", "services", "network", "nat_gateway_public_ip_association_resource.go")
+	rt, err := findProviderRoot("")
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	filePath := filepath.Join(rt, "internal", "services", "network", "nat_gateway_public_ip_association_resource.go")
 	inferred, err := InferIdentityProperties(filePath)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -145,8 +149,11 @@ func resourceScopedBudgetExample() *pluginsdk.Resource {
 
 func TestResourceIdentityData_parseArgs_NoSubscriptionID(t *testing.T) {
 	// Test 1: From GOFILE pointing to a composite ID resource
-	filePath := filepath.Join(findProviderRoot(), "internal", "services", "network", "nat_gateway_public_ip_association_resource.go")
-	t.Setenv("GOFILE", filePath)
+	rt, err := findProviderRoot("")
+	if err != nil {
+		t.Fatalf("failed to find provider root: %v", err)
+	}
+	t.Setenv("GOFILE", filepath.Join(rt, "internal", "services", "network", "nat_gateway_public_ip_association_resource.go"))
 
 	data := &resourceIdentityData{}
 	args := []string{"-properties", "resource_id1:nat_gateway_id,resource_id2:public_ip_address_id"}
