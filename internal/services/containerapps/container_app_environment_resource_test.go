@@ -114,6 +114,39 @@ func TestAccContainerAppEnvironment_consumptionWorkloadProfile(t *testing.T) {
 	})
 }
 
+func TestAccContainerAppEnvironment_consumptionGPUWorkloadProfile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
+	r := ContainerAppEnvironmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.consumptionGPUWorkloadProfile(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerAppEnvironment_consumptionWorkloadProfileWithCountsShouldFail(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
+	r := ContainerAppEnvironmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.consumptionWorkloadProfileWithCounts(data, "Consumption"),
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile("`minimum_count` and `maximum_count` cannot be set for `workload_profile`"),
+		},
+		{
+			Config:      r.consumptionWorkloadProfileWithCounts(data, "Consumption-GPU-NC8as-T4"),
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile("`minimum_count` and `maximum_count` cannot be set for `workload_profile`"),
+		},
+	})
+}
+
 func TestAccContainerAppEnvironment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
 	r := ContainerAppEnvironmentResource{}
@@ -853,6 +886,55 @@ resource "azurerm_container_app_environment" "test" {
   }
 }
 `, r.templateVNet(data), data.RandomInteger)
+}
+
+func (r ContainerAppEnvironmentResource) consumptionGPUWorkloadProfile(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_container_app_environment" "test" {
+  name                = "acctest-CAEnv%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  workload_profile {
+    name                  = "Consumption"
+    workload_profile_type = "Consumption"
+  }
+
+  workload_profile {
+    name                  = "Consumption-GPU-T4"
+    workload_profile_type = "Consumption-GPU-NC8as-T4"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppEnvironmentResource) consumptionWorkloadProfileWithCounts(data acceptance.TestData, workloadProfileType string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_container_app_environment" "test" {
+  name                = "acctest-CAEnv%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  workload_profile {
+    maximum_count         = 2
+    minimum_count         = 1
+    name                  = "consumption-profile"
+    workload_profile_type = "%[3]s"
+  }
+}
+`, r.template(data), data.RandomInteger, workloadProfileType)
 }
 
 func (r ContainerAppEnvironmentResource) completeUpdate(data acceptance.TestData) string {
