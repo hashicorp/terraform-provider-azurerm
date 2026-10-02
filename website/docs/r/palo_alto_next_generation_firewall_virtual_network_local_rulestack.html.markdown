@@ -197,9 +197,9 @@ A `frontend_config` block supports the following:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Palo Alto Next Generation Firewall Virtual Network Local Rulestack. The only possible value is `UserAssigned`.
-
 * `identity_ids` - (Required) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Palo Alto Next Generation Firewall Virtual Network Local Rulestack.
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Palo Alto Next Generation Firewall Virtual Network Local Rulestack. The only possible value is `UserAssigned`.
 
 ---
 

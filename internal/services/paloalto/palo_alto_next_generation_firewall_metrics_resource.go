@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package paloalto
@@ -10,40 +10,53 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	firewalls "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources"
-	metricsobjectfirewall "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/metricsobjectfirewallresources"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/metricsobjectfirewallresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -parent-id firewall_id -test-expect-non-empty
 
 type NextGenerationFirewallMetricsResource struct{}
 
 type NextGenerationFirewallMetricsModel struct {
 	FirewallID                          string `tfschema:"firewall_id"`
 	ApplicationInsightsConnectionString string `tfschema:"application_insights_connection_string"`
-	ApplicationInsightsResourceID       string `tfschema:"application_insights_resource_id"`
+	ApplicationInsightsID               string `tfschema:"application_insights_id"`
 }
 
-var _ sdk.ResourceWithUpdate = NextGenerationFirewallMetricsResource{}
+var (
+	_ sdk.ResourceWithUpdate               = NextGenerationFirewallMetricsResource{}
+	_ sdk.ResourceWithIdentityTypeOverride = NextGenerationFirewallMetricsResource{}
+)
 
 func (r NextGenerationFirewallMetricsResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return firewalls.ValidateFirewallID
+	return firewallresources.ValidateFirewallID
+}
+
+func (r NextGenerationFirewallMetricsResource) Identity() resourceids.ResourceId {
+	return &firewallresources.FirewallId{}
+}
+
+func (r NextGenerationFirewallMetricsResource) IdentityType() pluginsdk.ResourceTypeForIdentity {
+	return pluginsdk.ResourceTypeForIdentityVirtual
 }
 
 func (r NextGenerationFirewallMetricsResource) ResourceType() string {
 	return "azurerm_palo_alto_next_generation_firewall_metrics"
 }
 
-func (r NextGenerationFirewallMetricsResource) ModelObject() interface{} {
+func (r NextGenerationFirewallMetricsResource) ModelObject() any {
 	return &NextGenerationFirewallMetricsModel{}
 }
 
-func (r NextGenerationFirewallMetricsResource) Arguments() map[string]*schema.Schema {
+func (r NextGenerationFirewallMetricsResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"firewall_id": commonschema.ResourceIDReferenceRequiredForceNew(&firewalls.FirewallId{}),
+		"firewall_id": commonschema.ResourceIDReferenceRequiredForceNew(&firewallresources.FirewallId{}),
 
 		"application_insights_connection_string": {
 			Type:         pluginsdk.TypeString,
@@ -52,15 +65,15 @@ func (r NextGenerationFirewallMetricsResource) Arguments() map[string]*schema.Sc
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"application_insights_resource_id": {
+		"application_insights_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: azure.ValidateResourceID,
+			ValidateFunc: componentsapis.ValidateComponentID,
 		},
 	}
 }
 
-func (r NextGenerationFirewallMetricsResource) Attributes() map[string]*schema.Schema {
+func (r NextGenerationFirewallMetricsResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
@@ -75,37 +88,36 @@ func (r NextGenerationFirewallMetricsResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			firewallId, err := firewalls.ParseFirewallID(model.FirewallID)
+			firewallId, err := firewallresources.ParseFirewallID(model.FirewallID)
 			if err != nil {
 				return err
 			}
 
-			metricsFirewallId := metricsobjectfirewall.NewFirewallID(firewallId.SubscriptionId, firewallId.ResourceGroupName, firewallId.FirewallName)
+			metricsFirewallId := metricsobjectfirewallresources.NewFirewallID(firewallId.SubscriptionId, firewallId.ResourceGroupName, firewallId.FirewallName)
 
-			existing, err := client.MetricsObjectFirewallGet(ctx, metricsFirewallId)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.MetricsObjectFirewallGet(ctx, metricsFirewallId)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", metricsFirewallId, err)
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), firewallId)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), firewallId)
+				}
 			}
 
-			input := metricsobjectfirewall.MetricsObjectFirewallResource{
-				Properties: metricsobjectfirewall.MetricsObject{
+			input := metricsobjectfirewallresources.MetricsObjectFirewallResource{
+				Properties: metricsobjectfirewallresources.MetricsObject{
 					ApplicationInsightsConnectionString: model.ApplicationInsightsConnectionString,
-					ApplicationInsightsResourceId:       model.ApplicationInsightsResourceID,
+					ApplicationInsightsResourceId:       model.ApplicationInsightsID,
 				},
 			}
 
-			if err = client.MetricsObjectFirewallCreateOrUpdateThenPoll(ctx, metricsFirewallId, input); err != nil {
+			if err := client.MetricsObjectFirewallCreateOrUpdateCallbackThenPoll(ctx, metricsFirewallId, input, metadata.SetIDAndIdentityWithTypeCallback(firewallId, pluginsdk.ResourceTypeForIdentityVirtual)); err != nil {
 				return fmt.Errorf("creating %s: %+v", metricsFirewallId, err)
 			}
 
-			metadata.SetID(metricsFirewallId)
-
-			return nil
+			metadata.SetID(firewallId)
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, firewallId, pluginsdk.ResourceTypeForIdentityVirtual)
 		},
 	}
 }
@@ -116,12 +128,12 @@ func (r NextGenerationFirewallMetricsResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.MetricsObjectFirewallResources
 
-			firewallId, err := firewalls.ParseFirewallID(metadata.ResourceData.Id())
+			firewallId, err := firewallresources.ParseFirewallID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			metricsFirewallId := metricsobjectfirewall.NewFirewallID(firewallId.SubscriptionId, firewallId.ResourceGroupName, firewallId.FirewallName)
+			metricsFirewallId := metricsobjectfirewallresources.NewFirewallID(firewallId.SubscriptionId, firewallId.ResourceGroupName, firewallId.FirewallName)
 
 			existing, err := client.MetricsObjectFirewallGet(ctx, metricsFirewallId)
 			if err != nil {
@@ -131,21 +143,7 @@ func (r NextGenerationFirewallMetricsResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", metricsFirewallId, err)
 			}
 
-			state := NextGenerationFirewallMetricsModel{
-				FirewallID: firewallId.ID(),
-			}
-
-			if model := existing.Model; model != nil {
-				props := model.Properties
-				// Default to current state value in case the API redacts the field on GET
-				state.ApplicationInsightsConnectionString = metadata.ResourceData.Get("application_insights_connection_string").(string)
-				if props.ApplicationInsightsConnectionString != "" {
-					state.ApplicationInsightsConnectionString = props.ApplicationInsightsConnectionString
-				}
-				state.ApplicationInsightsResourceID = props.ApplicationInsightsResourceId
-			}
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, firewallId, existing.Model)
 		},
 	}
 }
@@ -161,12 +159,12 @@ func (r NextGenerationFirewallMetricsResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			firewallId, err := firewalls.ParseFirewallID(metadata.ResourceData.Id())
+			firewallId, err := firewallresources.ParseFirewallID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			metricsFirewallId := metricsobjectfirewall.NewFirewallID(firewallId.SubscriptionId, firewallId.ResourceGroupName, firewallId.FirewallName)
+			metricsFirewallId := metricsobjectfirewallresources.NewFirewallID(firewallId.SubscriptionId, firewallId.ResourceGroupName, firewallId.FirewallName)
 
 			existing, err := client.MetricsObjectFirewallGet(ctx, metricsFirewallId)
 			if err != nil {
@@ -177,17 +175,16 @@ func (r NextGenerationFirewallMetricsResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: `model` was nil", metricsFirewallId)
 			}
 
-			update := *existing.Model
+			payload := *existing.Model
 
-			if metadata.ResourceData.HasChange("application_insights_connection_string") {
-				update.Properties.ApplicationInsightsConnectionString = model.ApplicationInsightsConnectionString
+			// the API may redact the connection string on GET, so it is always sent from config to keep the PUT payload valid
+			payload.Properties.ApplicationInsightsConnectionString = model.ApplicationInsightsConnectionString
+
+			if metadata.ResourceData.HasChange("application_insights_id") {
+				payload.Properties.ApplicationInsightsResourceId = model.ApplicationInsightsID
 			}
 
-			if metadata.ResourceData.HasChange("application_insights_resource_id") {
-				update.Properties.ApplicationInsightsResourceId = model.ApplicationInsightsResourceID
-			}
-
-			if err = client.MetricsObjectFirewallCreateOrUpdateThenPoll(ctx, metricsFirewallId, update); err != nil {
+			if err := client.MetricsObjectFirewallCreateOrUpdateThenPoll(ctx, metricsFirewallId, payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", metricsFirewallId, err)
 			}
 
@@ -202,18 +199,42 @@ func (r NextGenerationFirewallMetricsResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.MetricsObjectFirewallResources
 
-			firewallId, err := firewalls.ParseFirewallID(metadata.ResourceData.Id())
+			firewallId, err := firewallresources.ParseFirewallID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			metricsFirewallId := metricsobjectfirewall.NewFirewallID(firewallId.SubscriptionId, firewallId.ResourceGroupName, firewallId.FirewallName)
+			metricsFirewallId := metricsobjectfirewallresources.NewFirewallID(firewallId.SubscriptionId, firewallId.ResourceGroupName, firewallId.FirewallName)
 
-			if err = client.MetricsObjectFirewallDeleteThenPoll(ctx, metricsFirewallId); err != nil {
+			if err := client.MetricsObjectFirewallDeleteThenPoll(ctx, metricsFirewallId); err != nil {
 				return fmt.Errorf("deleting %s: %+v", metricsFirewallId, err)
 			}
 
 			return nil
 		},
 	}
+}
+
+func (r NextGenerationFirewallMetricsResource) flatten(metadata sdk.ResourceMetaData, id *firewallresources.FirewallId, model *metricsobjectfirewallresources.MetricsObjectFirewallResource) error {
+	state := NextGenerationFirewallMetricsModel{
+		FirewallID: id.ID(),
+	}
+
+	if model != nil {
+		props := model.Properties
+
+		// the API may redact the connection string on GET, so default to the value currently in state
+		state.ApplicationInsightsConnectionString = metadata.ResourceData.Get("application_insights_connection_string").(string)
+		if props.ApplicationInsightsConnectionString != "" {
+			state.ApplicationInsightsConnectionString = props.ApplicationInsightsConnectionString
+		}
+
+		state.ApplicationInsightsID = props.ApplicationInsightsResourceId
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id, pluginsdk.ResourceTypeForIdentityVirtual); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }

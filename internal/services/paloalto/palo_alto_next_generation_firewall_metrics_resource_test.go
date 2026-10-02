@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package paloalto_test
@@ -9,23 +9,23 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	firewalls "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources"
-	metricsobjectfirewall "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/metricsobjectfirewallresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/metricsobjectfirewallresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type NextGenerationFirewallMetricsResourceTest struct{}
+type PaloAltoNextGenerationFirewallMetricsResource struct{}
 
-func (r NextGenerationFirewallMetricsResourceTest) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := firewalls.ParseFirewallID(state.ID)
+func (r PaloAltoNextGenerationFirewallMetricsResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := firewallresources.ParseFirewallID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	metricsFirewallId := metricsobjectfirewall.NewFirewallID(id.SubscriptionId, id.ResourceGroupName, id.FirewallName)
+	metricsFirewallId := metricsobjectfirewallresources.NewFirewallID(id.SubscriptionId, id.ResourceGroupName, id.FirewallName)
 
 	resp, err := client.PaloAlto.MetricsObjectFirewallResources.MetricsObjectFirewallGet(ctx, metricsFirewallId)
 	if err != nil {
@@ -37,7 +37,7 @@ func (r NextGenerationFirewallMetricsResourceTest) Exists(ctx context.Context, c
 
 func TestAccPaloAltoNextGenerationFirewallMetrics_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_metrics", "test")
-	r := NextGenerationFirewallMetricsResourceTest{}
+	r := PaloAltoNextGenerationFirewallMetricsResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -52,7 +52,7 @@ func TestAccPaloAltoNextGenerationFirewallMetrics_basic(t *testing.T) {
 
 func TestAccPaloAltoNextGenerationFirewallMetrics_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_metrics", "test")
-	r := NextGenerationFirewallMetricsResourceTest{}
+	r := PaloAltoNextGenerationFirewallMetricsResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -67,7 +67,7 @@ func TestAccPaloAltoNextGenerationFirewallMetrics_requiresImport(t *testing.T) {
 
 func TestAccPaloAltoNextGenerationFirewallMetrics_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_palo_alto_next_generation_firewall_metrics", "test")
-	r := NextGenerationFirewallMetricsResourceTest{}
+	r := PaloAltoNextGenerationFirewallMetricsResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -87,7 +87,7 @@ func TestAccPaloAltoNextGenerationFirewallMetrics_update(t *testing.T) {
 	})
 }
 
-func (r NextGenerationFirewallMetricsResourceTest) basic(data acceptance.TestData) string {
+func (r PaloAltoNextGenerationFirewallMetricsResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -102,26 +102,26 @@ provider "azurerm" {
 resource "azurerm_palo_alto_next_generation_firewall_metrics" "test" {
   firewall_id                            = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.id
   application_insights_connection_string = azurerm_application_insights.test.connection_string
-  application_insights_resource_id       = azurerm_application_insights.test.id
+  application_insights_id                = azurerm_application_insights.test.id
 
   depends_on = [azurerm_role_assignment.test]
 }
 `, r.template(data))
 }
 
-func (r NextGenerationFirewallMetricsResourceTest) requiresImport(data acceptance.TestData) string {
+func (r PaloAltoNextGenerationFirewallMetricsResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
 resource "azurerm_palo_alto_next_generation_firewall_metrics" "import" {
   firewall_id                            = azurerm_palo_alto_next_generation_firewall_metrics.test.firewall_id
   application_insights_connection_string = azurerm_palo_alto_next_generation_firewall_metrics.test.application_insights_connection_string
-  application_insights_resource_id       = azurerm_palo_alto_next_generation_firewall_metrics.test.application_insights_resource_id
+  application_insights_id                = azurerm_palo_alto_next_generation_firewall_metrics.test.application_insights_id
 }
 `, r.basic(data))
 }
 
-func (r NextGenerationFirewallMetricsResourceTest) update(data acceptance.TestData) string {
+func (r PaloAltoNextGenerationFirewallMetricsResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -136,14 +136,14 @@ provider "azurerm" {
 resource "azurerm_palo_alto_next_generation_firewall_metrics" "test" {
   firewall_id                            = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.id
   application_insights_connection_string = azurerm_application_insights.test2.connection_string
-  application_insights_resource_id       = azurerm_application_insights.test2.id
+  application_insights_id                = azurerm_application_insights.test2.id
 
   depends_on = [azurerm_role_assignment.test2]
 }
 `, r.template(data))
 }
 
-func (r NextGenerationFirewallMetricsResourceTest) template(data acceptance.TestData) string {
+func (r PaloAltoNextGenerationFirewallMetricsResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-PANGFWMETRICS-%[1]d"
