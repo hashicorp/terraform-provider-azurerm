@@ -12,7 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -113,11 +112,11 @@ func resourceArmMaintenanceAssignmentVirtualMachineCreate(d *pluginsdk.ResourceD
 	// set assignment name to configuration name
 	assignmentName := configurationId.MaintenanceConfigurationName
 	configurationAssignment := configurationassignments.ConfigurationAssignment{
-		Name:     pointer.To(assignmentName),
-		Location: pointer.To(location.Normalize(d.Get("location").(string))),
+		Name:     new(assignmentName),
+		Location: new(location.Normalize(d.Get("location").(string))),
 		Properties: &configurationassignments.ConfigurationAssignmentProperties{
-			MaintenanceConfigurationId: pointer.To(configurationId.ID()),
-			ResourceId:                 pointer.To(virtualMachineId.ID()),
+			MaintenanceConfigurationId: new(configurationId.ID()),
+			ResourceId:                 new(virtualMachineId.ID()),
 		},
 	}
 
@@ -161,6 +160,10 @@ func resourceArmMaintenanceAssignmentVirtualMachineRead(d *pluginsdk.ResourceDat
 		return fmt.Errorf("checking for presence of existing %s: %+v", *id, err)
 	}
 
+	return resourceArmMaintenanceAssignmentVirtualMachineFlatten(d, id, resp.Model)
+}
+
+func resourceArmMaintenanceAssignmentVirtualMachineFlatten(d *pluginsdk.ResourceData, id *configurationassignments.ScopedConfigurationAssignmentId, model *configurationassignments.ConfigurationAssignment) error {
 	vmId, err := virtualmachines.ParseVirtualMachineID(id.Scope)
 	if err != nil {
 		return err
@@ -168,11 +171,13 @@ func resourceArmMaintenanceAssignmentVirtualMachineRead(d *pluginsdk.ResourceDat
 
 	d.Set("virtual_machine_id", vmId.ID())
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		loc := location.NormalizeNilable(model.Location)
 		// location isn't returned by the API
 		if loc == "" {
-			loc = d.Get("location").(string)
+			if existingLoc, ok := d.GetOk("location"); ok {
+				loc = existingLoc.(string)
+			}
 		}
 		d.Set("location", loc)
 
