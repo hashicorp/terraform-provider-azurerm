@@ -4,8 +4,6 @@ This guide covers adding Resource Identity to a new or existing resource. For mo
 
 Every new resource needs Resource Identity, and [List Resources](guide-list-resource.md) depend on it. If yours cannot support it, see the caveats below and say so in the PR.
 
-> The provider's Resource Identity generator does not yet support all identity types. `commonids.CompositeResourceID` and any custom resource IDs (i.e. not one provided by `commonids` or `go-azure-sdk/resource-manager`) are not supported.
-
 ## Adding Resource Identity
 
 ### Typed Resources

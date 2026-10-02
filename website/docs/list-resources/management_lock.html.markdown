@@ -31,7 +31,7 @@ list "azurerm_management_lock" "example" {
 list "azurerm_management_lock" "example" {
   provider = azurerm
   config {
-    resource_group_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1"
+    resource_group_name = "group1"
   }
 }
 ```
@@ -62,10 +62,10 @@ list "azurerm_management_lock" "example" {
 
 This list resource supports the following arguments:
 
-* `subscription_id` - (Optional) The ID of the Subscription to query locks for (supports either a raw UUID or `/subscriptions/{subscriptionId}`). Queries locks applied directly at the subscription level. Conflicts with `resource_group_id`, `resource_id`, and `scope`. If all arguments are omitted, defaults to querying the current subscription at the subscription level.
+* `subscription_id` - (Optional) The ID of the Subscription to query locks for (supports either a raw UUID or `/subscriptions/{subscriptionId}`). Queries locks applied directly at the subscription level. Conflicts with `resource_group_name`, `resource_id`, and `scope`. If all arguments are omitted, defaults to querying the current subscription at the subscription level.
 
-* `resource_group_id` - (Optional) The ID of the Resource Group to query locks for. Queries locks applied directly at the resource group level. Conflicts with `subscription_id`, `resource_id`, and `scope`.
+* `resource_group_name` - (Optional) The name of the Resource Group to query locks for. Queries locks applied directly at the resource group level. Conflicts with `subscription_id`, `resource_id`, and `scope`.
 
-* `resource_id` - (Optional) The ID of the Resource to query locks for. Queries locks applied directly at the resource level. Conflicts with `subscription_id`, `resource_group_id`, and `scope`.
+* `resource_id` - (Optional) The ID of the Resource to query locks for. Queries locks applied directly at the resource level. Conflicts with `subscription_id`, `resource_group_name`, and `scope`.
 
-* `scope` - (Optional) The Scope to query locks for (e.g. a Management Group or arbitrary resource scope). Conflicts with `subscription_id`, `resource_group_id`, and `resource_id`.
+* `scope` - (Optional) The Scope to query locks for (e.g. a Management Group or arbitrary resource scope). Conflicts with `subscription_id`, `resource_group_name`, and `resource_id`.

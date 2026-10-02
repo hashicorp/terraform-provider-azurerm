@@ -4,6 +4,7 @@
 package migration
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"log"
@@ -22,13 +23,11 @@ func (DiagnosticSettingV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
-			ForceNew: true,
 		},
 
 		"target_resource_id": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
-			ForceNew: true,
 		},
 
 		"eventhub_name": {
@@ -78,6 +77,7 @@ func (DiagnosticSettingV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
+			Set: resourceMonitorDiagnosticLogSettingHash,
 		},
 
 		"enabled_metric": {
@@ -115,4 +115,17 @@ func (DiagnosticSettingV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 
 		return rawState, nil
 	}
+}
+
+func resourceMonitorDiagnosticLogSettingHash(input any) int {
+	var buf bytes.Buffer
+	if rawData, ok := input.(map[string]any); ok {
+		if category, ok := rawData["category"]; ok {
+			fmt.Fprintf(&buf, "%s-", category.(string))
+		}
+		if categoryGroup, ok := rawData["category_group"]; ok {
+			fmt.Fprintf(&buf, "%s-", categoryGroup.(string))
+		}
+	}
+	return pluginsdk.HashString(buf.String())
 }

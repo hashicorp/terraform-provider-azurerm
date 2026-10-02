@@ -28,4 +28,3 @@ list "azurerm_maintenance_assignment_virtual_machine" "example" {
 This list resource supports the following arguments:
 
 * `virtual_machine_id` - (Required) The ID of the Virtual Machine to query Maintenance Configuration Assignments for.
-
