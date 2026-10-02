@@ -216,7 +216,7 @@ func (r KubernetesFleetAutoUpgradeProfileResource) flatten(metadata sdk.Resource
 	props := model.Properties
 	state.Channel = string(props.Channel)
 	if props.UpdateStrategyId != nil {
-		updateStrategyId, err := fleetupdatestrategies.ParseUpdateStrategyID(*props.UpdateStrategyId)
+		updateStrategyId, err := fleetupdatestrategies.ParseUpdateStrategyIDInsensitively(*props.UpdateStrategyId)
 		if err != nil {
 			return err
 		}

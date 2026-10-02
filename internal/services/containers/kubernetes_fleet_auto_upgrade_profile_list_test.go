@@ -29,12 +29,15 @@ import (
 )
 
 func TestKubernetesFleetAutoUpgradeProfileList(t *testing.T) {
-	id := autoupgradeprofiles.NewAutoUpgradeProfileID("00000000-0000-0000-0000-000000000000", "example", "fleet", "first")
+	id := autoupgradeprofiles.NewAutoUpgradeProfileID("00000000-0000-0000-0000-000000000000", "ExampleRG", "Fleet", "first")
 	fleetID := commonids.NewKubernetesFleetID(id.SubscriptionId, id.ResourceGroupName, id.FleetName).ID()
 	secondID := autoupgradeprofiles.NewAutoUpgradeProfileID(id.SubscriptionId, id.ResourceGroupName, id.FleetName, "second")
-	strategyID := fleetupdatestrategies.NewUpdateStrategyID(id.SubscriptionId, id.ResourceGroupName, id.FleetName, "strategy").ID()
+	strategyID := fleetupdatestrategies.NewUpdateStrategyID(id.SubscriptionId, id.ResourceGroupName, id.FleetName, "Strategy").ID()
 	first := fmt.Sprintf(`{"id":%q,"name":"first","properties":{"channel":"Stable","disabled":true,"nodeImageSelection":{"type":"Latest"},"updateStrategyId":%q}}`, id.ID(), strategyID)
 	second := fmt.Sprintf(`{"id":%q,"name":"second","properties":{"channel":"Rapid","nodeImageSelection":null,"updateStrategyId":null}}`, secondID.ID())
+	unknownParent := tftypes.NewValue(tftypes.String, tftypes.UnknownValue)
+	nullParent := tftypes.NewValue(tftypes.String, nil)
+	wrongParent := tftypes.NewValue(tftypes.String, id.ID())
 	tests := []struct {
 		name      string
 		body      string
@@ -42,13 +45,19 @@ func TestKubernetesFleetAutoUpgradeProfileList(t *testing.T) {
 		status    int
 		wantCount int
 		wantError bool
+		configID  *tftypes.Value
 	}{
 		{name: "multiple pages", body: fmt.Sprintf(`{"value":[%s],"nextLink":"https://fleet.invalid/next?api-version=2025-03-01"}`, first), nextPage: fmt.Sprintf(`{"value":[%s]}`, second), status: http.StatusOK, wantCount: 2},
+		{name: "mixed case API IDs", body: fmt.Sprintf(`{"value":[%s]}`, strings.NewReplacer("resourceGroups", "RESOURCEGROUPS", "Microsoft.ContainerService", "microsoft.containerservice", "autoUpgradeProfiles", "AUTOUPGRADEPROFILES", "updateStrategies", "UPDATESTRATEGIES").Replace(first)), status: http.StatusOK, wantCount: 1},
 		{name: "empty fleet", body: `{"value":[]}`, status: http.StatusOK},
 		{name: "not found is an error", body: `{"error":{"code":"ResourceNotFound","message":"fleet not found"}}`, status: http.StatusNotFound, wantError: true},
 		{name: "missing properties", body: fmt.Sprintf(`{"value":[{"id":%q,"name":"first"}]}`, id.ID()), status: http.StatusOK, wantError: true},
 		{name: "null properties", body: fmt.Sprintf(`{"value":[{"id":%q,"name":"first","properties":null}]}`, id.ID()), status: http.StatusOK, wantError: true},
 		{name: "invalid identity", body: `{"value":[{"id":"invalid","name":"first","properties":{"channel":"Stable"}}]}`, status: http.StatusOK, wantError: true},
+		{name: "wrong identity resource type", body: fmt.Sprintf(`{"value":[%s]}`, strings.Replace(first, id.ID(), strategyID, 1)), status: http.StatusOK, wantError: true},
+		{name: "unknown parent", configID: &unknownParent, wantError: true},
+		{name: "null parent", configID: &nullParent, wantError: true},
+		{name: "wrong configured parent type", configID: &wrongParent, wantError: true},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -100,11 +109,15 @@ func TestKubernetesFleetAutoUpgradeProfileList(t *testing.T) {
 			for _, name := range []string{"name", "fleet_name", "resource_group_name", "subscription_id"} {
 				identityAttributes[name] = identityschema.StringAttribute{RequiredForImport: true}
 			}
+			configID := tftypes.NewValue(tftypes.String, fleetID)
+			if test.configID != nil {
+				configID = *test.configID
+			}
 			request := list.ListRequest{
 				Config: tfsdk.Config{
 					Schema: configSchema.Schema,
 					Raw: tftypes.NewValue(configSchema.Schema.Type().TerraformType(ctx), map[string]tftypes.Value{
-						"kubernetes_fleet_manager_id": tftypes.NewValue(tftypes.String, fleetID),
+						"kubernetes_fleet_manager_id": configID,
 					}),
 				},
 				IncludeResource:        true,
@@ -141,6 +154,7 @@ func TestKubernetesFleetAutoUpgradeProfileList(t *testing.T) {
 					}
 				}
 				for key, want := range map[string]string{
+					"id":   autoupgradeprofiles.NewAutoUpgradeProfileID(id.SubscriptionId, id.ResourceGroupName, id.FleetName, name).ID(),
 					"name": name, "channel": channel, "kubernetes_fleet_manager_id": fleetID, "node_image_selection_type": image, "update_strategy_id": strategy,
 				} {
 					var got string
@@ -153,12 +167,19 @@ func TestKubernetesFleetAutoUpgradeProfileList(t *testing.T) {
 					t.Errorf("enabled: want %t, got %t, %s", enabled, gotEnabled, diags)
 				}
 			}
-			if count != test.wantCount || (errors == 1) != test.wantError {
+			wantErrors := 0
+			if test.wantError {
+				wantErrors = 1
+			}
+			if count != test.wantCount || errors != wantErrors {
 				t.Fatalf("got %d resources and %d errors; want %d resources, error=%t", count, errors, test.wantCount, test.wantError)
 			}
 			wantRequests := 1
 			if test.nextPage != "" {
 				wantRequests = 2
+			}
+			if test.configID != nil && test.wantError {
+				wantRequests = 0
 			}
 			if requests != wantRequests {
 				t.Fatalf("want %d requests, got %d", wantRequests, requests)

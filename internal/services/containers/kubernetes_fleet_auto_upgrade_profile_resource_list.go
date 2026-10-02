@@ -77,7 +77,7 @@ func (KubernetesFleetAutoUpgradeProfileListResource) List(ctx context.Context, r
 			result := request.NewListResult(ctx)
 			result.DisplayName = pointer.From(item.Name)
 
-			id, err := autoupgradeprofiles.ParseAutoUpgradeProfileID(pointer.From(item.Id))
+			id, err := autoupgradeprofiles.ParseAutoUpgradeProfileIDInsensitively(pointer.From(item.Id))
 			if err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Kubernetes Fleet Auto Upgrade Profile ID", err)
 				return

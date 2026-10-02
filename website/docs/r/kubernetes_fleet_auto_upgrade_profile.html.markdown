@@ -48,9 +48,9 @@ resource "azurerm_kubernetes_fleet_auto_upgrade_profile" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Kubernetes Fleet Auto Upgrade Profile. Changing this forces a new Kubernetes Fleet Auto Upgrade Profile to be created.
+* `name` - (Required) The name which should be used for this Kubernetes Fleet Auto Upgrade Profile. Changing this forces a new resource to be created.
 
-* `kubernetes_fleet_manager_id` - (Required) The ID of the Fleet Manager. Changing this forces a new Kubernetes Fleet Auto Upgrade Profile to be created.
+* `kubernetes_fleet_manager_id` - (Required) The ID of the Fleet Manager. Changing this forces a new resource to be created.
 
 * `channel` - (Required) The upgrade channel for the auto upgrade profile. Possible values are `Stable`, `Rapid`, and `NodeImage`.
 
@@ -58,7 +58,7 @@ The following arguments are supported:
 
 * `node_image_selection_type` - (Optional) The node image selection type for the auto upgrade profile. When omitted, no node image selection preference is sent to Azure. Possible values are `Consistent` and `Latest`.
 
-* `update_strategy_id` - (Optional) The ID of the Fleet Update Strategy to use for this auto upgrade profile. Changing this forces a new Kubernetes Fleet Auto Upgrade Profile to be created.
+* `update_strategy_id` - (Optional) The ID of the Fleet Update Strategy to use for this auto upgrade profile. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
