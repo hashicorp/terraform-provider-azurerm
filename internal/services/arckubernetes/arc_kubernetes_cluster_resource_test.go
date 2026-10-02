@@ -27,6 +27,17 @@ import (
 
 type ArcKubernetesClusterResource struct{}
 
+func TestAccArcKubernetesCluster_regressionTest(t *testing.T) {
+	credential, privateKey, publicKey := ArcKubernetesClusterResource{}.getCredentials(t)
+	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_cluster", "test")
+	r := ArcKubernetesClusterResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, credential, privateKey, publicKey),
+		},
+	}, "")
+}
+
 func TestAccArcKubernetesCluster_basic(t *testing.T) {
 	credential, privateKey, publicKey := ArcKubernetesClusterResource{}.getCredentials(t)
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_cluster", "test")

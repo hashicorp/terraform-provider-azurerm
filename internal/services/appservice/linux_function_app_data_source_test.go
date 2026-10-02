@@ -14,6 +14,16 @@ import (
 
 type LinuxFunctionAppDataSource struct{}
 
+func TestAccLinuxFunctionAppDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.standardComplete(data),
+		},
+	}, "")
+}
+
 func TestAccLinuxFunctionAppDataSource_standardComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_linux_function_app", "test")
 	d := LinuxFunctionAppDataSource{}

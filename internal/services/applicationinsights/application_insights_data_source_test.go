@@ -13,6 +13,16 @@ import (
 
 type AppInsightsDataSource struct{}
 
+func TestAccApplicationInsightsDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_application_insights", "test")
+	r := AppInsightsDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccApplicationInsightsDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_application_insights", "test")
 

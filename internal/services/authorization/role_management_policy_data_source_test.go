@@ -13,6 +13,16 @@ import (
 
 type RoleManagementPolicyDataSource struct{}
 
+func TestAccRoleManagementPolicyDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_role_management_policy", "test")
+	r := RoleManagementPolicyDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.managementGroup(data),
+		},
+	}, "")
+}
+
 func TestAccRoleManagementPolicyDataSource_managementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_role_management_policy", "test")
 	r := RoleManagementPolicyDataSource{}
