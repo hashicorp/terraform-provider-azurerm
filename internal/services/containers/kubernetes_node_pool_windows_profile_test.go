@@ -33,26 +33,26 @@ func TestAgentPoolWindowsProfileImportPlan(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			resource := resourceKubernetesClusterNodePool()
-			config := map[string]interface{}{
+			config := map[string]any{
 				"name":                  "test",
 				"kubernetes_cluster_id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test/providers/Microsoft.ContainerService/managedClusters/test",
 				"vm_size":               "Standard_D2s_v3",
 				"os_type":               "Windows",
 				"node_count":            1,
-				"tags":                  map[string]interface{}{"Environment": "dev"},
+				"tags":                  map[string]any{"Environment": "dev"},
 			}
 			// Import has no prior Windows profile from which to infer configuration.
 			data := schema.TestResourceDataRaw(t, resource.Schema, config)
 			data.SetId(config["kubernetes_cluster_id"].(string) + "/agentPools/test")
-			if err := data.Set("node_labels", map[string]interface{}{}); err != nil {
+			if err := data.Set("node_labels", map[string]any{}); err != nil {
 				t.Fatal(err)
 			}
-			api := expandAgentPoolWindowsProfile([]interface{}{map[string]interface{}{"outbound_nat_enabled": !test.apiDisabled}})
+			api := expandAgentPoolWindowsProfile([]any{map[string]any{"outbound_nat_enabled": !test.apiDisabled}})
 			if api == nil || api.DisableOutboundNat == nil || *api.DisableOutboundNat != test.apiDisabled {
 				t.Fatalf("Windows profile did not expand to the expected API flag: %#v", api)
 			}
 			profile := flattenAgentPoolWindowsProfile(api)
-			if len(profile) != 1 || profile[0].(map[string]interface{})["outbound_nat_enabled"] != !test.apiDisabled {
+			if len(profile) != 1 || profile[0].(map[string]any)["outbound_nat_enabled"] != !test.apiDisabled {
 				t.Fatalf("API Windows profile was not preserved in imported state: %#v", profile)
 			}
 			if err := data.Set("windows_profile", profile); err != nil {
@@ -60,12 +60,12 @@ func TestAgentPoolWindowsProfileImportPlan(t *testing.T) {
 			}
 			state := data.State()
 			if test.configured != nil {
-				config["windows_profile"] = []interface{}{map[string]interface{}{"outbound_nat_enabled": *test.configured}}
+				config["windows_profile"] = []any{map[string]any{"outbound_nat_enabled": *test.configured}}
 			} else if test.emptyBlock {
-				config["windows_profile"] = []interface{}{map[string]interface{}{}}
+				config["windows_profile"] = []any{map[string]any{}}
 			}
 			if test.updateTags {
-				config["tags"] = map[string]interface{}{"Environment": "prod"}
+				config["tags"] = map[string]any{"Environment": "prod"}
 			}
 			diff, err := resource.SimpleDiff(t.Context(), state, terraform.NewResourceConfigRaw(config), nil)
 			if err != nil {
