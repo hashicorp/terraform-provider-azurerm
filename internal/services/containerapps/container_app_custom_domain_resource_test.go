@@ -13,6 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/containerapps"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -146,6 +148,78 @@ func TestAccContainerAppCustomDomainResource_update(t *testing.T) {
 	})
 }
 
+func TestAccContainerAppCustomDomainResource_updateCertificateInPlace(t *testing.T) {
+	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
+		t.Skipf("Skipping as either ARM_TEST_DNS_ZONE or ARM_TEST_DATA_RESOURCE_GROUP is not set")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_container_app_custom_domain", "test")
+	r := ContainerAppCustomDomainResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("container_app_environment_certificate_id").MatchesOtherKey(
+					check.That("azurerm_container_app_environment_certificate.test").Key("id"),
+				),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateCertificate(data),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionUpdate),
+				},
+			},
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("container_app_environment_certificate_id").MatchesOtherKey(
+					check.That("azurerm_container_app_environment_certificate.test2").Key("id"),
+				),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerAppCustomDomainResource_updateRemoveCertificateForcesNew(t *testing.T) {
+	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
+		t.Skipf("Skipping as either ARM_TEST_DNS_ZONE or ARM_TEST_DATA_RESOURCE_GROUP is not set")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_container_app_custom_domain", "test")
+	r := ContainerAppCustomDomainResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			// Clearing the explicit certificate switches the domain to an Azure-managed certificate,
+			// which cannot be done in place and must force a new resource rather than a no-op update.
+			// The managed certificate is then assigned asynchronously by Azure, so a perpetual diff is
+			// expected unless the certificate fields are ignored (see the resource documentation).
+			Config: r.removeCertificate(data),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
+			ExpectNonEmptyPlan: true,
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func (r ContainerAppCustomDomainResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider azurerm {
@@ -225,6 +299,45 @@ resource "azurerm_container_app_custom_domain" "test2" {
   certificate_binding_type                 = "SniEnabled"
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppCustomDomainResource) updateCertificate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider azurerm {
+  features {}
+}
+
+%s
+
+resource "azurerm_container_app_environment_certificate" "test2" {
+  name                         = "acctest-cacert%[2]d-2"
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  certificate_blob_base64      = filebase64("testdata/testacc.pfx")
+  certificate_password         = "TestAcc"
+}
+
+resource "azurerm_container_app_custom_domain" "test" {
+  name                                     = trimprefix(azurerm_dns_txt_record.test.fqdn, "asuid.")
+  container_app_id                         = azurerm_container_app.test.id
+  container_app_environment_certificate_id = azurerm_container_app_environment_certificate.test2.id
+  certificate_binding_type                 = "SniEnabled"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppCustomDomainResource) removeCertificate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider azurerm {
+  features {}
+}
+
+%s
+
+resource "azurerm_container_app_custom_domain" "test" {
+  name             = trimprefix(azurerm_dns_txt_record.test.fqdn, "asuid.")
+  container_app_id = azurerm_container_app.test.id
+}
+`, r.template(data))
 }
 
 func (r ContainerAppCustomDomainResource) template(data acceptance.TestData) string {
