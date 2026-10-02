@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	tfjson "github.com/hashicorp/terraform-json"
+	tfjson "github.com/hashicorp/terraform-json" // azignore:AZG010 - conflicts with goimports for idiomatic import of package when path doesn't match
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 )
