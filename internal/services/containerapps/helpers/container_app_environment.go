@@ -97,8 +97,6 @@ func WorkloadProfileSchema() *pluginsdk.Schema {
 	}
 }
 
-// IsConsumptionProfileType returns true for all consumption-based Workload Profile types (including the GPU variants),
-// which don't support `minimum_count` and `maximum_count`
 func IsConsumptionProfileType(workloadProfileType string) bool {
 	switch WorkloadProfileSku(workloadProfileType) {
 	case WorkloadProfileSkuConsumption, WorkloadProfileSkuConsumptionGpuNc24A100, WorkloadProfileSkuConsumptionGpuNc8AsT4:
