@@ -165,21 +165,21 @@ resource "azurerm_log_analytics_workspace" "test" {
 }
 
 resource "azurerm_application_insights" "test" {
-  name                          = "acctestappinsights-%[1]d"
-  location                      = azurerm_resource_group.test.location
-  resource_group_name           = azurerm_resource_group.test.name
-  workspace_id                  = azurerm_log_analytics_workspace.test.id
-  application_type              = "other"
-  local_authentication_disabled = true
+  name                         = "acctestappinsights-%[1]d"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  workspace_id                 = azurerm_log_analytics_workspace.test.id
+  application_type             = "other"
+  local_authentication_enabled = false
 }
 
 resource "azurerm_application_insights" "test2" {
-  name                          = "acctestappinsights2-%[1]d"
-  location                      = azurerm_resource_group.test.location
-  resource_group_name           = azurerm_resource_group.test.name
-  workspace_id                  = azurerm_log_analytics_workspace.test.id
-  application_type              = "other"
-  local_authentication_disabled = true
+  name                         = "acctestappinsights2-%[1]d"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  workspace_id                 = azurerm_log_analytics_workspace.test.id
+  application_type             = "other"
+  local_authentication_enabled = false
 }
 
 resource "azurerm_role_assignment" "test" {
