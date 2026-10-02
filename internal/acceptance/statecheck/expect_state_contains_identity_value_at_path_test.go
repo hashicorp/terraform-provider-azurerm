@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	tfjson "github.com/hashicorp/terraform-json"
+	"github.com/hashicorp/terraform-json"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 )
@@ -23,10 +23,10 @@ func TestExpectStateContainsIdentityValueAtPath_CaseSensitivity(t *testing.T) {
 						{
 							Address:               "azurerm_test.test",
 							IdentitySchemaVersion: &version,
-							IdentityValues: map[string]interface{}{
+							IdentityValues: map[string]any{
 								"name": "acctest-MC12345",
 							},
-							AttributeValues: map[string]interface{}{
+							AttributeValues: map[string]any{
 								"parent_id": "/subscriptions/sub1/resourceGroups/rg1/providers/Microsoft.Maintenance/maintenanceConfigurations/acctest-mc12345",
 							},
 						},
