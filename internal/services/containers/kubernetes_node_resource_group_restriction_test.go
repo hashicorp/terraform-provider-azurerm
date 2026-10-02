@@ -23,6 +23,9 @@ import (
 )
 
 func TestKubernetesNodeResourceGroupRestrictionPlan(t *testing.T) {
+	// The legacy SDK's hcl2shim.UnknownVariableValue constant is internal.
+	const unknownValue = "74D93920-ED26-11E3-AC10-0800200C9A66"
+
 	resource := resourceKubernetesCluster()
 	config := func(level any, omit bool) map[string]any {
 		result := map[string]any{
@@ -37,16 +40,19 @@ func TestKubernetesNodeResourceGroupRestrictionPlan(t *testing.T) {
 		return result
 	}
 	for _, test := range []struct {
-		name    string
-		old     string
-		new     any
-		omit    bool
-		replace bool
+		name     string
+		old      string
+		new      any
+		omit     bool
+		replace  bool
+		computed bool
 	}{
 		{name: "omitted to read only", new: "ReadOnly"},
 		{name: "omitted to unrestricted", new: "Unrestricted"},
 		{name: "restrict", old: "Unrestricted", new: "ReadOnly"},
 		{name: "reverse", old: "ReadOnly", new: "Unrestricted"},
+		{name: "read only to unknown", old: "ReadOnly", new: unknownValue, computed: true},
+		{name: "unrestricted to unknown", old: "Unrestricted", new: unknownValue, computed: true},
 		{name: "read only to omitted", old: "ReadOnly", omit: true, replace: true},
 		{name: "read only to null", old: "ReadOnly", replace: true},
 		{name: "read only to empty", old: "ReadOnly", new: "", replace: true},
@@ -62,8 +68,8 @@ func TestKubernetesNodeResourceGroupRestrictionPlan(t *testing.T) {
 				t.Fatal(err)
 			}
 			attribute, ok := diff.Attributes["node_resource_group_restriction_level"]
-			if !ok || attribute.RequiresNew != test.replace || diff.RequiresNew() != test.replace {
-				t.Fatalf("expected restriction change with replacement=%t, got %#v", test.replace, diff)
+			if !ok || attribute.RequiresNew != test.replace || diff.RequiresNew() != test.replace || attribute.NewComputed != test.computed {
+				t.Fatalf("expected restriction change with replacement=%t and computed=%t, got %#v", test.replace, test.computed, diff)
 			}
 		})
 	}

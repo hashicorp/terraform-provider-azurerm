@@ -104,7 +104,11 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("api_server_access_profile.0.subnet_id", func(ctx context.Context, old, new, meta any) bool {
 				return old != "" && new == ""
 			}),
-			pluginsdk.ForceNewIfChange("node_resource_group_restriction_level", func(ctx context.Context, old, new, meta any) bool {
+			pluginsdk.ForceNewIf("node_resource_group_restriction_level", func(ctx context.Context, d *schema.ResourceDiff, meta any) bool {
+				if !d.NewValueKnown("node_resource_group_restriction_level") {
+					return false
+				}
+				old, new := d.GetChange("node_resource_group_restriction_level")
 				return old != "" && new == ""
 			}),
 			pluginsdk.ForceNewIf("default_node_pool.0.name", func(ctx context.Context, d *schema.ResourceDiff, meta any) bool {
