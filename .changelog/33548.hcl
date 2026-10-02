@@ -25,3 +25,12 @@ change "dependency" {
 change "dependency" {
   body = "dependencies: `golang.org/x/sync` - update to `v0.23.0`"
 }
+change "dependency" {
+  body = "dependencies: `golang.org/x/sys` - update to `v0.48.0`"
+}
+change "dependency" {
+  body = "dependencies: `golang.org/x/text` - update to `v0.42.0`"
+}
+change "dependency" {
+  body = "dependencies: `golang.org/x/tools` - update to `v0.50.0`"
+}
