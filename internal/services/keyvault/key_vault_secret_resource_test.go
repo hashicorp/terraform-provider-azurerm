@@ -14,6 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -64,6 +66,14 @@ func TestAccKeyVaultSecret_writeOnlyValue(t *testing.T) {
 			data.ImportStep("value", "value_wo_version"),
 			{
 				Config: r.writeOnlyValue(data, "szechuan", 2),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						// changing `value_wo_version` creates a new version of the secret, so `version` and the
+						// attributes derived from it must be planned as unknown
+						plancheck.ExpectUnknownValue(data.ResourceName, tfjsonpath.New("version")),
+						plancheck.ExpectUnknownValue(data.ResourceName, tfjsonpath.New("resource_id")),
+					},
+				},
 				Check: acceptance.ComposeTestCheckFunc(
 					check.That(data.ResourceName).ExistsInAzure(r),
 					check.That(data.ResourceName).Key("value").IsEmpty(),
