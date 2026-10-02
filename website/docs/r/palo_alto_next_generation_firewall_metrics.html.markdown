@@ -18,11 +18,32 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
+resource "azurerm_user_assigned_identity" "example" {
+  name                = "example-identity"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_log_analytics_workspace" "example" {
+  name                = "example-workspace"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
 resource "azurerm_application_insights" "example" {
   name                = "example-appinsights"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  application_type    = "web"
+  workspace_id        = azurerm_log_analytics_workspace.example.id
+  application_type    = "other"
+}
+
+resource "azurerm_role_assignment" "example" {
+  scope                = azurerm_application_insights.example.id
+  role_definition_name = "Monitoring Metrics Publisher"
+  principal_id         = azurerm_user_assigned_identity.example.principal_id
 }
 
 resource "azurerm_public_ip" "example" {
@@ -125,6 +146,11 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rules
   resource_group_name = azurerm_resource_group.example.name
   rulestack_id        = azurerm_palo_alto_local_rulestack.example.id
 
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.example.id]
+  }
+
   network_profile {
     public_ip_address_ids = [azurerm_public_ip.example.id]
 
@@ -141,7 +167,9 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rules
 resource "azurerm_palo_alto_next_generation_firewall_metrics" "example" {
   firewall_id                            = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.example.id
   application_insights_connection_string = azurerm_application_insights.example.connection_string
-  application_insights_resource_id       = azurerm_application_insights.example.id
+  application_insights_id                = azurerm_application_insights.example.id
+
+  depends_on = [azurerm_role_assignment.example]
 }
 ```
 
@@ -153,7 +181,9 @@ The following arguments are supported:
 
 * `application_insights_connection_string` - (Required) The connection string of the Application Insights resource used for metrics collection.
 
-* `application_insights_resource_id` - (Required) The resource ID of the Application Insights resource used for metrics collection.
+* `application_insights_id` - (Required) The ID of the Application Insights resource used for metrics collection.
+
+~> **Note:** The Palo Alto Next Generation Firewall must have a User Assigned Identity which has been granted the `Monitoring Metrics Publisher` role on the Application Insights resource.
 
 ## Attributes Reference
 
