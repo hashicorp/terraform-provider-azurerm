@@ -946,7 +946,7 @@ func (r EventHubResource) captureDescriptionUpdateDestinationStorage(data accept
 %s
 
 resource "azurerm_storage_account" "second" {
-  name                     = "acctestsa%s"
+  name                     = "accsecondtestsa%s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
