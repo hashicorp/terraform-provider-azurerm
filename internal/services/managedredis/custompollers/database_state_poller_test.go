@@ -69,7 +69,7 @@ func TestDatabaseStatePoller_InProgress(t *testing.T) {
 					HttpResponse: &http.Response{StatusCode: 200},
 					Model: &databases.Database{
 						Properties: &databases.DatabaseCreateProperties{
-							ResourceState: pointer.To(tc.state),
+							ResourceState: new(tc.state),
 						},
 					},
 				},
@@ -236,7 +236,7 @@ func (m *statefulMockDatabaseClient) Get(ctx context.Context, id databases.Datab
 		HttpResponse: &http.Response{StatusCode: 200},
 		Model: &databases.Database{
 			Properties: &databases.DatabaseCreateProperties{
-				ResourceState: pointer.To(state),
+				ResourceState: new(state),
 			},
 		},
 	}, nil
