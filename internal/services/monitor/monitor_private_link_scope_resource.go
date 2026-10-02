@@ -67,7 +67,7 @@ func resourceMonitorPrivateLinkScope() *pluginsdk.Resource {
 	}
 }
 
-func resourceMonitorPrivateLinkScopeCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorPrivateLinkScopeCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Monitor.PrivateLinkScopesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -99,7 +99,7 @@ func resourceMonitorPrivateLinkScopeCreateUpdate(d *pluginsdk.ResourceData, meta
 	parameters := privatelinkscopesapis.AzureMonitorPrivateLinkScope{
 		Name:     &name,
 		Location: "Global",
-		Tags:     pluginsdk.ExpandPtrMapStringString(d.Get("tags").(map[string]interface{})),
+		Tags:     pluginsdk.ExpandPtrMapStringString(d.Get("tags").(map[string]any)),
 		Properties: privatelinkscopesapis.AzureMonitorPrivateLinkScopeProperties{
 			AccessModeSettings: privatelinkscopesapis.AccessModeSettings{
 				IngestionAccessMode: ingestionAccessMode,
@@ -117,7 +117,7 @@ func resourceMonitorPrivateLinkScopeCreateUpdate(d *pluginsdk.ResourceData, meta
 	return resourceMonitorPrivateLinkScopeRead(d, meta)
 }
 
-func resourceMonitorPrivateLinkScopeRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorPrivateLinkScopeRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.PrivateLinkScopesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -153,7 +153,7 @@ func resourceMonitorPrivateLinkScopeRead(d *pluginsdk.ResourceData, meta interfa
 	return nil
 }
 
-func resourceMonitorPrivateLinkScopeDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorPrivateLinkScopeDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.PrivateLinkScopesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

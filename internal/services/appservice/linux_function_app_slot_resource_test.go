@@ -2176,7 +2176,7 @@ resource "azurerm_linux_function_app_slot" "test" {
 `, r.template(data, planSku), data.RandomInteger, version)
 }
 
-// nolint: unparam // Can be removed when we test different `planSku`s
+//nolint:unparam // Can be removed when we test different `planSku`s
 func (r LinuxFunctionAppSlotResource) appStackPython(data acceptance.TestData, planSku string, pythonVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2223,7 +2223,7 @@ resource "azurerm_linux_function_app_slot" "test" {
 `, r.template(data, planSku), data.RandomInteger, javaVersion)
 }
 
-// nolint: unparam
+//nolint:unparam
 func (r LinuxFunctionAppSlotResource) withIPRestrictions(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2323,7 +2323,7 @@ resource "azurerm_linux_function_app_slot" "test" {
 `, r.template(data, planSku), data.RandomInteger)
 }
 
-// nolint: unparam
+//nolint:unparam
 func (r LinuxFunctionAppSlotResource) appStackNode(data acceptance.TestData, planSku string, nodeVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

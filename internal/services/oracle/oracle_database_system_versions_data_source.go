@@ -101,7 +101,7 @@ func (d DatabaseVersionsDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (d DatabaseVersionsDataSource) ModelObject() interface{} {
+func (d DatabaseVersionsDataSource) ModelObject() any {
 	return &DatabaseVersionsModel{}
 }
 

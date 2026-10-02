@@ -8,13 +8,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -52,7 +51,7 @@ func resourceIotSecurityDeviceGroup() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: iothubValidate.IotHubID,
+				ValidateFunc: validate.IotHubID,
 			},
 
 			"allow_rule": {
@@ -145,7 +144,7 @@ func resourceIotSecurityDeviceGroup() *pluginsdk.Resource {
 						"duration": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validate.ISO8601Duration,
+							ValidateFunc: validation.ISO8601Duration,
 						},
 					},
 				},
@@ -154,7 +153,7 @@ func resourceIotSecurityDeviceGroup() *pluginsdk.Resource {
 	}
 }
 
-func resourceIotSecurityDeviceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotSecurityDeviceGroupCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.DeviceSecurityGroupsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -182,7 +181,7 @@ func resourceIotSecurityDeviceGroupCreateUpdate(d *pluginsdk.ResourceData, meta 
 	deviceSecurityGroup := security.DeviceSecurityGroup{
 		DeviceSecurityGroupProperties: &security.DeviceSecurityGroupProperties{
 			TimeWindowRules: timeWindowRules,
-			AllowlistRules:  expandIotSecurityDeviceGroupAllowRule(d.Get("allow_rule").([]interface{})),
+			AllowlistRules:  expandIotSecurityDeviceGroupAllowRule(d.Get("allow_rule").([]any)),
 		},
 	}
 
@@ -194,7 +193,7 @@ func resourceIotSecurityDeviceGroupCreateUpdate(d *pluginsdk.ResourceData, meta 
 	return resourceIotSecurityDeviceGroupRead(d, meta)
 }
 
-func resourceIotSecurityDeviceGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotSecurityDeviceGroupRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.DeviceSecurityGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -229,7 +228,7 @@ func resourceIotSecurityDeviceGroupRead(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func resourceIotSecurityDeviceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotSecurityDeviceGroupDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.DeviceSecurityGroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -246,12 +245,12 @@ func resourceIotSecurityDeviceGroupDelete(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func expandIotSecurityDeviceGroupAllowRule(input []interface{}) *[]security.BasicAllowlistCustomAlertRule {
+func expandIotSecurityDeviceGroupAllowRule(input []any) *[]security.BasicAllowlistCustomAlertRule {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	result := make([]security.BasicAllowlistCustomAlertRule, 0)
 
 	if connectionFromIPNotAllowed := v["connection_from_ips_not_allowed"].(*pluginsdk.Set).List(); len(connectionFromIPNotAllowed) > 0 {
@@ -299,14 +298,14 @@ func expandIotSecurityDeviceGroupAllowRule(input []interface{}) *[]security.Basi
 
 // issue to track: https://github.com/Azure/azure-sdk-for-go/issues/14282
 // there is a lot of repeated codes here. once the issue is resolved, we should use a more elegant way
-func expandIotSecurityDeviceGroupTimeWindowRule(input []interface{}) (*[]security.BasicTimeWindowCustomAlertRule, error) {
+func expandIotSecurityDeviceGroupTimeWindowRule(input []any) (*[]security.BasicTimeWindowCustomAlertRule, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
 	result := make([]security.BasicTimeWindowCustomAlertRule, 0)
 	ruleTypeMap := make(map[security.RuleTypeBasicCustomAlertRule]struct{})
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 		t := security.RuleTypeBasicCustomAlertRule(v["type"].(string))
 		duration := v["duration"].(string)
 		min := int32(v["min"].(int))
@@ -436,9 +435,9 @@ func expandIotSecurityDeviceGroupTimeWindowRule(input []interface{}) (*[]securit
 	return &result, nil
 }
 
-func flattenIotSecurityDeviceGroupAllowRule(input *[]security.BasicAllowlistCustomAlertRule, d *pluginsdk.ResourceData) []interface{} {
+func flattenIotSecurityDeviceGroupAllowRule(input *[]security.BasicAllowlistCustomAlertRule, d *pluginsdk.ResourceData) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	var flag bool
@@ -468,10 +467,10 @@ func flattenIotSecurityDeviceGroupAllowRule(input *[]security.BasicAllowlistCust
 		}
 	}
 	if !flag {
-		return []interface{}{}
+		return []any{}
 	}
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"connection_from_ips_not_allowed": pluginsdk.FlattenSlice(connectionFromIPsNotAllowed),
 			"connection_to_ips_not_allowed":   pluginsdk.FlattenSlice(connectionToIPsNotAllowed),
 			"local_users_not_allowed":         pluginsdk.FlattenSlice(localUsersNotAllowed),
@@ -482,11 +481,11 @@ func flattenIotSecurityDeviceGroupAllowRule(input *[]security.BasicAllowlistCust
 
 // issue to track: https://github.com/Azure/azure-sdk-for-go/issues/14282
 // there is a lot of repeated codes here. once the issue is resolved, we should use a more elegant way
-func flattenIotSecurityDeviceGroupTimeWindowRule(input *[]security.BasicTimeWindowCustomAlertRule) []interface{} {
+func flattenIotSecurityDeviceGroupTimeWindowRule(input *[]security.BasicTimeWindowCustomAlertRule) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
-	result := make([]interface{}, 0)
+	result := make([]any, 0)
 
 	for _, v := range *input {
 		var isEnabled *bool
@@ -608,7 +607,7 @@ func flattenIotSecurityDeviceGroupTimeWindowRule(input *[]security.BasicTimeWind
 		if maxThresholdPointer != nil {
 			max = int(*maxThresholdPointer)
 		}
-		result = append(result, map[string]interface{}{
+		result = append(result, map[string]any{
 			"type":     t,
 			"duration": duration,
 			"min":      min,

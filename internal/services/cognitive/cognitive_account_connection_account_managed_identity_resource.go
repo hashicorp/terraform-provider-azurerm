@@ -41,7 +41,7 @@ func (r CognitiveAccountConnectionAccountManagedIdentityResource) ResourceType()
 	return "azurerm_cognitive_account_connection_account_managed_identity"
 }
 
-func (r CognitiveAccountConnectionAccountManagedIdentityResource) ModelObject() interface{} {
+func (r CognitiveAccountConnectionAccountManagedIdentityResource) ModelObject() any {
 	return &CognitiveAccountConnectionAccountManagedIdentityModel{}
 }
 
