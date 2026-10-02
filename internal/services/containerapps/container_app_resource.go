@@ -42,7 +42,7 @@ type ContainerAppModel struct {
 	Identity             []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	WorkloadProfileName  string                                     `tfschema:"workload_profile_name"`
 	MaxInactiveRevisions int64                                      `tfschema:"max_inactive_revisions"`
-	Tags                 map[string]interface{}                     `tfschema:"tags"`
+	Tags                 map[string]any                             `tfschema:"tags"`
 
 	OutboundIpAddresses        []string `tfschema:"outbound_ip_addresses"`
 	LatestRevisionName         string   `tfschema:"latest_revision_name"`
@@ -54,7 +54,7 @@ var _ sdk.ResourceWithUpdate = ContainerAppResource{}
 
 var _ sdk.ResourceWithCustomizeDiff = ContainerAppResource{}
 
-func (r ContainerAppResource) ModelObject() interface{} {
+func (r ContainerAppResource) ModelObject() any {
 	return &ContainerAppModel{}
 }
 
@@ -281,7 +281,7 @@ func (r ContainerAppResource) Read() sdk.ResourceFunc {
 					state.Template = helpers.FlattenContainerAppTemplate(props.Template)
 					if config := props.Configuration; config != nil {
 						if config.ActiveRevisionsMode != nil {
-							state.RevisionMode = string(pointer.From(config.ActiveRevisionsMode))
+							state.RevisionMode = pointer.FromEnum(config.ActiveRevisionsMode)
 						}
 						state.Ingress = helpers.FlattenContainerAppIngress(config.Ingress, id.ContainerAppName)
 						state.Registries = helpers.FlattenContainerAppRegistries(config.Registries)

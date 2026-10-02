@@ -132,7 +132,7 @@ func dataSourceAutomationAccount() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceAutomationAccountRead(d *pluginsdk.ResourceData, meta any) error {
 	iclient := meta.(*clients.Client).Automation.AgentRegistrationInfoClient
 	client := meta.(*clients.Client).Automation.AutomationAccount
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -208,14 +208,14 @@ func dataSourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func flattenPrivateEndpointConnectionsDataSource(input *[]automationaccount.PrivateEndpointConnection) []interface{} {
+func flattenPrivateEndpointConnectionsDataSource(input *[]automationaccount.PrivateEndpointConnection) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 	for _, item := range *input {
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"id":   pointer.From(item.Id),
 			"name": pointer.From(item.Name),
 		})

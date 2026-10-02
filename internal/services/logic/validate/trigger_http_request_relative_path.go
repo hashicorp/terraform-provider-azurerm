@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func TriggerHttpRequestRelativePath(v interface{}, k string) ([]string, []error) {
+func TriggerHttpRequestRelativePath(v any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile("^[A-Za-z0-9_/}{]+$"), "can only contain alphanumeric characters, underscores, forward slashes and curly braces")(v, k)
 }

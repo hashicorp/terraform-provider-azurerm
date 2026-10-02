@@ -13,9 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2023-12-01-preview/alertrules"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -142,7 +140,7 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 									"lookback_duration": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
-										ValidateFunc: validate.ISO8601Duration,
+										ValidateFunc: validation.ISO8601Duration,
 										Default:      "PT5M",
 									},
 									"reopen_closed_incidents": {
@@ -209,14 +207,14 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Default:      "PT5H",
-				ValidateFunc: validate.ISO8601DurationBetween("PT5M", "P14D"),
+				ValidateFunc: validation.ISO8601DurationBetween("PT5M", "P14D"),
 			},
 
 			"query_period": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Default:      "PT5H",
-				ValidateFunc: validate.ISO8601DurationBetween("PT5M", "P14D"),
+				ValidateFunc: validation.ISO8601DurationBetween("PT5M", "P14D"),
 			},
 
 			"trigger_operator": {
@@ -242,7 +240,7 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Default:      "PT5H",
-				ValidateFunc: validate.ISO8601DurationBetween("PT5M", "PT24H"),
+				ValidateFunc: validation.ISO8601DurationBetween("PT5M", "PT24H"),
 			},
 			"alert_details_override": {
 				Type:     pluginsdk.TypeList,
@@ -349,7 +347,7 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 	}
 }
 
-func resourceSentinelAlertRuleScheduledCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleScheduledCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -398,7 +396,7 @@ func resourceSentinelAlertRuleScheduledCreateUpdate(d *pluginsdk.ResourceData, m
 		}
 	}
 
-	incident := expandAlertRuleIncidentConfiguration(d.Get("incident").([]interface{}), "create_incident_enabled", false)
+	incident := expandAlertRuleIncidentConfiguration(d.Get("incident").([]any), "create_incident_enabled", false)
 
 	param := alertrules.ScheduledAlertRule{
 		Properties: &alertrules.ScheduledAlertRuleProperties{
@@ -426,23 +424,23 @@ func resourceSentinelAlertRuleScheduledCreateUpdate(d *pluginsdk.ResourceData, m
 		param.Properties.TemplateVersion = pointer.To(v.(string))
 	}
 	if v, ok := d.GetOk("event_grouping"); ok {
-		param.Properties.EventGroupingSettings = expandAlertRuleEventGroupingSetting(v.([]interface{}))
+		param.Properties.EventGroupingSettings = expandAlertRuleEventGroupingSetting(v.([]any))
 	}
 	if v, ok := d.GetOk("alert_details_override"); ok {
-		param.Properties.AlertDetailsOverride = expandAlertRuleAlertDetailsOverride(v.([]interface{}))
+		param.Properties.AlertDetailsOverride = expandAlertRuleAlertDetailsOverride(v.([]any))
 	}
 	if v, ok := d.GetOk("custom_details"); ok {
-		param.Properties.CustomDetails = helpers.ExpandPtrMapStringString(v.(map[string]interface{}))
+		param.Properties.CustomDetails = pluginsdk.ExpandPtrMapStringString(v.(map[string]any))
 	}
 
 	entityMappingCount := 0
 	sentinelEntityMappingCount := 0
 	if v, ok := d.GetOk("entity_mapping"); ok {
-		param.Properties.EntityMappings = expandAlertRuleEntityMapping(v.([]interface{}))
+		param.Properties.EntityMappings = expandAlertRuleEntityMapping(v.([]any))
 		entityMappingCount = len(*param.Properties.EntityMappings)
 	}
 	if v, ok := d.GetOk("sentinel_entity_mapping"); ok {
-		param.Properties.SentinelEntitiesMappings = expandAlertRuleSentinelEntityMapping(v.([]interface{}))
+		param.Properties.SentinelEntitiesMappings = expandAlertRuleSentinelEntityMapping(v.([]any))
 		sentinelEntityMappingCount = len(*param.Properties.SentinelEntitiesMappings)
 	}
 
@@ -471,7 +469,7 @@ func resourceSentinelAlertRuleScheduledCreateUpdate(d *pluginsdk.ResourceData, m
 	return resourceSentinelAlertRuleScheduledRead(d, meta)
 }
 
-func resourceSentinelAlertRuleScheduledRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleScheduledRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -517,12 +515,12 @@ func resourceSentinelAlertRuleScheduledRead(d *pluginsdk.ResourceData, meta inte
 					return fmt.Errorf("setting `incident`: %+v", err)
 				}
 
-				d.Set("severity", string(pointer.From(prop.Severity)))
+				d.Set("severity", pointer.FromEnum(prop.Severity))
 				d.Set("enabled", prop.Enabled)
 				d.Set("query", prop.Query)
 				d.Set("query_frequency", prop.QueryFrequency)
 				d.Set("query_period", prop.QueryPeriod)
-				d.Set("trigger_operator", string(pointer.From(prop.TriggerOperator)))
+				d.Set("trigger_operator", pointer.FromEnum(prop.TriggerOperator))
 				d.Set("trigger_threshold", int(pointer.From(prop.TriggerThreshold)))
 				d.Set("suppression_enabled", prop.SuppressionEnabled)
 				d.Set("suppression_duration", prop.SuppressionDuration)
@@ -535,7 +533,7 @@ func resourceSentinelAlertRuleScheduledRead(d *pluginsdk.ResourceData, meta inte
 				if err := d.Set("alert_details_override", flattenAlertRuleAlertDetailsOverride(prop.AlertDetailsOverride)); err != nil {
 					return fmt.Errorf("setting `alert_details_override`: %+v", err)
 				}
-				if err := d.Set("custom_details", helpers.FlattenPtrMapStringString(prop.CustomDetails)); err != nil {
+				if err := d.Set("custom_details", pluginsdk.FlattenPtrMapStringString(prop.CustomDetails)); err != nil {
 					return fmt.Errorf("setting `custom_details`: %+v", err)
 				}
 				if err := d.Set("entity_mapping", flattenAlertRuleEntityMapping(prop.EntityMappings)); err != nil {
@@ -551,7 +549,7 @@ func resourceSentinelAlertRuleScheduledRead(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func resourceSentinelAlertRuleScheduledDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleScheduledDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

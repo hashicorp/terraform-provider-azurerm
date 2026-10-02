@@ -72,7 +72,7 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurity() *pluginsdk.Resourc
 	}
 }
 
-func resourceSentinelDataConnectorMicrosoftCloudAppSecurityCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorMicrosoftCloudAppSecurityCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -164,7 +164,7 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurityCreateUpdate(d *plugi
 	return resourceSentinelDataConnectorMicrosoftCloudAppSecurityRead(d, meta)
 }
 
-func resourceSentinelDataConnectorMicrosoftCloudAppSecurityRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorMicrosoftCloudAppSecurityRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -217,7 +217,7 @@ func resourceSentinelDataConnectorMicrosoftCloudAppSecurityRead(d *pluginsdk.Res
 	return nil
 }
 
-func resourceSentinelDataConnectorMicrosoftCloudAppSecurityDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorMicrosoftCloudAppSecurityDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
