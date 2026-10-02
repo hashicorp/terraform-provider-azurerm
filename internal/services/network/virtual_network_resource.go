@@ -512,6 +512,7 @@ func resourceVirtualNetworkFlatten(d *pluginsdk.ResourceData, id commonids.Virtu
 				return fmt.Errorf("setting `bgp_community`: %+v", err)
 			}
 
+			d.Set("summarized_gateway_prefixes", pointer.To(make([]string, 0)))
 			if summarizedGatewayPrefixes := props.SummarizedGatewayPrefixes; summarizedGatewayPrefixes != nil {
 				if addressPrefixes := summarizedGatewayPrefixes.AddressPrefixes; addressPrefixes != nil {
 					if err := d.Set("summarized_gateway_prefixes", addressPrefixes); err != nil {
