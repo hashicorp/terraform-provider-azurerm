@@ -4,9 +4,13 @@
 package containers
 
 import (
+	"bytes"
+	"context"
+	"errors"
 	"fmt"
 	"maps"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -79,6 +83,8 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"kubelet_config": schemaNodePoolKubeletConfig(),
 
 					"linux_os_config": schemaNodePoolLinuxOSConfig(),
+
+					"local_dns": schemaNodePoolLocalDNSProfile(),
 
 					"fips_enabled": {
 						Type:     pluginsdk.TypeBool,
@@ -574,6 +580,130 @@ func schemaNodePoolSysctlConfig() *pluginsdk.Schema {
 	}
 }
 
+func schemaNodePoolLocalDNSProfile() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"kube_dns_override": {
+					Type:     pluginsdk.TypeSet,
+					Optional: true,
+					Set:      localDNSOverrideSetHash,
+					Elem: &pluginsdk.Resource{
+						Schema: schemaLocalDNSOverride(),
+					},
+				},
+
+				"virtual_network_dns_override": {
+					Type:     pluginsdk.TypeSet,
+					Optional: true,
+					Set:      localDNSOverrideSetHash,
+					Elem: &pluginsdk.Resource{
+						Schema: schemaLocalDNSOverride(),
+					},
+				},
+
+				"mode": {
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice(slices.DeleteFunc(agentpools.PossibleValuesForLocalDNSMode(), func(s string) bool {
+						return strings.EqualFold(s, string(agentpools.LocalDNSModeDisabled))
+					}), false),
+				},
+			},
+		},
+	}
+}
+
+func localDNSOverrideSetHash(v any) int {
+	m := v.(map[string]any)
+	var buf bytes.Buffer
+
+	if val, ok := m["domain"].(string); ok && val != "" {
+		fmt.Fprintf(&buf, "%s-", val)
+	}
+	if val, ok := m["cache_duration_in_seconds"].(int); ok && val != 0 {
+		fmt.Fprintf(&buf, "%d-", val)
+	}
+	if val, ok := m["forward_destination"].(string); ok && val != "" {
+		fmt.Fprintf(&buf, "%s-", val)
+	}
+	if val, ok := m["forward_policy"].(string); ok && val != "" {
+		fmt.Fprintf(&buf, "%s-", val)
+	}
+	if val, ok := m["maximum_concurrent"].(int); ok && val != 0 {
+		fmt.Fprintf(&buf, "%d-", val)
+	}
+	if val, ok := m["protocol"].(string); ok && val != "" {
+		fmt.Fprintf(&buf, "%s-", val)
+	}
+	if val, ok := m["query_logging"].(string); ok && val != "" {
+		fmt.Fprintf(&buf, "%s-", val)
+	}
+	if val, ok := m["serve_stale"].(string); ok && val != "" {
+		fmt.Fprintf(&buf, "%s-", val)
+	}
+	if val, ok := m["serve_stale_duration_in_seconds"].(int); ok && val != 0 {
+		fmt.Fprintf(&buf, "%d-", val)
+	}
+
+	return pluginsdk.HashString(buf.String())
+}
+
+func schemaLocalDNSOverride() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"domain": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringIsNotWhiteSpace,
+		},
+		"cache_duration_in_seconds": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Default:      3600,                             // Note: API sets 0 in the return body, i.e. no limit, however, the service actually internally has a default of 3600 until set, so we send the default.
+			ValidateFunc: validation.IntBetween(0, 604800), // Technically this can be much larger, but the accepted max at DNS providers is 604,800 (7 days)
+		},
+		"forward_destination": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForLocalDNSForwardDestination(), true),
+		},
+		"forward_policy": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForLocalDNSForwardPolicy(), true),
+		},
+		"maximum_concurrent": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Default:      1000, // Note: API sets 0 in the return body if omitted, however, the service actually internally has a default of 1000 until set, so we send the default.
+			ValidateFunc: validation.IntAtLeast(0),
+		},
+		"protocol": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForLocalDNSProtocol(), true),
+		},
+		"query_logging": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForLocalDNSQueryLogging(), true),
+		},
+		"serve_stale": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForLocalDNSServeStale(), true),
+		},
+		"serve_stale_duration_in_seconds": {
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			Default:  0,
+		},
+	}
+}
+
 func schemaNodePoolNetworkProfile() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -599,8 +729,9 @@ func schemaNodePoolNetworkProfile() *pluginsdk.Schema {
 							},
 
 							"protocol": {
-								Type:         pluginsdk.TypeString,
-								Optional:     true,
+								Type:     pluginsdk.TypeString,
+								Optional: true,
+
 								ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForProtocol(), false),
 							},
 						},
@@ -657,6 +788,29 @@ func upgradeSettingsSchemaClusterDefaultNodePool() *pluginsdk.Schema {
 			},
 		},
 	}
+}
+
+func convertLocalDNSOverrideToAgentPool(v managedclusters.LocalDNSOverride) agentpools.LocalDNSOverride {
+	var override agentpools.LocalDNSOverride
+	override.CacheDurationInSeconds = v.CacheDurationInSeconds
+	if v.ForwardDestination != nil {
+		override.ForwardDestination = pointer.ToEnum[agentpools.LocalDNSForwardDestination](string(*v.ForwardDestination))
+	}
+	if v.ForwardPolicy != nil {
+		override.ForwardPolicy = pointer.ToEnum[agentpools.LocalDNSForwardPolicy](string(*v.ForwardPolicy))
+	}
+	override.MaxConcurrent = v.MaxConcurrent
+	if v.Protocol != nil {
+		override.Protocol = pointer.ToEnum[agentpools.LocalDNSProtocol](string(*v.Protocol))
+	}
+	if v.QueryLogging != nil {
+		override.QueryLogging = pointer.ToEnum[agentpools.LocalDNSQueryLogging](string(*v.QueryLogging))
+	}
+	if v.ServeStale != nil {
+		override.ServeStale = pointer.ToEnum[agentpools.LocalDNSServeStale](string(*v.ServeStale))
+	}
+	override.ServeStaleDurationInSeconds = v.ServeStaleDurationInSeconds
+	return override
 }
 
 func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAgentPoolProfile) agentpools.AgentPool {
@@ -795,6 +949,28 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 				SourceResourceId: creationData.SourceResourceId,
 			}
 		}
+	}
+
+	if localDnsProfile := defaultCluster.LocalDNSProfile; localDnsProfile != nil {
+		agentPoolProfile := &agentpools.LocalDNSProfile{}
+		if localDnsProfile.Mode != nil {
+			agentPoolProfile.Mode = pointer.ToEnum[agentpools.LocalDNSMode](string(*localDnsProfile.Mode))
+		}
+		if localDnsProfile.KubeDNSOverrides != nil {
+			overrides := make(map[string]agentpools.LocalDNSOverride, len(*localDnsProfile.KubeDNSOverrides))
+			for k, v := range *localDnsProfile.KubeDNSOverrides {
+				overrides[k] = convertLocalDNSOverrideToAgentPool(v)
+			}
+			agentPoolProfile.KubeDNSOverrides = &overrides
+		}
+		if localDnsProfile.VnetDNSOverrides != nil {
+			overrides := make(map[string]agentpools.LocalDNSOverride, len(*localDnsProfile.VnetDNSOverrides))
+			for k, v := range *localDnsProfile.VnetDNSOverrides {
+				overrides[k] = convertLocalDNSOverrideToAgentPool(v)
+			}
+			agentPoolProfile.VnetDNSOverrides = &overrides
+		}
+		agentpool.Properties.LocalDNSProfile = agentPoolProfile
 	}
 
 	if defaultCluster.GpuInstanceProfile != nil {
@@ -991,6 +1167,11 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		profile.LinuxOSConfig = linuxOSConfig
 	}
 
+	localDNSProfileRaw := raw["local_dns"].([]any)
+	if len(localDNSProfileRaw) > 0 || d.HasChange("default_node_pool.0.local_dns") {
+		profile.LocalDNSProfile = expandClusterNodePoolLocalDNSProfile(localDNSProfileRaw)
+	}
+
 	if networkProfile := raw["node_network_profile"].([]any); len(networkProfile) > 0 {
 		profile.NetworkProfile = expandClusterPoolNetworkProfile(networkProfile)
 	}
@@ -1066,6 +1247,70 @@ func expandClusterNodePoolLinuxOSConfig(input []any) (*managedclusters.LinuxOSCo
 		result.SwapFileSizeMB = pointer.To(int64(v.(int)))
 	}
 	return result, nil
+}
+
+func expandClusterNodePoolLocalDNSProfile(input []any) *managedclusters.LocalDNSProfile {
+	if len(input) == 0 || input[0] == nil {
+		return &managedclusters.LocalDNSProfile{
+			Mode: pointer.To(managedclusters.LocalDNSModeDisabled),
+		}
+	}
+
+	raw := input[0].(map[string]any)
+	profile := &managedclusters.LocalDNSProfile{}
+
+	profile.Mode = pointer.ToEnum[managedclusters.LocalDNSMode](raw["mode"].(string))
+
+	if v, ok := raw["kube_dns_override"].(*pluginsdk.Set); ok && v.Len() > 0 {
+		overrides := make(map[string]managedclusters.LocalDNSOverride)
+		for _, item := range v.List() {
+			overrideData := item.(map[string]any)
+			overrides[overrideData["domain"].(string)] = expandClusterNodePoolLocalDNSOverride(overrideData)
+		}
+		profile.KubeDNSOverrides = &overrides
+	}
+
+	if v, ok := raw["virtual_network_dns_override"].(*pluginsdk.Set); ok && v.Len() > 0 {
+		overrides := make(map[string]managedclusters.LocalDNSOverride)
+		for _, item := range v.List() {
+			overrideData := item.(map[string]any)
+			overrides[overrideData["domain"].(string)] = expandClusterNodePoolLocalDNSOverride(overrideData)
+		}
+		profile.VnetDNSOverrides = &overrides
+	}
+
+	return profile
+}
+
+func expandClusterNodePoolLocalDNSOverride(raw map[string]any) managedclusters.LocalDNSOverride {
+	var override managedclusters.LocalDNSOverride
+
+	if v, ok := raw["cache_duration_in_seconds"].(int); ok && v != 0 {
+		override.CacheDurationInSeconds = pointer.To(int64(v))
+	}
+	if v, ok := raw["forward_destination"].(string); ok && v != "" {
+		override.ForwardDestination = pointer.ToEnum[managedclusters.LocalDNSForwardDestination](v)
+	}
+	if v, ok := raw["forward_policy"].(string); ok && v != "" {
+		override.ForwardPolicy = pointer.ToEnum[managedclusters.LocalDNSForwardPolicy](v)
+	}
+	if v, ok := raw["maximum_concurrent"].(int); ok {
+		override.MaxConcurrent = pointer.To(int64(v))
+	}
+	if v, ok := raw["protocol"].(string); ok && v != "" {
+		override.Protocol = pointer.ToEnum[managedclusters.LocalDNSProtocol](v)
+	}
+	if v, ok := raw["query_logging"].(string); ok && v != "" {
+		override.QueryLogging = pointer.ToEnum[managedclusters.LocalDNSQueryLogging](v)
+	}
+	if v, ok := raw["serve_stale"].(string); ok && v != "" {
+		override.ServeStale = pointer.ToEnum[managedclusters.LocalDNSServeStale](v)
+	}
+	if v, ok := raw["serve_stale_duration_in_seconds"].(int); ok && v != 0 {
+		override.ServeStaleDurationInSeconds = pointer.To(int64(v))
+	}
+
+	return override
 }
 
 func expandClusterNodePoolSysctlConfig(input []any) (*managedclusters.SysctlConfig, error) {
@@ -1345,6 +1590,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"upgrade_settings":              upgradeSettings,
 		"vnet_subnet_id":                vnetSubnetId,
 		"only_critical_addons_enabled":  criticalAddonsEnabled,
+		"local_dns":                     flattenClusterNodePoolLocalDNSProfile(agentPool.LocalDNSProfile),
 		"kubelet_config":                flattenClusterNodePoolKubeletConfig(agentPool.KubeletConfig),
 		"linux_os_config":               linuxOSConfig,
 		"zones":                         zones.FlattenUntyped(agentPool.AvailabilityZones),
@@ -1354,6 +1600,52 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 	return &[]any{
 		out,
 	}, nil
+}
+
+func flattenClusterNodePoolLocalDNSProfile(input *managedclusters.LocalDNSProfile) []any {
+	if input == nil || pointer.From(input.Mode) == managedclusters.LocalDNSModeDisabled {
+		return []any{}
+	}
+
+	values := make(map[string]any)
+
+	values["mode"] = pointer.FromEnum(input.Mode)
+
+	if input.KubeDNSOverrides != nil && len(*input.KubeDNSOverrides) > 0 {
+		overrides := make([]any, 0, len(*input.KubeDNSOverrides))
+		for k, v := range *input.KubeDNSOverrides {
+			overrideMap := flattenClusterNodePoolLocalDNSOverride(v)
+			overrideMap["domain"] = k
+			overrides = append(overrides, overrideMap)
+		}
+		values["kube_dns_override"] = pluginsdk.NewSet(localDNSOverrideSetHash, overrides)
+	}
+
+	if input.VnetDNSOverrides != nil && len(*input.VnetDNSOverrides) > 0 {
+		overrides := make([]any, 0, len(*input.VnetDNSOverrides))
+		for k, v := range *input.VnetDNSOverrides {
+			overrideMap := flattenClusterNodePoolLocalDNSOverride(v)
+			overrideMap["domain"] = k
+			overrides = append(overrides, overrideMap)
+		}
+		values["virtual_network_dns_override"] = pluginsdk.NewSet(localDNSOverrideSetHash, overrides)
+	}
+
+	return []any{values}
+}
+
+func flattenClusterNodePoolLocalDNSOverride(v managedclusters.LocalDNSOverride) map[string]any {
+	m := make(map[string]any)
+	m["cache_duration_in_seconds"] = pointer.From(v.CacheDurationInSeconds)
+	m["forward_destination"] = pointer.From(v.ForwardDestination)
+	m["forward_policy"] = pointer.From(v.ForwardPolicy)
+	m["maximum_concurrent"] = pointer.From(v.MaxConcurrent)
+	m["protocol"] = pointer.From(v.Protocol)
+	m["query_logging"] = pointer.From(v.QueryLogging)
+	m["serve_stale"] = pointer.From(v.ServeStale)
+	m["serve_stale_duration_in_seconds"] = pointer.From(v.ServeStaleDurationInSeconds)
+
+	return m
 }
 
 func flattenClusterNodePoolUpgradeSettings(input *managedclusters.AgentPoolUpgradeSettings) []any {
@@ -1847,4 +2139,54 @@ func flattenClusterPoolNetworkProfileNodePublicIPTags(input *[]managedclusters.I
 	}
 
 	return out
+}
+
+func validateLocalDNSProfileOverrides(prefix string) schema.CustomizeDiffFunc {
+	return func(ctx context.Context, d *schema.ResourceDiff, meta any) error {
+		if _, ok := d.GetOk(prefix + "local_dns"); !ok {
+			return nil
+		}
+
+		if v, ok := d.GetOk(prefix + "local_dns.0.virtual_network_dns_override"); ok {
+			for _, item := range v.(*pluginsdk.Set).List() {
+				override := item.(map[string]any)
+				domain := override["domain"].(string)
+				forwardDest := override["forward_destination"].(string)
+				protocol := override["protocol"].(string)
+				serveStale := override["serve_stale"].(string)
+
+				if domain == "." && strings.EqualFold(forwardDest, string(agentpools.LocalDNSForwardDestinationClusterCoreDNS)) {
+					return fmt.Errorf("under `virtual_network_dns_override`, the `forward_destination` for the root zone ('.') cannot be 'ClusterCoreDNS'")
+				}
+
+				if domain == "cluster.local" && strings.EqualFold(forwardDest, string(agentpools.LocalDNSForwardDestinationVnetDNS)) {
+					return fmt.Errorf("under `virtual_network_dns_override`, the `forward_destination` for 'cluster.local' cannot be 'VnetDNS'")
+				}
+
+				if strings.EqualFold(protocol, string(agentpools.LocalDNSProtocolForceTCP)) && strings.EqualFold(serveStale, string(agentpools.LocalDNSServeStaleVerify)) {
+					return fmt.Errorf("under `virtual_network_dns_override` for domain %q, when `protocol` is 'ForceTCP', `serve_stale` cannot be 'Verify'. Use 'Immediate' instead", domain)
+				}
+			}
+		}
+
+		if v, ok := d.GetOk(prefix + "local_dns.0.kube_dns_override"); ok {
+			for _, item := range v.(*pluginsdk.Set).List() {
+				override := item.(map[string]any)
+				domain := override["domain"].(string)
+				forwardDest := override["forward_destination"].(string)
+				protocol := override["protocol"].(string)
+				serveStale := override["serve_stale"].(string)
+
+				if domain == "cluster.local" && strings.EqualFold(forwardDest, string(agentpools.LocalDNSForwardDestinationVnetDNS)) {
+					return errors.New("under `kube_dns_override`, the `forward_destination` for 'cluster.local' cannot be 'VnetDNS'")
+				}
+
+				if strings.EqualFold(protocol, string(agentpools.LocalDNSProtocolForceTCP)) && strings.EqualFold(serveStale, string(agentpools.LocalDNSServeStaleVerify)) {
+					return fmt.Errorf("under `kube_dns_override` for domain %q, when `protocol` is 'ForceTCP', `serve_stale` cannot be 'Verify'. Use 'Immediate' instead", domain)
+				}
+			}
+		}
+
+		return nil
+	}
 }
