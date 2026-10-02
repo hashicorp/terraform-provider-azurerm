@@ -450,6 +450,8 @@ func resourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, meta
 					d.Set("shared_key", model.Value)
 				}
 			}
+		} else {
+			d.Set("shared_key", "")
 		}
 
 		if string(props.ConnectionType) != "" {

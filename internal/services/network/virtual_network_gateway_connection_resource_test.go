@@ -299,11 +299,18 @@ func TestAccVirtualNetworkGatewayConnection_ingressNatRules(t *testing.T) {
 	})
 }
 
-func TestAccVirtualNetworkGatewayConnection_siteToSiteCertificateAuthentication(t *testing.T) {
+func TestAccVirtualNetworkGatewayConnection_siteToSiteSharedKeyCertificateAuthentication(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
 	r := VirtualNetworkGatewayConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.siteToSiteSharedKey(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("shared_key"),
 		{
 			Config: r.siteToSiteCertificateAuthentication(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -311,6 +318,13 @@ func TestAccVirtualNetworkGatewayConnection_siteToSiteCertificateAuthentication(
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.siteToSiteSharedKey(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("shared_key"),
 	})
 }
 
@@ -1990,7 +2004,7 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (VirtualNetworkGatewayConnectionResource) siteToSiteCertificateAuthentication(data acceptance.TestData) string {
+func (r VirtualNetworkGatewayConnectionResource) siteToSiteAuthenticationTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2198,9 +2212,31 @@ resource "azurerm_local_network_gateway" "test" {
   gateway_address     = "168.62.225.23"
   address_space       = ["10.1.1.0/28"]
 }
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r VirtualNetworkGatewayConnectionResource) siteToSiteSharedKey(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
 
 resource "azurerm_virtual_network_gateway_connection" "test" {
-  name                       = "accetest-vcn-%[1]d"
+  name                       = "accetest-vcn-%[2]d"
+  resource_group_name        = azurerm_resource_group.test2.name
+  location                   = azurerm_resource_group.test2.location
+  type                       = "IPsec"
+  virtual_network_gateway_id = azurerm_virtual_network_gateway.test.id
+  local_network_gateway_id   = azurerm_local_network_gateway.test.id
+  shared_key                 = "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
+}
+`, r.siteToSiteAuthenticationTemplate(data), data.RandomInteger)
+}
+
+func (r VirtualNetworkGatewayConnectionResource) siteToSiteCertificateAuthentication(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_virtual_network_gateway_connection" "test" {
+  name                       = "accetest-vcn-%[2]d"
   resource_group_name        = azurerm_resource_group.test2.name
   location                   = azurerm_resource_group.test2.location
   type                       = "IPsec"
@@ -2216,5 +2252,5 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
     ]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, r.siteToSiteAuthenticationTemplate(data), data.RandomInteger)
 }
