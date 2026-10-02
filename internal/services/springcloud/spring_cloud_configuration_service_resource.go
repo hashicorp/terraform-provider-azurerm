@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -74,16 +73,13 @@ func (s SpringCloudConfigurationServiceResource) Arguments() map[string]*schema.
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.SpringCloudServiceID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseSpringCloudServiceIDInsensitively),
 		},
 
 		"generation": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(appplatform.ConfigurationServiceGenerationGenOne),
-				string(appplatform.ConfigurationServiceGenerationGenTwo),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(appplatform.PossibleValuesForConfigurationServiceGeneration(), false),
 		},
 
 		"refresh_interval_in_seconds": {
@@ -127,7 +123,7 @@ func (s SpringCloudConfigurationServiceResource) Arguments() map[string]*schema.
 					"ca_certificate_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validate.SpringCloudCertificateID,
+						ValidateFunc: validation.AsGeneratedID(appplatform.ParseCertificateIDInsensitively),
 					},
 
 					"host_key": {
@@ -185,7 +181,7 @@ func (s SpringCloudConfigurationServiceResource) Attributes() map[string]*schema
 	return map[string]*schema.Schema{}
 }
 
-func (s SpringCloudConfigurationServiceResource) ModelObject() interface{} {
+func (s SpringCloudConfigurationServiceResource) ModelObject() any {
 	return &SpringCloudConfigurationServiceModel{}
 }
 
@@ -335,7 +331,7 @@ func (s SpringCloudConfigurationServiceResource) Read() sdk.ResourceFunc {
 
 			if resp.Model != nil {
 				if props := resp.Model.Properties; props != nil {
-					state.Generation = string(pointer.From(props.Generation))
+					state.Generation = pointer.FromEnum(props.Generation)
 					if props.Settings != nil && props.Settings.GitProperty != nil {
 						state.Repository = flattenConfigurationServiceConfigurationServiceGitRepositoryArray(props.Settings.GitProperty.Repositories, model.Repository)
 						state.RefreshInterval = pointer.From(props.Settings.RefreshIntervalInSeconds)

@@ -34,7 +34,7 @@ func (r ApiManagementWorkspacePolicyFragmentResource) ResourceType() string {
 	return "azurerm_api_management_workspace_policy_fragment"
 }
 
-func (r ApiManagementWorkspacePolicyFragmentResource) ModelObject() interface{} {
+func (r ApiManagementWorkspacePolicyFragmentResource) ModelObject() any {
 	return &ApiManagementWorkspacePolicyFragmentModel{}
 }
 
