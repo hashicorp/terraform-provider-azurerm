@@ -1339,5 +1339,14 @@ resource "azurerm_kubernetes_cluster" "test" {
     artifact_source       = "Cache"
     container_registry_id = azurerm_container_registry.registry.id
   }
+
+  depends_on = [
+    azurerm_container_registry_cache_rule.cache_rule,
+    azurerm_private_dns_zone_virtual_network_link.dns_vnet_link_acr,
+    azurerm_private_endpoint.acr_private_endpoint,
+    azurerm_role_assignment.aks_pull_from_acr,
+    azurerm_role_assignment.aks_to_kubeletidentity,
+    azurerm_role_assignment.aks_to_vnet,
+  ]
 }`, r.networkIsolatedBootstrapProfileTemplate(data), data.RandomInteger)
 }
