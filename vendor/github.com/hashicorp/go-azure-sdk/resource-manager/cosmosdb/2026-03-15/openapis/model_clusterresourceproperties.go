@@ -1,0 +1,32 @@
+package openapis
+
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+type ClusterResourceProperties struct {
+	AuthenticationMethod          *AuthenticationMethod              `json:"authenticationMethod,omitempty"`
+	AutoReplicate                 *AutoReplicate                     `json:"autoReplicate,omitempty"`
+	AzureConnectionMethod         *AzureConnectionType               `json:"azureConnectionMethod,omitempty"`
+	BackupSchedules               *[]BackupSchedule                  `json:"backupSchedules,omitempty"`
+	CassandraAuditLoggingEnabled  *bool                              `json:"cassandraAuditLoggingEnabled,omitempty"`
+	CassandraVersion              *string                            `json:"cassandraVersion,omitempty"`
+	ClientCertificates            *[]Certificate                     `json:"clientCertificates,omitempty"`
+	ClusterNameOverride           *string                            `json:"clusterNameOverride,omitempty"`
+	Deallocated                   *bool                              `json:"deallocated,omitempty"`
+	DelegatedManagementSubnetId   *string                            `json:"delegatedManagementSubnetId,omitempty"`
+	Extensions                    *[]string                          `json:"extensions,omitempty"`
+	ExternalDataCenters           *[]string                          `json:"externalDataCenters,omitempty"`
+	ExternalGossipCertificates    *[]Certificate                     `json:"externalGossipCertificates,omitempty"`
+	ExternalSeedNodes             *[]SeedNode                        `json:"externalSeedNodes,omitempty"`
+	GossipCertificates            *[]Certificate                     `json:"gossipCertificates,omitempty"`
+	HoursBetweenBackups           *int64                             `json:"hoursBetweenBackups,omitempty"`
+	InitialCassandraAdminPassword *string                            `json:"initialCassandraAdminPassword,omitempty"`
+	PrivateLinkResourceId         *string                            `json:"privateLinkResourceId,omitempty"`
+	PrometheusEndpoint            *SeedNode                          `json:"prometheusEndpoint,omitempty"`
+	ProvisionError                *CassandraError                    `json:"provisionError,omitempty"`
+	ProvisioningState             *ManagedCassandraProvisioningState `json:"provisioningState,omitempty"`
+	RepairEnabled                 *bool                              `json:"repairEnabled,omitempty"`
+	RestoreFromBackupId           *string                            `json:"restoreFromBackupId,omitempty"`
+	ScheduledEventStrategy        *ScheduledEventStrategy            `json:"scheduledEventStrategy,omitempty"`
+	SeedNodes                     *[]SeedNode                        `json:"seedNodes,omitempty"`
+}
