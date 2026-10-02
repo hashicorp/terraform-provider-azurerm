@@ -107,7 +107,7 @@ resource "azurerm_application_insights" "test" {
 resource "azurerm_monitor_private_link_scoped_service" "test" {
   name                = "acctest-plss-%d"
   resource_group_name = azurerm_resource_group.test.name
-  scope_name          = azurerm_monitor_private_link_scope.test.name
+	scope_name          = azurerm_monitor_private_link_scope.test.name
   linked_resource_id  = azurerm_application_insights.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -120,7 +120,7 @@ func (r MonitorPrivateLinkScopedServiceResource) requiresImport(data acceptance.
 resource "azurerm_monitor_private_link_scoped_service" "import" {
   name                = azurerm_monitor_private_link_scoped_service.test.name
   resource_group_name = azurerm_monitor_private_link_scoped_service.test.resource_group_name
-  scope_name          = azurerm_monitor_private_link_scoped_service.test.scope_name
+	scope_name          = azurerm_monitor_private_link_scoped_service.test.scope_name
   linked_resource_id  = azurerm_monitor_private_link_scoped_service.test.linked_resource_id
 }
 `, r.basic(data))
@@ -152,8 +152,9 @@ resource "azurerm_monitor_private_link_scope" "test" {
 resource "azurerm_monitor_private_link_scoped_service" "test" {
   name                = "acctest-plss-%d"
   resource_group_name = azurerm_resource_group.test.name
-  scope_name          = azurerm_monitor_private_link_scope.test.name
+	scope_name          = "acctest-unused-pls-%d"
+	scope_resource_id   = azurerm_monitor_private_link_scope.test.id
   linked_resource_id  = azurerm_monitor_data_collection_endpoint.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
