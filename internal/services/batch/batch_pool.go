@@ -384,6 +384,24 @@ func flattenBatchPoolSecurityProfile(configProfile *pool.SecurityProfile) []any 
 	return securityProfile
 }
 
+func flattenBatchPoolManagedDisk(input *pool.ManagedDisk) []interface{} {
+	result := make([]interface{}, 0)
+	if input == nil {
+		return result
+	}
+
+	managedDisk := make(map[string]interface{})
+	managedDisk["storage_account_type"] = pointer.FromEnum(input.StorageAccountType)
+
+	if input.SecurityProfile != nil {
+		managedDisk["security_encryption_type"] = pointer.FromEnum(input.SecurityProfile.SecurityEncryptionType)
+	}
+
+	result = append(result, managedDisk)
+
+	return result
+}
+
 func flattenBatchPoolUserAccount(d *pluginsdk.ResourceData, account *pool.UserAccount) map[string]any {
 	userAccount := make(map[string]any)
 	userAccount["name"] = account.Name
@@ -710,9 +728,16 @@ func expandBatchPoolVirtualMachineConfig(d *pluginsdk.ResourceData) (*pool.Virtu
 		result.NodePlacementConfiguration = expandBatchPoolNodeReplacementConfig(v.([]any))
 	}
 
+	osDisk := &pool.OSDisk{}
 	if v, ok := d.GetOk("os_disk_placement"); ok {
-		result.OsDisk = expandBatchPoolOSDisk(v)
+		osDisk.EphemeralOSDiskSettings = &pool.DiffDiskSettings{
+			Placement: pointer.ToEnum[pool.DiffDiskPlacement](v.(string)),
+		}
 	}
+	if v, ok := d.GetOk("managed_disk"); ok {
+		osDisk.ManagedDisk = expandBatchPoolManagedDisk(v.([]interface{}))
+	}
+	result.OsDisk = osDisk
 
 	if v, ok := d.GetOk("security_profile"); ok {
 		result.SecurityProfile = expandBatchPoolSecurityProfile(v.([]any))
@@ -754,16 +779,24 @@ func expandBatchPoolSecurityProfile(profile []any) *pool.SecurityProfile {
 	return securityProfile
 }
 
-func expandBatchPoolOSDisk(ref any) *pool.OSDisk {
-	if ref == nil {
+func expandBatchPoolManagedDisk(input []interface{}) *pool.ManagedDisk {
+	if len(input) == 0 {
 		return nil
 	}
 
-	return &pool.OSDisk{
-		EphemeralOSDiskSettings: &pool.DiffDiskSettings{
-			Placement: pointer.ToEnum[pool.DiffDiskPlacement](ref.(string)),
-		},
+	managedDisk := input[0].(map[string]interface{})
+
+	result := &pool.ManagedDisk{
+		StorageAccountType: pointer.ToEnum[pool.StorageAccountType](managedDisk["storage_account_type"].(string)),
 	}
+
+	if securityEncryptionType := managedDisk["security_encryption_type"].(string); securityEncryptionType != "" {
+		result.SecurityProfile = &pool.VMDiskSecurityProfile{
+			SecurityEncryptionType: pointer.ToEnum[pool.SecurityEncryptionTypes](securityEncryptionType),
+		}
+	}
+
+	return result
 }
 
 func expandBatchPoolNodeReplacementConfig(list []any) *pool.NodePlacementConfiguration {
