@@ -181,6 +181,8 @@ The following arguments are supported:
 
 * `application_insights_connection_string` - (Required) The connection string of the Application Insights resource used for metrics collection.
 
+-> **Note:** The API does not return the `application_insights_connection_string` when reading this resource, so the value is not populated in state on import and changes made outside of Terraform will not be detected.
+
 * `application_insights_id` - (Required) The ID of the Application Insights resource used for metrics collection.
 
 ~> **Note:** The Palo Alto Next Generation Firewall must have a User Assigned Identity which has been granted the `Monitoring Metrics Publisher` role on the Application Insights resource.
