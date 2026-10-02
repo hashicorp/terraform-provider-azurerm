@@ -584,6 +584,12 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"cors_rule": helpers.SchemaStorageAccountCorsRule(true),
 
+						"nfs_encryption_in_transit_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
 						"retention_policy": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -629,6 +635,12 @@ func resourceStorageAccount() *pluginsdk.Resource {
 												"AES-256-GCM",
 											}, false),
 										},
+									},
+
+									"encryption_in_transit_enabled": {
+										Type:     pluginsdk.TypeBool,
+										Optional: true,
+										Default:  false,
 									},
 
 									"kerberos_ticket_encryption_type": {
@@ -1189,6 +1201,20 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					keys := sortedKeysFromSlice(storageKindsSupportHns)
 					return fmt.Errorf("`is_hns_enabled` can only be used for accounts with `account_kind` set to one of: %+v", strings.Join(keys, " / "))
 				}
+
+				// Based on portal
+				accountTier := d.Get("account_tier").(string)
+				nfsEncryptionInTransitEnabled := d.Get("share_properties.0.nfs_encryption_in_transit_enabled").(bool)
+				if (accountKind != storageaccounts.KindFileStorage || accountTier != string(storageaccounts.SkuTierPremium)) && nfsEncryptionInTransitEnabled {
+					return fmt.Errorf("`share_properties.0.nfs_encryption_in_transit_enabled` can only be set to `true` when `account_kind` is `%s` and `account_tier` is `%s`", storageaccounts.KindFileStorage, storageaccounts.SkuTierPremium)
+				}
+
+				// Based on portal
+				smbEncryptionInTransitEnabled := d.Get("share_properties.0.smb.0.encryption_in_transit_enabled").(bool)
+				if accountKind == storageaccounts.KindBlockBlobStorage && accountTier == string(storageaccounts.SkuTierPremium) && smbEncryptionInTransitEnabled {
+					return fmt.Errorf("`share_properties.0.smb.0.encryption_in_transit_enabled` cannot be set to `true` when `account_kind` is `%s` and `account_tier` is `%s`", storageaccounts.KindBlockBlobStorage, storageaccounts.SkuTierPremium)
+				}
+
 				return nil
 			}),
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v any) error {
@@ -1545,7 +1571,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 			return fmt.Errorf("`share_properties` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
 		}
 
-		sharePayload := expandAccountShareProperties(val.([]any))
+		sharePayload := expandAccountShareProperties(val.([]any), accountTier)
 
 		// The API complains if any multichannel info is sent on non premium fileshares. Even if multichannel is set to false
 		if accountTier != storageaccounts.SkuTierPremium && sharePayload.Properties != nil && sharePayload.Properties.ProtocolSettings != nil {
@@ -1889,7 +1915,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
 			return fmt.Errorf("`share_properties` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
 		}
 
-		sharePayload := expandAccountShareProperties(d.Get("share_properties").([]any))
+		sharePayload := expandAccountShareProperties(d.Get("share_properties").([]any), accountTier)
 		// The API complains if any multichannel info is sent on non premium fileshares. Even if multichannel is set to false
 		if accountTier != storageaccounts.SkuTierPremium {
 			// Error if the user has tried to enable multichannel on a standard tier storage account
@@ -2167,7 +2193,7 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 			return fmt.Errorf("retrieving share properties for %s: %+v", id, err)
 		}
 
-		shareProperties = flattenAccountShareProperties(shareProps.Model)
+		shareProperties = flattenAccountShareProperties(shareProps.Model, d)
 	}
 	if err := d.Set("share_properties", shareProperties); err != nil {
 		return fmt.Errorf("setting `share_properties` for %s: %+v", id, err)
@@ -2880,7 +2906,7 @@ func flattenAccountBlobPropertiesCorsRule(input *blobservices.CorsRules) []any {
 	return corsRules
 }
 
-func expandAccountShareProperties(input []any) fileservices.FileServiceProperties {
+func expandAccountShareProperties(input []any, accountTier storageaccounts.SkuTier) fileservices.FileServiceProperties {
 	props := fileservices.FileServiceProperties{
 		Properties: &fileservices.FileServicePropertiesProperties{
 			Cors: &fileservices.CorsRules{
@@ -2902,20 +2928,29 @@ func expandAccountShareProperties(input []any) fileservices.FileServicePropertie
 		props.Properties.ProtocolSettings = &fileservices.ProtocolSettings{
 			Smb: expandAccountSharePropertiesSMB(v["smb"].([]any)),
 		}
+		// REST API returns error for specifying `Nfs.EncryptionInTransit.Required` when `accountTier` is `SkuTierStandard`
+		if accountTier == storageaccounts.SkuTierPremium {
+			props.Properties.ProtocolSettings.Nfs = &fileservices.NfsSetting{
+				EncryptionInTransit: &fileservices.EncryptionInTransit{
+					Required: pointer.To(v["nfs_encryption_in_transit_enabled"].(bool)),
+				},
+			}
+		}
 	}
 
 	return props
 }
 
-func flattenAccountShareProperties(input *fileservices.FileServiceProperties) []any {
+func flattenAccountShareProperties(input *fileservices.FileServiceProperties, d *pluginsdk.ResourceData) []any {
 	output := make([]any, 0)
 
 	if input != nil {
 		if props := input.Properties; props != nil {
 			output = append(output, map[string]any{
-				"cors_rule":        flattenAccountSharePropertiesCorsRule(props.Cors),
-				"retention_policy": flattenAccountShareDeleteRetentionPolicy(props.ShareDeleteRetentionPolicy),
-				"smb":              flattenAccountSharePropertiesSMB(props.ProtocolSettings),
+				"cors_rule":                         flattenAccountSharePropertiesCorsRule(props.Cors),
+				"nfs_encryption_in_transit_enabled": flattenAccountSharePropertiesNfsEncryptionInTransitEnabled(props.ProtocolSettings),
+				"retention_policy":                  flattenAccountShareDeleteRetentionPolicy(props.ShareDeleteRetentionPolicy),
+				"smb":                               flattenAccountSharePropertiesSMB(props.ProtocolSettings, d),
 			})
 		}
 	}
@@ -2968,6 +3003,14 @@ func flattenAccountSharePropertiesCorsRule(input *fileservices.CorsRules) []any 
 	return corsRules
 }
 
+func flattenAccountSharePropertiesNfsEncryptionInTransitEnabled(input *fileservices.ProtocolSettings) bool {
+	if input == nil || input.Nfs == nil || input.Nfs.EncryptionInTransit == nil {
+		return false
+	}
+
+	return pointer.From(input.Nfs.EncryptionInTransit.Required)
+}
+
 func expandAccountShareDeleteRetentionPolicy(input []any) *fileservices.DeleteRetentionPolicy {
 	result := fileservices.DeleteRetentionPolicy{
 		Enabled: pointer.To(false),
@@ -3006,8 +3049,11 @@ func flattenAccountShareDeleteRetentionPolicy(input *fileservices.DeleteRetentio
 func expandAccountSharePropertiesSMB(input []any) *fileservices.SmbSetting {
 	if len(input) == 0 || input[0] == nil {
 		return &fileservices.SmbSetting{
-			AuthenticationMethods:    pointer.To(""),
-			ChannelEncryption:        pointer.To(""),
+			AuthenticationMethods: pointer.To(""),
+			ChannelEncryption:     pointer.To(""),
+			EncryptionInTransit: &fileservices.EncryptionInTransit{
+				Required: pointer.To(false),
+			},
 			KerberosTicketEncryption: pointer.To(""),
 			Versions:                 pointer.To(""),
 		}
@@ -3016,8 +3062,11 @@ func expandAccountSharePropertiesSMB(input []any) *fileservices.SmbSetting {
 	v := input[0].(map[string]any)
 
 	return &fileservices.SmbSetting{
-		AuthenticationMethods:    pluginsdk.ExpandStringSliceWithDelimiter(v["authentication_types"].(*pluginsdk.Set).List(), ";"),
-		ChannelEncryption:        pluginsdk.ExpandStringSliceWithDelimiter(v["channel_encryption_type"].(*pluginsdk.Set).List(), ";"),
+		AuthenticationMethods: pluginsdk.ExpandStringSliceWithDelimiter(v["authentication_types"].(*pluginsdk.Set).List(), ";"),
+		ChannelEncryption:     pluginsdk.ExpandStringSliceWithDelimiter(v["channel_encryption_type"].(*pluginsdk.Set).List(), ";"),
+		EncryptionInTransit: &fileservices.EncryptionInTransit{
+			Required: pointer.To(v["encryption_in_transit_enabled"].(bool)),
+		},
 		KerberosTicketEncryption: pluginsdk.ExpandStringSliceWithDelimiter(v["kerberos_ticket_encryption_type"].(*pluginsdk.Set).List(), ";"),
 		Versions:                 pluginsdk.ExpandStringSliceWithDelimiter(v["versions"].(*pluginsdk.Set).List(), ";"),
 		Multichannel: &fileservices.Multichannel{
@@ -3026,7 +3075,7 @@ func expandAccountSharePropertiesSMB(input []any) *fileservices.SmbSetting {
 	}
 }
 
-func flattenAccountSharePropertiesSMB(input *fileservices.ProtocolSettings) []any {
+func flattenAccountSharePropertiesSMB(input *fileservices.ProtocolSettings, d *pluginsdk.ResourceData) []any {
 	if input == nil || input.Smb == nil {
 		return []any{}
 	}
@@ -3056,7 +3105,13 @@ func flattenAccountSharePropertiesSMB(input *fileservices.ProtocolSettings) []an
 		multichannelEnabled = *input.Smb.Multichannel.Enabled
 	}
 
-	if len(versions) == 0 && len(authenticationMethods) == 0 && len(kerberosTicketEncryption) == 0 && len(channelEncryption) == 0 && (input.Smb.Multichannel == nil || input.Smb.Multichannel.Enabled == nil) {
+	encryptionInTransitEnabled := false
+	if input.Smb.EncryptionInTransit != nil {
+		encryptionInTransitEnabled = pointer.From(input.Smb.EncryptionInTransit.Required)
+	}
+
+	_, smbOk := d.GetOk("share_properties.0.smb")
+	if len(versions) == 0 && len(authenticationMethods) == 0 && len(kerberosTicketEncryption) == 0 && len(channelEncryption) == 0 && (input.Smb.Multichannel == nil || input.Smb.Multichannel.Enabled == nil) && (input.Smb.EncryptionInTransit == nil || input.Smb.EncryptionInTransit.Required == nil || (!pointer.From(input.Smb.EncryptionInTransit.Required) && !smbOk)) {
 		return []any{}
 	}
 
@@ -3064,6 +3119,7 @@ func flattenAccountSharePropertiesSMB(input *fileservices.ProtocolSettings) []an
 		map[string]any{
 			"authentication_types":            authenticationMethods,
 			"channel_encryption_type":         channelEncryption,
+			"encryption_in_transit_enabled":   encryptionInTransitEnabled,
 			"kerberos_ticket_encryption_type": kerberosTicketEncryption,
 			"multichannel_enabled":            multichannelEnabled,
 			"versions":                        versions,
