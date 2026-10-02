@@ -88,6 +88,7 @@ func TestKubernetesMessageOfTheDayExpand(t *testing.T) {
 		{name: "empty", message: ""},
 		{name: "text", message: "Welcome\n日本語", want: "Welcome\n日本語"},
 		{name: "literal shell", message: "$(hostname)", want: "$(hostname)"},
+		{name: "literal base64", message: "V2VsY29tZQ==", want: "V2VsY29tZQ=="},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			block := map[string]any{"name": "default", "vm_size": "Standard_DS2_v2", "node_count": 1}
@@ -128,12 +129,14 @@ func TestKubernetesMessageOfTheDayResponse(t *testing.T) {
 		name    string
 		encoded *string
 		want    string
+		wantErr bool
 	}{
 		{name: "absent"},
 		{name: "empty", encoded: pointer.To("")},
 		{name: "text", encoded: pointer.To(base64.StdEncoding.EncodeToString([]byte("Welcome\n日本語"))), want: "Welcome\n日本語"},
-		{name: "malformed", encoded: pointer.To("not base64!")},
-		{name: "partially decodable", encoded: pointer.To("V2VsY29tZQ==!")},
+		{name: "literal base64", encoded: pointer.To(base64.StdEncoding.EncodeToString([]byte("V2VsY29tZQ=="))), want: "V2VsY29tZQ=="},
+		{name: "malformed", encoded: pointer.To("not base64!"), wantErr: true},
+		{name: "partially decodable", encoded: pointer.To("V2VsY29tZQ==!"), wantErr: true},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			t.Run("default pool", func(t *testing.T) {
@@ -146,6 +149,15 @@ func TestKubernetesMessageOfTheDayResponse(t *testing.T) {
 					Name: "default", Mode: pointer.To(managedclusters.AgentPoolModeSystem), MessageOfTheDay: test.encoded,
 				}}
 				flattened, err := FlattenDefaultNodePool(&profiles, data)
+				if test.wantErr {
+					if err == nil || !strings.Contains(err.Error(), "decoding `message_of_the_day`") {
+						t.Fatalf("expected MOTD decoding error, got %v", err)
+					}
+					if got := data.Get("default_node_pool.0.message_of_the_day"); got != "Previous message" {
+						t.Fatalf("invalid MOTD overwrote prior state: %q", got)
+					}
+					return
+				}
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -180,11 +192,21 @@ func TestKubernetesMessageOfTheDayResponse(t *testing.T) {
 					return &http.Response{StatusCode: http.StatusOK, Header: http.Header{"Content-Type": []string{"application/json"}}, Body: io.NopCloser(strings.NewReader(string(payload))), Request: request}, nil
 				}))
 				meta := &clients.Client{StopContext: context.Background(), Containers: &containersclient.Client{AgentPoolsClient: client}}
-				if err := resourceKubernetesClusterNodePoolRead(data, meta); err != nil {
-					t.Fatal(err)
-				}
+				err = resourceKubernetesClusterNodePoolRead(data, meta)
 				if requests != 1 {
 					t.Fatalf("expected one mocked GET, got %d", requests)
+				}
+				if test.wantErr {
+					if err == nil || !strings.Contains(err.Error(), "decoding `message_of_the_day`") {
+						t.Fatalf("expected MOTD decoding error, got %v", err)
+					}
+					if got := data.Get("message_of_the_day"); got != "Previous message" {
+						t.Fatalf("invalid MOTD overwrote prior state: %q", got)
+					}
+					return
+				}
+				if err != nil {
+					t.Fatal(err)
 				}
 				if got := data.Get("message_of_the_day"); got != test.want {
 					t.Fatalf("MOTD = %q, want %q", got, test.want)

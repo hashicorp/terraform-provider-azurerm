@@ -121,6 +121,12 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Computed: true, // azignore:AZS007 - pre-existing violation
 					},
 
+					// lintignore:AZBP001 // Free-form text is base64-encoded; empty input is omitted.
+					"message_of_the_day": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+
 					"min_count": {
 						Type:     pluginsdk.TypeInt,
 						Optional: true,
@@ -265,12 +271,6 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 
 					"host_encryption_enabled": {
 						Type:     pluginsdk.TypeBool,
-						Optional: true,
-					},
-
-					// lintignore:AZBP001 // Free-form text is base64-encoded; empty input is omitted.
-					"message_of_the_day": {
-						Type:     pluginsdk.TypeString,
 						Optional: true,
 					},
 				}
@@ -1313,9 +1313,11 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 
 	messageOfTheDay := ""
 	if agentPool.MessageOfTheDay != nil {
-		if decoded, err := base64.StdEncoding.DecodeString(*agentPool.MessageOfTheDay); err == nil {
-			messageOfTheDay = string(decoded)
+		decoded, err := base64.StdEncoding.DecodeString(*agentPool.MessageOfTheDay)
+		if err != nil {
+			return nil, fmt.Errorf("decoding `message_of_the_day` for default node pool %q: %+v", agentPool.Name, err)
 		}
+		messageOfTheDay = string(decoded)
 	}
 
 	agentPoolType := ""

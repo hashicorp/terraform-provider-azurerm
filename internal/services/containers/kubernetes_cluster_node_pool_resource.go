@@ -221,6 +221,13 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Computed: true, // azignore:AZS007 - pre-existing violation
 		},
 
+		// lintignore:AZBP001 // Free-form text is base64-encoded; empty input is omitted.
+		"message_of_the_day": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+		},
+
 		"mode": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -416,13 +423,6 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		"host_encryption_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-		},
-
-		// lintignore:AZBP001 // Free-form text is base64-encoded; empty input is omitted.
-		"message_of_the_day": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
 		},
 	}
 }
@@ -1204,9 +1204,11 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 
 		messageOfTheDay := ""
 		if props.MessageOfTheDay != nil {
-			if decoded, err := base64.StdEncoding.DecodeString(*props.MessageOfTheDay); err == nil {
-				messageOfTheDay = string(decoded)
+			decoded, err := base64.StdEncoding.DecodeString(*props.MessageOfTheDay)
+			if err != nil {
+				return fmt.Errorf("decoding `message_of_the_day` for %s: %+v", *id, err)
 			}
+			messageOfTheDay = string(decoded)
 		}
 		d.Set("message_of_the_day", messageOfTheDay)
 
