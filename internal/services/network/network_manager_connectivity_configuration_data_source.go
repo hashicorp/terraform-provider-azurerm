@@ -38,7 +38,7 @@ func (r ManagerConnectivityConfigurationDataSource) ResourceType() string {
 	return "azurerm_network_manager_connectivity_configuration"
 }
 
-func (r ManagerConnectivityConfigurationDataSource) ModelObject() interface{} {
+func (r ManagerConnectivityConfigurationDataSource) ModelObject() any {
 	return &ManagerConnectivityConfigurationDataSourceModel{}
 }
 

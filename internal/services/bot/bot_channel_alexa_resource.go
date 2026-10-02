@@ -72,7 +72,7 @@ func resourceBotChannelAlexa() *pluginsdk.Resource {
 	}
 }
 
-func resourceBotChannelAlexaCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelAlexaCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -130,7 +130,7 @@ func resourceBotChannelAlexaCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	return resourceBotChannelAlexaRead(d, meta)
 }
 
-func resourceBotChannelAlexaRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelAlexaRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -166,7 +166,7 @@ func resourceBotChannelAlexaRead(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceBotChannelAlexaUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelAlexaUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -212,7 +212,7 @@ func resourceBotChannelAlexaUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	return resourceBotChannelAlexaRead(d, meta)
 }
 
-func resourceBotChannelAlexaDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelAlexaDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -233,7 +233,7 @@ func resourceBotChannelAlexaDelete(d *pluginsdk.ResourceData, meta interface{}) 
 }
 
 func botChannelAlexaStateRefreshFunc(ctx context.Context, client *botservice.ChannelsClient, id commonids.BotServiceChannelId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		resp, err := client.Get(ctx, id.ResourceGroupName, id.BotServiceName, id.ChannelType)
 		if err != nil {
 			if !response.WasNotFound(resp.Response.Response) {

@@ -30,7 +30,7 @@ var (
 
 type ElasticSANVolumeResource struct{}
 
-func (r ElasticSANVolumeResource) ModelObject() interface{} {
+func (r ElasticSANVolumeResource) ModelObject() any {
 	return &ElasticSANVolumeResourceModel{}
 }
 

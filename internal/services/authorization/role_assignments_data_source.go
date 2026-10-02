@@ -120,7 +120,7 @@ func (r RoleAssignmentsDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r RoleAssignmentsDataSource) ModelObject() interface{} {
+func (r RoleAssignmentsDataSource) ModelObject() any {
 	return &RoleAssignmentsDataSourceModel{}
 }
 

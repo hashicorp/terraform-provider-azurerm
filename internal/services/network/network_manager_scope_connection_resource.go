@@ -35,7 +35,7 @@ func (r ManagerScopeConnectionResource) ResourceType() string {
 	return "azurerm_network_manager_scope_connection"
 }
 
-func (r ManagerScopeConnectionResource) ModelObject() interface{} {
+func (r ManagerScopeConnectionResource) ModelObject() any {
 	return &ManagerScopeConnectionModel{}
 }
 

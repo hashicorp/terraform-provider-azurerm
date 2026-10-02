@@ -199,7 +199,7 @@ func (r EventGridNamespaceResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r EventGridNamespaceResource) ModelObject() interface{} {
+func (r EventGridNamespaceResource) ModelObject() any {
 	return &EventGridNamespaceResourceModel{}
 }
 

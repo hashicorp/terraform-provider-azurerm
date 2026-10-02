@@ -181,7 +181,7 @@ func (s SpringCloudConfigurationServiceResource) Attributes() map[string]*schema
 	return map[string]*schema.Schema{}
 }
 
-func (s SpringCloudConfigurationServiceResource) ModelObject() interface{} {
+func (s SpringCloudConfigurationServiceResource) ModelObject() any {
 	return &SpringCloudConfigurationServiceModel{}
 }
 

@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -35,7 +35,7 @@ func resourceStorageShareFile() *pluginsdk.Resource {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: storageValidate.StorageShareDataPlaneID,
+			ValidateFunc: validate.StorageShareDataPlaneID,
 		},
 
 		"path": {
@@ -43,7 +43,7 @@ func resourceStorageShareFile() *pluginsdk.Resource {
 			ForceNew:     true,
 			Optional:     true,
 			Default:      "",
-			ValidateFunc: storageValidate.StorageShareDirectoryName,
+			ValidateFunc: validate.StorageShareDirectoryName,
 		},
 
 		"content_type": {
@@ -116,7 +116,7 @@ func resourceStorageShareFile() *pluginsdk.Resource {
 	}
 }
 
-func resourceStorageShareFileCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageShareFileCreate(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -168,7 +168,7 @@ func resourceStorageShareFileCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	input := files.CreateInput{
-		MetaData:           ExpandMetaData(d.Get("metadata").(map[string]interface{})),
+		MetaData:           ExpandMetaData(d.Get("metadata").(map[string]any)),
 		ContentType:        pointer.To(d.Get("content_type").(string)),
 		ContentEncoding:    pointer.To(d.Get("content_encoding").(string)),
 		ContentDisposition: pointer.To(d.Get("content_disposition").(string)),
@@ -231,7 +231,7 @@ func resourceStorageShareFileCreate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceStorageShareFileRead(d, meta)
 }
 
-func resourceStorageShareFileUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageShareFileUpdate(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -268,7 +268,7 @@ func resourceStorageShareFileUpdate(d *pluginsdk.ResourceData, meta interface{})
 			ContentEncoding:    pointer.To(d.Get("content_encoding").(string)),
 			ContentDisposition: pointer.To(d.Get("content_disposition").(string)),
 			ContentLength:      int64(d.Get("content_length").(int)),
-			MetaData:           ExpandMetaData(d.Get("metadata").(map[string]interface{})),
+			MetaData:           ExpandMetaData(d.Get("metadata").(map[string]any)),
 		}
 
 		if v, ok := d.GetOk("content_md5"); ok {
@@ -288,7 +288,7 @@ func resourceStorageShareFileUpdate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceStorageShareFileRead(d, meta)
 }
 
-func resourceStorageShareFileRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageShareFileRead(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -351,7 +351,7 @@ func resourceStorageShareFileRead(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceStorageShareFileDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageShareFileDelete(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)

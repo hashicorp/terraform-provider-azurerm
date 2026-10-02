@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func RoleName(v interface{}, k string) ([]string, []error) {
+func RoleName(v any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile(`^[a-z0-9]{1,63}$`), "must be between 1 and 63 characters in length and only contain lower case letters and numbers")(v, k)
 }
