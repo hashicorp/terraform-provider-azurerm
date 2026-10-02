@@ -114,6 +114,10 @@ The following attributes are exported:
 
 * `kubelet_identity` - A `kubelet_identity` block as documented below.
 
+* `workload_autoscaler_profile` - A `workload_autoscaler_profile` block as documented below.
+
+* `workload_identity_enabled` - Whether Azure AD Workload Identity is enabled for the Cluster.
+
 * `tags` - A mapping of tags assigned to this resource.
 
 ---
@@ -380,6 +384,14 @@ The `kubelet_identity` block exports the following:
 A `ssh_key` block exports the following:
 
 * `key_data` - The Public SSH Key used to access the cluster.
+
+---
+
+A `workload_autoscaler_profile` block exports the following:
+
+* `keda_enabled` - Is KEDA autoscaler enabled?
+
+* `vertical_pod_autoscaler_enabled` - Is Vertical Pod Autoscaler enabled?
 
 ---
 
