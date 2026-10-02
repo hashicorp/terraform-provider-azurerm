@@ -450,6 +450,21 @@ func TestAccPublicIp_edgeZone(t *testing.T) {
 	})
 }
 
+func TestAccPublicIp_ipAddress(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	r := PublicIpResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ipAddress(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t PublicIpResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParsePublicIPAddressID(state.ID)
 	if err != nil {
@@ -985,4 +1000,33 @@ resource "azurerm_public_ip" "test" {
   edge_zone           = data.azurerm_extended_locations.test.extended_locations[0]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (PublicIpResource) ipAddress(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_public_ip_prefix" "test" {
+  name                = "acctestpublicipprefix-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpublicip-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+  public_ip_prefix_id = azurerm_public_ip_prefix.test.id
+  ip_address          = cidrhost(azurerm_public_ip_prefix.test.ip_prefix, 0)
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
