@@ -38,7 +38,7 @@ type ContainerAppDataSourceModel struct {
 	Dapr                       []helpers.Dapr                             `tfschema:"dapr"`
 	Template                   []helpers.ContainerTemplate                `tfschema:"template"`
 	Identity                   []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	Tags                       map[string]interface{}                     `tfschema:"tags"`
+	Tags                       map[string]any                             `tfschema:"tags"`
 	OutboundIpAddresses        []string                                   `tfschema:"outbound_ip_addresses"`
 	LatestRevisionName         string                                     `tfschema:"latest_revision_name"`
 	LatestRevisionFqdn         string                                     `tfschema:"latest_revision_fqdn"`
@@ -133,7 +133,7 @@ func (r ContainerAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r ContainerAppDataSource) ModelObject() interface{} {
+func (r ContainerAppDataSource) ModelObject() any {
 	return &ContainerAppDataSourceModel{}
 }
 
@@ -180,7 +180,7 @@ func (r ContainerAppDataSource) Read() sdk.ResourceFunc {
 					if config := props.Configuration; config != nil {
 						if config.ActiveRevisionsMode != nil {
 							if config.ActiveRevisionsMode != nil {
-								containerApp.RevisionMode = string(pointer.From(config.ActiveRevisionsMode))
+								containerApp.RevisionMode = pointer.FromEnum(config.ActiveRevisionsMode)
 							}
 							containerApp.Ingress = helpers.FlattenContainerAppIngress(config.Ingress, id.ContainerAppName)
 							containerApp.Registries = helpers.FlattenContainerAppRegistries(config.Registries)

@@ -45,7 +45,7 @@ func (r DataConnectorDynamics365Resource) Arguments() map[string]*pluginsdk.Sche
 		"tenant_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validation.IsUUID,
 		},
@@ -60,7 +60,7 @@ func (r DataConnectorDynamics365Resource) ResourceType() string {
 	return "azurerm_sentinel_data_connector_dynamics_365"
 }
 
-func (r DataConnectorDynamics365Resource) ModelObject() interface{} {
+func (r DataConnectorDynamics365Resource) ModelObject() any {
 	return &DataConnectorDynamics365Model{}
 }
 

@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/namespacetopics"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/topics"
 	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -91,7 +90,7 @@ func (r EventGridNamespaceResource) Arguments() map[string]*pluginsdk.Schema {
 					"ip_mask": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validate.CIDR,
+						ValidateFunc: validation.IsCIDRIPv4,
 					},
 					"action": {
 						Type:         pluginsdk.TypeString,
@@ -210,7 +209,7 @@ func (r EventGridNamespaceResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r EventGridNamespaceResource) ModelObject() interface{} {
+func (r EventGridNamespaceResource) ModelObject() any {
 	return &EventGridNamespaceResourceModel{}
 }
 
@@ -418,7 +417,7 @@ func (r EventGridNamespaceResource) Read() sdk.ResourceFunc {
 				state.Location = location.Normalize(model.Location)
 
 				if model.Sku != nil {
-					state.Sku = string(pointer.From(model.Sku.Name))
+					state.Sku = pointer.FromEnum(model.Sku.Name)
 					state.Capacity = pointer.From(model.Sku.Capacity)
 				}
 				flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
@@ -435,7 +434,7 @@ func (r EventGridNamespaceResource) Read() sdk.ResourceFunc {
 					}
 					state.TopicSpacesConfiguration = topicSpacesConfig
 					state.InboundIpRules = flattenInboundIPRules(props.InboundIPRules)
-					state.PublicNetworkAccess = string(pointer.From(props.PublicNetworkAccess))
+					state.PublicNetworkAccess = pointer.FromEnum(props.PublicNetworkAccess)
 				}
 			}
 
@@ -493,7 +492,7 @@ func flattenInboundIPRules(ipRules *[]namespaces.InboundIPRule) []InboundIpRuleM
 	for _, v := range *ipRules {
 		output = append(output, InboundIpRuleModel{
 			IpMask: pointer.From(v.IPMask),
-			Action: string(pointer.From(v.Action)),
+			Action: pointer.FromEnum(v.Action),
 		})
 	}
 	return output

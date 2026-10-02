@@ -19,15 +19,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/deviceprovisioningservices/2022-02-05/iotdpsresource"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub"
+	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub" // azignore:AZG010 - package name does not match its path
 )
 
 func resourceIotHubDPS() *pluginsdk.Resource {
@@ -54,7 +53,7 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: iothubValidate.IoTHubName,
+				ValidateFunc: validate.IoTHubName,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(), // azure.SchemaResourceGroupNameDiffSuppress(),
@@ -139,7 +138,7 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 						"ip_mask": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validate.CIDR,
+							ValidateFunc: validation.IsCIDRIPv4,
 						},
 						"action": {
 							Type:         pluginsdk.TypeString,
@@ -195,7 +194,7 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 	}
 }
 
-func resourceIotHubDPSCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubDPSCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.DPSResourceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -227,13 +226,13 @@ func resourceIotHubDPSCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 		Name:     pointer.To(id.ProvisioningServiceName),
 		Sku:      expandIoTHubDPSSku(d),
 		Properties: iotdpsresource.IotDpsPropertiesDescription{
-			IotHubs:             expandIoTHubDPSIoTHubs(d.Get("linked_hub").([]interface{})),
+			IotHubs:             expandIoTHubDPSIoTHubs(d.Get("linked_hub").([]any)),
 			AllocationPolicy:    &allocationPolicy,
 			EnableDataResidency: pointer.To(d.Get("data_residency_enabled").(bool)),
 			IPFilterRules:       expandDpsIPFilterRules(d),
 			PublicNetworkAccess: &publicNetworkAccess,
 		},
-		Tags: expandTags(d.Get("tags").(map[string]interface{})),
+		Tags: expandTags(d.Get("tags").(map[string]any)),
 	}
 
 	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, iotdps, sdk.SetIDCallback(meta, &id, d)); err != nil {
@@ -245,7 +244,7 @@ func resourceIotHubDPSCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 	return resourceIotHubDPSRead(d, meta)
 }
 
-func resourceIotHubDPSRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubDPSRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.DPSResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -270,8 +269,7 @@ func resourceIotHubDPSRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(model.Location))
 
-		sku := flattenIoTHubDPSSku(model.Sku)
-		if err := d.Set("sku", sku); err != nil {
+		if err := d.Set("sku", flattenIoTHubDPSSku(model.Sku)); err != nil {
 			return fmt.Errorf("setting `sku`: %+v", err)
 		}
 
@@ -280,8 +278,7 @@ func resourceIotHubDPSRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			return fmt.Errorf("setting `linked_hub`: %+v", err)
 		}
 
-		ipFilterRules := flattenDpsIPFilterRules(props.IPFilterRules)
-		if err := d.Set("ip_filter_rule", ipFilterRules); err != nil {
+		if err := d.Set("ip_filter_rule", flattenDpsIPFilterRules(props.IPFilterRules)); err != nil {
 			return fmt.Errorf("setting `ip_filter_rule` in IoTHub DPS %q: %+v", id.ProvisioningServiceName, err)
 		}
 
@@ -309,7 +306,7 @@ func resourceIotHubDPSRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceIotHubDPSUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubDPSUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.DPSResourceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -345,7 +342,7 @@ func resourceIotHubDPSUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 	}
 
 	if d.HasChanges("linked_hub") {
-		iotdps.Properties.IotHubs = expandIoTHubDPSIoTHubs(d.Get("linked_hub").([]interface{}))
+		iotdps.Properties.IotHubs = expandIoTHubDPSIoTHubs(d.Get("linked_hub").([]any))
 	}
 
 	if d.HasChanges("sku") {
@@ -353,7 +350,7 @@ func resourceIotHubDPSUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 	}
 
 	if d.HasChanges("tags") {
-		iotdps.Tags = expandTags(d.Get("tags").(map[string]interface{}))
+		iotdps.Tags = expandTags(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, *iotdps); err != nil {
@@ -363,7 +360,7 @@ func resourceIotHubDPSUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 	return resourceIotHubDPSRead(d, meta)
 }
 
-func resourceIotHubDPSDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubDPSDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.DPSResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -393,21 +390,20 @@ func waitForIotHubDPSToBeDeleted(ctx context.Context, client *iotdpsresource.Iot
 }
 
 func expandIoTHubDPSSku(d *pluginsdk.ResourceData) iotdpsresource.IotDpsSkuInfo {
-	skuList := d.Get("sku").([]interface{})
-	skuMap := skuList[0].(map[string]interface{})
+	skuList := d.Get("sku").([]any)
+	skuMap := skuList[0].(map[string]any)
 
-	skuName := iotdpsresource.IotDpsSku(skuMap["name"].(string))
 	return iotdpsresource.IotDpsSkuInfo{
-		Name:     &skuName,
+		Name:     pointer.ToEnum[iotdpsresource.IotDpsSku](skuMap["name"].(string)),
 		Capacity: pointer.To(int64(skuMap["capacity"].(int))),
 	}
 }
 
-func expandIoTHubDPSIoTHubs(input []interface{}) *[]iotdpsresource.IotHubDefinitionDescription {
+func expandIoTHubDPSIoTHubs(input []any) *[]iotdpsresource.IotHubDefinitionDescription {
 	linkedHubs := make([]iotdpsresource.IotHubDefinitionDescription, 0)
 
 	for _, attr := range input {
-		linkedHubConfig := attr.(map[string]interface{})
+		linkedHubConfig := attr.(map[string]any)
 		linkedHub := iotdpsresource.IotHubDefinitionDescription{
 			ConnectionString:      linkedHubConfig["connection_string"].(string),
 			AllocationWeight:      pointer.To(int64(linkedHubConfig["allocation_weight"].(int))),
@@ -421,8 +417,8 @@ func expandIoTHubDPSIoTHubs(input []interface{}) *[]iotdpsresource.IotHubDefinit
 	return &linkedHubs
 }
 
-func flattenIoTHubDPSSku(input iotdpsresource.IotDpsSkuInfo) []interface{} {
-	output := make(map[string]interface{})
+func flattenIoTHubDPSSku(input iotdpsresource.IotDpsSkuInfo) []any {
+	output := make(map[string]any)
 
 	name := ""
 	if input.Name != nil {
@@ -434,17 +430,17 @@ func flattenIoTHubDPSSku(input iotdpsresource.IotDpsSkuInfo) []interface{} {
 		output["capacity"] = int(*capacity)
 	}
 
-	return []interface{}{output}
+	return []any{output}
 }
 
-func flattenIoTHubDPSLinkedHub(input *[]iotdpsresource.IotHubDefinitionDescription) []interface{} {
-	linkedHubs := make([]interface{}, 0)
+func flattenIoTHubDPSLinkedHub(input *[]iotdpsresource.IotHubDefinitionDescription) []any {
+	linkedHubs := make([]any, 0)
 	if input == nil {
 		return linkedHubs
 	}
 
 	for _, attr := range *input {
-		linkedHub := make(map[string]interface{})
+		linkedHub := make(map[string]any)
 
 		if attr.Name != nil {
 			linkedHub["hostname"] = *attr.Name
@@ -466,7 +462,7 @@ func flattenIoTHubDPSLinkedHub(input *[]iotdpsresource.IotHubDefinitionDescripti
 }
 
 func expandDpsIPFilterRules(d *pluginsdk.ResourceData) *[]iotdpsresource.IPFilterRule {
-	ipFilterRuleList := d.Get("ip_filter_rule").([]interface{})
+	ipFilterRuleList := d.Get("ip_filter_rule").([]any)
 	if len(ipFilterRuleList) == 0 {
 		return nil
 	}
@@ -474,13 +470,12 @@ func expandDpsIPFilterRules(d *pluginsdk.ResourceData) *[]iotdpsresource.IPFilte
 	rules := make([]iotdpsresource.IPFilterRule, 0)
 
 	for _, r := range ipFilterRuleList {
-		rawRule := r.(map[string]interface{})
-		ipFilterTargetType := iotdpsresource.IPFilterTargetType(rawRule["target"].(string))
+		rawRule := r.(map[string]any)
 		rule := &iotdpsresource.IPFilterRule{
 			FilterName: rawRule["name"].(string),
 			Action:     iotdpsresource.IPFilterActionType(rawRule["action"].(string)),
 			IPMask:     rawRule["ip_mask"].(string),
-			Target:     &ipFilterTargetType,
+			Target:     pointer.ToEnum[iotdpsresource.IPFilterTargetType](rawRule["target"].(string)),
 		}
 
 		rules = append(rules, *rule)
@@ -488,14 +483,14 @@ func expandDpsIPFilterRules(d *pluginsdk.ResourceData) *[]iotdpsresource.IPFilte
 	return &rules
 }
 
-func flattenDpsIPFilterRules(in *[]iotdpsresource.IPFilterRule) []interface{} {
-	rules := make([]interface{}, 0)
+func flattenDpsIPFilterRules(in *[]iotdpsresource.IPFilterRule) []any {
+	rules := make([]any, 0)
 	if in == nil {
 		return rules
 	}
 
 	for _, r := range *in {
-		rawRule := make(map[string]interface{})
+		rawRule := make(map[string]any)
 
 		rawRule["name"] = r.FilterName
 		rawRule["action"] = string(r.Action)

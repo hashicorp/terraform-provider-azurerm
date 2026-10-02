@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 func resourceDataFactoryLinkedServiceSQLServer() *pluginsdk.Resource {
@@ -152,7 +152,7 @@ func resourceDataFactoryLinkedServiceSQLServer() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryLinkedServiceSQLServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceSQLServerCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	subscriptionId := meta.(*clients.Client).DataFactory.LinkedServiceClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -180,7 +180,7 @@ func resourceDataFactoryLinkedServiceSQLServerCreateUpdate(d *pluginsdk.Resource
 		}
 	}
 
-	password := d.Get("key_vault_password").([]interface{})
+	password := d.Get("key_vault_password").([]any)
 
 	sqlServerLinkedService := &datafactory.SQLServerLinkedService{
 		Description: pointer.To(d.Get("description").(string)),
@@ -199,11 +199,11 @@ func resourceDataFactoryLinkedServiceSQLServerCreateUpdate(d *pluginsdk.Resource
 	}
 
 	if v, ok := d.GetOk("key_vault_connection_string"); ok {
-		sqlServerLinkedService.ConnectionString = expandAzureKeyVaultSecretReference(v.([]interface{}))
+		sqlServerLinkedService.ConnectionString = expandAzureKeyVaultSecretReference(v.([]any))
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		sqlServerLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]interface{}))
+		sqlServerLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
@@ -211,12 +211,11 @@ func resourceDataFactoryLinkedServiceSQLServerCreateUpdate(d *pluginsdk.Resource
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		sqlServerLinkedService.AdditionalProperties = v.(map[string]interface{})
+		sqlServerLinkedService.AdditionalProperties = v.(map[string]any)
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		sqlServerLinkedService.Annotations = &annotations
+		sqlServerLinkedService.Annotations = pointer.To(v.([]any))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -232,7 +231,7 @@ func resourceDataFactoryLinkedServiceSQLServerCreateUpdate(d *pluginsdk.Resource
 	return resourceDataFactoryLinkedServiceSQLServerRead(d, meta)
 }
 
-func resourceDataFactoryLinkedServiceSQLServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceSQLServerRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -265,13 +264,11 @@ func resourceDataFactoryLinkedServiceSQLServerRead(d *pluginsdk.ResourceData, me
 	d.Set("additional_properties", sqlServer.AdditionalProperties)
 	d.Set("description", sqlServer.Description)
 
-	annotations := flattenDataFactoryAnnotations(sqlServer.Annotations)
-	if err := d.Set("annotations", annotations); err != nil {
+	if err := d.Set("annotations", flattenDataFactoryAnnotations(sqlServer.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
-	parameters := flattenLinkedServiceParameters(sqlServer.Parameters)
-	if err := d.Set("parameters", parameters); err != nil {
+	if err := d.Set("parameters", flattenLinkedServiceParameters(sqlServer.Parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 
@@ -284,7 +281,7 @@ func resourceDataFactoryLinkedServiceSQLServerRead(d *pluginsdk.ResourceData, me
 	if properties := sqlServer.SQLServerLinkedServiceTypeProperties; properties != nil {
 		d.Set("user_name", properties.UserName)
 		if properties.ConnectionString != nil {
-			if val, ok := properties.ConnectionString.(map[string]interface{}); ok {
+			if val, ok := properties.ConnectionString.(map[string]any); ok {
 				if err := d.Set("key_vault_connection_string", flattenAzureKeyVaultConnectionString(val)); err != nil {
 					return fmt.Errorf("setting `key_vault_connection_string`: %+v", err)
 				}
@@ -307,7 +304,7 @@ func resourceDataFactoryLinkedServiceSQLServerRead(d *pluginsdk.ResourceData, me
 	return nil
 }
 
-func resourceDataFactoryLinkedServiceSQLServerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceSQLServerDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

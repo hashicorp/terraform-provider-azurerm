@@ -16,6 +16,7 @@ Before adding a List Resource, the resource must have Resource Identity implemen
 1. In the resource, refactor the Read function to have a separate flatten function containing only the logic to set the attributes into state. This will be used by both the Read function and later in the List Resource.<br><br>
 
     For untyped resources:
+
     ```go
     func resourceNetworkProfileFlatten(d *pluginsdk.ResourceData, id *networkprofiles.NetworkProfileId, profile *networkprofiles.NetworkProfile) error {
         d.Set("name", id.NetworkProfileName)
@@ -43,6 +44,7 @@ Before adding a List Resource, the resource must have Resource Identity implemen
     ```
 
     For typed resources:
+
     ```go
     func (ExampleResource) flatten(metadata sdk.ResourceMetaData, id *example.ExampleId, model *example.ExampleModel) error {
         // Instantiate state, set any fields with known values (e.g. ones we can derive from the ID)
@@ -71,6 +73,7 @@ Before adding a List Resource, the resource must have Resource Identity implemen
 2. Create a new file for the List Resource (for example, `network_profile_resource_list.go`) and scaffold the empty resource:<br><br>
 
     For untyped resources:
+
     ```go
     type NetworkProfileListResource struct{}
     
@@ -87,6 +90,7 @@ Before adding a List Resource, the resource must have Resource Identity implemen
     ```
 
     For typed resources:
+
     ```go
     type ExampleListResource struct{}
 
@@ -221,8 +225,9 @@ Before adding a List Resource, the resource must have Resource Identity implemen
         }
     }
     ```
-   
+
     For typed resources:
+
     ```go
     func (ExampleListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
         client := metadata.Client.Example.ExampleResourceClient

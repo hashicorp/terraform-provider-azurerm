@@ -42,7 +42,7 @@ func TerraformResourceName(provider, resourceName string) string {
 	return fmt.Sprintf(fmtStr, strings.ToLower(provider), pluginsdk.ToSnakeCase(resourceName))
 }
 
-func ToString(value interface{}) string {
+func ToString(value any) string {
 	switch v := value.(type) {
 	case string:
 		return v
@@ -61,7 +61,7 @@ func ToTitle(input string) string {
 func PrefixedDescriptionString(input string) string {
 	prefix := "a"
 	first := input[0:1]
-	vowel, _ := regexp.Match(first, []byte(`aeiouAEIOU`))
+	vowel, _ := regexp.MatchString(first, `aeiouAEIOU`)
 
 	if vowel {
 		prefix = "an"
@@ -77,7 +77,7 @@ func ToDelimTitle(input string) string {
 // PrefixedLabelString determines whether a given label should use "A" or "An" as its prefix based on its starting letter.
 func PrefixedLabelString(input string) string {
 	prefix := "A"
-	vowel, _ := regexp.Match(input[0:1], []byte(`aeiouAEIOU`))
+	vowel, _ := regexp.MatchString(input[0:1], `aeiouAEIOU`)
 
 	if vowel {
 		prefix = "An"
