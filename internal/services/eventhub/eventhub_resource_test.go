@@ -484,6 +484,7 @@ func TestAccEventHub_captureDescriptionDisabled(t *testing.T) {
 		},
 	})
 }
+
 func TestAccEventHub_captureDescriptionUpdateDestinationStorage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
 	r := EventHubResource{}
@@ -953,7 +954,7 @@ resource "azurerm_storage_account" "second" {
 }
 
 resource "azurerm_storage_container" "second" {
-  name                  = "acctest%s2"
+  name                  = "accsecondtest%s"
   storage_account_id    = azurerm_storage_account.second.id
   container_access_type = "private"
 }
