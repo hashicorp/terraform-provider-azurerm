@@ -68,7 +68,7 @@ func TestAccKubernetesFleetManager_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("hub_profile.0.agent_profile.0.subnet_id").HasValue(""),
 				check.That(data.ResourceName).Key("hub_profile.0.agent_profile.0.virtual_machine_size").HasValue("Standard_DS2_v2"),
 				check.That(data.ResourceName).Key("hub_profile.0.api_server_access_profile.#").HasValue("1"),
-				check.That(data.ResourceName).Key("hub_profile.0.api_server_access_profile.0.enable_private_cluster").HasValue("false"),
+				check.That(data.ResourceName).Key("hub_profile.0.api_server_access_profile.0.private_cluster_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("hub_profile.0.dns_prefix").HasValue(fmt.Sprintf("val-%s", data.RandomString)),
 				check.That(data.ResourceName).Key("hub_profile.0.fqdn").Exists(),
 				check.That(data.ResourceName).Key("hub_profile.0.kubernetes_version").Exists(),
@@ -127,7 +127,7 @@ func TestAccKubernetesFleetManager_privateHub(t *testing.T) {
 		check.That(data.ResourceName).Key("hub_profile.0.agent_profile.0.subnet_id").HasValue(subnetId),
 		check.That(data.ResourceName).Key("hub_profile.0.agent_profile.0.virtual_machine_size").HasValue("Standard_D2as_v7"),
 		check.That(data.ResourceName).Key("hub_profile.0.api_server_access_profile.#").HasValue("1"),
-		check.That(data.ResourceName).Key("hub_profile.0.api_server_access_profile.0.enable_private_cluster").HasValue("true"),
+		check.That(data.ResourceName).Key("hub_profile.0.api_server_access_profile.0.private_cluster_enabled").HasValue("true"),
 		check.That(data.ResourceName).Key("hub_profile.0.dns_prefix").HasValue(""),
 		check.That(data.ResourceName).Key("hub_profile.0.fqdn").Exists(),
 		check.That(data.ResourceName).Key("hub_profile.0.kubernetes_version").Exists(),
@@ -139,7 +139,7 @@ func TestAccKubernetesFleetManager_privateHub(t *testing.T) {
 		"hub_profile.0.agent_profile.0.subnet_id",
 		"hub_profile.0.agent_profile.0.virtual_machine_size",
 		"hub_profile.0.api_server_access_profile.#",
-		"hub_profile.0.api_server_access_profile.0.enable_private_cluster",
+		"hub_profile.0.api_server_access_profile.0.private_cluster_enabled",
 		"hub_profile.0.dns_prefix",
 		"hub_profile.0.fqdn",
 		"hub_profile.0.kubernetes_version",
@@ -256,7 +256,7 @@ func TestKubernetesFleetManagerPrivateHubConfig(t *testing.T) {
 				fmt.Sprintf("phase = %q", test.phase),
 				fmt.Sprintf("subnet_id            = %q", subnetId),
 				`virtual_machine_size = "Standard_D2as_v7"`,
-				"enable_private_cluster = true",
+				"private_cluster_enabled = true",
 			} {
 				if !strings.Contains(config, value) {
 					t.Errorf("expected rendered configuration to contain %q", value)
@@ -413,7 +413,7 @@ resource "azurerm_kubernetes_fleet_manager" "test" {
     }
 
     api_server_access_profile {
-      enable_private_cluster = false
+      private_cluster_enabled = false
     }
 
     dns_prefix = "val-${var.random_string}"
@@ -477,7 +477,7 @@ resource "azurerm_kubernetes_fleet_manager" "test" {
     dynamic "api_server_access_profile" {
       for_each = var.configure_profiles ? [1] : []
       content {
-        enable_private_cluster = true
+        private_cluster_enabled = true
       }
     }
   }

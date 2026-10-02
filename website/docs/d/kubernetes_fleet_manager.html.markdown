@@ -55,7 +55,7 @@ An `agent_profile` block exports the following:
 
 An `api_server_access_profile` block exports the following:
 
-* `enable_private_cluster` - Whether the Fleet hub is a private cluster.
+* `private_cluster_enabled` - Whether the Fleet hub is a private cluster.
 
 ---
 

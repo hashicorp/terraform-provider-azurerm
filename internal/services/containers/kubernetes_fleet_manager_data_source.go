@@ -67,7 +67,7 @@ func (KubernetesFleetManagerDataSource) Attributes() map[string]*pluginsdk.Schem
 						Computed: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"enable_private_cluster": {
+								"private_cluster_enabled": {
 									Computed: true,
 									Type:     pluginsdk.TypeBool,
 								},

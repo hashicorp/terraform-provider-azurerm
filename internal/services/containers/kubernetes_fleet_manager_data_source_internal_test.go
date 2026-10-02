@@ -48,7 +48,7 @@ func TestMapFleetToKubernetesFleetManagerDataSourceModel(t *testing.T) {
 			VirtualMachineSize: "Standard_DS2_v2",
 		}},
 		ApiServerAccessProfile: []FleetManagerHubAPIServerAccessProfile{{
-			EnablePrivateCluster: true,
+			PrivateClusterEnabled: true,
 		}},
 		DnsPrefix:         "fleet-test",
 		Fqdn:              "fleet.example",

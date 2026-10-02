@@ -48,11 +48,13 @@ An `agent_profile` block supports the following:
 
 * `virtual_machine_size` - (Optional) The virtual machine size of the Fleet hub. Changing this forces a new resource to be created.
 
+~> **Note:** At least one of `subnet_id` or `virtual_machine_size` must be specified when an `agent_profile` block is configured.
+
 ---
 
 An `api_server_access_profile` block supports the following:
 
-* `enable_private_cluster` - (Optional) Whether to create the Fleet hub as a private cluster. When set to `true`, `agent_profile.subnet_id` must be specified. Changing this forces a new resource to be created.
+* `private_cluster_enabled` - (Required) Whether to create the Fleet hub as a private cluster. When set to `true`, `agent_profile.subnet_id` must be specified. Changing this forces a new resource to be created.
 
 ---
 
@@ -62,7 +64,7 @@ A `hub_profile` block supports the following:
 
 * `api_server_access_profile` - (Optional) An `api_server_access_profile` block as defined above. Changing this forces a new resource to be created.
 
-* `dns_prefix` - (Optional) DNS prefix used to create the FQDN for the Fleet hub. This must be omitted when `api_server_access_profile.enable_private_cluster` is set to `true`. Changing this forces a new resource to be created.
+* `dns_prefix` - (Optional) DNS prefix used to create the FQDN for the Fleet hub. This must be omitted when `api_server_access_profile.private_cluster_enabled` is set to `true`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

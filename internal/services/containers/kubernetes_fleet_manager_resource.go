@@ -58,7 +58,7 @@ type FleetManagerHubAgentProfile struct {
 }
 
 type FleetManagerHubAPIServerAccessProfile struct {
-	EnablePrivateCluster bool `tfschema:"enable_private_cluster"`
+	PrivateClusterEnabled bool `tfschema:"private_cluster_enabled"`
 }
 
 func (r KubernetesFleetManagerResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -94,6 +94,7 @@ func (r KubernetesFleetManagerResource) Arguments() map[string]*pluginsdk.Schema
 									ForceNew:     true,
 									Type:         pluginsdk.TypeString,
 									ValidateFunc: commonids.ValidateSubnetID,
+									AtLeastOneOf: []string{"hub_profile.0.agent_profile.0.subnet_id", "hub_profile.0.agent_profile.0.virtual_machine_size"},
 								},
 								"virtual_machine_size": {
 									Optional: true,
@@ -102,6 +103,7 @@ func (r KubernetesFleetManagerResource) Arguments() map[string]*pluginsdk.Schema
 									ForceNew:     true,
 									Type:         pluginsdk.TypeString,
 									ValidateFunc: validation.StringIsNotEmpty,
+									AtLeastOneOf: []string{"hub_profile.0.agent_profile.0.subnet_id", "hub_profile.0.agent_profile.0.virtual_machine_size"},
 								},
 							},
 						},
@@ -109,16 +111,15 @@ func (r KubernetesFleetManagerResource) Arguments() map[string]*pluginsdk.Schema
 						MaxItems: 1,
 						Type:     pluginsdk.TypeList,
 					},
+					// The 2025-03-01 API adds VNet integration and subnet fields to this profile.
 					"api_server_access_profile": {
 						Optional: true,
 						// NOTE: O+C - populated by the API when the service returns the effective hub API server access settings.
 						Computed: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"enable_private_cluster": {
-									Optional: true,
-									// NOTE: O+C - populated by the API on read/import when private cluster mode is enabled.
-									Computed: true,
+								"private_cluster_enabled": {
+									Required: true,
 									ForceNew: true,
 									Type:     pluginsdk.TypeBool,
 								},
@@ -406,7 +407,7 @@ func expandFleetManagerHubAPIServerAccessProfile(input []FleetManagerHubAPIServe
 	}
 
 	return &fleets.APIServerAccessProfile{
-		EnablePrivateCluster: pointer.To(input[0].EnablePrivateCluster),
+		EnablePrivateCluster: pointer.To(input[0].PrivateClusterEnabled),
 	}
 }
 
@@ -417,7 +418,7 @@ func flattenFleetManagerHubAPIServerAccessProfile(input *fleets.APIServerAccessP
 
 	return []FleetManagerHubAPIServerAccessProfile{
 		{
-			EnablePrivateCluster: pointer.From(input.EnablePrivateCluster),
+			PrivateClusterEnabled: pointer.From(input.EnablePrivateCluster),
 		},
 	}
 }
