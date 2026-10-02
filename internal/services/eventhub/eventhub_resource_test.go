@@ -993,10 +993,9 @@ resource "azurerm_role_assignment" "saOwnerRoleAssignment-second" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name              = "acctesteh%s"
-  namespace_id      = azurerm_eventhub_namespace.test.id
-  partition_count   = 2
-  message_retention = 7
+  name            = "acctesteh%s"
+  namespace_id    = azurerm_eventhub_namespace.test.id
+  partition_count = 2
 
   retention_description {
     cleanup_policy                    = "Compact"
