@@ -40,7 +40,9 @@ jobs:
         run: echo "$PWD/.tools/bin" >> "$GITHUB_PATH"
 
       - name: Check changelog entry
-        if: "!contains(github.event.pull_request.labels.*.name, 'no-changelog-needed')"
+        if: |
+          !contains(github.event.pull_request.labels.*.name, 'no-changelog-needed') &&
+          !contains(github.event.pull_request.labels.*.name, 'github_actions')
         id: check
         run: changeloggy check --pr ${{ github.event.pull_request.number }}
 
