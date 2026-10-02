@@ -18,6 +18,47 @@ func TestInferIdentityProperties_CompositeResource(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
+	expectedProps := []string{"nat_gateway_id", "public_ip_address_id"}
+	if !slices.Equal(inferred.Properties, expectedProps) {
+		t.Fatalf("expected properties %v, got %v", expectedProps, inferred.Properties)
+	}
+	if inferred.HasSubscriptionID {
+		t.Fatalf("expected HasSubscriptionID to be false for composite resource")
+	}
+	if inferred.IsVirtual {
+		t.Fatalf("expected IsVirtual to be false")
+	}
+}
+
+func TestInferIdentityProperties_CompositeResource_DefaultFallback(t *testing.T) {
+	tempDir := t.TempDir()
+	testFile := filepath.Join(tempDir, "example_composite_resource.go")
+
+	content := `package example
+
+import (
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+)
+
+func resourceCompositeExample() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(commonids.NewCompositeResourceID(nil, nil)),
+		},
+	}
+}
+`
+	if err := os.WriteFile(testFile, []byte(content), 0o644); err != nil {
+		t.Fatalf("failed to write test file: %v", err)
+	}
+
+	inferred, err := InferIdentityProperties(testFile)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
 	expectedProps := []string{"resource_id1", "resource_id2"}
 	if !slices.Equal(inferred.Properties, expectedProps) {
 		t.Fatalf("expected properties %v, got %v", expectedProps, inferred.Properties)

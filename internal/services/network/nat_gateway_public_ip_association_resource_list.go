@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/natgateways"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/list"
@@ -26,8 +27,8 @@ import (
 type NatGatewayPublicIpAssociationListResource struct{}
 
 type NatGatewayPublicIpAssociationListModel struct {
-	NatGatewayId    types.String `tfsdk:"nat_gateway_id"`
-	ResourceGroupId types.String `tfsdk:"resource_group_id"`
+	NatGatewayId      types.String `tfsdk:"nat_gateway_id"`
+	ResourceGroupName types.String `tfsdk:"resource_group_name"`
 }
 
 var _ sdk.FrameworkListWrappedResource = &NatGatewayPublicIpAssociationListResource{}
@@ -43,11 +44,11 @@ func (r NatGatewayPublicIpAssociationListResource) Metadata(_ context.Context, _
 func (r NatGatewayPublicIpAssociationListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"resource_group_id": schema.StringAttribute{
+			"resource_group_name": schema.StringAttribute{
 				Optional: true,
 				Validators: []validator.String{
 					typehelpers.WrappedStringValidator{
-						Func: commonids.ValidateResourceGroupID,
+						Func: resourcegroups.ValidateName,
 					},
 					stringvalidator.ConflictsWith(path.MatchRoot("nat_gateway_id")),
 				},
@@ -58,7 +59,7 @@ func (r NatGatewayPublicIpAssociationListResource) ListResourceConfigSchema(_ co
 					typehelpers.WrappedStringValidator{
 						Func: natgateways.ValidateNatGatewayID,
 					},
-					stringvalidator.ConflictsWith(path.MatchRoot("resource_group_id")),
+					stringvalidator.ConflictsWith(path.MatchRoot("resource_group_name")),
 				},
 			},
 		},
@@ -95,14 +96,9 @@ func (r NatGatewayPublicIpAssociationListResource) List(ctx context.Context, req
 			gateways = append(gateways, *natGateway.Model)
 		}
 
-	case !data.ResourceGroupId.IsNull():
-		rgId, err := commonids.ParseResourceGroupIDInsensitively(data.ResourceGroupId.ValueString())
-		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, "parsing `resource_group_id`", err)
-			return
-		}
-
-		resp, err := client.ListComplete(ctx, *rgId)
+	case !data.ResourceGroupName.IsNull():
+		rgId := commonids.NewResourceGroupID(metadata.Client.Account.SubscriptionId, data.ResourceGroupName.ValueString())
+		resp, err := client.ListComplete(ctx, rgId)
 		if err != nil {
 			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing NAT Gateways in %s", rgId), err)
 			return
@@ -157,7 +153,7 @@ func (r NatGatewayPublicIpAssociationListResource) List(ctx context.Context, req
 				rd.Set("nat_gateway_id", id.First.ID())
 				rd.Set("public_ip_address_id", id.Second.ID())
 
-				if err := pluginsdk.SetResourceIdentityData(rd, id); err != nil {
+				if err := pluginsdk.SetCompositeResourceIdentityData(rd, id, "nat_gateway_id", "public_ip_address_id"); err != nil {
 					sdk.SetErrorDiagnosticAndPushListResult(result, push, "setting resource identity for `azurerm_nat_gateway_public_ip_association`", err)
 					return
 				}

@@ -125,7 +125,7 @@ func (ManagementLockResource) basicListQueryByResourceGroup() string {
 list "azurerm_management_lock" "list" {
   provider = azurerm
   config {
-    resource_group_id = azurerm_resource_group.test.id
+    resource_group_name = azurerm_resource_group.test.name
   }
 }
 `

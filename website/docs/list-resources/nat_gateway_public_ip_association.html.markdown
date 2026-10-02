@@ -28,7 +28,7 @@ list "azurerm_nat_gateway_public_ip_association" "example" {
 list "azurerm_nat_gateway_public_ip_association" "example" {
   provider = azurerm
   config {
-    resource_group_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1"
+    resource_group_name = "group1"
   }
 }
 ```
@@ -48,6 +48,6 @@ list "azurerm_nat_gateway_public_ip_association" "example" {
 
 This list resource supports the following arguments:
 
-* `resource_group_id` - (Optional) The ID of the Resource Group to query NAT Gateway Public IP Address Associations for. Conflicts with `nat_gateway_id`.
+* `resource_group_name` - (Optional) The name of the Resource Group to query NAT Gateway Public IP Address Associations for. Conflicts with `nat_gateway_id`.
 
-* `nat_gateway_id` - (Optional) The ID of the NAT Gateway to query Public IP Address Associations for. Conflicts with `resource_group_id`.
+* `nat_gateway_id` - (Optional) The ID of the NAT Gateway to query Public IP Address Associations for. Conflicts with `resource_group_name`.
