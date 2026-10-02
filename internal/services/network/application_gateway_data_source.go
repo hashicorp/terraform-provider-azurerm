@@ -1184,6 +1184,11 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 							},
 						},
 
+						"verify_client_auth_mode": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
 						"verify_client_certificate_issuer_dn": {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,

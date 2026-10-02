@@ -8240,7 +8240,8 @@ resource "azurerm_application_gateway" "test" {
   }
 
   ssl_profile {
-    name = local.ssl_profile_name
+    name                    = local.ssl_profile_name
+    verify_client_auth_mode = "Passthrough"
     ssl_policy {
       policy_type = "Predefined"
       policy_name = "AppGwSslPolicy20220101"
@@ -8338,6 +8339,7 @@ resource "azurerm_application_gateway" "test" {
 
   ssl_profile {
     name                                 = local.ssl_profile_name
+    verify_client_auth_mode              = "Strict"
     verify_client_certificate_issuer_dn  = true
     verify_client_certificate_revocation = "OCSP"
     ssl_policy {
@@ -8445,6 +8447,7 @@ resource "azurerm_application_gateway" "test" {
   ssl_profile {
     name                             = local.ssl_profile_name
     trusted_client_certificate_names = [local.trusted_client_cert_name]
+    verify_client_auth_mode          = "Passthrough"
     ssl_policy {
       policy_type          = "Custom"
       min_protocol_version = "TLSv1_2"
