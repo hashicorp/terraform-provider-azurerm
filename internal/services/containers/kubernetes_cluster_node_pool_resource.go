@@ -416,6 +416,8 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
+
+		"security": schemaNodePoolSecurity(),
 	}
 }
 
@@ -673,6 +675,10 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta any
 		profile.NetworkProfile = expandAgentPoolNetworkProfile(networkProfile)
 	}
 
+	if securityProfile := d.Get("security").([]any); len(securityProfile) > 0 {
+		profile.SecurityProfile = expandAgentPoolSecurityProfile(securityProfile)
+	}
+
 	if snapshotId := d.Get("snapshot_id").(string); snapshotId != "" {
 		profile.CreationData = &agentpools.CreationData{
 			SourceResourceId: pointer.To(snapshotId),
@@ -892,6 +898,10 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta any
 		props.NetworkProfile = expandAgentPoolNetworkProfile(d.Get("node_network_profile").([]any))
 	}
 
+	if d.HasChange("security") {
+		props.SecurityProfile = expandAgentPoolSecurityProfile(d.Get("security").([]any))
+	}
+
 	if d.HasChange("zones") {
 		zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
 		props.AvailabilityZones = &zones
@@ -937,6 +947,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta any
 		"os_disk_type",
 		"pod_subnet_id",
 		"snapshot_id",
+		"security",
 		"ultra_ssd_enabled",
 		"vm_size",
 		"vnet_subnet_id",
@@ -1199,6 +1210,10 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta any) 
 
 		if err := d.Set("node_network_profile", flattenAgentPoolNetworkProfile(props.NetworkProfile)); err != nil {
 			return fmt.Errorf("setting `node_network_profile`: %+v", err)
+		}
+
+		if err := d.Set("security", flattenAgentPoolSecurityProfile(props.SecurityProfile)); err != nil {
+			return fmt.Errorf("setting `security`: %+v", err)
 		}
 	}
 
@@ -1797,6 +1812,31 @@ func expandAgentPoolNetworkProfileNodePublicIPTags(input map[string]any) *[]agen
 		out = append(out, ipTag)
 	}
 	return &out
+}
+
+func expandAgentPoolSecurityProfile(input []any) *agentpools.AgentPoolSecurityProfile {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]any)
+	return &agentpools.AgentPoolSecurityProfile{
+		EnableSecureBoot: pointer.To(v["secure_boot_enabled"].(bool)),
+		EnableVTPM:       pointer.To(v["vtpm_enabled"].(bool)),
+	}
+}
+
+func flattenAgentPoolSecurityProfile(input *agentpools.AgentPoolSecurityProfile) []any {
+	if input == nil {
+		return []any{}
+	}
+
+	return []any{
+		map[string]any{
+			"secure_boot_enabled": pointer.From(input.EnableSecureBoot),
+			"vtpm_enabled":        pointer.From(input.EnableVTPM),
+		},
+	}
 }
 
 func flattenAgentPoolNetworkProfile(input *agentpools.AgentPoolNetworkProfile) []any {
