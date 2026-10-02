@@ -89,7 +89,7 @@ jobs:
           persist-credentials: false
       - name: Generate metadata file
         id: generate-metadata-file
-        uses: hashicorp/actions-generate-metadata@a43468dfb100445f2c2aa52cdc3d57b2c982a0f3 # v1
+        uses: hashicorp/actions-generate-metadata@780b17558ee4b93391b26a9e08d7cb858d9ae1e8 # v1
         with:
           version: ${{ needs.set-product-version.outputs.product-version }}
           product: ${{ env.PKG_NAME }}
