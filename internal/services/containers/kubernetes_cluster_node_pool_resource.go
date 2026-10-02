@@ -380,7 +380,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		"windows_profile": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			// NOTE: O+C Azure can return profile settings when the block is omitted.
+			// NOTE: O+C Retain the API value on import or when a configured profile is removed.
 			Computed: true,
 			ForceNew: true,
 			MaxItems: 1,

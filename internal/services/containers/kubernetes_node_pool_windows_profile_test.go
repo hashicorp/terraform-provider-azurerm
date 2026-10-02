@@ -8,18 +8,22 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/agentpools"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAgentPoolWindowsProfileImportPlan(t *testing.T) {
 	for _, test := range []struct {
-		name        string
-		apiDisabled bool
-		configured  *bool
-		emptyBlock  bool
-		updateTags  bool
-		replacement bool
+		name         string
+		apiDisabled  bool
+		configured   *bool
+		emptyBlock   bool
+		updateTags   bool
+		replacement  bool
+		noProfile    bool
+		noFlag       bool
+		optionalOnly bool
 	}{
 		{name: "omitted_enabled"},
 		{name: "omitted_disabled", apiDisabled: true},
@@ -30,9 +34,19 @@ func TestAgentPoolWindowsProfileImportPlan(t *testing.T) {
 		{name: "omitted_disabled_tag_update", apiDisabled: true, updateTags: true},
 		{name: "enable_requires_replacement", apiDisabled: true, configured: pointer.To(true), replacement: true},
 		{name: "disable_requires_replacement", configured: pointer.To(false), replacement: true},
+		{name: "empty_block_disabled_requires_replacement", apiDisabled: true, emptyBlock: true, replacement: true},
+		{name: "omitted_nil_profile", noProfile: true},
+		{name: "omitted_nil_profile_tag_update", noProfile: true, updateTags: true},
+		{name: "omitted_nil_flag", noFlag: true},
+		{name: "omitted_nil_flag_tag_update", noFlag: true, updateTags: true},
+		{name: "optional_only_omitted_enabled_requires_replacement", optionalOnly: true, replacement: true},
+		{name: "optional_only_omitted_disabled_requires_replacement", optionalOnly: true, apiDisabled: true, replacement: true},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			resource := resourceKubernetesClusterNodePool()
+			if test.optionalOnly {
+				resource.Schema["windows_profile"].Computed = false
+			}
 			config := map[string]any{
 				"name":                  "test",
 				"kubernetes_cluster_id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test/providers/Microsoft.ContainerService/managedClusters/test",
@@ -51,8 +65,17 @@ func TestAgentPoolWindowsProfileImportPlan(t *testing.T) {
 			if api == nil || api.DisableOutboundNat == nil || *api.DisableOutboundNat != test.apiDisabled {
 				t.Fatalf("Windows profile did not expand to the expected API flag: %#v", api)
 			}
+			if test.noProfile {
+				api = nil
+			} else if test.noFlag {
+				api = &agentpools.AgentPoolWindowsProfile{}
+			}
 			profile := flattenAgentPoolWindowsProfile(api)
-			if len(profile) != 1 || profile[0].(map[string]any)["outbound_nat_enabled"] != !test.apiDisabled {
+			if test.noProfile || test.noFlag {
+				if len(profile) != 0 {
+					t.Fatalf("absent API outbound NAT setting produced a profile: %#v", profile)
+				}
+			} else if len(profile) != 1 || profile[0].(map[string]any)["outbound_nat_enabled"] != !test.apiDisabled {
 				t.Fatalf("API Windows profile was not preserved in imported state: %#v", profile)
 			}
 			if err := data.Set("windows_profile", profile); err != nil {
@@ -73,6 +96,17 @@ func TestAgentPoolWindowsProfileImportPlan(t *testing.T) {
 			}
 			if got := diff != nil && diff.RequiresNew(); got != test.replacement {
 				t.Fatalf("replacement = %t, want %t; diff: %#v", got, test.replacement, diff)
+			}
+			if test.replacement {
+				profileRequiresNew := false
+				for name, attribute := range diff.Attributes {
+					if strings.HasPrefix(name, "windows_profile.") && attribute.RequiresNew {
+						profileRequiresNew = true
+					}
+				}
+				if !profileRequiresNew {
+					t.Fatalf("replacement was not caused by the Windows profile: %#v", diff)
+				}
 			}
 			if !test.replacement && !test.updateTags && diff != nil && !diff.Empty() {
 				t.Fatalf("imported Windows profile has a nonempty plan: %#v", diff)

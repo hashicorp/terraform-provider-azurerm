@@ -1556,18 +1556,78 @@ func TestAccKubernetesClusterNodePool_updateWindowsNodePoolTags(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.Environment").HasValue("dev"),
+				data.CheckWithClient(r.checkWindowsProfile(t, false)),
 			),
 		},
 		data.ImportStep(),
+		{
+			Config:   r.windowsNodePoolWithTags(data, "dev"),
+			PlanOnly: true,
+		},
 		{
 			Config: r.windowsNodePoolWithTags(data, "prod"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.Environment").HasValue("prod"),
+				data.CheckWithClient(r.checkWindowsProfile(t, true)),
 			),
 		},
 		data.ImportStep(),
+		{
+			Config:   r.windowsNodePoolWithTags(data, "prod"),
+			PlanOnly: true,
+		},
 	})
+}
+
+func (KubernetesClusterNodePoolResource) checkWindowsProfile(t *testing.T, requireProfile bool) acceptance.ClientCheckFunc {
+	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+		ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+		defer cancel()
+
+		id, err := agentpools.ParseAgentPoolID(state.ID)
+		if err != nil {
+			return err
+		}
+		resp, err := clients.Containers.AgentPoolsClient.Get(ctx, *id)
+		if err != nil {
+			return fmt.Errorf("reading %s: %+v", *id, err)
+		}
+		if resp.Model == nil || resp.Model.Properties == nil {
+			return fmt.Errorf("reading %s: `properties` was nil", *id)
+		}
+
+		profile := resp.Model.Properties.WindowsProfile
+		disabled := "unset"
+		if profile != nil && profile.DisableOutboundNat != nil {
+			disabled = fmt.Sprintf("%t", *profile.DisableOutboundNat)
+		}
+		t.Logf("Windows profile after tag %q: API present=%t, disableOutboundNat=%s, state count=%q, outbound_nat_enabled=%q",
+			state.Attributes["tags.Environment"], profile != nil, disabled,
+			state.Attributes["windows_profile.#"], state.Attributes["windows_profile.0.outbound_nat_enabled"])
+		return checkWindowsProfileState(profile, state.Attributes, requireProfile)
+	}
+}
+
+func checkWindowsProfileState(profile *agentpools.AgentPoolWindowsProfile, attributes map[string]string, requireProfile bool) error {
+	if profile == nil || profile.DisableOutboundNat == nil {
+		if requireProfile {
+			return fmt.Errorf("Azure returned no outbound NAT setting for the never-configured windows_profile after the tag update (profile present=%t)", profile != nil)
+		}
+		if attributes["windows_profile.#"] != "0" || attributes["windows_profile.0.outbound_nat_enabled"] != "" {
+			return fmt.Errorf("state contains a Windows profile without an API outbound NAT setting")
+		}
+		return nil
+	}
+
+	if attributes["windows_profile.#"] != "1" {
+		return fmt.Errorf("expected one Windows profile in state for the API outbound NAT setting, got %q", attributes["windows_profile.#"])
+	}
+	expected := fmt.Sprintf("%t", !*profile.DisableOutboundNat)
+	if actual := attributes["windows_profile.0.outbound_nat_enabled"]; actual != expected {
+		return fmt.Errorf("state outbound_nat_enabled=%q does not match API disableOutboundNat=%t", actual, *profile.DisableOutboundNat)
+	}
+	return nil
 }
 
 func (r KubernetesClusterNodePoolResource) autoScaleConfig(data acceptance.TestData) string {
