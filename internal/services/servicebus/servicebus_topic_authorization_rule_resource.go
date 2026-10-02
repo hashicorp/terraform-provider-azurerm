@@ -4,6 +4,7 @@
 package servicebus
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -12,12 +13,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/topics"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "name" -compare-values "subscription_id:topic_id,resource_group_name:topic_id,namespace_name:topic_id,topic_name:topic_id" -test-name withAliasConnectionString
+
+const serviceBusTopicAuthorizationRuleResourceName = "azurerm_servicebus_topic_authorization_rule"
 
 func resourceServiceBusTopicAuthorizationRule() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -26,10 +32,11 @@ func resourceServiceBusTopicAuthorizationRule() *pluginsdk.Resource {
 		Update: resourceServiceBusTopicAuthorizationRuleCreateUpdate,
 		Delete: resourceServiceBusTopicAuthorizationRuleDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := topics.ParseTopicAuthorizationRuleID(id)
-			return err
-		}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&topics.TopicAuthorizationRuleId{}),
+		},
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&topics.TopicAuthorizationRuleId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -87,7 +94,7 @@ func resourceServiceBusTopicAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceD
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_servicebus_topic_authorization_rule", id.ID())
+				return tf.ImportAsExistsError(serviceBusTopicAuthorizationRuleResourceName, id.ID())
 			}
 		}
 	}
@@ -105,6 +112,9 @@ func resourceServiceBusTopicAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceD
 
 	if d.IsNewResource() {
 		d.SetId(id.ID())
+		if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+			return err
+		}
 	}
 
 	namespaceId := namespaces.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
@@ -134,10 +144,14 @@ func resourceServiceBusTopicAuthorizationRuleRead(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	return resourceServiceBusTopicAuthorizationRuleFlatten(ctx, client, d, id, resp.Model, true)
+}
+
+func resourceServiceBusTopicAuthorizationRuleFlatten(ctx context.Context, client *topics.TopicsClient, d *pluginsdk.ResourceData, id *topics.TopicAuthorizationRuleId, model *topics.SBAuthorizationRule, includeResource bool) error {
 	d.Set("name", id.AuthorizationRuleName)
 	d.Set("topic_id", topics.NewTopicID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.TopicName).ID())
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			listen, send, manage := flattenTopicAuthorizationRuleRights(&props.Rights)
 			d.Set("listen", listen)
@@ -146,21 +160,23 @@ func resourceServiceBusTopicAuthorizationRuleRead(d *pluginsdk.ResourceData, met
 		}
 	}
 
-	keysResp, err := client.ListKeys(ctx, *id)
-	if err != nil {
-		return fmt.Errorf("listing keys for %s: %+v", id, err)
+	if includeResource {
+		keysResp, err := client.ListKeys(ctx, *id)
+		if err != nil {
+			return fmt.Errorf("listing keys for %s: %+v", id, err)
+		}
+
+		if model := keysResp.Model; model != nil {
+			d.Set("primary_key", model.PrimaryKey)
+			d.Set("primary_connection_string", model.PrimaryConnectionString)
+			d.Set("secondary_key", model.SecondaryKey)
+			d.Set("secondary_connection_string", model.SecondaryConnectionString)
+			d.Set("primary_connection_string_alias", model.AliasPrimaryConnectionString)
+			d.Set("secondary_connection_string_alias", model.AliasSecondaryConnectionString)
+		}
 	}
 
-	if model := keysResp.Model; model != nil {
-		d.Set("primary_key", model.PrimaryKey)
-		d.Set("primary_connection_string", model.PrimaryConnectionString)
-		d.Set("secondary_key", model.SecondaryKey)
-		d.Set("secondary_connection_string", model.SecondaryConnectionString)
-		d.Set("primary_connection_string_alias", model.AliasPrimaryConnectionString)
-		d.Set("secondary_connection_string_alias", model.AliasSecondaryConnectionString)
-	}
-
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceServiceBusTopicAuthorizationRuleDelete(d *pluginsdk.ResourceData, meta any) error {
