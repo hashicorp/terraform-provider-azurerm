@@ -752,6 +752,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2026-06-01/firew
 github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2026-06-01/mongoclusters
 github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2026-06-01/users
 github.com/hashicorp/go-azure-sdk/resource-manager/monitor/2023-04-03/azuremonitorworkspaces
+github.com/hashicorp/go-azure-sdk/resource-manager/monitor/2026-04-01/pipelinegroups
 github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/servers
 github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30
 github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/advancedthreatprotectionsettings
