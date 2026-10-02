@@ -137,9 +137,8 @@ func InferIdentityProperties(filePath string) (*InferredIdentity, error) {
 			compositeProperties = []string{"resource_id1", "resource_id2"}
 		}
 		return &InferredIdentity{
-			Properties:        compositeProperties,
-			HasSubscriptionID: false,
-			IsVirtual:         isVirtual,
+			Properties: compositeProperties,
+			IsVirtual:  isVirtual,
 		}, nil
 	}
 
@@ -342,3 +341,4 @@ func toSnakeCase(s string) string {
 	// Some structs might end up with `i_d`, fix to `id`
 	return strings.ReplaceAll(res.String(), "_i_d", "_id")
 }
+
