@@ -26,6 +26,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -112,7 +113,7 @@ var subnetDelegationServiceNames = []string{
 }
 
 func resourceSubnet() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create:   resourceSubnetCreate,
 		Read:     resourceSubnetRead,
 		Update:   resourceSubnetUpdate,
@@ -235,19 +236,9 @@ func resourceSubnet() *pluginsdk.Resource {
 
 									"actions": {
 										Type:     pluginsdk.TypeSet,
-										Optional: true,
+										Computed: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{
-												"Microsoft.Network/networkinterfaces/*",
-												"Microsoft.Network/publicIPAddresses/join/action",
-												"Microsoft.Network/publicIPAddresses/read",
-												"Microsoft.Network/virtualNetworks/read",
-												"Microsoft.Network/virtualNetworks/subnets/action",
-												"Microsoft.Network/virtualNetworks/subnets/join/action",
-												"Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
-												"Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
-											}, false),
 										},
 									},
 								},
@@ -350,6 +341,32 @@ func resourceSubnet() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.SixPointOh() {
+		delegation := resource.Schema["delegation"].Elem.(*pluginsdk.Resource)
+		serviceDelegation := delegation.Schema["service_delegation"].Elem.(*pluginsdk.Resource)
+
+		serviceDelegation.Schema["actions"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeSet,
+			Optional:   true,
+			Deprecated: "`actions` has been deprecated and will become read-only in v6.0 of the AzureRM Provider, since this property is read-only in the Azure API and any configured value is ignored",
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Microsoft.Network/networkinterfaces/*",
+					"Microsoft.Network/publicIPAddresses/join/action",
+					"Microsoft.Network/publicIPAddresses/read",
+					"Microsoft.Network/virtualNetworks/read",
+					"Microsoft.Network/virtualNetworks/subnets/action",
+					"Microsoft.Network/virtualNetworks/subnets/join/action",
+					"Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
+					"Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
+				}, false),
+			},
+		}
+	}
+
+	return resource
 }
 
 func resourceSubnetCreate(d *pluginsdk.ResourceData, meta any) error {

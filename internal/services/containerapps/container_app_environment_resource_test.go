@@ -1133,6 +1133,8 @@ func (r ContainerAppEnvironmentResource) templateVNet(data acceptance.TestData) 
 	return fmt.Sprintf(`
 
 
+
+
 %[1]s
 
 resource "azurerm_virtual_network" "test" {
@@ -1151,11 +1153,12 @@ resource "azurerm_subnet" "control" {
   delegation {
     name = "acctestdelegation%[2]d"
     service_delegation {
-      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
-      name    = "Microsoft.App/environments"
+      name = "Microsoft.App/environments"
     }
   }
 }
+
+
 
 
 `, r.template(data), data.RandomInteger)

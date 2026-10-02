@@ -139,6 +139,10 @@ func (r VmwareNetappFileVolumeAttachmentResource) templateNetappFile(data accept
 
 
 
+
+
+
+
 resource "azurerm_subnet" "netappSubnet" {
   name                 = "acctest-Subnet-%d"
   resource_group_name  = azurerm_resource_group.test.name
@@ -149,8 +153,7 @@ resource "azurerm_subnet" "netappSubnet" {
     name = "testdelegation"
 
     service_delegation {
-      name    = "Microsoft.Netapp/volumes"
-      actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
+      name = "Microsoft.Netapp/volumes"
     }
   }
 }

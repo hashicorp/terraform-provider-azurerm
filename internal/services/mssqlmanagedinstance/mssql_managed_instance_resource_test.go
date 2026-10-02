@@ -2017,8 +2017,7 @@ resource "azurerm_subnet" "test" {
     name = "managedinstancedelegation"
 
     service_delegation {
-      name    = "Microsoft.Sql/managedInstances"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action", "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action", "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action"]
+      name = "Microsoft.Sql/managedInstances"
     }
   }
 }
@@ -2276,8 +2275,7 @@ resource "azurerm_subnet" "secondary" {
     name = "managedinstancedelegation"
 
     service_delegation {
-      name    = "Microsoft.Sql/managedInstances"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action", "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action", "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action"]
+      name = "Microsoft.Sql/managedInstances"
     }
   }
 }
@@ -2535,8 +2533,7 @@ resource "azurerm_subnet" "secondary_2" {
     name = "managedinstancedelegation"
 
     service_delegation {
-      name    = "Microsoft.Sql/managedInstances"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action", "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action", "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action"]
+      name = "Microsoft.Sql/managedInstances"
     }
   }
 }
@@ -2937,8 +2934,7 @@ resource "azurerm_subnet" "test2" {
     name = "managedinstancedelegation"
 
     service_delegation {
-      name    = "Microsoft.Sql/managedInstances"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action", "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action", "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action"]
+      name = "Microsoft.Sql/managedInstances"
     }
   }
 }

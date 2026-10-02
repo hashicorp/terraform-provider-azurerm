@@ -169,8 +169,7 @@ resource "azurerm_subnet" "test1" {
     name = "acctestdelegation"
 
     service_delegation {
-      name    = "Microsoft.Web/serverFarms"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+      name = "Microsoft.Web/serverFarms"
     }
   }
 }
@@ -185,8 +184,7 @@ resource "azurerm_subnet" "test2" {
     name = "acctestdelegation"
 
     service_delegation {
-      name    = "Microsoft.Web/serverFarms"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+      name = "Microsoft.Web/serverFarms"
     }
   }
 }
@@ -282,8 +280,7 @@ resource "azurerm_subnet" "test" {
     name = "acctestdelegation"
 
     service_delegation {
-      name    = "Microsoft.Web/serverFarms"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+      name = "Microsoft.Web/serverFarms"
     }
   }
 }

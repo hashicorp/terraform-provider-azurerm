@@ -1114,9 +1114,6 @@ resource "azurerm_subnet" "test" {
     name = "fs"
     service_delegation {
       name = "Microsoft.DBforPostgreSQL/flexibleServers"
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-      ]
     }
   }
 }
@@ -1192,9 +1189,6 @@ resource "azurerm_subnet" "test" {
     name = "fs"
     service_delegation {
       name = "Microsoft.DBforPostgreSQL/flexibleServers"
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-      ]
     }
   }
 }
