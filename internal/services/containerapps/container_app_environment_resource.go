@@ -578,8 +578,10 @@ func (r ContainerAppEnvironmentResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
-			if err := helpers.ValidateWorkloadProfileCounts(model.WorkloadProfiles); err != nil {
-				return err
+			for _, v := range model.WorkloadProfiles {
+				if helpers.IsConsumptionProfileType(v.WorkloadProfileType) && (v.MinimumCount != 0 || v.MaximumCount != 0) {
+					return fmt.Errorf("`minimum_count` and `maximum_count` cannot be set for `workload_profile` %q as they are not supported for the `workload_profile_type` %q", v.Name, v.WorkloadProfileType)
+				}
 			}
 
 			if metadata.ResourceDiff.HasChanges("logs_destination", "log_analytics_workspace_id") {

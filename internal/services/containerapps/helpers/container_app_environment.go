@@ -4,8 +4,6 @@
 package helpers
 
 import (
-	"fmt"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -99,26 +97,14 @@ func WorkloadProfileSchema() *pluginsdk.Schema {
 	}
 }
 
-// isConsumptionProfileType returns true for all consumption-based Workload Profile types (including the GPU variants),
+// IsConsumptionProfileType returns true for all consumption-based Workload Profile types (including the GPU variants),
 // which don't support `minimum_count` and `maximum_count`
-func isConsumptionProfileType(workloadProfileType string) bool {
+func IsConsumptionProfileType(workloadProfileType string) bool {
 	switch WorkloadProfileSku(workloadProfileType) {
 	case WorkloadProfileSkuConsumption, WorkloadProfileSkuConsumptionGpuNc24A100, WorkloadProfileSkuConsumptionGpuNc8AsT4:
 		return true
 	}
 	return false
-}
-
-// ValidateWorkloadProfileCounts returns an error if `minimum_count` or `maximum_count` is set on a Consumption workload profile,
-// since the API doesn't support them there and they would otherwise be silently discarded, causing a perpetual diff.
-func ValidateWorkloadProfileCounts(input []WorkloadProfileModel) error {
-	for _, v := range input {
-		if isConsumptionProfileType(v.WorkloadProfileType) && (v.MinimumCount != 0 || v.MaximumCount != 0) {
-			return fmt.Errorf("`minimum_count` and `maximum_count` cannot be set for `workload_profile` %q as they are not supported for the `workload_profile_type` %q", v.Name, v.WorkloadProfileType)
-		}
-	}
-
-	return nil
 }
 
 func ExpandWorkloadProfiles(input []WorkloadProfileModel) *[]managedenvironments.WorkloadProfile {
@@ -134,7 +120,7 @@ func ExpandWorkloadProfiles(input []WorkloadProfileModel) *[]managedenvironments
 			WorkloadProfileType: v.WorkloadProfileType,
 		}
 
-		if !isConsumptionProfileType(v.WorkloadProfileType) {
+		if !IsConsumptionProfileType(v.WorkloadProfileType) {
 			r.MaximumCount = pointer.To(v.MaximumCount)
 			r.MinimumCount = pointer.To(v.MinimumCount)
 		}
