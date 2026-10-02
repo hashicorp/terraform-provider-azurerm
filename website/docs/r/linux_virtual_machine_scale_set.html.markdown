@@ -128,6 +128,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
 -> **Note:** For more information about Automatic Instance Repair, please refer to the [product documentation](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-automatic-instance-repairs).
 
+* `automatic_zone_rebalancing_enabled` - (Optional) Whether to enable automatic zone balance. Defaults to `false`. Requires `zones` to be set. When set to `true`, a `health_probe_id` or a health extension must be configured.
+
 * `boot_diagnostics` - (Optional) A `boot_diagnostics` block as defined below.
 
 * `capacity_reservation_group_id` - (Optional) Specifies the ID of the Capacity Reservation Group which the Virtual Machine Scale Set should be allocated to. Changing this forces a new resource to be created.
@@ -196,13 +198,13 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group in which the Virtual Machine Scale Set should be assigned to. Changing this forces a new resource to be created.
 
-* `resilient_vm_creation_enabled` - (Optional) Should resilient VM creation be enabled? When enabled, the service will attempt to create VMs in alternative fault domains or zones if the primary location fails during creation. Defaults to `false`.
+* `resilient_vm_creation_enabled` - (Optional) Whether `resilient VM creation` is enabled. Defaults to `false`.
 
--> **Note:** `resilient_vm_creation_enabled` is currently not supported in the `austriaeast`, `belgiumcentral`, `centraluseuap`, `chilecentral`, `indonesiacentral`, `israelnorthwest`, `malaysiawest`, `mexicocentral`, `newzealandnorth`, `southcentralus2`, `southindia`, `southeastus3`, `southwestus`, `eastasia`, `eastus`, `southcentralus`, `southeastasia`, and `westeurope` regions.
+-> **Note:** When enabled, the service attempts to create Virtual Machines in alternative fault domains or zones if the primary location fails during creation.
 
-* `resilient_vm_deletion_enabled` - (Optional) Should resilient VM deletion be enabled? When enabled, the service will use a more resilient deletion process that attempts to gracefully handle failures during VM termination. Defaults to `false`.
+* `resilient_vm_deletion_enabled` - (Optional) Whether `resilient VM deletion` is enabled. Defaults to `false`.
 
--> **Note:** `resilient_vm_deletion_enabled` is currently not supported in the `austriaeast`, `belgiumcentral`, `centraluseuap`, `chilecentral`, `indonesiacentral`, `israelnorthwest`, `malaysiawest`, `mexicocentral`, `newzealandnorth`, `southcentralus2`, `southindia`, `southeastus3`, `southwestus`, `eastasia`, `eastus`, `southcentralus`, `southeastasia`, and `westeurope` regions.
+-> **Note:** When enabled, the service uses a more resilient deletion process that attempts to gracefully handle failures during Virtual Machine termination.
 
 * `rolling_upgrade_policy` - (Optional) A `rolling_upgrade_policy` block as defined below. Changing this forces a new resource to be created.
 
