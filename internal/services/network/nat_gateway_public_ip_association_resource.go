@@ -3,7 +3,7 @@
 
 package network
 
-//go:generate go run ../../tools/generator-tests resourceidentity -properties "resource_id1:nat_gateway_id,resource_id2:public_ip_address_id"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 import (
 	"fmt"
@@ -31,10 +31,18 @@ func resourceNATGatewayPublicIpAssociation() *pluginsdk.Resource {
 		Read:   resourceNATGatewayPublicIpAssociationRead,
 		Delete: resourceNATGatewayPublicIpAssociationDelete,
 
-		Importer: pluginsdk.ImporterValidatingIdentity(commonids.NewCompositeResourceID(&natgateways.NatGatewayId{}, &commonids.PublicIPAddressId{})),
+		Importer: pluginsdk.ImporterValidatingCompositeIdentity(
+			commonids.NewCompositeResourceID(&natgateways.NatGatewayId{}, &commonids.PublicIPAddressId{}),
+			"nat_gateway_id",
+			"public_ip_address_id",
+		),
 
 		Identity: &schema.ResourceIdentity{
-			SchemaFunc: pluginsdk.GenerateIdentitySchema(commonids.NewCompositeResourceID(&natgateways.NatGatewayId{}, &commonids.PublicIPAddressId{})),
+			SchemaFunc: pluginsdk.GenerateCompositeIdentitySchema(
+				commonids.NewCompositeResourceID(&natgateways.NatGatewayId{}, &commonids.PublicIPAddressId{}),
+				"nat_gateway_id",
+				"public_ip_address_id",
+			),
 		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -138,12 +146,12 @@ func resourceNATGatewayPublicIpAssociationCreate(d *pluginsdk.ResourceData, meta
 		gatewayProps.PublicIPAddresses = pointer.To(publicIpAddresses)
 	}
 
-	if err := client.CreateOrUpdateCallbackThenPoll(ctx, *natGatewayId, *natGateway.Model, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, *natGatewayId, *natGateway.Model, sdk.SetIDAndCompositeIdentityCallback(meta, &id, d, "nat_gateway_id", "public_ip_address_id")); err != nil {
 		return fmt.Errorf("updating %s: %+v", natGatewayId, err)
 	}
 
 	d.SetId(id.ID())
-	if err := pluginsdk.SetResourceIdentityData(d, id); err != nil {
+	if err := pluginsdk.SetCompositeResourceIdentityData(d, id, "nat_gateway_id", "public_ip_address_id"); err != nil {
 		return fmt.Errorf("setting resource identity: %w", err)
 	}
 
@@ -185,7 +193,7 @@ func resourceNATGatewayPublicIpAssociationRead(d *pluginsdk.ResourceData, meta a
 	d.Set("nat_gateway_id", id.First.ID())
 	d.Set("public_ip_address_id", id.Second.ID())
 
-	return pluginsdk.SetResourceIdentityData(d, id)
+	return pluginsdk.SetCompositeResourceIdentityData(d, id, "nat_gateway_id", "public_ip_address_id")
 }
 
 func resourceNATGatewayPublicIpAssociationDelete(d *pluginsdk.ResourceData, meta any) error {

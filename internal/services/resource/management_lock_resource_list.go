@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/managementlocks"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/list"
@@ -27,10 +28,10 @@ import (
 type ManagementLockListResource struct{}
 
 type ManagementLockListModel struct {
-	Scope           types.String `tfsdk:"scope"`
-	SubscriptionId  types.String `tfsdk:"subscription_id"`
-	ResourceGroupId types.String `tfsdk:"resource_group_id"`
-	ResourceId      types.String `tfsdk:"resource_id"`
+	Scope             types.String `tfsdk:"scope"`
+	SubscriptionId    types.String `tfsdk:"subscription_id"`
+	ResourceGroupName types.String `tfsdk:"resource_group_name"`
+	ResourceId        types.String `tfsdk:"resource_id"`
 }
 
 var _ sdk.FrameworkListWrappedResource = &ManagementLockListResource{}
@@ -54,18 +55,18 @@ func (ManagementLockListResource) ListResourceConfigSchema(_ context.Context, _ 
 						Func: validation.Any(validation.IsUUID, commonids.ValidateSubscriptionID),
 					},
 					stringvalidator.ConflictsWith(
-						path.MatchRoot("resource_group_id"),
+						path.MatchRoot("resource_group_name"),
 						path.MatchRoot("resource_id"),
 						path.MatchRoot("scope"),
 					),
 				},
 			},
-			"resource_group_id": schema.StringAttribute{
+			"resource_group_name": schema.StringAttribute{
 				Optional:    true,
-				Description: "The ID of the Resource Group to query locks for. Queries locks applied directly at the resource group level.",
+				Description: "The name of the Resource Group to query locks for. Queries locks applied directly at the resource group level.",
 				Validators: []validator.String{
 					typehelpers.WrappedStringValidator{
-						Func: commonids.ValidateResourceGroupID,
+						Func: resourcegroups.ValidateName,
 					},
 					stringvalidator.ConflictsWith(
 						path.MatchRoot("subscription_id"),
@@ -83,7 +84,7 @@ func (ManagementLockListResource) ListResourceConfigSchema(_ context.Context, _ 
 					},
 					stringvalidator.ConflictsWith(
 						path.MatchRoot("subscription_id"),
-						path.MatchRoot("resource_group_id"),
+						path.MatchRoot("resource_group_name"),
 						path.MatchRoot("scope"),
 					),
 				},
@@ -97,7 +98,7 @@ func (ManagementLockListResource) ListResourceConfigSchema(_ context.Context, _ 
 					},
 					stringvalidator.ConflictsWith(
 						path.MatchRoot("subscription_id"),
-						path.MatchRoot("resource_group_id"),
+						path.MatchRoot("resource_group_name"),
 						path.MatchRoot("resource_id"),
 					),
 				},
@@ -139,15 +140,12 @@ func (ManagementLockListResource) List(ctx context.Context, request list.ListReq
 		}
 		items = resp.Items
 
-	case !data.ResourceGroupId.IsNull():
-		rgId, err := commonids.ParseResourceGroupIDInsensitively(data.ResourceGroupId.ValueString())
+	case !data.ResourceGroupName.IsNull():
+		rgName := data.ResourceGroupName.ValueString()
+		rgId := commonids.NewResourceGroupID(metadata.Client.Account.SubscriptionId, rgName)
+		resp, err := client.ListAtResourceGroupLevelComplete(ctx, rgId, managementlocks.ListAtResourceGroupLevelOperationOptions{})
 		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, "parsing `resource_group_id`", err)
-			return
-		}
-		resp, err := client.ListAtResourceGroupLevelComplete(ctx, *rgId, managementlocks.ListAtResourceGroupLevelOperationOptions{})
-		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing management locks in resource group `%s`", rgId), err)
+			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing management locks in resource group `%s`", rgName), err)
 			return
 		}
 		items = resp.Items
