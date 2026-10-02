@@ -5,15 +5,19 @@
 // Package plural provides simple support for localising plurals in a flexible range of different styles.
 //
 // There are considerable differences around the world in the way plurals are handled. This is
-// a simple but competent API for catering with these differences when presenting to people formatted text with numbers.
+// a simple but competent API for catering with these differences when presenting formatted text with numbers to people.
 //
 // This package is able to format countable things and continuous values. It can handle integers
 // and floating point numbers equally and this allows you to decide to what extent each is appropriate.
 //
-// For example, "2 cars" might weigh "1.6 tonnes"; both categories are covered.
+// For example, "2 cars" (countable) might weigh "1.6 tonnes" (continuous); both categories are covered.
 //
-// This API is deliberately simple; it doesn't address the full gamut of internationalisation. If that's
-// what you need, you should consider products such as https://github.com/nicksnyder/go-i18n instead.
+// This API is deliberately simple; it doesn't address the full gamut of internationalisation.
+// If that's what you need, you might consider products such as
+// https://pkg.go.dev/github.com/nicksnyder/go-i18n/v2/i18n instead.
+//
+// This package is not intended to format negative quantities. Such values may be better handled as physical
+// values, e.g. using https://pkg.go.dev/periph.io/x/conn/v3/physic.
 //
 // Please see the examples and associated api documentation.
 package plural
