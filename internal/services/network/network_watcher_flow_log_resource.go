@@ -157,10 +157,13 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 			},
 
 			"version": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Default:      1,
-				ValidateFunc: validation.IntBetween(1, 2),
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				Default:  1,
+				// NOTE: intentionally not validated on the client-side beyond being a non-negative integer -
+				// the supported version range is determined by the service, so any client-side upper bound
+				// would need to be updated every time a new version is released.
+				ValidateFunc: validation.IntAtLeast(0),
 			},
 
 			"location": {
