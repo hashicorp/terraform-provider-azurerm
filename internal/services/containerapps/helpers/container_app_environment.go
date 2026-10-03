@@ -67,7 +67,7 @@ func WorkloadProfileSchema() *pluginsdk.Schema {
 			oldProfiles := o.(*pluginsdk.Set)
 			newProfiles := n.(*pluginsdk.Set)
 
-			return OneAdditionalConsumptionProfileReturnedByAPI(oldProfiles, newProfiles)
+			return OnlyImplicitConsumptionProfileDiffers(oldProfiles, newProfiles)
 		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -161,4 +161,41 @@ func OneAdditionalConsumptionProfileReturnedByAPI(returnedProfiles, definedProfi
 		}
 	}
 	return false
+}
+
+// OnlyImplicitConsumptionProfileDiffers returns true when the only difference between the returned and the defined
+// profiles is the `Consumption` profile that the API appends implicitly, so that changes to the defined profiles
+// (e.g. to `minimum_count` or `maximum_count`) are not suppressed along with it.
+func OnlyImplicitConsumptionProfileDiffers(returnedProfiles, definedProfiles *pluginsdk.Set) bool {
+	if !OneAdditionalConsumptionProfileReturnedByAPI(returnedProfiles, definedProfiles) {
+		return false
+	}
+
+	defined := make(map[string]map[string]any, definedProfiles.Len())
+	for _, v := range definedProfiles.List() {
+		profile := v.(map[string]any)
+		defined[profile["name"].(string)] = profile
+	}
+
+	matched := 0
+	for _, v := range returnedProfiles.List() {
+		profile := v.(map[string]any)
+		if profile["workload_profile_type"].(string) == string(WorkloadProfileSkuConsumption) {
+			continue
+		}
+
+		definedProfile, ok := defined[profile["name"].(string)]
+		if !ok {
+			return false
+		}
+
+		for _, key := range []string{"workload_profile_type", "minimum_count", "maximum_count"} {
+			if definedProfile[key] != profile[key] {
+				return false
+			}
+		}
+		matched++
+	}
+
+	return matched == definedProfiles.Len()
 }
