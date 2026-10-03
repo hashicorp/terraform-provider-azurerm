@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/azurestackhci/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -49,7 +48,7 @@ func resourceArmStackHCICluster() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ClusterName,
+				ValidateFunc: validation.StringLenBetween(1, 260),
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -66,14 +65,12 @@ func resourceArmStackHCICluster() *pluginsdk.Resource {
 			"tenant_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
 
 			"automanage_configuration_id": {
-				// TODO: this field should be removed in 4.0 - there's an "association" API specifically for this purpose
-				// so we should be outputting this as an association resource.
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: configurationprofiles.ValidateConfigurationProfileID,
@@ -101,7 +98,7 @@ func resourceArmStackHCICluster() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmStackHCIClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmStackHCIClusterCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AzureStackHCI.Clusters
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -127,11 +124,11 @@ func resourceArmStackHCIClusterCreate(d *pluginsdk.ResourceData, meta interface{
 		Properties: &clusters.ClusterProperties{
 			AadClientId: pointer.To(d.Get("client_id").(string)),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v, ok := d.GetOk("identity"); ok {
-		cluster.Identity = expandSystemAssigned(v.([]interface{}))
+		cluster.Identity = expandSystemAssigned(v.([]any))
 	}
 
 	if v, ok := d.GetOk("tenant_id"); ok {
@@ -182,7 +179,7 @@ func resourceArmStackHCIClusterCreate(d *pluginsdk.ResourceData, meta interface{
 	return resourceArmStackHCIClusterRead(d, meta)
 }
 
-func resourceArmStackHCIClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmStackHCIClusterRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AzureStackHCI.Clusters
 	hciAssignmentsClient := meta.(*clients.Client).Automanage.ConfigurationProfileHCIAssignmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -242,7 +239,7 @@ func resourceArmStackHCIClusterRead(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceArmStackHCIClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmStackHCIClusterUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AzureStackHCI.Clusters
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -255,11 +252,11 @@ func resourceArmStackHCIClusterUpdate(d *pluginsdk.ResourceData, meta interface{
 	cluster := clusters.ClusterPatch{}
 
 	if d.HasChange("tags") {
-		cluster.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		cluster.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if d.HasChange("identity") {
-		cluster.Identity = expandSystemAssigned(d.Get("identity").([]interface{}))
+		cluster.Identity = expandSystemAssigned(d.Get("identity").([]any))
 	}
 
 	if _, err := client.Update(ctx, *id, cluster); err != nil {
@@ -307,7 +304,7 @@ func resourceArmStackHCIClusterUpdate(d *pluginsdk.ResourceData, meta interface{
 	return resourceArmStackHCIClusterRead(d, meta)
 }
 
-func resourceArmStackHCIClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmStackHCIClusterDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AzureStackHCI.Clusters
 	hciAssignmentClient := meta.(*clients.Client).Automanage.ConfigurationProfileHCIAssignmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -338,7 +335,7 @@ func resourceArmStackHCIClusterDelete(d *pluginsdk.ResourceData, meta interface{
 }
 
 // API does not accept userAssignedIdentity as in swagger https://github.com/Azure/azure-rest-api-specs/issues/28260
-func expandSystemAssigned(input []interface{}) *identity.SystemAndUserAssignedMap {
+func expandSystemAssigned(input []any) *identity.SystemAndUserAssignedMap {
 	if len(input) == 0 || input[0] == nil {
 		return &identity.SystemAndUserAssignedMap{
 			Type: identity.TypeNone,
@@ -350,17 +347,17 @@ func expandSystemAssigned(input []interface{}) *identity.SystemAndUserAssignedMa
 	}
 }
 
-func flattenSystemAssigned(input *identity.SystemAndUserAssignedMap) []interface{} {
+func flattenSystemAssigned(input *identity.SystemAndUserAssignedMap) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	if input.Type == identity.TypeNone {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"type":         input.Type,
 			"principal_id": input.PrincipalId,
 			"tenant_id":    input.TenantId,

@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMonitorPrivateLinkScope() *pluginsdk.Resource {
@@ -68,7 +67,7 @@ func resourceMonitorPrivateLinkScope() *pluginsdk.Resource {
 	}
 }
 
-func resourceMonitorPrivateLinkScopeCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorPrivateLinkScopeCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Monitor.PrivateLinkScopesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -100,7 +99,7 @@ func resourceMonitorPrivateLinkScopeCreateUpdate(d *pluginsdk.ResourceData, meta
 	parameters := privatelinkscopesapis.AzureMonitorPrivateLinkScope{
 		Name:     &name,
 		Location: "Global",
-		Tags:     utils.ExpandPtrMapStringString(d.Get("tags").(map[string]interface{})),
+		Tags:     pluginsdk.ExpandPtrMapStringString(d.Get("tags").(map[string]any)),
 		Properties: privatelinkscopesapis.AzureMonitorPrivateLinkScopeProperties{
 			AccessModeSettings: privatelinkscopesapis.AccessModeSettings{
 				IngestionAccessMode: ingestionAccessMode,
@@ -118,7 +117,7 @@ func resourceMonitorPrivateLinkScopeCreateUpdate(d *pluginsdk.ResourceData, meta
 	return resourceMonitorPrivateLinkScopeRead(d, meta)
 }
 
-func resourceMonitorPrivateLinkScopeRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorPrivateLinkScopeRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.PrivateLinkScopesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -142,7 +141,7 @@ func resourceMonitorPrivateLinkScopeRead(d *pluginsdk.ResourceData, meta interfa
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		if err = d.Set("tags", utils.FlattenPtrMapStringString(model.Tags)); err != nil {
+		if err = d.Set("tags", pluginsdk.FlattenPtrMapStringString(model.Tags)); err != nil {
 			return err
 		}
 
@@ -154,7 +153,7 @@ func resourceMonitorPrivateLinkScopeRead(d *pluginsdk.ResourceData, meta interfa
 	return nil
 }
 
-func resourceMonitorPrivateLinkScopeDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorPrivateLinkScopeDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.PrivateLinkScopesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -164,8 +163,7 @@ func resourceMonitorPrivateLinkScopeDelete(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	err = client.PrivateLinkScopesDeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.PrivateLinkScopesDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

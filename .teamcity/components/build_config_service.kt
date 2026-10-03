@@ -19,6 +19,7 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
             }
 
             steps {
+                CheckScheduleConstraints()
                 SetBuildStartTime()
                 ConfigureGoEnv()
                 DownloadTerraformBinary()
@@ -45,11 +46,12 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
                 WorkingDirectory(packageName)
                 GoCache()
                 BuildStartTime()
+                text("DAYS_OF_WEEK", daysOfWeek)
+                text("env.SCHEDULE_MATCHES", "true")
+                text("env.IS_NIGHTLY_RUN", "false")
             }
 
-            triggers {
-                RunNightly(nightlyTestsEnabled, startHour, daysOfWeek, daysOfMonth, disableTriggers)
-            }
+            // Triggers are now managed by the top-level Composite Build Chain
         }
     }
 

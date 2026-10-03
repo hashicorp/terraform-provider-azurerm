@@ -27,7 +27,7 @@ var (
 
 type DevCenterDevBoxDefinitionResource struct{}
 
-func (r DevCenterDevBoxDefinitionResource) ModelObject() interface{} {
+func (r DevCenterDevBoxDefinitionResource) ModelObject() any {
 	return &DevCenterDevBoxDefinitionResourceModel{}
 }
 
@@ -265,11 +265,9 @@ func expandDevCenterDevBoxDefinitionSku(input string) *devboxdefinitions.Sku {
 		return nil
 	}
 
-	result := &devboxdefinitions.Sku{
+	return &devboxdefinitions.Sku{
 		Name: input,
 	}
-
-	return result
 }
 
 func flattenDevCenterDevBoxDefinition(input *devboxdefinitions.Sku) string {

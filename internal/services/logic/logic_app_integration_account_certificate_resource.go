@@ -99,7 +99,7 @@ func resourceLogicAppIntegrationAccountCertificate() *pluginsdk.Resource {
 	}
 }
 
-func resourceLogicAppIntegrationAccountCertificateCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppIntegrationAccountCertificateCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Logic.IntegrationAccountCertificateClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -126,7 +126,7 @@ func resourceLogicAppIntegrationAccountCertificateCreateUpdate(d *pluginsdk.Reso
 	}
 
 	if v, ok := d.GetOk("key_vault_key"); ok {
-		parameters.Properties.Key = expandIntegrationAccountCertificateKeyVaultKey(v.([]interface{}))
+		parameters.Properties.Key = expandIntegrationAccountCertificateKeyVaultKey(v.([]any))
 	}
 
 	if v, ok := d.GetOk("metadata"); ok {
@@ -145,7 +145,7 @@ func resourceLogicAppIntegrationAccountCertificateCreateUpdate(d *pluginsdk.Reso
 	return resourceLogicAppIntegrationAccountCertificateRead(d, meta)
 }
 
-func resourceLogicAppIntegrationAccountCertificateRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppIntegrationAccountCertificateRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Logic.IntegrationAccountCertificateClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -185,7 +185,7 @@ func resourceLogicAppIntegrationAccountCertificateRead(d *pluginsdk.ResourceData
 	return nil
 }
 
-func resourceLogicAppIntegrationAccountCertificateDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppIntegrationAccountCertificateDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Logic.IntegrationAccountCertificateClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -202,12 +202,12 @@ func resourceLogicAppIntegrationAccountCertificateDelete(d *pluginsdk.ResourceDa
 	return nil
 }
 
-func expandIntegrationAccountCertificateKeyVaultKey(input []interface{}) *integrationaccountcertificates.KeyVaultKeyReference {
+func expandIntegrationAccountCertificateKeyVaultKey(input []any) *integrationaccountcertificates.KeyVaultKeyReference {
 	if len(input) == 0 {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	result := integrationaccountcertificates.KeyVaultKeyReference{
 		KeyVault: integrationaccountcertificates.KeyVaultKeyReferenceKeyVault{
@@ -223,26 +223,16 @@ func expandIntegrationAccountCertificateKeyVaultKey(input []interface{}) *integr
 	return &result
 }
 
-func flattenIntegrationAccountCertificateKeyVaultKey(input *integrationaccountcertificates.KeyVaultKeyReference) []interface{} {
+func flattenIntegrationAccountCertificateKeyVaultKey(input *integrationaccountcertificates.KeyVaultKeyReference) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	var keyVaultId string
-	if input.KeyVault.Id != nil {
-		keyVaultId = *input.KeyVault.Id
-	}
-
-	var keyVersion string
-	if input.KeyVersion != nil {
-		keyVersion = *input.KeyVersion
-	}
-
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"key_name":     input.KeyName,
-			"key_vault_id": keyVaultId,
-			"key_version":  keyVersion,
+			"key_vault_id": pointer.From(input.KeyVault.Id),
+			"key_version":  pointer.From(input.KeyVersion),
 		},
 	}
 }
