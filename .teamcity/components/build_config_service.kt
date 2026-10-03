@@ -23,6 +23,7 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
                 SetBuildStartTime()
                 ConfigureGoEnv()
                 DownloadTerraformBinary()
+                DownloadTerraformProviders(packageName)
                 RunAcceptanceTests(packageName)
                 PostTestResultsToGitHubPullRequest()
             }
@@ -41,6 +42,7 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
                 TerraformAcceptanceTestParameters(parallelism, "TestAcc", timeout)
                 TerraformAcceptanceTestsFlag()
                 TerraformCoreBinaryTesting()
+                TerraformProviderMirror()
                 TerraformShouldPanicForSchemaErrors()
                 ReadOnlySettings()
                 WorkingDirectory(packageName)
