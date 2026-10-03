@@ -91,6 +91,11 @@ func resourceApiManagementApiDiagnostic() *pluginsdk.Resource {
 				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
+			"metrics_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
 			"http_correlation_protocol": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -119,6 +124,10 @@ func resourceApiManagementApiDiagnostic() *pluginsdk.Resource {
 				if d.Get("identifier") != "applicationinsights" {
 					return fmt.Errorf("`operation_name_format` cannot be set when `identifier` is not `applicationinsights`")
 				}
+			}
+
+			if v := d.GetRawConfig().AsValueMap()["metrics_enabled"]; !v.IsNull() && d.Get("identifier") != "applicationinsights" {
+				return fmt.Errorf("`metrics_enabled` can only be set when `identifier` is set to `applicationinsights`")
 			}
 
 			return nil
@@ -226,6 +235,10 @@ func resourceApiManagementApiDiagnosticCreateUpdate(d *pluginsdk.ResourceData, m
 		parameters.Properties.HTTPCorrelationProtocol = pointer.ToEnum[apidiagnostic.HTTPCorrelationProtocol](httpCorrelationProtocol.(string))
 	}
 
+	if v := d.GetRawConfig().AsValueMap()["metrics_enabled"]; !v.IsNull() {
+		parameters.Properties.Metrics = pointer.To(d.Get("metrics_enabled").(bool))
+	}
+
 	frontendRequest, frontendRequestSet := d.GetOk("frontend_request")
 	frontendResponse, frontendResponseSet := d.GetOk("frontend_response")
 	if frontendRequestSet || frontendResponseSet {
@@ -302,6 +315,7 @@ func resourceApiManagementApiDiagnosticRead(d *pluginsdk.ResourceData, meta any)
 			d.Set("always_log_errors", pointer.From(props.AlwaysLog) == apidiagnostic.AlwaysLogAllErrors)
 			d.Set("verbosity", pointer.From(props.Verbosity))
 			d.Set("log_client_ip", pointer.From(props.LogClientIP))
+			d.Set("metrics_enabled", pointer.From(props.Metrics))
 			d.Set("http_correlation_protocol", pointer.From(props.HTTPCorrelationProtocol))
 			if frontend := props.Frontend; frontend != nil {
 				d.Set("frontend_request", flattenApiManagementApiDiagnosticHTTPMessageDiagnostic(frontend.Request))
