@@ -39,7 +39,7 @@ func (d *Document) Write(fs afero.Fs) error {
 	return nil
 }
 
-func (d *Document) Parse(fs afero.Fs) error {
+func (d *Document) Parse(fs afero.Fs, shouldNormalizeMd bool) error {
 	var current Section
 	var content []string
 
@@ -86,5 +86,36 @@ func (d *Document) Parse(fs afero.Fs) error {
 		d.Sections = append(d.Sections, current)
 	}
 
+	// Apply normalization to section if requested
+	if shouldNormalizeMd {
+		for _, section := range d.Sections {
+			if normalizable, ok := section.(SectionWithNormalize); ok {
+				normalizedContent, hasChange := normalizable.Normalize()
+				if hasChange {
+					section.SetContent(normalizedContent)
+					d.HasChange = true
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+// GetContent returns the full document content as a string
+func (d *Document) GetContent() string {
+	docContent := make([]string, 0)
+	for _, section := range d.Sections {
+		docContent = append(docContent, section.GetContent()...)
+	}
+	return strings.Join(docContent, "\n")
+}
+
+func (d *Document) GetArgumentsSection() *ArgumentsSection {
+	for _, section := range d.Sections {
+		if args, ok := section.(*ArgumentsSection); ok {
+			return args
+		}
+	}
 	return nil
 }
