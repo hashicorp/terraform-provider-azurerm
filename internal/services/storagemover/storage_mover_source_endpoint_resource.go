@@ -6,7 +6,6 @@ package storagemover
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -15,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/endpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/storagemovers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storagemover/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -33,8 +33,9 @@ type StorageMoverSourceEndpointModel struct {
 type StorageMoverSourceEndpointResource struct{}
 
 var (
-	_ sdk.ResourceWithIdentity = StorageMoverSourceEndpointResource{}
-	_ sdk.ResourceWithUpdate   = StorageMoverSourceEndpointResource{}
+	_ sdk.ResourceWithIdentity       = StorageMoverSourceEndpointResource{}
+	_ sdk.ResourceWithUpdate         = StorageMoverSourceEndpointResource{}
+	_ sdk.ResourceWithCustomImporter = StorageMoverSourceEndpointResource{}
 )
 
 func (r StorageMoverSourceEndpointResource) Identity() resourceids.ResourceId {
@@ -53,16 +54,17 @@ func (r StorageMoverSourceEndpointResource) IDValidationFunc() pluginsdk.SchemaV
 	return endpoints.ValidateEndpointID
 }
 
+func (r StorageMoverSourceEndpointResource) CustomImporter() sdk.ResourceRunFunc {
+	return r.Read().Func
+}
+
 func (r StorageMoverSourceEndpointResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringMatch(
-				regexp.MustCompile(`^[0-9a-zA-Z][-_0-9a-zA-Z]{0,63}$`),
-				`The name must be between 1 and 64 characters in length, begin with a letter or number, and may contain letters, numbers, dashes and underscore.`,
-			),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.EndpointName(),
 		},
 
 		"storage_mover_id": {
@@ -184,8 +186,8 @@ func (r StorageMoverSourceEndpointResource) Update() sdk.ResourceFunc {
 			}
 
 			properties := resp.Model
-			if properties == nil {
-				return fmt.Errorf("retrieving %s: model was nil", *id)
+			if err := r.checkEndpointType(*id, properties); err != nil {
+				return err
 			}
 
 			if metadata.ResourceData.HasChange("description") {
@@ -230,6 +232,10 @@ func (r StorageMoverSourceEndpointResource) Read() sdk.ResourceFunc {
 }
 
 func (r StorageMoverSourceEndpointResource) flatten(metadata sdk.ResourceMetaData, id *endpoints.EndpointId, model *endpoints.Endpoint) error {
+	if err := r.checkEndpointType(*id, model); err != nil {
+		return err
+	}
+
 	state := StorageMoverSourceEndpointModel{
 		Name:           id.EndpointName,
 		StorageMoverId: storagemovers.NewStorageMoverID(id.SubscriptionId, id.ResourceGroupName, id.StorageMoverName).ID(),
@@ -266,6 +272,17 @@ func (r StorageMoverSourceEndpointResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(existing.HttpResponse) {
+					return nil
+				}
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+			if err := r.checkEndpointType(*id, existing.Model); err != nil {
+				return err
+			}
+
 			if err := client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
@@ -273,4 +290,14 @@ func (r StorageMoverSourceEndpointResource) Delete() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+func (r StorageMoverSourceEndpointResource) checkEndpointType(id endpoints.EndpointId, model *endpoints.Endpoint) error {
+	if model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+	if _, ok := model.Properties.(endpoints.NfsMountEndpointProperties); !ok {
+		return fmt.Errorf("retrieving %s: expected an NFS Mount endpoint, got %T", id, model.Properties)
+	}
+	return nil
 }
