@@ -84,11 +84,11 @@ The following arguments are supported:
 
 * `negate_source` - (Optional) Should the inverse of the Source configuration be used. Defaults to `false`.
 
-* `protocol` - (Optional) The Protocol and port to use in the form `[protocol]:[port_number]` e.g. `TCP:8080` or `UDP:53`. Conflicts with `protocol_ports`.
+* `protocol` - (Optional) The Protocol and port to use in the form `[protocol]:[port_number]` e.g. `TCP:8080` or `UDP:53`, a port range in the form `[protocol]:[start_port]-[end_port]` e.g. `TCP:1024-1206`, or one of `any` and `application-default`. Conflicts with `protocol_ports`.
 
 ~> **Note:** In 4.0 or later versions, the default of `protocol` will no longer be set by provider, exactly one of `protocol` and `protocol_ports` must be specified. You need to explicitly specify `protocol="application-default"` to keep the the current default of the `protocol`.
- 
-* `protocol_ports` - (Optional) Specifies a list of Protocol:Port entries. E.g. `[ "TCP:80", "UDP:5431" ]`. Conflicts with `protocol`.
+
+* `protocol_ports` - (Optional) Specifies a list of Protocol:Port entries. E.g. `[ "TCP:80", "UDP:5431" ]`. Each entry may also be a port range in the form `[protocol]:[start_port]-[end_port]` e.g. `TCP:1024-1206`, or one of `any` and `application-default`. Conflicts with `protocol`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Palo Alto Local Rulestack Rule.
 
