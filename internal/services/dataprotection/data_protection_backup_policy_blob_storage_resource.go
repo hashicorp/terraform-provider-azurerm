@@ -58,6 +58,14 @@ func resourceDataProtectionBackupPolicyBlobStorage() *schema.Resource {
 				ValidateFunc: basebackuppolicyresources.ValidateBackupVaultID,
 			},
 
+			"time_zone": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+				RequiredWith: []string{"backup_repeating_time_intervals"},
+			},
+
 			"backup_repeating_time_intervals": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -66,6 +74,7 @@ func resourceDataProtectionBackupPolicyBlobStorage() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
+				RequiredWith: []string{"vault_default_retention_duration"},
 			},
 
 			"operational_default_retention_duration": {
@@ -74,13 +83,6 @@ func resourceDataProtectionBackupPolicyBlobStorage() *schema.Resource {
 				ForceNew:     true,
 				AtLeastOneOf: []string{"operational_default_retention_duration", "vault_default_retention_duration"},
 				ValidateFunc: validation.ISO8601Duration,
-			},
-
-			"time_zone": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"vault_default_retention_duration": {
