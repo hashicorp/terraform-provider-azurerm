@@ -199,7 +199,7 @@ IMPROVEMENTS:
 BUG FIXES:
 
 * `azurerm_sql_database` - fixing creating a DB with a PointInTimeRestore ([#197](https://github.com/hashicorp/terraform-provider-azurerm/issues/197))
-* `azurerm_virtual_machine` - fix a crash when the properties for a network inteface aren't returned ([#208](https://github.com/hashicorp/terraform-provider-azurerm/issues/208))
+* `azurerm_virtual_machine` - fix a crash when the properties for a network interface aren't returned ([#208](https://github.com/hashicorp/terraform-provider-azurerm/issues/208))
 * `azurerm_virtual_machine` - changes to custom data should force new resource ([#211](https://github.com/hashicorp/terraform-provider-azurerm/issues/211))
 * `azurerm_virtual_machine` - fixes a crash caused by an empty `os_profile_windows_config` block ([#222](https://github.com/hashicorp/terraform-provider-azurerm/issues/222))
 * Checking to ensure the HTTP Response isn't `nil` before accessing it (fixes ([#200](https://github.com/hashicorp/terraform-provider-azurerm/issues/200)]) [[#204](https://github.com/hashicorp/terraform-provider-azurerm/issues/204))
@@ -252,7 +252,7 @@ BUG FIXES:
 * `azurerm_network_interface` - Normalizing the location field in the state ([#122](https://github.com/hashicorp/terraform-provider-azurerm/issues/122))
 * `azurerm_network_interface` - fixing a crash when importing a NIC with a Public IP ([#128](https://github.com/hashicorp/terraform-provider-azurerm/issues/128))
 * `azurerm_network_security_rule`: `network_security_group_name` is now `ForceNew` ([#138](https://github.com/hashicorp/terraform-provider-azurerm/issues/138))
-* `azurerm_subnet` now correctly detects changes to Network Securtiy Groups and Routing Table's ([#113](https://github.com/hashicorp/terraform-provider-azurerm/issues/113))
+* `azurerm_subnet` now correctly detects changes to Network Security Groups and Routing Table's ([#113](https://github.com/hashicorp/terraform-provider-azurerm/issues/113))
 * `azurerm_virtual_machine_scale_set` - making `storage_profile_os_disk`.`name` optional ([#129](https://github.com/hashicorp/terraform-provider-azurerm/issues/129))
 
 ## 0.1.1 (June 21, 2017)
@@ -271,7 +271,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
-* Add diff supress func to endpoint_location [[#15094](https://github.com/hashicorp/terraform-provider-azurerm/issues/15094)](https://github.com/hashicorp/terraform/pull/15094)
+* Add diff suppress func to endpoint_location [[#15094](https://github.com/hashicorp/terraform-provider-azurerm/issues/15094)](https://github.com/hashicorp/terraform/pull/15094)
 
 BUG FIXES:
 

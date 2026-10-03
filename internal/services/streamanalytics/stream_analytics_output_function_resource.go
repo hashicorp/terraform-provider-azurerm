@@ -91,7 +91,7 @@ func (r OutputFunctionResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r OutputFunctionResource) ModelObject() interface{} {
+func (r OutputFunctionResource) ModelObject() any {
 	return &OutputFunctionResourceModel{}
 }
 

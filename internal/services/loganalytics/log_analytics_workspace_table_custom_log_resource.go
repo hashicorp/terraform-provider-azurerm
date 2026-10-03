@@ -137,7 +137,7 @@ func (r WorkspaceTableCustomLogResource) Attributes() map[string]*pluginsdk.Sche
 	}
 }
 
-func (r WorkspaceTableCustomLogResource) ModelObject() interface{} {
+func (r WorkspaceTableCustomLogResource) ModelObject() any {
 	return &WorkspaceTableCustomLogResourceModel{}
 }
 
@@ -178,7 +178,7 @@ func (r WorkspaceTableCustomLogResource) Create() sdk.ResourceFunc {
 
 			param := tables.Table{
 				Properties: &tables.TableProperties{
-					Plan:                 pointer.To(tables.TablePlanEnum(config.Plan)),
+					Plan:                 pointer.ToEnum[tables.TablePlanEnum](config.Plan),
 					RetentionInDays:      defaultRetentionInDays,
 					TotalRetentionInDays: defaultRetentionInDays,
 					Schema: &tables.Schema{

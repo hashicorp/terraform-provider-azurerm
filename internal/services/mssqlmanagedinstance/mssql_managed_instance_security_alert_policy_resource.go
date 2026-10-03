@@ -110,7 +110,7 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicy() *pluginsdk.Resource {
 	}
 }
 
-func resourceMsSqlManagedInstanceSecurityAlertPolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlManagedInstanceSecurityAlertPolicyCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQLManagedInstance.ManagedInstanceServerSecurityAlertPoliciesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -141,7 +141,7 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyCreate(d *pluginsdk.Resource
 	return resourceMsSqlManagedInstanceSecurityAlertPolicyRead(d, meta)
 }
 
-func resourceMsSqlManagedInstanceSecurityAlertPolicyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlManagedInstanceSecurityAlertPolicyUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQLManagedInstance.ManagedInstanceServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -227,8 +227,7 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyUpdate(d *pluginsdk.Resource
 		payload.Properties.StorageEndpoint = nil
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, managedInstanceId, *payload)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, managedInstanceId, *payload); err != nil {
 		return fmt.Errorf("updating managed instance security alert policy: %v", err)
 	}
 
@@ -237,7 +236,7 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyUpdate(d *pluginsdk.Resource
 	return resourceMsSqlManagedInstanceSecurityAlertPolicyRead(d, meta)
 }
 
-func resourceMsSqlManagedInstanceSecurityAlertPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlManagedInstanceSecurityAlertPolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQLManagedInstance.ManagedInstanceServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -268,7 +267,7 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyRead(d *pluginsdk.ResourceDa
 			d.Set("enabled", props.State == managedserversecurityalertpolicies.SecurityAlertsPolicyStateEnabled)
 
 			if props.DisabledAlerts != nil {
-				disabledAlerts := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
+				disabledAlerts := pluginsdk.NewSet(pluginsdk.HashString, []any{})
 				for _, v := range *props.DisabledAlerts {
 					if v != "" {
 						disabledAlerts.Add(v)
@@ -283,7 +282,7 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyRead(d *pluginsdk.ResourceDa
 			}
 
 			if props.EmailAddresses != nil {
-				emailAddresses := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
+				emailAddresses := pluginsdk.NewSet(pluginsdk.HashString, []any{})
 				for _, v := range *props.EmailAddresses {
 					if v != "" {
 						emailAddresses.Add(v)
@@ -310,7 +309,7 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyRead(d *pluginsdk.ResourceDa
 	return nil
 }
 
-func resourceMsSqlManagedInstanceSecurityAlertPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlManagedInstanceSecurityAlertPolicyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQLManagedInstance.ManagedInstanceServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -328,8 +327,7 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyDelete(d *pluginsdk.Resource
 		},
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, managedInstanceId, disabledPolicy)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, managedInstanceId, disabledPolicy); err != nil {
 		return fmt.Errorf("updating managed instance security alert policy: %v", err)
 	}
 
