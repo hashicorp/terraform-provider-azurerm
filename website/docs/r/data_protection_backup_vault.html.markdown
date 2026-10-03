@@ -39,7 +39,6 @@ The following arguments are supported:
 
 * `datastore_type` - (Required) Specifies the type of the data store. Possible values are `ArchiveStore`, `OperationalStore` and `VaultStore`. Changing this forces a new resource to be created.
 
-
 * `redundancy` - (Required) Specifies the backup storage redundancy. Possible values are `GeoRedundant`, `LocallyRedundant` and `ZoneRedundant`. Changing this forces a new Backup Vault to be created.
 
 * `cross_region_restore_enabled` - (Optional) Whether to enable cross-region restore for the Backup Vault.
