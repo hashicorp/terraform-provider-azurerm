@@ -74,6 +74,36 @@ func (ExampleResource) preCheck(t *testing.T) {
 
 Go does not require a specific function order, but for readability it is recommended to place `preCheck` close to the tests that call it (commonly after the `TestAcc...` functions and before the `Exists`/`Destroy` methods), following the pattern used throughout `internal/services/*/*_test.go`.
 
+### ComposeTestCheckFunc
+
+Generally, if you use `data.ImportStep()` in a test case, you do not need to define `check.That(...).Key(...)...` in the `acceptance.ComposeTestCheckFunc` of the preceding step, because `data.ImportStep()` automatically performs these verifications. However, there are special cases — for example, if you have an `Optional` + `Computed` argument and you remove it from the config, there should be a test that verifies the correct behavior for the API is being followed, in which case `check.That(...).Key(...)...` would be needed. For such special cases, please add a comment at the corresponding location to explain the reasoning. The comment should start with `// NOTE:`.
+
+:white_check_mark: **DO**
+
+```go
+func TestAccExampleResource_RemoveContent(t *testing.T) {
+	...
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.removeContent(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+                // NOTE: `content` is Optional+Computed; verify it reverts to the default when removed
+				check.That(data.ResourceName).Key("content").HasValue("default"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+```
+
 ### Test Package
 
 While tests reside in the same folder as resource and data source .go files, they need to be in a separate test package to prevent circular references. i.e. for the file `./internal/services/aab2c/aadb2c_directory_data_source_test.go` the package should be:
