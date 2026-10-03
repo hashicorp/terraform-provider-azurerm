@@ -202,6 +202,13 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Computed:     true, // azignore:AZS007 - pre-existing violation
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
+					"pod_ip_allocation_mode": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						RequiredWith: []string{"default_node_pool.0.pod_subnet_id"},
+						ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForPodIPAllocationMode(), false),
+					},
 					"pod_subnet_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
@@ -752,6 +759,9 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 	if osSku := defaultCluster.OsSKU; osSku != nil {
 		agentpool.Properties.OsSKU = pointer.ToEnum[agentpools.OSSKU](string(*osSku))
 	}
+	if podIPAllocationMode := defaultCluster.PodIPAllocationMode; podIPAllocationMode != nil {
+		agentpool.Properties.PodIPAllocationMode = pointer.ToEnum[agentpools.PodIPAllocationMode](string(*podIPAllocationMode))
+	}
 	if kubeletDiskTypeNodePool := defaultCluster.KubeletDiskType; kubeletDiskTypeNodePool != nil {
 		agentpool.Properties.KubeletDiskType = pointer.ToEnum[agentpools.KubeletDiskType](string(*kubeletDiskTypeNodePool))
 	}
@@ -880,6 +890,10 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 
 	if podSubnetID := raw["pod_subnet_id"].(string); podSubnetID != "" {
 		profile.PodSubnetID = pointer.To(podSubnetID)
+	}
+
+	if podIPAllocationMode := raw["pod_ip_allocation_mode"].(string); podIPAllocationMode != "" {
+		profile.PodIPAllocationMode = pointer.ToEnum[managedclusters.PodIPAllocationMode](podIPAllocationMode)
 	}
 
 	profile.ScaleDownMode = pointer.To(managedclusters.ScaleDownModeDelete)
@@ -1340,6 +1354,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"vm_size":                       vmSize,
 		"workload_runtime":              workloadRunTime,
 		"pod_subnet_id":                 podSubnetId,
+		"pod_ip_allocation_mode":        pointer.FromEnum(agentPool.PodIPAllocationMode),
 		"orchestrator_version":          orchestratorVersion,
 		"proximity_placement_group_id":  proximityPlacementGroupId,
 		"upgrade_settings":              upgradeSettings,
