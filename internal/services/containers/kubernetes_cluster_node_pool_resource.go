@@ -37,6 +37,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+const azureKubernetesClusterNodePoolResourceName = "azurerm_kubernetes_cluster_node_pool"
+
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "name" -compare-values "managed_cluster_name:kubernetes_cluster_id,resource_group_name:kubernetes_cluster_id,subscription_id:kubernetes_cluster_id" -test-name "manualScaleConfig"
+
 func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceKubernetesClusterNodePoolCreate,
@@ -44,10 +48,11 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 		Update: resourceKubernetesClusterNodePoolUpdate,
 		Delete: resourceKubernetesClusterNodePoolDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := agentpools.ParseAgentPoolID(id)
-			return err
-		}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&agentpools.AgentPoolId{}),
+		},
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&agentpools.AgentPoolId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -490,7 +495,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta any
 		}
 
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_kubernetes_cluster_node_pool", id.ID())
+			return tf.ImportAsExistsError(azureKubernetesClusterNodePoolResourceName, id.ID())
 		}
 	}
 
@@ -689,10 +694,13 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta any
 		Properties: &profile,
 	}
 
-	if err := poolsClient.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, agentpools.DefaultCreateOrUpdateOperationOptions(), sdk.SetIDCallback(meta, &id, d)); err != nil {
+	if err := poolsClient.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, agentpools.DefaultCreateOrUpdateOperationOptions(), sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	// Wait for vnet and node subnet to come back to Succeeded before releasing any locks
 	timeout, ok := ctx.Deadline()
@@ -1041,8 +1049,6 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta any) 
 		return err
 	}
 
-	clusterId := commonids.NewKubernetesClusterID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName)
-
 	resp, err := poolsClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
@@ -1054,10 +1060,16 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta any) 
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	return resourceKubernetesClusterNodePoolFlatten(d, id, resp.Model)
+}
+
+func resourceKubernetesClusterNodePoolFlatten(d *pluginsdk.ResourceData, id *agentpools.AgentPoolId, model *agentpools.AgentPool) error {
+	clusterId := commonids.NewKubernetesClusterID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName)
+
 	d.Set("name", id.AgentPoolName)
 	d.Set("kubernetes_cluster_id", clusterId.ID())
 
-	if model := resp.Model; model != nil && model.Properties != nil {
+	if model != nil && model.Properties != nil {
 		props := model.Properties
 		d.Set("zones", zones.FlattenUntyped(props.AvailabilityZones))
 
@@ -1215,9 +1227,13 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta any) 
 		if err := d.Set("security", flattenAgentPoolSecurityProfile(props.SecurityProfile)); err != nil {
 			return fmt.Errorf("setting `security`: %+v", err)
 		}
+
+		if err := tags.FlattenAndSet(d, props.Tags); err != nil {
+			return err
+		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Model.Properties.Tags)
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceKubernetesClusterNodePoolDelete(d *pluginsdk.ResourceData, meta any) error {

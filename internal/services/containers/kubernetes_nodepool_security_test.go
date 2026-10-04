@@ -300,3 +300,100 @@ func TestKubernetesNodePoolSecurityOmittedPreservesState(t *testing.T) {
 		}
 	}
 }
+
+func TestKubernetesNodePoolSecurityFlatten(t *testing.T) {
+	id := agentpools.NewAgentPoolID("00000000-0000-0000-0000-000000000000", "group", "cluster", "pool")
+	for _, tc := range []struct {
+		name       string
+		profile    *agentpools.AgentPoolSecurityProfile
+		secureBoot bool
+		vtpm       bool
+		tags       *map[string]string
+	}{
+		{name: "nil_profile"},
+		{name: "nil_flags", profile: &agentpools.AgentPoolSecurityProfile{}},
+		{
+			name:       "enabled",
+			profile:    &agentpools.AgentPoolSecurityProfile{EnableSecureBoot: pointer.To(true), EnableVTPM: pointer.To(true)},
+			secureBoot: true,
+			vtpm:       true,
+			tags:       pointer.To(map[string]string{"environment": "updated"}),
+		},
+		{
+			name:    "disabled",
+			profile: &agentpools.AgentPoolSecurityProfile{EnableSecureBoot: pointer.To(false), EnableVTPM: pointer.To(false)},
+		},
+		{
+			name:       "secure_boot_only",
+			profile:    &agentpools.AgentPoolSecurityProfile{EnableSecureBoot: pointer.To(true)},
+			secureBoot: true,
+		},
+		{
+			name:    "vtpm_only",
+			profile: &agentpools.AgentPoolSecurityProfile{EnableVTPM: pointer.To(true)},
+			vtpm:    true,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			data := resourceKubernetesClusterNodePool().Data(&terraform.InstanceState{})
+			data.SetId(id.ID())
+			if err := data.Set("security", []any{map[string]any{
+				"secure_boot_enabled": !tc.secureBoot,
+				"vtpm_enabled":        !tc.vtpm,
+			}}); err != nil {
+				t.Fatal(err)
+			}
+			if err := data.Set("tags", map[string]any{"old": "value"}); err != nil {
+				t.Fatal(err)
+			}
+
+			model := &agentpools.AgentPool{
+				Properties: &agentpools.ManagedClusterAgentPoolProfileProperties{
+					SecurityProfile: tc.profile,
+					Tags:            tc.tags,
+				},
+			}
+			if err := resourceKubernetesClusterNodePoolFlatten(data, &id, model); err != nil {
+				t.Fatal(err)
+			}
+			expectedSecurity := []any{}
+			if tc.profile != nil {
+				expectedSecurity = []any{map[string]any{
+					"secure_boot_enabled": tc.secureBoot,
+					"vtpm_enabled":        tc.vtpm,
+				}}
+			}
+			if actual := data.Get("security"); !reflect.DeepEqual(actual, expectedSecurity) {
+				t.Fatalf("unexpected security: %#v, expected %#v", actual, expectedSecurity)
+			}
+			expectedTags := map[string]any{}
+			if tc.tags != nil {
+				expectedTags["environment"] = "updated"
+			}
+			if actual := data.Get("tags"); !reflect.DeepEqual(actual, expectedTags) {
+				t.Fatalf("unexpected tags: %#v, expected %#v", actual, expectedTags)
+			}
+			if actual := data.Get("name"); actual != id.AgentPoolName {
+				t.Fatalf("unexpected pool name: %v", actual)
+			}
+			expectedClusterID := "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group/providers/Microsoft.ContainerService/managedClusters/cluster"
+			if actual := data.Get("kubernetes_cluster_id"); actual != expectedClusterID {
+				t.Fatalf("unexpected cluster ID: %v", actual)
+			}
+			identity, err := data.Identity()
+			if err != nil {
+				t.Fatal(err)
+			}
+			for key, expected := range map[string]string{
+				"subscription_id":      id.SubscriptionId,
+				"resource_group_name":  id.ResourceGroupName,
+				"managed_cluster_name": id.ManagedClusterName,
+				"name":                 id.AgentPoolName,
+			} {
+				if actual := identity.Get(key); actual != expected {
+					t.Fatalf("unexpected identity %s: %v, expected %s", key, actual, expected)
+				}
+			}
+		})
+	}
+}
