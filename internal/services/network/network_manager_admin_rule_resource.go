@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/adminrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/adminrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -43,7 +43,7 @@ func (r ManagerAdminRuleResource) ResourceType() string {
 	return "azurerm_network_manager_admin_rule"
 }
 
-func (r ManagerAdminRuleResource) ModelObject() interface{} {
+func (r ManagerAdminRuleResource) ModelObject() any {
 	return &ManagerAdminRuleModel{}
 }
 

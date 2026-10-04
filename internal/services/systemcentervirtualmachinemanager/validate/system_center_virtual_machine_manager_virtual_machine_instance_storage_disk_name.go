@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func SystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDiskName(i interface{}, k string) ([]string, []error) {
+func SystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDiskName(i any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile("^[a-zA-Z]([-_a-zA-Z0-9]{0,78}[a-zA-Z0-9])?$"), "must start and end with a letter, may contain alphanumeric characters, dashes or underscores and must be between 1 and 80 characters long")(i, k)
 }

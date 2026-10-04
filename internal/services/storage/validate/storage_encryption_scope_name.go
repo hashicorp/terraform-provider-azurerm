@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func StorageEncryptionScopeName(v interface{}, k string) ([]string, []error) {
+func StorageEncryptionScopeName(v any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile("^[0-9a-zA-Z]{4,63}$"), "must be alphanumeric, and between 4 to 63 characters")(v, k)
 }

@@ -74,7 +74,7 @@ func resourceApiManagementPolicy() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementPolicyCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.PolicyClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -132,7 +132,7 @@ func resourceApiManagementPolicyCreateUpdate(d *pluginsdk.ResourceData, meta int
 	return resourceApiManagementPolicyRead(d, meta)
 }
 
-func resourceApiManagementPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementPolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	serviceClient := meta.(*clients.Client).ApiManagement.ServiceClient
 	client := meta.(*clients.Client).ApiManagement.PolicyClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -180,7 +180,7 @@ func resourceApiManagementPolicyRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceApiManagementPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementPolicyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.PolicyClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

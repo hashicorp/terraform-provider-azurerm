@@ -49,7 +49,7 @@ func (d MsSqlFailoverGroupDataSource) ResourceType() string {
 	return "azurerm_mssql_failover_group"
 }
 
-func (d MsSqlFailoverGroupDataSource) ModelObject() interface{} {
+func (d MsSqlFailoverGroupDataSource) ModelObject() any {
 	return &MsSqlFailoverGroupDataSourceModel{}
 }
 
@@ -191,7 +191,7 @@ func flattenPartnerServers(input []failovergroups.PartnerInfo) []PartnerServerDa
 	for _, partner := range input {
 		model := PartnerServerDataSourceModel{
 			Location: location.NormalizeNilable(partner.Location),
-			Role:     string(pointer.From(partner.ReplicationRole)),
+			Role:     pointer.FromEnum(partner.ReplicationRole),
 			ID:       partner.Id,
 		}
 

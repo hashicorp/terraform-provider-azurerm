@@ -60,7 +60,7 @@ func (r ResourceGroupCostManagementViewResource) Attributes() map[string]*plugin
 	return r.base.attributes()
 }
 
-func (r ResourceGroupCostManagementViewResource) ModelObject() interface{} {
+func (r ResourceGroupCostManagementViewResource) ModelObject() any {
 	return &ResourceGroupCostManagementViewModel{}
 }
 
