@@ -19,7 +19,8 @@ import (
 func TestAccStorageMoverSmbMountEndpoint_list(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_mover_smb_mount_endpoint", "testlist")
 	r := StorageMoverSmbMountEndpointResource{}
-	resourceName := fmt.Sprintf("acctest-smse-%d", data.RandomInteger)
+	firstResourceName := fmt.Sprintf("acctest-smse-0-%d", data.RandomInteger)
+	secondResourceName := fmt.Sprintf("acctest-smse-1-%d", data.RandomInteger)
 	storageMoverName := fmt.Sprintf("acctest-ssm-%d", data.RandomInteger)
 	resourceGroupName := fmt.Sprintf("acctest-rg-%d", data.RandomInteger)
 
@@ -34,9 +35,15 @@ func TestAccStorageMoverSmbMountEndpoint_list(t *testing.T) {
 				Query:  true,
 				Config: r.listQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLength("azurerm_storage_mover_smb_mount_endpoint.list", 1),
+					querycheck.ExpectLength("azurerm_storage_mover_smb_mount_endpoint.list", 2),
 					querycheck.ExpectIdentity("azurerm_storage_mover_smb_mount_endpoint.list", map[string]knownvalue.Check{
-						"name":                knownvalue.StringExact(resourceName),
+						"name":                knownvalue.StringExact(firstResourceName),
+						"resource_group_name": knownvalue.StringExact(resourceGroupName),
+						"storage_mover_name":  knownvalue.StringExact(storageMoverName),
+						"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
+					}),
+					querycheck.ExpectIdentity("azurerm_storage_mover_smb_mount_endpoint.list", map[string]knownvalue.Check{
+						"name":                knownvalue.StringExact(secondResourceName),
 						"resource_group_name": knownvalue.StringExact(resourceGroupName),
 						"storage_mover_name":  knownvalue.StringExact(storageMoverName),
 						"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
@@ -57,7 +64,9 @@ provider "azurerm" {
 %s
 
 resource "azurerm_storage_mover_smb_mount_endpoint" "test" {
-  name             = "acctest-smse-%d"
+  count = 2
+
+  name             = "acctest-smse-${count.index}-%d"
   storage_mover_id = azurerm_storage_mover.test.id
   host             = "192.168.0.1"
   share_name       = "testshare"
