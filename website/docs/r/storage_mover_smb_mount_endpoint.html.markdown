@@ -101,9 +101,9 @@ The following arguments are supported:
 
 * `description` - (Optional) Specifies a description for the Storage Mover SMB Mount Endpoint. Maximum length 1024 characters.
 
-* `password_key_vault_secret_id` - (Optional) Specifies the Azure Key Vault secret ID for the password to use for authentication. Must be specified together with `username_key_vault_secret_id`. You can use `azurerm_key_vault_secret.<name>.id` or `azurerm_key_vault_secret.<name>.versionless_id` (recommended).
+* `password_key_vault_secret_id` - (Optional) Specifies the Azure Key Vault secret ID for the password to use for authentication. Must be specified together with `username_key_vault_secret_id`. The versionless ID, such as `azurerm_key_vault_secret.<name>.versionless_id`, is recommended.
 
-* `username_key_vault_secret_id` - (Optional) Specifies the Azure Key Vault secret ID for the username to use for authentication. Must be specified together with `password_key_vault_secret_id`. You can use `azurerm_key_vault_secret.<name>.id` or `azurerm_key_vault_secret.<name>.versionless_id` (recommended to avoid pinning to a specific secret version).
+* `username_key_vault_secret_id` - (Optional) Specifies the versionless Azure Key Vault secret ID for the username to use for authentication. Must be specified together with `password_key_vault_secret_id`. Use `azurerm_key_vault_secret.<name>.versionless_id`; secret versions are not supported.
 
 ## Attributes Reference
 

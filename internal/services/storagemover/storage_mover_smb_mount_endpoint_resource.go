@@ -124,7 +124,7 @@ func (r StorageMoverSmbMountEndpointResource) Arguments() map[string]*pluginsdk.
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			RequiredWith: []string{"password_key_vault_secret_id"},
-			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeSecret),
 		},
 	}
 }

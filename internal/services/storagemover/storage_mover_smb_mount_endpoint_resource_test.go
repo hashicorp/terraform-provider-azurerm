@@ -77,7 +77,7 @@ func TestAccStorageMoverSmbMountEndpoint_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("description").HasValue("Updated SMB Mount Endpoint Description"),
-				check.That(data.ResourceName).Key("username_key_vault_secret_id").MatchesOtherKey(check.That("azurerm_key_vault_secret.username").Key("id")),
+				check.That(data.ResourceName).Key("username_key_vault_secret_id").MatchesOtherKey(check.That("azurerm_key_vault_secret.username").Key("versionless_id")),
 			),
 		},
 		data.ImportStep("password_key_vault_secret_id"),
@@ -249,13 +249,13 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_secret" "username" {
-  name         = "acctest-smb-username"
+  name         = "acctest-smb-username-updated"
   value        = "testuser"
   key_vault_id = azurerm_key_vault.test.id
 }
 
 resource "azurerm_key_vault_secret" "password" {
-  name         = "acctest-smb-password"
+  name         = "acctest-smb-password-updated"
   value        = "testpassword123!"
   key_vault_id = azurerm_key_vault.test.id
 }
@@ -265,8 +265,8 @@ resource "azurerm_storage_mover_smb_mount_endpoint" "test" {
   storage_mover_id             = azurerm_storage_mover.test.id
   host                         = "192.168.0.1"
   share_name                   = "testshare"
-  username_key_vault_secret_id = azurerm_key_vault_secret.username.id
-  password_key_vault_secret_id = azurerm_key_vault_secret.password.id
+  username_key_vault_secret_id = azurerm_key_vault_secret.username.versionless_id
+  password_key_vault_secret_id = azurerm_key_vault_secret.password.versionless_id
   description                  = "Updated SMB Mount Endpoint Description"
 }
 `, template, data.RandomString, data.RandomInteger)
