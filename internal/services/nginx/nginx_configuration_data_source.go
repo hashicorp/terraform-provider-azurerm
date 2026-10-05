@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package nginx
@@ -10,18 +10,23 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2023-09-01/nginxconfiguration"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2023-09-01/nginxdeployment"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxconfiguration"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxdeployment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
+type ProtectedFileData struct {
+	VirtualPath string `tfschema:"virtual_path"`
+	ContentHash string `tfschema:"content_hash"`
+}
+
 type ConfigurationDataSourceModel struct {
-	NginxDeploymentId string          `tfschema:"nginx_deployment_id"`
-	ConfigFile        []ConfigFile    `tfschema:"config_file"`
-	ProtectedFile     []ProtectedFile `tfschema:"protected_file"`
-	PackageData       string          `tfschema:"package_data"`
-	RootFile          string          `tfschema:"root_file"`
+	NginxDeploymentId string              `tfschema:"nginx_deployment_id"`
+	ConfigFile        []ConfigFile        `tfschema:"config_file"`
+	ProtectedFile     []ProtectedFileData `tfschema:"protected_file"`
+	PackageData       string              `tfschema:"package_data"`
+	RootFile          string              `tfschema:"root_file"`
 }
 
 type ConfigurationDataSource struct{}
@@ -63,10 +68,9 @@ func (m ConfigurationDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"content": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
+					"content_hash": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
 					},
 
 					"virtual_path": {
@@ -89,7 +93,7 @@ func (m ConfigurationDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (m ConfigurationDataSource) ModelObject() interface{} {
+func (m ConfigurationDataSource) ModelObject() any {
 	return &ConfigurationDataSourceModel{}
 }
 
@@ -147,9 +151,9 @@ func (m ConfigurationDataSource) Read() sdk.ResourceFunc {
 
 				if files := prop.ProtectedFiles; files != nil {
 					for _, file := range *files {
-						output.ProtectedFile = append(output.ProtectedFile, ProtectedFile{
-							Content:     pointer.From(file.Content),
+						output.ProtectedFile = append(output.ProtectedFile, ProtectedFileData{
 							VirtualPath: pointer.From(file.VirtualPath),
+							ContentHash: pointer.From(file.ContentHash),
 						})
 					}
 				}

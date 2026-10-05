@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package azuresdkhacks
 
 import (
@@ -6,7 +9,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2022-10-01/vaultcertificates"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2024-04-01/vaultcertificates"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -42,7 +45,7 @@ func (c VaultCertificatesClient) Create(ctx context.Context, id vaultcertificate
 
 // preparerForCreate prepares the Create request.
 func (c VaultCertificatesClient) preparerForCreate(ctx context.Context, id vaultcertificates.CertificateId, input CertificateRequest) (*http.Request, error) {
-	queryParameters := map[string]interface{}{
+	queryParameters := map[string]any{
 		"api-version": defaultApiVersion,
 	}
 
@@ -52,7 +55,8 @@ func (c VaultCertificatesClient) preparerForCreate(ctx context.Context, id vault
 		autorest.WithBaseURL(c.baseUri),
 		autorest.WithPath(id.ID()),
 		autorest.WithJSON(input),
-		autorest.WithQueryParameters(queryParameters))
+		autorest.WithQueryParameters(queryParameters),
+	)
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
@@ -63,7 +67,8 @@ func (c VaultCertificatesClient) responderForCreate(resp *http.Response) (result
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Model),
-		autorest.ByClosing())
+		autorest.ByClosing(),
+	)
 	result.HttpResponse = resp
 
 	return

@@ -41,6 +41,9 @@ type BaseClient interface {
 
 	// ClearResponseMiddlewares removes all response middleware functions for the client
 	ClearResponseMiddlewares()
+
+	// SetTransport configures the transport to be used by the client
+	SetTransport(http.RoundTripper)
 }
 
 // RequestRetryFunc is a function that determines whether an HTTP request has failed due to eventual consistency and should be retried
@@ -54,3 +57,8 @@ type ResponseMiddleware func(*http.Request, *http.Response) (*http.Response, err
 
 // ValidStatusFunc is a function that tests whether an HTTP response is considered valid for the particular request.
 type ValidStatusFunc func(*http.Response, *odata.OData) bool
+
+// ResponseErrorParser is an optional custom parser that can parse an API error response to provide a friendly error
+type ResponseErrorParser interface {
+	FromResponse(*http.Response) error
+}

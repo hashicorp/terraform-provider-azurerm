@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2019, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package logging
@@ -90,7 +90,7 @@ func LogOutput(t testing.T) (logOutput io.Writer, err error) {
 
 // SetOutput checks for a log destination with LogOutput, and calls
 // log.SetOutput with the result. If LogOutput returns nil, SetOutput uses
-// io.Discard. Any error from LogOutout is fatal.
+// io.Discard. Any error from LogOutput is fatal.
 func SetOutput(t testing.T) {
 	out, err := LogOutput(t)
 	if err != nil {

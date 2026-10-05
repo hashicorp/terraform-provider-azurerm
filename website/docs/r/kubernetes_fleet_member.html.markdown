@@ -24,6 +24,9 @@ resource "azurerm_kubernetes_cluster" "example" {
     name       = "example-value"
     node_count = "example-value"
     vm_size    = "example-value"
+    upgrade_settings {
+      max_surge = "example-value"
+    }
   }
   identity {
     type = "example-value"
@@ -33,9 +36,6 @@ resource "azurerm_kubernetes_fleet_manager" "example" {
   name                = "example"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  hub_profile {
-    dns_prefix = "val-example"
-  }
 }
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
@@ -72,7 +72,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating this Kubernetes Fleet Member.
 * `delete` - (Defaults to 30 minutes) Used when deleting this Kubernetes Fleet Member.

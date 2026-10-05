@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -31,8 +31,18 @@ func TestManagedHardwareSecurityModuleName(t *testing.T) {
 			expected: false,
 		},
 		{
-			// can't contain hyphen
+			// can contain non-consecutive hyphens
 			input:    "ab-c",
+			expected: true,
+		},
+		{
+			// can't contain consecutive hyphens
+			input:    "ab--c",
+			expected: false,
+		},
+		{
+			// can't end with hyphens
+			input:    "ab-cdef-",
 			expected: false,
 		},
 		{

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -8,40 +8,47 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
+	"math/big"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/ddosprotectionplans"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/ddosprotectionplans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/ipampools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networksecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/routetables"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/serviceendpointpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/subnets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworks"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 var VirtualNetworkResourceName = "azurerm_virtual_network"
 
 func resourceVirtualNetwork() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVirtualNetworkCreateUpdate,
-		Read:   resourceVirtualNetworkRead,
-		Update: resourceVirtualNetworkCreateUpdate,
-		Delete: resourceVirtualNetworkDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := commonids.ParseVirtualNetworkID(id)
-			return err
-		}),
+		Create:   resourceVirtualNetworkCreate,
+		Read:     resourceVirtualNetworkRead,
+		Update:   resourceVirtualNetworkUpdate,
+		Delete:   resourceVirtualNetworkDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.VirtualNetworkId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -51,6 +58,10 @@ func resourceVirtualNetwork() *pluginsdk.Resource {
 		},
 
 		Schema: resourceVirtualNetworkSchema(),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.VirtualNetworkId{}),
+		},
 	}
 }
 
@@ -68,16 +79,27 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"address_space": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			MinItems: 1,
+			Type:         pluginsdk.TypeSet,
+			Optional:     true,
+			ExactlyOneOf: []string{"address_space", "ip_address_pool"},
+			MinItems:     1,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+			DiffSuppressFunc: func(_, old, new string, d *schema.ResourceData) bool {
+				// If `ip_address_pool` is used instead of `address_space` there is a perpetual diff
+				// due to the API returning a CIDR range provisioned by the IP Address Management Pool.
+				// Note: using `GetRawConfig` to avoid suppressing a diff if a user updates from `ip_address_pool` to `address_space`.
+				rawIpAddressPool := d.GetRawConfig().AsValueMap()["ip_address_pool"]
+				if !rawIpAddressPool.IsNull() && len(rawIpAddressPool.AsValueSlice()) > 0 {
+					return true
+				}
+
+				return false
+			},
 		},
 
-		// Optional
 		"bgp_community": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -111,12 +133,9 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"enforcement": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string((network.VirtualNetworkEncryptionEnforcementDropUnencrypted)),
-							string(network.VirtualNetworkEncryptionEnforcementAllowUnencrypted),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(virtualnetworks.PossibleValuesForVirtualNetworkEncryptionEnforcement(), false),
 					},
 				},
 			},
@@ -125,7 +144,7 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 		"dns_servers": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -140,6 +159,39 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.IntBetween(4, 30),
 		},
 
+		"ip_address_pool": {
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			MaxItems:     2,
+			ExactlyOneOf: []string{"address_space", "ip_address_pool"},
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: ipampools.ValidateIPamPoolID,
+					},
+
+					"number_of_ip_addresses": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringMatch(
+							regexp.MustCompile(`^[1-9]\d*$`),
+							"`number_of_ip_addresses` must be a string that represents a positive number",
+						),
+					},
+
+					"allocated_ip_address_prefixes": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+				},
+			},
+		},
+
 		"guid": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -148,7 +200,7 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 		"subnet": {
 			Type:       pluginsdk.TypeSet,
 			Optional:   true,
-			Computed:   true,
+			Computed:   true, // azignore:AZS007 - pre-existing violation
 			ConfigMode: pluginsdk.SchemaConfigModeAttr,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -158,15 +210,117 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
-					"address_prefix": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+					"address_prefixes": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						MinItems: 1,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
 					},
+
+					"default_outbound_access_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Default:  true,
+						Optional: true,
+					},
+
+					"delegation": {
+						Type:       pluginsdk.TypeList,
+						Optional:   true,
+						MaxItems:   1,
+						ConfigMode: pluginsdk.SchemaConfigModeAttr,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"name": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+								},
+								"service_delegation": {
+									Type:       pluginsdk.TypeList,
+									Required:   true,
+									MaxItems:   1,
+									ConfigMode: pluginsdk.SchemaConfigModeAttr,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"name": {
+												Type:         pluginsdk.TypeString,
+												Required:     true,
+												ValidateFunc: validation.StringInSlice(subnetDelegationServiceNames, false),
+											},
+
+											"actions": {
+												Type:     pluginsdk.TypeSet,
+												Optional: true,
+												Elem: &pluginsdk.Schema{
+													Type: pluginsdk.TypeString,
+													ValidateFunc: validation.StringInSlice([]string{
+														"Microsoft.Network/networkinterfaces/*",
+														"Microsoft.Network/publicIPAddresses/join/action",
+														"Microsoft.Network/publicIPAddresses/read",
+														"Microsoft.Network/virtualNetworks/read",
+														"Microsoft.Network/virtualNetworks/subnets/action",
+														"Microsoft.Network/virtualNetworks/subnets/join/action",
+														"Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
+														"Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
+													}, false),
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+
+					"private_endpoint_network_policies": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      string(subnets.VirtualNetworkPrivateEndpointNetworkPoliciesDisabled),
+						ValidateFunc: validation.StringInSlice(subnets.PossibleValuesForVirtualNetworkPrivateEndpointNetworkPolicies(), false),
+					},
+
+					"private_link_service_network_policies_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  true,
+					},
+
+					"route_table_id": commonschema.ResourceIDReferenceOptional(&routetables.RouteTableId{}),
 
 					"security_group": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
+					},
+
+					"service_endpoint": {
+						Type:       pluginsdk.TypeList,
+						Optional:   true,
+						ConfigMode: pluginsdk.SchemaConfigModeAttr,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"service": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validate.SubnetServiceEndpointName(),
+								},
+								"network_identifier": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ValidateFunc: azure.ValidateResourceID,
+								},
+							},
+						},
+					},
+
+					"service_endpoint_policy_ids": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: serviceendpointpolicies.ValidateServiceEndpointPolicyID,
+						},
 					},
 
 					"id": {
@@ -175,85 +329,336 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			Set: resourceAzureSubnetHash,
 		},
 
-		"tags": tags.Schema(),
+		"private_endpoint_vnet_policies": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(virtualnetworks.PrivateEndpointVNetPoliciesDisabled),
+			ValidateFunc: validation.StringInSlice(virtualnetworks.PossibleValuesForPrivateEndpointVNetPolicies(), false),
+		},
+
+		"tags": commonschema.Tags(),
 	}
 }
 
-func resourceVirtualNetworkCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.VnetClient
+func resourceVirtualNetworkCreate(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Network.VirtualNetworks
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := commonids.NewVirtualNetworkID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroupName, id.VirtualNetworkName, "")
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id, virtualnetworks.DefaultGetOperationOptions())
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_virtual_network", id.ID())
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	t := d.Get("tags").(map[string]interface{})
-
-	vnetProperties, err := expandVirtualNetworkProperties(ctx, d, meta)
+	vnetProperties, routeTables, err := expandVirtualNetworkProperties(ctx, *client, id, d)
 	if err != nil {
 		return err
 	}
 
-	vnet := network.VirtualNetwork{
-		Name:                           utils.String(id.VirtualNetworkName),
-		ExtendedLocation:               expandEdgeZone(d.Get("edge_zone").(string)),
-		Location:                       utils.String(location),
-		VirtualNetworkPropertiesFormat: vnetProperties,
-		Tags:                           tags.Expand(t),
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
+
+	locks.MultipleByID(routeTables)
+	defer locks.UnlockMultipleByID(routeTables)
+
+	vnet := virtualnetworks.VirtualNetwork{
+		Name:             pointer.To(id.VirtualNetworkName),
+		ExtendedLocation: expandEdgeZoneModel(d.Get("edge_zone").(string)),
+		Location:         pointer.To(location.Normalize(d.Get("location").(string))),
+		Properties:       vnetProperties,
+		Tags:             tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v, ok := d.GetOk("flow_timeout_in_minutes"); ok {
-		vnet.VirtualNetworkPropertiesFormat.FlowTimeoutInMinutes = utils.Int32(int32(v.(int)))
+		vnet.Properties.FlowTimeoutInMinutes = pointer.To(int64(v.(int)))
 	}
 
-	networkSecurityGroupNames := make([]string, 0)
-	for _, subnet := range *vnet.VirtualNetworkPropertiesFormat.Subnets {
-		if subnet.NetworkSecurityGroup != nil {
-			parsedNsgID, err := parse.NetworkSecurityGroupID(*subnet.NetworkSecurityGroup.ID)
+	networkSecurityGroupIds := make([]string, 0)
+	for _, subnet := range *vnet.Properties.Subnets {
+		if subnet.Properties != nil && subnet.Properties.NetworkSecurityGroup != nil {
+			parsedNsgID, err := networksecuritygroups.ParseNetworkSecurityGroupID(*subnet.Properties.NetworkSecurityGroup.Id)
 			if err != nil {
 				return err
 			}
-
-			networkSecurityGroupName := parsedNsgID.Name
-			if !utils.SliceContainsValue(networkSecurityGroupNames, networkSecurityGroupName) {
-				networkSecurityGroupNames = append(networkSecurityGroupNames, networkSecurityGroupName)
-			}
+			networkSecurityGroupIds = append(networkSecurityGroupIds, parsedNsgID.ID())
 		}
 	}
 
-	locks.MultipleByName(&networkSecurityGroupNames, networkSecurityGroupResourceName)
-	defer locks.UnlockMultipleByName(&networkSecurityGroupNames, networkSecurityGroupResourceName)
+	locks.MultipleByID(&networkSecurityGroupIds)
+	defer locks.UnlockMultipleByID(&networkSecurityGroupIds)
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.VirtualNetworkName, vnet)
-	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, vnet, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
+	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
 	}
 
 	timeout, _ := ctx.Deadline()
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{string(network.ProvisioningStateUpdating)},
-		Target:     []string{string(network.ProvisioningStateSucceeded)},
+		Pending:    []string{string(virtualnetworks.ProvisioningStateUpdating)},
+		Target:     []string{string(virtualnetworks.ProvisioningStateSucceeded)},
 		Refresh:    VirtualNetworkProvisioningStateRefreshFunc(ctx, client, id),
+		MinTimeout: 1 * time.Minute,
+		Timeout:    time.Until(timeout),
+	}
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for provisioning state of %s: %+v", id, err)
+	}
+
+	return resourceVirtualNetworkRead(d, meta)
+}
+
+func resourceVirtualNetworkRead(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Network.VirtualNetworks
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := commonids.ParseVirtualNetworkID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.Get(ctx, *id, virtualnetworks.DefaultGetOperationOptions())
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	if err := resourceVirtualNetworkFlatten(d, *id, resp.Model); err != nil {
+		return fmt.Errorf("encoding %s: %+v", *id, err)
+	}
+
+	return nil
+}
+
+func resourceVirtualNetworkFlatten(d *pluginsdk.ResourceData, id commonids.VirtualNetworkId, vnet *virtualnetworks.VirtualNetwork) error {
+	d.Set("name", id.VirtualNetworkName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+
+	if vnet != nil {
+		d.Set("location", location.NormalizeNilable(vnet.Location))
+		d.Set("edge_zone", flattenEdgeZoneModel(vnet.ExtendedLocation))
+
+		if props := vnet.Properties; props != nil {
+			d.Set("guid", props.ResourceGuid)
+			d.Set("flow_timeout_in_minutes", props.FlowTimeoutInMinutes)
+			d.Set("private_endpoint_vnet_policies", pointer.FromEnum(props.PrivateEndpointVNetPolicies))
+
+			if space := props.AddressSpace; space != nil {
+				if err := d.Set("address_space", space.AddressPrefixes); err != nil {
+					return fmt.Errorf("setting `address_space`: %+v", err)
+				}
+
+				if err := d.Set("ip_address_pool", flattenVirtualNetworkIPAddressPool(space.IPamPoolPrefixAllocations)); err != nil {
+					return fmt.Errorf("setting `ip_address_pool`: %+v", err)
+				}
+			}
+
+			if err := d.Set("ddos_protection_plan", flattenVirtualNetworkDDoSProtectionPlan(props)); err != nil {
+				return fmt.Errorf("setting `ddos_protection_plan`: %+v", err)
+			}
+
+			if err := d.Set("encryption", flattenVirtualNetworkEncryption(props.Encryption)); err != nil {
+				return fmt.Errorf("setting `encryption`: %+v", err)
+			}
+
+			subnet, err := flattenVirtualNetworkSubnets(props.Subnets)
+			if err != nil {
+				return fmt.Errorf("flattening `subnet`: %+v", err)
+			}
+			if err := d.Set("subnet", subnet); err != nil {
+				return fmt.Errorf("setting `subnet`: %+v", err)
+			}
+
+			if err := d.Set("dns_servers", flattenVirtualNetworkDNSServers(props.DhcpOptions)); err != nil {
+				return fmt.Errorf("setting `dns_servers`: %+v", err)
+			}
+
+			bgpCommunity := ""
+			if p := props.BgpCommunities; p != nil {
+				bgpCommunity = p.VirtualNetworkCommunity
+			}
+			if err := d.Set("bgp_community", bgpCommunity); err != nil {
+				return fmt.Errorf("setting `bgp_community`: %+v", err)
+			}
+		}
+
+		if err := tags.FlattenAndSet(d, vnet.Tags); err != nil {
+			return fmt.Errorf("flattening `tags`: %+v", err)
+		}
+	}
+
+	return pluginsdk.SetResourceIdentityData(d, pointer.To(id))
+}
+
+func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Network.VirtualNetworks
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := commonids.ParseVirtualNetworkID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id, virtualnetworks.DefaultGetOperationOptions())
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+
+	payload := existing.Model
+
+	if d.HasChange("address_space") {
+		if v := d.Get("address_space").(*pluginsdk.Set).List(); len(v) > 0 {
+			if payload.Properties.AddressSpace == nil {
+				payload.Properties.AddressSpace = &virtualnetworks.AddressSpace{}
+			}
+			payload.Properties.AddressSpace.AddressPrefixes = pluginsdk.ExpandStringSlice(v)
+		} else {
+			payload.Properties.AddressSpace.AddressPrefixes = nil
+		}
+	}
+
+	if d.HasChange("ip_address_pool") {
+		if v := d.Get("ip_address_pool").([]any); len(v) > 0 {
+			if payload.Properties.AddressSpace == nil {
+				payload.Properties.AddressSpace = &virtualnetworks.AddressSpace{}
+			}
+
+			expandedIPAddressPool := expandVirtualNetworkIPAddressPool(v)
+
+			if payload.Properties.AddressSpace.IPamPoolPrefixAllocations != nil {
+				for _, existingAllocation := range *payload.Properties.AddressSpace.IPamPoolPrefixAllocations {
+					for _, expandedAllocation := range *expandedIPAddressPool {
+						if existingAllocation.Pool != nil && expandedAllocation.Pool != nil && strings.EqualFold(pointer.From(existingAllocation.Pool.Id), pointer.From(expandedAllocation.Pool.Id)) &&
+							existingAllocation.NumberOfIPAddresses != nil && expandedAllocation.NumberOfIPAddresses != nil {
+							existingNum, _ := new(big.Int).SetString(*existingAllocation.NumberOfIPAddresses, 10)
+							newNum, _ := new(big.Int).SetString(*expandedAllocation.NumberOfIPAddresses, 10)
+							if existingNum != nil && newNum != nil && existingNum.Cmp(newNum) == 1 {
+								return fmt.Errorf("`number_of_ip_addresses` cannot be decreased from %v to %v on pool: %v", *existingAllocation.NumberOfIPAddresses, *expandedAllocation.NumberOfIPAddresses, *expandedAllocation.Pool.Id)
+							}
+						}
+					}
+				}
+			}
+
+			payload.Properties.AddressSpace.IPamPoolPrefixAllocations = expandedIPAddressPool
+		} else {
+			payload.Properties.AddressSpace.IPamPoolPrefixAllocations = nil
+		}
+	}
+
+	if d.HasChange("bgp_community") {
+		// nil out the current values in case `bgp_community` has been removed from the config file
+		payload.Properties.BgpCommunities = nil
+		if v := d.Get("bgp_community"); v.(string) != "" {
+			payload.Properties.BgpCommunities = &virtualnetworks.VirtualNetworkBgpCommunities{VirtualNetworkCommunity: v.(string)}
+		}
+	}
+
+	if d.HasChange("ddos_protection_plan") {
+		ddosProtectionPlanId, enabled := expandVirtualNetworkDdosProtectionPlan(d.Get("ddos_protection_plan").([]any))
+		payload.Properties.DdosProtectionPlan = ddosProtectionPlanId
+		payload.Properties.EnableDdosProtection = enabled
+	}
+
+	if d.HasChange("encryption") {
+		// nil out the current values in case `encryption` has been removed from the config file
+		payload.Properties.Encryption = expandVirtualNetworkEncryption(d.Get("encryption").([]any))
+	}
+
+	if d.HasChange("dns_servers") {
+		if payload.Properties.DhcpOptions == nil {
+			payload.Properties.DhcpOptions = &virtualnetworks.DhcpOptions{}
+		}
+
+		payload.Properties.DhcpOptions.DnsServers = pluginsdk.ExpandStringSlice(d.Get("dns_servers").([]any))
+	}
+
+	if d.HasChange("flow_timeout_in_minutes") {
+		payload.Properties.FlowTimeoutInMinutes = nil
+		if v := d.Get("flow_timeout_in_minutes"); v.(int) != 0 {
+			payload.Properties.FlowTimeoutInMinutes = pointer.To(int64(v.(int)))
+		}
+	}
+
+	if d.HasChange("subnet") {
+		subnetList, routeTables, err := expandVirtualNetworkSubnets(ctx, *client, d.Get("subnet").(*pluginsdk.Set).List(), *id)
+		if err != nil {
+			return fmt.Errorf("expanding `subnet`: %+v", err)
+		}
+		payload.Properties.Subnets = subnetList
+
+		locks.ByID(id.ID())
+		defer locks.UnlockByID(id.ID())
+
+		locks.MultipleByID(routeTables)
+		defer locks.UnlockMultipleByID(routeTables)
+	}
+
+	if d.HasChange("private_endpoint_vnet_policies") {
+		payload.Properties.PrivateEndpointVNetPolicies = pointer.ToEnum[virtualnetworks.PrivateEndpointVNetPolicies](d.Get("private_endpoint_vnet_policies").(string))
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
+	}
+
+	networkSecurityGroupIds := make([]string, 0)
+	if payload.Properties != nil && payload.Properties.Subnets != nil {
+		for _, subnet := range *payload.Properties.Subnets {
+			if subnet.Properties != nil {
+				// remove readonly properties as they are not managed by TF - large networks can cause ARM API limit errors
+				subnet.Properties.IPConfigurations = nil
+				subnet.Properties.PrivateEndpoints = nil
+
+				if subnet.Properties.NetworkSecurityGroup != nil && subnet.Properties.NetworkSecurityGroup.Id != nil {
+					parsedNsgID, err := networksecuritygroups.ParseNetworkSecurityGroupID(*subnet.Properties.NetworkSecurityGroup.Id)
+					if err != nil {
+						return err
+					}
+					networkSecurityGroupIds = append(networkSecurityGroupIds, parsedNsgID.ID())
+				}
+			}
+		}
+	}
+
+	locks.MultipleByID(&networkSecurityGroupIds)
+	defer locks.UnlockMultipleByID(&networkSecurityGroupIds)
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	timeout, _ := ctx.Deadline()
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:    []string{string(virtualnetworks.ProvisioningStateUpdating)},
+		Target:     []string{string(virtualnetworks.ProvisioningStateSucceeded)},
+		Refresh:    VirtualNetworkProvisioningStateRefreshFunc(ctx, meta.(*clients.Client).Network.VirtualNetworks, *id),
 		MinTimeout: 1 * time.Minute,
 		Timeout:    time.Until(timeout),
 	}
@@ -265,71 +670,8 @@ func resourceVirtualNetworkCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	return resourceVirtualNetworkRead(d, meta)
 }
 
-func resourceVirtualNetworkRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.VnetClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := commonids.ParseVirtualNetworkID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	resp, err := client.Get(ctx, id.ResourceGroupName, id.VirtualNetworkName, "")
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			d.SetId("")
-			return nil
-		}
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
-	}
-
-	d.Set("name", id.VirtualNetworkName)
-	d.Set("resource_group_name", id.ResourceGroupName)
-
-	d.Set("location", location.NormalizeNilable(resp.Location))
-	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
-
-	if props := resp.VirtualNetworkPropertiesFormat; props != nil {
-		d.Set("guid", props.ResourceGUID)
-		d.Set("flow_timeout_in_minutes", props.FlowTimeoutInMinutes)
-
-		if space := props.AddressSpace; space != nil {
-			d.Set("address_space", utils.FlattenStringSlice(space.AddressPrefixes))
-		}
-
-		if err := d.Set("ddos_protection_plan", flattenVirtualNetworkDDoSProtectionPlan(props)); err != nil {
-			return fmt.Errorf("setting `ddos_protection_plan`: %+v", err)
-		}
-
-		if err := d.Set("encryption", flattenVirtualNetworkEncryption(props.Encryption)); err != nil {
-			return fmt.Errorf("setting `encryption`: %+v", err)
-		}
-
-		if err := d.Set("subnet", flattenVirtualNetworkSubnets(props.Subnets)); err != nil {
-			return fmt.Errorf("setting `subnets`: %+v", err)
-		}
-
-		if err := d.Set("dns_servers", flattenVirtualNetworkDNSServers(props.DhcpOptions)); err != nil {
-			return fmt.Errorf("setting `dns_servers`: %+v", err)
-		}
-
-		bgpCommunity := ""
-		if p := props.BgpCommunities; p != nil {
-			if v := p.VirtualNetworkCommunity; v != nil {
-				bgpCommunity = *v
-			}
-		}
-		if err := d.Set("bgp_community", bgpCommunity); err != nil {
-			return fmt.Errorf("setting `bgp_community`: %+v", err)
-		}
-	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
-}
-
-func resourceVirtualNetworkDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.VnetClient
+func resourceVirtualNetworkDelete(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Network.VirtualNetworks
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -338,154 +680,348 @@ func resourceVirtualNetworkDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	nsgNames, err := expandAzureRmVirtualNetworkVirtualNetworkSecurityGroupNames(d)
+	nsgNames, routeTableNames, err := expandResourcesForLocking(d)
 	if err != nil {
 		return fmt.Errorf("parsing Network Security Group ID's: %+v", err)
 	}
 
-	locks.MultipleByName(&nsgNames, VirtualNetworkResourceName)
-	defer locks.UnlockMultipleByName(&nsgNames, VirtualNetworkResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
-	future, err := client.Delete(ctx, id.ResourceGroupName, id.VirtualNetworkName)
-	if err != nil {
+	locks.MultipleByID(&nsgNames)
+	defer locks.UnlockMultipleByID(&nsgNames)
+
+	locks.MultipleByID(&routeTableNames)
+	defer locks.UnlockMultipleByID(&routeTableNames)
+
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func expandVirtualNetworkProperties(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) (*network.VirtualNetworkPropertiesFormat, error) {
-	subnets := make([]network.Subnet, 0)
+func expandVirtualNetworkDdosProtectionPlan(input []any) (*virtualnetworks.SubResource, *bool) {
+	if len(input) == 0 || input[0] == nil {
+		return nil, nil
+	}
+
+	var id string
+	var enabled bool
+
+	ddosPPlan := input[0].(map[string]any)
+
+	if v, ok := ddosPPlan["id"]; ok {
+		id = v.(string)
+	}
+
+	if v, ok := ddosPPlan["enable"]; ok {
+		enabled = v.(bool)
+	}
+
+	return &virtualnetworks.SubResource{
+		Id: pointer.To(id),
+	}, &enabled
+}
+
+func expandVirtualNetworkEncryption(input []any) *virtualnetworks.VirtualNetworkEncryption {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	attr := input[0].(map[string]any)
+	return &virtualnetworks.VirtualNetworkEncryption{
+		Enabled:     true,
+		Enforcement: pointer.ToEnum[virtualnetworks.VirtualNetworkEncryptionEnforcement](attr["enforcement"].(string)),
+	}
+}
+
+func expandVirtualNetworkSubnets(ctx context.Context, client virtualnetworks.VirtualNetworksClient, input []any, id commonids.VirtualNetworkId) (*[]virtualnetworks.Subnet, *[]string, error) {
+	subnets := make([]virtualnetworks.Subnet, 0)
+	routeTables := make([]string, 0)
+
+	if len(input) == 0 {
+		return &subnets, &routeTables, nil
+	}
+
+	for _, subnetRaw := range input {
+		if subnetRaw == nil {
+			continue
+		}
+		subnet := subnetRaw.(map[string]any)
+
+		name := subnet["name"].(string)
+		log.Printf("[INFO] setting subnets inside vNet, processing %q", name)
+		// since subnets can also be created outside of vNet definition (as root objects)
+		// do a GET on subnet properties from the server before setting them
+		subnetObj, err := getExistingSubnet(ctx, client, id, name)
+		if err != nil {
+			return nil, nil, err
+		}
+		log.Printf("[INFO] Completed GET of Subnet props")
+
+		// set the props from config and leave the rest intact
+		subnetObj.Name = pointer.To(name)
+		if subnetObj.Properties == nil {
+			subnetObj.Properties = &virtualnetworks.SubnetPropertiesFormat{}
+		}
+
+		addressPrefixes := make([]string, 0)
+		for _, prefix := range subnet["address_prefixes"].([]any) {
+			addressPrefixes = append(addressPrefixes, prefix.(string))
+		}
+
+		subnetObj.Properties.AddressPrefixes = pointer.To(addressPrefixes)
+		subnetObj.Properties.AddressPrefix = nil
+
+		privateEndpointNetworkPolicies := virtualnetworks.VirtualNetworkPrivateEndpointNetworkPolicies(subnet["private_endpoint_network_policies"].(string))
+		privateLinkServiceNetworkPolicies := virtualnetworks.VirtualNetworkPrivateLinkServiceNetworkPoliciesDisabled
+		if subnet["private_link_service_network_policies_enabled"].(bool) {
+			privateLinkServiceNetworkPolicies = virtualnetworks.VirtualNetworkPrivateLinkServiceNetworkPoliciesEnabled
+		}
+		subnetObj.Properties.DefaultOutboundAccess = pointer.To(subnet["default_outbound_access_enabled"].(bool))
+		subnetObj.Properties.Delegations = expandVirtualNetworkSubnetDelegation(subnet["delegation"].([]any))
+		subnetObj.Properties.PrivateEndpointNetworkPolicies = pointer.To(privateEndpointNetworkPolicies)
+		subnetObj.Properties.PrivateLinkServiceNetworkPolicies = pointer.To(privateLinkServiceNetworkPolicies)
+
+		if routeTableId := subnet["route_table_id"].(string); routeTableId != "" {
+			id, err := routetables.ParseRouteTableID(routeTableId)
+			if err != nil {
+				return nil, nil, err
+			}
+
+			// Collecting a list of route tables to lock on outside of this function
+			routeTables = append(routeTables, id.ID())
+			subnetObj.Properties.RouteTable = &virtualnetworks.RouteTable{
+				Id: pointer.To(id.ID()),
+			}
+		} else {
+			subnetObj.Properties.RouteTable = nil
+		}
+
+		subnetObj.Properties.ServiceEndpointPolicies = expandVirtualNetworkSubnetServiceEndpointPolicies(subnet["service_endpoint_policy_ids"].(*pluginsdk.Set).List())
+		subnetObj.Properties.ServiceEndpoints = expandVirtualNetworkSubnetServiceEndpoint(subnet["service_endpoint"].([]any))
+
+		if secGroup := subnet["security_group"].(string); secGroup != "" {
+			subnetObj.Properties.NetworkSecurityGroup = &virtualnetworks.NetworkSecurityGroup{
+				Id: &secGroup,
+			}
+		} else {
+			subnetObj.Properties.NetworkSecurityGroup = nil
+		}
+
+		subnets = append(subnets, *subnetObj)
+	}
+
+	return &subnets, &routeTables, nil
+}
+
+func expandVirtualNetworkProperties(ctx context.Context, client virtualnetworks.VirtualNetworksClient, id commonids.VirtualNetworkId, d *pluginsdk.ResourceData) (*virtualnetworks.VirtualNetworkPropertiesFormat, *[]string, error) {
+	subnets := make([]virtualnetworks.Subnet, 0)
+	routeTables := make([]string, 0)
 	if subs := d.Get("subnet").(*pluginsdk.Set); subs.Len() > 0 {
 		for _, subnet := range subs.List() {
-			subnet := subnet.(map[string]interface{})
+			subnet := subnet.(map[string]any)
 
 			name := subnet["name"].(string)
 			log.Printf("[INFO] setting subnets inside vNet, processing %q", name)
 			// since subnets can also be created outside of vNet definition (as root objects)
 			// do a GET on subnet properties from the server before setting them
-			resGroup := d.Get("resource_group_name").(string)
-			vnetName := d.Get("name").(string)
-			subnetObj, err := getExistingSubnet(ctx, resGroup, vnetName, name, meta)
+			subnetObj, err := getExistingSubnet(ctx, client, id, name)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
-			log.Printf("[INFO] Completed GET of Subnet props ")
-
-			prefix := subnet["address_prefix"].(string)
-			secGroup := subnet["security_group"].(string)
+			log.Printf("[INFO] Completed GET of Subnet props")
 
 			// set the props from config and leave the rest intact
-			subnetObj.Name = &name
-			if subnetObj.SubnetPropertiesFormat == nil {
-				subnetObj.SubnetPropertiesFormat = &network.SubnetPropertiesFormat{}
+			subnetObj.Name = pointer.To(name)
+			if subnetObj.Properties == nil {
+				subnetObj.Properties = &virtualnetworks.SubnetPropertiesFormat{}
 			}
 
-			subnetObj.SubnetPropertiesFormat.AddressPrefix = &prefix
+			addressPrefixes := make([]string, 0)
+			for _, prefix := range subnet["address_prefixes"].([]any) {
+				addressPrefixes = append(addressPrefixes, prefix.(string))
+			}
 
-			if secGroup != "" {
-				subnetObj.SubnetPropertiesFormat.NetworkSecurityGroup = &network.SecurityGroup{
-					ID: &secGroup,
+			subnetObj.Properties.AddressPrefixes = pointer.To(addressPrefixes)
+
+			privateEndpointNetworkPolicies := virtualnetworks.VirtualNetworkPrivateEndpointNetworkPolicies(subnet["private_endpoint_network_policies"].(string))
+			privateLinkServiceNetworkPolicies := virtualnetworks.VirtualNetworkPrivateLinkServiceNetworkPoliciesDisabled
+			if subnet["private_link_service_network_policies_enabled"].(bool) {
+				privateLinkServiceNetworkPolicies = virtualnetworks.VirtualNetworkPrivateLinkServiceNetworkPoliciesEnabled
+			}
+			subnetObj.Properties.DefaultOutboundAccess = pointer.To(subnet["default_outbound_access_enabled"].(bool))
+			subnetObj.Properties.Delegations = expandVirtualNetworkSubnetDelegation(subnet["delegation"].([]any))
+			subnetObj.Properties.PrivateEndpointNetworkPolicies = pointer.To(privateEndpointNetworkPolicies)
+			subnetObj.Properties.PrivateLinkServiceNetworkPolicies = pointer.To(privateLinkServiceNetworkPolicies)
+
+			if routeTableId := subnet["route_table_id"].(string); routeTableId != "" {
+				id, err := routetables.ParseRouteTableID(routeTableId)
+				if err != nil {
+					return nil, nil, err
+				}
+
+				// Collecting a list of route tables to lock on outside of this function
+				routeTables = append(routeTables, id.ID())
+				subnetObj.Properties.RouteTable = &virtualnetworks.RouteTable{
+					Id: pointer.To(id.ID()),
+				}
+			}
+
+			subnetObj.Properties.ServiceEndpointPolicies = expandVirtualNetworkSubnetServiceEndpointPolicies(subnet["service_endpoint_policy_ids"].(*pluginsdk.Set).List())
+			subnetObj.Properties.ServiceEndpoints = expandVirtualNetworkSubnetServiceEndpoint(subnet["service_endpoint"].([]any))
+
+			if secGroup := subnet["security_group"].(string); secGroup != "" {
+				subnetObj.Properties.NetworkSecurityGroup = &virtualnetworks.NetworkSecurityGroup{
+					Id: &secGroup,
 				}
 			} else {
-				subnetObj.SubnetPropertiesFormat.NetworkSecurityGroup = nil
+				subnetObj.Properties.NetworkSecurityGroup = nil
 			}
 
 			subnets = append(subnets, *subnetObj)
 		}
 	}
 
-	properties := &network.VirtualNetworkPropertiesFormat{
-		AddressSpace: &network.AddressSpace{
-			AddressPrefixes: utils.ExpandStringSlice(d.Get("address_space").([]interface{})),
+	properties := &virtualnetworks.VirtualNetworkPropertiesFormat{
+		AddressSpace: &virtualnetworks.AddressSpace{},
+		DhcpOptions: &virtualnetworks.DhcpOptions{
+			DnsServers: pluginsdk.ExpandStringSlice(d.Get("dns_servers").([]any)),
 		},
-		DhcpOptions: &network.DhcpOptions{
-			DNSServers: utils.ExpandStringSlice(d.Get("dns_servers").([]interface{})),
-		},
-		Subnets: &subnets,
+		PrivateEndpointVNetPolicies: pointer.ToEnum[virtualnetworks.PrivateEndpointVNetPolicies](d.Get("private_endpoint_vnet_policies").(string)),
+		Subnets:                     &subnets,
+	}
+
+	if v, ok := d.GetOk("address_space"); ok {
+		properties.AddressSpace.AddressPrefixes = pluginsdk.ExpandStringSlice(v.(*pluginsdk.Set).List())
 	}
 
 	if v, ok := d.GetOk("ddos_protection_plan"); ok {
-		rawList := v.([]interface{})
+		rawList := v.([]any)
 
-		var ddosPPlan map[string]interface{}
+		var ddosPPlan map[string]any
 		if len(rawList) > 0 {
-			ddosPPlan = rawList[0].(map[string]interface{})
+			ddosPPlan = rawList[0].(map[string]any)
 		}
 
 		if v, ok := ddosPPlan["id"]; ok {
-			id := v.(string)
-			properties.DdosProtectionPlan = &network.SubResource{
-				ID: &id,
+			properties.DdosProtectionPlan = &virtualnetworks.SubResource{
+				Id: pointer.To(v.(string)),
 			}
 		}
 
 		if v, ok := ddosPPlan["enable"]; ok {
-			enable := v.(bool)
-			properties.EnableDdosProtection = &enable
+			properties.EnableDdosProtection = pointer.To(v.(bool))
 		}
 	}
 
 	if v, ok := d.GetOk("encryption"); ok {
-		if vList := v.([]interface{}); len(vList) > 0 && vList[0] != nil {
-			encryptionConf := vList[0].(map[string]interface{})
-			properties.Encryption = &network.VirtualNetworkEncryption{
-				Enabled:     pointer.To(true),
-				Enforcement: network.VirtualNetworkEncryptionEnforcement(encryptionConf["enforcement"].(string)),
+		if vList := v.([]any); len(vList) > 0 && vList[0] != nil {
+			encryptionConf := vList[0].(map[string]any)
+			properties.Encryption = &virtualnetworks.VirtualNetworkEncryption{
+				Enabled:     true,
+				Enforcement: pointer.ToEnum[virtualnetworks.VirtualNetworkEncryptionEnforcement](encryptionConf["enforcement"].(string)),
 			}
 		}
 	}
 
-	if v, ok := d.GetOk("bgp_community"); ok {
-		properties.BgpCommunities = &network.VirtualNetworkBgpCommunities{VirtualNetworkCommunity: utils.String(v.(string))}
+	if v, ok := d.GetOk("ip_address_pool"); ok {
+		properties.AddressSpace.IPamPoolPrefixAllocations = expandVirtualNetworkIPAddressPool(v.([]any))
 	}
 
-	return properties, nil
+	if v, ok := d.GetOk("bgp_community"); ok {
+		properties.BgpCommunities = &virtualnetworks.VirtualNetworkBgpCommunities{VirtualNetworkCommunity: v.(string)}
+	}
+
+	return properties, &routeTables, nil
 }
 
-func flattenVirtualNetworkDDoSProtectionPlan(input *network.VirtualNetworkPropertiesFormat) []interface{} {
+func expandVirtualNetworkIPAddressPool(input []any) *[]virtualnetworks.IPamPoolPrefixAllocation {
+	if len(input) == 0 {
+		return nil
+	}
+
+	outputs := make([]virtualnetworks.IPamPoolPrefixAllocation, 0)
+	for _, v := range input {
+		ipPoolRaw := v.(map[string]any)
+		output := virtualnetworks.IPamPoolPrefixAllocation{}
+
+		if v, ok := ipPoolRaw["number_of_ip_addresses"]; ok {
+			output.NumberOfIPAddresses = pointer.To(v.(string))
+		}
+
+		if v, ok := ipPoolRaw["id"]; ok {
+			output.Pool = &virtualnetworks.IPamPoolPrefixAllocationPool{
+				Id: pointer.To(v.(string)),
+			}
+		}
+
+		outputs = append(outputs, output)
+	}
+
+	return &outputs
+}
+
+func flattenVirtualNetworkIPAddressPool(input *[]virtualnetworks.IPamPoolPrefixAllocation) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	if input.DdosProtectionPlan == nil || input.DdosProtectionPlan.ID == nil || input.EnableDdosProtection == nil {
-		return []interface{}{}
+	outputs := make([]any, 0)
+	for _, v := range *input {
+		output := map[string]any{
+			"number_of_ip_addresses":        pointer.From(v.NumberOfIPAddresses),
+			"allocated_ip_address_prefixes": pointer.From(v.AllocatedAddressPrefixes),
+		}
+		if v.Pool != nil {
+			output["id"] = pointer.From(v.Pool.Id)
+		}
+		outputs = append(outputs, output)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"id":     *input.DdosProtectionPlan.ID,
+	return outputs
+}
+
+func flattenVirtualNetworkDDoSProtectionPlan(input *virtualnetworks.VirtualNetworkPropertiesFormat) []any {
+	if input == nil {
+		return []any{}
+	}
+
+	if input.DdosProtectionPlan == nil || input.DdosProtectionPlan.Id == nil || input.EnableDdosProtection == nil {
+		return []any{}
+	}
+
+	return []any{
+		map[string]any{
+			"id":     *input.DdosProtectionPlan.Id,
 			"enable": *input.EnableDdosProtection,
 		},
 	}
 }
 
-func flattenVirtualNetworkEncryption(encryption *network.VirtualNetworkEncryption) interface{} {
-	if encryption == nil || encryption.Enabled == nil || !*encryption.Enabled {
-		return make([]interface{}, 0)
+func flattenVirtualNetworkEncryption(encryption *virtualnetworks.VirtualNetworkEncryption) any {
+	if encryption == nil || !encryption.Enabled {
+		return make([]any, 0)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"enforcement": encryption.Enforcement,
 		},
 	}
 }
 
-func flattenVirtualNetworkSubnets(input *[]network.Subnet) *pluginsdk.Set {
+func flattenVirtualNetworkSubnets(input *[]virtualnetworks.Subnet) (*pluginsdk.Set, error) {
 	results := &pluginsdk.Set{
 		F: resourceAzureSubnetHash,
 	}
 
 	if subnets := input; subnets != nil {
 		for _, subnet := range *input {
-			output := map[string]interface{}{}
+			output := map[string]any{}
 
-			if id := subnet.ID; id != nil {
+			if id := subnet.Id; id != nil {
 				output["id"] = *id
 			}
 
@@ -493,30 +1029,51 @@ func flattenVirtualNetworkSubnets(input *[]network.Subnet) *pluginsdk.Set {
 				output["name"] = *name
 			}
 
-			if props := subnet.SubnetPropertiesFormat; props != nil {
-				if prefix := props.AddressPrefix; prefix != nil {
-					output["address_prefix"] = *prefix
-				}
-
+			if props := subnet.Properties; props != nil {
 				if nsg := props.NetworkSecurityGroup; nsg != nil {
-					if nsg.ID != nil {
-						output["security_group"] = *nsg.ID
+					if nsg.Id != nil {
+						output["security_group"] = *nsg.Id
 					}
 				}
+
+				if props.AddressPrefixes == nil {
+					if props.AddressPrefix != nil && len(*props.AddressPrefix) > 0 {
+						output["address_prefixes"] = []string{*props.AddressPrefix}
+					} else {
+						output["address_prefixes"] = []string{}
+					}
+				} else {
+					output["address_prefixes"] = props.AddressPrefixes
+				}
+				output["delegation"] = flattenVirtualNetworkSubnetDelegation(props.Delegations)
+				output["default_outbound_access_enabled"] = pointer.From(props.DefaultOutboundAccess)
+				output["private_endpoint_network_policies"] = pointer.FromEnum(props.PrivateEndpointNetworkPolicies)
+				output["private_link_service_network_policies_enabled"] = strings.EqualFold(pointer.FromEnum(props.PrivateLinkServiceNetworkPolicies), string(virtualnetworks.VirtualNetworkPrivateEndpointNetworkPoliciesEnabled))
+				routeTableId := ""
+				if props.RouteTable != nil && props.RouteTable.Id != nil {
+					id, err := routetables.ParseRouteTableID(*props.RouteTable.Id)
+					if err != nil {
+						return nil, err
+					}
+					routeTableId = id.ID()
+				}
+				output["route_table_id"] = routeTableId
+				output["service_endpoint"] = flattenVirtualNetworkSubnetServiceEndpoint(props.ServiceEndpoints)
+				output["service_endpoint_policy_ids"] = flattenVirtualNetworkSubnetServiceEndpointPolicies(props.ServiceEndpointPolicies)
 			}
 
 			results.Add(output)
 		}
 	}
 
-	return results
+	return results, nil
 }
 
-func flattenVirtualNetworkDNSServers(input *network.DhcpOptions) []string {
+func flattenVirtualNetworkDNSServers(input *virtualnetworks.DhcpOptions) []string {
 	results := make([]string, 0)
 
 	if input != nil {
-		if servers := input.DNSServers; servers != nil {
+		if servers := input.DnsServers; servers != nil {
 			results = *servers
 		}
 	}
@@ -524,10 +1081,10 @@ func flattenVirtualNetworkDNSServers(input *network.DhcpOptions) []string {
 	return results
 }
 
-func resourceAzureSubnetHash(v interface{}) int {
+func resourceAzureSubnetHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
+	if m, ok := v.(map[string]any); ok {
 		buf.WriteString(m["name"].(string))
 		if v, ok := m["address_prefix"]; ok {
 			buf.WriteString(v.(string))
@@ -540,57 +1097,210 @@ func resourceAzureSubnetHash(v interface{}) int {
 	return pluginsdk.HashString(buf.String())
 }
 
-func getExistingSubnet(ctx context.Context, resGroup string, vnetName string, subnetName string, meta interface{}) (*network.Subnet, error) {
-	subnetClient := meta.(*clients.Client).Network.SubnetsClient
-	resp, err := subnetClient.Get(ctx, resGroup, vnetName, subnetName, "")
+func getExistingSubnet(ctx context.Context, client virtualnetworks.VirtualNetworksClient, id commonids.VirtualNetworkId, subnetName string) (*virtualnetworks.Subnet, error) {
+	resp, err := client.Get(ctx, id, virtualnetworks.DefaultGetOperationOptions())
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
-			return &network.Subnet{}, nil
+		// The Subnet doesn't exist when the Virtual Network doesn't exist
+		if response.WasNotFound(resp.HttpResponse) {
+			return pointer.To(virtualnetworks.Subnet{}), nil
 		}
 		// raise an error if there was an issue other than 404 in getting subnet properties
 		return nil, err
 	}
 
-	// Return it directly rather than copy the fields to prevent potential uncovered properties (for example, `ServiceEndpoints` mentioned in #1619)
-	return &resp, nil
-}
-
-func expandAzureRmVirtualNetworkVirtualNetworkSecurityGroupNames(d *pluginsdk.ResourceData) ([]string, error) {
-	nsgNames := make([]string, 0)
-
-	if v, ok := d.GetOk("subnet"); ok {
-		subnets := v.(*pluginsdk.Set).List()
-		for _, subnet := range subnets {
-			subnet, ok := subnet.(map[string]interface{})
-			if !ok {
-				return nil, fmt.Errorf("[ERROR] Subnet should be a Hash - was '%+v'", subnet)
-			}
-
-			networkSecurityGroupId := subnet["security_group"].(string)
-			if networkSecurityGroupId != "" {
-				parsedNsgID, err := parse.NetworkSecurityGroupID(networkSecurityGroupId)
-				if err != nil {
-					return nil, err
-				}
-
-				networkSecurityGroupName := parsedNsgID.Name
-				if !utils.SliceContainsValue(nsgNames, networkSecurityGroupName) {
-					nsgNames = append(nsgNames, networkSecurityGroupName)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			for _, subnet := range pointer.From(props.Subnets) {
+				if subnetName == pointer.From(subnet.Name) {
+					// Return it directly rather than copy the fields to prevent potential uncovered properties (for example, `ServiceEndpoints` mentioned in #1619)
+					return pointer.To(subnet), nil
 				}
 			}
 		}
 	}
 
-	return nsgNames, nil
+	return pointer.To(virtualnetworks.Subnet{}), nil
 }
 
-func VirtualNetworkProvisioningStateRefreshFunc(ctx context.Context, client *network.VirtualNetworksClient, id commonids.VirtualNetworkId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id.ResourceGroupName, id.VirtualNetworkName, "")
-		if err != nil {
-			return nil, "", fmt.Errorf("polling for %s: %+v", id.String(), err)
+func expandResourcesForLocking(d *pluginsdk.ResourceData) ([]string, []string, error) {
+	nsgIds := make([]string, 0)
+	routeTableIds := make([]string, 0)
+
+	if v, ok := d.GetOk("subnet"); ok {
+		subnets := v.(*pluginsdk.Set).List()
+		for _, subnet := range subnets {
+			subnet, ok := subnet.(map[string]any)
+			if !ok {
+				return nil, nil, fmt.Errorf("[ERROR] Subnet should be a Hash - was '%+v'", subnet)
+			}
+
+			networkSecurityGroupId := subnet["security_group"].(string)
+			if networkSecurityGroupId != "" {
+				parsedNsgID, err := networksecuritygroups.ParseNetworkSecurityGroupID(networkSecurityGroupId)
+				if err != nil {
+					return nil, nil, err
+				}
+				nsgIds = append(nsgIds, parsedNsgID.ID())
+			}
+
+			routeTableId := subnet["route_table_id"].(string)
+			if routeTableId != "" {
+				parsedRouteTableID, err := routetables.ParseRouteTableID(routeTableId)
+				if err != nil {
+					return nil, nil, err
+				}
+				routeTableIds = append(routeTableIds, parsedRouteTableID.ID())
+			}
+		}
+	}
+
+	return nsgIds, routeTableIds, nil
+}
+
+func expandVirtualNetworkSubnetServiceEndpointPolicies(input []any) *[]virtualnetworks.ServiceEndpointPolicy {
+	output := make([]virtualnetworks.ServiceEndpointPolicy, 0)
+	for _, policy := range input {
+		output = append(output, virtualnetworks.ServiceEndpointPolicy{Id: pointer.To(policy.(string))})
+	}
+	return &output
+}
+
+func expandVirtualNetworkSubnetDelegation(input []any) *[]virtualnetworks.Delegation {
+	retDelegations := make([]virtualnetworks.Delegation, 0)
+
+	for _, deleValue := range input {
+		deleData := deleValue.(map[string]any)
+		srvDelegations := deleData["service_delegation"].([]any)
+		srvDelegation := srvDelegations[0].(map[string]any)
+
+		srvActions := srvDelegation["actions"].(*pluginsdk.Set).List()
+
+		retSrvActions := make([]string, 0)
+		for _, srvAction := range srvActions {
+			srvActionData := srvAction.(string)
+			retSrvActions = append(retSrvActions, srvActionData)
 		}
 
-		return res, string(res.ProvisioningState), nil
+		retDelegation := virtualnetworks.Delegation{
+			Name: pointer.To(deleData["name"].(string)),
+			Properties: &virtualnetworks.ServiceDelegationPropertiesFormat{
+				ServiceName: pointer.To(srvDelegation["name"].(string)),
+				Actions:     &retSrvActions,
+			},
+		}
+
+		retDelegations = append(retDelegations, retDelegation)
+	}
+
+	return &retDelegations
+}
+
+func flattenVirtualNetworkSubnetServiceEndpointPolicies(input *[]virtualnetworks.ServiceEndpointPolicy) []any {
+	output := make([]any, 0)
+	if input == nil {
+		return output
+	}
+
+	for _, policy := range *input {
+		id := pointer.From(policy.Id)
+		output = append(output, id)
+	}
+	return output
+}
+
+func expandVirtualNetworkSubnetServiceEndpoint(input []any) *[]virtualnetworks.ServiceEndpointPropertiesFormat {
+	endpoints := make([]virtualnetworks.ServiceEndpointPropertiesFormat, 0)
+
+	for _, item := range input {
+		v := item.(map[string]any)
+		endpoint := virtualnetworks.ServiceEndpointPropertiesFormat{
+			Service: pointer.To(v["service"].(string)),
+		}
+		if networkIdentifier := v["network_identifier"].(string); networkIdentifier != "" {
+			endpoint.NetworkIdentifier = &virtualnetworks.SubResource{
+				Id: pointer.To(networkIdentifier),
+			}
+		}
+		endpoints = append(endpoints, endpoint)
+	}
+
+	return &endpoints
+}
+
+func flattenVirtualNetworkSubnetServiceEndpoint(serviceEndpoints *[]virtualnetworks.ServiceEndpointPropertiesFormat) []any {
+	endpoints := make([]any, 0)
+
+	if serviceEndpoints == nil {
+		return endpoints
+	}
+
+	for _, endpoint := range *serviceEndpoints {
+		item := map[string]any{
+			"service": pointer.From(endpoint.Service),
+		}
+		if endpoint.NetworkIdentifier != nil {
+			item["network_identifier"] = pointer.From(endpoint.NetworkIdentifier.Id)
+		}
+		endpoints = append(endpoints, item)
+	}
+
+	return endpoints
+}
+
+func flattenVirtualNetworkSubnetDelegation(delegations *[]virtualnetworks.Delegation) []any {
+	if delegations == nil {
+		return []any{}
+	}
+
+	retDeles := make([]any, 0)
+
+	normalizeServiceName := map[string]string{}
+	for _, normName := range subnetDelegationServiceNames {
+		normalizeServiceName[strings.ToLower(normName)] = normName
+	}
+
+	for _, dele := range *delegations {
+		retDele := make(map[string]any)
+		if v := dele.Name; v != nil {
+			retDele["name"] = *v
+		}
+
+		svcDeles := make([]any, 0)
+		svcDele := make(map[string]any)
+		if props := dele.Properties; props != nil {
+			if v := props.ServiceName; v != nil {
+				name := *v
+				if nv, ok := normalizeServiceName[strings.ToLower(name)]; ok {
+					name = nv
+				}
+				svcDele["name"] = name
+			}
+
+			if v := props.Actions; v != nil {
+				svcDele["actions"] = *v
+			}
+		}
+
+		svcDeles = append(svcDeles, svcDele)
+
+		retDele["service_delegation"] = svcDeles
+
+		retDeles = append(retDeles, retDele)
+	}
+
+	return retDeles
+}
+
+func VirtualNetworkProvisioningStateRefreshFunc(ctx context.Context, client *virtualnetworks.VirtualNetworksClient, id commonids.VirtualNetworkId) pluginsdk.StateRefreshFunc {
+	return func() (any, string, error) {
+		res, err := client.Get(ctx, id, virtualnetworks.DefaultGetOperationOptions())
+		if err != nil {
+			return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
+		}
+
+		if res.Model != nil && res.Model.Properties != nil {
+			return res, pointer.FromEnum(res.Model.Properties.ProvisioningState), nil
+		}
+		return res, "", fmt.Errorf("polling for %s: %+v", id, err)
 	}
 }

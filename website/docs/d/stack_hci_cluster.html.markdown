@@ -47,18 +47,42 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Azure Stack HCI Cluster.
 
-* `location` - The Azure Region where the Azure Stack HCI Cluster exists.
+* `automanage_configuration_id` - The ID of the Automanage Configuration assigned to the Azure Stack HCI Cluster.
 
 * `client_id` - The Client ID of the Azure Active Directory used by the Azure Stack HCI Cluster.
+
+* `cloud_id` - An immutable UUID for the Azure Stack HCI Cluster.
+
+* `identity` - An `identity` block as defined below.
+
+* `location` - The Azure Region where the Azure Stack HCI Cluster exists.
+
+* `resource_provider_object_id` - The object ID of the Resource Provider Service Principal.
+
+* `service_endpoint` - The region specific Data Path Endpoint of the Azure Stack HCI Cluster.
 
 * `tenant_id` - The Tenant ID of the Azure Active Directory used by the Azure Stack HCI Cluster.
 
 * `tags` - A mapping of tags assigned to the Azure Stack HCI Cluster.
 
-* `automanage_configuration_id` - The ID of the Automanage Configuration assigned to the Azure Stack HCI Cluster.
+---
+
+An `identity` block exports the following:
+
+* `type` - (Required) The type of Managed Service Identity configured on the Azure Stack HCI Cluster.
+
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure Stack HCI Cluster.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.AzureStackHCI` - 2024-01-01, 2022-05-04

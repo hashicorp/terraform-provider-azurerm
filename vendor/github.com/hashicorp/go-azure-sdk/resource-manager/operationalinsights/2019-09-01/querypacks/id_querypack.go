@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&QueryPackId{})
+}
 
 var _ resourceids.ResourceId = &QueryPackId{}
 
@@ -37,7 +42,7 @@ func ParseQueryPackID(input string) (*QueryPackId, error) {
 	}
 
 	id := QueryPackId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -54,7 +59,7 @@ func ParseQueryPackIDInsensitively(input string) (*QueryPackId, error) {
 	}
 
 	id := QueryPackId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -110,7 +115,7 @@ func (id QueryPackId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftOperationalInsights", "Microsoft.OperationalInsights", "Microsoft.OperationalInsights"),
 		resourceids.StaticSegment("staticQueryPacks", "queryPacks", "queryPacks"),
-		resourceids.UserSpecifiedSegment("queryPackName", "queryPackValue"),
+		resourceids.UserSpecifiedSegment("queryPackName", "queryPackName"),
 	}
 }
 

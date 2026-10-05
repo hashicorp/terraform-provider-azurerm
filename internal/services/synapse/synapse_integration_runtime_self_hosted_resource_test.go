@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package synapse_test
@@ -8,19 +8,19 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/integrationruntimes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type IntegrationRuntimeSelfHostedResource struct{}
+type SynapseIntegrationRuntimeSelfHostedResource struct{}
 
 func TestAccSynapseIntegrationRuntimeSelfHosted_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_integration_runtime_self_hosted", "test")
-	r := IntegrationRuntimeSelfHostedResource{}
+	r := SynapseIntegrationRuntimeSelfHostedResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccSynapseIntegrationRuntimeSelfHosted_basic(t *testing.T) {
 
 func TestAccSynapseIntegrationRuntimeSelfHosted_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_integration_runtime_self_hosted", "test")
-	r := IntegrationRuntimeSelfHostedResource{}
+	r := SynapseIntegrationRuntimeSelfHostedResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -48,19 +48,19 @@ func TestAccSynapseIntegrationRuntimeSelfHosted_requiresImport(t *testing.T) {
 	})
 }
 
-func (r IntegrationRuntimeSelfHostedResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.IntegrationRuntimeID(state.ID)
+func (r SynapseIntegrationRuntimeSelfHostedResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := integrationruntimes.ParseIntegrationRuntimeID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := clients.Synapse.IntegrationRuntimesClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, "")
+	resp, err := clients.Synapse.IntegrationRuntimesClient.Get(ctx, id.ResourceGroupName, id.WorkspaceName, id.IntegrationRuntimeName, "")
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", id, err)
 	}
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.ID != nil), nil
 }
 
-func (r IntegrationRuntimeSelfHostedResource) template(data acceptance.TestData) string {
+func (r SynapseIntegrationRuntimeSelfHostedResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -81,7 +81,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "content"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -109,10 +109,10 @@ resource "azurerm_synapse_firewall_rule" "test" {
   start_ip_address     = "0.0.0.0"
   end_ip_address       = "255.255.255.255"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func (r IntegrationRuntimeSelfHostedResource) basic(data acceptance.TestData) string {
+func (r SynapseIntegrationRuntimeSelfHostedResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -124,7 +124,7 @@ resource "azurerm_synapse_integration_runtime_self_hosted" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r IntegrationRuntimeSelfHostedResource) requiresImport(data acceptance.TestData) string {
+func (r SynapseIntegrationRuntimeSelfHostedResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

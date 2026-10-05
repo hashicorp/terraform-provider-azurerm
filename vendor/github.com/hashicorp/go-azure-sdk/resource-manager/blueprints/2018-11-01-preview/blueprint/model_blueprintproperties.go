@@ -10,6 +10,6 @@ type BlueprintProperties struct {
 	Parameters     *map[string]ParameterDefinition     `json:"parameters,omitempty"`
 	ResourceGroups *map[string]ResourceGroupDefinition `json:"resourceGroups,omitempty"`
 	Status         *BlueprintResourceStatusBase        `json:"status,omitempty"`
-	TargetScope    BlueprintTargetScope                `json:"targetScope"`
+	TargetScope    *BlueprintTargetScope               `json:"targetScope,omitempty"`
 	Versions       *interface{}                        `json:"versions,omitempty"`
 }

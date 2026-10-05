@@ -39,6 +39,7 @@ func (o ListDeploymentsAtManagementGroupOperationOptions) ToHeaders() *client.He
 
 func (o ListDeploymentsAtManagementGroupOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -50,6 +51,18 @@ func (o ListDeploymentsAtManagementGroupOperationOptions) ToQuery() *client.Quer
 	return &out
 }
 
+type ListDeploymentsAtManagementGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListDeploymentsAtManagementGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListDeploymentsAtManagementGroup ...
 func (c RemediationsClient) ListDeploymentsAtManagementGroup(ctx context.Context, id Providers2RemediationId, options ListDeploymentsAtManagementGroupOperationOptions) (result ListDeploymentsAtManagementGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -58,8 +71,9 @@ func (c RemediationsClient) ListDeploymentsAtManagementGroup(ctx context.Context
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/listDeployments", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListDeploymentsAtManagementGroupCustomPager{},
+		Path:          fmt.Sprintf("%s/listDeployments", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -100,6 +114,7 @@ func (c RemediationsClient) ListDeploymentsAtManagementGroupCompleteMatchingPred
 
 	resp, err := c.ListDeploymentsAtManagementGroup(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

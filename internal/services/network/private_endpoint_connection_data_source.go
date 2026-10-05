@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -9,15 +9,15 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/privateendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkinterfaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/privateendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func dataSourcePrivateEndpointConnection() *pluginsdk.Resource {
@@ -83,10 +83,10 @@ func dataSourcePrivateEndpointConnection() *pluginsdk.Resource {
 	}
 }
 
-func dataSourcePrivateEndpointConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourcePrivateEndpointConnectionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.PrivateEndpoints
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	nicsClient := meta.(*clients.Client).Network.InterfacesClient
+	nicsClient := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -132,40 +132,42 @@ func dataSourcePrivateEndpointConnectionRead(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func flattenNetworkInterface(networkInterfaceId string) interface{} {
-	id, err := parse.NetworkInterfaceID(networkInterfaceId)
+func flattenNetworkInterface(networkInterfaceId string) any {
+	id, err := commonids.ParseNetworkInterfaceID(networkInterfaceId)
 	if err != nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"id":   id.ID(),
-			"name": id.Name,
+			"name": id.NetworkInterfaceName,
 		},
 	}
 }
 
-func getPrivateIpAddress(ctx context.Context, client *network.InterfacesClient, networkInterfaceId string) string {
+func getPrivateIpAddress(ctx context.Context, client *networkinterfaces.NetworkInterfacesClient, networkInterfaceId string) string {
 	privateIpAddress := ""
-	id, err := parse.NetworkInterfaceID(networkInterfaceId)
+	id, err := commonids.ParseNetworkInterfaceID(networkInterfaceId)
 	if err != nil {
 		return privateIpAddress
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := client.Get(ctx, *id, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
 		return privateIpAddress
 	}
 
-	if props := resp.InterfacePropertiesFormat; props != nil {
-		if configs := props.IPConfigurations; configs != nil {
-			for i, config := range *configs {
-				if propFmt := config.InterfaceIPConfigurationPropertiesFormat; propFmt != nil {
-					if propFmt.PrivateIPAddress != nil && *propFmt.PrivateIPAddress != "" && i == 0 {
-						privateIpAddress = *propFmt.PrivateIPAddress
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if configs := props.IPConfigurations; configs != nil {
+				for i, config := range *configs {
+					if propFmt := config.Properties; propFmt != nil {
+						if propFmt.PrivateIPAddress != nil && *propFmt.PrivateIPAddress != "" && i == 0 {
+							privateIpAddress = *propFmt.PrivateIPAddress
+						}
+						break
 					}
-					break
 				}
 			}
 		}
@@ -174,15 +176,15 @@ func getPrivateIpAddress(ctx context.Context, client *network.InterfacesClient, 
 	return privateIpAddress
 }
 
-func dataSourceFlattenPrivateEndpointServiceConnection(serviceConnections *[]privateendpoints.PrivateLinkServiceConnection, manualServiceConnections *[]privateendpoints.PrivateLinkServiceConnection, privateIpAddress string) []interface{} {
-	results := make([]interface{}, 0)
+func dataSourceFlattenPrivateEndpointServiceConnection(serviceConnections *[]privateendpoints.PrivateLinkServiceConnection, manualServiceConnections *[]privateendpoints.PrivateLinkServiceConnection, privateIpAddress string) []any {
+	results := make([]any, 0)
 	if serviceConnections == nil && manualServiceConnections == nil {
 		return results
 	}
 
 	if serviceConnections != nil {
 		for _, item := range *serviceConnections {
-			result := make(map[string]interface{})
+			result := make(map[string]any)
 			result["private_ip_address"] = privateIpAddress
 
 			if v := item.Name; v != nil {
@@ -205,7 +207,7 @@ func dataSourceFlattenPrivateEndpointServiceConnection(serviceConnections *[]pri
 
 	if manualServiceConnections != nil {
 		for _, item := range *manualServiceConnections {
-			result := make(map[string]interface{})
+			result := make(map[string]any)
 			result["private_ip_address"] = privateIpAddress
 
 			if v := item.Name; v != nil {

@@ -77,7 +77,7 @@ resource "azurerm_private_link_service" "example" {
   }
 
   load_balancer_frontend_ip_configuration_ids = [
-    azurerm_lb.example.frontend_ip_configuration.0.id,
+    azurerm_lb.example.frontend_ip_configuration[0].id,
   ]
 }
 
@@ -183,14 +183,13 @@ resource "azurerm_private_dns_zone" "example" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "example" {
-  name                  = "example-link"
-  resource_group_name   = azurerm_resource_group.example.name
-  private_dns_zone_name = azurerm_private_dns_zone.example.name
-  virtual_network_id    = azurerm_virtual_network.example.id
+  name                = "example-link"
+  private_dns_zone_id = azurerm_private_dns_zone.example.id
+  virtual_network_id  = azurerm_virtual_network.example.id
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -199,6 +198,8 @@ The following arguments are supported:
 * `resource_group_name` - (Required) Specifies the Name of the Resource Group within which the Private Endpoint should exist. Changing this forces a new resource to be created.
 
 * `location` - (Required) The supported Azure location where the resource exists. Changing this forces a new resource to be created.
+
+* `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Private Endpoint should exist. Changing this forces a new resource to be created.
 
 * `subnet_id` - (Required) The ID of the Subnet from which Private IP Addresses will be allocated for this Private Endpoint. Changing this forces a new resource to be created.
 
@@ -228,17 +229,21 @@ A `private_service_connection` block supports the following:
 
 * `is_manual_connection` - (Required) Does the Private Endpoint require Manual Approval from the remote resource owner? Changing this forces a new resource to be created.
 
--> **NOTE:** If you are trying to connect the Private Endpoint to a remote resource without having the correct RBAC permissions on the remote resource set this value to `true`.
+-> **Note:** If you are trying to connect the Private Endpoint to a remote resource without having the correct RBAC permissions on the remote resource set this value to `true`.
 
 * `private_connection_resource_id` - (Optional) The ID of the Private Link Enabled Remote Resource which this Private Endpoint should be connected to. One of `private_connection_resource_id` or `private_connection_resource_alias` must be specified. Changing this forces a new resource to be created. For a web app or function app slot, the parent web app should be used in this field instead of a reference to the slot itself.
 
 * `private_connection_resource_alias` - (Optional) The Service Alias of the Private Link Enabled Remote Resource which this Private Endpoint should be connected to. One of `private_connection_resource_id` or `private_connection_resource_alias` must be specified. Changing this forces a new resource to be created.
 
-* `subresource_names` - (Optional) A list of subresource names which the Private Endpoint is able to connect to. `subresource_names` corresponds to `group_id`. Possible values are detailed in the product [documentation](https://docs.microsoft.com/azure/private-link/private-endpoint-overview#private-link-resource) in the `Subresources` column. Changing this forces a new resource to be created.
+* `subresource_names` - (Optional) A list of subresource names which the Private Endpoint is able to connect to. `subresource_names` corresponds to `group_id`. Possible values are detailed in the product [documentation](https://docs.microsoft.com/azure/private-link/private-endpoint-overview#private-link-resource) in the `Subresources` column. Changing this forces a new resource to be created. 
 
--> **NOTE:** Some resource types (such as Storage Account) only support 1 subresource per private endpoint.
+-> **Note:** Some resource types (such as Storage Account) only support 1 subresource per private endpoint.
 
-* `request_message` - (Optional) A message passed to the owner of the remote resource when the private endpoint attempts to establish the connection to the remote resource. The request message can be a maximum of `140` characters in length. Only valid if `is_manual_connection` is set to `true`.
+-> **Note:** For most Private Links one or more `subresource_names` will need to be specified, please see the linked documentation for details.
+
+* `request_message` - (Optional) A message passed to the owner of the remote resource when the private endpoint attempts to establish the connection to the remote resource. The provider allows a maximum request message length of `140` characters, however the request message maximum length is dependent on the service the private endpoint is connected to. Only valid if `is_manual_connection` is set to `true`.
+
+-> **Note:** When connected to an SQL resource the `request_message` maximum length is `128`.
 
 ---
 
@@ -252,7 +257,7 @@ An `ip_configuration` block supports the following:
 
 * `member_name` - (Optional) Specifies the member name this IP address applies to. If it is not specified, it will use the value of `subresource_name`. Changing this forces a new resource to be created.
 
--> **NOTE:** `member_name` will be required and will not take the value of `subresource_name` in the next major version.
+-> **Note:** `member_name` will be required and will not take the value of `subresource_name` in the next major version.
 
 ## Attributes Reference
 
@@ -290,7 +295,7 @@ A `custom_dns_configs` block exports:
 
 * `ip_addresses` - A list of all IP Addresses that map to the `private_endpoint` fqdn.
 
--> **NOTE:** If a Private DNS Zone Group has been defined and is currently connected correctly this block will be empty.
+-> **Note:** If a Private DNS Zone Group has been defined and is currently connected correctly this block will be empty.
 
 ---
 
@@ -300,7 +305,7 @@ A `private_dns_zone_configs` block exports:
 
 * `id` - The ID of the Private DNS Zone Config.
 
-* `private_dns_zone_id` - A list of IP Addresses
+* `private_dns_zone_id` - The ID of the Private DNS Zone that the config belongs to.
 
 * `record_sets` - A `record_sets` block as defined below.
 
@@ -308,17 +313,8 @@ A `private_dns_zone_configs` block exports:
 
 A `private_service_connection` block exports:
 
-* `private_ip_address` - (Computed) The private IP address associated with the private endpoint, note that you will have a private IP address assigned to the private endpoint even if the connection request was `Rejected`.
+* `private_ip_address` - The private IP address associated with the private endpoint, note that you will have a private IP address assigned to the private endpoint even if the connection request was `Rejected`.
 
----
-
-An `ip_configuration` block exports:
-
-* `name` - (Required) The Name of the IP Configuration.
-
-* `private_ip_address` - (Required) The static IP address set by this configuration. It is recommended to use the private IP address exported in the `private_service_connection` block to obtain the address associated with the private endpoint.
-
-* `subresource_name` - (Required) The subresource this IP address applies to, which corresponds to the `group_id`.
 
 ---
 
@@ -334,7 +330,7 @@ A `record_sets` block exports:
 
 * `ip_addresses` - A list of all IP Addresses that map to the `private_dns_zone` fqdn.
 
--> **NOTE:** If a Private DNS Zone Group has not been configured correctly the `record_sets` attributes will be empty.
+-> **Note:** If a Private DNS Zone Group has not been configured correctly the `record_sets` attributes will be empty.
 
 ---
 
@@ -347,15 +343,16 @@ A `record_sets` block exports:
 * How to connect a `Private Endpoint` to a [Private Link Service](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/private-link-service)
 * How to connect a `Private Endpoint` to a [Private DNS Group](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/private-dns-group)
 * How to connect a `Private Endpoint` to a [Databricks Workspace](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/databricks)
+* How to connect a `Private Endpoint` to a [Managed Redis](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/managed-redis)
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Private Endpoint.
-* `update` - (Defaults to 60 minutes) Used when updating the Private Endpoint.
+* `create` - (Defaults to 1 hour) Used when creating the Private Endpoint.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Private Endpoint.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Private Endpoint.
+* `update` - (Defaults to 1 hour) Used when updating the Private Endpoint.
+* `delete` - (Defaults to 1 hour) Used when deleting the Private Endpoint.
 
 ## Import
 
@@ -364,3 +361,9 @@ Private Endpoints can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_private_endpoint.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/privateEndpoints/endpoint1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2025-07-01

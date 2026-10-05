@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&PrivateLinkAssociationId{})
+}
 
 var _ resourceids.ResourceId = &PrivateLinkAssociationId{}
 
@@ -35,7 +40,7 @@ func ParsePrivateLinkAssociationID(input string) (*PrivateLinkAssociationId, err
 	}
 
 	id := PrivateLinkAssociationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -52,7 +57,7 @@ func ParsePrivateLinkAssociationIDInsensitively(input string) (*PrivateLinkAssoc
 	}
 
 	id := PrivateLinkAssociationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -100,11 +105,11 @@ func (id PrivateLinkAssociationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftManagement", "Microsoft.Management", "Microsoft.Management"),
 		resourceids.StaticSegment("staticManagementGroups", "managementGroups", "managementGroups"),
-		resourceids.UserSpecifiedSegment("groupId", "groupIdValue"),
+		resourceids.UserSpecifiedSegment("groupId", "groupId"),
 		resourceids.StaticSegment("staticProviders2", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAuthorization", "Microsoft.Authorization", "Microsoft.Authorization"),
 		resourceids.StaticSegment("staticPrivateLinkAssociations", "privateLinkAssociations", "privateLinkAssociations"),
-		resourceids.UserSpecifiedSegment("plaId", "plaIdValue"),
+		resourceids.UserSpecifiedSegment("plaId", "plaId"),
 	}
 }
 

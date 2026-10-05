@@ -32,8 +32,7 @@ resource "azurerm_storage_table" "example" {
 }
 
 resource "azurerm_storage_table_entity" "example" {
-  storage_account_name = azurerm_storage_account.example.name
-  table_name           = azurerm_storage_table.example.name
+  storage_table_id = azurerm_storage_table.example.id
 
   partition_key = "examplepartition"
   row_key       = "examplerow"
@@ -44,17 +43,15 @@ resource "azurerm_storage_table_entity" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
-* `storage_account_name` - (Required) Specifies the storage account in which to create the storage table entity. Changing this forces a new resource to be created.
+* `storage_table_id` - (Required) The ID of the storage table in which this entity will be placed. Changing this forces a new resource to be created.
 
-* `table_name` - (Required) The name of the storage table in which to create the storage table entity. Changing this forces a new resource to be created.
+* `partition_key` - (Required) The key for the partition where the entity will be inserted/merged. Changing this forces a new resource to be created.
 
-* `partition_key` - (Required) The key for the partition where the entity will be inserted/merged. Changing this forces a new resource.
-
-* `row_key` - (Required) The key for the row where the entity will be inserted/merged. Changing this forces a new resource.
+* `row_key` - (Required) The key for the row where the entity will be inserted/merged. Changing this forces a new resource to be created.
 
 * `entity` - (Required) A map of key/value pairs that describe the entity to be inserted/merged in to the storage table.
 
@@ -66,11 +63,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Storage Table Entity.
-* `update` - (Defaults to 30 minutes) Used when updating the Storage Table Entity.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Table Entity.
+* `update` - (Defaults to 30 minutes) Used when updating the Storage Table Entity.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Storage Table Entity.
 
 ## Import

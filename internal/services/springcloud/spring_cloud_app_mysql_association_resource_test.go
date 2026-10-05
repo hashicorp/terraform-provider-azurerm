@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SpringCloudAppMysqlAssociationResource struct{}
@@ -71,17 +71,17 @@ func TestAccSpringCloudAppMysqlAssociation_update(t *testing.T) {
 }
 
 func (r SpringCloudAppMysqlAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.SpringCloudAppAssociationID(state.ID)
+	id, err := appplatform.ParseBindingID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.AppPlatform.BindingsClient.Get(ctx, id.ResourceGroup, id.SpringName, id.AppName, id.BindingName)
+	resp, err := clients.AppPlatform.BindingsClient.Get(ctx, id.ResourceGroupName, id.SpringName, id.AppName, id.BindingName)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.Properties != nil), nil
+	return pointer.To(resp.Properties != nil), nil
 }
 
 func (r SpringCloudAppMysqlAssociationResource) basic(data acceptance.TestData) string {
@@ -91,10 +91,10 @@ func (r SpringCloudAppMysqlAssociationResource) basic(data acceptance.TestData) 
 resource "azurerm_spring_cloud_app_mysql_association" "test" {
   name                = "acctestscamb-%d"
   spring_cloud_app_id = azurerm_spring_cloud_app.test.id
-  mysql_server_id     = azurerm_mysql_server.test.id
-  database_name       = azurerm_mysql_database.test.name
-  username            = azurerm_mysql_server.test.administrator_login
-  password            = azurerm_mysql_server.test.administrator_login_password
+  mysql_server_id     = azurerm_mysql_flexible_server.test.id
+  database_name       = azurerm_mysql_flexible_database.test.name
+  username            = azurerm_mysql_flexible_server.test.administrator_login
+  password            = azurerm_mysql_flexible_server.test.administrator_password
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -118,10 +118,10 @@ func (r SpringCloudAppMysqlAssociationResource) update(data acceptance.TestData)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_mysql_database" "updated" {
-  name                = "acctest-db2-%d"
+resource "azurerm_mysql_flexible_database" "updated" {
+  name                = "acctestdb2_%d"
   resource_group_name = azurerm_resource_group.test.name
-  server_name         = azurerm_mysql_server.test.name
+  server_name         = azurerm_mysql_flexible_server.test.name
   charset             = "utf8"
   collation           = "utf8_unicode_ci"
 }
@@ -129,10 +129,10 @@ resource "azurerm_mysql_database" "updated" {
 resource "azurerm_spring_cloud_app_mysql_association" "test" {
   name                = "acctestscamb-%d"
   spring_cloud_app_id = azurerm_spring_cloud_app.test.id
-  mysql_server_id     = azurerm_mysql_server.test.id
-  database_name       = azurerm_mysql_database.updated.name
-  username            = azurerm_mysql_server.test.administrator_login
-  password            = azurerm_mysql_server.test.administrator_login_password
+  mysql_server_id     = azurerm_mysql_flexible_server.test.id
+  database_name       = azurerm_mysql_flexible_database.updated.name
+  username            = azurerm_mysql_flexible_server.test.administrator_login
+  password            = azurerm_mysql_flexible_server.test.administrator_password
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
 }
@@ -160,23 +160,20 @@ resource "azurerm_spring_cloud_app" "test" {
   service_name        = azurerm_spring_cloud_service.test.name
 }
 
-resource "azurerm_mysql_server" "test" {
-  name                             = "acctestmysqlsvr-%d"
-  location                         = azurerm_resource_group.test.location
-  resource_group_name              = azurerm_resource_group.test.name
-  sku_name                         = "GP_Gen5_2"
-  administrator_login              = "acctestun"
-  administrator_login_password     = "H@Sh1CoR3!"
-  ssl_enforcement_enabled          = true
-  ssl_minimal_tls_version_enforced = "TLS1_1"
-  storage_mb                       = 51200
-  version                          = "5.7"
+resource "azurerm_mysql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  sku_name               = "B_Standard_B1ms"
+  zone                   = "2"
 }
 
-resource "azurerm_mysql_database" "test" {
-  name                = "acctest-db-%d"
+resource "azurerm_mysql_flexible_database" "test" {
+  name                = "acctestdb_%d"
   resource_group_name = azurerm_resource_group.test.name
-  server_name         = azurerm_mysql_server.test.name
+  server_name         = azurerm_mysql_flexible_server.test.name
   charset             = "utf8"
   collation           = "utf8_unicode_ci"
 }

@@ -15,12 +15,24 @@ import (
 type CredentialOperationsListByFactoryOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]ManagedIdentityCredentialResource
+	Model        *[]CredentialResource
 }
 
 type CredentialOperationsListByFactoryCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []ManagedIdentityCredentialResource
+	Items              []CredentialResource
+}
+
+type CredentialOperationsListByFactoryCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *CredentialOperationsListByFactoryCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // CredentialOperationsListByFactory ...
@@ -31,6 +43,7 @@ func (c CredentialsClient) CredentialOperationsListByFactory(ctx context.Context
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &CredentialOperationsListByFactoryCustomPager{},
 		Path:       fmt.Sprintf("%s/credentials", id.ID()),
 	}
 
@@ -50,7 +63,7 @@ func (c CredentialsClient) CredentialOperationsListByFactory(ctx context.Context
 	}
 
 	var values struct {
-		Values *[]ManagedIdentityCredentialResource `json:"value"`
+		Values *[]CredentialResource `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -63,15 +76,16 @@ func (c CredentialsClient) CredentialOperationsListByFactory(ctx context.Context
 
 // CredentialOperationsListByFactoryComplete retrieves all the results into a single object
 func (c CredentialsClient) CredentialOperationsListByFactoryComplete(ctx context.Context, id FactoryId) (CredentialOperationsListByFactoryCompleteResult, error) {
-	return c.CredentialOperationsListByFactoryCompleteMatchingPredicate(ctx, id, ManagedIdentityCredentialResourceOperationPredicate{})
+	return c.CredentialOperationsListByFactoryCompleteMatchingPredicate(ctx, id, CredentialResourceOperationPredicate{})
 }
 
 // CredentialOperationsListByFactoryCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c CredentialsClient) CredentialOperationsListByFactoryCompleteMatchingPredicate(ctx context.Context, id FactoryId, predicate ManagedIdentityCredentialResourceOperationPredicate) (result CredentialOperationsListByFactoryCompleteResult, err error) {
-	items := make([]ManagedIdentityCredentialResource, 0)
+func (c CredentialsClient) CredentialOperationsListByFactoryCompleteMatchingPredicate(ctx context.Context, id FactoryId, predicate CredentialResourceOperationPredicate) (result CredentialOperationsListByFactoryCompleteResult, err error) {
+	items := make([]CredentialResource, 0)
 
 	resp, err := c.CredentialOperationsListByFactory(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

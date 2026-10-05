@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -19,7 +19,7 @@ var _ pluginsdk.StateUpgrade = KeyResourceV0ToV1{}
 type KeyResourceV0ToV1 struct{}
 
 func (KeyResourceV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		// old:
 		// 	/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/key%3Aname%2Ftest/Label/test%3Alabel%2Fname
 		// new:
@@ -82,7 +82,9 @@ func KeyResourceSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 		},
 		"tags": {
-			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
 			Optional: true,
 			Type:     pluginsdk.TypeMap,
 		},

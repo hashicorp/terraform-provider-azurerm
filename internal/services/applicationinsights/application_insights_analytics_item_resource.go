@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package applicationinsights
@@ -8,16 +8,22 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/analyticsitemsapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
+)
+
+var (
+	userScopePath   = "myAnalyticsItems"
+	sharedScopePath = "analyticsItems"
 )
 
 func resourceApplicationInsightsAnalyticsItem() *pluginsdk.Resource {
@@ -28,14 +34,12 @@ func resourceApplicationInsightsAnalyticsItem() *pluginsdk.Resource {
 		Delete: resourceApplicationInsightsAnalyticsItemDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			if strings.Contains(id, "myAnalyticsItems") {
-				_, err := parse.AnalyticsUserItemID(id)
-				return err
-			} else {
-				strings.Contains(id, string(insights.ItemScopePathAnalyticsItems))
-				_, err := parse.AnalyticsSharedItemID(id)
-				return err
+			if strings.Contains(id, userScopePath) || strings.Contains(id, sharedScopePath) {
+				if _, err := analyticsitemsapis.ParseProviderComponentID(id); err != nil {
+					return err
+				}
 			}
+			return nil
 		}),
 
 		SchemaVersion: 1,
@@ -62,7 +66,7 @@ func resourceApplicationInsightsAnalyticsItem() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ComponentID,
+				ValidateFunc: componentsapis.ValidateComponentID,
 			},
 
 			"version": {
@@ -76,13 +80,10 @@ func resourceApplicationInsightsAnalyticsItem() *pluginsdk.Resource {
 			},
 
 			"scope": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(insights.ItemScopeShared),
-					string(insights.ItemScopeUser),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(analyticsitemsapis.PossibleValuesForItemScope(), false),
 			},
 
 			"type": {
@@ -90,10 +91,10 @@ func resourceApplicationInsightsAnalyticsItem() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(insights.ItemTypeQuery),
-					string(insights.ItemTypeFunction),
-					string(insights.ItemTypeFolder),
-					string(insights.ItemTypeRecent),
+					string(analyticsitemsapis.ItemTypeQuery),
+					string(analyticsitemsapis.ItemTypeFunction),
+					string(analyticsitemsapis.ItemTypeParameterFolder),
+					string(analyticsitemsapis.ItemTypeRecent),
 				}, false),
 			},
 
@@ -115,180 +116,201 @@ func resourceApplicationInsightsAnalyticsItem() *pluginsdk.Resource {
 	}
 }
 
-func resourceApplicationInsightsAnalyticsItemCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	return resourceApplicationInsightsAnalyticsItemCreateUpdate(d, meta, false)
-}
-
-func resourceApplicationInsightsAnalyticsItemUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	return resourceApplicationInsightsAnalyticsItemCreateUpdate(d, meta, true)
-}
-
-func resourceApplicationInsightsAnalyticsItemCreateUpdate(d *pluginsdk.ResourceData, meta interface{}, overwrite bool) error {
+func resourceApplicationInsightsAnalyticsItemCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppInsights.AnalyticsItemsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	appInsightsId, err := parse.ComponentID(d.Get("application_insights_id").(string))
+	appInsightsId, err := componentsapis.ParseComponentID(d.Get("application_insights_id").(string))
 	if err != nil {
 		return err
 	}
 
-	var itemID string
-	var id string
-	if id, _, _, _, itemID, err = ResourcesArmApplicationInsightsAnalyticsItemParseID(d.Id()); d.Id() != "" {
-		if err != nil {
-			return fmt.Errorf("parsing Application Insights Analytics Item ID %s: %+v", d.Id(), err)
-		}
-	}
-
 	name := d.Get("name").(string)
-	content := d.Get("content").(string)
 	scopeName := d.Get("scope").(string)
 	typeName := d.Get("type").(string)
-	functionAlias := d.Get("function_alias").(string)
 
-	itemType := insights.ItemType(typeName)
-	itemScope := insights.ItemScope(scopeName)
+	itemType := analyticsitemsapis.ItemType(typeName)
+	itemScope := analyticsitemsapis.ItemScope(scopeName)
 
-	var itemScopePath insights.ItemScopePath
-	if itemScope == insights.ItemScopeUser {
-		itemScopePath = insights.ItemScopePathMyanalyticsItems
-	} else {
-		itemScopePath = insights.ItemScopePathAnalyticsItems
+	itemScopePath := sharedScopePath
+	if itemScope == analyticsitemsapis.ItemScopeUser {
+		itemScopePath = userScopePath
 	}
 
-	includeContent := false
+	id := analyticsitemsapis.NewProviderComponentID(appInsightsId.SubscriptionId, appInsightsId.ResourceGroupName, appInsightsId.ComponentName, itemScopePath)
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		// We cannot get specific analytics items without their itemID which is why we need to list all the
 		// available items of a certain type and scope in order to check whether a resource already exists and needs
 		// to be imported first
 		// https://github.com/Azure/azure-rest-api-specs/issues/20712 itemScopePath should be set to insights.ItemScopePathAnalyticsItems in List method
-		existing, err := client.List(ctx, appInsightsId.ResourceGroup, appInsightsId.Name, insights.ItemScopePathAnalyticsItems, itemScope, insights.ItemTypeParameter(typeName), &includeContent)
+		listId := analyticsitemsapis.NewProviderComponentID(appInsightsId.SubscriptionId, appInsightsId.ResourceGroupName, appInsightsId.ComponentName, "analyticsItems")
+		existing, err := client.AnalyticsItemsList(ctx, listId, analyticsitemsapis.DefaultAnalyticsItemsListOperationOptions())
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Application Insights Analytics Items %+v", err)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
-		if existing.Value != nil {
-			values := *existing.Value
-			for _, v := range values {
-				if *v.Name == name {
-					return tf.ImportAsExistsError("azurerm_application_insights_analytics_item", *v.ID)
+
+		if model := existing.Model; model != nil {
+			for _, value := range *model {
+				if v := value.Name; v != nil && *v == name {
+					return tf.ImportAsExistsError("azurerm_application_insights_analytics_item", *value.Id)
 				}
 			}
 		}
 	}
 
-	properties := insights.ApplicationInsightsComponentAnalyticsItem{
-		ID:      &itemID,
-		Name:    &name,
-		Type:    itemType,
-		Scope:   itemScope,
-		Content: &content,
+	properties := analyticsitemsapis.ApplicationInsightsComponentAnalyticsItem{
+		Name:    pointer.To(name),
+		Type:    pointer.To(itemType),
+		Scope:   pointer.To(itemScope),
+		Content: pointer.To(d.Get("content").(string)),
 	}
-	if functionAlias != "" {
-		properties.Properties = &insights.ApplicationInsightsComponentAnalyticsItemProperties{
-			FunctionAlias: &functionAlias,
+	if v := d.Get("function_alias").(string); v != "" {
+		properties.Properties = &analyticsitemsapis.ApplicationInsightsComponentAnalyticsItemProperties{
+			FunctionAlias: &v,
 		}
 	}
 
-	result, err := client.Put(ctx, appInsightsId.ResourceGroup, appInsightsId.Name, itemScopePath, properties, &overwrite)
+	resp, err := client.AnalyticsItemsPut(ctx, id, properties, analyticsitemsapis.DefaultAnalyticsItemsPutOperationOptions())
 	if err != nil {
-		return fmt.Errorf("putting Application Insights Analytics Item %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	// See comments in ResourcesArmApplicationInsightsAnalyticsItemParseID method about ID format
-	generatedID := resourcesArmApplicationInsightsAnalyticsItemGenerateID(itemScope, *result.ID, appInsightsId)
+	if resp.Model == nil && resp.Model.Id == nil {
+		return fmt.Errorf("model and model ID for %s are nil", id)
+	}
 
-	d.SetId(generatedID)
+	generatedId := parse.NewAnalyticsSharedItemID(id.SubscriptionId, id.ResourceGroupName, id.ComponentName, *resp.Model.Id).ID()
+	if itemScope == analyticsitemsapis.ItemScopeUser {
+		generatedId = parse.NewAnalyticsUserItemID(id.SubscriptionId, id.ResourceGroupName, id.ComponentName, *resp.Model.Id).ID()
+	}
+
+	d.SetId(generatedId)
 
 	return resourceApplicationInsightsAnalyticsItemRead(d, meta)
 }
 
-func resourceApplicationInsightsAnalyticsItemRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsAnalyticsItemUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppInsights.AnalyticsItemsClient
-	subscriptionId := meta.(*clients.Client).AppInsights.AnalyticsItemsClient.SubscriptionID
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, itemId, err := ParseGeneratedAnalyticsItemId(d.Id())
+	if err != nil {
+		return err
+	}
+
+	getOptions := analyticsitemsapis.AnalyticsItemsGetOperationOptions{
+		Id: pointer.To(itemId),
+	}
+
+	existing, err := client.AnalyticsItemsGet(ctx, *id, getOptions)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	payload := existing.Model
+
+	if d.HasChange("content") {
+		payload.Content = pointer.To(d.Get("content").(string))
+	}
+
+	if d.HasChange("function_alias") {
+		if payload.Properties == nil {
+			payload.Properties = &analyticsitemsapis.ApplicationInsightsComponentAnalyticsItemProperties{}
+		}
+		payload.Properties.FunctionAlias = pointer.To(d.Get("function_alias").(string))
+	}
+
+	putOptions := analyticsitemsapis.AnalyticsItemsPutOperationOptions{
+		OverrideItem: pointer.To(true),
+	}
+
+	if _, err = client.AnalyticsItemsPut(ctx, *id, *payload, putOptions); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	return resourceApplicationInsightsAnalyticsItemRead(d, meta)
+}
+
+func resourceApplicationInsightsAnalyticsItemRead(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).AppInsights.AnalyticsItemsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, resourceGroupName, appInsightsName, itemScopePath, itemID, err := ResourcesArmApplicationInsightsAnalyticsItemParseID(d.Id())
+	id, itemId, err := ParseGeneratedAnalyticsItemId(d.Id())
 	if err != nil {
-		return fmt.Errorf("parsing Application Insights Analytics Item ID %s: %s", d.Id(), err)
+		return err
 	}
 
-	result, err := client.Get(ctx, resourceGroupName, appInsightsName, itemScopePath, itemID, "")
+	options := analyticsitemsapis.AnalyticsItemsGetOperationOptions{
+		Id: pointer.To(itemId),
+	}
+
+	resp, err := client.AnalyticsItemsGet(ctx, *id, options)
 	if err != nil {
-		if utils.ResponseWasNotFound(result.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("getting Application Insights Analytics Item %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	appInsightsId := parse.NewComponentID(subscriptionId, resourceGroupName, appInsightsName)
+	appInsightsId := componentsapis.NewComponentID(id.SubscriptionId, id.ResourceGroupName, id.ComponentName)
 
 	d.Set("application_insights_id", appInsightsId.ID())
-	d.Set("name", result.Name)
-	d.Set("version", result.Version)
-	d.Set("content", result.Content)
-	d.Set("scope", string(result.Scope))
-	d.Set("type", string(result.Type))
-	d.Set("time_created", result.TimeCreated)
-	d.Set("time_modified", result.TimeModified)
-
-	if result.Properties != nil {
-		d.Set("function_alias", result.Properties.FunctionAlias)
+	if model := resp.Model; model != nil {
+		d.Set("name", model.Name)
+		d.Set("version", model.Version)
+		d.Set("content", model.Content)
+		d.Set("scope", pointer.From(model.Scope))
+		d.Set("type", pointer.From(model.Type))
+		d.Set("time_created", model.TimeCreated)
+		d.Set("time_modified", model.TimeModified)
+		if props := model.Properties; props != nil {
+			d.Set("function_alias", pointer.From(props.FunctionAlias))
+		}
 	}
 
 	return nil
 }
 
-func resourceApplicationInsightsAnalyticsItemDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsAnalyticsItemDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppInsights.AnalyticsItemsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, resourceGroupName, appInsightsName, itemScopePath, itemID, err := ResourcesArmApplicationInsightsAnalyticsItemParseID(d.Id())
+	id, itemId, err := ParseGeneratedAnalyticsItemId(d.Id())
 	if err != nil {
-		return fmt.Errorf("parsing Application Insights Analytics Item ID %s: %+v", d.Id(), err)
+		return err
 	}
 
-	if _, err = client.Delete(ctx, resourceGroupName, appInsightsName, itemScopePath, itemID, ""); err != nil {
-		return fmt.Errorf("deleting Application Insights Analytics Item %s: %+v", id, err)
+	options := analyticsitemsapis.AnalyticsItemsDeleteOperationOptions{
+		Id: pointer.To(itemId),
+	}
+
+	if _, err = client.AnalyticsItemsDelete(ctx, *id, options); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
 }
 
-func ResourcesArmApplicationInsightsAnalyticsItemParseID(id string) (string, string, string, insights.ItemScopePath, string, error) {
+func ParseGeneratedAnalyticsItemId(input string) (*analyticsitemsapis.ProviderComponentId, string, error) {
 	// The generated ID format differs depending on scope
 	// <appinsightsID>/analyticsItems/<itemID>     [for shared scope items]
 	// <appinsightsID>/myAnalyticsItems/<itemID>   [for user scope items]
-	switch {
-	case strings.Contains(id, "myAnalyticsItems"):
-		id, err := parse.AnalyticsUserItemID(id)
-		if err != nil {
-			return "", "", "", "", "", err
-		}
-		return id.String(), id.ResourceGroup, id.ComponentName, insights.ItemScopePathMyanalyticsItems, id.MyAnalyticsItemName, nil
-	case strings.Contains(id, string(insights.ItemScopePathAnalyticsItems)):
-		id, err := parse.AnalyticsSharedItemID(id)
-		if err != nil {
-			return "", "", "", "", "", err
-		}
-		return id.String(), id.ResourceGroup, id.ComponentName, insights.ItemScopePathAnalyticsItems, id.AnalyticsItemName, nil
-	default:
-		return "", "", "", "", "", fmt.Errorf("parsing Application Insights Analytics Item ID %s", id)
+	generatedId, err := analyticsitemsapis.ParseProviderComponentID(input)
+	if err != nil {
+		return nil, "", err
 	}
-}
 
-func resourcesArmApplicationInsightsAnalyticsItemGenerateID(itemScope insights.ItemScope, itemID string, appInsightsId *parse.ComponentId) string {
-	if itemScope == insights.ItemScopeShared {
-		id := parse.NewAnalyticsSharedItemID(appInsightsId.SubscriptionId, appInsightsId.ResourceGroup, appInsightsId.Name, itemID)
-		return id.ID()
-	} else {
-		id := parse.NewAnalyticsUserItemID(appInsightsId.SubscriptionId, appInsightsId.ResourceGroup, appInsightsId.Name, itemID)
-		return id.ID()
-	}
+	scope := strings.Split(generatedId.ScopePath, "/")
+
+	id := analyticsitemsapis.NewProviderComponentID(generatedId.SubscriptionId, generatedId.ResourceGroupName, generatedId.ComponentName, scope[1])
+
+	return &id, scope[2], nil
 }

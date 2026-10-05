@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package machinelearning
@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 
@@ -16,20 +17,19 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-10-01/machinelearningcomputes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-10-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/machinelearningcomputes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceComputeInstance() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := pluginsdk.Resource{
 		Create: resourceComputeInstanceCreate,
 		Read:   resourceComputeInstanceRead,
 		Delete: resourceComputeInstanceDelete,
@@ -52,7 +52,8 @@ func resourceComputeInstance() *pluginsdk.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9-]{3,24}$`),
-					"It can include letters, digits and dashes. It must start with a letter, end with a letter or digit, and be between 3 and 24 characters in length."),
+					"It can include letters, digits and dashes. It must start with a letter, end with a letter or digit, and be between 3 and 24 characters in length.",
+				),
 			},
 
 			"machine_learning_workspace_id": {
@@ -62,8 +63,6 @@ func resourceComputeInstance() *pluginsdk.Resource {
 				ValidateFunc: workspaces.ValidateWorkspaceID,
 			},
 
-			"location": commonschema.Location(),
-
 			"virtual_machine_size": {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
@@ -72,12 +71,10 @@ func resourceComputeInstance() *pluginsdk.Resource {
 			},
 
 			"authorization_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(machinelearningcomputes.ComputeInstanceAuthorizationTypePersonal),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(machinelearningcomputes.PossibleValuesForComputeInstanceAuthorizationType(), false),
 			},
 
 			"assign_to_user": {
@@ -159,10 +156,13 @@ func resourceComputeInstance() *pluginsdk.Resource {
 			"tags": commonschema.TagsForceNew(),
 		},
 	}
+
+	return &resource
 }
 
-func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
+	mlWorkspacesClient := meta.(*clients.Client).MachineLearning.Workspaces
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -170,7 +170,7 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	workspaceID, _ := workspaces.ParseWorkspaceID(d.Get("machine_learning_workspace_id").(string))
 	id := machinelearningcomputes.NewComputeID(subscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, d.Get("name").(string))
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.ComputeGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -182,7 +182,7 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	identity, err := expandIdentity(d.Get("identity").([]interface{}))
+	identity, err := expandIdentity(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -194,48 +194,72 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	if !d.Get("node_public_ip_enabled").(bool) && d.Get("subnet_resource_id").(string) == "" {
-		return fmt.Errorf("`subnet_resource_id` must be set if `node_public_ip_enabled` is set to `false`")
+	// NOTE: The 'ComputeResource' struct contains the information
+	// which is related to the parent resource of the instance that is
+	// to be deployed (e.g., the workspace), which is why we need to
+	// GET the workspace to discover the location it has been deployed to.
+	// If we do not set the correct location, the identity will be created
+	// and then orphaned in the incorrect region.
+	workspace, err := mlWorkspacesClient.Get(ctx, *workspaceID)
+	if err != nil {
+		return err
 	}
 
-	computeInstance := &machinelearningcomputes.ComputeInstance{
-		Properties: &machinelearningcomputes.ComputeInstanceProperties{
-			VMSize:                          utils.String(d.Get("virtual_machine_size").(string)),
-			Subnet:                          subnet,
-			SshSettings:                     expandComputeSSHSetting(d.Get("ssh").([]interface{})),
-			PersonalComputeInstanceSettings: expandComputePersonalComputeInstanceSetting(d.Get("assign_to_user").([]interface{})),
-			EnableNodePublicIP:              pointer.To(d.Get("node_public_ip_enabled").(bool)),
-		},
-		ComputeLocation:  utils.String(d.Get("location").(string)),
-		Description:      utils.String(d.Get("description").(string)),
-		DisableLocalAuth: utils.Bool(!d.Get("local_auth_enabled").(bool)),
+	model := workspace.Model
+	if model == nil {
+		return fmt.Errorf("machine learning %s Workspace: model is nil", id)
 	}
-	authType := d.Get("authorization_type").(string)
-	if authType != "" {
-		computeInstance.Properties.ComputeInstanceAuthorizationType = pointer.To(machinelearningcomputes.ComputeInstanceAuthorizationType(authType))
+
+	if model.Location == nil {
+		return fmt.Errorf("machine learning %s Workspace: model `Location` is nil", id)
+	}
+
+	if model.Properties == nil {
+		return fmt.Errorf("machine learning %s Workspace: model `Properties` is nil", id)
+	}
+	if !d.Get("node_public_ip_enabled").(bool) && d.Get("subnet_resource_id").(string) == "" && !hasManagedNetwork(model) {
+		return fmt.Errorf("`subnet_resource_id` must be set if `node_public_ip_enabled` is set to `false` and the workspace is NOT using a managed network (isolation_mode = \"Disabled\")")
 	}
 
 	parameters := machinelearningcomputes.ComputeResource{
-		Properties: computeInstance,
-		Identity:   identity,
-		Location:   utils.String(location.Normalize(d.Get("location").(string))),
-		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
+		Identity: identity,
+		Location: pointer.To(location.Normalize(*model.Location)),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
-	future, err := client.ComputeCreateOrUpdate(ctx, id, parameters)
-	if err != nil {
-		return fmt.Errorf("creating Machine Learning Compute (%q): %+v", id, err)
-	}
-	if err := future.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("waiting for creation of Machine Learning Compute (%q): %+v", id, err)
+	props := machinelearningcomputes.ComputeInstance{
+		Properties: &machinelearningcomputes.ComputeInstanceProperties{
+			VMSize:                          pointer.To(d.Get("virtual_machine_size").(string)),
+			Subnet:                          subnet,
+			SshSettings:                     expandComputeSSHSetting(d.Get("ssh").([]any)),
+			PersonalComputeInstanceSettings: expandComputePersonalComputeInstanceSetting(d.Get("assign_to_user").([]any)),
+			EnableNodePublicIP:              pointer.To(d.Get("node_public_ip_enabled").(bool)),
+		},
+		Description:      pointer.To(d.Get("description").(string)),
+		DisableLocalAuth: pointer.To(!d.Get("local_auth_enabled").(bool)),
 	}
 
+	// NOTE: The 'location' field is not supported for instances, "Compute clusters can be created in
+	// a different region than your workspace. This functionality is only available for compute
+	// clusters, not compute instances"
+	//
+	// https://learn.microsoft.com/azure/machine-learning/how-to-create-attach-compute-cluster?view=azureml-api-2&tabs=python#limitations
+
+	if v, ok := d.GetOk("authorization_type"); ok {
+		props.Properties.ComputeInstanceAuthorizationType = pointer.ToEnum[machinelearningcomputes.ComputeInstanceAuthorizationType](v.(string))
+	}
+
+	parameters.Properties = props
+
+	if err := client.ComputeCreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
+		return fmt.Errorf("creating Machine Learning %s: %+v", id, err)
+	}
 	d.SetId(id.ID())
 
 	return resourceComputeInstanceRead(d, meta)
 }
 
-func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -253,50 +277,57 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) er
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Machine Learning Compute (%q): %+v", id, err)
+		return fmt.Errorf("retrieving Machine Learning %s: %+v", id, err)
 	}
+
+	workspaceId := workspaces.NewWorkspaceID(subscriptionId, id.ResourceGroupName, id.WorkspaceName)
+
+	model := resp.Model
+	if model == nil {
+		return fmt.Errorf("machine learning %s: model is nil", id)
+	}
+
+	props := model.Properties.(machinelearningcomputes.ComputeInstance)
 
 	d.Set("name", id.ComputeName)
-	workspaceId := workspaces.NewWorkspaceID(subscriptionId, id.ResourceGroupName, id.WorkspaceName)
 	d.Set("machine_learning_workspace_id", workspaceId.ID())
 
-	if location := resp.Model.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
-
-	identity, err := flattenIdentity(resp.Model.Identity)
+	identity, err := flattenIdentity(model.Identity)
 	if err != nil {
 		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
+
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
-	props := resp.Model.Properties.(machinelearningcomputes.ComputeInstance)
-
 	if props.DisableLocalAuth != nil {
 		d.Set("local_auth_enabled", !*props.DisableLocalAuth)
 	}
+
 	d.Set("description", props.Description)
+
 	if props.Properties != nil {
 		d.Set("virtual_machine_size", props.Properties.VMSize)
-		if props.Properties.Subnet != nil {
-			d.Set("subnet_resource_id", props.Properties.Subnet.Id)
-		}
-		d.Set("authorization_type", string(pointer.From(props.Properties.ComputeInstanceAuthorizationType)))
+		d.Set("authorization_type", pointer.FromEnum(props.Properties.ComputeInstanceAuthorizationType))
 		d.Set("ssh", flattenComputeSSHSetting(props.Properties.SshSettings))
 		d.Set("assign_to_user", flattenComputePersonalComputeInstanceSetting(props.Properties.PersonalComputeInstanceSettings))
-		enableNodePublicIP := true
-		if props.Properties.ConnectivityEndpoints.PublicIPAddress == nil {
-			enableNodePublicIP = false
+
+		// Only save the subnet ID to state if the instance's workspace is NOT using managed networking.
+		// Azure does not allow instances to have a user-defined subnet ID if they are to run in a workspace with managed networking.
+		if props.Properties.Subnet != nil {
+			if workspace, err := meta.(*clients.Client).MachineLearning.Workspaces.Get(ctx, workspaceId); err != nil || !hasManagedNetwork(workspace.Model) {
+				d.Set("subnet_resource_id", props.Properties.Subnet.Id)
+			}
 		}
-		d.Set("node_public_ip_enabled", enableNodePublicIP)
+
+		d.Set("node_public_ip_enabled", pointer.From(props.Properties.EnableNodePublicIP))
 	}
 
 	return tags.FlattenAndSet(d, resp.Model.Tags)
 }
 
-func resourceComputeInstanceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceComputeInstanceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -318,11 +349,11 @@ func resourceComputeInstanceDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func expandComputePersonalComputeInstanceSetting(input []interface{}) *machinelearningcomputes.PersonalComputeInstanceSettings {
+func expandComputePersonalComputeInstanceSetting(input []any) *machinelearningcomputes.PersonalComputeInstanceSettings {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
-	value := input[0].(map[string]interface{})
+	value := input[0].(map[string]any)
 	return &machinelearningcomputes.PersonalComputeInstanceSettings{
 		AssignedUser: &machinelearningcomputes.AssignedUser{
 			ObjectId: value["object_id"].(string),
@@ -331,41 +362,48 @@ func expandComputePersonalComputeInstanceSetting(input []interface{}) *machinele
 	}
 }
 
-func expandComputeSSHSetting(input []interface{}) *machinelearningcomputes.ComputeInstanceSshSettings {
+func expandComputeSSHSetting(input []any) *machinelearningcomputes.ComputeInstanceSshSettings {
 	if len(input) == 0 {
 		return &machinelearningcomputes.ComputeInstanceSshSettings{
 			SshPublicAccess: pointer.To(machinelearningcomputes.SshPublicAccessDisabled),
 		}
 	}
-	value := input[0].(map[string]interface{})
+	value := input[0].(map[string]any)
 	return &machinelearningcomputes.ComputeInstanceSshSettings{
 		SshPublicAccess: pointer.To(machinelearningcomputes.SshPublicAccessEnabled),
-		AdminPublicKey:  utils.String(value["public_key"].(string)),
+		AdminPublicKey:  pointer.To(value["public_key"].(string)),
 	}
 }
 
-func flattenComputePersonalComputeInstanceSetting(settings *machinelearningcomputes.PersonalComputeInstanceSettings) interface{} {
+func flattenComputePersonalComputeInstanceSetting(settings *machinelearningcomputes.PersonalComputeInstanceSettings) any {
 	if settings == nil || settings.AssignedUser == nil {
-		return []interface{}{}
+		return []any{}
 	}
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"tenant_id": settings.AssignedUser.TenantId,
 			"object_id": settings.AssignedUser.ObjectId,
 		},
 	}
 }
 
-func flattenComputeSSHSetting(settings *machinelearningcomputes.ComputeInstanceSshSettings) interface{} {
+func flattenComputeSSHSetting(settings *machinelearningcomputes.ComputeInstanceSshSettings) any {
 	if settings == nil || strings.EqualFold(string(*settings.SshPublicAccess), string(machinelearningcomputes.SshPublicAccessDisabled)) {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"public_key": settings.AdminPublicKey,
 			"username":   settings.AdminUserName,
 			"port":       settings.SshPort,
 		},
 	}
+}
+
+func hasManagedNetwork(workspace *workspaces.Workspace) bool {
+	if workspace == nil || workspace.Properties == nil || workspace.Properties.ManagedNetwork == nil {
+		return false
+	}
+	return slices.Contains([]workspaces.IsolationMode{workspaces.IsolationModeAllowInternetOutbound, workspaces.IsolationModeAllowOnlyApprovedOutbound}, pointer.From(workspace.Properties.ManagedNetwork.IsolationMode))
 }

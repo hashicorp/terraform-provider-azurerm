@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package privatednsresolver_test
@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/inboundendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type DNSResolverInboundEndpointResource struct{}
@@ -82,6 +82,20 @@ func TestAccDNSResolverInboundEndpoint_update(t *testing.T) {
 	})
 }
 
+func TestAccDNSResolverInboundEndpoint_static(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver_inbound_endpoint", "test")
+	r := DNSResolverInboundEndpointResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.static(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r DNSResolverInboundEndpointResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := inboundendpoints.ParseInboundEndpointID(state.ID)
 	if err != nil {
@@ -92,11 +106,11 @@ func (r DNSResolverInboundEndpointResource) Exists(ctx context.Context, clients 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r DNSResolverInboundEndpointResource) template(data acceptance.TestData) string {
@@ -112,7 +126,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctest-rg-%[2]d"
+  name                = "acctest-vnet-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   address_space       = ["10.0.0.0/16"]
@@ -197,21 +211,7 @@ resource "azurerm_private_dns_resolver_inbound_endpoint" "test" {
 func (r DNSResolverInboundEndpointResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-			%s
-resource "azurerm_subnet" "test1" {
-  name                 = "inbounddns1"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.0.64/28"]
-
-  delegation {
-    name = "Microsoft.Network.dnsResolvers"
-    service_delegation {
-      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
-      name    = "Microsoft.Network/dnsResolvers"
-    }
-  }
-}
+	%s
 
 resource "azurerm_private_dns_resolver_inbound_endpoint" "test" {
   name                    = "acctest-drie-%d"
@@ -222,6 +222,25 @@ resource "azurerm_private_dns_resolver_inbound_endpoint" "test" {
   }
   tags = {
     key = "updated value"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r DNSResolverInboundEndpointResource) static(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+				%s
+
+resource "azurerm_private_dns_resolver_inbound_endpoint" "test" {
+  name                    = "acctest-drie-%d"
+  private_dns_resolver_id = azurerm_private_dns_resolver.test.id
+  location                = azurerm_private_dns_resolver.test.location
+
+  ip_configurations {
+    subnet_id                    = azurerm_subnet.test.id
+    private_ip_allocation_method = "Static"
+    private_ip_address           = "10.0.0.4"
   }
 }
 `, template, data.RandomInteger)

@@ -15,7 +15,7 @@ type SavedSearchesClient struct {
 }
 
 func NewSavedSearchesClientWithBaseURI(sdkApi sdkEnv.Api) (*SavedSearchesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "savedsearches", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "savedsearches", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SavedSearchesClient: %+v", err)
 	}

@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&WorkerPoolInstanceId{})
+}
 
 var _ resourceids.ResourceId = &WorkerPoolInstanceId{}
 
@@ -41,7 +46,7 @@ func ParseWorkerPoolInstanceID(input string) (*WorkerPoolInstanceId, error) {
 	}
 
 	id := WorkerPoolInstanceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -58,7 +63,7 @@ func ParseWorkerPoolInstanceIDInsensitively(input string) (*WorkerPoolInstanceId
 	}
 
 	id := WorkerPoolInstanceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -122,11 +127,11 @@ func (id WorkerPoolInstanceId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticHostingEnvironments", "hostingEnvironments", "hostingEnvironments"),
-		resourceids.UserSpecifiedSegment("hostingEnvironmentName", "hostingEnvironmentValue"),
+		resourceids.UserSpecifiedSegment("hostingEnvironmentName", "hostingEnvironmentName"),
 		resourceids.StaticSegment("staticWorkerPools", "workerPools", "workerPools"),
-		resourceids.UserSpecifiedSegment("workerPoolName", "workerPoolValue"),
+		resourceids.UserSpecifiedSegment("workerPoolName", "workerPoolName"),
 		resourceids.StaticSegment("staticInstances", "instances", "instances"),
-		resourceids.UserSpecifiedSegment("instanceName", "instanceValue"),
+		resourceids.UserSpecifiedSegment("instanceName", "instanceName"),
 	}
 }
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -52,18 +52,19 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 
 			"ip_range_filter": {
-				Type:     pluginsdk.TypeString,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_free_tier": {
+			"free_tier_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_automatic_failover": {
+			"automatic_failover_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
@@ -150,8 +151,7 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_multiple_write_locations": {
+			"multiple_write_locations_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
@@ -199,16 +199,6 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
-			},
-
-			"connection_strings": {
-				Type:      pluginsdk.TypeList,
-				Computed:  true,
-				Sensitive: true,
-				Elem: &pluginsdk.Schema{
-					Type:      pluginsdk.TypeString,
-					Sensitive: true,
-				},
 			},
 
 			"primary_sql_connection_string": {
@@ -262,7 +252,7 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -286,15 +276,16 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("resource_group_name", id.ResourceGroupName)
 
 		d.Set("location", location.NormalizeNilable(model.Location))
-		d.Set("kind", string(pointer.From(model.Kind)))
+		d.Set("kind", pointer.FromEnum(model.Kind))
 
 		if props := model.Properties; props != nil {
-			d.Set("offer_type", string(pointer.From(props.DatabaseAccountOfferType)))
-			d.Set("ip_range_filter", common.CosmosDBIpRulesToIpRangeFilterThreePointOh(props.IPRules))
+			d.Set("offer_type", pointer.FromEnum(props.DatabaseAccountOfferType))
+			d.Set("ip_range_filter", common.CosmosDBIpRulesToIpRangeFilter(props.IPRules))
 			d.Set("endpoint", props.DocumentEndpoint)
 			d.Set("is_virtual_network_filter_enabled", props.IsVirtualNetworkFilterEnabled)
-			d.Set("enable_free_tier", props.EnableFreeTier)
-			d.Set("enable_automatic_failover", props.EnableAutomaticFailover)
+			d.Set("free_tier_enabled", props.EnableFreeTier)
+			d.Set("automatic_failover_enabled", props.EnableAutomaticFailover)
+			d.Set("multiple_write_locations_enabled", props.EnableMultipleWriteLocations)
 
 			if v := props.KeyVaultKeyUri; v != nil {
 				d.Set("key_vault_key_id", v)
@@ -304,7 +295,7 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 				return fmt.Errorf("setting `consistency_policy`: %+v", err)
 			}
 
-			locations := make([]map[string]interface{}, len(*props.FailoverPolicies))
+			locations := make([]map[string]any, len(*props.FailoverPolicies))
 
 			// the original procedure leads to a sorted locations slice by using failover priority as index
 			// sort `geo_locations` by failover priority if we found priorities were not within limitation.
@@ -314,7 +305,7 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 					return *policies[i].FailoverPriority < *policies[j].FailoverPriority
 				})
 				for i, l := range policies {
-					locations[i] = map[string]interface{}{
+					locations[i] = map[string]any{
 						"id":                *l.Id,
 						"location":          location.NormalizeNilable(l.LocationName),
 						"failover_priority": int(*l.FailoverPriority),
@@ -322,7 +313,7 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 				}
 			} else {
 				for _, l := range *props.FailoverPolicies {
-					locations[*l.FailoverPriority] = map[string]interface{}{
+					locations[*l.FailoverPriority] = map[string]any{
 						"id":                *l.Id,
 						"location":          location.NormalizeNilable(l.LocationName),
 						"failover_priority": int(*l.FailoverPriority),
@@ -368,8 +359,6 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 			if err := d.Set("write_endpoints", writeEndpoints); err != nil {
 				return fmt.Errorf("setting `write_endpoints`: %s", err)
 			}
-
-			d.Set("enable_multiple_write_locations", props.EnableMultipleWriteLocations)
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
@@ -416,8 +405,6 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 					}
 				}
 			}
-
-			d.Set("connection_strings", connStrings)
 		}
 	}
 	return nil
@@ -433,12 +420,12 @@ func anyUnexpectedFailoverPriority(failoverPolicies []cosmosdb.FailoverPolicy) b
 	return false
 }
 
-func flattenAzureRmCosmosDBAccountCapabilitiesAsList(capabilities *[]cosmosdb.Capability) *[]map[string]interface{} {
-	slice := make([]map[string]interface{}, 0)
+func flattenAzureRmCosmosDBAccountCapabilitiesAsList(capabilities *[]cosmosdb.Capability) *[]map[string]any {
+	slice := make([]map[string]any, 0)
 
 	for _, c := range *capabilities {
 		if v := c.Name; v != nil {
-			e := map[string]interface{}{
+			e := map[string]any{
 				"name": *v,
 			}
 			slice = append(slice, e)
@@ -448,14 +435,14 @@ func flattenAzureRmCosmosDBAccountCapabilitiesAsList(capabilities *[]cosmosdb.Ca
 	return &slice
 }
 
-func flattenAzureRmCosmosDBAccountVirtualNetworkRulesAsList(rules *[]cosmosdb.VirtualNetworkRule) []map[string]interface{} {
+func flattenAzureRmCosmosDBAccountVirtualNetworkRulesAsList(rules *[]cosmosdb.VirtualNetworkRule) []map[string]any {
 	if rules == nil {
-		return []map[string]interface{}{}
+		return []map[string]any{}
 	}
 
-	virtualNetworkRules := make([]map[string]interface{}, len(*rules))
+	virtualNetworkRules := make([]map[string]any, len(*rules))
 	for i, r := range *rules {
-		virtualNetworkRules[i] = map[string]interface{}{
+		virtualNetworkRules[i] = map[string]any{
 			"id": *r.Id,
 		}
 	}

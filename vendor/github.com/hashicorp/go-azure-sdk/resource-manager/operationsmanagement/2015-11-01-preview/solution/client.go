@@ -15,7 +15,7 @@ type SolutionClient struct {
 }
 
 func NewSolutionClientWithBaseURI(sdkApi sdkEnv.Api) (*SolutionClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "solution", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "solution", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SolutionClient: %+v", err)
 	}

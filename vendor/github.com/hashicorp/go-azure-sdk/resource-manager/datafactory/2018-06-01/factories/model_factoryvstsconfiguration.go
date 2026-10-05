@@ -15,12 +15,26 @@ type FactoryVSTSConfiguration struct {
 	TenantId    *string `json:"tenantId,omitempty"`
 
 	// Fields inherited from FactoryRepoConfiguration
+
 	AccountName         string  `json:"accountName"`
 	CollaborationBranch string  `json:"collaborationBranch"`
 	DisablePublish      *bool   `json:"disablePublish,omitempty"`
 	LastCommitId        *string `json:"lastCommitId,omitempty"`
 	RepositoryName      string  `json:"repositoryName"`
 	RootFolder          string  `json:"rootFolder"`
+	Type                string  `json:"type"`
+}
+
+func (s FactoryVSTSConfiguration) FactoryRepoConfiguration() BaseFactoryRepoConfigurationImpl {
+	return BaseFactoryRepoConfigurationImpl{
+		AccountName:         s.AccountName,
+		CollaborationBranch: s.CollaborationBranch,
+		DisablePublish:      s.DisablePublish,
+		LastCommitId:        s.LastCommitId,
+		RepositoryName:      s.RepositoryName,
+		RootFolder:          s.RootFolder,
+		Type:                s.Type,
+	}
 }
 
 var _ json.Marshaler = FactoryVSTSConfiguration{}
@@ -34,9 +48,10 @@ func (s FactoryVSTSConfiguration) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling FactoryVSTSConfiguration: %+v", err)
 	}
+
 	decoded["type"] = "FactoryVSTSConfiguration"
 
 	encoded, err = json.Marshal(decoded)

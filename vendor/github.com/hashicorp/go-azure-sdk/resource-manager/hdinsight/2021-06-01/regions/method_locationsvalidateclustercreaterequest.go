@@ -48,7 +48,9 @@ func (c RegionsClient) LocationsValidateClusterCreateRequest(ctx context.Context
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ClusterCreateValidationResult
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

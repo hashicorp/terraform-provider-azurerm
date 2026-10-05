@@ -35,6 +35,7 @@ func (o GlobalSchemaDeleteOperationOptions) ToHeaders() *client.Headers {
 
 func (o GlobalSchemaDeleteOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -53,8 +54,8 @@ func (c SchemaClient) GlobalSchemaDelete(ctx context.Context, id SchemaId, optio
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodDelete,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

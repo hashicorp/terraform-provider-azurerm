@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mysql_test
@@ -9,20 +9,21 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/configurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/configurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MySQLFlexibleServerConfigurationResource struct{}
+type MysqlFlexibleServerConfigurationResource struct{}
 
 func TestAccMySQLFlexibleServerConfiguration_characterSetServer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server_configuration", "test")
-	r := MySQLFlexibleServerConfigurationResource{}
+	r := MysqlFlexibleServerConfigurationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -44,7 +45,7 @@ func TestAccMySQLFlexibleServerConfiguration_characterSetServer(t *testing.T) {
 
 func TestAccMySQLFlexibleServerConfiguration_interactiveTimeout(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server_configuration", "test")
-	r := MySQLFlexibleServerConfigurationResource{}
+	r := MysqlFlexibleServerConfigurationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -66,7 +67,7 @@ func TestAccMySQLFlexibleServerConfiguration_interactiveTimeout(t *testing.T) {
 
 func TestAccMySQLFlexibleServerConfiguration_logSlowAdminStatements(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server_configuration", "test")
-	r := MySQLFlexibleServerConfigurationResource{}
+	r := MysqlFlexibleServerConfigurationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -88,7 +89,7 @@ func TestAccMySQLFlexibleServerConfiguration_logSlowAdminStatements(t *testing.T
 
 func TestAccMySQLFlexibleServerConfiguration_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server_configuration", "test")
-	r := MySQLFlexibleServerConfigurationResource{}
+	r := MysqlFlexibleServerConfigurationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -108,7 +109,22 @@ func TestAccMySQLFlexibleServerConfiguration_update(t *testing.T) {
 	})
 }
 
-func (t MySQLFlexibleServerConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func TestAccMySQLFlexibleServerConfiguration_multipleServerConfigurations(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server_configuration", "test")
+	r := MysqlFlexibleServerConfigurationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multipleServerConfigurations(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (t MysqlFlexibleServerConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := configurations.ParseConfigurationID(state.ID)
 	if err != nil {
 		return nil, err
@@ -121,10 +137,10 @@ func (t MySQLFlexibleServerConfigurationResource) Exists(ctx context.Context, cl
 		return nil, fmt.Errorf("reading %q: %+v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
-func (r MySQLFlexibleServerConfigurationResource) checkReset(configurationName string) acceptance.ClientCheckFunc {
+func (r MysqlFlexibleServerConfigurationResource) checkReset(configurationName string) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 		serverId, err := servers.ParseFlexibleServerID(state.Attributes["id"])
 		if err != nil {
@@ -153,7 +169,7 @@ func (r MySQLFlexibleServerConfigurationResource) checkReset(configurationName s
 	}
 }
 
-func (r MySQLFlexibleServerConfigurationResource) checkValue(value string) acceptance.ClientCheckFunc {
+func (r MysqlFlexibleServerConfigurationResource) checkValue(value string) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 		id, err := configurations.ParseConfigurationID(state.Attributes["id"])
 		if err != nil {
@@ -179,23 +195,63 @@ func (r MySQLFlexibleServerConfigurationResource) checkValue(value string) accep
 	}
 }
 
-func (r MySQLFlexibleServerConfigurationResource) characterSetServer(data acceptance.TestData) string {
+func (r MysqlFlexibleServerConfigurationResource) characterSetServer(data acceptance.TestData) string {
 	return r.template(data, "character_set_server", "hebrew")
 }
 
-func (r MySQLFlexibleServerConfigurationResource) interactiveTimeout(data acceptance.TestData) string {
+func (r MysqlFlexibleServerConfigurationResource) interactiveTimeout(data acceptance.TestData) string {
 	return r.template(data, "interactive_timeout", "30")
 }
 
-func (r MySQLFlexibleServerConfigurationResource) logSlowAdminStatements(data acceptance.TestData) string {
+func (r MysqlFlexibleServerConfigurationResource) logSlowAdminStatements(data acceptance.TestData) string {
 	return r.template(data, "log_slow_admin_statements", "on")
 }
 
-func (r MySQLFlexibleServerConfigurationResource) slowQueryLog(data acceptance.TestData, value string) string {
+func (r MysqlFlexibleServerConfigurationResource) slowQueryLog(data acceptance.TestData, value string) string {
 	return r.template(data, "slow_query_log", value)
 }
 
-func (r MySQLFlexibleServerConfigurationResource) template(data acceptance.TestData, name string, value string) string {
+func (r MysqlFlexibleServerConfigurationResource) multipleServerConfigurations(data acceptance.TestData) string {
+	config := `
+resource "azurerm_mysql_flexible_server_configuration" "test" {
+  name                = "disconnect_on_expired_password"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mysql_flexible_server.test.name
+  value               = "on"
+}
+
+resource "azurerm_mysql_flexible_server_configuration" "test2" {
+  name                = "character_set_server"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mysql_flexible_server.test.name
+  value               = "hebrew"
+}
+
+resource "azurerm_mysql_flexible_server_configuration" "test3" {
+  name                = "interactive_timeout"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mysql_flexible_server.test.name
+  value               = "30"
+}
+
+resource "azurerm_mysql_flexible_server_configuration" "test4" {
+  name                = "log_slow_admin_statements"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mysql_flexible_server.test.name
+  value               = "on"
+}
+
+resource "azurerm_mysql_flexible_server_configuration" "test5" {
+  name                = "slow_query_log"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mysql_flexible_server.test.name
+  value               = "on"
+}
+`
+	return r.empty(data) + config
+}
+
+func (r MysqlFlexibleServerConfigurationResource) template(data acceptance.TestData, name string, value string) string {
 	config := fmt.Sprintf(`
 resource "azurerm_mysql_flexible_server_configuration" "test" {
   name                = "%s"
@@ -207,7 +263,7 @@ resource "azurerm_mysql_flexible_server_configuration" "test" {
 	return r.empty(data) + config
 }
 
-func (MySQLFlexibleServerConfigurationResource) empty(data acceptance.TestData) string {
+func (MysqlFlexibleServerConfigurationResource) empty(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -224,7 +280,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   location               = azurerm_resource_group.test.location
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
-  sku_name               = "B_Standard_B1s"
+  sku_name               = "B_Standard_B1ms"
   zone                   = "1"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

@@ -29,45 +29,45 @@ resource "azurerm_storage_account" "example" {
 }
 
 resource "azurerm_storage_share" "example" {
-  name                 = "sharename"
-  storage_account_name = azurerm_storage_account.example.name
-  quota                = 50
+  name               = "sharename"
+  storage_account_id = azurerm_storage_account.example.id
+  quota              = 50
 
   acl {
     id = "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
 
     access_policy {
       permissions = "rwdl"
-      start       = "2019-07-02T09:38:21.0000000Z"
-      expiry      = "2019-07-02T10:38:21.0000000Z"
+      start       = "2019-07-02T09:38:21Z"
+      expiry      = "2019-07-02T10:38:21Z"
     }
   }
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
 * `name` - (Required) The name of the share. Must be unique within the storage account where the share is located. Changing this forces a new resource to be created.
 
-* `storage_account_name` - (Required) Specifies the storage account in which to create the share. Changing this forces a new resource to be created.
+* `storage_account_id` - (Required) Specifies the ID of the storage account in which to create the share. Changing this forces a new resource to be created.
 
 * `access_tier` - (Optional) The access tier of the File Share. Possible values are `Hot`, `Cool` and `TransactionOptimized`, `Premium`.
 
-~>**NOTE:** The `FileStorage` `account_kind` of the `azurerm_storage_account` requires `Premium` `access_tier`.
+~> **Note:** The `FileStorage` `account_kind` of the `azurerm_storage_account` requires `Premium` `access_tier`.
 
 * `acl` - (Optional) One or more `acl` blocks as defined below.
 
 * `enabled_protocol` - (Optional) The protocol used for the share. Possible values are `SMB` and `NFS`. The `SMB` indicates the share can be accessed by SMBv3.0, SMBv2.1 and REST. The `NFS` indicates the share can be accessed by NFSv4.1. Defaults to `SMB`. Changing this forces a new resource to be created.
 
-~>**NOTE:** The `FileStorage` `account_kind` of the `azurerm_storage_account` is required for the `NFS` protocol.
+~> **Note:** The `FileStorage` `account_kind` of the `azurerm_storage_account` is required for the `NFS` protocol.
 
 * `quota` - (Required) The maximum size of the share, in gigabytes.
 
-~>**NOTE:** For Standard storage accounts, by default this must be `1` GB (or higher) and at most `5120` GB (`5` TB). This can be set to a value larger than `5120` GB if `large_file_share_enabled` is set to `true` in the parent `azurerm_storage_account`.
+~> **Note:** For Standard storage accounts, by default this must be `1` GB (or higher) and at most `5120` GB (`5` TB). This can be set to a value larger than `5120` GB if `large_file_share_enabled` is set to `true` in the parent `azurerm_storage_account`.
 
-~>**NOTE:** For Premium FileStorage storage accounts, this must be greater than `100` GB and at most `102400` GB (`100` TB).
+~> **Note:** For Premium FileStorage storage accounts, this must be greater than `100` GB and at most `102400` GB (`100` TB).
 
 * `metadata` - (Optional) A mapping of MetaData for this File Share.
 
@@ -87,9 +87,9 @@ A `access_policy` block supports the following:
 
 ~> **Note:** Permission order is strict at the service side, and permissions need to be listed in the order above.
 
-* `start` - (Optional) The time at which this Access Policy should be valid from, in [ISO8601](https://en.wikipedia.org/wiki/ISO_8601) format.
+* `start` - (Optional) The time at which this Access Policy should be valid from, in RFC3339 format.
 
-* `expiry` - (Optional) The time at which this Access Policy should be valid until, in [ISO8601](https://en.wikipedia.org/wiki/ISO_8601) format.
+* `expiry` - (Optional) The time at which this Access Policy should be valid until, in RFC3339 format.
 
 ## Attributes Reference
 
@@ -97,23 +97,31 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the File Share.
 
-* `resource_manager_id` - The Resource Manager ID of this File Share.
+* `rbac_scope_id` - The ID that is supposed to be used as the `scope` of an `azurerm_role_assignment` for this File Share.
+
+~> **Note:** Due to historical reason of the File Share service, the `scope` to be used in an `azurerm_role_assignment` is different than its Resource Manager ID. See: https://github.com/Azure/azure-rest-api-specs/issues/24568.
 
 * `url` - The URL of the File Share
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Storage Share.
-* `update` - (Defaults to 30 minutes) Used when updating the Storage Share.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Share.
+* `update` - (Defaults to 30 minutes) Used when updating the Storage Share.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Storage Share.
 
 ## Import
 
-Storage Shares can be imported using the `resource id`, e.g.
+Storage Shares can be imported using the `id`, e.g.
 
 ```shell
-terraform import azurerm_storage_share.exampleShare https://account1.file.core.windows.net/share1
+terraform import azurerm_storage_share.exampleShare /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Storage/storageAccounts/myAccount/fileServices/default/shares/exampleShare
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Storage` - 2025-08-01

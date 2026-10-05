@@ -1,15 +1,17 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
 
 import (
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachineextensions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesetextensions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 func protectedSettingsFromKeyVaultSchema(conflictsWithProtectedSettings bool) *pluginsdk.Schema {
@@ -28,7 +30,7 @@ func protectedSettingsFromKeyVaultSchema(conflictsWithProtectedSettings bool) *p
 				"secret_url": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ValidateFunc: keyVaultValidate.NestedItemId,
+					ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret),
 				},
 
 				"source_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
@@ -37,39 +39,91 @@ func protectedSettingsFromKeyVaultSchema(conflictsWithProtectedSettings bool) *p
 	}
 }
 
-func expandProtectedSettingsFromKeyVault(input []interface{}) *compute.KeyVaultSecretReference {
+func expandProtectedSettingsFromKeyVault(input []any) *virtualmachineextensions.KeyVaultSecretReference {
 	if len(input) == 0 {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
-	return &compute.KeyVaultSecretReference{
-		SecretURL: utils.String(v["secret_url"].(string)),
-		SourceVault: &compute.SubResource{
-			ID: utils.String(v["source_vault_id"].(string)),
+	return &virtualmachineextensions.KeyVaultSecretReference{
+		SecretURL: v["secret_url"].(string),
+		SourceVault: virtualmachineextensions.SubResource{
+			Id: pointer.To(v["source_vault_id"].(string)),
 		},
 	}
 }
 
-func flattenProtectedSettingsFromKeyVault(input *compute.KeyVaultSecretReference) []interface{} {
-	if input == nil {
+func expandProtectedSettingsFromKeyVaultVMSS(input []any) *virtualmachinescalesets.KeyVaultSecretReference {
+	if len(input) == 0 {
 		return nil
 	}
 
-	secretUrl := ""
-	if input.SecretURL != nil {
-		secretUrl = *input.SecretURL
+	v := input[0].(map[string]any)
+
+	return &virtualmachinescalesets.KeyVaultSecretReference{
+		SecretURL: v["secret_url"].(string),
+		SourceVault: virtualmachinescalesets.SubResource{
+			Id: pointer.To(v["source_vault_id"].(string)),
+		},
+	}
+}
+
+func expandProtectedSettingsFromKeyVaultOldVMSSExtension(input []any) *virtualmachinescalesetextensions.KeyVaultSecretReference {
+	if len(input) == 0 {
+		return nil
 	}
 
-	sourceVaultId := ""
-	if input.SourceVault != nil && input.SourceVault.ID != nil {
-		sourceVaultId = *input.SourceVault.ID
+	v := input[0].(map[string]any)
+
+	return &virtualmachinescalesetextensions.KeyVaultSecretReference{
+		SecretURL: v["secret_url"].(string),
+		SourceVault: virtualmachinescalesetextensions.SubResource{
+			Id: pointer.To(v["source_vault_id"].(string)),
+		},
+	}
+}
+
+func flattenProtectedSettingsFromKeyVault(input *virtualmachineextensions.KeyVaultSecretReference) []any {
+	if input == nil {
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"secret_url":      secretUrl,
+	sourceVaultId := pointer.From(input.SourceVault.Id)
+
+	return []any{
+		map[string]any{
+			"secret_url":      input.SecretURL,
+			"source_vault_id": sourceVaultId,
+		},
+	}
+}
+
+func flattenProtectedSettingsFromKeyVaultVMSS(input *virtualmachinescalesets.KeyVaultSecretReference) []any {
+	if input == nil {
+		return []any{}
+	}
+
+	sourceVaultId := pointer.From(input.SourceVault.Id)
+
+	return []any{
+		map[string]any{
+			"secret_url":      input.SecretURL,
+			"source_vault_id": sourceVaultId,
+		},
+	}
+}
+
+func flattenProtectedSettingsFromKeyVaultOldVMSSExtension(input *virtualmachinescalesetextensions.KeyVaultSecretReference) []any {
+	if input == nil {
+		return []any{}
+	}
+
+	sourceVaultId := pointer.From(input.SourceVault.Id)
+
+	return []any{
+		map[string]any{
+			"secret_url":      input.SecretURL,
 			"source_vault_id": sourceVaultId,
 		},
 	}

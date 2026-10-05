@@ -14,6 +14,14 @@ type AzureMachineLearningWebServiceFunctionBinding struct {
 	Properties *AzureMachineLearningWebServiceFunctionBindingProperties `json:"properties,omitempty"`
 
 	// Fields inherited from FunctionBinding
+
+	Type string `json:"type"`
+}
+
+func (s AzureMachineLearningWebServiceFunctionBinding) FunctionBinding() BaseFunctionBindingImpl {
+	return BaseFunctionBindingImpl{
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = AzureMachineLearningWebServiceFunctionBinding{}
@@ -27,9 +35,10 @@ func (s AzureMachineLearningWebServiceFunctionBinding) MarshalJSON() ([]byte, er
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AzureMachineLearningWebServiceFunctionBinding: %+v", err)
 	}
+
 	decoded["type"] = "Microsoft.MachineLearning/WebService"
 
 	encoded, err = json.Marshal(decoded)

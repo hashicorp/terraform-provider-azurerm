@@ -46,32 +46,56 @@ output "contributor_role_definition_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Optional) Specifies the Name of either a built-in or custom Role Definition.
 
--> You can also use this for built-in roles such as `Contributor`, `Owner`, `Reader` and `Virtual Machine Contributor`
+-> **Note:** You can also use this for built-in roles such as `Contributor`, `Owner`, `Reader` and `Virtual Machine Contributor`
 
 * `role_definition_id` - (Optional) Specifies the ID of the Role Definition as a UUID/GUID.
+
 * `scope` - (Optional) Specifies the Scope at which the Custom Role Definition exists.
 
 ~> **Note:** One of `name` or `role_definition_id` must be specified.
 
 ## Attributes Reference
 
-* `id` - the ID of the built-in Role Definition.
-* `description` - the Description of the built-in Role.
-* `type` - the Type of the Role.
-* `permissions` - a `permissions` block as documented below.
+* `id` - The ID of the built-in Role Definition.
+
+* `description` - The Description of the built-in Role.
+
+* `type` - The Type of the Role.
+
+* `permissions` - A `permissions` block as documented below.
+
+* `role_definition_resource_id` - The Azure Resource Manager ID for the resource.
+
 * `assignable_scopes` - One or more assignable scopes for this Role Definition, such as `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333`, `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup`, or `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup/providers/Microsoft.Compute/virtualMachines/myVM`.
+
+---
 
 A `permissions` block contains:
 
-* `actions` - a list of actions supported by this role
-* `not_actions` - a list of actions which are denied by this role
+* `actions` - A list of actions supported by this role.
+
+* `not_actions` - A list of actions which are denied by this role.
+
+* `data_actions` - A list of data actions allowed by this role.
+
+* `not_data_actions` - A list of data actions which are denied by this role.
+
+* `condition` - The conditions on this role definition, which limits the resources it can be assigned to.
+
+* `condition_version` - The version of the condition.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Role Definition.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Authorization` - 2022-05-01-preview

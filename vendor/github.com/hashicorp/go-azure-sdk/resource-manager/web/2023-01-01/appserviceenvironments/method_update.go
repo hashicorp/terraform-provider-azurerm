@@ -50,7 +50,9 @@ func (c AppServiceEnvironmentsClient) Update(ctx context.Context, id commonids.A
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AppServiceEnvironmentResource
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

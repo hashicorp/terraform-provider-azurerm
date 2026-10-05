@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotectioncontainermappings"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationprotectioncontainermappings"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SiteRecoverHyperVReplicationPolicyAssociationResource struct{}
@@ -22,11 +22,10 @@ func TestAccSiteRecoveryHyperVReplicationPolicyAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_hyperv_replication_policy_association", "test")
 	r := SiteRecoverHyperVReplicationPolicyAssociationResource{}
 	hostResource := HyperVHostTestResource{}
-	adminPwd := GenerateRandomPassword(10)
 
-	data.ResourceTest(t, r, append(hostResource.PrepareHostTestSteps(data, adminPwd), []acceptance.TestStep{
+	data.ResourceTest(t, r, append(hostResource.PrepareHostTestSteps(data), []acceptance.TestStep{
 		{
-			Config: r.basic(data, adminPwd),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -35,7 +34,7 @@ func TestAccSiteRecoveryHyperVReplicationPolicyAssociation_basic(t *testing.T) {
 	}...))
 }
 
-func (SiteRecoverHyperVReplicationPolicyAssociationResource) basic(data acceptance.TestData, adminPwd string) string {
+func (SiteRecoverHyperVReplicationPolicyAssociationResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -52,7 +51,7 @@ resource "azurerm_site_recovery_hyperv_replication_policy_association" "test" {
   hyperv_site_id = azurerm_site_recovery_services_vault_hyperv_site.test.id
   policy_id      = azurerm_site_recovery_hyperv_replication_policy.test.id
 }
-`, HyperVHostTestResource{}.template(data, adminPwd), data.RandomInteger)
+`, HyperVHostTestResource{}.template(data), data.RandomInteger)
 }
 
 func (t SiteRecoverHyperVReplicationPolicyAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -66,5 +65,5 @@ func (t SiteRecoverHyperVReplicationPolicyAssociationResource) Exists(ctx contex
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }

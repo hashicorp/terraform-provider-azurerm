@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -27,7 +27,6 @@ func TestTrustedRootCertificateID(t *testing.T) {
 		Error    bool
 		Expected *TrustedRootCertificateId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -136,7 +135,6 @@ func TestTrustedRootCertificateIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *TrustedRootCertificateId
 	}{
-
 		{
 			// empty
 			Input: "",

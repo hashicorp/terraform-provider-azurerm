@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/gallerysharingupdate` Documentation
 
-The `gallerysharingupdate` SDK allows for interaction with the Azure Resource Manager Service `compute` (API Version `2022-03-03`).
+The `gallerysharingupdate` SDK allows for interaction with Azure Resource Manager `compute` (API Version `2022-03-03`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := commonids.NewSharedImageGalleryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "galleryValue")
+id := commonids.NewSharedImageGalleryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "galleryName")
 
 payload := gallerysharingupdate.SharingUpdate{
 	// ...

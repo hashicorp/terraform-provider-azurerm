@@ -15,7 +15,24 @@ import (
 type ListByProductOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *PolicyCollection
+	Model        *[]PolicyContract
+}
+
+type ListByProductCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []PolicyContract
+}
+
+type ListByProductCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByProductCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByProduct ...
@@ -26,6 +43,7 @@ func (c ProductPolicyClient) ListByProduct(ctx context.Context, id ProductId) (r
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByProductCustomPager{},
 		Path:       fmt.Sprintf("%s/policies", id.ID()),
 	}
 
@@ -35,7 +53,7 @@ func (c ProductPolicyClient) ListByProduct(ctx context.Context, id ProductId) (r
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -44,9 +62,44 @@ func (c ProductPolicyClient) ListByProduct(ctx context.Context, id ProductId) (r
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var values struct {
+		Values *[]PolicyContract `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// ListByProductComplete retrieves all the results into a single object
+func (c ProductPolicyClient) ListByProductComplete(ctx context.Context, id ProductId) (ListByProductCompleteResult, error) {
+	return c.ListByProductCompleteMatchingPredicate(ctx, id, PolicyContractOperationPredicate{})
+}
+
+// ListByProductCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c ProductPolicyClient) ListByProductCompleteMatchingPredicate(ctx context.Context, id ProductId, predicate PolicyContractOperationPredicate) (result ListByProductCompleteResult, err error) {
+	items := make([]PolicyContract, 0)
+
+	resp, err := c.ListByProduct(ctx, id)
+	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = ListByProductCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

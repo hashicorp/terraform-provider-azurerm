@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package logic_test
@@ -25,6 +25,22 @@ func TestAccLogicAppTriggerCustom_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogicAppTriggerCustom_callbackUrl(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_custom", "test")
+	r := LogicAppTriggerCustomResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nonEmptyCallback(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("callback_url").IsNotEmpty(),
 			),
 		},
 		data.ImportStep(),
@@ -69,6 +85,31 @@ resource "azurerm_logic_app_trigger_custom" "test" {
     "interval": 1
   },
   "type": "Recurrence"
+}
+BODY
+
+}
+`, template, data.RandomInteger)
+}
+
+func (LogicAppTriggerCustomResource) nonEmptyCallback(data acceptance.TestData) string {
+	template := LogicAppTriggerCustomResource{}.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_logic_app_trigger_custom" "test" {
+  name         = "request-%d"
+  logic_app_id = azurerm_logic_app_workflow.test.id
+
+  body = <<BODY
+{
+  "inputs": {
+    "method": "POST",
+    "relativePath": "customers/{id}",
+	"schema": {}
+  },
+  "kind": "Http",
+  "type": "Request"
 }
 BODY
 

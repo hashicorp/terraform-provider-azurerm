@@ -1,6 +1,10 @@
 package metricalerts
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -23,6 +27,19 @@ func PossibleValuesForAggregationTypeEnum() []string {
 		string(AggregationTypeEnumMinimum),
 		string(AggregationTypeEnumTotal),
 	}
+}
+
+func (s *AggregationTypeEnum) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAggregationTypeEnum(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseAggregationTypeEnum(input string) (*AggregationTypeEnum, error) {
@@ -56,6 +73,19 @@ func PossibleValuesForCriterionType() []string {
 	}
 }
 
+func (s *CriterionType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseCriterionType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseCriterionType(input string) (*CriterionType, error) {
 	vals := map[string]CriterionType{
 		"dynamicthresholdcriterion": CriterionTypeDynamicThresholdCriterion,
@@ -84,6 +114,19 @@ func PossibleValuesForDynamicThresholdOperator() []string {
 		string(DynamicThresholdOperatorGreaterThan),
 		string(DynamicThresholdOperatorLessThan),
 	}
+}
+
+func (s *DynamicThresholdOperator) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDynamicThresholdOperator(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseDynamicThresholdOperator(input string) (*DynamicThresholdOperator, error) {
@@ -117,6 +160,19 @@ func PossibleValuesForDynamicThresholdSensitivity() []string {
 	}
 }
 
+func (s *DynamicThresholdSensitivity) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDynamicThresholdSensitivity(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseDynamicThresholdSensitivity(input string) (*DynamicThresholdSensitivity, error) {
 	vals := map[string]DynamicThresholdSensitivity{
 		"high":   DynamicThresholdSensitivityHigh,
@@ -146,6 +202,19 @@ func PossibleValuesForOdatatype() []string {
 		string(OdatatypeMicrosoftPointAzurePointMonitorPointSingleResourceMultipleMetricCriteria),
 		string(OdatatypeMicrosoftPointAzurePointMonitorPointWebtestLocationAvailabilityCriteria),
 	}
+}
+
+func (s *Odatatype) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseOdatatype(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseOdatatype(input string) (*Odatatype, error) {
@@ -181,6 +250,19 @@ func PossibleValuesForOperator() []string {
 		string(OperatorLessThan),
 		string(OperatorLessThanOrEqual),
 	}
+}
+
+func (s *Operator) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseOperator(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseOperator(input string) (*Operator, error) {

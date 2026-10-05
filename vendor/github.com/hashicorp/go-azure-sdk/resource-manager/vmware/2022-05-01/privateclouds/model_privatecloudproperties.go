@@ -11,7 +11,7 @@ type PrivateCloudProperties struct {
 	ExternalCloudLinks           *[]string                      `json:"externalCloudLinks,omitempty"`
 	IdentitySources              *[]IdentitySource              `json:"identitySources,omitempty"`
 	Internet                     *InternetEnum                  `json:"internet,omitempty"`
-	ManagementCluster            CommonClusterProperties        `json:"managementCluster"`
+	ManagementCluster            *CommonClusterProperties       `json:"managementCluster,omitempty"`
 	ManagementNetwork            *string                        `json:"managementNetwork,omitempty"`
 	NetworkBlock                 string                         `json:"networkBlock"`
 	NsxPublicIPQuotaRaised       *NsxPublicIPQuotaRaisedEnum    `json:"nsxPublicIpQuotaRaised,omitempty"`

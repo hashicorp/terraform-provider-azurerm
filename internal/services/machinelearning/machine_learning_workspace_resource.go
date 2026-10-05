@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package machinelearning
@@ -13,20 +13,19 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/registries"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-10-01/workspaces"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	appInsightsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type WorkspaceSku string
@@ -36,10 +35,10 @@ const (
 )
 
 func resourceMachineLearningWorkspace() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
-		Create: resourceMachineLearningWorkspaceCreateOrUpdate,
+	return &pluginsdk.Resource{
+		Create: resourceMachineLearningWorkspaceCreate,
 		Read:   resourceMachineLearningWorkspaceRead,
-		Update: resourceMachineLearningWorkspaceCreateOrUpdate,
+		Update: resourceMachineLearningWorkspaceUpdate,
 		Delete: resourceMachineLearningWorkspaceDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -70,7 +69,7 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: appInsightsValidate.ComponentID,
+				ValidateFunc: componentsapis.ValidateComponentID,
 				// TODO -- remove when issue https://github.com/Azure/azure-rest-api-specs/issues/8323 is addressed
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -146,13 +145,7 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
-				ConflictsWith: func() []string {
-					if !features.FourPointOhBeta() {
-						return []string{"public_access_behind_virtual_network_enabled"}
-					}
-					return []string{}
-				}(),
+				Default:  true,
 			},
 
 			"image_build_compute_name": {
@@ -189,6 +182,29 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				},
 			},
 
+			"managed_network": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"isolation_mode": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
+							ValidateFunc: validation.StringInSlice(workspaces.PossibleValuesForIsolationMode(), false),
+						},
+						"provision_on_creation_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							ForceNew: true,
+							Default:  false,
+						},
+					},
+				},
+			},
+
 			"friendly_name": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -207,10 +223,48 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{string(Basic)}, false),
 			},
 
+			"service_side_encryption_enabled": {
+				Type:         pluginsdk.TypeBool,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      false,
+				RequiredWith: []string{"encryption"},
+			},
+
 			"v1_legacy_mode_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
+			},
+
+			"storage_account_access_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  workspaces.SystemDatastoresAuthModeAccessKey,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(workspaces.SystemDatastoresAuthModeAccessKey),
+					string(workspaces.SystemDatastoresAuthModeIdentity),
+				}, false),
+			},
+
+			"serverless_compute": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"subnet_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: commonids.ValidateSubnetID,
+						},
+						"public_ip_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+					},
+				},
 			},
 
 			"discovery_url": {
@@ -226,31 +280,17 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		// For the time being we should just deprecate and remove this property since it's broken in the API - it doesn't
-		// actually set the property and also isn't returned by the API. Once https://github.com/Azure/azure-rest-api-specs/issues/18340
-		// is fixed we can reassess how to deal with this field.
-		resource.Schema["public_access_behind_virtual_network_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			ForceNew:      true,
-			Deprecated:    "`public_access_behind_virtual_network_enabled` will be removed in favour of the property `public_network_access_enabled` in version 4.0 of the AzureRM Provider.",
-			ConflictsWith: []string{"public_network_access_enabled"},
-		}
-	}
-
-	return resource
 }
 
-func resourceMachineLearningWorkspaceCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MachineLearning.Workspaces
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := workspaces.NewWorkspaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -262,44 +302,53 @@ func resourceMachineLearningWorkspaceCreateOrUpdate(d *pluginsdk.ResourceData, m
 		}
 	}
 
-	expandedIdentity, err := expandMachineLearningWorkspaceIdentity(d.Get("identity").([]interface{}))
+	expandedIdentity, err := expandMachineLearningWorkspaceIdentity(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
-	expandedEncryption := expandMachineLearningWorkspaceEncryption(d.Get("encryption").([]interface{}))
+	expandedEncryption := expandMachineLearningWorkspaceEncryption(d.Get("encryption").([]any))
 
-	networkAccessBehindVnetEnabled := false
+	managedNetwork, provisionNetworkNow := expandMachineLearningWorkspaceManagedNetwork(d.Get("managed_network").([]any))
 
-	// nolint: staticcheck
-	if v, ok := d.GetOkExists("public_network_access_enabled"); ok {
-		networkAccessBehindVnetEnabled = v.(bool)
+	networkAccessBehindVnetEnabled := workspaces.PublicNetworkAccessDisabled
+
+	if v := d.Get("public_network_access_enabled").(bool); v {
+		networkAccessBehindVnetEnabled = workspaces.PublicNetworkAccessEnabled
 	}
 
 	workspace := workspaces.Workspace{
 		Name:     pointer.To(id.WorkspaceName),
-		Location: pointer.To(azure.NormalizeLocation(d.Get("location").(string))),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 		Sku: &workspaces.Sku{
 			Name: d.Get("sku_name").(string),
-			Tier: pointer.To(workspaces.SkuTier(d.Get("sku_name").(string))),
+			Tier: pointer.ToEnum[workspaces.SkuTier](d.Get("sku_name").(string)),
 		},
-		Kind: utils.String(d.Get("kind").(string)),
-
+		Kind:     pointer.To(d.Get("kind").(string)),
 		Identity: expandedIdentity,
 		Properties: &workspaces.WorkspaceProperties{
-			V1LegacyMode:        pointer.To(d.Get("v1_legacy_mode_enabled").(bool)),
-			Encryption:          expandedEncryption,
-			StorageAccount:      pointer.To(d.Get("storage_account_id").(string)),
-			ApplicationInsights: pointer.To(d.Get("application_insights_id").(string)),
-			KeyVault:            pointer.To(d.Get("key_vault_id").(string)),
-			PublicNetworkAccess: pointer.To(workspaces.PublicNetworkAccessDisabled),
+			ApplicationInsights:            pointer.To(d.Get("application_insights_id").(string)),
+			Encryption:                     expandedEncryption,
+			KeyVault:                       pointer.To(d.Get("key_vault_id").(string)),
+			ManagedNetwork:                 managedNetwork,
+			ProvisionNetworkNow:            pointer.To(provisionNetworkNow),
+			PublicNetworkAccess:            pointer.To(networkAccessBehindVnetEnabled),
+			EnableServiceSideCMKEncryption: pointer.To(d.Get("service_side_encryption_enabled").(bool)),
+			StorageAccount:                 pointer.To(d.Get("storage_account_id").(string)),
+			SystemDatastoresAuthMode:       pointer.ToEnum[workspaces.SystemDatastoresAuthMode](d.Get("storage_account_access_type").(string)),
+			V1LegacyMode:                   pointer.To(d.Get("v1_legacy_mode_enabled").(bool)),
 		},
 	}
 
-	if networkAccessBehindVnetEnabled {
-		workspace.Properties.PublicNetworkAccess = pointer.To(workspaces.PublicNetworkAccessEnabled)
+	serverlessCompute := expandMachineLearningWorkspaceServerlessCompute(d.Get("serverless_compute").([]any))
+	if serverlessCompute != nil {
+		if *serverlessCompute.ServerlessComputeNoPublicIP && serverlessCompute.ServerlessComputeCustomSubnet == nil && networkAccessBehindVnetEnabled == workspaces.PublicNetworkAccessDisabled {
+			return fmt.Errorf("`public_ip_enabled` must be set to  `true` if `subnet_id` is not set and `public_network_access_enabled` is `false`")
+		}
 	}
+
+	workspace.Properties.ServerlessComputeSettings = serverlessCompute
 
 	if v, ok := d.GetOk("description"); ok {
 		workspace.Properties.Description = pointer.To(v.(string))
@@ -314,7 +363,7 @@ func resourceMachineLearningWorkspaceCreateOrUpdate(d *pluginsdk.ResourceData, m
 	}
 
 	if v, ok := d.GetOk("high_business_impact"); ok {
-		workspace.Properties.HbiWorkspace = utils.Bool(v.(bool))
+		workspace.Properties.HbiWorkspace = pointer.To(v.(bool))
 	}
 
 	if v, ok := d.GetOk("image_build_compute_name"); ok {
@@ -325,7 +374,7 @@ func resourceMachineLearningWorkspaceCreateOrUpdate(d *pluginsdk.ResourceData, m
 		workspace.Properties.PrimaryUserAssignedIdentity = pointer.To(v.(string))
 	}
 
-	featureStore := expandMachineLearningWorkspaceFeatureStore(d.Get("feature_store").([]interface{}))
+	featureStore := expandMachineLearningWorkspaceFeatureStore(d.Get("feature_store").([]any))
 	if strings.EqualFold(*workspace.Kind, "Default") {
 		if featureStore != nil {
 			return fmt.Errorf("`feature_store` can only be set when `kind` is `FeatureStore`")
@@ -337,27 +386,149 @@ func resourceMachineLearningWorkspaceCreateOrUpdate(d *pluginsdk.ResourceData, m
 		workspace.Properties.FeatureStoreSettings = featureStore
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id, workspace)
-	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-
-	if err = future.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("waiting for the creation of %s: %+v", id, err)
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, workspace, sdk.SetIDCallback(meta, &id, d)); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 	return resourceMachineLearningWorkspaceRead(d, meta)
 }
 
-func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMachineLearningWorkspaceUpdate(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).MachineLearning.Workspaces
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := workspaces.ParseWorkspaceID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+
+	payload := existing.Model
+
+	if d.HasChange("identity") {
+		expandedIdentity, err := expandMachineLearningWorkspaceIdentity(d.Get("identity").([]any))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+
+		payload.Identity = expandedIdentity
+	}
+
+	if d.HasChange("kind") {
+		payload.Kind = pointer.To(d.Get("kind").(string))
+	}
+
+	if d.HasChange("feature_store") {
+		featureStore := expandMachineLearningWorkspaceFeatureStore(d.Get("feature_store").([]any))
+		if strings.EqualFold(*payload.Kind, "Default") {
+			if featureStore != nil {
+				return fmt.Errorf("`feature_store` can only be set when `kind` is `FeatureStore`")
+			}
+		} else {
+			if featureStore == nil {
+				return fmt.Errorf("`feature_store` can not be empty when `kind` is `FeatureStore`")
+			}
+			payload.Properties.FeatureStoreSettings = featureStore
+		}
+	}
+
+	if d.HasChange("primary_user_assigned_identity") {
+		payload.Properties.PrimaryUserAssignedIdentity = pointer.To(d.Get("primary_user_assigned_identity").(string))
+	}
+
+	if d.HasChange("public_network_access_enabled") {
+		if d.Get("public_network_access_enabled").(bool) {
+			payload.Properties.PublicNetworkAccess = pointer.To(workspaces.PublicNetworkAccessEnabled)
+		} else {
+			payload.Properties.PublicNetworkAccess = pointer.To(workspaces.PublicNetworkAccessDisabled)
+		}
+	}
+
+	if d.HasChange("image_build_compute_name") {
+		payload.Properties.ImageBuildCompute = pointer.To(d.Get("image_build_compute_name").(string))
+	}
+
+	if d.HasChange("description") {
+		payload.Properties.Description = pointer.To(d.Get("description").(string))
+	}
+
+	if d.HasChange("friendly_name") {
+		payload.Properties.FriendlyName = pointer.To(d.Get("friendly_name").(string))
+	}
+
+	if d.HasChange("managed_network") {
+		payload.Properties.ManagedNetwork, _ = expandMachineLearningWorkspaceManagedNetwork(d.Get("managed_network").([]any))
+	}
+
+	if d.HasChange("sku_name") {
+		payload.Sku = &workspaces.Sku{
+			Name: d.Get("sku_name").(string),
+			Tier: pointer.ToEnum[workspaces.SkuTier](d.Get("sku_name").(string)),
+		}
+	}
+
+	if d.HasChange("v1_legacy_mode_enabled") {
+		payload.Properties.V1LegacyMode = pointer.To(d.Get("v1_legacy_mode_enabled").(bool))
+	}
+
+	if d.HasChange("storage_account_access_type") {
+		payload.Properties.SystemDatastoresAuthMode = pointer.ToEnum[workspaces.SystemDatastoresAuthMode](d.Get("storage_account_access_type").(string))
+	}
+
+	if d.HasChange("serverless_compute") {
+		serverlessCompute := expandMachineLearningWorkspaceServerlessCompute(d.Get("serverless_compute").([]any))
+		if serverlessCompute != nil {
+			networkAccessBehindVnetEnabled := false
+			if v := payload.Properties.PublicNetworkAccess; v != nil && *v == workspaces.PublicNetworkAccessEnabled {
+				networkAccessBehindVnetEnabled = true
+			}
+			if *serverlessCompute.ServerlessComputeNoPublicIP && serverlessCompute.ServerlessComputeCustomSubnet == nil && !networkAccessBehindVnetEnabled {
+				return fmt.Errorf("`public_ip_enabled` must be set to  `true` if `subnet_id` is not set and `public_network_access_enabled` is `false`")
+			}
+
+			if serverlessCompute.ServerlessComputeCustomSubnet == nil {
+				oldVal, newVal := d.GetChange("serverless_compute.0.public_ip_enabled")
+				if oldVal.(bool) && !newVal.(bool) {
+					return fmt.Errorf("`public_ip_enabled` cannot be updated from `true` to `false` when `subnet_id` is null or empty")
+				}
+			}
+		}
+		payload.Properties.ServerlessComputeSettings = serverlessCompute
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+	return resourceMachineLearningWorkspaceRead(d, meta)
+}
+
+func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MachineLearning.Workspaces
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := workspaces.ParseWorkspaceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("parsing Machine Learning Workspace ID `%q`: %+v", d.Id(), err)
+		return err
 	}
 
 	resp, err := client.Get(ctx, *id)
@@ -366,73 +537,80 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on Workspace %q (Resource Group %q): %+v", id.WorkspaceName, id.ResourceGroupName, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.Set("name", id.WorkspaceName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if location := resp.Model.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
+		if sku := model.Sku; sku != nil {
+			d.Set("sku_name", sku.Name)
+		}
+		d.Set("kind", model.Kind)
 
-	if sku := resp.Model.Sku; sku != nil {
-		d.Set("sku_name", sku.Name)
-	}
-
-	d.Set("kind", resp.Model.Kind)
-
-	if props := resp.Model.Properties; props != nil {
-		d.Set("application_insights_id", props.ApplicationInsights)
-		d.Set("storage_account_id", props.StorageAccount)
-		d.Set("container_registry_id", props.ContainerRegistry)
-		d.Set("description", props.Description)
-		d.Set("friendly_name", props.FriendlyName)
-		d.Set("high_business_impact", props.HbiWorkspace)
-		d.Set("image_build_compute_name", props.ImageBuildCompute)
-		d.Set("discovery_url", props.DiscoveryUrl)
-		d.Set("primary_user_assigned_identity", props.PrimaryUserAssignedIdentity)
-		d.Set("public_network_access_enabled", *props.PublicNetworkAccess == workspaces.PublicNetworkAccessEnabled)
-		d.Set("v1_legacy_mode_enabled", props.V1LegacyMode)
-		d.Set("workspace_id", props.WorkspaceId)
-
-		kvId, err := commonids.ParseKeyVaultIDInsensitively(*props.KeyVault)
+		flattenedIdentity, err := flattenMachineLearningWorkspaceIdentity(model.Identity)
 		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+
+		if err := d.Set("identity", flattenedIdentity); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
+
+		if props := model.Properties; props != nil {
+			appInsightsId := ""
+			if props.ApplicationInsights != nil {
+				applicationInsightsId, err := componentsapis.ParseComponentIDInsensitively(*props.ApplicationInsights)
+				if err != nil {
+					return err
+				}
+				appInsightsId = applicationInsightsId.ID()
+			}
+			d.Set("application_insights_id", appInsightsId)
+			d.Set("storage_account_id", props.StorageAccount)
+			d.Set("container_registry_id", props.ContainerRegistry)
+			d.Set("description", props.Description)
+			d.Set("friendly_name", props.FriendlyName)
+			d.Set("high_business_impact", props.HbiWorkspace)
+			d.Set("image_build_compute_name", props.ImageBuildCompute)
+			d.Set("discovery_url", props.DiscoveryURL)
+			d.Set("primary_user_assigned_identity", props.PrimaryUserAssignedIdentity)
+			d.Set("public_network_access_enabled", *props.PublicNetworkAccess == workspaces.PublicNetworkAccessEnabled)
+			d.Set("service_side_encryption_enabled", props.EnableServiceSideCMKEncryption)
+			d.Set("v1_legacy_mode_enabled", props.V1LegacyMode)
+			d.Set("storage_account_access_type", pointer.FromEnum(props.SystemDatastoresAuthMode))
+			d.Set("workspace_id", props.WorkspaceId)
+			d.Set("managed_network", flattenMachineLearningWorkspaceManagedNetwork(props.ManagedNetwork, props.ProvisionNetworkNow))
+			d.Set("serverless_compute", flattenMachineLearningWorkspaceServerlessCompute(props.ServerlessComputeSettings))
+
+			kvId, err := commonids.ParseKeyVaultIDInsensitively(*props.KeyVault)
+			if err != nil {
+				return err
+			}
+			d.Set("key_vault_id", kvId.ID())
+
+			if err := d.Set("feature_store", flattenMachineLearningWorkspaceFeatureStore(props.FeatureStoreSettings)); err != nil {
+				return fmt.Errorf("setting `feature_store`: %+v", err)
+			}
+
+			flattenedEncryption, err := flattenMachineLearningWorkspaceEncryption(props.Encryption)
+			if err != nil {
+				return fmt.Errorf("flattening `encryption`: %+v", err)
+			}
+			if err := d.Set("encryption", flattenedEncryption); err != nil {
+				return fmt.Errorf("setting `encryption`: %+v", err)
+			}
+		}
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
 		}
-		d.Set("key_vault_id", kvId.ID())
-
-		if !features.FourPointOhBeta() {
-			d.Set("public_access_behind_virtual_network_enabled", props.AllowPublicAccessWhenBehindVnet)
-		}
 	}
-
-	flattenedIdentity, err := flattenMachineLearningWorkspaceIdentity(resp.Model.Identity)
-	if err != nil {
-		return fmt.Errorf("flattening `identity`: %+v", err)
-	}
-
-	if err := d.Set("identity", flattenedIdentity); err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
-	}
-
-	featureStoreSettings := flattenMachineLearningWorkspaceFeatureStore(resp.Model.Properties.FeatureStoreSettings)
-	if err := d.Set("feature_store", featureStoreSettings); err != nil {
-		return fmt.Errorf("setting `feature_store`: %+v", err)
-	}
-
-	flattenedEncryption, err := flattenMachineLearningWorkspaceEncryption(resp.Model.Properties.Encryption)
-	if err != nil {
-		return fmt.Errorf("flattening `encryption`: %+v", err)
-	}
-	if err := d.Set("encryption", flattenedEncryption); err != nil {
-		return fmt.Errorf("flattening encryption on Workspace %q (Resource Group %q): %+v", id.WorkspaceName, id.ResourceGroupName, err)
-	}
-
-	return tags.FlattenAndSet(d, resp.Model.Tags)
+	return nil
 }
 
-func resourceMachineLearningWorkspaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMachineLearningWorkspaceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MachineLearning.Workspaces
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -442,7 +620,14 @@ func resourceMachineLearningWorkspaceDelete(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("parsing Machine Learning Workspace ID `%q`: %+v", d.Id(), err)
 	}
 
-	future, err := client.Delete(ctx, *id, workspaces.DefaultDeleteOperationOptions())
+	options := workspaces.DefaultDeleteOperationOptions()
+	if meta.(*clients.Client).Features.MachineLearning.PurgeSoftDeletedWorkspaceOnDestroy {
+		options = workspaces.DeleteOperationOptions{
+			ForceToPurge: pointer.To(true),
+		}
+	}
+
+	future, err := client.Delete(ctx, *id, options)
 	if err != nil {
 		return fmt.Errorf("deleting Machine Learning Workspace %q (Resource Group %q): %+v", id.WorkspaceName, id.ResourceGroupName, err)
 	}
@@ -454,7 +639,7 @@ func resourceMachineLearningWorkspaceDelete(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func expandMachineLearningWorkspaceIdentity(input []interface{}) (*identity.LegacySystemAndUserAssignedMap, error) {
+func expandMachineLearningWorkspaceIdentity(input []any) (*identity.LegacySystemAndUserAssignedMap, error) {
 	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
 	if err != nil {
 		return nil, err
@@ -474,7 +659,7 @@ func expandMachineLearningWorkspaceIdentity(input []interface{}) (*identity.Lega
 	return &out, nil
 }
 
-func flattenMachineLearningWorkspaceIdentity(input *identity.LegacySystemAndUserAssignedMap) (*[]interface{}, error) {
+func flattenMachineLearningWorkspaceIdentity(input *identity.LegacySystemAndUserAssignedMap) (*[]any, error) {
 	var transform *identity.SystemAndUserAssignedMap
 
 	if input != nil {
@@ -495,7 +680,7 @@ func flattenMachineLearningWorkspaceIdentity(input *identity.LegacySystemAndUser
 			transform.TenantId = input.TenantId
 		}
 
-		if input != nil && input.IdentityIds != nil {
+		if input.IdentityIds != nil {
 			for k, v := range input.IdentityIds {
 				transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
 					ClientId:    v.ClientId,
@@ -508,16 +693,14 @@ func flattenMachineLearningWorkspaceIdentity(input *identity.LegacySystemAndUser
 	return identity.FlattenSystemAndUserAssignedMap(transform)
 }
 
-func expandMachineLearningWorkspaceEncryption(input []interface{}) *workspaces.EncryptionProperty {
+func expandMachineLearningWorkspaceEncryption(input []any) *workspaces.EncryptionProperty {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 	out := workspaces.EncryptionProperty{
-		Identity: &workspaces.IdentityForCmk{
-			UserAssignedIdentity: nil,
-		},
+		Identity: &workspaces.IdentityForCmk{},
 		KeyVaultProperties: workspaces.EncryptionKeyVaultProperties{
 			KeyVaultArmId: raw["key_vault_id"].(string),
 			KeyIdentifier: raw["key_id"].(string),
@@ -532,9 +715,9 @@ func expandMachineLearningWorkspaceEncryption(input []interface{}) *workspaces.E
 	return &out
 }
 
-func flattenMachineLearningWorkspaceEncryption(input *workspaces.EncryptionProperty) (*[]interface{}, error) {
+func flattenMachineLearningWorkspaceEncryption(input *workspaces.EncryptionProperty) (*[]any, error) {
 	if input == nil || input.Status != workspaces.EncryptionStatusEnabled {
-		return &[]interface{}{}, nil
+		return &[]any{}, nil
 	}
 
 	keyVaultId := ""
@@ -557,8 +740,8 @@ func flattenMachineLearningWorkspaceEncryption(input *workspaces.EncryptionPrope
 		userAssignedIdentityId = id.ID()
 	}
 
-	return &[]interface{}{
-		map[string]interface{}{
+	return &[]any{
+		map[string]any{
 			"user_assigned_identity_id": userAssignedIdentityId,
 			"key_vault_id":              keyVaultId,
 			"key_id":                    keyVaultKeyId,
@@ -566,33 +749,33 @@ func flattenMachineLearningWorkspaceEncryption(input *workspaces.EncryptionPrope
 	}, nil
 }
 
-func expandMachineLearningWorkspaceFeatureStore(input []interface{}) *workspaces.FeatureStoreSettings {
+func expandMachineLearningWorkspaceFeatureStore(input []any) *workspaces.FeatureStoreSettings {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 	out := workspaces.FeatureStoreSettings{}
 
 	if raw["computer_spark_runtime_version"].(string) != "" {
 		out.ComputeRuntime = &workspaces.ComputeRuntimeDto{
-			SparkRuntimeVersion: utils.String(raw["computer_spark_runtime_version"].(string)),
+			SparkRuntimeVersion: pointer.To(raw["computer_spark_runtime_version"].(string)),
 		}
 	}
 
 	if raw["offline_connection_name"].(string) != "" {
-		out.OfflineStoreConnectionName = utils.String(raw["offline_connection_name"].(string))
+		out.OfflineStoreConnectionName = pointer.To(raw["offline_connection_name"].(string))
 	}
 
 	if raw["online_connection_name"].(string) != "" {
-		out.OnlineStoreConnectionName = utils.String(raw["online_connection_name"].(string))
+		out.OnlineStoreConnectionName = pointer.To(raw["online_connection_name"].(string))
 	}
 	return &out
 }
 
-func flattenMachineLearningWorkspaceFeatureStore(input *workspaces.FeatureStoreSettings) *[]interface{} {
+func flattenMachineLearningWorkspaceFeatureStore(input *workspaces.FeatureStoreSettings) *[]any {
 	if input == nil {
-		return &[]interface{}{}
+		return &[]any{}
 	}
 
 	computerSparkRunTimeVersion := ""
@@ -610,11 +793,74 @@ func flattenMachineLearningWorkspaceFeatureStore(input *workspaces.FeatureStoreS
 		onlineConnectionName = *input.OnlineStoreConnectionName
 	}
 
-	return &[]interface{}{
-		map[string]interface{}{
+	return &[]any{
+		map[string]any{
 			"computer_spark_runtime_version": computerSparkRunTimeVersion,
 			"offline_connection_name":        offlineConnectionName,
 			"online_connection_name":         onlineConnectionName,
 		},
 	}
+}
+
+func expandMachineLearningWorkspaceManagedNetwork(i []any) (*workspaces.ManagedNetworkSettings, bool) {
+	if len(i) == 0 || i[0] == nil {
+		return nil, false
+	}
+
+	v := i[0].(map[string]any)
+
+	return &workspaces.ManagedNetworkSettings{
+		IsolationMode: pointer.ToEnum[workspaces.IsolationMode](v["isolation_mode"].(string)),
+	}, v["provision_on_creation_enabled"].(bool)
+}
+
+func flattenMachineLearningWorkspaceManagedNetwork(i *workspaces.ManagedNetworkSettings, provisionNetworkNow *bool) *[]any {
+	if i == nil {
+		return &[]any{}
+	}
+
+	out := map[string]any{}
+
+	if i.IsolationMode != nil {
+		out["isolation_mode"] = *i.IsolationMode
+	}
+	out["provision_on_creation_enabled"] = pointer.From(provisionNetworkNow)
+
+	return &[]any{out}
+}
+
+func expandMachineLearningWorkspaceServerlessCompute(i []any) *workspaces.ServerlessComputeSettings {
+	if len(i) == 0 || i[0] == nil {
+		return nil
+	}
+
+	v := i[0].(map[string]any)
+
+	serverlessCompute := workspaces.ServerlessComputeSettings{
+		ServerlessComputeNoPublicIP: pointer.To(!v["public_ip_enabled"].(bool)),
+	}
+
+	if subnetId, ok := v["subnet_id"].(string); ok && subnetId != "" {
+		serverlessCompute.ServerlessComputeCustomSubnet = pointer.To(subnetId)
+	}
+
+	return &serverlessCompute
+}
+
+func flattenMachineLearningWorkspaceServerlessCompute(i *workspaces.ServerlessComputeSettings) *[]any {
+	if i == nil {
+		return &[]any{}
+	}
+
+	out := map[string]any{}
+
+	if i.ServerlessComputeCustomSubnet != nil {
+		out["subnet_id"] = *i.ServerlessComputeCustomSubnet
+	}
+
+	if i.ServerlessComputeNoPublicIP != nil {
+		out["public_ip_enabled"] = !*i.ServerlessComputeNoPublicIP
+	}
+
+	return &[]any{out}
 }

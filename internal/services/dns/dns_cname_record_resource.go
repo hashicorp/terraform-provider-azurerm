@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dns
@@ -7,27 +7,33 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/recordsets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/endpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/trafficmanagers"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	cdn "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/migration"
 	frontdoor "github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "dns_zone_name:zone_name,resource_group_name,name" -known-values "record_type:CNAME"
+
+const azureDnsCNameRecordResourceName = "azurerm_dns_cname_record"
 
 func resourceDnsCNameRecord() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceDnsCNameRecordCreateUpdate,
+		Create: resourceDnsCNameRecordCreate,
 		Read:   resourceDnsCNameRecordRead,
-		Update: resourceDnsCNameRecordCreateUpdate,
+		Update: resourceDnsCNameRecordUpdate,
 		Delete: resourceDnsCNameRecordDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -37,16 +43,11 @@ func resourceDnsCNameRecord() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			parsed, err := recordsets.ParseRecordTypeID(id)
-			if err != nil {
-				return err
-			}
-			if parsed.RecordType != recordsets.RecordTypeCNAME {
-				return fmt.Errorf("this resource only supports 'CNAME' records")
-			}
-			return nil
-		}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&recordsets.RecordTypeId{}),
+		},
+
+		Importer: pluginsdk.ImporterValidatingIdentityThen(&recordsets.RecordTypeId{}, helper.ResourceDnsRecordImporter(recordsets.RecordTypeCNAME)),
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -69,9 +70,9 @@ func resourceDnsCNameRecord() *pluginsdk.Resource {
 			},
 
 			"record": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				ConflictsWith: []string{"target_resource_id"},
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ExactlyOneOf: []string{"record", "target_resource_id"},
 			},
 
 			"ttl": {
@@ -85,10 +86,10 @@ func resourceDnsCNameRecord() *pluginsdk.Resource {
 			},
 
 			"target_resource_id": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				ValidateFunc:  azure.ValidateResourceID,
-				ConflictsWith: []string{"record"},
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
+				ExactlyOneOf: []string{"record", "target_resource_id"},
 			},
 
 			"tags": commonschema.Tags(),
@@ -96,9 +97,9 @@ func resourceDnsCNameRecord() *pluginsdk.Resource {
 	}
 }
 
-func resourceDnsCNameRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDnsCNameRecordCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Dns.RecordSets
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
@@ -107,7 +108,8 @@ func resourceDnsCNameRecordCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	zoneName := d.Get("zone_name").(string)
 
 	id := recordsets.NewRecordTypeID(subscriptionId, resGroup, zoneName, recordsets.RecordTypeCNAME, name)
-	if d.IsNewResource() {
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -122,7 +124,7 @@ func resourceDnsCNameRecordCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	ttl := int64(d.Get("ttl").(int))
 	record := d.Get("record").(string)
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 	targetResourceId := d.Get("target_resource_id").(string)
 
 	parameters := recordsets.RecordSet{
@@ -136,28 +138,26 @@ func resourceDnsCNameRecordCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if record != "" {
-		parameters.Properties.CNAMERecord.Cname = utils.String(record)
+		parameters.Properties.CNAMERecord.Cname = pointer.To(record)
 	}
 
 	if targetResourceId != "" {
-		parameters.Properties.TargetResource.Id = utils.String(targetResourceId)
-	}
-
-	// TODO: this can be removed when the provider SDK is upgraded
-	if record == "" && targetResourceId == "" {
-		return fmt.Errorf("One of either `record` or `target_resource_id` must be specified")
+		parameters.Properties.TargetResource.Id = pointer.To(targetResourceId)
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters, recordsets.DefaultCreateOrUpdateOperationOptions()); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceDnsCNameRecordRead(d, meta)
 }
 
-func resourceDnsCNameRecordRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDnsCNameRecordRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -176,11 +176,15 @@ func resourceDnsCNameRecordRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	return resourceDnsCNameRecordFlatten(d, id, resp.Model)
+}
+
+func resourceDnsCNameRecordFlatten(d *pluginsdk.ResourceData, id *recordsets.RecordTypeId, model *recordsets.RecordSet) error {
 	d.Set("name", id.RelativeRecordSetName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("zone_name", id.DnsZoneName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("fqdn", props.Fqdn)
 			d.Set("ttl", props.TTL)
@@ -197,7 +201,7 @@ func resourceDnsCNameRecordRead(d *pluginsdk.ResourceData, meta interface{}) err
 				targetResourceId = *props.TargetResource.Id
 				if recordTypeID, err := recordsets.ParseRecordTypeIDInsensitively(targetResourceId); err == nil {
 					targetResourceId = recordTypeID.ID()
-				} else if trafficManagerID, err := endpoints.ParseEndpointTypeIDInsensitively(targetResourceId); err == nil {
+				} else if trafficManagerID, err := trafficmanagers.ParseEndpointTypeIDInsensitively(targetResourceId); err == nil {
 					targetResourceId = trafficManagerID.ID()
 				} else if cdnID, err := cdn.EndpointIDInsensitively(targetResourceId); err == nil {
 					targetResourceId = cdnID.ID()
@@ -213,10 +217,66 @@ func resourceDnsCNameRecordRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceDnsCNameRecordDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDnsCNameRecordUpdate(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Dns.RecordSets
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := recordsets.ParseRecordTypeID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+
+	payload := existing.Model
+
+	if d.HasChange("record") {
+		payload.Properties.CNAMERecord = &recordsets.CnameRecord{}
+		if record := d.Get("record").(string); record != "" {
+			payload.Properties.CNAMERecord.Cname = pointer.To(record)
+		}
+	}
+
+	if d.HasChange("target_resource_id") {
+		payload.Properties.TargetResource = &recordsets.SubResource{}
+		if targetId := d.Get("target_resource_id").(string); targetId != "" {
+			payload.Properties.TargetResource.Id = pointer.To(targetId)
+		}
+	}
+
+	if d.HasChange("ttl") {
+		payload.Properties.TTL = pointer.To(int64(d.Get("ttl").(int)))
+	}
+
+	if d.HasChange("tags") {
+		payload.Properties.Metadata = tags.Expand(d.Get("tags").(map[string]any))
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, *payload, recordsets.DefaultCreateOrUpdateOperationOptions()); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	return resourceDnsCNameRecordRead(d, meta)
+}
+
+func resourceDnsCNameRecordDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

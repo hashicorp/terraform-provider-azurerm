@@ -15,7 +15,24 @@ import (
 type ListByElasticSanOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *PrivateLinkResourceListResult
+	Model        *[]PrivateLinkResource
+}
+
+type ListByElasticSanCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []PrivateLinkResource
+}
+
+type ListByElasticSanCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByElasticSanCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByElasticSan ...
@@ -26,6 +43,7 @@ func (c PrivateLinkResourcesClient) ListByElasticSan(ctx context.Context, id Ela
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByElasticSanCustomPager{},
 		Path:       fmt.Sprintf("%s/privateLinkResources", id.ID()),
 	}
 
@@ -35,7 +53,7 @@ func (c PrivateLinkResourcesClient) ListByElasticSan(ctx context.Context, id Ela
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -44,9 +62,44 @@ func (c PrivateLinkResourcesClient) ListByElasticSan(ctx context.Context, id Ela
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var values struct {
+		Values *[]PrivateLinkResource `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// ListByElasticSanComplete retrieves all the results into a single object
+func (c PrivateLinkResourcesClient) ListByElasticSanComplete(ctx context.Context, id ElasticSanId) (ListByElasticSanCompleteResult, error) {
+	return c.ListByElasticSanCompleteMatchingPredicate(ctx, id, PrivateLinkResourceOperationPredicate{})
+}
+
+// ListByElasticSanCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c PrivateLinkResourcesClient) ListByElasticSanCompleteMatchingPredicate(ctx context.Context, id ElasticSanId, predicate PrivateLinkResourceOperationPredicate) (result ListByElasticSanCompleteResult, err error) {
+	items := make([]PrivateLinkResource, 0)
+
+	resp, err := c.ListByElasticSan(ctx, id)
+	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = ListByElasticSanCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

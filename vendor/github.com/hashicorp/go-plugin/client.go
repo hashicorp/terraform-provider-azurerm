@@ -14,7 +14,6 @@ import (
 	"fmt"
 	"hash"
 	"io"
-	"io/ioutil"
 	"net"
 	"os"
 	"os/exec"
@@ -27,6 +26,7 @@ import (
 
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/go-plugin/internal/cmdrunner"
+	"github.com/hashicorp/go-plugin/internal/grpcmux"
 	"github.com/hashicorp/go-plugin/runner"
 	"google.golang.org/grpc"
 )
@@ -63,7 +63,17 @@ var (
 	// ErrSecureConfigAndReattach is returned when both Reattach and
 	// SecureConfig are set.
 	ErrSecureConfigAndReattach = errors.New("only one of Reattach or SecureConfig can be set")
+
+	// ErrGRPCBrokerMuxNotSupported is returned when the client requests
+	// multiplexing over the gRPC broker, but the plugin does not support the
+	// feature. In most cases, this should be resolvable by updating and
+	// rebuilding the plugin, or restarting the plugin with
+	// ClientConfig.GRPCBrokerMultiplex set to false.
+	ErrGRPCBrokerMuxNotSupported = errors.New("client requested gRPC broker multiplexing but plugin does not support the feature")
 )
+
+// defaultPluginLogBufferSize is the default size of the buffer used to read from stderr for plugin log lines.
+const defaultPluginLogBufferSize = 64 * 1024
 
 // Client handles the lifecycle of a plugin application. It launches
 // plugins, connects to them, dispenses interface implementations, and handles
@@ -71,7 +81,7 @@ var (
 //
 // Plugin hosts should use one Client for each plugin executable. To
 // dispense a plugin type, use the `Client.Client` function, and then
-// cal `Dispense`. This awkward API is mostly historical but is used to split
+// call `Dispense`. This awkward API is mostly historical but is used to split
 // the client that deals with subprocess management and the client that
 // does RPC management.
 //
@@ -93,15 +103,18 @@ type Client struct {
 	// goroutines.
 	clientWaitGroup sync.WaitGroup
 
-	// stderrWaitGroup is used to prevent the command's Wait() function from
-	// being called before we've finished reading from the stderr pipe.
-	stderrWaitGroup sync.WaitGroup
+	// pipesWaitGroup is used to prevent the command's Wait() function from
+	// being called before we've finished reading from the stdout and stderr pipe.
+	pipesWaitGroup sync.WaitGroup
 
 	// processKilled is used for testing only, to flag when the process was
 	// forcefully killed.
 	processKilled bool
 
 	unixSocketCfg UnixSocketConfig
+
+	grpcMuxerOnce sync.Once
+	grpcMuxer     *grpcmux.GRPCClientMuxer
 }
 
 // NegotiatedVersion returns the protocol version negotiated with the server.
@@ -188,7 +201,7 @@ type ClientConfig struct {
 	// SyncStdout, SyncStderr can be set to override the
 	// respective os.Std* values in the plugin. Care should be taken to
 	// avoid races here. If these are nil, then this will be set to
-	// ioutil.Discard.
+	// io.Discard.
 	SyncStdout io.Writer
 	SyncStderr io.Writer
 
@@ -208,6 +221,10 @@ type ClientConfig struct {
 	// Logger is the logger that the client will used. If none is provided,
 	// it will default to hclog's default logger.
 	Logger hclog.Logger
+
+	// PluginLogBufferSize is the buffer size(bytes) to read from stderr for plugin log lines.
+	// If this is 0, then the default of 64KB is used.
+	PluginLogBufferSize int
 
 	// AutoMTLS has the client and server automatically negotiate mTLS for
 	// transport authentication. This ensures that only the original client will
@@ -237,6 +254,19 @@ type ClientConfig struct {
 	// protocol.
 	GRPCDialOptions []grpc.DialOption
 
+	// GRPCBrokerMultiplex turns on multiplexing for the gRPC broker. The gRPC
+	// broker will multiplex all brokered gRPC servers over the plugin's original
+	// listener socket instead of making a new listener for each server. The
+	// go-plugin library currently only includes a Go implementation for the
+	// server (i.e. plugin) side of gRPC broker multiplexing.
+	//
+	// Does not support reattaching.
+	//
+	// Multiplexed gRPC streams MUST be established sequentially, i.e. after
+	// calling AcceptAndServe from one side, wait for the other side to Dial
+	// before calling AcceptAndServe again.
+	GRPCBrokerMultiplex bool
+
 	// SkipHostEnv allows plugins to run without inheriting the parent process'
 	// environment variables.
 	SkipHostEnv bool
@@ -252,16 +282,15 @@ type UnixSocketConfig struct {
 	// client process must be a member of this group or chown will fail.
 	Group string
 
-	// The directory to create Unix sockets in. Internally managed by go-plugin
-	// and deleted when the plugin is killed.
-	directory string
-}
+	// TempDir specifies the base directory to use when creating a plugin-specific
+	// temporary directory. It is expected to already exist and be writable. If
+	// not set, defaults to the directory chosen by os.MkdirTemp.
+	TempDir string
 
-func unixSocketConfigFromEnv() UnixSocketConfig {
-	return UnixSocketConfig{
-		Group:     os.Getenv(EnvUnixSocketGroup),
-		directory: os.Getenv(EnvUnixSocketDir),
-	}
+	// The directory to create Unix sockets in. Internally created and managed
+	// by go-plugin and deleted when the plugin is killed. Will be created
+	// inside TempDir if specified.
+	socketDir string
 }
 
 // ReattachConfig is used to configure a client to reattach to an
@@ -315,7 +344,7 @@ func (s *SecureConfig) Check(filePath string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	_, err = io.Copy(s.Hash, file)
 	if err != nil {
@@ -353,7 +382,7 @@ func CleanupClients() {
 	wg.Wait()
 }
 
-// Creates a new plugin client which manages the lifecycle of an external
+// NewClient creates a new plugin client which manages the lifecycle of an external
 // plugin and gets the address for the RPC connection.
 //
 // The client must be cleaned up at some point by calling Kill(). If
@@ -371,14 +400,14 @@ func NewClient(config *ClientConfig) (c *Client) {
 	}
 
 	if config.Stderr == nil {
-		config.Stderr = ioutil.Discard
+		config.Stderr = io.Discard
 	}
 
 	if config.SyncStdout == nil {
-		config.SyncStdout = ioutil.Discard
+		config.SyncStdout = io.Discard
 	}
 	if config.SyncStderr == nil {
-		config.SyncStderr = ioutil.Discard
+		config.SyncStderr = io.Discard
 	}
 
 	if config.AllowedProtocols == nil {
@@ -391,6 +420,10 @@ func NewClient(config *ClientConfig) (c *Client) {
 			Level:  hclog.Trace,
 			Name:   "plugin",
 		})
+	}
+
+	if config.PluginLogBufferSize == 0 {
+		config.PluginLogBufferSize = defaultPluginLogBufferSize
 	}
 
 	c = &Client{
@@ -467,7 +500,7 @@ func (c *Client) Kill() {
 	c.l.Lock()
 	runner := c.runner
 	addr := c.address
-	hostSocketDir := c.unixSocketCfg.directory
+	hostSocketDir := c.unixSocketCfg.socketDir
 	c.l.Unlock()
 
 	// If there is no runner or ID, there is nothing to kill.
@@ -480,7 +513,7 @@ func (c *Client) Kill() {
 		c.clientWaitGroup.Wait()
 
 		if hostSocketDir != "" {
-			os.RemoveAll(hostSocketDir)
+			_ = os.RemoveAll(hostSocketDir)
 		}
 
 		// Make sure there is no reference to the old process after it has been
@@ -573,6 +606,10 @@ func (c *Client) Start() (addr net.Addr, err error) {
 		if c.config.SecureConfig != nil && c.config.Reattach != nil {
 			return nil, ErrSecureConfigAndReattach
 		}
+
+		if c.config.GRPCBrokerMultiplex && c.config.Reattach != nil {
+			return nil, fmt.Errorf("gRPC broker multiplexing is not supported with Reattach config")
+		}
 	}
 
 	if c.config.Reattach != nil {
@@ -603,6 +640,9 @@ func (c *Client) Start() (addr net.Addr, err error) {
 		fmt.Sprintf("PLUGIN_MIN_PORT=%d", c.config.MinPort),
 		fmt.Sprintf("PLUGIN_MAX_PORT=%d", c.config.MaxPort),
 		fmt.Sprintf("PLUGIN_PROTOCOL_VERSIONS=%s", strings.Join(versionStrings, ",")),
+	}
+	if c.config.GRPCBrokerMultiplex {
+		env = append(env, fmt.Sprintf("%s=true", envMultiplexGRPC))
 	}
 
 	cmd := c.config.Cmd
@@ -652,7 +692,7 @@ func (c *Client) Start() (addr net.Addr, err error) {
 	}
 
 	if c.config.UnixSocketConfig != nil {
-		c.unixSocketCfg.Group = c.config.UnixSocketConfig.Group
+		c.unixSocketCfg = *c.config.UnixSocketConfig
 	}
 
 	if c.unixSocketCfg.Group != "" {
@@ -662,22 +702,22 @@ func (c *Client) Start() (addr net.Addr, err error) {
 	var runner runner.Runner
 	switch {
 	case c.config.RunnerFunc != nil:
-		c.unixSocketCfg.directory, err = os.MkdirTemp("", "plugin-dir")
+		c.unixSocketCfg.socketDir, err = os.MkdirTemp(c.unixSocketCfg.TempDir, "plugin-dir")
 		if err != nil {
 			return nil, err
 		}
 		// os.MkdirTemp creates folders with 0o700, so if we have a group
 		// configured we need to make it group-writable.
 		if c.unixSocketCfg.Group != "" {
-			err = setGroupWritable(c.unixSocketCfg.directory, c.unixSocketCfg.Group, 0o770)
+			err = setGroupWritable(c.unixSocketCfg.socketDir, c.unixSocketCfg.Group, 0o770)
 			if err != nil {
 				return nil, err
 			}
 		}
-		cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", EnvUnixSocketDir, c.unixSocketCfg.directory))
-		c.logger.Trace("created temporary directory for unix sockets", "dir", c.unixSocketCfg.directory)
+		cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", EnvUnixSocketDir, c.unixSocketCfg.socketDir))
+		c.logger.Trace("created temporary directory for unix sockets", "dir", c.unixSocketCfg.socketDir)
 
-		runner, err = c.config.RunnerFunc(c.logger, cmd, c.unixSocketCfg.directory)
+		runner, err = c.config.RunnerFunc(c.logger, cmd, c.unixSocketCfg.socketDir)
 		if err != nil {
 			return nil, err
 		}
@@ -702,7 +742,7 @@ func (c *Client) Start() (addr net.Addr, err error) {
 		rErr := recover()
 
 		if err != nil || rErr != nil {
-			runner.Kill(context.Background())
+			_ = runner.Kill(context.Background())
 		}
 
 		if rErr != nil {
@@ -715,8 +755,8 @@ func (c *Client) Start() (addr net.Addr, err error) {
 
 	// Start goroutine that logs the stderr
 	c.clientWaitGroup.Add(1)
-	c.stderrWaitGroup.Add(1)
-	// logStderr calls Done()
+	c.pipesWaitGroup.Add(1)
+	// logStderr calls c.pipesWaitGroup.Done()
 	go c.logStderr(runner.Name(), runner.Stderr())
 
 	c.clientWaitGroup.Add(1)
@@ -726,9 +766,9 @@ func (c *Client) Start() (addr net.Addr, err error) {
 
 		defer c.clientWaitGroup.Done()
 
-		// wait to finish reading from stderr since the stderr pipe reader
+		// wait to finish reading from stdout/stderr since the stdout/stderr pipe readers
 		// will be closed by the subsequent call to cmd.Wait().
-		c.stderrWaitGroup.Wait()
+		c.pipesWaitGroup.Wait()
 
 		// Wait for the command to end.
 		err := runner.Wait(context.Background())
@@ -739,7 +779,7 @@ func (c *Client) Start() (addr net.Addr, err error) {
 			c.logger.Info("plugin process exited", "plugin", runner.Name(), "id", runner.ID())
 		}
 
-		os.Stderr.Sync()
+		_ = os.Stderr.Sync()
 
 		// Set that we exited, which takes a lock
 		c.l.Lock()
@@ -751,8 +791,10 @@ func (c *Client) Start() (addr net.Addr, err error) {
 	// out of stdout
 	linesCh := make(chan string)
 	c.clientWaitGroup.Add(1)
+	c.pipesWaitGroup.Add(1)
 	go func() {
 		defer c.clientWaitGroup.Done()
+		defer c.pipesWaitGroup.Done()
 		defer close(linesCh)
 
 		scanner := bufio.NewScanner(runner.Stdout())
@@ -791,7 +833,7 @@ func (c *Client) Start() (addr net.Addr, err error) {
 		// Trim the line and split by "|" in order to get the parts of
 		// the output.
 		line = strings.TrimSpace(line)
-		parts := strings.SplitN(line, "|", 6)
+		parts := strings.Split(line, "|")
 		if len(parts) < 4 {
 			errText := fmt.Sprintf("Unrecognized remote plugin message: %s", line)
 			if !ok {
@@ -810,15 +852,15 @@ func (c *Client) Start() (addr net.Addr, err error) {
 			var coreProtocol int
 			coreProtocol, err = strconv.Atoi(parts[0])
 			if err != nil {
-				err = fmt.Errorf("Error parsing core protocol version: %s", err)
+				err = fmt.Errorf("error parsing core protocol version: %s", err)
 				return
 			}
 
 			if coreProtocol != CoreProtocolVersion {
-				err = fmt.Errorf("Incompatible core API version with plugin. "+
+				err = fmt.Errorf("incompatible core API version with plugin. "+
 					"Plugin version: %s, Core version: %d\n\n"+
 					"To fix this, the plugin usually only needs to be recompiled.\n"+
-					"Please report this to the plugin author.", parts[0], CoreProtocolVersion)
+					"Please report this to the plugin author", parts[0], CoreProtocolVersion)
 				return
 			}
 		}
@@ -844,10 +886,16 @@ func (c *Client) Start() (addr net.Addr, err error) {
 		switch network {
 		case "tcp":
 			addr, err = net.ResolveTCPAddr("tcp", address)
+			if err != nil {
+				return nil, err
+			}
 		case "unix":
 			addr, err = net.ResolveUnixAddr("unix", address)
+			if err != nil {
+				return nil, err
+			}
 		default:
-			err = fmt.Errorf("Unknown address type: %s", address)
+			return nil, fmt.Errorf("unknown address type: %s", address)
 		}
 
 		// If we have a server type, then record that. We default to net/rpc
@@ -865,7 +913,7 @@ func (c *Client) Start() (addr net.Addr, err error) {
 			}
 		}
 		if !found {
-			err = fmt.Errorf("Unsupported plugin protocol %q. Supported: %v",
+			err = fmt.Errorf("unsupported plugin protocol %q. Supported: %v",
 				c.protocol, c.config.AllowedProtocols)
 			return addr, err
 		}
@@ -877,6 +925,18 @@ func (c *Client) Start() (addr net.Addr, err error) {
 			err := c.loadServerCert(parts[5])
 			if err != nil {
 				return nil, fmt.Errorf("error parsing server cert: %s", err)
+			}
+		}
+
+		if c.config.GRPCBrokerMultiplex && c.protocol == ProtocolGRPC {
+			if len(parts) <= 6 {
+				return nil, fmt.Errorf("%w; for Go plugins, you will need to update the "+
+					"github.com/hashicorp/go-plugin dependency and recompile", ErrGRPCBrokerMuxNotSupported)
+			}
+			if muxSupported, err := strconv.ParseBool(parts[6]); err != nil {
+				return nil, fmt.Errorf("error parsing %q as a boolean for gRPC broker multiplexing support", parts[6])
+			} else if !muxSupported {
+				return nil, ErrGRPCBrokerMuxNotSupported
 			}
 		}
 	}
@@ -931,7 +991,7 @@ func (c *Client) reattach() (net.Addr, error) {
 		defer c.ctxCancel()
 
 		// Wait for the process to die
-		r.Wait(context.Background())
+		_ = r.Wait(context.Background())
 
 		// Log so we can see it
 		c.logger.Debug("reattached plugin process exited")
@@ -952,12 +1012,11 @@ func (c *Client) reattach() (net.Addr, error) {
 
 	if c.config.Reattach.Test {
 		c.negotiatedVersion = c.config.Reattach.ProtocolVersion
-	}
-
-	// If we're in test mode, we do NOT set the process. This avoids the
-	// process being killed (the only purpose we have for c.process), since
-	// in test mode the process is responsible for exiting on its own.
-	if !c.config.Reattach.Test {
+	} else {
+		// If we're in test mode, we do NOT set the runner. This avoids the
+		// runner being killed (the only purpose we have for setting c.runner
+		// when reattaching), since in test mode the process is responsible for
+		// exiting on its own.
 		c.runner = r
 	}
 
@@ -987,7 +1046,7 @@ func (c *Client) checkProtoVersion(protoVersion string) (int, PluginSet, error) 
 		return version, plugins, nil
 	}
 
-	return 0, nil, fmt.Errorf("Incompatible API version with plugin. "+
+	return 0, nil, fmt.Errorf("incompatible API version with plugin. "+
 		"Plugin version: %d, Client versions: %d", serverVersion, clientVersions)
 }
 
@@ -1043,8 +1102,8 @@ func (c *Client) Protocol() Protocol {
 	return c.protocol
 }
 
-func netAddrDialer(addr net.Addr) func(string, time.Duration) (net.Conn, error) {
-	return func(_ string, _ time.Duration) (net.Conn, error) {
+func netAddrDialer(addr net.Addr) func(context.Context, string) (net.Conn, error) {
+	return func(context.Context, string) (net.Conn, error) {
 		// Connect to the client
 		conn, err := net.Dial(addr.Network(), addr.String())
 		if err != nil {
@@ -1052,7 +1111,7 @@ func netAddrDialer(addr net.Addr) func(string, time.Duration) (net.Conn, error) 
 		}
 		if tcpConn, ok := conn.(*net.TCPConn); ok {
 			// Make sure to set keep alive so that the connection doesn't die
-			tcpConn.SetKeepAlive(true)
+			_ = tcpConn.SetKeepAlive(true)
 		}
 
 		return conn, nil
@@ -1061,10 +1120,23 @@ func netAddrDialer(addr net.Addr) func(string, time.Duration) (net.Conn, error) 
 
 // dialer is compatible with grpc.WithDialer and creates the connection
 // to the plugin.
-func (c *Client) dialer(_ string, timeout time.Duration) (net.Conn, error) {
-	conn, err := netAddrDialer(c.address)("", timeout)
+func (c *Client) dialer(ctx context.Context, _ string) (net.Conn, error) {
+	muxer, err := c.getGRPCMuxer(c.address)
 	if err != nil {
 		return nil, err
+	}
+
+	var conn net.Conn
+	if muxer.Enabled() {
+		conn, err = muxer.Dial()
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		conn, err = netAddrDialer(c.address)(ctx, "")
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// If we have a TLS config we wrap our connection. We only do this
@@ -1076,18 +1148,40 @@ func (c *Client) dialer(_ string, timeout time.Duration) (net.Conn, error) {
 	return conn, nil
 }
 
-var stdErrBufferSize = 64 * 1024
+func (c *Client) getGRPCMuxer(addr net.Addr) (*grpcmux.GRPCClientMuxer, error) {
+	if c.protocol != ProtocolGRPC || !c.config.GRPCBrokerMultiplex {
+		return nil, nil
+	}
+
+	var err error
+	c.grpcMuxerOnce.Do(func() {
+		c.grpcMuxer, err = grpcmux.NewGRPCClientMuxer(c.logger, addr)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return c.grpcMuxer, nil
+}
 
 func (c *Client) logStderr(name string, r io.Reader) {
 	defer c.clientWaitGroup.Done()
-	defer c.stderrWaitGroup.Done()
-	l := c.logger.Named(filepath.Base(name))
+	defer c.pipesWaitGroup.Done()
 
-	reader := bufio.NewReaderSize(r, stdErrBufferSize)
+	l := c.logger.Named(filepath.Base(name))
+	loggerLevel := l.GetLevel()
+	loggerDisabled := loggerLevel == hclog.Off
+
+	reader := bufio.NewReaderSize(r, c.config.PluginLogBufferSize)
 	// continuation indicates the previous line was a prefix
 	continuation := false
 
+	// inPanic indicates we saw the start of a stack trace and should divert all
+	// remaining untagged lines to stderr
+	var inPanic bool
+
 	for {
+
 		line, isPrefix, err := reader.ReadLine()
 		switch {
 		case err == io.EOF:
@@ -1097,7 +1191,7 @@ func (c *Client) logStderr(name string, r io.Reader) {
 			return
 		}
 
-		c.config.Stderr.Write(line)
+		_, _ = c.config.Stderr.Write(line)
 
 		// The line was longer than our max token size, so it's likely
 		// incomplete and won't unmarshal.
@@ -1106,14 +1200,26 @@ func (c *Client) logStderr(name string, r io.Reader) {
 
 			// if we're finishing a continued line, add the newline back in
 			if !isPrefix {
-				c.config.Stderr.Write([]byte{'\n'})
+				_, _ = c.config.Stderr.Write([]byte{'\n'})
 			}
 
 			continuation = isPrefix
 			continue
 		}
 
-		c.config.Stderr.Write([]byte{'\n'})
+		_, _ = c.config.Stderr.Write([]byte{'\n'})
+
+		//
+		// Any side-effects other than writing to the hclog logger must be
+		// above this point!
+		//
+
+		if loggerDisabled {
+			// If the logger we'd be writing to is completely disabled then
+			// we can skip all of the parsing work to decide what log level
+			// we'd use to write this line.
+			continue
+		}
 
 		entry, err := parseJSON(line)
 		// If output is not JSON format, print directly to Debug
@@ -1131,14 +1237,25 @@ func (c *Client) logStderr(name string, r io.Reader) {
 				l.Warn(line)
 			case strings.HasPrefix(line, "[ERROR]"):
 				l.Error(line)
+			case strings.HasPrefix(line, "panic: ") || strings.HasPrefix(line, "fatal error: "):
+				inPanic = true
+				fallthrough
+			case inPanic:
+				l.Error(line)
 			default:
 				l.Debug(line)
 			}
 		} else {
-			out := flattenKVPairs(entry.KVPairs)
+			logLevel := hclog.LevelFromString(entry.Level)
+			if logLevel != hclog.NoLevel && logLevel < loggerLevel {
+				// The logger will ignore this log entry anyway, so we
+				// won't spend any more time preparing it.
+				continue
+			}
 
+			out := flattenKVPairs(entry.KVPairs)
 			out = append(out, "timestamp", entry.Timestamp.Format(hclog.TimeFormat))
-			switch hclog.LevelFromString(entry.Level) {
+			switch logLevel {
 			case hclog.Trace:
 				l.Trace(entry.Message, out...)
 			case hclog.Debug:

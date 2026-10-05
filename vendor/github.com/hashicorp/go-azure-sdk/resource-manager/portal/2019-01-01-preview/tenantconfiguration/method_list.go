@@ -2,6 +2,7 @@ package tenantconfiguration
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
@@ -14,7 +15,24 @@ import (
 type ListOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *ConfigurationList
+	Model        *[]Configuration
+}
+
+type ListCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []Configuration
+}
+
+type ListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // List ...
@@ -25,6 +43,7 @@ func (c TenantConfigurationClient) List(ctx context.Context) (result ListOperati
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListCustomPager{},
 		Path:       "/providers/Microsoft.Portal/tenantConfigurations",
 	}
 
@@ -34,7 +53,7 @@ func (c TenantConfigurationClient) List(ctx context.Context) (result ListOperati
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -43,9 +62,44 @@ func (c TenantConfigurationClient) List(ctx context.Context) (result ListOperati
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var values struct {
+		Values *[]Configuration `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// ListComplete retrieves all the results into a single object
+func (c TenantConfigurationClient) ListComplete(ctx context.Context) (ListCompleteResult, error) {
+	return c.ListCompleteMatchingPredicate(ctx, ConfigurationOperationPredicate{})
+}
+
+// ListCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c TenantConfigurationClient) ListCompleteMatchingPredicate(ctx context.Context, predicate ConfigurationOperationPredicate) (result ListCompleteResult, err error) {
+	items := make([]Configuration, 0)
+
+	resp, err := c.List(ctx)
+	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = ListCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp
@@ -7,10 +7,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/capacitypools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/capacitypools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -51,11 +52,26 @@ func dataSourceNetAppPool() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
+
+			"encryption_type": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"cool_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"custom_throughput_mibps": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
 		},
 	}
 }
 
-func dataSourceNetAppPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceNetAppPoolRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NetApp.PoolClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -77,9 +93,14 @@ func dataSourceNetAppPoolRead(d *pluginsdk.ResourceData, meta interface{}) error
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(&model.Location))
-		d.Set("service_level", string(model.Properties.ServiceLevel))
-		d.Set("size_in_tb", model.Properties.Size/1099511627776)
+		d.Set("location", location.Normalize(model.Location))
+
+		props := model.Properties
+		d.Set("service_level", string(props.ServiceLevel))
+		d.Set("size_in_tb", props.Size/1099511627776)
+		d.Set("encryption_type", pointer.FromEnum(props.EncryptionType))
+		d.Set("cool_access_enabled", pointer.From(props.CoolAccess))
+		d.Set("custom_throughput_mibps", int(pointer.From(props.CustomThroughputMibps)))
 	}
 
 	return nil

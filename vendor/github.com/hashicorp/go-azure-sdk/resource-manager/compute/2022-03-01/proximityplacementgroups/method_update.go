@@ -47,7 +47,9 @@ func (c ProximityPlacementGroupsClient) Update(ctx context.Context, id Proximity
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ProximityPlacementGroup
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -3,6 +3,8 @@ package settings
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/systemdata"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,9 +16,22 @@ type DataExportSettings struct {
 	Properties *DataExportSettingProperties `json:"properties,omitempty"`
 
 	// Fields inherited from Setting
-	Id   *string `json:"id,omitempty"`
-	Name *string `json:"name,omitempty"`
-	Type *string `json:"type,omitempty"`
+
+	Id         *string                `json:"id,omitempty"`
+	Kind       SettingKind            `json:"kind"`
+	Name       *string                `json:"name,omitempty"`
+	SystemData *systemdata.SystemData `json:"systemData,omitempty"`
+	Type       *string                `json:"type,omitempty"`
+}
+
+func (s DataExportSettings) Setting() BaseSettingImpl {
+	return BaseSettingImpl{
+		Id:         s.Id,
+		Kind:       s.Kind,
+		Name:       s.Name,
+		SystemData: s.SystemData,
+		Type:       s.Type,
+	}
 }
 
 var _ json.Marshaler = DataExportSettings{}
@@ -30,9 +45,10 @@ func (s DataExportSettings) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling DataExportSettings: %+v", err)
 	}
+
 	decoded["kind"] = "DataExportSettings"
 
 	encoded, err = json.Marshal(decoded)

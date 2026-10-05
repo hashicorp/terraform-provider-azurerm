@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -6,7 +6,6 @@ package migration
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -25,7 +24,7 @@ func (RegistryV0ToV1) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (RegistryV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		rawState["sku"] = "Basic"
 		return rawState, nil
 	}
@@ -38,36 +37,26 @@ func (RegistryV1ToV2) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (RegistryV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		// Basic's been renamed Classic to allow for "ManagedBasic" ¯\_(ツ)_/¯
 		rawState["sku"] = "Classic"
 
 		storageAccountId := ""
 		if v, ok := rawState["storage_account"]; ok {
-			raw := v.(*pluginsdk.Set).List()
-			rawVals := raw[0].(map[string]interface{})
-			storageAccountName := rawVals["name"].(string)
-
-			client := meta.(*clients.Client).Storage.AccountsClient
+			subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 			ctx, cancel := context.WithTimeout(meta.(*clients.Client).StopContext, time.Minute*5)
 			defer cancel()
 
-			accounts, err := client.ListComplete(ctx)
+			raw := v.(*pluginsdk.Set).List()
+			rawVals := raw[0].(map[string]any)
+			storageAccountName := rawVals["name"].(string)
+
+			account, err := meta.(*clients.Client).Storage.FindAccount(ctx, subscriptionId, storageAccountName)
 			if err != nil {
-				return rawState, fmt.Errorf("listing storage accounts")
+				return nil, fmt.Errorf("finding Storage Account %q: %+v", storageAccountName, err)
 			}
 
-			for accounts.NotDone() {
-				account := accounts.Value()
-				if strings.EqualFold(*account.Name, storageAccountName) {
-					storageAccountId = *account.ID
-					break
-				}
-
-				if err := accounts.NextWithContext(ctx); err != nil {
-					return rawState, fmt.Errorf("retrieving accounts: %+v", err)
-				}
-			}
+			storageAccountId = account.StorageAccountId.ID()
 		}
 
 		if storageAccountId == "" {
@@ -104,7 +93,7 @@ func registrySchemaForV0AndV1() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
-		//lintignore:S018
+		// lintignore:S018
 		"storage_account": {
 			Type:     pluginsdk.TypeSet,
 			Required: true,

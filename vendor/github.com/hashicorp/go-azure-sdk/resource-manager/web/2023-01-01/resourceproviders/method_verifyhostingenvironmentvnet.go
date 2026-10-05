@@ -49,7 +49,9 @@ func (c ResourceProvidersClient) VerifyHostingEnvironmentVnet(ctx context.Contex
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model VnetValidationFailureDetails
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

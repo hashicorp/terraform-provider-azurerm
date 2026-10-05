@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -7,15 +7,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceVPNGateway() *pluginsdk.Resource {
@@ -138,6 +138,29 @@ func dataSourceVPNGateway() *pluginsdk.Resource {
 				},
 			},
 
+			"ip_configuration": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"private_ip_address": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"public_ip_address": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"scale_unit": {
 				Type:     pluginsdk.TypeInt,
 				Computed: true,
@@ -148,7 +171,7 @@ func dataSourceVPNGateway() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceVPNGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceVPNGatewayRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -170,11 +193,15 @@ func dataSourceVPNGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.Normalize(model.Location))
+		d.Set("location", location.NormalizeNilable(model.Location))
 
 		if props := model.Properties; props != nil {
 			if err := d.Set("bgp_settings", dataSourceFlattenVPNGatewayBGPSettings(props.BgpSettings)); err != nil {
-				return fmt.Errorf("Error setting `bgp_settings`: %+v", err)
+				return fmt.Errorf("setting `bgp_settings`: %+v", err)
+			}
+
+			if err := d.Set("ip_configuration", dataSourceFlattenVPNGatewayIpConfiguration(props.IPConfigurations)); err != nil {
+				return fmt.Errorf("setting `ip_configuration`: %+v", err)
 			}
 
 			scaleUnit := 0
@@ -198,9 +225,9 @@ func dataSourceVPNGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error
 	return nil
 }
 
-func dataSourceFlattenVPNGatewayBGPSettings(input *virtualwans.BgpSettings) []interface{} {
+func dataSourceFlattenVPNGatewayBGPSettings(input *virtualwans.BgpSettings) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	asn := 0
@@ -208,17 +235,12 @@ func dataSourceFlattenVPNGatewayBGPSettings(input *virtualwans.BgpSettings) []in
 		asn = int(*input.Asn)
 	}
 
-	bgpPeeringAddress := ""
-	if input.BgpPeeringAddress != nil {
-		bgpPeeringAddress = *input.BgpPeeringAddress
-	}
-
 	peerWeight := 0
 	if input.PeerWeight != nil {
 		peerWeight = int(*input.PeerWeight)
 	}
 
-	var instance0BgpPeeringAddress, instance1BgpPeeringAddress []interface{}
+	var instance0BgpPeeringAddress, instance1BgpPeeringAddress []any
 	if input.BgpPeeringAddresses != nil && len(*input.BgpPeeringAddresses) > 0 {
 		instance0BgpPeeringAddress = dataSourceFlattenVPNGatewayIPConfigurationBgpPeeringAddress((*input.BgpPeeringAddresses)[0])
 	}
@@ -226,10 +248,10 @@ func dataSourceFlattenVPNGatewayBGPSettings(input *virtualwans.BgpSettings) []in
 		instance1BgpPeeringAddress = dataSourceFlattenVPNGatewayIPConfigurationBgpPeeringAddress((*input.BgpPeeringAddresses)[1])
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"asn":                            asn,
-			"bgp_peering_address":            bgpPeeringAddress,
+			"bgp_peering_address":            pointer.From(input.BgpPeeringAddress),
 			"instance_0_bgp_peering_address": instance0BgpPeeringAddress,
 			"instance_1_bgp_peering_address": instance1BgpPeeringAddress,
 			"peer_weight":                    peerWeight,
@@ -237,18 +259,30 @@ func dataSourceFlattenVPNGatewayBGPSettings(input *virtualwans.BgpSettings) []in
 	}
 }
 
-func dataSourceFlattenVPNGatewayIPConfigurationBgpPeeringAddress(input virtualwans.IPConfigurationBgpPeeringAddress) []interface{} {
-	ipConfigurationID := ""
-	if input.IPconfigurationId != nil {
-		ipConfigurationID = *input.IPconfigurationId
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"ip_configuration_id": ipConfigurationID,
-			"custom_ips":          utils.FlattenStringSlice(input.CustomBgpIPAddresses),
-			"default_ips":         utils.FlattenStringSlice(input.DefaultBgpIPAddresses),
-			"tunnel_ips":          utils.FlattenStringSlice(input.TunnelIPAddresses),
+func dataSourceFlattenVPNGatewayIPConfigurationBgpPeeringAddress(input virtualwans.IPConfigurationBgpPeeringAddress) []any {
+	return []any{
+		map[string]any{
+			"ip_configuration_id": pointer.From(input.IPconfigurationId),
+			"custom_ips":          pluginsdk.FlattenSlice(input.CustomBgpIPAddresses),
+			"default_ips":         pluginsdk.FlattenSlice(input.DefaultBgpIPAddresses),
+			"tunnel_ips":          pluginsdk.FlattenSlice(input.TunnelIPAddresses),
 		},
 	}
+}
+
+func dataSourceFlattenVPNGatewayIpConfiguration(input *[]virtualwans.VpnGatewayIPConfiguration) []any {
+	result := make([]any, 0)
+	if input == nil {
+		return result
+	}
+
+	for _, item := range *input {
+		result = append(result, map[string]any{
+			"id":                 pointer.From(item.Id),
+			"private_ip_address": pointer.From(item.PrivateIPAddress),
+			"public_ip_address":  pointer.From(item.PublicIPAddress),
+		})
+	}
+
+	return result
 }

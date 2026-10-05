@@ -22,9 +22,6 @@ resource "azurerm_kubernetes_fleet_manager" "example" {
   location            = azurerm_resource_group.example.location
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
-  hub_profile {
-    dns_prefix = "example-dns-prefix"
-  }
 }
 
 resource "azurerm_kubernetes_fleet_update_strategy" "example" {
@@ -74,7 +71,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Kubernetes Fleet Update Strategy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Kubernetes Fleet Update Strategy.
@@ -88,3 +85,9 @@ Kubernetes Fleet Update Strategies can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_kubernetes_fleet_update_strategy.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.ContainerService/fleets/fleet1/updateStrategies/updateStrategy1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ContainerService` - 2025-03-01

@@ -49,7 +49,9 @@ func (c AppServiceEnvironmentsClient) UpdateAseNetworkingConfiguration(ctx conte
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AseV3NetworkingConfiguration
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

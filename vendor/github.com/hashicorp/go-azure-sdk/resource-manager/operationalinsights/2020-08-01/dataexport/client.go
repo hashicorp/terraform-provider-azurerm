@@ -15,7 +15,7 @@ type DataExportClient struct {
 }
 
 func NewDataExportClientWithBaseURI(sdkApi sdkEnv.Api) (*DataExportClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "dataexport", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "dataexport", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DataExportClient: %+v", err)
 	}

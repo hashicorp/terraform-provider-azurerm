@@ -45,7 +45,9 @@ func (c PrivateLinkResourcesClient) ListByCluster(ctx context.Context, id common
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model PrivateLinkResourceListResult
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package chaosstudio
 
 // NOTE: this file is generated - manual changes will be overwritten.
@@ -15,7 +18,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01/experiments"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01/targets"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/chaosstudio/custompollers"
@@ -23,8 +25,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.Resource = ChaosStudioExperimentResource{}
-var _ sdk.ResourceWithUpdate = ChaosStudioExperimentResource{}
+var (
+	_ sdk.Resource           = ChaosStudioExperimentResource{}
+	_ sdk.ResourceWithUpdate = ChaosStudioExperimentResource{}
+)
 
 const (
 	continuousActionType = "continuous"
@@ -34,7 +38,7 @@ const (
 
 type ChaosStudioExperimentResource struct{}
 
-func (r ChaosStudioExperimentResource) ModelObject() interface{} {
+func (r ChaosStudioExperimentResource) ModelObject() any {
 	return &ChaosStudioExperimentResourceSchema{}
 }
 
@@ -191,7 +195,6 @@ func (r ChaosStudioExperimentResource) Create() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ChaosStudio.V20231101.Experiments
-			targetsClient := metadata.Client.ChaosStudio.V20231101.Targets
 
 			var config ChaosStudioExperimentResourceSchema
 			if err := metadata.Decode(&config); err != nil {
@@ -202,14 +205,16 @@ func (r ChaosStudioExperimentResource) Create() sdk.ResourceFunc {
 
 			id := experiments.NewExperimentID(subscriptionId, config.ResourceGroupName, config.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			var payload experiments.Experiment
@@ -224,7 +229,7 @@ func (r ChaosStudioExperimentResource) Create() sdk.ResourceFunc {
 
 			var experimentProperties experiments.ExperimentProperties
 
-			selectors, err := expandSelectors(ctx, targetsClient, config.Selectors)
+			selectors, err := expandSelectors(config.Selectors)
 			if err != nil {
 				return fmt.Errorf("expanding `selectors`: %+v", err)
 			}
@@ -238,7 +243,7 @@ func (r ChaosStudioExperimentResource) Create() sdk.ResourceFunc {
 
 			payload.Properties = experimentProperties
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -325,7 +330,6 @@ func (r ChaosStudioExperimentResource) Update() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ChaosStudio.V20231101.Experiments
-			targetsClient := metadata.Client.ChaosStudio.V20231101.Targets
 
 			id, err := experiments.ParseExperimentID(metadata.ResourceData.Id())
 			if err != nil {
@@ -355,7 +359,7 @@ func (r ChaosStudioExperimentResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("selectors") {
-				selectors, err := expandSelectors(ctx, targetsClient, config.Selectors)
+				selectors, err := expandSelectors(config.Selectors)
 				if err != nil {
 					return fmt.Errorf("expanding `selectors`: %+v", err)
 				}
@@ -387,27 +391,19 @@ func (r ChaosStudioExperimentResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func expandSelectors(ctx context.Context, client *targets.TargetsClient, input []SelectorSchema) (*[]experiments.Selector, error) {
+func expandSelectors(input []SelectorSchema) (*[]experiments.Selector, error) {
 	output := make([]experiments.Selector, 0)
 
 	for _, v := range input {
 		targetsOutput := make([]experiments.TargetReference, 0)
 		for _, t := range v.TargetIds {
-			var targetName string
 			targetId, err := commonids.ParseChaosStudioTargetID(t)
 			if err != nil {
 				return nil, err
 			}
-			targetResp, err := client.Get(ctx, *targetId)
-			if err != nil {
-				return nil, fmt.Errorf("retrieving %s", targetId)
-			}
-			if model := targetResp.Model; model != nil {
-				targetName = *model.Name
-			}
 			targetsOutput = append(targetsOutput, experiments.TargetReference{
 				Id:   targetId.ID(),
-				Type: experiments.TargetReferenceType(targetName),
+				Type: experiments.TargetReferenceTypeChaosTarget,
 			})
 		}
 		output = append(output, experiments.ListSelector{

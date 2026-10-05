@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package resource
@@ -15,7 +15,7 @@ import (
 // testStepValidateRequest contains data for the (TestStep).validate() method.
 type testStepValidateRequest struct {
 	// StepConfiguration contains the TestStep configuration derived from
-	// TestStep.Config or TestStep.ConfigDirectory.
+	// TestStep.Config, TestStep.ConfigDirectory, or TestStep.ConfigFile.
 	StepConfiguration teststep.Config
 
 	// StepNumber is the index of the TestStep in the TestCase.Steps.
@@ -116,6 +116,18 @@ func (s TestStep) validate(ctx context.Context, req testStepValidateRequest) err
 
 	if req.StepConfiguration == nil && !s.ImportState && !s.RefreshState {
 		err := fmt.Errorf("TestStep missing Config or ConfigDirectory or ConfigFile or ImportState or RefreshState")
+		logging.HelperResourceError(ctx, "TestStep validation error", map[string]interface{}{logging.KeyError: err})
+		return err
+	}
+
+	if s.VerifyStateStoreLock && !s.StateStore {
+		err := fmt.Errorf("TestStep StateStore field must be set to true when VerifyStateStoreLock is true")
+		logging.HelperResourceError(ctx, "TestStep validation error", map[string]interface{}{logging.KeyError: err})
+		return err
+	}
+
+	if s.DefaultWorkspaceOnly && !s.StateStore {
+		err := fmt.Errorf("TestStep StateStore field must be set to true when DefaultWorkspaceOnly is true")
 		logging.HelperResourceError(ctx, "TestStep validation error", map[string]interface{}{logging.KeyError: err})
 		return err
 	}
@@ -231,6 +243,12 @@ func (s TestStep) validate(ctx context.Context, req testStepValidateRequest) err
 
 	if len(s.RefreshPlanChecks.PostRefresh) > 0 && !s.RefreshState {
 		err := fmt.Errorf("TestStep RefreshPlanChecks.PostRefresh must only be specified with RefreshState")
+		logging.HelperResourceError(ctx, "TestStep validation error", map[string]interface{}{logging.KeyError: err})
+		return err
+	}
+
+	if len(s.ConfigStateChecks) > 0 && req.StepConfiguration == nil {
+		err := fmt.Errorf("TestStep ConfigStateChecks must only be specified with Config, ConfigDirectory or ConfigFile")
 		logging.HelperResourceError(ctx, "TestStep validation error", map[string]interface{}{logging.KeyError: err})
 		return err
 	}

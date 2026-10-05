@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package keyvault
@@ -6,26 +6,26 @@ package keyvault
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
+	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 type KeyVaultCertificateContactsResource struct{}
 
-var (
-	_ sdk.ResourceWithUpdate = KeyVaultCertificateContactsResource{}
-)
+var _ sdk.ResourceWithUpdate = KeyVaultCertificateContactsResource{}
 
 type KeyVaultCertificateContactsResourceModel struct {
 	KeyVaultId string    `tfschema:"key_vault_id"`
@@ -45,7 +45,6 @@ func (r KeyVaultCertificateContactsResource) Arguments() map[string]*pluginsdk.S
 		"contact": {
 			Type:     pluginsdk.TypeSet,
 			Required: true,
-			MinItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"email": {
@@ -79,7 +78,7 @@ func (r KeyVaultCertificateContactsResource) ResourceType() string {
 	return "azurerm_key_vault_certificate_contacts"
 }
 
-func (r KeyVaultCertificateContactsResource) ModelObject() interface{} {
+func (r KeyVaultCertificateContactsResource) ModelObject() any {
 	return &KeyVaultCertificateContactsResourceModel{}
 }
 
@@ -115,16 +114,18 @@ func (r KeyVaultCertificateContactsResource) Create() sdk.ResourceFunc {
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
 
-			existing, err := client.GetCertificateContacts(ctx, *keyVaultBaseUri)
-			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
-					return fmt.Errorf("checking for presence of existing Certificate Contacts (Key Vault %q): %s", *keyVaultBaseUri, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetCertificateContacts(ctx, *keyVaultBaseUri)
+				if err != nil {
+					if !response.WasNotFound(existing.Response.Response) {
+						return fmt.Errorf("checking for presence of existing Certificate Contacts (Key Vault %q): %s", *keyVaultBaseUri, err)
+					}
 				}
-			}
 
-			if !utils.ResponseWasNotFound(existing.Response) {
-				if existing.ContactList != nil && len(*existing.ContactList) != 0 {
-					return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				if !response.WasNotFound(existing.Response.Response) {
+					if existing.ContactList != nil && len(*existing.ContactList) != 0 {
+						return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+					}
 				}
 			}
 
@@ -171,7 +172,7 @@ func (r KeyVaultCertificateContactsResource) Read() sdk.ResourceFunc {
 
 			existing, err := client.GetCertificateContacts(ctx, id.KeyVaultBaseUrl)
 			if err != nil {
-				if utils.ResponseWasNotFound(existing.Response) {
+				if response.WasNotFound(existing.Response.Response) {
 					metadata.Logger.Infof("No Certificate Contacts could be found at %s - removing from state!", id.KeyVaultBaseUrl)
 					return metadata.MarkAsGone(id)
 				}
@@ -239,6 +240,17 @@ func (r KeyVaultCertificateContactsResource) Delete() sdk.ResourceFunc {
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
 
+			// check if any contacts exist in vault, if they do not then nothing to delete
+			resp, err := client.GetCertificateContacts(ctx, id.KeyVaultBaseUrl)
+			if err != nil {
+				if response.WasNotFound(resp.Response.Response) {
+					log.Printf("[DEBUG] Key Vault Certificate Contact %q was not found in Key Vault at URI %q - removing from state", id.ID(), id.KeyVaultBaseUrl)
+					return nil
+				}
+
+				return fmt.Errorf("checking if any contacts exist in key vault at url %q: %v", id.KeyVaultBaseUrl, err)
+			}
+
 			if _, err := client.DeleteCertificateContacts(ctx, id.KeyVaultBaseUrl); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
@@ -257,9 +269,9 @@ func expandKeyVaultCertificateContactsContact(input []Contact) *[]keyvault.Conta
 
 	for _, item := range input {
 		results = append(results, keyvault.Contact{
-			EmailAddress: utils.String(item.Email),
-			Name:         utils.String(item.Name),
-			Phone:        utils.String(item.Phone),
+			EmailAddress: pointer.To(item.Email),
+			Name:         pointer.To(item.Name),
+			Phone:        pointer.To(item.Phone),
 		})
 	}
 
@@ -273,25 +285,10 @@ func flattenKeyVaultCertificateContactsContact(input *[]keyvault.Contact) []Cont
 	}
 
 	for _, item := range *input {
-		emailAddress := ""
-		if item.EmailAddress != nil {
-			emailAddress = *item.EmailAddress
-		}
-
-		name := ""
-		if item.Name != nil {
-			name = *item.Name
-		}
-
-		phone := ""
-		if item.Phone != nil {
-			phone = *item.Phone
-		}
-
 		result = append(result, Contact{
-			Email: emailAddress,
-			Name:  name,
-			Phone: phone,
+			Email: pointer.From(item.EmailAddress),
+			Name:  pointer.From(item.Name),
+			Phone: pointer.From(item.Phone),
 		})
 	}
 

@@ -14,12 +14,26 @@ type StreamInputProperties struct {
 	Datasource StreamInputDataSource `json:"datasource"`
 
 	// Fields inherited from InputProperties
+
 	Compression       *Compression              `json:"compression,omitempty"`
 	Diagnostics       *Diagnostics              `json:"diagnostics,omitempty"`
 	Etag              *string                   `json:"etag,omitempty"`
 	PartitionKey      *string                   `json:"partitionKey,omitempty"`
 	Serialization     Serialization             `json:"serialization"`
+	Type              string                    `json:"type"`
 	WatermarkSettings *InputWatermarkProperties `json:"watermarkSettings,omitempty"`
+}
+
+func (s StreamInputProperties) InputProperties() BaseInputPropertiesImpl {
+	return BaseInputPropertiesImpl{
+		Compression:       s.Compression,
+		Diagnostics:       s.Diagnostics,
+		Etag:              s.Etag,
+		PartitionKey:      s.PartitionKey,
+		Serialization:     s.Serialization,
+		Type:              s.Type,
+		WatermarkSettings: s.WatermarkSettings,
+	}
 }
 
 var _ json.Marshaler = StreamInputProperties{}
@@ -33,9 +47,10 @@ func (s StreamInputProperties) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling StreamInputProperties: %+v", err)
 	}
+
 	decoded["type"] = "Stream"
 
 	encoded, err = json.Marshal(decoded)
@@ -49,16 +64,23 @@ func (s StreamInputProperties) MarshalJSON() ([]byte, error) {
 var _ json.Unmarshaler = &StreamInputProperties{}
 
 func (s *StreamInputProperties) UnmarshalJSON(bytes []byte) error {
-	type alias StreamInputProperties
-	var decoded alias
+	var decoded struct {
+		Compression       *Compression              `json:"compression,omitempty"`
+		Diagnostics       *Diagnostics              `json:"diagnostics,omitempty"`
+		Etag              *string                   `json:"etag,omitempty"`
+		PartitionKey      *string                   `json:"partitionKey,omitempty"`
+		Type              string                    `json:"type"`
+		WatermarkSettings *InputWatermarkProperties `json:"watermarkSettings,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into StreamInputProperties: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.Compression = decoded.Compression
 	s.Diagnostics = decoded.Diagnostics
 	s.Etag = decoded.Etag
 	s.PartitionKey = decoded.PartitionKey
+	s.Type = decoded.Type
 	s.WatermarkSettings = decoded.WatermarkSettings
 
 	var temp map[string]json.RawMessage
@@ -67,7 +89,7 @@ func (s *StreamInputProperties) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["datasource"]; ok {
-		impl, err := unmarshalStreamInputDataSourceImplementation(v)
+		impl, err := UnmarshalStreamInputDataSourceImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Datasource' for 'StreamInputProperties': %+v", err)
 		}
@@ -75,11 +97,12 @@ func (s *StreamInputProperties) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["serialization"]; ok {
-		impl, err := unmarshalSerializationImplementation(v)
+		impl, err := UnmarshalSerializationImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Serialization' for 'StreamInputProperties': %+v", err)
 		}
 		s.Serialization = impl
 	}
+
 	return nil
 }

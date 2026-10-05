@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -6,19 +6,18 @@ package compute
 import (
 	"context"
 	"fmt"
+	"math"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 func virtualMachineAdditionalCapabilitiesSchema() *pluginsdk.Schema {
@@ -38,94 +37,52 @@ func virtualMachineAdditionalCapabilitiesSchema() *pluginsdk.Schema {
 					Optional: true,
 					Default:  false,
 				},
+
+				"hibernation_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
 			},
 		},
 	}
 }
 
-func expandVirtualMachineAdditionalCapabilities(input []interface{}) *compute.AdditionalCapabilities {
-	capabilities := compute.AdditionalCapabilities{}
+func expandVirtualMachineAdditionalCapabilities(input []any) *virtualmachines.AdditionalCapabilities {
+	capabilities := virtualmachines.AdditionalCapabilities{}
 
 	if len(input) > 0 {
-		raw := input[0].(map[string]interface{})
+		raw := input[0].(map[string]any)
 
-		capabilities.UltraSSDEnabled = utils.Bool(raw["ultra_ssd_enabled"].(bool))
+		capabilities.UltraSSDEnabled = pointer.To(raw["ultra_ssd_enabled"].(bool))
+
+		capabilities.HibernationEnabled = pointer.To(raw["hibernation_enabled"].(bool))
 	}
 
 	return &capabilities
 }
 
-func flattenVirtualMachineAdditionalCapabilities(input *compute.AdditionalCapabilities) []interface{} {
+func flattenVirtualMachineAdditionalCapabilities(input *virtualmachines.AdditionalCapabilities) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	ultraSsdEnabled := false
-
-	if input.UltraSSDEnabled != nil {
-		ultraSsdEnabled = *input.UltraSSDEnabled
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"ultra_ssd_enabled": ultraSsdEnabled,
+	return []any{
+		map[string]any{
+			"ultra_ssd_enabled":   pointer.From(input.UltraSSDEnabled),
+			"hibernation_enabled": pointer.From(input.HibernationEnabled),
 		},
 	}
 }
 
-func expandVirtualMachineIdentity(input []interface{}) (*compute.VirtualMachineIdentity, error) {
-	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
-	if err != nil {
-		return nil, err
-	}
-
-	out := compute.VirtualMachineIdentity{
-		Type: compute.ResourceIdentityType(string(expanded.Type)),
-	}
-	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
-		out.UserAssignedIdentities = make(map[string]*compute.UserAssignedIdentitiesValue)
-		for k := range expanded.IdentityIds {
-			out.UserAssignedIdentities[k] = &compute.UserAssignedIdentitiesValue{
-				// intentionally empty
-			}
-		}
-	}
-	return &out, nil
-}
-
-func flattenVirtualMachineIdentity(input *compute.VirtualMachineIdentity) (*[]interface{}, error) {
-	var transform *identity.SystemAndUserAssignedMap
-
-	if input != nil {
-		transform = &identity.SystemAndUserAssignedMap{
-			Type:        identity.Type(string(input.Type)),
-			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
-		}
-
-		if input.PrincipalID != nil {
-			transform.PrincipalId = *input.PrincipalID
-		}
-		if input.TenantID != nil {
-			transform.TenantId = *input.TenantID
-		}
-		for k, v := range input.UserAssignedIdentities {
-			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
-				ClientId:    v.ClientID,
-				PrincipalId: v.PrincipalID,
-			}
-		}
-	}
-	return identity.FlattenSystemAndUserAssignedMap(transform)
-}
-
-func expandVirtualMachineNetworkInterfaceIDs(input []interface{}) []compute.NetworkInterfaceReference {
-	output := make([]compute.NetworkInterfaceReference, 0)
+func expandVirtualMachineNetworkInterfaceIDs(input []any) []virtualmachines.NetworkInterfaceReference {
+	output := make([]virtualmachines.NetworkInterfaceReference, 0)
 
 	for i, v := range input {
-		output = append(output, compute.NetworkInterfaceReference{
-			ID: utils.String(v.(string)),
-			NetworkInterfaceReferenceProperties: &compute.NetworkInterfaceReferenceProperties{
-				Primary: utils.Bool(i == 0),
+		output = append(output, virtualmachines.NetworkInterfaceReference{
+			Id: pointer.To(v.(string)),
+			Properties: &virtualmachines.NetworkInterfaceReferenceProperties{
+				Primary: pointer.To(i == 0),
 			},
 		})
 	}
@@ -133,19 +90,19 @@ func expandVirtualMachineNetworkInterfaceIDs(input []interface{}) []compute.Netw
 	return output
 }
 
-func flattenVirtualMachineNetworkInterfaceIDs(input *[]compute.NetworkInterfaceReference) []interface{} {
+func flattenVirtualMachineNetworkInterfaceIDs(input *[]virtualmachines.NetworkInterfaceReference) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 
 	for _, v := range *input {
-		if v.ID == nil {
+		if v.Id == nil {
 			continue
 		}
 
-		output = append(output, *v.ID)
+		output = append(output, *v.Id)
 	}
 
 	return output
@@ -159,28 +116,37 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"caching": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.CachingTypesNone),
-						string(compute.CachingTypesReadOnly),
-						string(compute.CachingTypesReadWrite),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForCachingTypes(), false),
 				},
+
 				"storage_account_type": {
 					Type:     pluginsdk.TypeString,
-					Required: true,
+					Optional: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					// whilst this appears in the Update block the API returns this when changing:
 					// Changing property 'osDisk.managedDisk.storageAccountType' is not allowed
 					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						// note: OS Disks don't support Ultra SSDs or PremiumV2_LRS
-						string(compute.StorageAccountTypesPremiumLRS),
-						string(compute.StorageAccountTypesStandardLRS),
-						string(compute.StorageAccountTypesStandardSSDLRS),
-						string(compute.StorageAccountTypesStandardSSDZRS),
-						string(compute.StorageAccountTypesPremiumZRS),
+						string(virtualmachines.StorageAccountTypesPremiumLRS),
+						string(virtualmachines.StorageAccountTypesStandardLRS),
+						string(virtualmachines.StorageAccountTypesStandardSSDLRS),
+						string(virtualmachines.StorageAccountTypesStandardSSDZRS),
+						string(virtualmachines.StorageAccountTypesPremiumZRS),
 					}, false),
+					DiffSuppressFunc: func(_, oldVal, newVal string, d *schema.ResourceData) bool {
+						// When specifying an existing disk to use as the O/S disk, this value cannot be specified
+						// so we must suppress the Diff/ForceNew
+						existingDiskId, _ := pluginsdk.GoValueFromTerraformValue[string](d.GetRawConfig().AsValueMap()["os_managed_disk_id"])
+						return pointer.From(existingDiskId) != ""
+					},
+					// ConflictsWith: []string{"os_managed_disk_id"},
+					ExactlyOneOf: []string{
+						"os_managed_disk_id",
+						"os_disk.0.storage_account_type",
+					},
 				},
 
 				// Optional
@@ -192,24 +158,22 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"option": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-								ForceNew: true,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(compute.DiffDiskOptionsLocal),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ForceNew:     true,
+								ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForDiffDiskOptions(), false),
 							},
 							"placement": {
-								Type:     pluginsdk.TypeString,
-								Optional: true,
-								ForceNew: true,
-								Default:  string(compute.DiffDiskPlacementCacheDisk),
-								ValidateFunc: validation.StringInSlice([]string{
-									string(compute.DiffDiskPlacementCacheDisk),
-									string(compute.DiffDiskPlacementResourceDisk),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								ForceNew:     true,
+								Default:      string(virtualmachines.DiffDiskPlacementCacheDisk),
+								ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForDiffDiskPlacement(), false),
 							},
 						},
+					},
+					ConflictsWith: []string{
+						"os_managed_disk_id",
 					},
 				},
 
@@ -218,13 +182,14 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 					Optional: true,
 					// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE
 					DiffSuppressFunc: suppress.CaseDifference,
-					ValidateFunc:     validate.DiskEncryptionSetID,
+					ValidateFunc:     validation.AsGeneratedID(commonids.ParseDiskEncryptionSetIDInsensitively),
 					ConflictsWith:    []string{"os_disk.0.secure_vm_disk_encryption_set_id"},
 				},
 
 				"disk_size_gb": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					// Note: O+C because Azure computes disk size when not specified
 					Computed:     true,
 					ValidateFunc: validation.IntBetween(0, 4095),
 				},
@@ -233,14 +198,17 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ForceNew: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
+					ConflictsWith: []string{
+						"os_managed_disk_id",
+					},
 				},
 
 				"secure_vm_disk_encryption_set_id": {
 					Type:          pluginsdk.TypeString,
 					Optional:      true,
 					ForceNew:      true,
-					ValidateFunc:  validate.DiskEncryptionSetID,
+					ValidateFunc:  validation.AsGeneratedID(commonids.ParseDiskEncryptionSetIDInsensitively),
 					ConflictsWith: []string{"os_disk.0.disk_encryption_set_id"},
 				},
 
@@ -249,8 +217,8 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 					Optional: true,
 					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.SecurityEncryptionTypesVMGuestStateOnly),
-						string(compute.SecurityEncryptionTypesDiskWithVMGuestState),
+						string(virtualmachines.SecurityEncryptionTypesVMGuestStateOnly),
+						string(virtualmachines.SecurityEncryptionTypesDiskWithVMGuestState),
 					}, false),
 				},
 
@@ -259,88 +227,94 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 					Optional: true,
 					Default:  false,
 				},
+
+				"id": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
 			},
 		},
 	}
 }
 
-func expandVirtualMachineOSDisk(input []interface{}, osType compute.OperatingSystemTypes) (*compute.OSDisk, error) {
-	raw := input[0].(map[string]interface{})
+func expandVirtualMachineOSDisk(input []any, osType virtualmachines.OperatingSystemTypes) (*virtualmachines.OSDisk, error) {
+	raw := input[0].(map[string]any)
 	caching := raw["caching"].(string)
-	disk := compute.OSDisk{
-		Caching: compute.CachingTypes(caching),
-		ManagedDisk: &compute.ManagedDiskParameters{
-			StorageAccountType: compute.StorageAccountTypes(raw["storage_account_type"].(string)),
+
+	disk := virtualmachines.OSDisk{
+		Caching: pointer.ToEnum[virtualmachines.CachingTypes](caching),
+		ManagedDisk: &virtualmachines.ManagedDiskParameters{
+			StorageAccountType: pointer.ToEnum[virtualmachines.StorageAccountTypes](raw["storage_account_type"].(string)),
 		},
-		WriteAcceleratorEnabled: utils.Bool(raw["write_accelerator_enabled"].(bool)),
+		WriteAcceleratorEnabled: pointer.To(raw["write_accelerator_enabled"].(bool)),
 
 		// these have to be hard-coded so there's no point exposing them
 		// for CreateOption, whilst it's possible for this to be "Attach" for an OS Disk
 		// from what we can tell this approach has been superseded by provisioning from
 		// an image of the machine (e.g. an Image/Shared Image Gallery)
-		CreateOption: compute.DiskCreateOptionTypesFromImage,
-		OsType:       osType,
+		CreateOption: virtualmachines.DiskCreateOptionTypesFromImage,
+		OsType:       pointer.To(osType),
 	}
 
 	securityEncryptionType := raw["security_encryption_type"].(string)
 	if securityEncryptionType != "" {
-		disk.ManagedDisk.SecurityProfile = &compute.VMDiskSecurityProfile{
-			SecurityEncryptionType: compute.SecurityEncryptionTypes(securityEncryptionType),
+		disk.ManagedDisk.SecurityProfile = &virtualmachines.VMDiskSecurityProfile{
+			SecurityEncryptionType: pointer.ToEnum[virtualmachines.SecurityEncryptionTypes](securityEncryptionType),
 		}
 	}
 	if secureVMDiskEncryptionId := raw["secure_vm_disk_encryption_set_id"].(string); secureVMDiskEncryptionId != "" {
-		if compute.SecurityEncryptionTypesDiskWithVMGuestState != compute.SecurityEncryptionTypes(securityEncryptionType) {
+		if virtualmachines.SecurityEncryptionTypesDiskWithVMGuestState != virtualmachines.SecurityEncryptionTypes(securityEncryptionType) {
 			return nil, fmt.Errorf("`secure_vm_disk_encryption_set_id` can only be specified when `security_encryption_type` is set to `DiskWithVMGuestState`")
 		}
-		disk.ManagedDisk.SecurityProfile.DiskEncryptionSet = &compute.DiskEncryptionSetParameters{
-			ID: utils.String(secureVMDiskEncryptionId),
+		disk.ManagedDisk.SecurityProfile.DiskEncryptionSet = &virtualmachines.SubResource{
+			Id: pointer.To(secureVMDiskEncryptionId),
 		}
 	}
 
 	if osDiskSize := raw["disk_size_gb"].(int); osDiskSize > 0 {
-		disk.DiskSizeGB = utils.Int32(int32(osDiskSize))
+		disk.DiskSizeGB = pointer.To(int64(osDiskSize))
 	}
 
-	if diffDiskSettingsRaw := raw["diff_disk_settings"].([]interface{}); len(diffDiskSettingsRaw) > 0 {
-		if caching != string(compute.CachingTypesReadOnly) {
+	if diffDiskSettingsRaw := raw["diff_disk_settings"].([]any); len(diffDiskSettingsRaw) > 0 {
+		if caching != string(virtualmachines.CachingTypesReadOnly) {
 			// Restriction per https://docs.microsoft.com/azure/virtual-machines/ephemeral-os-disks-deploy#vm-template-deployment
 			return nil, fmt.Errorf("`diff_disk_settings` can only be set when `caching` is set to `ReadOnly`")
 		}
 
-		diffDiskRaw := diffDiskSettingsRaw[0].(map[string]interface{})
-		disk.DiffDiskSettings = &compute.DiffDiskSettings{
-			Option:    compute.DiffDiskOptions(diffDiskRaw["option"].(string)),
-			Placement: compute.DiffDiskPlacement(diffDiskRaw["placement"].(string)),
+		diffDiskRaw := diffDiskSettingsRaw[0].(map[string]any)
+		disk.DiffDiskSettings = &virtualmachines.DiffDiskSettings{
+			Option:    pointer.ToEnum[virtualmachines.DiffDiskOptions](diffDiskRaw["option"].(string)),
+			Placement: pointer.ToEnum[virtualmachines.DiffDiskPlacement](diffDiskRaw["placement"].(string)),
 		}
 	}
 
 	if id := raw["disk_encryption_set_id"].(string); id != "" {
-		disk.ManagedDisk.DiskEncryptionSet = &compute.DiskEncryptionSetParameters{
-			ID: utils.String(id),
+		disk.ManagedDisk.DiskEncryptionSet = &virtualmachines.SubResource{
+			Id: pointer.To(id),
 		}
 	}
 
 	if name := raw["name"].(string); name != "" {
-		disk.Name = utils.String(name)
+		disk.Name = pointer.To(name)
 	}
 
 	return &disk, nil
 }
 
-func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksClient, input *compute.OSDisk) ([]interface{}, error) {
+func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksClient, input *virtualmachines.OSDisk) ([]any, error) {
 	if input == nil {
-		return []interface{}{}, nil
+		return []any{}, nil
 	}
 
-	diffDiskSettings := make([]interface{}, 0)
+	diffDiskSettings := make([]any, 0)
 	if input.DiffDiskSettings != nil {
-		placement := string(compute.DiffDiskPlacementCacheDisk)
-		if input.DiffDiskSettings.Placement != "" {
-			placement = string(input.DiffDiskSettings.Placement)
+		placement := string(virtualmachines.DiffDiskPlacementCacheDisk)
+		if input.DiffDiskSettings.Placement != nil {
+			placement = string(*input.DiffDiskSettings.Placement)
 		}
 
-		diffDiskSettings = append(diffDiskSettings, map[string]interface{}{
-			"option":    string(input.DiffDiskSettings.Option),
+		diffDiskSettings = append(diffDiskSettings, map[string]any{
+			"option":    pointer.FromEnum(input.DiffDiskSettings.Option),
 			"placement": placement,
 		})
 	}
@@ -350,21 +324,19 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksCl
 		diskSizeGb = int(*input.DiskSizeGB)
 	}
 
-	var name string
-	if input.Name != nil {
-		name = *input.Name
-	}
+	name := pointer.From(input.Name)
 
 	diskEncryptionSetId := ""
 	storageAccountType := ""
 	secureVMDiskEncryptionSetId := ""
 	securityEncryptionType := ""
+	osDiskId := ""
 
 	if input.ManagedDisk != nil {
-		storageAccountType = string(input.ManagedDisk.StorageAccountType)
+		storageAccountType = pointer.FromEnum(input.ManagedDisk.StorageAccountType)
 
-		if input.ManagedDisk.ID != nil {
-			id, err := commonids.ParseManagedDiskID(*input.ManagedDisk.ID)
+		if input.ManagedDisk.Id != nil {
+			id, err := commonids.ParseManagedDiskIDInsensitively(*input.ManagedDisk.Id)
 			if err != nil {
 				return nil, err
 			}
@@ -397,26 +369,26 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksCl
 					diskEncryptionSetId = *disk.Model.Properties.Encryption.DiskEncryptionSetId
 				}
 			}
+
+			osDiskId = id.ID()
 		}
 
 		if securityProfile := input.ManagedDisk.SecurityProfile; securityProfile != nil {
-			securityEncryptionType = string(securityProfile.SecurityEncryptionType)
-			if securityProfile.DiskEncryptionSet != nil && securityProfile.DiskEncryptionSet.ID != nil {
-				secureVMDiskEncryptionSetId = *securityProfile.DiskEncryptionSet.ID
+			securityEncryptionType = pointer.FromEnum(securityProfile.SecurityEncryptionType)
+			if securityProfile.DiskEncryptionSet != nil && securityProfile.DiskEncryptionSet.Id != nil {
+				secureVMDiskEncryptionSetId = *securityProfile.DiskEncryptionSet.Id
 			}
 		}
 	}
 
-	writeAcceleratorEnabled := false
-	if input.WriteAcceleratorEnabled != nil {
-		writeAcceleratorEnabled = *input.WriteAcceleratorEnabled
-	}
-	return []interface{}{
-		map[string]interface{}{
-			"caching":                          string(input.Caching),
-			"disk_size_gb":                     diskSizeGb,
+	writeAcceleratorEnabled := pointer.From(input.WriteAcceleratorEnabled)
+	return []any{
+		map[string]any{
+			"caching":                          pointer.FromEnum(input.Caching),
 			"diff_disk_settings":               diffDiskSettings,
 			"disk_encryption_set_id":           diskEncryptionSetId,
+			"disk_size_gb":                     diskSizeGb,
+			"id":                               osDiskId,
 			"name":                             name,
 			"storage_account_type":             storageAccountType,
 			"secure_vm_disk_encryption_set_id": secureVMDiskEncryptionSetId,
@@ -426,11 +398,31 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksCl
 	}, nil
 }
 
+func virtualMachineOsImageNotificationSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"timeout": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"PT15M",
+					}, false),
+					Default: "PT15M",
+				},
+			},
+		},
+	}
+}
+
 func virtualMachineTerminationNotificationSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -441,7 +433,7 @@ func virtualMachineTerminationNotificationSchema() *pluginsdk.Schema {
 				"timeout": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: azValidate.ISO8601DurationBetween("PT5M", "PT15M"),
+					ValidateFunc: validation.ISO8601DurationBetween("PT5M", "PT15M"),
 					Default:      "PT5M",
 				},
 			},
@@ -449,43 +441,69 @@ func virtualMachineTerminationNotificationSchema() *pluginsdk.Schema {
 	}
 }
 
-func expandVirtualMachineScheduledEventsProfile(input []interface{}) *compute.ScheduledEventsProfile {
+func expandOsImageNotificationProfile(input []any) *virtualmachines.OSImageNotificationProfile {
 	if len(input) == 0 {
-		return &compute.ScheduledEventsProfile{
-			TerminateNotificationProfile: &compute.TerminateNotificationProfile{
-				Enable: utils.Bool(false),
-			},
+		return &virtualmachines.OSImageNotificationProfile{
+			Enable: pointer.To(false),
 		}
 	}
 
-	raw := input[0].(map[string]interface{})
-	enabled := raw["enabled"].(bool)
-	timeout := raw["timeout"].(string)
+	raw := input[0].(map[string]any)
 
-	return &compute.ScheduledEventsProfile{
-		TerminateNotificationProfile: &compute.TerminateNotificationProfile{
-			Enable:           &enabled,
-			NotBeforeTimeout: &timeout,
+	return &virtualmachines.OSImageNotificationProfile{
+		Enable:           pointer.To(true),
+		NotBeforeTimeout: pointer.To(raw["timeout"].(string)),
+	}
+}
+
+func expandTerminateNotificationProfile(input []any) *virtualmachines.TerminateNotificationProfile {
+	if len(input) == 0 {
+		return &virtualmachines.TerminateNotificationProfile{
+			Enable: pointer.To(false),
+		}
+	}
+
+	raw := input[0].(map[string]any)
+
+	return &virtualmachines.TerminateNotificationProfile{
+		Enable:           pointer.To(raw["enabled"].(bool)),
+		NotBeforeTimeout: pointer.To(raw["timeout"].(string)),
+	}
+}
+
+func flattenOsImageNotificationProfile(input *virtualmachines.OSImageNotificationProfile) []any {
+	if input == nil || !pointer.From(input.Enable) {
+		return []any{}
+	}
+
+	timeout := "PT15M"
+	if input.NotBeforeTimeout != nil {
+		timeout = *input.NotBeforeTimeout
+	}
+
+	return []any{
+		map[string]any{
+			"timeout": timeout,
 		},
 	}
 }
 
-func flattenVirtualMachineScheduledEventsProfile(input *compute.ScheduledEventsProfile) []interface{} {
+func flattenTerminateNotificationProfile(input *virtualmachines.TerminateNotificationProfile) []any {
 	// if enabled is set to false, there will be no ScheduledEventsProfile in response, to avoid plan non empty when
 	// a user explicitly set enabled to false, we need to assign a default block to this field
 
 	enabled := false
-	if input != nil && input.TerminateNotificationProfile != nil && input.TerminateNotificationProfile.Enable != nil {
-		enabled = *input.TerminateNotificationProfile.Enable
+	if input != nil && input.Enable != nil {
+		enabled = *input.Enable
 	}
 
 	timeout := "PT5M"
-	if input != nil && input.TerminateNotificationProfile != nil && input.TerminateNotificationProfile.NotBeforeTimeout != nil {
-		timeout = *input.TerminateNotificationProfile.NotBeforeTimeout
+	if input != nil && input.NotBeforeTimeout != nil {
+		timeout = *input.NotBeforeTimeout
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"enabled": enabled,
 			"timeout": timeout,
 		},
@@ -505,6 +523,12 @@ func VirtualMachineGalleryApplicationSchema() *pluginsdk.Schema {
 					ValidateFunc: galleryapplicationversions.ValidateApplicationVersionID,
 				},
 
+				"automatic_upgrade_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+
 				// Example: https://mystorageaccount.blob.core.windows.net/configurations/settings.config
 				"configuration_blob_uri": {
 					Type:         pluginsdk.TypeString,
@@ -516,7 +540,7 @@ func VirtualMachineGalleryApplicationSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      0,
-					ValidateFunc: validation.IntBetween(0, 2147483647),
+					ValidateFunc: validation.IntBetween(0, math.MaxInt32),
 				},
 
 				// NOTE: Per the service team, "this is a pass through value that we just add to the model but don't depend on. It can be any string."
@@ -525,28 +549,35 @@ func VirtualMachineGalleryApplicationSchema() *pluginsdk.Schema {
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
+
+				"treat_failure_as_deployment_failure_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
 			},
+		},
+		ConflictsWith: []string{
+			"os_managed_disk_id",
 		},
 	}
 }
 
-func expandVirtualMachineGalleryApplication(input []interface{}) *[]compute.VMGalleryApplication {
-	out := make([]compute.VMGalleryApplication, 0)
+func expandVirtualMachineGalleryApplication(input []any) *[]virtualmachines.VMGalleryApplication {
+	out := make([]virtualmachines.VMGalleryApplication, 0)
 	if len(input) == 0 {
 		return &out
 	}
 
 	for _, v := range input {
-		packageReferenceId := v.(map[string]interface{})["version_id"].(string)
-		configurationReference := v.(map[string]interface{})["configuration_blob_uri"].(string)
-		order := v.(map[string]interface{})["order"].(int)
-		tag := v.(map[string]interface{})["tag"].(string)
-
-		app := &compute.VMGalleryApplication{
-			PackageReferenceID:     utils.String(packageReferenceId),
-			ConfigurationReference: utils.String(configurationReference),
-			Order:                  utils.Int32(int32(order)),
-			Tags:                   utils.String(tag),
+		config := v.(map[string]any)
+		app := &virtualmachines.VMGalleryApplication{
+			PackageReferenceId:              config["version_id"].(string),
+			ConfigurationReference:          pointer.To(config["configuration_blob_uri"].(string)),
+			Order:                           pointer.To(int64(config["order"].(int))),
+			Tags:                            pointer.To(config["tag"].(string)),
+			EnableAutomaticUpgrade:          pointer.To(config["automatic_upgrade_enabled"].(bool)),
+			TreatFailureAsDeploymentFailure: pointer.To(config["treat_failure_as_deployment_failure_enabled"].(bool)),
 		}
 
 		out = append(out, *app)
@@ -555,23 +586,26 @@ func expandVirtualMachineGalleryApplication(input []interface{}) *[]compute.VMGa
 	return &out
 }
 
-func flattenVirtualMachineGalleryApplication(input *[]compute.VMGalleryApplication) []interface{} {
+func flattenVirtualMachineGalleryApplication(input *[]virtualmachines.VMGalleryApplication) []any {
 	if len(*input) == 0 {
-		return nil
+		return []any{}
 	}
 
-	out := make([]interface{}, 0)
+	out := make([]any, 0)
 
 	for _, v := range *input {
 		var packageReferenceId, configurationReference, tag string
 		var order int
+		var automaticUpgradeEnabled, treatFailureAsDeploymentFailureEnabled bool
 
-		if v.PackageReferenceID != nil {
-			packageReferenceId = *v.PackageReferenceID
-		}
+		packageReferenceId = v.PackageReferenceId
 
 		if v.ConfigurationReference != nil {
 			configurationReference = *v.ConfigurationReference
+		}
+
+		if v.EnableAutomaticUpgrade != nil {
+			automaticUpgradeEnabled = *v.EnableAutomaticUpgrade
 		}
 
 		if v.Order != nil {
@@ -582,11 +616,17 @@ func flattenVirtualMachineGalleryApplication(input *[]compute.VMGalleryApplicati
 			tag = *v.Tags
 		}
 
-		app := map[string]interface{}{
-			"version_id":             packageReferenceId,
-			"configuration_blob_uri": configurationReference,
-			"order":                  order,
-			"tag":                    tag,
+		if v.TreatFailureAsDeploymentFailure != nil {
+			treatFailureAsDeploymentFailureEnabled = *v.TreatFailureAsDeploymentFailure
+		}
+
+		app := map[string]any{
+			"version_id":                packageReferenceId,
+			"automatic_upgrade_enabled": automaticUpgradeEnabled,
+			"configuration_blob_uri":    configurationReference,
+			"order":                     order,
+			"tag":                       tag,
+			"treat_failure_as_deployment_failure_enabled": treatFailureAsDeploymentFailureEnabled,
 		}
 
 		out = append(out, app)

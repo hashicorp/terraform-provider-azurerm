@@ -10,6 +10,8 @@ description: |-
 
 Manages a Spring Cloud Customized Accelerator.
 
+!> **Note:** Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_customized_accelerator` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.
+
 ## Example Usage
 
 ```hcl
@@ -79,7 +81,7 @@ A `git_repository` block supports the following:
 
 * `url` - (Required) Specifies Git repository URL for the accelerator.
 
-* `basic_auth` - (Optional) A `basic_auth` block as defined below. Conflicts with `git_repository.0.ssh_auth`. Changing this forces a new Spring Cloud Customized Accelerator to be created.
+* `basic_auth` - (Optional) A `basic_auth` block as defined below. Conflicts with `git_repository[0].ssh_auth`. Changing this forces a new Spring Cloud Customized Accelerator to be created.
 
 * `branch` - (Optional) Specifies the Git repository branch to be used.
 
@@ -91,7 +93,7 @@ A `git_repository` block supports the following:
 
 * `interval_in_seconds` - (Optional) Specifies the interval for checking for updates to Git or image repository. It should be greater than 10.
 
-* `ssh_auth` - (Optional) A `ssh_auth` block as defined below. Conflicts with `git_repository.0.basic_auth`. Changing this forces a new Spring Cloud Customized Accelerator to be created.
+* `ssh_auth` - (Optional) A `ssh_auth` block as defined below. Conflicts with `git_repository[0].basic_auth`. Changing this forces a new Spring Cloud Customized Accelerator to be created.
 
 * `path` - (Optional) Specifies the path under the git repository to be treated as the root directory of the accelerator or the fragment (depending on `accelerator_type`).
 
@@ -121,7 +123,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Spring Cloud Customized Accelerator.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Spring Cloud Customized Accelerator.
@@ -135,3 +137,9 @@ Spring Cloud Customized Accelerators can be imported using the `resource id`, e.
 ```shell
 terraform import azurerm_spring_cloud_customized_accelerator.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.AppPlatform/spring/spring1/applicationAccelerators/default/customizedAccelerators/customizedAccelerator1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.AppPlatform` - 2024-01-01-preview

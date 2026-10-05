@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
@@ -9,4 +9,9 @@ package helpers
 const (
 	PublicNetworkAccessEnabled  string = "Enabled"
 	PublicNetworkAccessDisabled string = "Disabled"
+)
+
+const (
+	ValidationTypeTXT   = "dns-txt-token"
+	ValidationTypeCName = "cname-delegation"
 )

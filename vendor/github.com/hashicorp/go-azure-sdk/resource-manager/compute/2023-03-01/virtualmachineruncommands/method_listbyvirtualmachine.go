@@ -39,6 +39,7 @@ func (o ListByVirtualMachineOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListByVirtualMachineOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -50,6 +51,18 @@ func (o ListByVirtualMachineOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByVirtualMachineCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByVirtualMachineCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByVirtualMachine ...
 func (c VirtualMachineRunCommandsClient) ListByVirtualMachine(ctx context.Context, id VirtualMachineId, options ListByVirtualMachineOperationOptions) (result ListByVirtualMachineOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -58,8 +71,9 @@ func (c VirtualMachineRunCommandsClient) ListByVirtualMachine(ctx context.Contex
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/runCommands", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByVirtualMachineCustomPager{},
+		Path:          fmt.Sprintf("%s/runCommands", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -100,6 +114,7 @@ func (c VirtualMachineRunCommandsClient) ListByVirtualMachineCompleteMatchingPre
 
 	resp, err := c.ListByVirtualMachine(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

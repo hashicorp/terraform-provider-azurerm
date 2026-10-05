@@ -19,11 +19,11 @@ data "azurerm_databricks_workspace_private_endpoint_connection" "example" {
 }
 
 output "databricks_workspace_private_endpoint_connection_status" {
-  value = data.azurerm_databricks_workspace_private_endpoint_connection.example.connections.0.status
+  value = data.azurerm_databricks_workspace_private_endpoint_connection.example.connections[0].status
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the Databricks Workspace.
 * `resource_group_name` - The Name of the Resource Group where the Databricks Workspace exists.
@@ -52,6 +52,12 @@ A `connections` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Databricks Workspace Private Endpoint Connection.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Databricks` - 2026-01-01

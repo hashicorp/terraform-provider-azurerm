@@ -35,7 +35,7 @@ XML
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -45,7 +45,8 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the API Management Service exists. Changing this forces a new resource to be created.
 
-* `xml_content` - (Optional) The XML Content for this Policy as a string. An XML file can be used here with Terraform's [file function](https://www.terraform.io/docs/configuration/functions/file.html) that is similar to Microsoft's `PolicyFilePath` option.
+* `xml_content` - (Optional) The XML Content for this Policy as a string. An XML file can be used here with Terraform's [file function](https://www.terraform.io/docs/configuration/functions/file.html) that is similar to Microsoft's `PolicyFilePath` option. If you need to pass variables into your XML file, use Terraform's [templatefile function](https://developer.hashicorp.com/terraform/language/functions/templatefile).
+
 
 * `xml_link` - (Optional) A link to a Policy XML Document, which must be publicly available.
 
@@ -57,11 +58,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management API Policy.
-* `update` - (Defaults to 30 minutes) Used when updating the API Management API Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the API Management API Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the API Management API Policy.
 * `delete` - (Defaults to 30 minutes) Used when deleting the API Management API Policy.
 
 ## Import
@@ -71,3 +72,9 @@ API Management API Policy can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_api_management_api_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.ApiManagement/service/service1/apis/exampleId
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ApiManagement` - 2022-08-01

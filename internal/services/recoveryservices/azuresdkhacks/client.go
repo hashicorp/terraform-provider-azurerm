@@ -1,22 +1,23 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package azuresdkhacks
 
 import (
-	"fmt"
-
 	"github.com/Azure/go-autorest/autorest"
 )
 
-// TODO 4.0: check if it could be removed on 4.0
+// TODO 6.0: check if this workaround can be removed
 // workaround for https://github.com/Azure/azure-rest-api-specs/issues/22572
 // the swagger lack definition of `certificateCreateOptions`.
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-const defaultApiVersion = "2022-10-01"
+const defaultApiVersion = "2024-04-01"
 
 func userAgent() string {
-	return fmt.Sprintf("hashicorp/go-azure-sdk/vaultcertificates/%s", defaultApiVersion)
+	return "hashicorp/go-azure-sdk/vaultcertificates/" + defaultApiVersion
 }
 
 type VaultCertificatesClient struct {

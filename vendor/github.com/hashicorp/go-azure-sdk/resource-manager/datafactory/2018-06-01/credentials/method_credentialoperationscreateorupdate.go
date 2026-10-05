@@ -15,7 +15,7 @@ import (
 type CredentialOperationsCreateOrUpdateOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *ManagedIdentityCredentialResource
+	Model        *CredentialResource
 }
 
 type CredentialOperationsCreateOrUpdateOperationOptions struct {
@@ -29,13 +29,14 @@ func DefaultCredentialOperationsCreateOrUpdateOperationOptions() CredentialOpera
 func (o CredentialOperationsCreateOrUpdateOperationOptions) ToHeaders() *client.Headers {
 	out := client.Headers{}
 	if o.IfMatch != nil {
-		out.Append("If-Match", fmt.Sprintf("%v", *o.IfMatch))
+		out.Append("if-match", fmt.Sprintf("%v", *o.IfMatch))
 	}
 	return &out
 }
 
 func (o CredentialOperationsCreateOrUpdateOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -46,15 +47,15 @@ func (o CredentialOperationsCreateOrUpdateOperationOptions) ToQuery() *client.Qu
 }
 
 // CredentialOperationsCreateOrUpdate ...
-func (c CredentialsClient) CredentialOperationsCreateOrUpdate(ctx context.Context, id CredentialId, input ManagedIdentityCredentialResource, options CredentialOperationsCreateOrUpdateOperationOptions) (result CredentialOperationsCreateOrUpdateOperationResponse, err error) {
+func (c CredentialsClient) CredentialOperationsCreateOrUpdate(ctx context.Context, id CredentialId, input CredentialResource, options CredentialOperationsCreateOrUpdateOperationOptions) (result CredentialOperationsCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPut,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -76,7 +77,9 @@ func (c CredentialsClient) CredentialOperationsCreateOrUpdate(ctx context.Contex
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CredentialResource
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

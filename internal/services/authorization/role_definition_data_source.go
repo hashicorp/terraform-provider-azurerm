@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package authorization
@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2018-01-01-preview/roledefinitions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-05-01-preview/roledefinitions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -21,20 +21,23 @@ type RoleDefinitionDataSource struct{}
 var _ sdk.DataSource = RoleDefinitionDataSource{}
 
 type RoleDefinitionDataSourceModel struct {
-	Name             string                      `tfschema:"name"`
-	RoleDefinitionId string                      `tfschema:"role_definition_id"`
-	Scope            string                      `tfschema:"scope"`
-	Description      string                      `tfschema:"description"`
-	Type             string                      `tfschema:"type"`
-	Permissions      []PermissionDataSourceModel `tfschema:"permissions"`
-	AssignableScopes []string                    `tfschema:"assignable_scopes"`
+	Name                     string                      `tfschema:"name"`
+	RoleDefinitionId         string                      `tfschema:"role_definition_id"`
+	Scope                    string                      `tfschema:"scope"`
+	Description              string                      `tfschema:"description"`
+	Type                     string                      `tfschema:"type"`
+	Permissions              []PermissionDataSourceModel `tfschema:"permissions"`
+	AssignableScopes         []string                    `tfschema:"assignable_scopes"`
+	RoleDefinitionResourceId string                      `tfschema:"role_definition_resource_id"`
 }
 
 type PermissionDataSourceModel struct {
-	Actions        []string `tfschema:"actions"`
-	NotActions     []string `tfschema:"not_actions"`
-	DataActions    []string `tfschema:"data_actions"`
-	NotDataActions []string `tfschema:"not_data_actions"`
+	Actions          []string `tfschema:"actions"`
+	NotActions       []string `tfschema:"not_actions"`
+	DataActions      []string `tfschema:"data_actions"`
+	NotDataActions   []string `tfschema:"not_data_actions"`
+	Condition        string   `tfschema:"condition"`
+	ConditionVersion string   `tfschema:"condition_version"`
 }
 
 func (a RoleDefinitionDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -42,7 +45,7 @@ func (a RoleDefinitionDataSource) Arguments() map[string]*pluginsdk.Schema {
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ExactlyOneOf: []string{
 				"name",
 				"role_definition_id",
@@ -53,7 +56,7 @@ func (a RoleDefinitionDataSource) Arguments() map[string]*pluginsdk.Schema {
 		"role_definition_id": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ExactlyOneOf: []string{
 				"name",
 				"role_definition_id",
@@ -104,7 +107,7 @@ func (a RoleDefinitionDataSource) Attributes() map[string]*pluginsdk.Schema {
 
 					"data_actions": {
 						Type:     pluginsdk.TypeSet,
-						Optional: true,
+						Computed: true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -113,11 +116,21 @@ func (a RoleDefinitionDataSource) Attributes() map[string]*pluginsdk.Schema {
 
 					"not_data_actions": {
 						Type:     pluginsdk.TypeSet,
-						Optional: true,
+						Computed: true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
 						Set: pluginsdk.HashString,
+					},
+
+					"condition": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"condition_version": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
 					},
 				},
 			},
@@ -130,10 +143,15 @@ func (a RoleDefinitionDataSource) Attributes() map[string]*pluginsdk.Schema {
 				Type: pluginsdk.TypeString,
 			},
 		},
+
+		"role_definition_resource_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 	}
 }
 
-func (a RoleDefinitionDataSource) ModelObject() interface{} {
+func (a RoleDefinitionDataSource) ModelObject() any {
 	return &RoleDefinitionDataSourceModel{}
 }
 
@@ -145,7 +163,7 @@ func (a RoleDefinitionDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Authorization.RoleDefinitionsClient
+			client := metadata.Client.Authorization.ScopedRoleDefinitionsClient
 
 			var config RoleDefinitionDataSourceModel
 			if err := metadata.Decode(&config); err != nil {
@@ -163,7 +181,7 @@ func (a RoleDefinitionDataSource) Read() sdk.ResourceFunc {
 				if !ok {
 					return fmt.Errorf("internal error: context had no deadline")
 				}
-				err := pluginsdk.Retry(time.Until(deadline), func() *pluginsdk.RetryError {
+				if err := pluginsdk.Retry(time.Until(deadline), func() *pluginsdk.RetryError {
 					roleDefinitions, err := client.List(ctx, commonids.NewScopeID(config.Scope), roledefinitions.ListOperationOptions{
 						Filter: pointer.To(fmt.Sprintf("roleName eq '%s'", config.Name)),
 					})
@@ -180,11 +198,11 @@ func (a RoleDefinitionDataSource) Read() sdk.ResourceFunc {
 						return pluginsdk.NonRetryableError(fmt.Errorf("loading Role Definition List: values[0].NameD is nil '%s'", config.Name))
 					}
 
-					defId = *(*roleDefinitions.Model)[0].Id
-					id = roledefinitions.NewScopedRoleDefinitionID(config.Scope, *(*roleDefinitions.Model)[0].Name)
+					defId = *(*roleDefinitions.Model)[0].Name
+					id = roledefinitions.NewScopedRoleDefinitionID(config.Scope, defId)
+
 					return nil
-				})
-				if err != nil {
+				}); err != nil {
 					return err
 				}
 			} else {
@@ -206,9 +224,11 @@ func (a RoleDefinitionDataSource) Read() sdk.ResourceFunc {
 			}
 
 			state := RoleDefinitionDataSourceModel{
-				Scope:            id.Scope,
-				RoleDefinitionId: defId,
+				Scope:                    id.Scope,
+				RoleDefinitionId:         defId,
+				RoleDefinitionResourceId: pointer.From(role.Id),
 			}
+
 			if props := role.Properties; props != nil {
 				state.Name = pointer.From(props.RoleName)
 				state.Type = pointer.From(props.Type)
@@ -217,10 +237,7 @@ func (a RoleDefinitionDataSource) Read() sdk.ResourceFunc {
 				state.AssignableScopes = pointer.From(props.AssignableScopes)
 			}
 
-			// The sdk managed id start with two "/" when scope is tenant level (empty).
-			// So we use the id from response without parsing and reformating it.
-			// Tracked on https://github.com/hashicorp/pandora/issues/3257
-			metadata.ResourceData.SetId(*role.Id)
+			metadata.ResourceData.SetId(*role.Id) // azignore:AZR001 - tenant level (empty) scope IDs start with "//" which the ID parser cannot round-trip, so the raw response ID is used (hashicorp/pandora#3257)
 			return metadata.Encode(&state)
 		},
 	}
@@ -233,10 +250,12 @@ func flattenDataSourceRoleDefinitionPermissions(input *[]roledefinitions.Permiss
 	}
 	for _, permission := range *input {
 		permissions = append(permissions, PermissionDataSourceModel{
-			Actions:        pointer.From(permission.Actions),
-			DataActions:    pointer.From(permission.DataActions),
-			NotActions:     pointer.From(permission.NotActions),
-			NotDataActions: pointer.From(permission.NotDataActions),
+			Actions:          pointer.From(permission.Actions),
+			DataActions:      pointer.From(permission.DataActions),
+			NotActions:       pointer.From(permission.NotActions),
+			NotDataActions:   pointer.From(permission.NotDataActions),
+			Condition:        pointer.From(permission.Condition),
+			ConditionVersion: pointer.From(permission.ConditionVersion),
 		})
 	}
 	return permissions

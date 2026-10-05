@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&WatchlistItemId{})
+}
 
 var _ resourceids.ResourceId = &WatchlistItemId{}
 
@@ -41,7 +46,7 @@ func ParseWatchlistItemID(input string) (*WatchlistItemId, error) {
 	}
 
 	id := WatchlistItemId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -58,7 +63,7 @@ func ParseWatchlistItemIDInsensitively(input string) (*WatchlistItemId, error) {
 	}
 
 	id := WatchlistItemId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -122,13 +127,13 @@ func (id WatchlistItemId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftOperationalInsights", "Microsoft.OperationalInsights", "Microsoft.OperationalInsights"),
 		resourceids.StaticSegment("staticWorkspaces", "workspaces", "workspaces"),
-		resourceids.UserSpecifiedSegment("workspaceName", "workspaceValue"),
+		resourceids.UserSpecifiedSegment("workspaceName", "workspaceName"),
 		resourceids.StaticSegment("staticProviders2", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftSecurityInsights", "Microsoft.SecurityInsights", "Microsoft.SecurityInsights"),
 		resourceids.StaticSegment("staticWatchlists", "watchlists", "watchlists"),
-		resourceids.UserSpecifiedSegment("watchlistAlias", "watchlistAliasValue"),
+		resourceids.UserSpecifiedSegment("watchlistAlias", "watchlistAlias"),
 		resourceids.StaticSegment("staticWatchlistItems", "watchlistItems", "watchlistItems"),
-		resourceids.UserSpecifiedSegment("watchlistItemId", "watchlistItemIdValue"),
+		resourceids.UserSpecifiedSegment("watchlistItemId", "watchlistItemId"),
 	}
 }
 

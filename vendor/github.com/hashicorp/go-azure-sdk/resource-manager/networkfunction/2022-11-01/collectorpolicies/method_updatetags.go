@@ -47,7 +47,9 @@ func (c CollectorPoliciesClient) UpdateTags(ctx context.Context, id CollectorPol
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CollectorPolicy
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

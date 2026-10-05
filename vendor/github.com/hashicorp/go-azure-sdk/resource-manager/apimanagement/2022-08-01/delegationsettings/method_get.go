@@ -44,7 +44,9 @@ func (c DelegationSettingsClient) Get(ctx context.Context, id ServiceId) (result
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model PortalDelegationSettings
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

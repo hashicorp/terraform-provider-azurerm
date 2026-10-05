@@ -44,7 +44,9 @@ func (c OpenidConnectProviderClient) ListSecrets(ctx context.Context, id OpenidC
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ClientSecretContract
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

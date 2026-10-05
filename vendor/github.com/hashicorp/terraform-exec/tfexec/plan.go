@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2020, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package tfexec
@@ -12,20 +12,22 @@ import (
 )
 
 type planConfig struct {
-	destroy      bool
-	dir          string
-	lock         bool
-	lockTimeout  string
-	out          string
-	parallelism  int
-	reattachInfo ReattachInfo
-	refresh      bool
-	refreshOnly  bool
-	replaceAddrs []string
-	state        string
-	targets      []string
-	vars         []string
-	varFiles     []string
+	allowDeferral     bool
+	destroy           bool
+	dir               string
+	generateConfigOut string
+	lock              bool
+	lockTimeout       string
+	out               string
+	parallelism       int
+	reattachInfo      ReattachInfo
+	refresh           bool
+	refreshOnly       bool
+	replaceAddrs      []string
+	state             string
+	targets           []string
+	vars              []string
+	varFiles          []string
 }
 
 var defaultPlanOptions = planConfig{
@@ -95,6 +97,14 @@ func (opt *LockOption) configurePlan(conf *planConfig) {
 
 func (opt *DestroyFlagOption) configurePlan(conf *planConfig) {
 	conf.destroy = opt.destroy
+}
+
+func (opt *AllowDeferralOption) configurePlan(conf *planConfig) {
+	conf.allowDeferral = opt.allowDeferral
+}
+
+func (opt *GenerateConfigOutOption) configurePlan(conf *planConfig) {
+	conf.generateConfigOut = opt.path
 }
 
 // Plan executes `terraform plan` with the specified options and waits for it
@@ -189,6 +199,13 @@ func (tf *Terraform) buildPlanArgs(ctx context.Context, c planConfig) ([]string,
 	args := []string{"plan", "-no-color", "-input=false", "-detailed-exitcode"}
 
 	// string opts: only pass if set
+	if c.generateConfigOut != "" {
+		err := tf.compatible(ctx, tf1_5_0, nil)
+		if err != nil {
+			return nil, fmt.Errorf("generate-config-out option was introduced in Terraform 1.5.0: %w", err)
+		}
+		args = append(args, "-generate-config-out="+c.generateConfigOut)
+	}
 	if c.lockTimeout != "" {
 		args = append(args, "-lock-timeout="+c.lockTimeout)
 	}
@@ -242,6 +259,21 @@ func (tf *Terraform) buildPlanArgs(ctx context.Context, c planConfig) ([]string,
 		for _, v := range c.vars {
 			args = append(args, "-var", v)
 		}
+	}
+	if c.allowDeferral {
+		// Ensure the version is later than 1.9.0
+		err := tf.compatible(ctx, tf1_9_0, nil)
+		if err != nil {
+			return nil, fmt.Errorf("-allow-deferral is an experimental option introduced in Terraform 1.9.0: %w", err)
+		}
+
+		// Ensure the version has experiments enabled (alpha or dev builds)
+		err = tf.experimentsEnabled(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("-allow-deferral is only available in experimental Terraform builds: %w", err)
+		}
+
+		args = append(args, "-allow-deferral")
 	}
 
 	return args, nil

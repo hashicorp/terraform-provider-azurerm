@@ -1,19 +1,21 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
 
 import (
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/blobs"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/blobs"
 )
 
 func dataSourceStorageBlob() *pluginsdk.Resource {
@@ -28,15 +30,9 @@ func dataSourceStorageBlob() *pluginsdk.Resource {
 			"name": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
-				// TODO: add validation
 			},
 
-			"storage_account_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-			},
-
-			"storage_container_name": {
+			"storage_container_id": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
@@ -61,6 +57,21 @@ func dataSourceStorageBlob() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"cache_control": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"encryption_scope": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"source_uri": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"url": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -71,47 +82,68 @@ func dataSourceStorageBlob() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	accountName := d.Get("storage_account_name").(string)
-	containerName := d.Get("storage_container_name").(string)
 	name := d.Get("name").(string)
 
-	account, err := storageClient.FindAccount(ctx, accountName)
+	var accountName string
+	var containerName string
+	var account *client.AccountDetails
+	var err error
+
+	containerIdStr := d.Get("storage_container_id").(string)
+	containerId, err := commonids.ParseStorageContainerID(containerIdStr)
 	if err != nil {
-		return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %s", accountName, name, containerName, err)
+		return err
 	}
+	accountName = containerId.StorageAccountName
+	containerName = containerId.ContainerName
+	account, err = storageClient.GetAccount(ctx, commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName))
+	if err != nil {
+		return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, name, containerName, err)
+	}
+
 	if account == nil {
-		return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
+		return fmt.Errorf("locating Storage Account %q", accountName)
 	}
 
-	blobsClient, err := storageClient.BlobsClient(ctx, *account)
+	blobsClient, err := storageClient.BlobsDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
-		return fmt.Errorf("building Blobs Client: %s", err)
+		return fmt.Errorf("building Blobs Client: %v", err)
 	}
 
-	id := blobsClient.GetResourceID(accountName, containerName, name)
+	blobEndpoint, err := account.DataPlaneEndpoint(client.EndpointTypeBlob)
+	if err != nil {
+		return fmt.Errorf("retrieving the blob data plane endpoint: %v", err)
+	}
 
-	log.Printf("[INFO] Retrieving Storage Blob %q (Container %q / Account %q).", name, containerName, accountName)
+	accountId, err := accounts.ParseAccountID(*blobEndpoint, storageClient.StorageDomainSuffix)
+	if err != nil {
+		return fmt.Errorf("parsing Account ID: %v", err)
+	}
+
+	id := blobs.NewBlobID(*accountId, containerName, name)
+
 	input := blobs.GetPropertiesInput{}
-	props, err := blobsClient.GetProperties(ctx, accountName, containerName, name, input)
+	props, err := blobsClient.GetProperties(ctx, containerName, name, input)
 	if err != nil {
-		if utils.ResponseWasNotFound(props.Response) {
-			return fmt.Errorf("the Blob %q was not found in Container %q / Account %q", name, containerName, accountName)
+		if response.WasNotFound(props.HttpResponse) {
+			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("retrieving properties for Blob %q (Container %q / Account %q): %s", name, containerName, accountName, err)
+		return fmt.Errorf("retrieving properties for %s: %v", id, err)
 	}
 
 	d.Set("name", name)
-	d.Set("storage_container_name", containerName)
-	d.Set("storage_account_name", accountName)
+	d.Set("storage_container_id", commonids.NewStorageContainerID(subscriptionId, account.StorageAccountId.ResourceGroupName, accountName, containerName).ID())
 
 	d.Set("access_tier", string(props.AccessTier))
 	d.Set("content_type", props.ContentType)
+	d.Set("cache_control", props.CacheControl)
 
 	// Set the ContentMD5 value to md5 hash in hex
 	contentMD5 := ""
@@ -122,12 +154,14 @@ func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 	d.Set("content_md5", contentMD5)
+	d.Set("encryption_scope", props.EncryptionScope)
+	d.Set("source_uri", props.CopySource)
 
 	d.Set("type", strings.TrimSuffix(string(props.BlobType), "Blob"))
 
-	d.SetId(id)
+	d.SetId(id.ID())
 
-	d.Set("url", id)
+	d.Set("url", id.ID())
 
 	if err := d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
 		return fmt.Errorf("setting `metadata`: %+v", err)

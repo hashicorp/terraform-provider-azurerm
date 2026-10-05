@@ -45,13 +45,13 @@ resource "azurerm_iotcentral_organization" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
 * `iotcentral_application_id` - (Required) The application `id`. Changing this forces a new resource to be created.
 
-* `organization_id` - The ID of the organization. Changing this forces a new resource to be created.
+* `organization_id` - (Required) The ID of the organization. Changing this forces a new resource to be created.
 
 * `display_name` - (Required) Custom `display_name` for the organization.
 
@@ -61,15 +61,15 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID reference of the organization, formated as `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.IoTCentral/iotApps/{application}/organizations/{organizationId}`.
+* `id` - The ID reference of the organization, formatted as `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.IoTCentral/iotApps/{application}/organizations/{organizationId}`.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the IoT Central Organization.
-* `update` - (Defaults to 30 minutes) Used when updating the IoT Central Organization.
 * `read` - (Defaults to 5 minutes) Used when retrieving the IoT Central Organization.
+* `update` - (Defaults to 30 minutes) Used when updating the IoT Central Organization.
 * `delete` - (Defaults to 30 minutes) Used when deleting the IoT Central Organization.
 
 ## Import

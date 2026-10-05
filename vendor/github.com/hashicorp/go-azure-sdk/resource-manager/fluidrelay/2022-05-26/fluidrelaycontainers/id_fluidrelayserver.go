@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&FluidRelayServerId{})
+}
 
 var _ resourceids.ResourceId = &FluidRelayServerId{}
 
@@ -37,7 +42,7 @@ func ParseFluidRelayServerID(input string) (*FluidRelayServerId, error) {
 	}
 
 	id := FluidRelayServerId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -54,7 +59,7 @@ func ParseFluidRelayServerIDInsensitively(input string) (*FluidRelayServerId, er
 	}
 
 	id := FluidRelayServerId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -110,7 +115,7 @@ func (id FluidRelayServerId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftFluidRelay", "Microsoft.FluidRelay", "Microsoft.FluidRelay"),
 		resourceids.StaticSegment("staticFluidRelayServers", "fluidRelayServers", "fluidRelayServers"),
-		resourceids.UserSpecifiedSegment("fluidRelayServerName", "fluidRelayServerValue"),
+		resourceids.UserSpecifiedSegment("fluidRelayServerName", "fluidRelayServerName"),
 	}
 }
 

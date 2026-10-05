@@ -47,7 +47,9 @@ func (c CapacityReservationGroupsClient) Update(ctx context.Context, id Capacity
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CapacityReservationGroup
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

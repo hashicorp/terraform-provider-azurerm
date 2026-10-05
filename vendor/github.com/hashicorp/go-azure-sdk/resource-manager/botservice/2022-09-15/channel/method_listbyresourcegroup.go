@@ -24,6 +24,18 @@ type ListByResourceGroupCompleteResult struct {
 	Items              []BotChannel
 }
 
+type ListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByResourceGroup ...
 func (c ChannelClient) ListByResourceGroup(ctx context.Context, id commonids.BotServiceId) (result ListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c ChannelClient) ListByResourceGroup(ctx context.Context, id commonids.Bot
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByResourceGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/channels", id.ID()),
 	}
 
@@ -73,6 +86,7 @@ func (c ChannelClient) ListByResourceGroupCompleteMatchingPredicate(ctx context.
 
 	resp, err := c.ListByResourceGroup(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

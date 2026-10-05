@@ -43,7 +43,9 @@ func (c OpenidConnectProviderClient) Get(ctx context.Context, id OpenidConnectPr
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model OpenidConnectProviderContract
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

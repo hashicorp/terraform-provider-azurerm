@@ -15,7 +15,7 @@ type NotificationRecipientEmailClient struct {
 }
 
 func NewNotificationRecipientEmailClientWithBaseURI(sdkApi sdkEnv.Api) (*NotificationRecipientEmailClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "notificationrecipientemail", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "notificationrecipientemail", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating NotificationRecipientEmailClient: %+v", err)
 	}

@@ -43,7 +43,9 @@ func (c DnsResolversClient) Get(ctx context.Context, id DnsResolverId) (result G
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DnsResolver
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

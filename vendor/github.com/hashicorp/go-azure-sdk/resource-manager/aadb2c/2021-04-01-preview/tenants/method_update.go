@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
 
-// Copyright (c) HashiCorp Inc. All rights reserved.
+// Copyright IBM Corp. 2023, 2026 All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type UpdateOperationResponse struct {
@@ -48,7 +48,9 @@ func (c TenantsClient) Update(ctx context.Context, id B2CDirectoryId, input Upda
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Tenant
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

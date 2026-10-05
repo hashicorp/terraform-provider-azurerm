@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&ScopedRegistrationDefinitionId{})
+}
 
 var _ resourceids.ResourceId = &ScopedRegistrationDefinitionId{}
 
@@ -35,7 +40,7 @@ func ParseScopedRegistrationDefinitionID(input string) (*ScopedRegistrationDefin
 	}
 
 	id := ScopedRegistrationDefinitionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -52,7 +57,7 @@ func ParseScopedRegistrationDefinitionIDInsensitively(input string) (*ScopedRegi
 	}
 
 	id := ScopedRegistrationDefinitionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -101,7 +106,7 @@ func (id ScopedRegistrationDefinitionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftManagedServices", "Microsoft.ManagedServices", "Microsoft.ManagedServices"),
 		resourceids.StaticSegment("staticRegistrationDefinitions", "registrationDefinitions", "registrationDefinitions"),
-		resourceids.UserSpecifiedSegment("registrationDefinitionId", "registrationDefinitionIdValue"),
+		resourceids.UserSpecifiedSegment("registrationDefinitionId", "registrationDefinitionId"),
 	}
 }
 

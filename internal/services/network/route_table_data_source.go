@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/routetables"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/routetables"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -83,7 +83,7 @@ func dataSourceRouteTable() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceRouteTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceRouteTableRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.RouteTables
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -125,12 +125,12 @@ func dataSourceRouteTableRead(d *pluginsdk.ResourceData, meta interface{}) error
 	return nil
 }
 
-func flattenRouteTableDataSourceRoutes(input *[]routetables.Route) []interface{} {
-	results := make([]interface{}, 0)
+func flattenRouteTableDataSourceRoutes(input *[]routetables.Route) []any {
+	results := make([]any, 0)
 
 	if routes := input; routes != nil {
 		for _, route := range *routes {
-			r := make(map[string]interface{})
+			r := make(map[string]any)
 
 			r["name"] = *route.Name
 

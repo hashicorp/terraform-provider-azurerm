@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -40,7 +40,7 @@ func (RoleDefinitionV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 
-		//lintignore:XS003
+		// lintignore:XS003
 		"permissions": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
@@ -92,7 +92,7 @@ func (RoleDefinitionV0ToV1) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (RoleDefinitionV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		log.Println("[DEBUG] Migrating ID from v0 to v1 format")
 
 		oldID := rawState["id"].(string)
@@ -104,9 +104,7 @@ func (RoleDefinitionV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 			return nil, fmt.Errorf("failed to migrate state: scope missing")
 		}
 
-		newID := fmt.Sprintf("%s|%s", oldID, scope)
-
-		rawState["id"] = newID
+		rawState["id"] = fmt.Sprintf("%s|%s", oldID, scope)
 
 		return rawState, nil
 	}

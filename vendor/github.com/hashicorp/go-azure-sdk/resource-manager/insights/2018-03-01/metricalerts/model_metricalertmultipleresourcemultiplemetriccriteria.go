@@ -14,6 +14,14 @@ type MetricAlertMultipleResourceMultipleMetricCriteria struct {
 	AllOf *[]MultiMetricCriteria `json:"allOf,omitempty"`
 
 	// Fields inherited from MetricAlertCriteria
+
+	OdataType Odatatype `json:"odata.type"`
+}
+
+func (s MetricAlertMultipleResourceMultipleMetricCriteria) MetricAlertCriteria() BaseMetricAlertCriteriaImpl {
+	return BaseMetricAlertCriteriaImpl{
+		OdataType: s.OdataType,
+	}
 }
 
 var _ json.Marshaler = MetricAlertMultipleResourceMultipleMetricCriteria{}
@@ -27,9 +35,10 @@ func (s MetricAlertMultipleResourceMultipleMetricCriteria) MarshalJSON() ([]byte
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling MetricAlertMultipleResourceMultipleMetricCriteria: %+v", err)
 	}
+
 	decoded["odata.type"] = "Microsoft.Azure.Monitor.MultipleResourceMultipleMetricCriteria"
 
 	encoded, err = json.Marshal(decoded)
@@ -43,6 +52,14 @@ func (s MetricAlertMultipleResourceMultipleMetricCriteria) MarshalJSON() ([]byte
 var _ json.Unmarshaler = &MetricAlertMultipleResourceMultipleMetricCriteria{}
 
 func (s *MetricAlertMultipleResourceMultipleMetricCriteria) UnmarshalJSON(bytes []byte) error {
+	var decoded struct {
+		OdataType Odatatype `json:"odata.type"`
+	}
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+
+	s.OdataType = decoded.OdataType
 
 	var temp map[string]json.RawMessage
 	if err := json.Unmarshal(bytes, &temp); err != nil {
@@ -57,7 +74,7 @@ func (s *MetricAlertMultipleResourceMultipleMetricCriteria) UnmarshalJSON(bytes 
 
 		output := make([]MultiMetricCriteria, 0)
 		for i, val := range listTemp {
-			impl, err := unmarshalMultiMetricCriteriaImplementation(val)
+			impl, err := UnmarshalMultiMetricCriteriaImplementation(val)
 			if err != nil {
 				return fmt.Errorf("unmarshaling index %d field 'AllOf' for 'MetricAlertMultipleResourceMultipleMetricCriteria': %+v", i, err)
 			}
@@ -65,5 +82,6 @@ func (s *MetricAlertMultipleResourceMultipleMetricCriteria) UnmarshalJSON(bytes 
 		}
 		s.AllOf = &output
 	}
+
 	return nil
 }

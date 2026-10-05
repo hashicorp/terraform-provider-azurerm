@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -52,7 +52,7 @@ func resourceApiManagementApiTag() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementApiTagCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementApiTagCreate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	tagClient := meta.(*clients.Client).ApiManagement.TagClient
 	client := meta.(*clients.Client).ApiManagement.ApiTagClient
@@ -66,26 +66,26 @@ func resourceApiManagementApiTagCreate(d *pluginsdk.ResourceData, meta interface
 
 	tagId := tag.NewTagID(subscriptionId, apiId.ResourceGroupName, apiId.ServiceName, d.Get("name").(string))
 
-	apiName := getApiName(apiId.ApiId)
+	id := apitag.NewApiTagID(subscriptionId, apiId.ResourceGroupName, apiId.ServiceName, apiId.ApiId, d.Get("name").(string))
 
-	id := apitag.NewApiTagID(subscriptionId, apiId.ResourceGroupName, apiId.ServiceName, apiName, d.Get("name").(string))
-
-	tagExists, err := tagClient.Get(ctx, tagId)
-	if err != nil {
-		if !response.WasNotFound(tagExists.HttpResponse) {
-			return fmt.Errorf("checking for presence of Tag %q: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		tagExists, err := tagClient.Get(ctx, tagId)
+		if err != nil {
+			if !response.WasNotFound(tagExists.HttpResponse) {
+				return fmt.Errorf("checking for presence of Tag %q: %s", id, err)
+			}
 		}
-	}
 
-	tagAssignmentExist, err := client.TagGetByApi(ctx, id)
-	if err != nil {
+		tagAssignmentExist, err := client.TagGetByApi(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(tagAssignmentExist.HttpResponse) {
+				return fmt.Errorf("checking for presence of Tag Assignment %q: %s", id, err)
+			}
+		}
+
 		if !response.WasNotFound(tagAssignmentExist.HttpResponse) {
-			return fmt.Errorf("checking for presence of Tag Assignment %q: %s", id, err)
+			return tf.ImportAsExistsError("azurerm_api_management_api_tag", id.ID())
 		}
-	}
-
-	if !response.WasNotFound(tagAssignmentExist.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_api_management_api_tag", id.ID())
 	}
 
 	if _, err := client.TagAssignToApi(ctx, id); err != nil {
@@ -97,7 +97,7 @@ func resourceApiManagementApiTagCreate(d *pluginsdk.ResourceData, meta interface
 	return resourceApiManagementApiTagRead(d, meta)
 }
 
-func resourceApiManagementApiTagRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementApiTagRead(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).ApiManagement.ApiTagClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -108,10 +108,8 @@ func resourceApiManagementApiTagRead(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	apiName := getApiName(id.ApiId)
-
-	apiId := api.NewApiID(subscriptionId, id.ResourceGroupName, id.ServiceName, apiName)
-	tagId := apitag.NewApiTagID(subscriptionId, id.ResourceGroupName, id.ServiceName, apiName, id.TagId)
+	apiId := api.NewApiID(subscriptionId, id.ResourceGroupName, id.ServiceName, id.ApiId)
+	tagId := apitag.NewApiTagID(subscriptionId, id.ResourceGroupName, id.ServiceName, id.ApiId, id.TagId)
 
 	resp, err := client.TagGetByApi(ctx, tagId)
 	if err != nil {
@@ -130,7 +128,7 @@ func resourceApiManagementApiTagRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceApiManagementApiTagDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementApiTagDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ApiTagClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -140,9 +138,8 @@ func resourceApiManagementApiTagDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	name := getApiName(id.ApiId)
+	newId := apitag.NewApiTagID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, id.ApiId, id.TagId)
 
-	newId := apitag.NewApiTagID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, name, id.TagId)
 	if _, err = client.TagDetachFromApi(ctx, newId); err != nil {
 		return fmt.Errorf("detaching api tag %q: %+v", newId, err)
 	}

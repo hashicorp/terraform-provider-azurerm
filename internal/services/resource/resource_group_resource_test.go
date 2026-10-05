@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package resource_test
@@ -8,22 +8,36 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
+	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/resourcegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 type ResourceGroupResource struct{}
+
+func TestAccResourceGroup_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
+	r := ResourceGroupResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccResourceGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 	testResource := ResourceGroupResource{}
 	data.ResourceTest(t, testResource, []acceptance.TestStep{
-		data.ApplyStep(testResource.basicConfig, testResource),
+		data.ApplyStep(testResource.basic, testResource),
 		data.ImportStep(),
 	})
 }
@@ -32,7 +46,7 @@ func TestAccResourceGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 	testResource := ResourceGroupResource{}
 	data.ResourceTest(t, testResource, []acceptance.TestStep{
-		data.ApplyStep(testResource.basicConfig, testResource),
+		data.ApplyStep(testResource.basic, testResource),
 		data.RequiresImportErrorStep(testResource.requiresImportConfig),
 	})
 }
@@ -42,7 +56,7 @@ func TestAccResourceGroup_disappears(t *testing.T) {
 	testResource := ResourceGroupResource{}
 	data.ResourceTest(t, testResource, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
-			Config:       testResource.basicConfig,
+			Config:       testResource.basic,
 			TestResource: testResource,
 		}),
 	})
@@ -119,63 +133,73 @@ func TestAccResourceGroup_withNestedItemsAndFeatureFlag(t *testing.T) {
 	})
 }
 
-func (t ResourceGroupResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	resourceGroup := state.Attributes["name"]
-
-	groupsClient := client.Resource.GroupsClient
-	deleteFuture, err := groupsClient.Delete(ctx, resourceGroup, "Microsoft.Compute/virtualMachines,Microsoft.Compute/virtualMachineScaleSets")
+func (r ResourceGroupResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := commonids.ParseResourceGroupIDInsensitively(state.ID)
 	if err != nil {
-		return nil, fmt.Errorf("deleting Resource Group %q: %+v", resourceGroup, err)
+		return nil, err
 	}
 
-	err = deleteFuture.WaitForCompletionRef(ctx, groupsClient.Client)
-	if err != nil {
-		return nil, fmt.Errorf("waiting for deletion of Resource Group %q: %+v", resourceGroup, err)
+	opts := resourcegroups.DefaultDeleteOperationOptions()
+	opts.ForceDeletionTypes = pointer.To("Microsoft.Compute/virtualMachines,Microsoft.Compute/virtualMachineScaleSets")
+	if resp, err := client.Resource.ResourceGroupsClient.Delete(ctx, *id, opts); err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
+			return nil, fmt.Errorf("deleting test %s: %+v", *id, err)
+		}
+	} else {
+		if err := resp.Poller.PollUntilDone(ctx); err != nil {
+			return nil, fmt.Errorf("polling deleting %s: %+v", *id, err)
+		}
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
-func (t ResourceGroupResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	name := state.Attributes["name"]
-
-	resp, err := client.Resource.GroupsClient.Get(ctx, name)
+func (r ResourceGroupResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := commonids.ParseResourceGroupIDInsensitively(state.ID)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Resource Group %q: %+v", name, err)
+		return nil, err
 	}
 
-	return utils.Bool(resp.Properties != nil), nil
+	resp, err := client.Resource.ResourceGroupsClient.Get(ctx, *id)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	return pointer.To(resp.Model != nil), nil
 }
 
-func (t ResourceGroupResource) createNetworkOutsideTerraform(name string) func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+func (r ResourceGroupResource) createNetworkOutsideTerraform(name string) func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		client := clients.Network.VnetClient
-		resourceGroup := state.Attributes["name"]
-		location := state.Attributes["location"]
-		params := network.VirtualNetwork{
-			Location: utils.String(location),
-			VirtualNetworkPropertiesFormat: &network.VirtualNetworkPropertiesFormat{
-				AddressSpace: &network.AddressSpace{
+		client := clients.Network.VirtualNetworks
+
+		id, err := commonids.ParseResourceGroupID(state.ID)
+		if err != nil {
+			return err
+		}
+
+		params := virtualnetworks.VirtualNetwork{
+			Location: pointer.To(state.Attributes["location"]),
+			Properties: &virtualnetworks.VirtualNetworkPropertiesFormat{
+				AddressSpace: &virtualnetworks.AddressSpace{
 					AddressPrefixes: &[]string{
 						"10.0.0.0/16",
 					},
 				},
 			},
 		}
-		future, err := client.CreateOrUpdate(ctx, resourceGroup, name, params)
-		if err != nil {
-			return fmt.Errorf("creating nested virtual network: %+v", err)
-		}
+		vnetId := commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, name)
 
-		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for the creation of nested virtual network: %+v", err)
+		ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
+		defer cancel()
+		if err := client.CreateOrUpdateThenPoll(ctx2, vnetId, params); err != nil {
+			return fmt.Errorf("creating nested virtual network: %+v", err)
 		}
 
 		return nil
 	}
 }
 
-func (t ResourceGroupResource) basicConfig(data acceptance.TestData) string {
+func (r ResourceGroupResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -188,8 +212,8 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (t ResourceGroupResource) requiresImportConfig(data acceptance.TestData) string {
-	template := t.basicConfig(data)
+func (r ResourceGroupResource) requiresImportConfig(data acceptance.TestData) string {
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -200,7 +224,7 @@ resource "azurerm_resource_group" "import" {
 `, template)
 }
 
-func (t ResourceGroupResource) withFeatureFlag(data acceptance.TestData, featureFlagEnabled bool) string {
+func (r ResourceGroupResource) withFeatureFlag(data acceptance.TestData, featureFlagEnabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -217,7 +241,7 @@ resource "azurerm_resource_group" "test" {
 `, featureFlagEnabled, data.RandomInteger, data.Locations.Primary)
 }
 
-func (t ResourceGroupResource) withTagsConfig(data acceptance.TestData) string {
+func (r ResourceGroupResource) withTagsConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -235,7 +259,7 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (t ResourceGroupResource) withTagsUpdatedConfig(data acceptance.TestData) string {
+func (r ResourceGroupResource) withTagsUpdatedConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -252,7 +276,7 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (t ResourceGroupResource) withManagedByConfig(data acceptance.TestData) string {
+func (r ResourceGroupResource) withManagedByConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

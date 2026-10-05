@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssqlmanagedinstance_test
@@ -13,7 +13,7 @@ import (
 
 type MsSqlManagedInstanceDataSource struct{}
 
-func TestAccDataSourceSqlManagedInstance_basic(t *testing.T) {
+func TestAccDataSourceMsSqlManagedInstance_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_mssql_managed_instance", "test")
 
 	data.DataSourceTest(t, []acceptance.TestStep{

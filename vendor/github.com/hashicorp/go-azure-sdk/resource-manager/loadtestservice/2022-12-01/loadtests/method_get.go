@@ -43,7 +43,9 @@ func (c LoadTestsClient) Get(ctx context.Context, id LoadTestId) (result GetOper
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model LoadTestResource
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -1,7 +1,9 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name cosmosdb_postgresql_cluster -properties "name,resource_group_name" -test-expect-non-empty
 
 import (
 	"context"
@@ -12,11 +14,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var CosmosDbPostgreSQLClusterResourceName = "azurerm_cosmosdb_postgresql_cluster"
@@ -36,6 +38,7 @@ type CosmosDbPostgreSQLClusterModel struct {
 	SourceLocation                   string              `tfschema:"source_location"`
 	SourceResourceId                 string              `tfschema:"source_resource_id"`
 	MaintenanceWindow                []MaintenanceWindow `tfschema:"maintenance_window"`
+	ServerNames                      []ServerNameItem    `tfschema:"servers"`
 	NodeCount                        int64               `tfschema:"node_count"`
 	NodePublicIPAccessEnabled        bool                `tfschema:"node_public_ip_access_enabled"`
 	NodeServerEdition                string              `tfschema:"node_server_edition"`
@@ -48,6 +51,11 @@ type CosmosDbPostgreSQLClusterModel struct {
 	EarliestRestoreTime              string              `tfschema:"earliest_restore_time"`
 }
 
+type ServerNameItem struct {
+	Name                     string `tfschema:"name"`
+	FullyQualifiedDomainName string `tfschema:"fqdn"`
+}
+
 type MaintenanceWindow struct {
 	DayOfWeek   int64 `tfschema:"day_of_week"`
 	StartHour   int64 `tfschema:"start_hour"`
@@ -56,18 +64,25 @@ type MaintenanceWindow struct {
 
 type CosmosDbPostgreSQLClusterResource struct{}
 
-var _ sdk.ResourceWithUpdate = CosmosDbPostgreSQLClusterResource{}
+var (
+	_ sdk.ResourceWithIdentity = CosmosDbPostgreSQLClusterResource{}
+	_ sdk.ResourceWithUpdate   = CosmosDbPostgreSQLClusterResource{}
+)
 
 func (r CosmosDbPostgreSQLClusterResource) ResourceType() string {
 	return CosmosDbPostgreSQLClusterResourceName
 }
 
-func (r CosmosDbPostgreSQLClusterResource) ModelObject() interface{} {
+func (r CosmosDbPostgreSQLClusterResource) ModelObject() any {
 	return &CosmosDbPostgreSQLClusterModel{}
 }
 
 func (r CosmosDbPostgreSQLClusterResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return clusters.ValidateServerGroupsv2ID
+}
+
+func (r CosmosDbPostgreSQLClusterResource) Identity() resourceids.ResourceId {
+	return new(clusters.ServerGroupsv2Id)
 }
 
 func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Schema {
@@ -102,7 +117,7 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 		"citus_version": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringInSlice([]string{
 				"8.3",
 				"9.0",
@@ -223,7 +238,7 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 		"node_storage_quota_in_mb": {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.All(
 				validation.IntBetween(32768, 16777216),
 				validation.IntDivisibleBy(1024),
@@ -233,7 +248,7 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 		"node_vcores": {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.IntInSlice([]int{
 				1,
 				2,
@@ -260,7 +275,7 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 		"shards_on_coordinator_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 		},
 
 		"source_location": {
@@ -283,7 +298,7 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 		"sql_version": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringInSlice([]string{
 				"11",
 				"12",
@@ -304,6 +319,22 @@ func (r CosmosDbPostgreSQLClusterResource) Attributes() map[string]*pluginsdk.Sc
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+		"servers": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"fqdn": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"name": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
 	}
 }
 
@@ -320,13 +351,15 @@ func (r CosmosDbPostgreSQLClusterResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := clusters.NewServerGroupsv2ID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := &clusters.Cluster{
@@ -353,11 +386,11 @@ func (r CosmosDbPostgreSQLClusterResource) Create() sdk.ResourceFunc {
 			}
 
 			if v := model.NodeStorageQuotaInMb; v != 0 {
-				parameters.Properties.NodeStorageQuotaInMb = utils.Int64(model.NodeStorageQuotaInMb)
+				parameters.Properties.NodeStorageQuotaInMb = pointer.To(model.NodeStorageQuotaInMb)
 			}
 
 			if v := model.NodeVCores; v != 0 {
-				parameters.Properties.NodeVCores = utils.Int64(model.NodeVCores)
+				parameters.Properties.NodeVCores = pointer.To(model.NodeVCores)
 			}
 
 			if v := model.PointInTimeInUTC; v != "" {
@@ -390,21 +423,21 @@ func (r CosmosDbPostgreSQLClusterResource) Create() sdk.ResourceFunc {
 			// If `shards_on_coordinator_enabled` isn't set, API would set it to `true` when `node_count` is `0`.
 			// If `shards_on_coordinator_enabled` isn't set, API would set it to `false` when `node_count` is greater than or equal to `2`.
 			// As `shards_on_coordinator_enabled` is `bool` and it's always set to `false` as zero value when it isn't set, so we cannot use `model.ShardsOnCoordinatorEnabled` to check if this property is set in tf config.
-			// nolint staticcheck
+			//nolint:staticcheck,tfproviderlint // XR001: GetOkExists is needed here, see above
 			if v, ok := metadata.ResourceData.GetOkExists("shards_on_coordinator_enabled"); ok {
-				parameters.Properties.EnableShardsOnCoordinator = utils.Bool(v.(bool))
+				parameters.Properties.EnableShardsOnCoordinator = pointer.To(v.(bool))
 			}
 
 			if v := model.Tags; v != nil {
 				parameters.Tags = &v
 			}
 
-			if err := client.CreateThenPoll(ctx, id, *parameters); err != nil {
+			if err := client.CreateCallbackThenPoll(ctx, id, *parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
-			return nil
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id)
 		},
 	}
 }
@@ -486,11 +519,11 @@ func (r CosmosDbPostgreSQLClusterResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("node_storage_quota_in_mb") {
-				parameters.Properties.NodeStorageQuotaInMb = utils.Int64(model.NodeStorageQuotaInMb)
+				parameters.Properties.NodeStorageQuotaInMb = pointer.To(model.NodeStorageQuotaInMb)
 			}
 
 			if metadata.ResourceData.HasChange("node_vcores") {
-				parameters.Properties.NodeVCores = utils.Int64(model.NodeVCores)
+				parameters.Properties.NodeVCores = pointer.To(model.NodeVCores)
 			}
 
 			if metadata.ResourceData.HasChange("preferred_primary_zone") {
@@ -558,6 +591,7 @@ func (r CosmosDbPostgreSQLClusterResource) Read() sdk.ResourceFunc {
 				state.CoordinatorServerEdition = pointer.From(props.CoordinatorServerEdition)
 				state.CoordinatorStorageQuotaInMb = pointer.From(props.CoordinatorStorageQuotaInMb)
 				state.CoordinatorVCoreCount = pointer.From(props.CoordinatorVCores)
+				state.ServerNames = flattenServerNames(props.ServerNames)
 				state.HaEnabled = pointer.From(props.EnableHa)
 				state.NodeCount = pointer.From(props.NodeCount)
 				state.NodePublicIPAccessEnabled = pointer.From(props.NodeEnablePublicIPAccess)
@@ -577,6 +611,10 @@ func (r CosmosDbPostgreSQLClusterResource) Read() sdk.ResourceFunc {
 
 			if model.Tags != nil {
 				state.Tags = *model.Tags
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&state)
@@ -625,7 +663,7 @@ func expandMaintenanceWindow(input []MaintenanceWindow) *clusters.MaintenanceWin
 
 func flattenMaintenanceWindow(input *clusters.MaintenanceWindow) []MaintenanceWindow {
 	if input == nil || input.CustomWindow == nil || *input.CustomWindow == "Disabled" {
-		return nil
+		return []MaintenanceWindow{}
 	}
 
 	return []MaintenanceWindow{
@@ -635,4 +673,20 @@ func flattenMaintenanceWindow(input *clusters.MaintenanceWindow) []MaintenanceWi
 			StartMinute: pointer.From(input.StartMinute),
 		},
 	}
+}
+
+func flattenServerNames(input *[]clusters.ServerNameItem) []ServerNameItem {
+	if input == nil {
+		return []ServerNameItem{}
+	}
+
+	output := make([]ServerNameItem, 0, len(*input))
+	for _, v := range *input {
+		output = append(output, ServerNameItem{
+			FullyQualifiedDomainName: *v.FullyQualifiedDomainName,
+			Name:                     *v.Name,
+		})
+	}
+
+	return output
 }

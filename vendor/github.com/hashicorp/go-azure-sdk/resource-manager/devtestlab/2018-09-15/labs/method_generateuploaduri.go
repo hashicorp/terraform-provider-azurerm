@@ -48,7 +48,9 @@ func (c LabsClient) GenerateUploadUri(ctx context.Context, id LabId, input Gener
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model GenerateUploadUriResponse
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

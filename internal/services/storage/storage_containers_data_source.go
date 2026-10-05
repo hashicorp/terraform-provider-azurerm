@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -9,12 +9,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/blobcontainers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/blobservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/containers"
 )
 
 type storageContainersDataSource struct{}
@@ -77,7 +80,7 @@ func (r storageContainersDataSource) ResourceType() string {
 	return "azurerm_storage_containers"
 }
 
-func (r storageContainersDataSource) ModelObject() interface{} {
+func (r storageContainersDataSource) ModelObject() any {
 	return &storageContainersDataSourceModel{}
 }
 
@@ -86,7 +89,7 @@ func (r storageContainersDataSource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Storage.ResourceManager.BlobContainers
+			blobServicesClient := metadata.Client.Storage.ResourceManager.BlobServices
 
 			var plan storageContainersDataSourceModel
 			if err := metadata.Decode(&plan); err != nil {
@@ -98,12 +101,32 @@ func (r storageContainersDataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			resp, err := client.ListCompleteMatchingPredicate(ctx, *id, blobcontainers.DefaultListOperationOptions(), blobcontainers.ListContainerItemOperationPredicate{})
+			account, err := metadata.Client.Storage.GetAccount(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving Storage Account %q: %v", id.StorageAccountName, err)
+			}
+			if account == nil {
+				return fmt.Errorf("locating Storage Account %q", id.StorageAccountName)
+			}
+
+			// Determine the blob endpoint, so we can build a data plane ID
+			endpoint, err := account.DataPlaneEndpoint(client.EndpointTypeBlob)
+			if err != nil {
+				return fmt.Errorf("determining Blob endpoint: %v", err)
+			}
+
+			// Parse the blob endpoint as a data plane account ID
+			accountId, err := accounts.ParseAccountID(*endpoint, metadata.Client.Storage.StorageDomainSuffix)
+			if err != nil {
+				return fmt.Errorf("parsing Account ID: %v", err)
+			}
+
+			resp, err := blobServicesClient.BlobContainersListCompleteMatchingPredicate(ctx, *id, blobservices.BlobContainersListOperationOptions{}, blobservices.ListContainerItemOperationPredicate{})
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			plan.Containers = flattenStorageContainersContainers(resp.Items, id.StorageAccountName, metadata.Client.Storage.Environment.StorageEndpointSuffix, plan.NamePrefix)
+			plan.Containers = flattenStorageContainersContainers(resp.Items, *accountId, plan.NamePrefix)
 
 			if err := metadata.Encode(&plan); err != nil {
 				return fmt.Errorf("encoding %s: %+v", id, err)
@@ -116,27 +139,19 @@ func (r storageContainersDataSource) Read() sdk.ResourceFunc {
 	}
 }
 
-func flattenStorageContainersContainers(l []blobcontainers.ListContainerItem, accountName, endpointSuffix, prefix string) []containerModel {
-	var output []containerModel
+func flattenStorageContainersContainers(l []blobservices.ListContainerItem, accountId accounts.AccountId, prefix string) []containerModel {
+	output := make([]containerModel, 0, len(l))
 	for _, item := range l {
-		var name string
-		if item.Name != nil {
-			name = *item.Name
-		}
+		name := pointer.From(item.Name)
 
 		if prefix != "" && !strings.HasPrefix(name, prefix) {
 			continue
 		}
 
-		var mgmtId string
-		if item.Id != nil {
-			mgmtId = *item.Id
-		}
-
 		output = append(output, containerModel{
 			Name:              name,
-			ResourceManagerId: mgmtId,
-			DataPlaneId:       parse.NewStorageContainerDataPlaneId(accountName, endpointSuffix, name).ID(),
+			ResourceManagerId: pointer.From(item.Id),
+			DataPlaneId:       containers.NewContainerID(accountId, name).ID(),
 		})
 	}
 

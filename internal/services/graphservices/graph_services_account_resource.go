@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package graphservices
@@ -19,38 +19,23 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var _ sdk.Resource = ServicesAccountResource{}
-var _ sdk.ResourceWithUpdate = ServicesAccountResource{}
+var (
+	_ sdk.Resource           = AccountResource{}
+	_ sdk.ResourceWithUpdate = AccountResource{}
+)
 
-type ServicesAccountResource struct {
-	AccountResource
-}
-
-func (r ServicesAccountResource) ResourceType() string {
-	return "azurerm_graph_services_account"
-}
-
-var _ sdk.Resource = AccountResource{}
-var _ sdk.ResourceWithUpdate = AccountResource{}
-var _ sdk.ResourceWithDeprecationReplacedBy = AccountResource{}
-
-// AccountResource remove this in 4.0
 type AccountResource struct{}
 
-func (r AccountResource) DeprecatedInFavourOfResource() string {
-	return "azurerm_graph_services_account"
-}
-
-func (r AccountResource) ModelObject() interface{} {
+func (r AccountResource) ModelObject() any {
 	return &AccountResourceSchema{}
 }
 
 type AccountResourceSchema struct {
-	ApplicationId     string                 `tfschema:"application_id"`
-	BillingPlanId     string                 `tfschema:"billing_plan_id"`
-	Name              string                 `tfschema:"name"`
-	ResourceGroupName string                 `tfschema:"resource_group_name"`
-	Tags              map[string]interface{} `tfschema:"tags"`
+	ApplicationId     string         `tfschema:"application_id"`
+	BillingPlanId     string         `tfschema:"billing_plan_id"`
+	Name              string         `tfschema:"name"`
+	ResourceGroupName string         `tfschema:"resource_group_name"`
+	Tags              map[string]any `tfschema:"tags"`
 }
 
 func (r AccountResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -58,7 +43,7 @@ func (r AccountResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 }
 
 func (r AccountResource) ResourceType() string {
-	return "azurerm_graph_account"
+	return "azurerm_graph_services_account"
 }
 
 func (r AccountResource) Arguments() map[string]*pluginsdk.Schema {
@@ -103,14 +88,16 @@ func (r AccountResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := graphservicesprods.NewAccountID(subscriptionId, config.ResourceGroupName, config.Name)
 
-			existing, err := client.AccountsGet(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.AccountsGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport("azurerm_graph_services_account", id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport("azurerm_graph_services_account", id)
+				}
 			}
 
 			payload := graphservicesprods.AccountResource{
@@ -121,7 +108,7 @@ func (r AccountResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.AccountsCreateAndUpdateThenPoll(ctx, id, payload); err != nil {
+			if err := client.AccountsCreateAndUpdateCallbackThenPoll(ctx, id, payload, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package client
@@ -6,13 +6,13 @@ package client
 import (
 	"fmt"
 
-	appplatform2 "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2023-11-01-preview/appplatform"
+	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	"github.com/tombuildsstuff/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
+	"github.com/jackofallops/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
 type Client struct {
-	AppPlatformClient *appplatform2.AppPlatformClient
+	AppPlatformClient *appplatform_rm.AppPlatformClient
 
 	// TODO: convert to using hashicorp/go-azure-sdk
 	APIPortalCustomDomainClient  *appplatform.APIPortalCustomDomainsClient
@@ -26,7 +26,6 @@ type Client struct {
 	BuildServiceClient           *appplatform.BuildServiceClient
 	CertificatesClient           *appplatform.CertificatesClient
 	ConfigServersClient          *appplatform.ConfigServersClient
-	ConfigurationServiceClient   *appplatform.ConfigurationServicesClient
 	ContainerRegistryClient      *appplatform.ContainerRegistriesClient
 	CustomDomainsClient          *appplatform.CustomDomainsClient
 	DevToolPortalClient          *appplatform.DevToolPortalsClient
@@ -40,7 +39,7 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	appPlatformClient, err := appplatform2.NewAppPlatformClientWithBaseURI(o.Environment.ResourceManager)
+	appPlatformClient, err := appplatform_rm.NewAppPlatformClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building AppPlatform client: %+v", err)
 	}
@@ -78,9 +77,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	configServersClient := appplatform.NewConfigServersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&configServersClient.Client, o.ResourceManagerAuthorizer)
-
-	configurationServiceClient := appplatform.NewConfigurationServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&configurationServiceClient.Client, o.ResourceManagerAuthorizer)
 
 	containerRegistryClient := appplatform.NewContainerRegistriesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&containerRegistryClient.Client, o.ResourceManagerAuthorizer)
@@ -127,7 +123,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		BuildServiceClient:           &buildServiceClient,
 		CertificatesClient:           &certificatesClient,
 		ConfigServersClient:          &configServersClient,
-		ConfigurationServiceClient:   &configurationServiceClient,
 		ContainerRegistryClient:      &containerRegistryClient,
 		CustomDomainsClient:          &customDomainsClient,
 		DeploymentsClient:            &deploymentsClient,

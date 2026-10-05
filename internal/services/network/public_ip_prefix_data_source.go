@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -7,15 +7,17 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/customipprefixes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/publicipprefixes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourcePublicIpPrefix() *pluginsdk.Resource {
@@ -36,7 +38,22 @@ func dataSourcePublicIpPrefix() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
+			"custom_ip_prefix_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"ip_version": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"sku": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"sku_tier": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -58,16 +75,16 @@ func dataSourcePublicIpPrefix() *pluginsdk.Resource {
 	}
 }
 
-func dataSourcePublicIpPrefixRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.PublicIPPrefixesClient
+func dataSourcePublicIpPrefixRead(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Network.PublicIPPrefixes
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewPublicIpPrefixID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	id := publicipprefixes.NewPublicIPPrefixID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id, publicipprefixes.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
@@ -75,15 +92,30 @@ func dataSourcePublicIpPrefixRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	d.SetId(id.ID())
 
-	d.Set("location", location.NormalizeNilable(resp.Location))
-	d.Set("zones", zones.FlattenUntyped(resp.Zones))
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
+		d.Set("zones", zones.FlattenUntyped(model.Zones))
 
-	if sku := resp.Sku; sku != nil {
-		d.Set("sku", string(sku.Name))
+		if sku := model.Sku; sku != nil {
+			d.Set("sku", pointer.FromEnum(sku.Name))
+			d.Set("sku_tier", pointer.FromEnum(sku.Tier))
+		}
+		if props := model.Properties; props != nil {
+			d.Set("prefix_length", props.PrefixLength)
+			d.Set("ip_prefix", props.IPPrefix)
+			d.Set("ip_version", pointer.FromEnum(props.PublicIPAddressVersion))
+
+			customIpPrefixId := ""
+			if props.CustomIPPrefix != nil {
+				id, err := customipprefixes.ParseCustomIPPrefixID(pointer.From(props.CustomIPPrefix.Id))
+				if err != nil {
+					return err
+				}
+				customIpPrefixId = id.ID()
+			}
+			d.Set("custom_ip_prefix_id", customIpPrefixId)
+		}
+		return tags.FlattenAndSet(d, model.Tags)
 	}
-	if props := resp.PublicIPPrefixPropertiesFormat; props != nil {
-		d.Set("prefix_length", props.PrefixLength)
-		d.Set("ip_prefix", props.IPPrefix)
-	}
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }

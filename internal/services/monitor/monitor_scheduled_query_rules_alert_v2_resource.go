@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -8,45 +8,49 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-08-01/scheduledqueryrules"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-15-preview/scheduledqueryrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type ScheduledQueryRulesAlertV2Model struct {
-	Name                                  string                                    `tfschema:"name"`
-	ResourceGroupName                     string                                    `tfschema:"resource_group_name"`
-	Actions                               []ScheduledQueryRulesAlertV2ActionsModel  `tfschema:"action"`
-	AutoMitigate                          bool                                      `tfschema:"auto_mitigation_enabled"`
-	CheckWorkspaceAlertsStorageConfigured bool                                      `tfschema:"workspace_alerts_storage_enabled"`
-	Criteria                              []ScheduledQueryRulesAlertV2CriteriaModel `tfschema:"criteria"`
-	Description                           string                                    `tfschema:"description"`
-	DisplayName                           string                                    `tfschema:"display_name"`
-	Enabled                               bool                                      `tfschema:"enabled"`
-	EvaluationFrequency                   string                                    `tfschema:"evaluation_frequency"`
-	Location                              string                                    `tfschema:"location"`
-	MuteActionsDuration                   string                                    `tfschema:"mute_actions_after_alert_duration"`
-	OverrideQueryTimeRange                string                                    `tfschema:"query_time_range_override"`
-	Scopes                                []string                                  `tfschema:"scopes"`
-	Severity                              scheduledqueryrules.AlertSeverity         `tfschema:"severity"`
-	SkipQueryValidation                   bool                                      `tfschema:"skip_query_validation"`
-	Tags                                  map[string]string                         `tfschema:"tags"`
-	TargetResourceTypes                   []string                                  `tfschema:"target_resource_types"`
-	WindowSize                            string                                    `tfschema:"window_duration"`
-	CreatedWithApiVersion                 string                                    `tfschema:"created_with_api_version"`
-	IsLegacyLogAnalyticsRule              bool                                      `tfschema:"is_a_legacy_log_analytics_rule"`
-	IsWorkspaceAlertsStorageConfigured    bool                                      `tfschema:"is_workspace_alerts_storage_configured"`
+	Name                                  string                                     `tfschema:"name"`
+	ResourceGroupName                     string                                     `tfschema:"resource_group_name"`
+	Actions                               []ScheduledQueryRulesAlertV2ActionsModel   `tfschema:"action"`
+	AutoMitigate                          bool                                       `tfschema:"auto_mitigation_enabled"`
+	CheckWorkspaceAlertsStorageConfigured bool                                       `tfschema:"workspace_alerts_storage_enabled"`
+	Criteria                              []ScheduledQueryRulesAlertV2CriteriaModel  `tfschema:"criteria"`
+	Description                           string                                     `tfschema:"description"`
+	DisplayName                           string                                     `tfschema:"display_name"`
+	Enabled                               bool                                       `tfschema:"enabled"`
+	EvaluationFrequency                   string                                     `tfschema:"evaluation_frequency"`
+	Location                              string                                     `tfschema:"location"`
+	MuteActionsDuration                   string                                     `tfschema:"mute_actions_after_alert_duration"`
+	OverrideQueryTimeRange                string                                     `tfschema:"query_time_range_override"`
+	Scopes                                []string                                   `tfschema:"scopes"`
+	Severity                              scheduledqueryrules.AlertSeverity          `tfschema:"severity"`
+	SkipQueryValidation                   bool                                       `tfschema:"skip_query_validation"`
+	Tags                                  map[string]string                          `tfschema:"tags"`
+	TargetResourceTypes                   []string                                   `tfschema:"target_resource_types"`
+	WindowSize                            string                                     `tfschema:"window_duration"`
+	CreatedWithApiVersion                 string                                     `tfschema:"created_with_api_version"`
+	IsLegacyLogAnalyticsRule              bool                                       `tfschema:"is_a_legacy_log_analytics_rule"`
+	IsWorkspaceAlertsStorageConfigured    bool                                       `tfschema:"is_workspace_alerts_storage_configured"`
+	Identity                              []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 }
 
 type ScheduledQueryRulesAlertV2ActionsModel struct {
 	ActionGroups     []string          `tfschema:"action_groups"`
 	CustomProperties map[string]string `tfschema:"custom_properties"`
+	EmailSubject     string            `tfschema:"email_subject"`
 }
 
 type ScheduledQueryRulesAlertV2CriteriaModel struct {
@@ -71,15 +75,24 @@ type ScheduledQueryRulesAlertV2FailingPeriodsModel struct {
 	NumberOfEvaluationPeriods int64 `tfschema:"number_of_evaluation_periods"`
 }
 
+//go:generate go run ../../tools/generator-tests resourceidentity
+
 type ScheduledQueryRulesAlertV2Resource struct{}
 
-var _ sdk.ResourceWithUpdate = ScheduledQueryRulesAlertV2Resource{}
+var (
+	_ sdk.ResourceWithUpdate   = ScheduledQueryRulesAlertV2Resource{}
+	_ sdk.ResourceWithIdentity = ScheduledQueryRulesAlertV2Resource{}
+)
 
 func (r ScheduledQueryRulesAlertV2Resource) ResourceType() string {
 	return "azurerm_monitor_scheduled_query_rules_alert_v2"
 }
 
-func (r ScheduledQueryRulesAlertV2Resource) ModelObject() interface{} {
+func (r ScheduledQueryRulesAlertV2Resource) Identity() resourceids.ResourceId {
+	return &scheduledqueryrules.ScheduledQueryRuleId{}
+}
+
+func (r ScheduledQueryRulesAlertV2Resource) ModelObject() any {
 	return &ScheduledQueryRulesAlertV2Model{}
 }
 
@@ -105,7 +118,6 @@ func (r ScheduledQueryRulesAlertV2Resource) Arguments() map[string]*pluginsdk.Sc
 			Required: true,
 			MinItems: 1,
 			Elem: &pluginsdk.Resource{
-
 				Schema: map[string]*pluginsdk.Schema{
 					"query": {
 						Type:         pluginsdk.TypeString,
@@ -127,15 +139,9 @@ func (r ScheduledQueryRulesAlertV2Resource) Arguments() map[string]*pluginsdk.Sc
 					},
 
 					"time_aggregation_method": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(scheduledqueryrules.TimeAggregationCount),
-							string(scheduledqueryrules.TimeAggregationAverage),
-							string(scheduledqueryrules.TimeAggregationMinimum),
-							string(scheduledqueryrules.TimeAggregationMaximum),
-							string(scheduledqueryrules.TimeAggregationTotal),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(scheduledqueryrules.PossibleValuesForTimeAggregation(), false),
 					},
 
 					"threshold": {
@@ -155,12 +161,9 @@ func (r ScheduledQueryRulesAlertV2Resource) Arguments() map[string]*pluginsdk.Sc
 								},
 
 								"operator": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(scheduledqueryrules.DimensionOperatorInclude),
-										string(scheduledqueryrules.DimensionOperatorExclude),
-									}, false),
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(scheduledqueryrules.PossibleValuesForDimensionOperator(), false),
 								},
 
 								"values": {
@@ -215,8 +218,7 @@ func (r ScheduledQueryRulesAlertV2Resource) Arguments() map[string]*pluginsdk.Sc
 		"evaluation_frequency": {
 			Type: pluginsdk.TypeString,
 			// this field is required, missing this field will get an error from service
-			Optional: !features.FourPointOhBeta(),
-			Required: features.FourPointOhBeta(),
+			Required: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"PT1M",
 				"PT5M",
@@ -294,6 +296,11 @@ func (r ScheduledQueryRulesAlertV2Resource) Arguments() map[string]*pluginsdk.Sc
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
+					},
+					"email_subject": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 			},
@@ -374,6 +381,8 @@ func (r ScheduledQueryRulesAlertV2Resource) Arguments() map[string]*pluginsdk.Sc
 			Optional: true,
 		},
 
+		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
+
 		"tags": commonschema.Tags(),
 
 		"target_resource_types": {
@@ -418,17 +427,20 @@ func (r ScheduledQueryRulesAlertV2Resource) Create() sdk.ResourceFunc {
 			client := metadata.Client.Monitor.ScheduledQueryRulesV2Client
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := scheduledqueryrules.NewScheduledQueryRuleID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
-			}
-			kind := scheduledqueryrules.KindLogAlert
 			properties := &scheduledqueryrules.ScheduledQueryRuleResource{
-				Kind:     &kind,
+				Kind:     pointer.To(scheduledqueryrules.KindLogAlert),
 				Location: location.Normalize(model.Location),
 				Properties: scheduledqueryrules.ScheduledQueryRuleProperties{
 					AutoMitigate:                          &model.AutoMitigate,
@@ -458,6 +470,14 @@ func (r ScheduledQueryRulesAlertV2Resource) Create() sdk.ResourceFunc {
 				properties.Properties.EvaluationFrequency = &model.EvaluationFrequency
 			}
 
+			if len(model.Identity) != 0 {
+				ExpandedIdentity, err := identity.ExpandSystemOrUserAssignedMapFromModel(model.Identity)
+				if err != nil {
+					return fmt.Errorf("expanding SystemOrUserAssigned Identity: %+v", err)
+				}
+				properties.Identity = ExpandedIdentity
+			}
+
 			if model.MuteActionsDuration != "" {
 				if model.AutoMitigate {
 					return fmt.Errorf("auto mitigation must be disabled when mute action duration is set")
@@ -478,7 +498,8 @@ func (r ScheduledQueryRulesAlertV2Resource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
-			return nil
+
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id)
 		},
 	}
 }
@@ -584,6 +605,17 @@ func (r ScheduledQueryRulesAlertV2Resource) Update() sdk.ResourceFunc {
 				}
 			}
 
+			if metadata.ResourceData.HasChange("identity") {
+				if len(resourceModel.Identity) != 0 {
+					model.Identity, err = identity.ExpandSystemOrUserAssignedMapFromModel(resourceModel.Identity)
+					if err != nil {
+						return fmt.Errorf("expanding SystemOrUserAssigned Identity: %+v", err)
+					}
+				} else {
+					model.Identity = nil
+				}
+			}
+
 			if metadata.ResourceData.HasChange("tags") {
 				model.Tags = &resourceModel.Tags
 			}
@@ -617,92 +649,57 @@ func (r ScheduledQueryRulesAlertV2Resource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
+			if resp.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", *id)
 			}
 
-			state := ScheduledQueryRulesAlertV2Model{
-				Name:              id.ScheduledQueryRuleName,
-				ResourceGroupName: id.ResourceGroupName,
-				Location:          location.Normalize(model.Location),
-			}
-
-			properties := &model.Properties
-			state.Actions = flattenScheduledQueryRulesAlertV2ActionsModel(properties.Actions)
-
-			if properties.AutoMitigate != nil {
-				state.AutoMitigate = *properties.AutoMitigate
-			}
-
-			if properties.CheckWorkspaceAlertsStorageConfigured != nil {
-				state.CheckWorkspaceAlertsStorageConfigured = *properties.CheckWorkspaceAlertsStorageConfigured
-			}
-
-			if properties.CreatedWithApiVersion != nil {
-				state.CreatedWithApiVersion = *properties.CreatedWithApiVersion
-			}
-
-			state.Criteria = flattenScheduledQueryRulesAlertV2CriteriaModel(properties.Criteria)
-
-			if properties.Description != nil {
-				state.Description = *properties.Description
-			}
-
-			if properties.DisplayName != nil {
-				state.DisplayName = *properties.DisplayName
-			}
-
-			if properties.Enabled != nil {
-				state.Enabled = *properties.Enabled
-			}
-
-			if properties.EvaluationFrequency != nil {
-				state.EvaluationFrequency = *properties.EvaluationFrequency
-			}
-
-			if properties.IsLegacyLogAnalyticsRule != nil {
-				state.IsLegacyLogAnalyticsRule = *properties.IsLegacyLogAnalyticsRule
-			}
-
-			if properties.IsWorkspaceAlertsStorageConfigured != nil {
-				state.IsWorkspaceAlertsStorageConfigured = *properties.IsWorkspaceAlertsStorageConfigured
-			}
-
-			if properties.MuteActionsDuration != nil {
-				state.MuteActionsDuration = *properties.MuteActionsDuration
-			}
-
-			if properties.OverrideQueryTimeRange != nil {
-				state.OverrideQueryTimeRange = *properties.OverrideQueryTimeRange
-			}
-
-			if properties.Scopes != nil {
-				state.Scopes = *properties.Scopes
-			}
-
-			if properties.Severity != nil {
-				state.Severity = *properties.Severity
-			}
-
-			if properties.SkipQueryValidation != nil {
-				state.SkipQueryValidation = *properties.SkipQueryValidation
-			}
-
-			if properties.TargetResourceTypes != nil {
-				state.TargetResourceTypes = *properties.TargetResourceTypes
-			}
-
-			if properties.WindowSize != nil {
-				state.WindowSize = *properties.WindowSize
-			}
-			if model.Tags != nil {
-				state.Tags = *model.Tags
-			}
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
+}
+
+func (r ScheduledQueryRulesAlertV2Resource) flatten(metadata sdk.ResourceMetaData, id *scheduledqueryrules.ScheduledQueryRuleId, model *scheduledqueryrules.ScheduledQueryRuleResource) error {
+	state := ScheduledQueryRulesAlertV2Model{
+		Name:              id.ScheduledQueryRuleName,
+		ResourceGroupName: id.ResourceGroupName,
+	}
+
+	if model != nil {
+		flattenedIdentity, err := identity.FlattenSystemOrUserAssignedMapToModel(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening SystemOrUserAssigned Identity: %+v", err)
+		}
+
+		state.Location = location.Normalize(model.Location)
+		state.Identity = *flattenedIdentity
+
+		properties := &model.Properties
+		state.Actions = flattenScheduledQueryRulesAlertV2ActionsModel(properties.Actions)
+		state.AutoMitigate = pointer.From(properties.AutoMitigate)
+		state.CheckWorkspaceAlertsStorageConfigured = pointer.From(properties.CheckWorkspaceAlertsStorageConfigured)
+		state.CreatedWithApiVersion = pointer.From(properties.CreatedWithApiVersion)
+		state.Criteria = flattenScheduledQueryRulesAlertV2CriteriaModel(properties.Criteria)
+		state.Description = pointer.From(properties.Description)
+		state.DisplayName = pointer.From(properties.DisplayName)
+		state.Enabled = pointer.From(properties.Enabled)
+		state.EvaluationFrequency = pointer.From(properties.EvaluationFrequency)
+		state.IsLegacyLogAnalyticsRule = pointer.From(properties.IsLegacyLogAnalyticsRule)
+		state.IsWorkspaceAlertsStorageConfigured = pointer.From(properties.IsWorkspaceAlertsStorageConfigured)
+		state.MuteActionsDuration = pointer.From(properties.MuteActionsDuration)
+		state.OverrideQueryTimeRange = pointer.From(properties.OverrideQueryTimeRange)
+		state.Scopes = pointer.From(properties.Scopes)
+		state.Severity = pointer.From(properties.Severity)
+		state.SkipQueryValidation = pointer.From(properties.SkipQueryValidation)
+		state.TargetResourceTypes = pointer.From(properties.TargetResourceTypes)
+		state.WindowSize = pointer.From(properties.WindowSize)
+		state.Tags = pointer.From(model.Tags)
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
 
 func (r ScheduledQueryRulesAlertV2Resource) Delete() sdk.ResourceFunc {
@@ -736,12 +733,21 @@ func expandScheduledQueryRulesAlertV2ActionsModel(inputList []ScheduledQueryRule
 		CustomProperties: &input.CustomProperties,
 	}
 
+	if input.EmailSubject != "" {
+		m := map[string]string{
+			"Email.Subject": input.EmailSubject,
+		}
+		output.ActionProperties = &m
+	} else {
+		output.ActionProperties = pointer.To(map[string]string{})
+	}
+
 	return &output
 }
 
 func expandScheduledQueryRulesAlertV2CriteriaModel(inputList []ScheduledQueryRulesAlertV2CriteriaModel) *scheduledqueryrules.ScheduledQueryRuleCriteria {
 	output := scheduledqueryrules.ScheduledQueryRuleCriteria{}
-	var outputList []scheduledqueryrules.Condition
+	outputList := make([]scheduledqueryrules.Condition, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
 		condition := scheduledqueryrules.Condition{
@@ -772,7 +778,7 @@ func expandScheduledQueryRulesAlertV2CriteriaModel(inputList []ScheduledQueryRul
 }
 
 func expandScheduledQueryRulesAlertV2DimensionModel(inputList []ScheduledQueryRulesAlertV2DimensionModel) *[]scheduledqueryrules.Dimension {
-	var outputList []scheduledqueryrules.Dimension
+	outputList := make([]scheduledqueryrules.Dimension, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
 		output := scheduledqueryrules.Dimension{
@@ -804,7 +810,7 @@ func expandScheduledQueryRulesAlertV2FailingPeriodsModel(inputList []ScheduledQu
 func flattenScheduledQueryRulesAlertV2ActionsModel(input *scheduledqueryrules.Actions) []ScheduledQueryRulesAlertV2ActionsModel {
 	var outputList []ScheduledQueryRulesAlertV2ActionsModel
 	if input == nil {
-		return outputList
+		return []ScheduledQueryRulesAlertV2ActionsModel{}
 	}
 
 	output := ScheduledQueryRulesAlertV2ActionsModel{}
@@ -817,21 +823,22 @@ func flattenScheduledQueryRulesAlertV2ActionsModel(input *scheduledqueryrules.Ac
 		output.CustomProperties = *input.CustomProperties
 	}
 
+	if input.ActionProperties != nil {
+		if s, ok := (*input.ActionProperties)["Email.Subject"]; ok {
+			output.EmailSubject = s
+		}
+	}
+
 	return append(outputList, output)
 }
 
 func flattenScheduledQueryRulesAlertV2CriteriaModel(input *scheduledqueryrules.ScheduledQueryRuleCriteria) []ScheduledQueryRulesAlertV2CriteriaModel {
-	var outputList []ScheduledQueryRulesAlertV2CriteriaModel
-	if input == nil {
-		return outputList
+	if input == nil || input.AllOf == nil {
+		return []ScheduledQueryRulesAlertV2CriteriaModel{}
 	}
 
-	inputList := input.AllOf
-	if inputList == nil {
-		return outputList
-	}
-
-	for _, v := range *inputList {
+	outputList := make([]ScheduledQueryRulesAlertV2CriteriaModel, 0, len(*input.AllOf))
+	for _, v := range *input.AllOf {
 		output := ScheduledQueryRulesAlertV2CriteriaModel{}
 
 		output.Dimensions = flattenScheduledQueryRulesAlertV2DimensionModel(v.Dimensions)
@@ -868,11 +875,11 @@ func flattenScheduledQueryRulesAlertV2CriteriaModel(input *scheduledqueryrules.S
 }
 
 func flattenScheduledQueryRulesAlertV2DimensionModel(inputList *[]scheduledqueryrules.Dimension) []ScheduledQueryRulesAlertV2DimensionModel {
-	var outputList []ScheduledQueryRulesAlertV2DimensionModel
 	if inputList == nil {
-		return outputList
+		return []ScheduledQueryRulesAlertV2DimensionModel{}
 	}
 
+	outputList := make([]ScheduledQueryRulesAlertV2DimensionModel, 0, len(*inputList))
 	for _, input := range *inputList {
 		output := ScheduledQueryRulesAlertV2DimensionModel{
 			Name:     input.Name,
@@ -889,7 +896,7 @@ func flattenScheduledQueryRulesAlertV2DimensionModel(inputList *[]scheduledquery
 func flattenScheduledQueryRulesAlertV2FailingPeriodsModel(input *scheduledqueryrules.ConditionFailingPeriods) []ScheduledQueryRulesAlertV2FailingPeriodsModel {
 	var outputList []ScheduledQueryRulesAlertV2FailingPeriodsModel
 	if input == nil {
-		return outputList
+		return []ScheduledQueryRulesAlertV2FailingPeriodsModel{}
 	}
 
 	output := ScheduledQueryRulesAlertV2FailingPeriodsModel{}

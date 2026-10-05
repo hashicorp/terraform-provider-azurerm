@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&ConnectionId{})
+}
 
 var _ resourceids.ResourceId = &ConnectionId{}
 
@@ -37,7 +42,7 @@ func ParseConnectionID(input string) (*ConnectionId, error) {
 	}
 
 	id := ConnectionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -54,7 +59,7 @@ func ParseConnectionIDInsensitively(input string) (*ConnectionId, error) {
 	}
 
 	id := ConnectionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -110,7 +115,7 @@ func (id ConnectionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticConnections", "connections", "connections"),
-		resourceids.UserSpecifiedSegment("connectionName", "connectionValue"),
+		resourceids.UserSpecifiedSegment("connectionName", "connectionName"),
 	}
 }
 

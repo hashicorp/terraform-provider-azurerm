@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -7,6 +7,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/fileshares"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -27,9 +30,10 @@ func dataSourceStorageShare() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"storage_account_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+			"storage_account_id": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: commonids.ValidateStorageAccountID,
 			},
 
 			"metadata": MetaDataComputedSchema(),
@@ -72,7 +76,7 @@ func dataSourceStorageShare() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"resource_manager_id": {
+			"rbac_scope_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -80,50 +84,39 @@ func dataSourceStorageShare() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	storageClient := meta.(*clients.Client).Storage
+func dataSourceStorageShareRead(d *pluginsdk.ResourceData, meta any) error {
+	sharesClient := meta.(*clients.Client).Storage.ResourceManager.FileShares
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	shareName := d.Get("name").(string)
-	accountName := d.Get("storage_account_name").(string)
 
-	account, err := storageClient.FindAccount(ctx, accountName)
+	accountId, err := commonids.ParseStorageAccountID(d.Get("storage_account_id").(string))
 	if err != nil {
-		return fmt.Errorf("retrieving Account %q for Share %q: %s", accountName, shareName, err)
-	}
-	if account == nil {
-		return fmt.Errorf("unable to locate Account %q for Share %q", accountName, shareName)
+		return err
 	}
 
-	client, err := storageClient.FileSharesClient(ctx, *account)
-	if err != nil {
-		return fmt.Errorf("building FileShares Client for Storage Account %q (Resource Group %q): %s", accountName, account.ResourceGroup, err)
-	}
+	id := fileshares.NewShareID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName, shareName)
 
-	id := parse.NewStorageShareDataPlaneId(accountName, storageClient.Environment.StorageEndpointSuffix, shareName).ID()
-	props, err := client.Get(ctx, account.ResourceGroup, accountName, shareName)
+	share, err := sharesClient.Get(ctx, id, fileshares.DefaultGetOperationOptions())
 	if err != nil {
-		return fmt.Errorf("retrieving Share %q (Account %q / Resource Group %q): %s", shareName, accountName, account.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %v", id, err)
 	}
-	if props == nil {
-		return fmt.Errorf("share %q was not found in Account %q / Resource Group %q", shareName, accountName, account.ResourceGroup)
-	}
-	d.SetId(id)
 
 	d.Set("name", shareName)
-	d.Set("storage_account_name", accountName)
-	d.Set("quota", props.QuotaGB)
-	if err := d.Set("acl", flattenStorageShareACLs(props.ACLs)); err != nil {
-		return fmt.Errorf("setting `acl`: %+v", err)
+	d.Set("storage_account_id", accountId.ID())
+
+	if model := share.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("quota", props.ShareQuota)
+			d.Set("acl", flattenStorageShareACLs(pointer.From(props.SignedIdentifiers)))
+			d.Set("metadata", FlattenMetaData(pointer.From(props.Metadata)))
+		}
 	}
 
-	if err := d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
-		return fmt.Errorf("setting `metadata`: %+v", err)
-	}
+	d.Set("rbac_scope_id", parse.NewStorageShareResourceManagerID(id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName, "default", id.ShareName).ID())
 
-	resourceManagerId := parse.NewStorageShareResourceManagerID(storageClient.SubscriptionId, account.ResourceGroup, accountName, "default", shareName)
-	d.Set("resource_manager_id", resourceManagerId.ID())
+	d.SetId(id.ID())
 
 	return nil
 }

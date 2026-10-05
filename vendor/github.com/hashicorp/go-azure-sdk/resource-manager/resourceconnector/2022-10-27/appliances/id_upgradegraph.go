@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&UpgradeGraphId{})
+}
 
 var _ resourceids.ResourceId = &UpgradeGraphId{}
 
@@ -39,7 +44,7 @@ func ParseUpgradeGraphID(input string) (*UpgradeGraphId, error) {
 	}
 
 	id := UpgradeGraphId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -56,7 +61,7 @@ func ParseUpgradeGraphIDInsensitively(input string) (*UpgradeGraphId, error) {
 	}
 
 	id := UpgradeGraphId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -116,9 +121,9 @@ func (id UpgradeGraphId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftResourceConnector", "Microsoft.ResourceConnector", "Microsoft.ResourceConnector"),
 		resourceids.StaticSegment("staticAppliances", "appliances", "appliances"),
-		resourceids.UserSpecifiedSegment("applianceName", "applianceValue"),
+		resourceids.UserSpecifiedSegment("applianceName", "applianceName"),
 		resourceids.StaticSegment("staticUpgradeGraphs", "upgradeGraphs", "upgradeGraphs"),
-		resourceids.UserSpecifiedSegment("upgradeGraphName", "upgradeGraphValue"),
+		resourceids.UserSpecifiedSegment("upgradeGraphName", "upgradeGraphName"),
 	}
 }
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2023-11-01-preview/appplatform"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -22,6 +22,7 @@ type SpringCloudGatewayModel struct {
 	Name                                  string                     `tfschema:"name"`
 	SpringCloudServiceId                  string                     `tfschema:"spring_cloud_service_id"`
 	ApiMetadata                           []ApiMetadataModel         `tfschema:"api_metadata"`
+	ApplicationPerformanceMonitoringIds   []string                   `tfschema:"application_performance_monitoring_ids"`
 	ApplicationPerformanceMonitoringTypes []string                   `tfschema:"application_performance_monitoring_types"`
 	ClientAuthorization                   []ClientAuthorizationModel `tfschema:"client_authorization"`
 	Cors                                  []CorsModel                `tfschema:"cors"`
@@ -30,7 +31,7 @@ type SpringCloudGatewayModel struct {
 	LocalResponseCachePerInstance         []ResponseCacheModel       `tfschema:"local_response_cache_per_instance"`
 	SensitiveEnvironmentVariables         map[string]string          `tfschema:"sensitive_environment_variables"`
 	HttpsOnly                             bool                       `tfschema:"https_only"`
-	InstanceCount                         int                        `tfschema:"instance_count"`
+	InstanceCount                         int64                      `tfschema:"instance_count"`
 	PublicNetworkAccessEnabled            bool                       `tfschema:"public_network_access_enabled"`
 	Quota                                 []QuotaModel               `tfschema:"quota"`
 	Sso                                   []GatewaySsoModel          `tfschema:"sso"`
@@ -40,7 +41,7 @@ type SpringCloudGatewayModel struct {
 type ApiMetadataModel struct {
 	Description      string `tfschema:"description"`
 	DocumentationUrl string `tfschema:"documentation_url"`
-	ServerUrl        string `tfschema:"server_url"`
+	ServerURL        string `tfschema:"server_url"`
 	Title            string `tfschema:"title"`
 	Version          string `tfschema:"version"`
 }
@@ -57,7 +58,7 @@ type CorsModel struct {
 	AllowedOrigins        []string `tfschema:"allowed_origins"`
 	AllowedOriginPatterns []string `tfschema:"allowed_origin_patterns"`
 	ExposedHeaders        []string `tfschema:"exposed_headers"`
-	MaxAgeSeconds         int      `tfschema:"max_age_seconds"`
+	MaxAgeSeconds         int64    `tfschema:"max_age_seconds"`
 }
 
 type GatewaySsoModel struct {
@@ -79,14 +80,21 @@ type ResponseCacheModel struct {
 
 type SpringCloudGatewayResource struct{}
 
-var _ sdk.ResourceWithUpdate = SpringCloudGatewayResource{}
-var _ sdk.ResourceWithStateMigration = SpringCloudGatewayResource{}
+func (s SpringCloudGatewayResource) DeprecationMessage() string {
+	return "Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_gateway` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information."
+}
+
+var (
+	_ sdk.ResourceWithUpdate                      = SpringCloudGatewayResource{}
+	_ sdk.ResourceWithStateMigration              = SpringCloudGatewayResource{}
+	_ sdk.ResourceWithDeprecationAndNoReplacement = SpringCloudGatewayResource{}
+)
 
 func (s SpringCloudGatewayResource) ResourceType() string {
 	return "azurerm_spring_cloud_gateway"
 }
 
-func (s SpringCloudGatewayResource) ModelObject() interface{} {
+func (s SpringCloudGatewayResource) ModelObject() any {
 	return &SpringCloudGatewayModel{}
 }
 
@@ -151,18 +159,22 @@ func (s SpringCloudGatewayResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"application_performance_monitoring_ids": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MinItems: 1,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: appplatform.ValidateApmID,
+			},
+		},
+
 		"application_performance_monitoring_types": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(appplatform.ApmTypeAppDynamics),
-					string(appplatform.ApmTypeApplicationInsights),
-					string(appplatform.ApmTypeDynatrace),
-					string(appplatform.ApmTypeElasticAPM),
-					string(appplatform.ApmTypeNewRelic),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringInSlice(appplatform.PossibleValuesForApmType(), false),
 			},
 		},
 
@@ -263,7 +275,6 @@ func (s SpringCloudGatewayResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"environment_variables": {
 			Type:     pluginsdk.TypeMap,
-			ForceNew: true,
 			Optional: true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
@@ -317,7 +328,6 @@ func (s SpringCloudGatewayResource) Arguments() map[string]*pluginsdk.Schema {
 		"sensitive_environment_variables": {
 			Type:      pluginsdk.TypeMap,
 			Optional:  true,
-			ForceNew:  true,
 			Sensitive: true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
@@ -344,7 +354,7 @@ func (s SpringCloudGatewayResource) Arguments() map[string]*pluginsdk.Schema {
 		"quota": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -439,12 +449,14 @@ func (s SpringCloudGatewayResource) Create() sdk.ResourceFunc {
 			}
 			id := appplatform.NewGatewayID(springId.SubscriptionId, springId.ResourceGroupName, springId.ServiceName, model.Name)
 
-			existing, err := client.GatewaysGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(s.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GatewaysGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(s.ResourceType(), id)
+				}
 			}
 
 			service, err := client.ServicesGet(ctx, *springId)
@@ -462,6 +474,7 @@ func (s SpringCloudGatewayResource) Create() sdk.ResourceFunc {
 				Properties: &appplatform.GatewayProperties{
 					ClientAuth:              expandGatewayClientAuth(model.ClientAuthorization),
 					ApiMetadataProperties:   expandGatewayGatewayAPIMetadataProperties(model.ApiMetadata),
+					Apms:                    expandGatewayApms(model.ApplicationPerformanceMonitoringIds),
 					ApmTypes:                expandGatewayGatewayApmTypes(model.ApplicationPerformanceMonitoringTypes),
 					CorsProperties:          expandGatewayGatewayCorsProperties(model.Cors),
 					EnvironmentVariables:    expandGatewayGatewayEnvironmentVariables(model.EnvironmentVariables, model.SensitiveEnvironmentVariables),
@@ -474,16 +487,15 @@ func (s SpringCloudGatewayResource) Create() sdk.ResourceFunc {
 				Sku: &appplatform.Sku{
 					Name:     service.Model.Sku.Name,
 					Tier:     service.Model.Sku.Tier,
-					Capacity: pointer.To(int64(model.InstanceCount)),
+					Capacity: pointer.To(model.InstanceCount),
 				},
 			}
 
-			err = client.GatewaysCreateOrUpdateThenPoll(ctx, id, gatewayResource)
-			if err != nil {
+			if err := client.GatewaysCreateOrUpdateCallbackThenPoll(ctx, id, gatewayResource, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}
@@ -530,6 +542,10 @@ func (s SpringCloudGatewayResource) Update() sdk.ResourceFunc {
 				properties.ApiMetadataProperties = expandGatewayGatewayAPIMetadataProperties(model.ApiMetadata)
 			}
 
+			if metadata.ResourceData.HasChange("application_performance_monitoring_ids") {
+				properties.Apms = expandGatewayApms(model.ApplicationPerformanceMonitoringIds)
+			}
+
 			if metadata.ResourceData.HasChange("application_performance_monitoring_types") {
 				properties.ApmTypes = expandGatewayGatewayApmTypes(model.ApplicationPerformanceMonitoringTypes)
 			}
@@ -538,7 +554,7 @@ func (s SpringCloudGatewayResource) Update() sdk.ResourceFunc {
 				properties.CorsProperties = expandGatewayGatewayCorsProperties(model.Cors)
 			}
 
-			if metadata.ResourceData.HasChange("environment_variables") || metadata.ResourceData.HasChange("sensitive_environment_variables") {
+			if metadata.ResourceData.HasChanges("environment_variables", "sensitive_environment_variables") {
 				properties.EnvironmentVariables = expandGatewayGatewayEnvironmentVariables(model.EnvironmentVariables, model.SensitiveEnvironmentVariables)
 			}
 
@@ -558,20 +574,19 @@ func (s SpringCloudGatewayResource) Update() sdk.ResourceFunc {
 				properties.SsoProperties = expandGatewaySsoProperties(model.Sso)
 			}
 
-			if metadata.ResourceData.HasChange("local_response_cache_per_instance") || metadata.ResourceData.HasChange("local_response_cache_per_route") {
+			if metadata.ResourceData.HasChanges("local_response_cache_per_instance", "local_response_cache_per_route") {
 				properties.ResponseCacheProperties = expandGatewayResponseCacheProperties(model)
 			}
 
 			if metadata.ResourceData.HasChange("instance_count") {
-				sku.Capacity = pointer.To(int64(model.InstanceCount))
+				sku.Capacity = pointer.To(model.InstanceCount)
 			}
 			resource := appplatform.GatewayResource{
 				Properties: properties,
 				Sku:        sku,
 			}
 
-			err = client.GatewaysCreateOrUpdateThenPoll(ctx, *id, resource)
-			if err != nil {
+			if err = client.GatewaysCreateOrUpdateThenPoll(ctx, *id, resource); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -579,6 +594,7 @@ func (s SpringCloudGatewayResource) Update() sdk.ResourceFunc {
 		},
 	}
 }
+
 func (s SpringCloudGatewayResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
@@ -614,6 +630,11 @@ func (s SpringCloudGatewayResource) Read() sdk.ResourceFunc {
 			if resp.Model != nil {
 				if props := resp.Model.Properties; props != nil {
 					state.ApiMetadata = flattenGatewayGatewayAPIMetadataProperties(props.ApiMetadataProperties)
+					apms, err := flattenGatewayApms(props.Apms)
+					if err != nil {
+						return err
+					}
+					state.ApplicationPerformanceMonitoringIds = apms
 					state.ApplicationPerformanceMonitoringTypes = flattenGatewayGatewayApmTypes(props.ApmTypes)
 					state.ClientAuthorization = flattenGatewayClientAuth(props.ClientAuth)
 					state.Cors = flattenGatewayGatewayCorsProperties(props.CorsProperties)
@@ -629,7 +650,7 @@ func (s SpringCloudGatewayResource) Read() sdk.ResourceFunc {
 				}
 
 				if sku := resp.Model.Sku; sku != nil {
-					state.InstanceCount = int(pointer.From(sku.Capacity))
+					state.InstanceCount = pointer.From(sku.Capacity)
 				}
 			}
 
@@ -649,8 +670,7 @@ func (s SpringCloudGatewayResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			err = client.GatewaysDeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.GatewaysDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -669,7 +689,7 @@ func expandGatewayGatewayAPIMetadataProperties(input []ApiMetadataModel) *apppla
 		Description:   pointer.To(v.Description),
 		Documentation: pointer.To(v.DocumentationUrl),
 		Version:       pointer.To(v.Version),
-		ServerUrl:     pointer.To(v.ServerUrl),
+		ServerURL:     pointer.To(v.ServerURL),
 	}
 }
 
@@ -683,7 +703,7 @@ func expandGatewayGatewayCorsProperties(input []CorsModel) *appplatform.GatewayC
 		AllowedOriginPatterns: pointer.To(v.AllowedOriginPatterns),
 		AllowedMethods:        pointer.To(v.AllowedMethods),
 		AllowedHeaders:        pointer.To(v.AllowedHeaders),
-		MaxAge:                pointer.To(int64(v.MaxAgeSeconds)),
+		MaxAge:                pointer.To(v.MaxAgeSeconds),
 		AllowCredentials:      pointer.To(v.CredentialsAllowed),
 		ExposedHeaders:        pointer.To(v.ExposedHeaders),
 	}
@@ -766,6 +786,19 @@ func expandGatewayResponseCacheProperties(input SpringCloudGatewayModel) appplat
 	return appplatform.RawGatewayResponseCachePropertiesImpl{}
 }
 
+func expandGatewayApms(input []string) *[]appplatform.ApmReference {
+	if len(input) == 0 {
+		return nil
+	}
+	out := make([]appplatform.ApmReference, 0)
+	for _, v := range input {
+		out = append(out, appplatform.ApmReference{
+			ResourceId: v,
+		})
+	}
+	return pointer.To(out)
+}
+
 func flattenGatewayGatewayAPIMetadataProperties(input *appplatform.GatewayApiMetadataProperties) []ApiMetadataModel {
 	if input == nil {
 		return make([]ApiMetadataModel, 0)
@@ -775,7 +808,7 @@ func flattenGatewayGatewayAPIMetadataProperties(input *appplatform.GatewayApiMet
 		{
 			Description:      pointer.From(input.Description),
 			DocumentationUrl: pointer.From(input.Documentation),
-			ServerUrl:        pointer.From(input.ServerUrl),
+			ServerURL:        pointer.From(input.ServerURL),
 			Title:            pointer.From(input.Title),
 			Version:          pointer.From(input.Version),
 		},
@@ -795,7 +828,7 @@ func flattenGatewayGatewayCorsProperties(input *appplatform.GatewayCorsPropertie
 			AllowedOrigins:        pointer.From(input.AllowedOrigins),
 			AllowedOriginPatterns: pointer.From(input.AllowedOriginPatterns),
 			ExposedHeaders:        pointer.From(input.ExposedHeaders),
-			MaxAgeSeconds:         int(pointer.From(input.MaxAge)),
+			MaxAgeSeconds:         pointer.From(input.MaxAge),
 		},
 	}
 }
@@ -822,10 +855,7 @@ func flattenGatewaySsoProperties(input *appplatform.SsoProperties, old []Gateway
 		oldItems[item.IssuerUri] = item
 	}
 
-	var issuerUri string
-	if input.IssuerUri != nil {
-		issuerUri = *input.IssuerUri
-	}
+	issuerUri := pointer.From(input.IssuerUri)
 	var clientId string
 	var clientSecret string
 	if oldItem, ok := oldItems[issuerUri]; ok {
@@ -844,7 +874,7 @@ func flattenGatewaySsoProperties(input *appplatform.SsoProperties, old []Gateway
 
 func flattenGatewayGatewayApmTypes(input *[]appplatform.ApmType) []string {
 	if input == nil {
-		return nil
+		return []string{}
 	}
 	out := make([]string, 0)
 	for _, v := range *input {
@@ -866,10 +896,8 @@ func flattenGatewayClientAuth(input *appplatform.GatewayPropertiesClientAuth) []
 			}
 		}
 	}
-	verificationEnabled := false
-	if input.CertificateVerification != nil && *input.CertificateVerification == appplatform.GatewayCertificateVerificationEnabled {
-		verificationEnabled = true
-	}
+	verificationEnabled := input.CertificateVerification != nil && *input.CertificateVerification == appplatform.GatewayCertificateVerificationEnabled
+
 	return []ClientAuthorizationModel{
 		{
 			CertificateIds:      certificateIds,
@@ -906,4 +934,19 @@ func flattenGatewayLocalResponseCachePerInstanceProperties(input appplatform.Gat
 		}
 	}
 	return make([]ResponseCacheModel, 0)
+}
+
+func flattenGatewayApms(input *[]appplatform.ApmReference) ([]string, error) {
+	out := make([]string, 0)
+	if input == nil {
+		return out, nil
+	}
+	for _, v := range *input {
+		id, err := appplatform.ParseApmIDInsensitively(v.ResourceId)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, id.ID())
+	}
+	return out, nil
 }

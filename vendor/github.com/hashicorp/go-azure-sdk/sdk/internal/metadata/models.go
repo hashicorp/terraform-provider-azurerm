@@ -19,22 +19,25 @@ type Authentication struct {
 }
 
 type DnsSuffixes struct {
-	Attestation string
-	FrontDoor   string
-	KeyVault    string
-	ManagedHSM  string
-	MariaDB     string
-	MySql       string
-	Postgresql  string
-	SqlServer   string
-	Storage     string
-	StorageSync string
-	Synapse     string
+	Attestation       string
+	ContainerRegistry string
+	DataLakeStore     string
+	FrontDoor         string
+	KeyVault          string
+	ManagedHSM        string
+	MariaDB           string
+	MySql             string
+	Postgresql        string
+	SqlServer         string
+	Storage           string
+	StorageSync       string
+	Synapse           string
 }
 
 type ResourceIdentifiers struct {
 	Attestation    string
 	Batch          string
+	DataLake       string
 	LogAnalytics   string
 	Media          string
 	MicrosoftGraph string

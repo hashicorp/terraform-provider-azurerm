@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -9,12 +9,44 @@ import (
 	"log"
 	"regexp"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
+
+func SSHKeysSchemaVM() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeSet,
+		Optional: true,
+		ForceNew: true,
+		Set:      SSHKeySchemaHash,
+		ConflictsWith: []string{
+			"os_managed_disk_id",
+		},
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"public_key": {
+					Type:             pluginsdk.TypeString,
+					Required:         true,
+					ForceNew:         true,
+					ValidateFunc:     validate.SSHKey,
+					DiffSuppressFunc: suppress.SSHKey,
+				},
+
+				"username": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
 
 func SSHKeysSchema(isVirtualMachine bool) *pluginsdk.Schema {
 	// the SSH Keys for a Virtual Machine cannot be changed once provisioned:
@@ -32,7 +64,7 @@ func SSHKeysSchema(isVirtualMachine bool) *pluginsdk.Schema {
 					Required:         true,
 					ForceNew:         isVirtualMachine,
 					ValidateFunc:     validate.SSHKey,
-					DiffSuppressFunc: SSHKeyDiffSuppress,
+					DiffSuppressFunc: suppress.SSHKey,
 				},
 
 				"username": {
@@ -46,28 +78,44 @@ func SSHKeysSchema(isVirtualMachine bool) *pluginsdk.Schema {
 	}
 }
 
-func ExpandSSHKeys(input []interface{}) []compute.SSHPublicKey {
-	output := make([]compute.SSHPublicKey, 0)
+func expandSSHKeys(input []any) []virtualmachines.SshPublicKey {
+	output := make([]virtualmachines.SshPublicKey, 0)
 
 	for _, v := range input {
-		raw := v.(map[string]interface{})
+		raw := v.(map[string]any)
 
 		username := raw["username"].(string)
-		output = append(output, compute.SSHPublicKey{
-			KeyData: utils.String(raw["public_key"].(string)),
-			Path:    utils.String(formatUsernameForAuthorizedKeysPath(username)),
+		output = append(output, virtualmachines.SshPublicKey{
+			KeyData: pointer.To(raw["public_key"].(string)),
+			Path:    pointer.To(formatUsernameForAuthorizedKeysPath(username)),
 		})
 	}
 
 	return output
 }
 
-func FlattenSSHKeys(input *compute.SSHConfiguration) (*[]interface{}, error) {
-	if input == nil || input.PublicKeys == nil {
-		return &[]interface{}{}, nil
+func expandSSHKeysVMSS(input []any) []virtualmachinescalesets.SshPublicKey {
+	output := make([]virtualmachinescalesets.SshPublicKey, 0)
+
+	for _, v := range input {
+		raw := v.(map[string]any)
+
+		username := raw["username"].(string)
+		output = append(output, virtualmachinescalesets.SshPublicKey{
+			KeyData: pointer.To(raw["public_key"].(string)),
+			Path:    pointer.To(formatUsernameForAuthorizedKeysPath(username)),
+		})
 	}
 
-	output := make([]interface{}, 0)
+	return output
+}
+
+func flattenSSHKeys(input *virtualmachines.SshConfiguration) (*[]any, error) {
+	if input == nil || input.PublicKeys == nil {
+		return &[]any{}, nil
+	}
+
+	output := make([]any, 0)
 	for _, v := range *input.PublicKeys {
 		if v.KeyData == nil || v.Path == nil {
 			continue
@@ -78,7 +126,32 @@ func FlattenSSHKeys(input *compute.SSHConfiguration) (*[]interface{}, error) {
 			return nil, fmt.Errorf("parsing username from %q", *v.Path)
 		}
 
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
+			"public_key": *v.KeyData,
+			"username":   *username,
+		})
+	}
+
+	return &output, nil
+}
+
+func flattenSSHKeysVMSS(input *virtualmachinescalesets.SshConfiguration) (*[]any, error) {
+	if input == nil || input.PublicKeys == nil {
+		return &[]any{}, nil
+	}
+
+	output := make([]any, 0)
+	for _, v := range *input.PublicKeys {
+		if v.KeyData == nil || v.Path == nil {
+			continue
+		}
+
+		username := parseUsernameFromAuthorizedKeysPath(*v.Path)
+		if username == nil {
+			return nil, fmt.Errorf("parsing username from %q", *v.Path)
+		}
+
+		output = append(output, map[string]any{
 			"public_key": *v.KeyData,
 			"username":   *username,
 		})
@@ -109,44 +182,23 @@ func parseUsernameFromAuthorizedKeysPath(input string) *string {
 
 	for i, k := range keys {
 		if k == "username" {
-			value := values[i]
-			return &value
+			return pointer.To(values[i])
 		}
 	}
 
 	return nil
 }
 
-func SSHKeyDiffSuppress(_, old, new string, _ *pluginsdk.ResourceData) bool {
-	oldNormalized, err := NormalizeSSHKey(old)
-	if err != nil {
-		log.Printf("[DEBUG] error normalising ssh key %q: %+v", old, err)
-		return false
-	}
-
-	newNormalized, err := NormalizeSSHKey(new)
-	if err != nil {
-		log.Printf("[DEBUG] error normalising ssh key %q: %+v", new, err)
-		return false
-	}
-
-	if *oldNormalized == *newNormalized {
-		return true
-	}
-
-	return false
-}
-
-func SSHKeySchemaHash(v interface{}) int {
+func SSHKeySchemaHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
-		normalisedKey, err := NormalizeSSHKey(m["public_key"].(string))
+	if m, ok := v.(map[string]any); ok {
+		normalisedKey, err := suppress.NormalizeSSHKey(m["public_key"].(string))
 		if err != nil {
 			log.Printf("[DEBUG] error normalising ssh key %q: %+v", m["public_key"].(string), err)
 		}
-		buf.WriteString(fmt.Sprintf("%s-", *normalisedKey))
-		buf.WriteString(fmt.Sprintf("%s", m["username"]))
+		fmt.Fprintf(&buf, "%s-", *normalisedKey)
+		fmt.Fprintf(&buf, "%s", m["username"])
 	}
 
 	return pluginsdk.HashString(buf.String())

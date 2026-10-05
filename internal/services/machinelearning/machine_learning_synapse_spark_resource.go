@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package machinelearning
@@ -14,16 +14,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-10-01/machinelearningcomputes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-10-01/workspaces"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/machinelearningcomputes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	synapseValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSynapseSpark() *pluginsdk.Resource {
@@ -50,7 +49,8 @@ func resourceSynapseSpark() *pluginsdk.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9-]{2,16}$`),
-					"It can include letters, digits and dashes. It must start with a letter, end with a letter or digit, and be between 2 and 16 characters in length."),
+					"It can include letters, digits and dashes. It must start with a letter, end with a letter or digit, and be between 2 and 16 characters in length.",
+				),
 			},
 
 			"machine_learning_workspace_id": {
@@ -66,7 +66,7 @@ func resourceSynapseSpark() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: synapseValidate.SparkPoolID,
+				ValidateFunc: validate.SparkPoolID,
 			},
 
 			"description": {
@@ -89,7 +89,7 @@ func resourceSynapseSpark() *pluginsdk.Resource {
 	}
 }
 
-func resourceSynapseSparkCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseSparkCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -98,7 +98,7 @@ func resourceSynapseSparkCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	workspaceID, _ := workspaces.ParseWorkspaceID(d.Get("machine_learning_workspace_id").(string))
 	id := machinelearningcomputes.NewComputeID(subscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, d.Get("name").(string))
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.ComputeGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -110,38 +110,32 @@ func resourceSynapseSparkCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
-	identity, err := expandIdentity(d.Get("identity").([]interface{}))
+	identity, err := expandIdentity(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
 	parameters := machinelearningcomputes.ComputeResource{
 		Properties: &machinelearningcomputes.SynapseSpark{
-			Properties:       nil,
-			ComputeLocation:  utils.String(d.Get("location").(string)),
-			Description:      utils.String(d.Get("description").(string)),
-			ResourceId:       utils.String(d.Get("synapse_spark_pool_id").(string)),
-			DisableLocalAuth: utils.Bool(!d.Get("local_auth_enabled").(bool)),
+			ComputeLocation:  pointer.To(d.Get("location").(string)),
+			Description:      pointer.To(d.Get("description").(string)),
+			ResourceId:       pointer.To(d.Get("synapse_spark_pool_id").(string)),
+			DisableLocalAuth: pointer.To(!d.Get("local_auth_enabled").(bool)),
 		},
 		Identity: identity,
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
-	future, err := client.ComputeCreateOrUpdate(ctx, id, parameters)
-	if err != nil {
-		return fmt.Errorf("creating Machine Learning Compute (%q): %+v", id, err)
+	if err := client.ComputeCreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-	if err := future.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("waiting for creation of Machine Learning Compute (%q): %+v", id, err)
-	}
-
 	d.SetId(id.ID())
 
 	return resourceSynapseSparkRead(d, meta)
 }
 
-func resourceSynapseSparkRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseSparkRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -166,8 +160,8 @@ func resourceSynapseSparkRead(d *pluginsdk.ResourceData, meta interface{}) error
 	workspaceId := workspaces.NewWorkspaceID(subscriptionId, id.ResourceGroupName, id.WorkspaceName)
 	d.Set("machine_learning_workspace_id", workspaceId.ID())
 
-	if location := resp.Model.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+	if loc := resp.Model.Location; loc != nil {
+		d.Set("location", location.Normalize(*loc))
 	}
 
 	identity, err := flattenIdentity(resp.Model.Identity)
@@ -188,7 +182,7 @@ func resourceSynapseSparkRead(d *pluginsdk.ResourceData, meta interface{}) error
 	return tags.FlattenAndSet(d, resp.Model.Tags)
 }
 
-func resourceSynapseSparkDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseSparkDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

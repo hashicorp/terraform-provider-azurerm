@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/botservice/2022-09-15/channel` Documentation
 
-The `channel` SDK allows for interaction with the Azure Resource Manager Service `botservice` (API Version `2022-09-15`).
+The `channel` SDK allows for interaction with Azure Resource Manager `botservice` (API Version `2022-09-15`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := commonids.NewBotServiceChannelID("12345678-1234-9876-4563-123456789012", "example-resource-group", "botServiceValue", "AcsChatChannel")
+id := commonids.NewBotServiceChannelID("12345678-1234-9876-4563-123456789012", "example-resource-group", "botServiceName", "AcsChatChannel")
 
 payload := channel.BotChannel{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewBotServiceChannelID("12345678-1234-9876-4563-123456789012", "example-resource-group", "botServiceValue", "AcsChatChannel")
+id := commonids.NewBotServiceChannelID("12345678-1234-9876-4563-123456789012", "example-resource-group", "botServiceName", "AcsChatChannel")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -62,7 +62,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewBotServiceChannelID("12345678-1234-9876-4563-123456789012", "example-resource-group", "botServiceValue", "AcsChatChannel")
+id := commonids.NewBotServiceChannelID("12345678-1234-9876-4563-123456789012", "example-resource-group", "botServiceName", "AcsChatChannel")
 
 payload := channel.SiteInfo{
 	// ...
@@ -79,13 +79,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `ChannelClient.EmailCreateSignInUrl`
+### Example Usage: `ChannelClient.EmailCreateSignInURL`
 
 ```go
 ctx := context.TODO()
-id := commonids.NewBotServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "botServiceValue")
+id := commonids.NewBotServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "botServiceName")
 
-read, err := client.EmailCreateSignInUrl(ctx, id)
+read, err := client.EmailCreateSignInURL(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -99,7 +99,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewBotServiceChannelID("12345678-1234-9876-4563-123456789012", "example-resource-group", "botServiceValue", "AcsChatChannel")
+id := commonids.NewBotServiceChannelID("12345678-1234-9876-4563-123456789012", "example-resource-group", "botServiceName", "AcsChatChannel")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -115,7 +115,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewBotServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "botServiceValue")
+id := commonids.NewBotServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "botServiceName")
 
 // alternatively `client.ListByResourceGroup(ctx, id)` can be used to do batched pagination
 items, err := client.ListByResourceGroupComplete(ctx, id)
@@ -132,7 +132,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewBotServiceChannelID("12345678-1234-9876-4563-123456789012", "example-resource-group", "botServiceValue", "AcsChatChannel")
+id := commonids.NewBotServiceChannelID("12345678-1234-9876-4563-123456789012", "example-resource-group", "botServiceName", "AcsChatChannel")
 
 read, err := client.ListWithKeys(ctx, id)
 if err != nil {
@@ -148,7 +148,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewBotServiceChannelID("12345678-1234-9876-4563-123456789012", "example-resource-group", "botServiceValue", "AcsChatChannel")
+id := commonids.NewBotServiceChannelID("12345678-1234-9876-4563-123456789012", "example-resource-group", "botServiceName", "AcsChatChannel")
 
 payload := channel.BotChannel{
 	// ...

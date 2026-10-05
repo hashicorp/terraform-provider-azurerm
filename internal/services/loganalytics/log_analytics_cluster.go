@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package loganalytics
@@ -9,7 +9,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -28,7 +28,7 @@ func logAnalyticsClusterWaitForState(ctx context.Context, client *clusters.Clust
 }
 
 func logAnalyticsClusterRefresh(ctx context.Context, client *clusters.ClustersClient, clusterId clusters.ClusterId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		log.Printf("[INFO] checking on state of Log Analytics Cluster %q", clusterId.ClusterName)
 
 		resp, err := client.Get(ctx, clusterId)

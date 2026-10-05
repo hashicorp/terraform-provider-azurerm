@@ -1,0 +1,263 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
+package servicebus
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespaces"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+)
+
+//go:generate go run ../../tools/generator-tests resourceidentity -parent-id "namespace_id"
+
+type ServiceBusNamespaceCustomerManagedKeyResource struct{}
+
+type ServiceBusNamespaceCustomerManagedKeyModel struct {
+	NamespaceID                     string `tfschema:"namespace_id"`
+	KeyVaultKeyID                   string `tfschema:"key_vault_key_id"`
+	InfrastructureEncryptionEnabled bool   `tfschema:"infrastructure_encryption_enabled"`
+}
+
+var (
+	_ sdk.ResourceWithIdentity = ServiceBusNamespaceCustomerManagedKeyResource{}
+	_ sdk.ResourceWithUpdate   = ServiceBusNamespaceCustomerManagedKeyResource{}
+)
+
+func (r ServiceBusNamespaceCustomerManagedKeyResource) Identity() resourceids.ResourceId {
+	return &namespaces.NamespaceId{}
+}
+
+func (r ServiceBusNamespaceCustomerManagedKeyResource) ModelObject() any {
+	return &ServiceBusNamespaceCustomerManagedKeyModel{}
+}
+
+func (r ServiceBusNamespaceCustomerManagedKeyResource) ResourceType() string {
+	return "azurerm_servicebus_namespace_customer_managed_key"
+}
+
+func (r ServiceBusNamespaceCustomerManagedKeyResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return namespaces.ValidateNamespaceID
+}
+
+func (r ServiceBusNamespaceCustomerManagedKeyResource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"namespace_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: namespaces.ValidateNamespaceID,
+		},
+
+		"key_vault_key_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
+		},
+
+		"infrastructure_encryption_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		},
+	}
+}
+
+func (r ServiceBusNamespaceCustomerManagedKeyResource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{}
+}
+
+func (r ServiceBusNamespaceCustomerManagedKeyResource) Create() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.ServiceBus.NamespacesClient
+			var cmk ServiceBusNamespaceCustomerManagedKeyModel
+
+			if err := metadata.Decode(&cmk); err != nil {
+				return err
+			}
+
+			id, err := namespaces.ParseNamespaceID(cmk.NamespaceID)
+			if err != nil {
+				return err
+			}
+
+			resp, err := client.Get(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return fmt.Errorf("%s was not found", *id)
+				}
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			if resp.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` is nil", *id)
+			}
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				if resp.Model.Properties != nil && resp.Model.Properties.Encryption != nil && resp.Model.Properties.Encryption.KeyVaultProperties != nil && len(*resp.Model.Properties.Encryption.KeyVaultProperties) > 0 {
+					return metadata.ResourceRequiresImport(r.ResourceType(), *id)
+				}
+			}
+
+			payload := resp.Model
+
+			keyId, err := keyvault.ParseNestedItemID(cmk.KeyVaultKeyID, keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
+			if err != nil {
+				return err
+			}
+
+			payload.Properties.Encryption = &namespaces.Encryption{
+				RequireInfrastructureEncryption: pointer.To(cmk.InfrastructureEncryptionEnabled),
+				KeySource:                       pointer.To(namespaces.KeySourceMicrosoftPointKeyVault),
+				KeyVaultProperties: &[]namespaces.KeyVaultProperties{
+					{
+						KeyName:     pointer.To(keyId.Name),
+						KeyVersion:  pointer.To(keyId.Version),
+						KeyVaultUri: pointer.To(keyId.KeyVaultBaseURL),
+					},
+				},
+			}
+
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, *id, *payload, metadata.SetIDAndIdentityCallback(id)); err != nil {
+				return fmt.Errorf("creating Customer Managed Key for %s: %+v", *id, err)
+			}
+			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
+
+			return nil
+		},
+	}
+}
+
+func (r ServiceBusNamespaceCustomerManagedKeyResource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.ServiceBus.NamespacesClient
+
+			id, err := namespaces.ParseNamespaceID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			resp, err := client.Get(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return metadata.MarkAsGone(id)
+				}
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			return r.flatten(metadata, id, resp.Model)
+		},
+	}
+}
+
+func (r ServiceBusNamespaceCustomerManagedKeyResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.ServiceBus.NamespacesClient
+			var cmk ServiceBusNamespaceCustomerManagedKeyModel
+
+			if err := metadata.Decode(&cmk); err != nil {
+				return err
+			}
+
+			id, err := namespaces.ParseNamespaceID(cmk.NamespaceID)
+			if err != nil {
+				return err
+			}
+
+			resp, err := client.Get(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return fmt.Errorf("%s was not found", *id)
+				}
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			if resp.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` is nil", *id)
+			}
+
+			if resp.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `properties` is nil", *id)
+			}
+
+			if resp.Model.Properties.Encryption == nil || resp.Model.Properties.Encryption.KeyVaultProperties == nil || len(*resp.Model.Properties.Encryption.KeyVaultProperties) == 0 {
+				return fmt.Errorf("retrieving %s: Customer Managed Key was not found", *id)
+			}
+
+			payload := resp.Model
+
+			if metadata.ResourceData.HasChange("key_vault_key_id") {
+				keyId, err := keyvault.ParseNestedItemID(cmk.KeyVaultKeyID, keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
+				if err != nil {
+					return err
+				}
+
+				(*payload.Properties.Encryption.KeyVaultProperties)[0].KeyName = pointer.To(keyId.Name)
+				(*payload.Properties.Encryption.KeyVaultProperties)[0].KeyVersion = pointer.To(keyId.Version)
+				(*payload.Properties.Encryption.KeyVaultProperties)[0].KeyVaultUri = pointer.To(keyId.KeyVaultBaseURL)
+			}
+
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+				return fmt.Errorf("updating Customer Managed Key for %s: %+v", *id, err)
+			}
+
+			return nil
+		},
+	}
+}
+
+func (r ServiceBusNamespaceCustomerManagedKeyResource) Delete() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			log.Printf(`[INFO] Customer Managed Keys cannot be removed from Servicebus Namespaces once added. To remove the Customer Managed Key, delete and recreate the parent Servicebus Namespace`)
+			return nil
+		},
+	}
+}
+
+func (r ServiceBusNamespaceCustomerManagedKeyResource) flatten(metadata sdk.ResourceMetaData, id *namespaces.NamespaceId, model *namespaces.SBNamespace) error {
+	state := ServiceBusNamespaceCustomerManagedKeyModel{
+		NamespaceID: id.ID(),
+	}
+
+	if model != nil {
+		if props := model.Properties; props != nil && props.Encryption != nil {
+			encryption := props.Encryption
+			if keyVaultProperties := encryption.KeyVaultProperties; keyVaultProperties != nil && len(*keyVaultProperties) > 0 {
+				keyVaultKeyId, err := keyvault.NewNestedItemID(pointer.From((*keyVaultProperties)[0].KeyVaultUri), keyvault.NestedItemTypeKey, pointer.From((*keyVaultProperties)[0].KeyName), pointer.From((*keyVaultProperties)[0].KeyVersion))
+				if err != nil {
+					return fmt.Errorf("parsing `key_vault_key_id`: %+v", err)
+				}
+
+				state.KeyVaultKeyID = keyVaultKeyId.ID()
+			}
+
+			state.InfrastructureEncryptionEnabled = pointer.From(encryption.RequireInfrastructureEncryption)
+		}
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
+}

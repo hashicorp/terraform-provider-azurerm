@@ -47,7 +47,9 @@ func (c AlertProcessingRulesClient) Update(ctx context.Context, id ActionRuleId,
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AlertProcessingRule
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

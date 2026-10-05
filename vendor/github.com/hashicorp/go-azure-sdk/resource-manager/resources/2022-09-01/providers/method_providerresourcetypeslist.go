@@ -15,7 +15,12 @@ import (
 type ProviderResourceTypesListOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *ProviderResourceTypeListResult
+	Model        *[]ProviderResourceType
+}
+
+type ProviderResourceTypesListCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []ProviderResourceType
 }
 
 type ProviderResourceTypesListOperationOptions struct {
@@ -34,6 +39,7 @@ func (o ProviderResourceTypesListOperationOptions) ToHeaders() *client.Headers {
 
 func (o ProviderResourceTypesListOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -45,6 +51,18 @@ func (o ProviderResourceTypesListOperationOptions) ToQuery() *client.QueryParams
 	return &out
 }
 
+type ProviderResourceTypesListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ProviderResourceTypesListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ProviderResourceTypesList ...
 func (c ProvidersClient) ProviderResourceTypesList(ctx context.Context, id SubscriptionProviderId, options ProviderResourceTypesListOperationOptions) (result ProviderResourceTypesListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -53,8 +71,9 @@ func (c ProvidersClient) ProviderResourceTypesList(ctx context.Context, id Subsc
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/resourceTypes", id.ID()),
 		OptionsObject: options,
+		Pager:         &ProviderResourceTypesListCustomPager{},
+		Path:          fmt.Sprintf("%s/resourceTypes", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -63,7 +82,7 @@ func (c ProvidersClient) ProviderResourceTypesList(ctx context.Context, id Subsc
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -72,9 +91,44 @@ func (c ProvidersClient) ProviderResourceTypesList(ctx context.Context, id Subsc
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var values struct {
+		Values *[]ProviderResourceType `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// ProviderResourceTypesListComplete retrieves all the results into a single object
+func (c ProvidersClient) ProviderResourceTypesListComplete(ctx context.Context, id SubscriptionProviderId, options ProviderResourceTypesListOperationOptions) (ProviderResourceTypesListCompleteResult, error) {
+	return c.ProviderResourceTypesListCompleteMatchingPredicate(ctx, id, options, ProviderResourceTypeOperationPredicate{})
+}
+
+// ProviderResourceTypesListCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c ProvidersClient) ProviderResourceTypesListCompleteMatchingPredicate(ctx context.Context, id SubscriptionProviderId, options ProviderResourceTypesListOperationOptions, predicate ProviderResourceTypeOperationPredicate) (result ProviderResourceTypesListCompleteResult, err error) {
+	items := make([]ProviderResourceType, 0)
+
+	resp, err := c.ProviderResourceTypesList(ctx, id, options)
+	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = ProviderResourceTypesListCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

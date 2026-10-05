@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package keyvault
@@ -9,14 +9,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
+	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 func dataSourceKeyVaultSecrets() *pluginsdk.Resource {
@@ -57,6 +58,8 @@ func dataSourceKeyVaultSecrets() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
+
+						"tags": commonschema.TagsDataSource(),
 					},
 				},
 			},
@@ -64,7 +67,7 @@ func dataSourceKeyVaultSecrets() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceKeyVaultSecretsRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceKeyVaultSecretsRead(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -80,7 +83,7 @@ func dataSourceKeyVaultSecretsRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("fetching base vault url from id %q: %+v", *keyVaultId, err)
 	}
 
-	secretList, err := client.GetSecretsComplete(ctx, *keyVaultBaseUri, utils.Int32(25))
+	secretList, err := client.GetSecretsComplete(ctx, *keyVaultBaseUri, pointer.To(int32(25)))
 	if err != nil {
 		return fmt.Errorf("making Read request on Azure KeyVault %q: %+v", *keyVaultId, err)
 	}
@@ -88,7 +91,7 @@ func dataSourceKeyVaultSecretsRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.SetId(keyVaultId.ID())
 
 	var names []string
-	var secrets []map[string]interface{}
+	var secrets []map[string]any
 
 	if secretList.Response().Value != nil {
 		for secretList.NotDone() {
@@ -99,8 +102,7 @@ func dataSourceKeyVaultSecretsRead(d *pluginsdk.ResourceData, meta interface{}) 
 				}
 				names = append(names, *name)
 				secrets = append(secrets, expandSecrets(*name, v))
-				err = secretList.NextWithContext(ctx)
-				if err != nil {
+				if err = secretList.NextWithContext(ctx); err != nil {
 					return fmt.Errorf("listing secrets on Azure KeyVault %q: %+v", *keyVaultId, err)
 				}
 			}
@@ -127,13 +129,19 @@ func parseNameFromSecretUrl(input string) (*string, error) {
 	return &segments[2], nil
 }
 
-func expandSecrets(name string, item keyvault.SecretItem) map[string]interface{} {
-	res := map[string]interface{}{
+func expandSecrets(name string, item keyvault.SecretItem) map[string]any {
+	res := map[string]any{
 		"id":   *item.ID,
 		"name": name,
 	}
+
 	if item.Attributes != nil && item.Attributes.Enabled != nil {
 		res["enabled"] = *item.Attributes.Enabled
 	}
+
+	if item.Tags != nil {
+		res["tags"] = tags.Flatten(item.Tags)
+	}
+
 	return res
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -13,9 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/hybridconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/namespaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -41,7 +40,7 @@ var _ sdk.ResourceWithUpdate = FunctionAppHybridConnectionResource{}
 
 var _ sdk.ResourceWithCustomImporter = FunctionAppHybridConnectionResource{}
 
-func (r FunctionAppHybridConnectionResource) ModelObject() interface{} {
+func (r FunctionAppHybridConnectionResource) ModelObject() any {
 	return &FunctionAppHybridConnectionModel{}
 }
 
@@ -81,7 +80,7 @@ func (r FunctionAppHybridConnectionResource) Arguments() map[string]*pluginsdk.S
 		"port": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
-			ValidateFunc: azValidate.PortNumberOrZero,
+			ValidateFunc: validation.IsPortNumberOrZero,
 			Description:  "The port to use for the endpoint",
 		},
 
@@ -152,14 +151,21 @@ func (r FunctionAppHybridConnectionResource) Create() sdk.ResourceFunc {
 
 			id := webapps.NewRelayID(appId.SubscriptionId, appId.ResourceGroupName, appId.SiteName, relayId.NamespaceName, relayId.HybridConnectionName)
 
-			existing, err := client.GetHybridConnection(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetHybridConnection(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+					}
+				}
+				if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
+					return tf.ImportAsExistsError(r.ResourceType(), id.ID())
 				}
 			}
-			if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
-				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+
+			sendKeyValue, err := helpers.GetSendKeyValue(ctx, metadata, *relayId, appHybridConn.SendKeyName)
+			if err != nil {
+				return err
 			}
 
 			envelope := webapps.HybridConnection{
@@ -168,12 +174,11 @@ func (r FunctionAppHybridConnectionResource) Create() sdk.ResourceFunc {
 					Hostname:     pointer.To(appHybridConn.HostName),
 					Port:         pointer.To(appHybridConn.HostPort),
 					SendKeyName:  pointer.To(appHybridConn.SendKeyName),
-					SendKeyValue: pointer.To(""),
+					SendKeyValue: sendKeyValue,
 				},
 			}
 
-			_, err = client.CreateOrUpdateHybridConnection(ctx, id, envelope)
-			if err != nil {
+			if _, err = client.CreateOrUpdateHybridConnection(ctx, id, envelope); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -211,7 +216,6 @@ func (r FunctionAppHybridConnectionResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := existing.Model; model != nil {
-
 				if props := model.Properties; props != nil {
 					appHybridConn.RelayId = pointer.From(props.RelayArmUri)
 					appHybridConn.HostName = pointer.From(props.Hostname)
@@ -307,15 +311,19 @@ func (r FunctionAppHybridConnectionResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("send_key_name") {
-				key, err := helpers.GetSendKeyValue(ctx, metadata, *id, appHybridConn.SendKeyName)
+				relayId, err := hybridconnections.ParseHybridConnectionID(appHybridConn.RelayId)
+				if err != nil {
+					return err
+				}
+
+				key, err := helpers.GetSendKeyValue(ctx, metadata, *relayId, appHybridConn.SendKeyName)
 				if err != nil {
 					return err
 				}
 				model.Properties.SendKeyValue = key
 			}
 
-			_, err = client.CreateOrUpdateHybridConnection(ctx, *id, model)
-			if err != nil {
+			if _, err = client.CreateOrUpdateHybridConnection(ctx, *id, model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -338,8 +346,8 @@ func (r FunctionAppHybridConnectionResource) CustomImporter() sdk.ResourceRunFun
 			return err
 		}
 
-		if helpers.PlanIsConsumption(sku) || helpers.PlanIsElastic(sku) {
-			return fmt.Errorf("unsupported plan type. Hybrid Connections are not supported on Consumption or Elastic service plans")
+		if helpers.PlanIsConsumption(sku) {
+			return fmt.Errorf("unsupported plan type. Hybrid Connections are not supported on Consumption service plans")
 		}
 
 		return nil

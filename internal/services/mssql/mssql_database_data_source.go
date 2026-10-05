@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql
@@ -13,11 +13,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/transparentdataencryptions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/transparentdataencryptions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
@@ -39,7 +40,7 @@ func dataSourceMsSqlDatabase() *pluginsdk.Resource {
 			"server_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validate.ServerID,
+				ValidateFunc: validation.AsGeneratedID(commonids.ParseSqlServerIDInsensitively),
 			},
 
 			"collation": {
@@ -114,7 +115,7 @@ func dataSourceMsSqlDatabase() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
 	transparentEncryptionClient := meta.(*clients.Client).MSSQL.TransparentDataEncryptionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -146,7 +147,7 @@ func dataSourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) er
 		if props := model.Properties; props != nil {
 			d.Set("collation", props.Collation)
 			d.Set("elastic_pool_id", props.ElasticPoolId)
-			d.Set("license_type", string(pointer.From(props.LicenseType)))
+			d.Set("license_type", pointer.FromEnum(props.LicenseType))
 			d.Set("read_replica_count", props.HighAvailabilityReplicaCount)
 			d.Set("sku_name", props.CurrentServiceObjectiveName)
 			d.Set("zone_redundant", props.ZoneRedundant)
@@ -155,7 +156,7 @@ func dataSourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 			maxSizeGb := int64(0)
 			if props.MaxSizeBytes != nil {
-				maxSizeGb = (pointer.From(props.MaxSizeBytes)) / int64(1073741824)
+				maxSizeGb = pointer.From(props.MaxSizeBytes) / int64(1073741824)
 			}
 			d.Set("max_size_gb", maxSizeGb)
 
@@ -173,7 +174,7 @@ func dataSourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 			storageAccountType := string(databases.BackupStorageRedundancyGeo)
 			if props.CurrentBackupStorageRedundancy != nil {
-				storageAccountType = string(pointer.From(props.CurrentBackupStorageRedundancy))
+				storageAccountType = pointer.FromEnum(props.CurrentBackupStorageRedundancy)
 			}
 			d.Set("storage_account_type", storageAccountType)
 		}

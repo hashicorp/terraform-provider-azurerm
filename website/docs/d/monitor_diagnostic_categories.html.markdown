@@ -24,17 +24,13 @@ data "azurerm_monitor_diagnostic_categories" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `resource_id` - The ID of an existing Resource which Monitor Diagnostics Categories should be retrieved for.
 
 ## Attributes Reference
 
 * `id` - The ID of the Resource.
-
-* `logs` - A list of the Log Categories supported for this Resource.
-
-* ~> **NOTE:** `logs` is deprecated and will be removed in favour of the property `log_category_types` and `log_category_groups` in version 4.0 of the AzureRM Provider.
 
 * `log_category_types` - A list of the supported log category types of this resource to send to the destination.
 
@@ -44,6 +40,12 @@ data "azurerm_monitor_diagnostic_categories" "example" {
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Monitor Diagnostics Categories.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Insights` - 2021-05-01-preview

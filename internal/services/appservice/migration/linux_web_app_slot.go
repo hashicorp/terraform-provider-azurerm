@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -1738,17 +1738,16 @@ func (l LinuxWebAppSlotV0toV1) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (l LinuxWebAppSlotV0toV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-		oldId := rawState["service_plan_id"].(string)
-		if oldId == "" {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
+		oldId, ok := rawState["service_plan_id"].(string)
+		if !ok || oldId == "" {
 			return rawState, nil
 		}
 		parsedId, err := commonids.ParseAppServicePlanIDInsensitively(oldId)
 		if err != nil {
 			return nil, err
 		}
-		newId := parsedId.ID()
-		rawState["service_plan_id"] = newId
+		rawState["service_plan_id"] = parsedId.ID()
 		return rawState, nil
 	}
 }

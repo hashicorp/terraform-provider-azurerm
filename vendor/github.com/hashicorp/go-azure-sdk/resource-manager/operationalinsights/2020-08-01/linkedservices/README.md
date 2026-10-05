@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/linkedservices` Documentation
 
-The `linkedservices` SDK allows for interaction with the Azure Resource Manager Service `operationalinsights` (API Version `2020-08-01`).
+The `linkedservices` SDK allows for interaction with Azure Resource Manager `operationalinsights` (API Version `2020-08-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := linkedservices.NewLinkedServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "linkedServiceValue")
+id := linkedservices.NewLinkedServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "linkedServiceName")
 
 payload := linkedservices.LinkedService{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := linkedservices.NewLinkedServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "linkedServiceValue")
+id := linkedservices.NewLinkedServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "linkedServiceName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := linkedservices.NewLinkedServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "linkedServiceValue")
+id := linkedservices.NewLinkedServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "linkedServiceName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -69,7 +69,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := linkedservices.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue")
+id := linkedservices.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName")
 
 read, err := client.ListByWorkspace(ctx, id)
 if err != nil {

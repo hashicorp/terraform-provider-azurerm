@@ -25,6 +25,18 @@ type ListBySubscriptionCompleteResult struct {
 	Items              []DeploymentScript
 }
 
+type ListBySubscriptionCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListBySubscriptionCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListBySubscription ...
 func (c DeploymentScriptsClient) ListBySubscription(ctx context.Context, id commonids.SubscriptionId) (result ListBySubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -33,6 +45,7 @@ func (c DeploymentScriptsClient) ListBySubscription(ctx context.Context, id comm
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListBySubscriptionCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Resources/deploymentScripts", id.ID()),
 	}
 
@@ -61,7 +74,7 @@ func (c DeploymentScriptsClient) ListBySubscription(ctx context.Context, id comm
 	temp := make([]DeploymentScript, 0)
 	if values.Values != nil {
 		for i, v := range *values.Values {
-			val, err := unmarshalDeploymentScriptImplementation(v)
+			val, err := UnmarshalDeploymentScriptImplementation(v)
 			if err != nil {
 				err = fmt.Errorf("unmarshalling item %d for DeploymentScript (%q): %+v", i, v, err)
 				return result, err
@@ -85,6 +98,7 @@ func (c DeploymentScriptsClient) ListBySubscriptionCompleteMatchingPredicate(ctx
 
 	resp, err := c.ListBySubscription(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

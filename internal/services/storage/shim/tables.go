@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package shim
@@ -6,13 +6,15 @@ package shim
 import (
 	"context"
 
-	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/table/tables"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/table/tables"
 )
 
 type StorageTableWrapper interface {
-	Create(ctx context.Context, resourceGroup string, accountName string, tableName string) error
-	Delete(ctx context.Context, resourceGroup string, accountName string, tableName string) error
-	Exists(ctx context.Context, resourceGroup string, accountName string, tableName string) (*bool, error)
-	GetACLs(ctx context.Context, resourceGroup string, accountName string, tableName string) (*[]tables.SignedIdentifier, error)
-	UpdateACLs(ctx context.Context, resourceGroup string, accountName string, tableName string, acls []tables.SignedIdentifier) error
+	Create(ctx context.Context, tableName string) error
+	Delete(ctx context.Context, tableName string) error
+	Exists(ctx context.Context, tableName string) (*bool, error)
+	GetACLs(ctx context.Context, tableName string) (*[]tables.SignedIdentifier, error)
+	GetServiceProperties(ctx context.Context) (*tables.StorageServiceProperties, error)
+	UpdateACLs(ctx context.Context, tableName string, acls []tables.SignedIdentifier) error
+	UpdateServiceProperties(ctx context.Context, properties tables.StorageServiceProperties) error
 }

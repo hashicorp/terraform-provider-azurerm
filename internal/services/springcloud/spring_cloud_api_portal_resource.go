@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2023-11-01-preview/appplatform"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -23,7 +23,7 @@ type SpringCloudAPIPortalModel struct {
 	SpringCloudServiceId       string              `tfschema:"spring_cloud_service_id"`
 	GatewayIds                 []string            `tfschema:"gateway_ids"`
 	HttpsOnlyEnabled           bool                `tfschema:"https_only_enabled"`
-	InstanceCount              int                 `tfschema:"instance_count"`
+	InstanceCount              int64               `tfschema:"instance_count"`
 	PublicNetworkAccessEnabled bool                `tfschema:"public_network_access_enabled"`
 	ApiTryOutEnabled           bool                `tfschema:"api_try_out_enabled"`
 	Sso                        []ApiPortalSsoModel `tfschema:"sso"`
@@ -39,14 +39,21 @@ type ApiPortalSsoModel struct {
 
 type SpringCloudAPIPortalResource struct{}
 
-var _ sdk.ResourceWithUpdate = SpringCloudAPIPortalResource{}
-var _ sdk.ResourceWithStateMigration = SpringCloudAPIPortalResource{}
+func (s SpringCloudAPIPortalResource) DeprecationMessage() string {
+	return "Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_api_portal` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information."
+}
+
+var (
+	_ sdk.ResourceWithUpdate                      = SpringCloudAPIPortalResource{}
+	_ sdk.ResourceWithStateMigration              = SpringCloudAPIPortalResource{}
+	_ sdk.ResourceWithDeprecationAndNoReplacement = SpringCloudAPIPortalResource{}
+)
 
 func (s SpringCloudAPIPortalResource) ResourceType() string {
 	return "azurerm_spring_cloud_api_portal"
 }
 
-func (s SpringCloudAPIPortalResource) ModelObject() interface{} {
+func (s SpringCloudAPIPortalResource) ModelObject() any {
 	return &SpringCloudAPIPortalModel{}
 }
 
@@ -171,12 +178,14 @@ func (s SpringCloudAPIPortalResource) Create() sdk.ResourceFunc {
 			}
 			id := appplatform.NewApiPortalID(springId.SubscriptionId, springId.ResourceGroupName, springId.ServiceName, model.Name)
 
-			existing, err := client.ApiPortalsGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(s.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.ApiPortalsGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(s.ResourceType(), id)
+				}
 			}
 
 			service, err := client.ServicesGet(ctx, *springId)
@@ -206,15 +215,15 @@ func (s SpringCloudAPIPortalResource) Create() sdk.ResourceFunc {
 				Sku: &appplatform.Sku{
 					Name:     service.Model.Sku.Name,
 					Tier:     service.Model.Sku.Tier,
-					Capacity: pointer.To(int64(model.InstanceCount)),
+					Capacity: pointer.To(model.InstanceCount),
 				},
 			}
-			err = client.ApiPortalsCreateOrUpdateThenPoll(ctx, id, apiPortalResource)
-			if err != nil {
+
+			if err := client.ApiPortalsCreateOrUpdateCallbackThenPoll(ctx, id, apiPortalResource, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}
@@ -271,7 +280,7 @@ func (s SpringCloudAPIPortalResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("instance_count") {
-				sku.Capacity = pointer.To(int64(model.InstanceCount))
+				sku.Capacity = pointer.To(model.InstanceCount)
 			}
 
 			if metadata.ResourceData.HasChange("api_try_out_enabled") {
@@ -286,8 +295,7 @@ func (s SpringCloudAPIPortalResource) Update() sdk.ResourceFunc {
 				Properties: properties,
 				Sku:        sku,
 			}
-			err = client.ApiPortalsCreateOrUpdateThenPoll(ctx, *id, apiPortalResource)
-			if err != nil {
+			if err = client.ApiPortalsCreateOrUpdateThenPoll(ctx, *id, apiPortalResource); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -336,7 +344,7 @@ func (s SpringCloudAPIPortalResource) Read() sdk.ResourceFunc {
 				}
 
 				if sku := resp.Model.Sku; sku != nil {
-					state.InstanceCount = int(pointer.From(sku.Capacity))
+					state.InstanceCount = pointer.From(sku.Capacity)
 				}
 			}
 			return metadata.Encode(&state)
@@ -355,8 +363,7 @@ func (s SpringCloudAPIPortalResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			err = client.ApiPortalsDeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.ApiPortalsDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -413,7 +420,7 @@ func flattenAPIPortalSsoProperties(input *appplatform.SsoProperties, old []ApiPo
 
 func flattenSpringCloudAPIPortalGatewayIds(ids *[]string) []string {
 	if ids == nil || len(*ids) == 0 {
-		return nil
+		return []string{}
 	}
 	out := make([]string, 0)
 	for _, id := range *ids {

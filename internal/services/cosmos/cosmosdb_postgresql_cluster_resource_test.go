@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos_test
@@ -9,26 +9,28 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CosmosDbPostgreSQLClusterResource struct{}
+type CosmosdbPostgresqlClusterResource struct{}
 
 func TestAccCosmosDbPostgreSQLCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_cluster", "test")
-	r := CosmosDbPostgreSQLClusterResource{}
+	r := CosmosdbPostgresqlClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("servers.0.fqdn").IsNotEmpty(),
+				check.That(data.ResourceName).Key("servers.0.name").IsNotEmpty(),
 			),
 		},
 		data.ImportStep("administrator_login_password"),
@@ -37,7 +39,7 @@ func TestAccCosmosDbPostgreSQLCluster_basic(t *testing.T) {
 
 func TestAccCosmosDbPostgreSQLCluster_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_cluster", "test")
-	r := CosmosDbPostgreSQLClusterResource{}
+	r := CosmosdbPostgresqlClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -52,7 +54,7 @@ func TestAccCosmosDbPostgreSQLCluster_requiresImport(t *testing.T) {
 
 func TestAccCosmosDbPostgreSQLCluster_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_cluster", "test")
-	r := CosmosDbPostgreSQLClusterResource{}
+	r := CosmosdbPostgresqlClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -67,7 +69,7 @@ func TestAccCosmosDbPostgreSQLCluster_complete(t *testing.T) {
 
 func TestAccCosmosDbPostgreSQLCluster_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_cluster", "test")
-	r := CosmosDbPostgreSQLClusterResource{}
+	r := CosmosdbPostgresqlClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -89,7 +91,7 @@ func TestAccCosmosDbPostgreSQLCluster_update(t *testing.T) {
 
 func TestAccCosmosDbPostgreSQLCluster_withSourceCluster(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_cluster", "test")
-	r := CosmosDbPostgreSQLClusterResource{}
+	r := CosmosdbPostgresqlClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -110,7 +112,7 @@ func TestAccCosmosDbPostgreSQLCluster_withSourceCluster(t *testing.T) {
 	})
 }
 
-func (r CosmosDbPostgreSQLClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r CosmosdbPostgresqlClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := clusters.ParseServerGroupsv2ID(state.ID)
 	if err != nil {
 		return nil, err
@@ -120,14 +122,14 @@ func (r CosmosDbPostgreSQLClusterResource) Exists(ctx context.Context, clients *
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
-func (r CosmosDbPostgreSQLClusterResource) template(data acceptance.TestData) string {
+func (r CosmosdbPostgresqlClusterResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -140,7 +142,7 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r CosmosDbPostgreSQLClusterResource) basic(data acceptance.TestData) string {
+func (r CosmosdbPostgresqlClusterResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -156,7 +158,7 @@ resource "azurerm_cosmosdb_postgresql_cluster" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CosmosDbPostgreSQLClusterResource) requiresImport(data acceptance.TestData) string {
+func (r CosmosdbPostgresqlClusterResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -172,7 +174,7 @@ resource "azurerm_cosmosdb_postgresql_cluster" "import" {
 `, r.basic(data))
 }
 
-func (r CosmosDbPostgreSQLClusterResource) complete(data acceptance.TestData) string {
+func (r CosmosdbPostgresqlClusterResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -212,7 +214,7 @@ resource "azurerm_cosmosdb_postgresql_cluster" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CosmosDbPostgreSQLClusterResource) update(data acceptance.TestData) string {
+func (r CosmosdbPostgresqlClusterResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -252,7 +254,7 @@ resource "azurerm_cosmosdb_postgresql_cluster" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CosmosDbPostgreSQLClusterResource) withSourceCluster(data acceptance.TestData) string {
+func (r CosmosdbPostgresqlClusterResource) withSourceCluster(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

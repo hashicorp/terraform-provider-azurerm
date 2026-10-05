@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor_test
@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MonitorDataCollectionRuleResource struct{}
@@ -28,11 +28,11 @@ func (r MonitorDataCollectionRuleResource) Exists(ctx context.Context, client *c
 	resp, err := client.Monitor.DataCollectionRulesClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func TestAccMonitorDataCollectionRule_basic(t *testing.T) {
@@ -119,7 +119,7 @@ func TestAccMonitorDataCollectionRule_requiresImport(t *testing.T) {
 
 func TestAccMonitorDataCollectionRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_data_collection_rule", "test")
-	// https://learn.microsoft.com/en-us/azure/azure-monitor/logs/ingest-logs-event-hub#supported-regions
+	// https://learn.microsoft.com/azure/azure-monitor/logs/ingest-logs-event-hub#supported-regions
 	data.Locations.Primary = "westeurope"
 	r := MonitorDataCollectionRuleResource{}
 
@@ -157,7 +157,7 @@ func TestAccMonitorDataCollectionRule_update(t *testing.T) {
 
 func TestAccMonitorDataCollectionRule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_data_collection_rule", "test")
-	// https://learn.microsoft.com/en-us/azure/azure-monitor/logs/ingest-logs-event-hub#supported-regions
+	// https://learn.microsoft.com/azure/azure-monitor/logs/ingest-logs-event-hub#supported-regions
 	data.Locations.Primary = "westeurope"
 	r := MonitorDataCollectionRuleResource{}
 
@@ -195,7 +195,7 @@ resource "azurerm_monitor_data_collection_rule" "test" {
 
 func (r MonitorDataCollectionRuleResource) kindDirectToStore(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%[1]s
+	%[1]s
 
 resource "azurerm_eventhub_namespace" "test" {
   name                = "acceventn%[2]d"
@@ -206,11 +206,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "accevent%[2]d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 2
-  message_retention   = 1
+  name              = "accevent%[2]d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 1
 }
 
 resource "azurerm_storage_account" "test" {
@@ -227,13 +226,13 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "acccontainer%[2]d"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
 resource "azurerm_storage_table" "test" {
-  name                 = "acctable%[2]d"
-  storage_account_name = azurerm_storage_account.test.name
+  name               = "acctable%[2]d"
+  storage_account_id = azurerm_storage_account.test.id
 }
 
 resource "azurerm_monitor_data_collection_rule" "test" {
@@ -282,7 +281,7 @@ resource "azurerm_monitor_data_collection_rule" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomString)
+	`, r.template(data), data.RandomInteger, data.RandomString)
 }
 
 func (r MonitorDataCollectionRuleResource) kindWorkspaceTransforms(data acceptance.TestData) string {
@@ -469,7 +468,7 @@ resource "azurerm_monitor_data_collection_rule" "test" {
 
 func (r MonitorDataCollectionRuleResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%[1]s
+	%[1]s
 
 resource "azurerm_user_assigned_identity" "test" {
   name                = "acctestuai-%[2]d"
@@ -506,11 +505,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "accevent%[2]d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 2
-  message_retention   = 1
+  name              = "accevent%[2]d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 1
 }
 
 resource "azurerm_storage_account" "test" {
@@ -527,7 +525,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "acccontainer%[2]d"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -581,13 +579,6 @@ resource "azurerm_monitor_data_collection_rule" "test" {
   data_flow {
     streams      = ["Microsoft-Event", "Microsoft-WindowsEvent"]
     destinations = ["test-destination-log"]
-  }
-
-  data_flow {
-    streams       = ["Custom-MyTableRawData"]
-    destinations  = ["test-destination-log"]
-    output_stream = "Microsoft-Syslog"
-    transform_kql = "source | project TimeGenerated = Time, Computer, Message = AdditionalContext"
   }
 
   data_sources {
@@ -666,6 +657,19 @@ resource "azurerm_monitor_data_collection_rule" "test" {
       name = "test-datasource-perfcounter2"
     }
 
+    performance_counter {
+      streams                       = ["Microsoft-Perf"]
+      sampling_frequency_in_seconds = 1800
+      counter_specifiers = [
+        "Memory(*)\\Available MBytes Memory",
+        "Memory(*)\\%% Available Memory",
+        "Memory(*)\\Used Memory MBytes",
+        "Memory(*)\\%% Used Memory",
+        "Memory(*)\\Pages/sec"
+      ]
+      name = "test-datasource-perfcounter3"
+    }
+
     prometheus_forwarder {
       label_include_filter {
         label = "microsoft_metrics_include_label"
@@ -673,11 +677,6 @@ resource "azurerm_monitor_data_collection_rule" "test" {
       }
       streams = ["Microsoft-PrometheusMetrics"]
       name    = "test-datasource-prometheus"
-    }
-
-    platform_telemetry {
-      streams = ["Microsoft.Cache/redis:Metrics-Group-All"]
-      name    = "test-datasource-telemetry"
     }
 
     windows_event_log {
@@ -750,7 +749,7 @@ resource "azurerm_monitor_data_collection_rule" "test" {
     azurerm_log_analytics_solution.test,
   ]
 }
-`, r.template(data), data.RandomInteger, data.RandomString)
+	`, r.template(data), data.RandomInteger, data.RandomString)
 }
 
 func (r MonitorDataCollectionRuleResource) requiresImport(data acceptance.TestData) string {

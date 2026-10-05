@@ -45,7 +45,9 @@ func (c ServersClient) List(ctx context.Context, id commonids.SubscriptionId) (r
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AnalysisServicesServers
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

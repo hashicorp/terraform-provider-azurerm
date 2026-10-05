@@ -44,6 +44,7 @@ func (o GenerateVerificationCodeOperationOptions) ToHeaders() *client.Headers {
 
 func (o GenerateVerificationCodeOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -84,8 +85,8 @@ func (c DpsCertificateClient) GenerateVerificationCode(ctx context.Context, id C
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/generateVerificationCode", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/generateVerificationCode", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -103,7 +104,9 @@ func (c DpsCertificateClient) GenerateVerificationCode(ctx context.Context, id C
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model VerificationCodeResponse
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

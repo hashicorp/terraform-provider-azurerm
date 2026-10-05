@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package eventgrid
@@ -15,20 +15,20 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/topics"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/topics"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceEventGridTopic() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceEventGridTopicCreateUpdate,
+		Create: resourceEventGridTopicCreate,
 		Read:   resourceEventGridTopicRead,
-		Update: resourceEventGridTopicCreateUpdate,
+		Update: resourceEventGridTopicUpdate,
 		Delete: resourceEventGridTopicDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -155,8 +155,8 @@ func resourceEventGridTopic() *pluginsdk.Resource {
 			"inbound_ip_rule": {
 				Type:       pluginsdk.TypeList,
 				Optional:   true,
-				MaxItems:   128,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				MaxItems:   128,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"ip_mask": {
@@ -164,12 +164,10 @@ func resourceEventGridTopic() *pluginsdk.Resource {
 							Required: true,
 						},
 						"action": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(topics.IPActionTypeAllow),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(topics.IPActionTypeAllow),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(topics.IPActionTypeAllow),
+							ValidateFunc: validation.StringInSlice(topics.PossibleValuesForIPActionType(), false),
 						},
 					},
 				},
@@ -197,15 +195,15 @@ func resourceEventGridTopic() *pluginsdk.Resource {
 	}
 }
 
-func resourceEventGridTopicCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventGridTopicCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).EventGrid.Topics
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := topics.NewTopicID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -218,7 +216,7 @@ func resourceEventGridTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		}
 	}
 
-	inboundIPRules := expandTopicInboundIPRules(d.Get("inbound_ip_rule").([]interface{}))
+	inboundIPRules := expandTopicInboundIPRules(d.Get("inbound_ip_rule").([]any))
 	publicNetworkAccess := topics.PublicNetworkAccessDisabled
 	if v, ok := d.GetOk("public_network_access_enabled"); ok && v.(bool) {
 		publicNetworkAccess = topics.PublicNetworkAccessEnabled
@@ -228,16 +226,16 @@ func resourceEventGridTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &topics.TopicProperties{
 			InputSchemaMapping:  expandTopicInputMapping(d),
-			InputSchema:         pointer.To(topics.InputSchema(d.Get("input_schema").(string))),
+			InputSchema:         pointer.ToEnum[topics.InputSchema](d.Get("input_schema").(string)),
 			PublicNetworkAccess: pointer.To(publicNetworkAccess),
 			InboundIPRules:      inboundIPRules,
-			DisableLocalAuth:    utils.Bool(!d.Get("local_auth_enabled").(bool)),
+			DisableLocalAuth:    pointer.To(!d.Get("local_auth_enabled").(bool)),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v, ok := d.GetOk("identity"); ok {
-		identityRaw := v.([]interface{})
+		identityRaw := v.([]any)
 		identity, err := identity.ExpandSystemAndUserAssignedMap(identityRaw)
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
@@ -245,7 +243,7 @@ func resourceEventGridTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		topic.Identity = identity
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, topic); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, topic, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -253,7 +251,61 @@ func resourceEventGridTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	return resourceEventGridTopicRead(d, meta)
 }
 
-func resourceEventGridTopicRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventGridTopicUpdate(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).EventGrid.Topics
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := topics.ParseTopicID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	payload := topics.TopicUpdateParameters{Properties: &topics.TopicUpdateParameterProperties{}}
+
+	if d.HasChange("identity") {
+		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		payload.Identity = expandedIdentity
+	}
+
+	if d.HasChange("public_network_access_enabled") {
+		publicNetworkAccess := topics.PublicNetworkAccessDisabled
+		if d.Get("public_network_access_enabled").(bool) {
+			publicNetworkAccess = topics.PublicNetworkAccessEnabled
+		}
+
+		payload.Properties.PublicNetworkAccess = pointer.To(publicNetworkAccess)
+	}
+
+	if d.HasChange("local_auth_enabled") {
+		payload.Properties.DisableLocalAuth = pointer.To(!d.Get("local_auth_enabled").(bool))
+	}
+
+	if d.HasChange("inbound_ip_rule") {
+		inboundIpRule := d.Get("inbound_ip_rule").([]any)
+
+		if len(inboundIpRule) == 0 {
+			payload.Properties.InboundIPRules = pointer.To([]topics.InboundIPRule{})
+		} else {
+			payload.Properties.InboundIPRules = expandTopicInboundIPRules(inboundIpRule)
+		}
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
+	}
+
+	if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	return resourceEventGridTopicRead(d, meta)
+}
+
+func resourceEventGridTopicRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).EventGrid.Topics
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -287,15 +339,13 @@ func resourceEventGridTopicRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 		if props := model.Properties; props != nil {
 			d.Set("endpoint", props.Endpoint)
-			d.Set("input_schema", string(pointer.From(props.InputSchema)))
+			d.Set("input_schema", pointer.FromEnum(props.InputSchema))
 
-			inputMappingFields := flattenTopicInputMapping(props.InputSchemaMapping)
-			if err := d.Set("input_mapping_fields", inputMappingFields); err != nil {
+			if err := d.Set("input_mapping_fields", flattenTopicInputMapping(props.InputSchemaMapping)); err != nil {
 				return fmt.Errorf("setting `input_schema_mapping_fields`: %+v", err)
 			}
 
-			inputMappingDefaultValues := flattenTopicInputMappingDefaultValues(props.InputSchemaMapping)
-			if err := d.Set("input_mapping_default_values", inputMappingDefaultValues); err != nil {
+			if err := d.Set("input_mapping_default_values", flattenTopicInputMappingDefaultValues(props.InputSchemaMapping)); err != nil {
 				return fmt.Errorf("setting `input_schema_mapping_fields`: %+v", err)
 			}
 
@@ -305,8 +355,7 @@ func resourceEventGridTopicRead(d *pluginsdk.ResourceData, meta interface{}) err
 			}
 			d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
 
-			inboundIPRules := flattenTopicInboundIPRules(props.InboundIPRules)
-			if err := d.Set("inbound_ip_rule", inboundIPRules); err != nil {
+			if err := d.Set("inbound_ip_rule", flattenTopicInboundIPRules(props.InboundIPRules)); err != nil {
 				return fmt.Errorf("setting `inbound_ip_rule`: %+v", err)
 			}
 
@@ -339,7 +388,7 @@ func resourceEventGridTopicRead(d *pluginsdk.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceEventGridTopicDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventGridTopicDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).EventGrid.Topics
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -368,9 +417,9 @@ func expandTopicInputMapping(d *pluginsdk.ResourceData) *topics.JsonInputSchemaM
 	jismp := topics.JsonInputSchemaMappingProperties{}
 
 	if imfok {
-		mappings := imf.([]interface{})
+		mappings := imf.([]any)
 		if len(mappings) > 0 && mappings[0] != nil {
-			if mapping := mappings[0].(map[string]interface{}); mapping != nil {
+			if mapping := mappings[0].(map[string]any); mapping != nil {
 				if id := mapping["id"].(string); id != "" {
 					jismp.Id = &topics.JsonField{
 						SourceField: &id,
@@ -411,9 +460,9 @@ func expandTopicInputMapping(d *pluginsdk.ResourceData) *topics.JsonInputSchemaM
 	}
 
 	if imdvok {
-		mappings := imdv.([]interface{})
+		mappings := imdv.([]any)
 		if len(mappings) > 0 && mappings[0] != nil {
-			if mapping := mappings[0].(map[string]interface{}); mapping != nil {
+			if mapping := mappings[0].(map[string]any); mapping != nil {
 				if dataVersion := mapping["data_version"].(string); dataVersion != "" {
 					if v := jismp.DataVersion; v != nil && v.SourceField != nil {
 						jismp.DataVersion = &topics.JsonFieldWithDefault{
@@ -461,10 +510,10 @@ func expandTopicInputMapping(d *pluginsdk.ResourceData) *topics.JsonInputSchemaM
 	}
 }
 
-func flattenTopicInputMapping(input topics.InputSchemaMapping) []interface{} {
+func flattenTopicInputMapping(input topics.InputSchemaMapping) []any {
 	val, ok := input.(topics.JsonInputSchemaMapping)
 	if !ok {
-		return []interface{}{}
+		return []any{}
 	}
 
 	dataVersion := ""
@@ -499,8 +548,8 @@ func flattenTopicInputMapping(input topics.InputSchemaMapping) []interface{} {
 		}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"data_version": dataVersion,
 			"event_time":   eventTime,
 			"event_type":   eventType,
@@ -511,10 +560,10 @@ func flattenTopicInputMapping(input topics.InputSchemaMapping) []interface{} {
 	}
 }
 
-func flattenTopicInputMappingDefaultValues(input topics.InputSchemaMapping) []interface{} {
+func flattenTopicInputMappingDefaultValues(input topics.InputSchemaMapping) []any {
 	val, ok := input.(topics.JsonInputSchemaMapping)
 	if !ok || val.Properties == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	dataVersion := ""
@@ -532,8 +581,8 @@ func flattenTopicInputMappingDefaultValues(input topics.InputSchemaMapping) []in
 		}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"data_version": dataVersion,
 			"event_type":   eventType,
 			"subject":      subject,
@@ -541,24 +590,24 @@ func flattenTopicInputMappingDefaultValues(input topics.InputSchemaMapping) []in
 	}
 }
 
-func expandTopicInboundIPRules(input []interface{}) *[]topics.InboundIPRule {
+func expandTopicInboundIPRules(input []any) *[]topics.InboundIPRule {
 	if len(input) == 0 {
 		return nil
 	}
 
 	rules := make([]topics.InboundIPRule, 0)
 	for _, item := range input {
-		rawRule := item.(map[string]interface{})
+		rawRule := item.(map[string]any)
 		rules = append(rules, topics.InboundIPRule{
-			Action: pointer.To(topics.IPActionType(rawRule["action"].(string))),
-			IPMask: utils.String(rawRule["ip_mask"].(string)),
+			Action: pointer.ToEnum[topics.IPActionType](rawRule["action"].(string)),
+			IPMask: pointer.To(rawRule["ip_mask"].(string)),
 		})
 	}
 	return &rules
 }
 
-func flattenTopicInboundIPRules(input *[]topics.InboundIPRule) []interface{} {
-	rules := make([]interface{}, 0)
+func flattenTopicInboundIPRules(input *[]topics.InboundIPRule) []any {
+	rules := make([]any, 0)
 	if input == nil {
 		return rules
 	}
@@ -569,7 +618,7 @@ func flattenTopicInboundIPRules(input *[]topics.InboundIPRule) []interface{} {
 			action = string(*r.Action)
 		}
 
-		rules = append(rules, map[string]interface{}{
+		rules = append(rules, map[string]any{
 			"action":  action,
 			"ip_mask": pointer.From(r.IPMask),
 		})

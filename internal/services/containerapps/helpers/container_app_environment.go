@@ -1,30 +1,74 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
 
 import (
-	"strings"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/managedenvironments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-const consumption = "Consumption"
+type WorkloadProfileSku string
+
+// NOTE: the Workload Profile SKUs aren't defined in the Swagger definition so we define them here
+const (
+	WorkloadProfileSkuConsumption            WorkloadProfileSku = "Consumption"
+	WorkloadProfileSkuConsumptionGpuNc24A100 WorkloadProfileSku = "Consumption-GPU-NC24-A100"
+	WorkloadProfileSkuConsumptionGpuNc8AsT4  WorkloadProfileSku = "Consumption-GPU-NC8as-T4"
+	WorkloadProfileSkuD4                     WorkloadProfileSku = "D4"
+	WorkloadProfileSkuD8                     WorkloadProfileSku = "D8"
+	WorkloadProfileSkuD16                    WorkloadProfileSku = "D16"
+	WorkloadProfileSkuD32                    WorkloadProfileSku = "D32"
+	WorkloadProfileSkuE4                     WorkloadProfileSku = "E4"
+	WorkloadProfileSkuE8                     WorkloadProfileSku = "E8"
+	WorkloadProfileSkuE16                    WorkloadProfileSku = "E16"
+	WorkloadProfileSkuE32                    WorkloadProfileSku = "E32"
+	WorkloadProfileSkuNc24A100               WorkloadProfileSku = "NC24-A100"
+	WorkloadProfileSkuNc48A100               WorkloadProfileSku = "NC48-A100"
+	WorkloadProfileSkuNc96A100               WorkloadProfileSku = "NC96-A100"
+)
+
+func PossibleValuesForWorkloadProfileSku() []string {
+	return []string{
+		string(WorkloadProfileSkuConsumption),
+		string(WorkloadProfileSkuConsumptionGpuNc24A100),
+		string(WorkloadProfileSkuConsumptionGpuNc8AsT4),
+		string(WorkloadProfileSkuD4),
+		string(WorkloadProfileSkuD8),
+		string(WorkloadProfileSkuD16),
+		string(WorkloadProfileSkuD32),
+		string(WorkloadProfileSkuE4),
+		string(WorkloadProfileSkuE8),
+		string(WorkloadProfileSkuE16),
+		string(WorkloadProfileSkuE32),
+		string(WorkloadProfileSkuNc24A100),
+		string(WorkloadProfileSkuNc48A100),
+		string(WorkloadProfileSkuNc96A100),
+	}
+}
 
 type WorkloadProfileModel struct {
-	MaximumCount        int    `tfschema:"maximum_count"`
-	MinimumCount        int    `tfschema:"minimum_count"`
+	MaximumCount        int64  `tfschema:"maximum_count"`
+	MinimumCount        int64  `tfschema:"minimum_count"`
 	Name                string `tfschema:"name"`
 	WorkloadProfileType string `tfschema:"workload_profile_type"`
 }
 
 func WorkloadProfileSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeSet,
-		Optional: true,
+		Type:                  pluginsdk.TypeSet,
+		Optional:              true,
+		DiffSuppressOnRefresh: true,
+		DiffSuppressFunc: func(k, _, _ string, d *pluginsdk.ResourceData) bool {
+			o, n := d.GetChange("workload_profile")
+
+			oldProfiles := o.(*pluginsdk.Set)
+			newProfiles := n.(*pluginsdk.Set)
+
+			return OneAdditionalConsumptionProfileReturnedByAPI(oldProfiles, newProfiles)
+		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
@@ -34,28 +78,19 @@ func WorkloadProfileSchema() *pluginsdk.Schema {
 				},
 
 				"workload_profile_type": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						"D4",
-						"D8",
-						"D16",
-						"D32",
-						"E4",
-						"E8",
-						"E16",
-						"E32",
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(PossibleValuesForWorkloadProfileSku(), false),
 				},
 
 				"maximum_count": {
 					Type:     pluginsdk.TypeInt,
-					Required: true,
+					Optional: true,
 				},
 
 				"minimum_count": {
 					Type:     pluginsdk.TypeInt,
-					Required: true,
+					Optional: true,
 				},
 			},
 		},
@@ -71,22 +106,19 @@ func ExpandWorkloadProfiles(input []WorkloadProfileModel) *[]managedenvironments
 
 	for _, v := range input {
 		r := managedenvironments.WorkloadProfile{
-			Name:                v.Name,
-			WorkloadProfileType: v.WorkloadProfileType,
+			Name: v.Name,
 		}
 
-		if v.Name != consumption {
-			r.MaximumCount = pointer.To(int64(v.MaximumCount))
-			r.MinimumCount = pointer.To(int64(v.MinimumCount))
+		if v.Name != string(WorkloadProfileSkuConsumption) {
+			r.WorkloadProfileType = v.WorkloadProfileType
+			r.MaximumCount = pointer.To(v.MaximumCount)
+			r.MinimumCount = pointer.To(v.MinimumCount)
+		} else {
+			r.WorkloadProfileType = string(WorkloadProfileSkuConsumption)
 		}
 
 		result = append(result, r)
 	}
-
-	result = append(result, managedenvironments.WorkloadProfile{
-		Name:                consumption,
-		WorkloadProfileType: consumption,
-	})
 
 	return &result
 }
@@ -98,16 +130,35 @@ func FlattenWorkloadProfiles(input *[]managedenvironments.WorkloadProfile) []Wor
 	result := make([]WorkloadProfileModel, 0)
 
 	for _, v := range *input {
-		if strings.EqualFold(v.WorkloadProfileType, consumption) {
-			continue
-		}
 		result = append(result, WorkloadProfileModel{
 			Name:                v.Name,
-			MaximumCount:        int(pointer.From(v.MaximumCount)),
-			MinimumCount:        int(pointer.From(v.MinimumCount)),
+			MaximumCount:        pointer.From(v.MaximumCount),
+			MinimumCount:        pointer.From(v.MinimumCount),
 			WorkloadProfileType: v.WorkloadProfileType,
 		})
 	}
 
 	return result
+}
+
+func OneAdditionalConsumptionProfileReturnedByAPI(returnedProfiles, definedProfiles *pluginsdk.Set) bool {
+	// if 1 more profile is returned by the API than is defined, then check if it is a consumption profile
+	if returnedProfiles.Len() == definedProfiles.Len()+1 {
+		// check if we have defined a consumption profile
+		for _, v := range definedProfiles.List() {
+			profile := v.(map[string]any)
+			if profile["workload_profile_type"].(string) == string(WorkloadProfileSkuConsumption) {
+				return false
+			}
+		}
+
+		// now that we know there are no consumption profiles defined in the config, check if the API returned a consumption profile
+		for _, v := range returnedProfiles.List() {
+			profile := v.(map[string]any)
+			if profile["workload_profile_type"].(string) == string(WorkloadProfileSkuConsumption) {
+				return true
+			}
+		}
+	}
+	return false
 }

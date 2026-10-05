@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud_test
@@ -9,12 +9,12 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SpringCloudCustomDomainResource struct{}
@@ -114,17 +114,17 @@ func TestAccSpringCloudCustomDomain_update(t *testing.T) {
 }
 
 func (r SpringCloudCustomDomainResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.SpringCloudCustomDomainID(state.ID)
+	id, err := appplatform.ParseDomainID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.AppPlatform.CustomDomainsClient.Get(ctx, id.ResourceGroup, id.SpringName, id.AppName, id.DomainName)
+	resp, err := clients.AppPlatform.CustomDomainsClient.Get(ctx, id.ResourceGroupName, id.SpringName, id.AppName, id.DomainName)
 	if err != nil {
-		return nil, fmt.Errorf("reading Spring Cloud Custom Domain %q (Spring Cloud Service %q / App %q / Resource Group %q): %+v", id.DomainName, id.SpringName, id.AppName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("reading Spring Cloud Custom Domain %q (Spring Cloud Service %q / App %q / Resource Group %q): %+v", id.DomainName, id.SpringName, id.AppName, id.ResourceGroupName, err)
 	}
 
-	return utils.Bool(resp.Properties != nil), nil
+	return pointer.To(resp.Properties != nil), nil
 }
 
 func (r SpringCloudCustomDomainResource) basic(data acceptance.TestData) string {
@@ -161,11 +161,12 @@ data "azuread_service_principal" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestkeyvault%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctestkeyvault%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 
   access_policy {
     tenant_id               = data.azurerm_client_config.current.tenant_id

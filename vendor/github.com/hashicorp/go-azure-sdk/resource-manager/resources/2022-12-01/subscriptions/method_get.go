@@ -44,7 +44,9 @@ func (c SubscriptionsClient) Get(ctx context.Context, id commonids.SubscriptionI
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Subscription
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

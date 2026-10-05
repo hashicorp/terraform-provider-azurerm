@@ -49,7 +49,9 @@ func (c QueryPacksClient) CreateOrUpdateWithoutName(ctx context.Context, id comm
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model LogAnalyticsQueryPack
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

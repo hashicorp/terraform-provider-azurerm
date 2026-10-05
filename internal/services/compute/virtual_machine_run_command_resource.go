@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -22,12 +22,14 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var _ sdk.Resource = VirtualMachineRunCommandResource{}
-var _ sdk.ResourceWithUpdate = VirtualMachineRunCommandResource{}
+var (
+	_ sdk.Resource           = VirtualMachineRunCommandResource{}
+	_ sdk.ResourceWithUpdate = VirtualMachineRunCommandResource{}
+)
 
 type VirtualMachineRunCommandResource struct{}
 
-func (r VirtualMachineRunCommandResource) ModelObject() interface{} {
+func (r VirtualMachineRunCommandResource) ModelObject() any {
 	return &VirtualMachineRunCommandResourceSchema{}
 }
 
@@ -44,7 +46,7 @@ type VirtualMachineRunCommandResourceSchema struct {
 	RunAsPassword             string                                          `tfschema:"run_as_password"`
 	RunAsUser                 string                                          `tfschema:"run_as_user"`
 	Source                    []VirtualMachineRunCommandScriptSourceSchema    `tfschema:"source"`
-	Tags                      map[string]interface{}                          `tfschema:"tags"`
+	Tags                      map[string]any                                  `tfschema:"tags"`
 	VirtualMachineId          string                                          `tfschema:"virtual_machine_id"`
 }
 
@@ -54,7 +56,7 @@ type VirtualMachineRunCommandInputParameterSchema struct {
 }
 
 type VirtualMachineRunCommandInstanceViewSchema struct {
-	ExitCode         int    `tfschema:"exit_code"`
+	ExitCode         int64  `tfschema:"exit_code"`
 	executionState   string `tfschema:"execution_state"`
 	executionMessage string `tfschema:"execution_message"`
 	output           string `tfschema:"output"`
@@ -304,7 +306,6 @@ func (r VirtualMachineRunCommandResource) Arguments() map[string]*pluginsdk.Sche
 
 		"tags": commonschema.Tags(),
 	}
-
 }
 
 func (r VirtualMachineRunCommandResource) Attributes() map[string]*pluginsdk.Schema {
@@ -368,14 +369,16 @@ func (r VirtualMachineRunCommandResource) Create() sdk.ResourceFunc {
 
 			id := virtualmachineruncommands.NewVirtualMachineRunCommandID(subscriptionId, virtualMachineId.ResourceGroupName, virtualMachineId.VirtualMachineName, config.Name)
 
-			existing, err := client.GetByVirtualMachine(ctx, id, virtualmachineruncommands.DefaultGetByVirtualMachineOperationOptions())
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetByVirtualMachine(ctx, id, virtualmachineruncommands.DefaultGetByVirtualMachineOperationOptions())
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			payload := virtualmachineruncommands.VirtualMachineRunCommand{
@@ -400,18 +403,10 @@ func (r VirtualMachineRunCommandResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			result, err := client.CreateOrUpdate(ctx, id, payload)
-			if err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
-			// the resource still exists if polling fails
 			metadata.SetID(id)
-
-			if err := result.Poller.PollUntilDone(ctx); err != nil {
-				return fmt.Errorf("running the command: %+v", err)
-			}
-
 			return nil
 		},
 	}
@@ -515,17 +510,24 @@ func (r VirtualMachineRunCommandResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
+			resp, err := client.GetByVirtualMachine(ctx, *id, virtualmachineruncommands.GetByVirtualMachineOperationOptions{
+				// otherwise, the response will not contain instanceView
+				Expand: pointer.To("instanceView"),
+			})
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+			if resp.Model == nil {
+				return fmt.Errorf("unexpected null model of %s", *id)
+			}
+			payload := resp.Model
+			if payload.Properties == nil {
+				return fmt.Errorf("unexpected null properties of %s", *id)
+			}
+
 			var config VirtualMachineRunCommandResourceSchema
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
-			}
-
-			payload := virtualmachineruncommands.VirtualMachineRunCommandUpdate{
-				Properties: &virtualmachineruncommands.VirtualMachineRunCommandProperties{
-					TreatFailureAsDeploymentFailure: pointer.To(true),
-					AsyncExecution:                  pointer.To(false),
-					TimeoutInSeconds:                pointer.To(int64(metadata.ResourceData.Timeout(pluginsdk.TimeoutUpdate).Seconds())),
-				},
 			}
 
 			if metadata.ResourceData.HasChange("error_blob_managed_identity") {
@@ -568,7 +570,7 @@ func (r VirtualMachineRunCommandResource) Update() sdk.ResourceFunc {
 				payload.Tags = tags.Expand(config.Tags)
 			}
 
-			if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -586,7 +588,6 @@ func expandVirtualMachineRunCommandInputParameter(input []VirtualMachineRunComma
 			Value: v.Value,
 		}
 		output = append(output, parameter)
-
 	}
 	return &output
 }
@@ -603,7 +604,6 @@ func flattenVirtualMachineRunCommandInputParameter(input *[]virtualmachineruncom
 			Value: v.Value,
 		}
 		output = append(output, parameter)
-
 	}
 
 	return output
@@ -680,8 +680,8 @@ func flattenVirtualMachineRunCommandInstanceView(input *virtualmachineruncommand
 
 	return []VirtualMachineRunCommandInstanceViewSchema{
 		{
-			ExitCode:         int(pointer.From(input.ExitCode)),
-			executionState:   string(pointer.From(input.ExecutionState)),
+			ExitCode:         pointer.From(input.ExitCode),
+			executionState:   pointer.FromEnum(input.ExecutionState),
 			executionMessage: pointer.From(input.ExecutionMessage),
 			output:           pointer.From(input.Output),
 			errorMessage:     pointer.From(input.Error),

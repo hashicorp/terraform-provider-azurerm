@@ -28,6 +28,9 @@ type RequestOptions struct {
 
 	// Path is the absolute URI for this request, with a leading slash.
 	Path string
+
+	// RetryFunc is an optional function to determine whether a request should be automatically retried
+	RetryFunc RequestRetryFunc
 }
 
 func (ro RequestOptions) Validate() error {

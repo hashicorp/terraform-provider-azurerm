@@ -44,7 +44,9 @@ func (c ProvidersClient) Unregister(ctx context.Context, id SubscriptionProvider
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Provider
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

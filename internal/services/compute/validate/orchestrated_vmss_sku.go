@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -8,7 +8,11 @@ import (
 	"strings"
 )
 
-func OrchestratedVirtualMachineScaleSetSku(input interface{}, key string) (warnings []string, errors []error) {
+const (
+	SkuNameMix = "Mix"
+)
+
+func OrchestratedVirtualMachineScaleSetSku(input any, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
@@ -17,7 +21,7 @@ func OrchestratedVirtualMachineScaleSetSku(input interface{}, key string) (warni
 
 	skuParts := strings.Split(v, "_")
 
-	if len(skuParts) < 2 || strings.Contains(v, "__") || strings.Contains(v, " ") {
+	if (input != SkuNameMix && len(skuParts) < 2) || strings.Contains(v, "__") || strings.Contains(v, " ") {
 		errors = append(errors, fmt.Errorf("%q is not formatted properly, got %q", key, v))
 	}
 

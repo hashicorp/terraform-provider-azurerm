@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managedapplications
@@ -20,14 +20,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceManagedApplicationDefinition() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceManagedApplicationDefinitionCreateUpdate,
+		Create: resourceManagedApplicationDefinitionCreate,
 		Read:   resourceManagedApplicationDefinitionRead,
-		Update: resourceManagedApplicationDefinitionCreateUpdate,
+		Update: resourceManagedApplicationDefinitionUpdate,
 		Delete: resourceManagedApplicationDefinitionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -57,18 +56,14 @@ func resourceManagedApplicationDefinition() *pluginsdk.Resource {
 			"display_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validate.ApplicationDefinitionDisplayName,
+				ValidateFunc: validation.StringLenBetween(4, 60),
 			},
 
 			"lock_level": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(applicationdefinitions.ApplicationLockLevelCanNotDelete),
-					string(applicationdefinitions.ApplicationLockLevelNone),
-					string(applicationdefinitions.ApplicationLockLevelReadOnly),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(applicationdefinitions.PossibleValuesForApplicationLockLevel(), false),
 			},
 
 			"authorization": {
@@ -103,7 +98,7 @@ func resourceManagedApplicationDefinition() *pluginsdk.Resource {
 			"description": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.ApplicationDefinitionDescription,
+				ValidateFunc: validation.StringLenBetween(0, 200),
 			},
 
 			"main_template": {
@@ -132,7 +127,7 @@ func resourceManagedApplicationDefinition() *pluginsdk.Resource {
 	}
 }
 
-func resourceManagedApplicationDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagedApplicationDefinitionCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ManagedApplication.ApplicationDefinitionClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -140,7 +135,7 @@ func resourceManagedApplicationDefinitionCreateUpdate(d *pluginsdk.ResourceData,
 
 	id := applicationdefinitions.NewApplicationDefinitionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -158,10 +153,10 @@ func resourceManagedApplicationDefinitionCreateUpdate(d *pluginsdk.ResourceData,
 			Authorizations: expandManagedApplicationDefinitionAuthorization(d.Get("authorization").(*pluginsdk.Set).List()),
 			Description:    pointer.To(d.Get("description").(string)),
 			DisplayName:    pointer.To(d.Get("display_name").(string)),
-			IsEnabled:      utils.Bool(d.Get("package_enabled").(bool)),
+			IsEnabled:      pointer.To(d.Get("package_enabled").(bool)),
 			LockLevel:      applicationdefinitions.ApplicationLockLevel(d.Get("lock_level").(string)),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v, ok := d.GetOk("create_ui_definition"); ok {
@@ -177,7 +172,7 @@ func resourceManagedApplicationDefinitionCreateUpdate(d *pluginsdk.ResourceData,
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
-		return fmt.Errorf("failed to create %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -185,7 +180,76 @@ func resourceManagedApplicationDefinitionCreateUpdate(d *pluginsdk.ResourceData,
 	return resourceManagedApplicationDefinitionRead(d, meta)
 }
 
-func resourceManagedApplicationDefinitionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagedApplicationDefinitionUpdate(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).ManagedApplication.ApplicationDefinitionClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := applicationdefinitions.ParseApplicationDefinitionID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	payload := existing.Model
+
+	if d.HasChange("description") {
+		payload.Properties.Description = pointer.To(d.Get("description").(string))
+	}
+
+	if d.HasChange("display_name") {
+		payload.Properties.DisplayName = pointer.To(d.Get("display_name").(string))
+	}
+
+	if d.HasChange("package_enabled") {
+		payload.Properties.IsEnabled = pointer.To(d.Get("package_enabled").(bool))
+	}
+
+	if d.HasChange("authorization") {
+		payload.Properties.Authorizations = expandManagedApplicationDefinitionAuthorization(d.Get("authorization").(*pluginsdk.Set).List())
+	}
+
+	if d.HasChange("create_ui_definition") {
+		// handle API error: The 'MainTemplate, CreateUiDefinition' properties should be empty if package zip file uri is provided.
+		if v, ok := d.GetOk("create_ui_definition"); ok {
+			payload.Properties.CreateUiDefinition = pointer.To(v)
+		} else {
+			payload.Properties.CreateUiDefinition = nil
+		}
+	}
+
+	if d.HasChange("main_template") {
+		// handle API error: The 'MainTemplate, CreateUiDefinition' properties should be empty if package zip file uri is provided.
+		if v, ok := d.GetOk("main_template"); ok {
+			payload.Properties.MainTemplate = pointer.To(v)
+		} else {
+			payload.Properties.MainTemplate = nil
+		}
+	}
+
+	if d.HasChange("package_file_uri") {
+		payload.Properties.PackageFileUri = pointer.To(d.Get("package_file_uri").(string))
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
+	}
+
+	// update payload only supports tags, so we'll continue using CreateOrUpdate method here
+	if _, err := client.CreateOrUpdate(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	return resourceManagedApplicationDefinitionRead(d, meta)
+}
+
+func resourceManagedApplicationDefinitionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ManagedApplication.ApplicationDefinitionClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -232,13 +296,15 @@ func resourceManagedApplicationDefinitionRead(d *pluginsdk.ResourceData, meta in
 			d.Set("package_file_uri", v.(string))
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
-func resourceManagedApplicationDefinitionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagedApplicationDefinitionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ManagedApplication.ApplicationDefinitionClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -255,10 +321,10 @@ func resourceManagedApplicationDefinitionDelete(d *pluginsdk.ResourceData, meta 
 	return nil
 }
 
-func expandManagedApplicationDefinitionAuthorization(input []interface{}) *[]applicationdefinitions.ApplicationAuthorization {
+func expandManagedApplicationDefinitionAuthorization(input []any) *[]applicationdefinitions.ApplicationAuthorization {
 	results := make([]applicationdefinitions.ApplicationAuthorization, 0)
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 		result := applicationdefinitions.ApplicationAuthorization{
 			RoleDefinitionId: v["role_definition_id"].(string),
 			PrincipalId:      v["service_principal_id"].(string),
@@ -269,14 +335,14 @@ func expandManagedApplicationDefinitionAuthorization(input []interface{}) *[]app
 	return &results
 }
 
-func flattenManagedApplicationDefinitionAuthorization(input *[]applicationdefinitions.ApplicationAuthorization) []interface{} {
-	results := make([]interface{}, 0)
+func flattenManagedApplicationDefinitionAuthorization(input *[]applicationdefinitions.ApplicationAuthorization) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		results = append(results, map[string]interface{}{
+		results = append(results, map[string]any{
 			"role_definition_id":   item.RoleDefinitionId,
 			"service_principal_id": item.PrincipalId,
 		})
