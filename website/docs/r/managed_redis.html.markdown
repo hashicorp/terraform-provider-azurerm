@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_managed_redis
 
-Manages a [Managed Redis](https://learn.microsoft.com/azure/redis/overview). This resource supersedes [azurerm_redis_enterprise_cluster](redis_enterprise_cluster.html) and [azurerm_redis_enterprise_database](redis_enterprise_database.html) resources. Please refer to the migration guide for more information on migrating from Redis Enterprise to Managed Redis: [Migrating from Redis Enterprise to Managed Redis](https://learn.microsoft.com/azure/redis/migrate/migrate-overview).
+Manages a [Managed Redis](https://learn.microsoft.com/azure/redis/overview). This resource supersedes the removed `azurerm_redis_enterprise_cluster` and `azurerm_redis_enterprise_database` resources. Please refer to the migration guide for more information on migrating from Redis Enterprise to Managed Redis: [Migrating from Redis Enterprise to Managed Redis](https://learn.microsoft.com/azure/redis/migrate/migrate-overview).
 
 ## Example Usage
 
@@ -131,7 +131,7 @@ The following arguments are supported:
 
 ~> **Note:** `Enterprise_` and `EnterpriseFlash_` prefixed SKUs were previously used by Redis Enterprise, and [not supported by Managed Redis](https://learn.microsoft.com/azure/redis/migrate/migrate-overview).
 
-~> **Note:** Changing `sku_name` to a lower tier is restricted by Azure under certain conditions, in which case the resource will be marked for recreation. Validation for this is on a best-effort basis, if the provider is unable to determine whether it can change the SKU in-place, it will attempt to do regardless and this request may fail. Please refer to the [Azure documentation](https://learn.microsoft.com/en-us/azure/redis/how-to-scale) for more information.
+~> **Note:** Changing `sku_name` to a lower tier is restricted by Azure under certain conditions, in which case the resource will be marked for recreation. Validation for this is on a best-effort basis, if the provider is unable to determine whether it can change the SKU in-place, it will attempt to do regardless and this request may fail. Please refer to the [Azure documentation](https://learn.microsoft.com/azure/redis/how-to-scale) for more information.
 
 * `default_database` - (Optional) A `default_database` block as defined below.
 

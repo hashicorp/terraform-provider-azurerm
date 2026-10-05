@@ -58,7 +58,7 @@ func (EventGridPartnerRegistrationResource) Attributes() map[string]*pluginsdk.S
 	}
 }
 
-func (EventGridPartnerRegistrationResource) ModelObject() interface{} {
+func (EventGridPartnerRegistrationResource) ModelObject() any {
 	return &EventGridPartnerRegistrationResourceModel{}
 }
 

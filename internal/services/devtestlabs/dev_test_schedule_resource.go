@@ -70,13 +70,10 @@ func resourceDevTestLabSchedules() *pluginsdk.Resource {
 			},
 
 			"status": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  schedules.EnableStatusDisabled,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(schedules.EnableStatusEnabled),
-					string(schedules.EnableStatusDisabled),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      schedules.EnableStatusDisabled,
+				ValidateFunc: validation.StringInSlice(schedules.PossibleValuesForEnableStatus(), false),
 			},
 
 			"task_type": {
@@ -165,13 +162,10 @@ func resourceDevTestLabSchedules() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"status": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  schedules.EnableStatusDisabled,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(schedules.EnableStatusEnabled),
-								string(schedules.EnableStatusDisabled),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      schedules.EnableStatusDisabled,
+							ValidateFunc: validation.StringInSlice(schedules.PossibleValuesForEnableStatus(), false),
 						},
 						"time_in_minutes": {
 							Type:         pluginsdk.TypeInt,
@@ -191,7 +185,7 @@ func resourceDevTestLabSchedules() *pluginsdk.Resource {
 	}
 }
 
-func resourceDevTestLabSchedulesCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDevTestLabSchedulesCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DevTestLabs.LabSchedulesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -219,7 +213,7 @@ func resourceDevTestLabSchedulesCreateUpdate(d *pluginsdk.ResourceData, meta int
 	schedule := schedules.Schedule{
 		Location:   &location,
 		Properties: schedules.ScheduleProperties{},
-		Tags:       expandTags(d.Get("tags").(map[string]interface{})),
+		Tags:       expandTags(d.Get("tags").(map[string]any)),
 	}
 
 	status := schedules.EnableStatusDisabled
@@ -261,7 +255,7 @@ func resourceDevTestLabSchedulesCreateUpdate(d *pluginsdk.ResourceData, meta int
 	return resourceDevTestLabSchedulesRead(d, meta)
 }
 
-func resourceDevTestLabSchedulesRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDevTestLabSchedulesRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DevTestLabs.LabSchedulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -292,7 +286,7 @@ func resourceDevTestLabSchedulesRead(d *pluginsdk.ResourceData, meta interface{}
 		props := model.Properties
 		d.Set("time_zone_id", props.TimeZoneId)
 		d.Set("task_type", props.TaskType)
-		d.Set("status", string(pointer.From(props.Status)))
+		d.Set("status", pointer.FromEnum(props.Status))
 
 		if err := d.Set("weekly_recurrence", flattenAzureRmDevTestLabScheduleRecurrenceWeekly(props.WeeklyRecurrence)); err != nil {
 			return fmt.Errorf("setting `weeklyRecurrence`: %#v", err)
@@ -316,7 +310,7 @@ func resourceDevTestLabSchedulesRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceDevTestLabSchedulesDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDevTestLabSchedulesDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DevTestLabs.LabSchedulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -332,52 +326,50 @@ func resourceDevTestLabSchedulesDelete(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func expandDevTestScheduleRecurrenceDaily(recurrence interface{}) *schedules.DayDetails {
-	dailyRecurrenceConfigs := recurrence.([]interface{})
-	dailyRecurrenceConfig := dailyRecurrenceConfigs[0].(map[string]interface{})
-	dailyTime := dailyRecurrenceConfig["time"].(string)
+func expandDevTestScheduleRecurrenceDaily(recurrence any) *schedules.DayDetails {
+	dailyRecurrenceConfigs := recurrence.([]any)
+	dailyRecurrenceConfig := dailyRecurrenceConfigs[0].(map[string]any)
 
 	return &schedules.DayDetails{
-		Time: &dailyTime,
+		Time: pointer.To(dailyRecurrenceConfig["time"].(string)),
 	}
 }
 
-func flattenAzureRmDevTestLabScheduleRecurrenceDaily(dailyRecurrence *schedules.DayDetails) []interface{} {
+func flattenAzureRmDevTestLabScheduleRecurrenceDaily(dailyRecurrence *schedules.DayDetails) []any {
 	if dailyRecurrence == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 
 	if dailyRecurrence.Time != nil {
 		result["time"] = *dailyRecurrence.Time
 	}
 
-	return []interface{}{result}
+	return []any{result}
 }
 
-func expandDevTestScheduleRecurrenceWeekly(recurrence interface{}) *schedules.WeekDetails {
-	weeklyRecurrenceConfigs := recurrence.([]interface{})
-	weeklyRecurrenceConfig := weeklyRecurrenceConfigs[0].(map[string]interface{})
-	weeklyTime := weeklyRecurrenceConfig["time"].(string)
+func expandDevTestScheduleRecurrenceWeekly(recurrence any) *schedules.WeekDetails {
+	weeklyRecurrenceConfigs := recurrence.([]any)
+	weeklyRecurrenceConfig := weeklyRecurrenceConfigs[0].(map[string]any)
 
 	weekDays := make([]string, 0)
-	for _, dayItem := range weeklyRecurrenceConfig["week_days"].([]interface{}) {
+	for _, dayItem := range weeklyRecurrenceConfig["week_days"].([]any) {
 		weekDays = append(weekDays, dayItem.(string))
 	}
 
 	return &schedules.WeekDetails{
-		Time:     &weeklyTime,
+		Time:     pointer.To(weeklyRecurrenceConfig["time"].(string)),
 		Weekdays: &weekDays,
 	}
 }
 
-func flattenAzureRmDevTestLabScheduleRecurrenceWeekly(weeklyRecurrence *schedules.WeekDetails) []interface{} {
+func flattenAzureRmDevTestLabScheduleRecurrenceWeekly(weeklyRecurrence *schedules.WeekDetails) []any {
 	if weeklyRecurrence == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 
 	if weeklyRecurrence.Time != nil {
 		result["time"] = *weeklyRecurrence.Time
@@ -389,54 +381,49 @@ func flattenAzureRmDevTestLabScheduleRecurrenceWeekly(weeklyRecurrence *schedule
 	}
 	result["week_days"] = weekDays
 
-	return []interface{}{result}
+	return []any{result}
 }
 
-func expandDevTestScheduleRecurrenceHourly(recurrence interface{}) *schedules.HourDetails {
-	hourlyRecurrenceConfigs := recurrence.([]interface{})
-	hourlyRecurrenceConfig := hourlyRecurrenceConfigs[0].(map[string]interface{})
-	hourlyMinute := int64(hourlyRecurrenceConfig["minute"].(int))
+func expandDevTestScheduleRecurrenceHourly(recurrence any) *schedules.HourDetails {
+	hourlyRecurrenceConfigs := recurrence.([]any)
+	hourlyRecurrenceConfig := hourlyRecurrenceConfigs[0].(map[string]any)
 
 	return &schedules.HourDetails{
-		Minute: &hourlyMinute,
+		Minute: pointer.To(int64(hourlyRecurrenceConfig["minute"].(int))),
 	}
 }
 
-func flattenAzureRmDevTestLabScheduleRecurrenceHourly(hourlyRecurrence *schedules.HourDetails) []interface{} {
+func flattenAzureRmDevTestLabScheduleRecurrenceHourly(hourlyRecurrence *schedules.HourDetails) []any {
 	if hourlyRecurrence == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 
 	if hourlyRecurrence.Minute != nil {
 		result["minute"] = *hourlyRecurrence.Minute
 	}
 
-	return []interface{}{result}
+	return []any{result}
 }
 
 func expandDevTestScheduleNotificationSettings(d *pluginsdk.ResourceData) *schedules.NotificationSettings {
-	notificationSettingsConfigs := d.Get("notification_settings").([]interface{})
-	notificationSettingsConfig := notificationSettingsConfigs[0].(map[string]interface{})
-	webhookUrl := notificationSettingsConfig["webhook_url"].(string)
-	timeInMinutes := int64(notificationSettingsConfig["time_in_minutes"].(int))
-
-	notificationStatus := schedules.EnableStatus(notificationSettingsConfig["status"].(string))
+	notificationSettingsConfigs := d.Get("notification_settings").([]any)
+	notificationSettingsConfig := notificationSettingsConfigs[0].(map[string]any)
 
 	return &schedules.NotificationSettings{
-		WebhookURL:    &webhookUrl,
-		TimeInMinutes: &timeInMinutes,
-		Status:        &notificationStatus,
+		WebhookURL:    pointer.To(notificationSettingsConfig["webhook_url"].(string)),
+		TimeInMinutes: pointer.To(int64(notificationSettingsConfig["time_in_minutes"].(int))),
+		Status:        pointer.ToEnum[schedules.EnableStatus](notificationSettingsConfig["status"].(string)),
 	}
 }
 
-func flattenAzureRmDevTestLabScheduleNotificationSettings(notificationSettings *schedules.NotificationSettings) []interface{} {
+func flattenAzureRmDevTestLabScheduleNotificationSettings(notificationSettings *schedules.NotificationSettings) []any {
 	if notificationSettings == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 
 	if notificationSettings.WebhookURL != nil {
 		result["webhook_url"] = *notificationSettings.WebhookURL
@@ -450,5 +437,5 @@ func flattenAzureRmDevTestLabScheduleNotificationSettings(notificationSettings *
 		result["status"] = *notificationSettings.Status
 	}
 
-	return []interface{}{result}
+	return []any{result}
 }
