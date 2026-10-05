@@ -31,12 +31,12 @@ type ContainerAppEnvironmentCertificateDataSourceModel struct {
 	ExpirationDate      string                     `tfschema:"expiration_date"`
 	Thumbprint          string                     `tfschema:"thumbprint"`
 	CertificateKeyVault []CertificateKeyVaultModel `tfschema:"certificate_key_vault"`
-	Tags                map[string]interface{}     `tfschema:"tags"`
+	Tags                map[string]any             `tfschema:"tags"`
 }
 
 var _ sdk.DataSource = ContainerAppEnvironmentCertificateDataSource{}
 
-func (r ContainerAppEnvironmentCertificateDataSource) ModelObject() interface{} {
+func (r ContainerAppEnvironmentCertificateDataSource) ModelObject() any {
 	return &ContainerAppEnvironmentCertificateDataSourceModel{}
 }
 

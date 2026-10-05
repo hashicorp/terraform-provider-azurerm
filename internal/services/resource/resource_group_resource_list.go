@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package resource
 
 import (
@@ -10,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/resourcegroups"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/list"
-	listschema "github.com/hashicorp/terraform-plugin-framework/list/schema"
+	"github.com/hashicorp/terraform-plugin-framework/list/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -39,9 +42,9 @@ func (r ResourceGroupListResource) ResourceFunc() *pluginsdk.Resource {
 }
 
 func (r ResourceGroupListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
-	response.Schema = listschema.Schema{
-		Attributes: map[string]listschema.Attribute{
-			"subscription_id": listschema.StringAttribute{
+	response.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"subscription_id": schema.StringAttribute{
 				Optional:    true,
 				Description: "The ID of the subscription to query. Defaults to the value specified in the Provider Configuration.",
 				Validators: []validator.String{
@@ -51,7 +54,7 @@ func (r ResourceGroupListResource) ListResourceConfigSchema(_ context.Context, _
 				},
 			},
 
-			"filter": listschema.StringAttribute{
+			"filter": schema.StringAttribute{
 				Optional:    true,
 				Description: "A filter expression to filter the results by.",
 				Validators: []validator.String{
@@ -100,7 +103,7 @@ func (r ResourceGroupListResource) List(ctx context.Context, request list.ListRe
 
 			id, err := commonids.ParseResourceGroupID(pointer.From(group.Id))
 			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "parsing Resource Group ID", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Resource Group ID", err)
 				return
 			}
 
@@ -108,29 +111,13 @@ func (r ResourceGroupListResource) List(ctx context.Context, request list.ListRe
 			rd.SetId(id.ID())
 
 			if err := resourceResourceGroupFlatten(rd, id, &group); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, fmt.Sprintf("encoding `%s` Resource Data", resourceGroupResourceName), err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` Resource Data", resourceGroupResourceName), err)
 				return
 			}
 
-			tfTypeIdentity, err := rd.TfTypeIdentityState()
-			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "converting Identity State", err)
-				return
-			}
-
-			if err := result.Identity.Set(ctx, *tfTypeIdentity); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "setting Identity Data", err)
-				return
-			}
-
-			tfTypeResourceState, err := rd.TfTypeResourceState()
-			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "converting Resource State", err)
-				return
-			}
-
-			if err := result.Resource.Set(ctx, *tfTypeResourceState); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "setting Resource Data", err)
+			sdk.EncodeListResult(ctx, rd, &result)
+			if result.Diagnostics.HasError() {
+				push(result)
 				return
 			}
 

@@ -19,28 +19,20 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-// VirtualMachineRestorePointCollectionResource remove this in 4.0, the resource is renamed
 type VirtualMachineRestorePointCollectionResource struct{}
 
-var (
-	_ sdk.ResourceWithUpdate                = VirtualMachineRestorePointCollectionResource{}
-	_ sdk.ResourceWithDeprecationReplacedBy = VirtualMachineRestorePointCollectionResource{}
-)
+var _ sdk.ResourceWithUpdate = VirtualMachineRestorePointCollectionResource{}
 
-func (r VirtualMachineRestorePointCollectionResource) DeprecatedInFavourOfResource() string {
-	return "azurerm_virtual_machine_restore_point_collection"
-}
-
-func (r VirtualMachineRestorePointCollectionResource) ModelObject() interface{} {
+func (r VirtualMachineRestorePointCollectionResource) ModelObject() any {
 	return &VirtualMachineRestorePointCollectionResourceModel{}
 }
 
 type VirtualMachineRestorePointCollectionResourceModel struct {
-	Name                   string                 `tfschema:"name"`
-	ResourceGroup          string                 `tfschema:"resource_group_name"`
-	Location               string                 `tfschema:"location"`
-	SourceVirtualMachineId string                 `tfschema:"source_virtual_machine_id"`
-	Tags                   map[string]interface{} `tfschema:"tags"`
+	Name                   string         `tfschema:"name"`
+	ResourceGroup          string         `tfschema:"resource_group_name"`
+	Location               string         `tfschema:"location"`
+	SourceVirtualMachineId string         `tfschema:"source_virtual_machine_id"`
+	Tags                   map[string]any `tfschema:"tags"`
 }
 
 func (r VirtualMachineRestorePointCollectionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -92,14 +84,16 @@ func (r VirtualMachineRestorePointCollectionResource) Create() sdk.ResourceFunc 
 
 			id := restorepointcollections.NewRestorePointCollectionID(subscriptionId, config.ResourceGroup, config.Name)
 
-			existing, err := client.Get(ctx, id, restorepointcollections.DefaultGetOperationOptions())
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id, restorepointcollections.DefaultGetOperationOptions())
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := restorepointcollections.RestorePointCollection{
@@ -112,7 +106,7 @@ func (r VirtualMachineRestorePointCollectionResource) Create() sdk.ResourceFunc 
 				Tags: tags.Expand(config.Tags),
 			}
 
-			if _, err = client.CreateOrUpdate(ctx, id, parameters); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

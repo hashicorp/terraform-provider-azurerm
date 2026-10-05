@@ -55,7 +55,7 @@ func (a ArcPrivateLinkScopeResource) Attributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{}
 }
 
-func (a ArcPrivateLinkScopeResource) ModelObject() interface{} {
+func (a ArcPrivateLinkScopeResource) ModelObject() any {
 	return &PrivateLinkScopeModel{}
 }
 
@@ -75,13 +75,16 @@ func (a ArcPrivateLinkScopeResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.HybridCompute.PrivateLinkScopesClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := privatelinkscopes.NewProviderPrivateLinkScopeID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(a.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(a.ResourceType(), id)
+				}
 			}
 
 			properties := privatelinkscopes.HybridComputePrivateLinkScope{

@@ -11,21 +11,21 @@ import (
 var _ StoreReadSettings = FtpReadSettings{}
 
 type FtpReadSettings struct {
-	DeleteFilesAfterCompletion *bool        `json:"deleteFilesAfterCompletion,omitempty"`
-	DisableChunking            *bool        `json:"disableChunking,omitempty"`
-	EnablePartitionDiscovery   *bool        `json:"enablePartitionDiscovery,omitempty"`
+	DeleteFilesAfterCompletion *interface{} `json:"deleteFilesAfterCompletion,omitempty"`
+	DisableChunking            *interface{} `json:"disableChunking,omitempty"`
+	EnablePartitionDiscovery   *interface{} `json:"enablePartitionDiscovery,omitempty"`
 	FileListPath               *interface{} `json:"fileListPath,omitempty"`
 	PartitionRootPath          *interface{} `json:"partitionRootPath,omitempty"`
-	Recursive                  *bool        `json:"recursive,omitempty"`
-	UseBinaryTransfer          *bool        `json:"useBinaryTransfer,omitempty"`
+	Recursive                  *interface{} `json:"recursive,omitempty"`
+	UseBinaryTransfer          *interface{} `json:"useBinaryTransfer,omitempty"`
 	WildcardFileName           *interface{} `json:"wildcardFileName,omitempty"`
 	WildcardFolderPath         *interface{} `json:"wildcardFolderPath,omitempty"`
 
 	// Fields inherited from StoreReadSettings
 
-	DisableMetricsCollection *bool  `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64 `json:"maxConcurrentConnections,omitempty"`
-	Type                     string `json:"type"`
+	DisableMetricsCollection *interface{} `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *interface{} `json:"maxConcurrentConnections,omitempty"`
+	Type                     string       `json:"type"`
 }
 
 func (s FtpReadSettings) StoreReadSettings() BaseStoreReadSettingsImpl {

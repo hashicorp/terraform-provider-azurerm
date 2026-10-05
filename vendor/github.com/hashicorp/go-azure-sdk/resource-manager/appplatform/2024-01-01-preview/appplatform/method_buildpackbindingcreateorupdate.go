@@ -62,9 +62,20 @@ func (c AppPlatformClient) BuildpackBindingCreateOrUpdate(ctx context.Context, i
 
 // BuildpackBindingCreateOrUpdateThenPoll performs BuildpackBindingCreateOrUpdate then polls until it's completed
 func (c AppPlatformClient) BuildpackBindingCreateOrUpdateThenPoll(ctx context.Context, id BuildPackBindingId, input BuildpackBindingResource) error {
+	return c.BuildpackBindingCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// BuildpackBindingCreateOrUpdateCallbackThenPoll performs BuildpackBindingCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) BuildpackBindingCreateOrUpdateCallbackThenPoll(ctx context.Context, id BuildPackBindingId, input BuildpackBindingResource, callback func() error) error {
 	result, err := c.BuildpackBindingCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing BuildpackBindingCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

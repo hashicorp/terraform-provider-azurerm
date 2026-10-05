@@ -70,7 +70,7 @@ A `link` block supports the following:
 
 * `admin_enabled` - (Optional) Whether enable administration state on the Express Route Port Link? Defaults to `false`.
   
-* `macsec_cipher` - (Optional) The MACSec cipher used for this Express Route Port Link. Possible values are `GcmAes128` and `GcmAes256`. Defaults to `GcmAes128`.
+* `macsec_cipher` - (Optional) The MACSec cipher used for this Express Route Port Link. Possible values are `GcmAes128`, `GcmAes256`, `GcmAesXpn128` and `GcmAesXpn256`. Defaults to `GcmAes128`.
 
 * `macsec_ckn_keyvault_secret_id` - (Optional) The ID of the Key Vault Secret that contains the MACSec CKN key for this Express Route Port Link.
 
@@ -135,4 +135,4 @@ terraform import azurerm_express_route_port.example /subscriptions/00000000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2025-01-01
+* `Microsoft.Network` - 2025-07-01

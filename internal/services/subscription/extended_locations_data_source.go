@@ -40,7 +40,7 @@ func dataSourceExtendedLocations() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceExtendedLocationsRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceExtendedLocationsRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Subscription.SubscriptionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -64,7 +64,7 @@ func dataSourceExtendedLocationsRead(d *pluginsdk.ResourceData, meta interface{}
 	normalizedLocation := location.Normalize(d.Get("location").(string))
 	d.SetId(fmt.Sprintf("%s/locations/%s", id.ID(), normalizedLocation))
 
-	extendedLocations := getExtendedLocations(resp.Model.Value, normalizedLocation)
+	extendedLocations := getExtendedLocations(resp.Model, normalizedLocation)
 	if len(extendedLocations) == 0 {
 		return fmt.Errorf("no extended locations were found for the location %q", normalizedLocation)
 	}
@@ -75,8 +75,8 @@ func dataSourceExtendedLocationsRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func getExtendedLocations(input *[]subscriptions.Location, normalizedLocation string) []interface{} {
-	results := make([]interface{}, 0)
+func getExtendedLocations(input *[]subscriptions.Location, normalizedLocation string) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}

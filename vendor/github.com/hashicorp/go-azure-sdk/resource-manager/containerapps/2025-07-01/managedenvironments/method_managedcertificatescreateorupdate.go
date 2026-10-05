@@ -62,9 +62,20 @@ func (c ManagedEnvironmentsClient) ManagedCertificatesCreateOrUpdate(ctx context
 
 // ManagedCertificatesCreateOrUpdateThenPoll performs ManagedCertificatesCreateOrUpdate then polls until it's completed
 func (c ManagedEnvironmentsClient) ManagedCertificatesCreateOrUpdateThenPoll(ctx context.Context, id ManagedCertificateId, input ManagedCertificate) error {
+	return c.ManagedCertificatesCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ManagedCertificatesCreateOrUpdateCallbackThenPoll performs ManagedCertificatesCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c ManagedEnvironmentsClient) ManagedCertificatesCreateOrUpdateCallbackThenPoll(ctx context.Context, id ManagedCertificateId, input ManagedCertificate, callback func() error) error {
 	result, err := c.ManagedCertificatesCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ManagedCertificatesCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
