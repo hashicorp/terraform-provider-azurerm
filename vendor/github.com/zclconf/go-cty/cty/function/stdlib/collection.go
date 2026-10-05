@@ -3,6 +3,7 @@ package stdlib
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"sort"
 
 	"github.com/zclconf/go-cty/cty"
@@ -170,6 +171,9 @@ var ElementFunc = function.New(&function.Spec{
 				return cty.DynamicPseudoType, errors.New("cannot use element function with an empty list")
 			}
 			index = index % len(etys)
+			if index < 0 {
+				index += len(etys)
+			}
 			return etys[index], nil
 		default:
 			return cty.DynamicPseudoType, fmt.Errorf("cannot read elements from %s", listTy.FriendlyName())
@@ -318,8 +322,9 @@ var ContainsFunc = function.New(&function.Spec{
 			Type: cty.DynamicPseudoType,
 		},
 		{
-			Name: "value",
-			Type: cty.DynamicPseudoType,
+			Name:      "value",
+			Type:      cty.DynamicPseudoType,
+			AllowNull: true,
 		},
 	},
 	Type:         function.StaticReturnType(cty.Bool),
@@ -790,10 +795,13 @@ var MergeFunc = function.New(&function.Spec{
 			arg, _ = arg.Unmark()
 
 			switch {
-			case ty.IsObjectType() && !arg.IsNull():
-				for attr, aty := range ty.AttributeTypes() {
-					attrs[attr] = aty
+			case ty.IsObjectType():
+				if arg.IsNull() {
+					// Null objects are treated by this function as if they have
+					// no attributes at all.
+					ty = cty.EmptyObject
 				}
+				maps.Copy(attrs, ty.AttributeTypes())
 			case ty.IsMapType():
 				switch {
 				case arg.IsNull():
@@ -813,11 +821,11 @@ var MergeFunc = function.New(&function.Spec{
 
 			// record the first argument type for comparison
 			if i == 0 {
-				first = arg.Type()
+				first = ty
 				continue
 			}
 
-			if !ty.Equals(first) && matching {
+			if matching && !ty.Equals(first) {
 				matching = false
 			}
 		}

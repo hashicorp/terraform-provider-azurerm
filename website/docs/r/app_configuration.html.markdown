@@ -15,7 +15,7 @@ Manages an Azure App Configuration.
 
 -> **Note:** Version 3.27.0 and later of the Azure Provider include a Feature Toggle which will purge an App Configuration resource on destroy, rather than the default soft-delete. The Provider will automatically recover a soft-deleted App Configuration during creation if one is found. See [the Features block documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block) for more information on Feature Toggles within Terraform.
 
--> **Note:** Reading and purging soft-deleted App Configurations requires the `Microsoft.AppConfiguration/locations/deletedConfigurationStores/read` and `Microsoft.AppConfiguration/locations/deletedConfigurationStores/purge/action` permission on Subscription scope. Recovering a soft-deleted App Configuration requires the `Microsoft.AppConfiguration/configurationStores/write` permission on Subscription or Resource Group scope. [More information can be found in the Azure Documentation for App Configuration](https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-soft-delete#permissions-to-recover-a-deleted-store). See the following links for more information on assigning [Azure custom roles](https://learn.microsoft.com/en-us/azure/role-based-access-control/custom-roles) or using the [`azurerm_role_assignment`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) resource to assign a custom role.
+-> **Note:** Reading and purging soft-deleted App Configurations requires the `Microsoft.AppConfiguration/locations/deletedConfigurationStores/read` and `Microsoft.AppConfiguration/locations/deletedConfigurationStores/purge/action` permission on Subscription scope. Recovering a soft-deleted App Configuration requires the `Microsoft.AppConfiguration/configurationStores/write` permission on Subscription or Resource Group scope. [More information can be found in the Azure Documentation for App Configuration](https://learn.microsoft.com/azure/azure-app-configuration/concept-soft-delete#permissions-to-recover-a-deleted-store). See the following links for more information on assigning [Azure custom roles](https://learn.microsoft.com/azure/role-based-access-control/custom-roles) or using the [`azurerm_role_assignment`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) resource to assign a custom role.
 
 ## Example Usage
 
@@ -61,6 +61,7 @@ resource "azurerm_key_vault" "example" {
   name                       = "exampleKVt123"
   location                   = azurerm_resource_group.example.location
   resource_group_name        = azurerm_resource_group.example.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -143,7 +144,7 @@ resource "azurerm_app_configuration" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -153,9 +154,15 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `identity` - (Optional) An `identity` block as defined below.
+* `data_plane_proxy_authentication_mode` - (Optional) The data plane proxy authentication mode. Possible values are `Local` and `Pass-through`. Defaults to `Local`.
+
+* `data_plane_proxy_private_link_delegation_enabled` - (Optional) Whether data plane proxy private link delegation is enabled. Defaults to `false`.
+
+~> **Note:** `data_plane_proxy_private_link_delegation_enabled` cannot be set to `true` when `data_plane_proxy_authentication_mode` is set to `Local`.
 
 * `encryption` - (Optional) An `encryption` block as defined below.
+
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `local_auth_enabled` - (Optional) Whether local authentication methods is enabled. Defaults to `true`.
 
@@ -169,9 +176,9 @@ The following arguments are supported:
 
 * `replica` - (Optional) One or more `replica` blocks as defined below.
 
-* `sku` - (Optional) The SKU name of the App Configuration. Possible values are `free`, `standard` and `premium`. Defaults to `free`.
+* `sku` - (Optional) The SKU name of the App Configuration. Possible values are `free`, `developer`, `standard` and `premium`. Defaults to `free`.
 
-~> **Note:** Azure does not support downgrading `sku`. Downgrading from `premium` tier to `standard` or `free`, or from `standard` to `free`, forces a new resource to be created.
+~> **Note:** Azure does not support downgrading `sku` to a lower tier, except from `premium` to `standard`. Downgrading will force a new resource to be created.
 
 * `soft_delete_retention_days` - (Optional) The number of days that items should be retained for once soft-deleted. This field only works for `standard` sku. This value can be between `1` and `7` days. Defaults to `7`. Changing this forces a new resource to be created.
 
@@ -183,15 +190,15 @@ The following arguments are supported:
 
 An `encryption` block supports the following:
 
-* `key_vault_key_identifier` - (Optional) Specifies the URI of the key vault key used to encrypt data.
+* `identity_client_id` - (Optional) Specifies the client ID of the identity which will be used to access key vault.
 
-* `identity_client_id` - (Optional) Specifies the client id of the identity which will be used to access key vault.
+* `key_vault_key_identifier` - (Optional) Specifies the URI of the key vault key used to encrypt data.
 
 ---
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this App Configuration. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this App Configuration. Possible values are `SystemAssigned`, `UserAssigned`, and `SystemAssigned, UserAssigned` (to enable both).
 
 * `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this App Configuration.
 
@@ -201,9 +208,9 @@ An `identity` block supports the following:
 
 A `replica` block supports the following:
 
-* `location` - (Required) Specifies the supported Azure location where the replica exists.
-
 * `name` - (Required) Specifies the name of the replica.
+
+* `location` - (Required) Specifies the supported Azure location where the replica exists.
 
 ---
 
@@ -215,15 +222,17 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `endpoint` - The URL of the App Configuration.
 
+* `identity` - An `identity` block as defined below.
+
 * `primary_read_key` - A `primary_read_key` block as defined below containing the primary read access key.
 
 * `primary_write_key` - A `primary_write_key` block as defined below containing the primary write access key.
 
+* `replica` - A `replica` block as defined below.
+
 * `secondary_read_key` - A `secondary_read_key` block as defined below containing the secondary read access key.
 
 * `secondary_write_key` - A `secondary_write_key` block as defined below containing the secondary write access key.
-
-* `identity` - An `identity` block as defined below.
 
 ---
 
@@ -245,9 +254,9 @@ A `replica` block exports the following:
 
 A `primary_read_key` block exports the following:
 
-* `connection_string` - The Connection String for this Access Key - comprising of the Endpoint, ID and Secret.
-
 * `id` - The ID of the Access Key.
+
+* `connection_string` - The Connection String for this Access Key - consisting of the Endpoint, ID, and Secret.
 
 * `secret` - The Secret of the Access Key.
 
@@ -255,9 +264,9 @@ A `primary_read_key` block exports the following:
 
 A `primary_write_key` block exports the following:
 
-* `connection_string` - The Connection String for this Access Key - comprising of the Endpoint, ID and Secret.
-
 * `id` - The ID of the Access Key.
+
+* `connection_string` - The Connection String for this Access Key - consisting of the Endpoint, ID, and Secret.
 
 * `secret` - The Secret of the Access Key.
 
@@ -265,9 +274,9 @@ A `primary_write_key` block exports the following:
 
 A `secondary_read_key` block exports the following:
 
-* `connection_string` - The Connection String for this Access Key - comprising of the Endpoint, ID and Secret.
-
 * `id` - The ID of the Access Key.
+
+* `connection_string` - The Connection String for this Access Key - consisting of the Endpoint, ID, and Secret.
 
 * `secret` - The Secret of the Access Key.
 
@@ -275,20 +284,20 @@ A `secondary_read_key` block exports the following:
 
 A `secondary_write_key` block exports the following:
 
-* `connection_string` - The Connection String for this Access Key - comprising of the Endpoint, ID and Secret.
-
 * `id` - The ID of the Access Key.
+
+* `connection_string` - The Connection String for this Access Key - consisting of the Endpoint, ID, and Secret.
 
 * `secret` - The Secret of the Access Key.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the App Configuration.
-* `update` - (Defaults to 60 minutes) Used when updating the App Configuration.
+* `create` - (Defaults to 1 hour) Used when creating the App Configuration.
 * `read` - (Defaults to 5 minutes) Used when retrieving the App Configuration.
-* `delete` - (Defaults to 60 minutes) Used when deleting the App Configuration.
+* `update` - (Defaults to 1 hour) Used when updating the App Configuration.
+* `delete` - (Defaults to 1 hour) Used when deleting the App Configuration.
 
 ## Import
 
@@ -297,3 +306,9 @@ App Configurations can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_app_configuration.appconf /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.AppConfiguration` - 2024-05-01

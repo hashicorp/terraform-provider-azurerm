@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package fromproto6
@@ -17,7 +17,7 @@ import (
 
 // PlanResourceChangeRequest returns the *fwserver.PlanResourceChangeRequest
 // equivalent of a *tfprotov6.PlanResourceChangeRequest.
-func PlanResourceChangeRequest(ctx context.Context, proto6 *tfprotov6.PlanResourceChangeRequest, reqResource resource.Resource, resourceSchema fwschema.Schema, providerMetaSchema fwschema.Schema, resourceBehavior resource.ResourceBehavior) (*fwserver.PlanResourceChangeRequest, diag.Diagnostics) {
+func PlanResourceChangeRequest(ctx context.Context, proto6 *tfprotov6.PlanResourceChangeRequest, reqResource resource.Resource, resourceSchema fwschema.Schema, providerMetaSchema fwschema.Schema, resourceBehavior resource.ResourceBehavior, identitySchema fwschema.Schema) (*fwserver.PlanResourceChangeRequest, diag.Diagnostics) {
 	if proto6 == nil {
 		return nil, nil
 	}
@@ -41,6 +41,7 @@ func PlanResourceChangeRequest(ctx context.Context, proto6 *tfprotov6.PlanResour
 	fw := &fwserver.PlanResourceChangeRequest{
 		ResourceBehavior:   resourceBehavior,
 		ResourceSchema:     resourceSchema,
+		IdentitySchema:     identitySchema,
 		Resource:           reqResource,
 		ClientCapabilities: ModifyPlanClientCapabilities(proto6.ClientCapabilities),
 	}
@@ -56,6 +57,12 @@ func PlanResourceChangeRequest(ctx context.Context, proto6 *tfprotov6.PlanResour
 	diags.Append(priorStateDiags...)
 
 	fw.PriorState = priorState
+
+	priorIdentity, priorIdentityDiags := ResourceIdentity(ctx, proto6.PriorIdentity, identitySchema)
+
+	diags.Append(priorIdentityDiags...)
+
+	fw.PriorIdentity = priorIdentity
 
 	proposedNewState, proposedNewStateDiags := Plan(ctx, proto6.ProposedNewState, resourceSchema)
 

@@ -1,4 +1,4 @@
-# Copyright (c) HashiCorp, Inc.
+# Copyright IBM Corp. 2014, 2025
 # SPDX-License-Identifier: MPL-2.0
 
 provider "azurerm" {
@@ -18,14 +18,14 @@ resource "azurerm_storage_account" "example" {
   account_tier                    = "Standard"
   account_kind                    = "StorageV2"
   account_replication_type        = "LRS"
-  enable_https_traffic_only       = true
+  https_traffic_only_enabled      = true
   access_tier                     = "Hot"
   allow_nested_items_to_be_public = true
 }
 
 resource "azurerm_storage_container" "example" {
   name                  = "${var.prefix}storagecontainer"
-  storage_account_name  = azurerm_storage_account.example.name
+  storage_account_id    = azurerm_storage_account.example.id
   container_access_type = "blob"
 }
 
@@ -37,13 +37,13 @@ resource "azurerm_storage_account" "example2" {
   account_tier                    = "Standard"
   account_kind                    = "StorageV2"
   account_replication_type        = "LRS"
-  enable_https_traffic_only       = true
+  https_traffic_only_enabled      = true
   access_tier                     = "Hot"
   allow_nested_items_to_be_public = true
 }
 
 resource "azurerm_storage_container" "example2" {
   name                  = "${var.prefix}storagecontainer2"
-  storage_account_name  = azurerm_storage_account.example2.name
+  storage_account_id    = azurerm_storage_account.example2.id
   container_access_type = "blob"
 }

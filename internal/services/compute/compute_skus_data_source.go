@@ -109,7 +109,7 @@ func (ds ComputeSkusDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (ds ComputeSkusDataSource) ModelObject() interface{} {
+func (ds ComputeSkusDataSource) ModelObject() any {
 	return &ComputeSkusDataSourceModel{}
 }
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package bot
@@ -14,14 +14,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/botservice/2022-09-15/channel"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceBotChannelEmail() *pluginsdk.Resource {
@@ -32,8 +30,15 @@ func resourceBotChannelEmail() *pluginsdk.Resource {
 		Update: resourceBotChannelEmailUpdate,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.BotChannelID(id)
+			_, err := commonids.ParseBotServiceChannelID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			// v0 -> v1 normalises the casing of IDs imported while this resource parsed them with the
+			// case-insensitive legacy parser, so they can be parsed with the case-sensitive SDK parser
+			0: migration.BotChannelEmailV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -80,14 +85,15 @@ func resourceBotChannelEmail() *pluginsdk.Resource {
 	}
 }
 
-func resourceBotChannelEmailCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelEmailCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.EmailChannelClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	resourceId := commonids.NewBotServiceChannelID(subscriptionId, d.Get("resource_group_name").(string), d.Get("bot_name").(string), string(channel.BotServiceChannelTypeEmailChannel))
-	if d.IsNewResource() {
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, resourceId)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -106,20 +112,20 @@ func resourceBotChannelEmailCreate(d *pluginsdk.ResourceData, meta interface{}) 
 				IsEnabled:    true,
 			},
 		},
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Kind:     pointer.To(channel.KindBot),
 	}
 
 	if v, ok := d.GetOk("email_password"); ok {
 		channelProps := parameters.Properties.(channel.EmailChannel)
 		channelProps.Properties.AuthMethod = pointer.To(channel.EmailChannelAuthMethodZero)
-		channelProps.Properties.Password = utils.String(v.(string))
+		channelProps.Properties.Password = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("magic_code"); ok {
 		channelProps := parameters.Properties.(channel.EmailChannel)
 		channelProps.Properties.AuthMethod = pointer.To(channel.EmailChannelAuthMethodOne)
-		channelProps.Properties.MagicCode = utils.String(v.(string))
+		channelProps.Properties.MagicCode = pointer.To(v.(string))
 	}
 
 	if _, err := client.Create(ctx, resourceId, parameters); err != nil {
@@ -130,7 +136,7 @@ func resourceBotChannelEmailCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	return resourceBotChannelEmailRead(d, meta)
 }
 
-func resourceBotChannelEmailRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelEmailRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.EmailChannelClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -169,7 +175,7 @@ func resourceBotChannelEmailRead(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceBotChannelEmailUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelEmailUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.EmailChannelClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -186,20 +192,20 @@ func resourceBotChannelEmailUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 				IsEnabled:    true,
 			},
 		},
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Kind:     pointer.To(channel.KindBot),
 	}
 
 	if v, ok := d.GetOk("email_password"); ok {
 		channelProps := parameters.Properties.(channel.EmailChannel)
 		channelProps.Properties.AuthMethod = pointer.To(channel.EmailChannelAuthMethodZero)
-		channelProps.Properties.Password = utils.String(v.(string))
+		channelProps.Properties.Password = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("magic_code"); ok {
 		channelProps := parameters.Properties.(channel.EmailChannel)
 		channelProps.Properties.AuthMethod = pointer.To(channel.EmailChannelAuthMethodOne)
-		channelProps.Properties.MagicCode = utils.String(v.(string))
+		channelProps.Properties.MagicCode = pointer.To(v.(string))
 	}
 
 	if _, err := client.Update(ctx, *id, parameters); err != nil {
@@ -209,7 +215,7 @@ func resourceBotChannelEmailUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	return resourceBotChannelEmailRead(d, meta)
 }
 
-func resourceBotChannelEmailDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelEmailDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.EmailChannelClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
