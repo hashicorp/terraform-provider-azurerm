@@ -676,7 +676,7 @@ func TestAccApiManagement_certificateWithV2Sku(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.certificateWithV2Sku(data),
-			ExpectError: regexp.MustCompile("`certificate` cannot be set when V2 SKU is used [(]`sku_name` is `.+`[)]. Please use `azurerm_api_management_certificate` instead"),
+			ExpectError: regexp.MustCompile("`certificate` cannot be set when V2 SKU is used [(]`sku_name` is `.+`[)], use `azurerm_api_management_certificate` instead"),
 		},
 	})
 }

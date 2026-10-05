@@ -106,7 +106,7 @@ func resourceApiManagementService() *pluginsdk.Resource {
 
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
 				if skuName := d.Get("sku_name").(string); strings.Contains(skuName, "V2") && len(d.Get("certificate").([]interface{})) > 0 {
-					return fmt.Errorf("`certificate` cannot be set when V2 SKU is used (`sku_name` is `%s`). Please use `azurerm_api_management_certificate` instead", skuName)
+					return fmt.Errorf("`certificate` cannot be set when V2 SKU is used (`sku_name` is `%s`), use `azurerm_api_management_certificate` instead", skuName)
 				}
 
 				return nil
