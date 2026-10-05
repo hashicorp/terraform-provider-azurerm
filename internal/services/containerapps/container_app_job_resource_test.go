@@ -347,6 +347,159 @@ func TestAccContainerAppJob_withKeyVaultSecretIdentityUpdate(t *testing.T) {
 	})
 }
 
+func TestAccContainerAppJob_dynamicDataSourceValue(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_job", "test")
+	r := ContainerAppJobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dynamicDataSourceValue(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.dynamicDataSourceValue(data),
+			Taint:  []string{"terraform_data.secret_lookup"},
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (r ContainerAppJobResource) dynamicDataSourceValue(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {}
+
+locals {
+  # Example values only; Key Vault secret values are also stored in Terraform state.
+  credentials = {
+    crawler-username = {
+      key_vault_secret_name = "crawler-username"
+      value                 = "example-user"
+    }
+    crawler-password = {
+      key_vault_secret_name = "crawler-password"
+      value                 = "example-only-not-a-real-password"
+    }
+  }
+}
+
+%s 
+
+resource "azurerm_user_assigned_identity" "crawler" {
+  name                = "acctest-crawler%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_key_vault" "secrets" {
+  name                       = "acctest-${substr(sha256(azurerm_resource_group.test.id), 0, 12)}"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  rbac_authorization_enabled = false
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    secret_permissions = ["Get", "List", "Set", "Delete", "Recover", "Purge"]
+  }
+
+  access_policy {
+    tenant_id = azurerm_user_assigned_identity.crawler.tenant_id
+    object_id = azurerm_user_assigned_identity.crawler.principal_id
+
+    secret_permissions = ["Get"]
+  }
+}
+
+resource "azurerm_key_vault_secret" "application_insights" {
+  name         = "application-insights"
+  value        = "example-only-not-a-real-application-insights-connection-string"
+  key_vault_id = azurerm_key_vault.secrets.id
+}
+
+resource "azurerm_key_vault_secret" "credentials" {
+  count = length(local.credentials)
+
+  name         = values(local.credentials)[count.index].key_vault_secret_name
+  value        = values(local.credentials)[count.index].value
+  key_vault_id = azurerm_key_vault.secrets.id
+}
+
+resource "terraform_data" "secret_lookup" {
+  input = azurerm_key_vault.secrets.id
+}
+
+data "azurerm_key_vault" "secrets" {
+  name                = azurerm_key_vault.secrets.name
+  resource_group_name = azurerm_resource_group.test.name
+
+  depends_on = [
+    terraform_data.secret_lookup,
+    azurerm_key_vault_secret.application_insights,
+  ]
+}
+
+resource "azurerm_container_app_job" "test" {
+
+  name                         = "acctest-cajob%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  container_app_environment_id = azurerm_container_app_environment.test.id
+
+  replica_timeout_in_seconds = 10
+  replica_retry_limit        = 10
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.crawler.id]
+  }
+
+  manual_trigger_config {
+    parallelism              = 4
+    replica_completion_count = 1
+  }
+
+  template {
+    container {
+      name   = "example"
+      image  = "nginx:latest"
+      cpu    = 0.5
+      memory = "1Gi"
+
+    }
+  }
+  secret {
+    name                = azurerm_key_vault_secret.application_insights.name
+    identity            = azurerm_user_assigned_identity.crawler.id
+    key_vault_secret_id = azurerm_key_vault_secret.application_insights.versionless_id
+  }
+
+  dynamic "secret" {
+    for_each = local.credentials
+
+    content {
+      name                = secret.key
+      identity            = azurerm_user_assigned_identity.crawler.id
+      key_vault_secret_id = "${trimsuffix(data.azurerm_key_vault.secrets.vault_uri, "/")}/secrets/${secret.value.key_vault_secret_name}"
+    }
+  }
+}
+
+`, r.template(data), data.RandomInteger)
+}
+
 func (r ContainerAppJobResource) allProbes(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
