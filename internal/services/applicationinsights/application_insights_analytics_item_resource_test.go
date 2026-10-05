@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package applicationinsights_test
@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	analyticsitems "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/analyticsitemsapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/analyticsitemsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -123,7 +123,7 @@ func (t AppInsightsAnalyticsItemResource) Exists(ctx context.Context, clients *c
 		return nil, err
 	}
 
-	options := analyticsitems.AnalyticsItemsGetOperationOptions{
+	options := analyticsitemsapis.AnalyticsItemsGetOperationOptions{
 		Id: pointer.To(itemId),
 	}
 

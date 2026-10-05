@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -7,12 +7,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkinterfaces"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkinterfaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -38,6 +39,18 @@ func dataSourceNetworkInterface() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
+			"auxiliary_mode": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"auxiliary_sku": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"edge_zone": commonschema.EdgeZoneComputed(),
 
 			"network_security_group_id": {
 				Type:     pluginsdk.TypeString,
@@ -130,6 +143,11 @@ func dataSourceNetworkInterface() *pluginsdk.Resource {
 				},
 			},
 
+			"internal_domain_name_suffix": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"dns_servers": {
 				Type:     pluginsdk.TypeSet,
 				Computed: true,
@@ -177,7 +195,7 @@ func dataSourceNetworkInterface() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkInterfaces
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -187,7 +205,7 @@ func dataSourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{})
 	resp, err := client.Get(ctx, id, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("Error: %s was not found", id)
+			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -202,15 +220,16 @@ func dataSourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("retrieving %s: `model` was nil", id)
 	}
 
-	if location := model.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+	if loc := model.Location; loc != nil {
+		d.Set("location", location.Normalize(*loc))
 	}
+	d.Set("edge_zone", flattenEdgeZoneModel(model.ExtendedLocation))
 
 	if props := model.Properties; props != nil {
 		d.Set("mac_address", props.MacAddress)
 
 		privateIpAddress := ""
-		privateIpAddresses := make([]interface{}, 0)
+		privateIpAddresses := make([]any, 0)
 		if configs := props.IPConfigurations; configs != nil {
 			for _, config := range *configs {
 				if config.Properties == nil {
@@ -243,8 +262,13 @@ func dataSourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 		d.Set("virtual_machine_id", virtualMachineId)
 
+		d.Set("auxiliary_mode", pointer.FromEnum(props.AuxiliaryMode))
+
+		d.Set("auxiliary_sku", pointer.FromEnum(props.AuxiliarySku))
+
 		var appliedDNSServers []string
 		var dnsServers []string
+		internalDomainNameSuffix := ""
 		if dnsSettings := props.DnsSettings; dnsSettings != nil {
 			if s := dnsSettings.AppliedDnsServers; s != nil {
 				appliedDNSServers = *s
@@ -253,6 +277,8 @@ func dataSourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{})
 			if s := dnsSettings.DnsServers; s != nil {
 				dnsServers = *s
 			}
+
+			internalDomainNameSuffix = pointer.From(dnsSettings.InternalDomainNameSuffix)
 
 			d.Set("internal_dns_name_label", dnsSettings.InternalDnsNameLabel)
 		}
@@ -265,6 +291,7 @@ func dataSourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{})
 
 		d.Set("applied_dns_servers", appliedDNSServers)
 		d.Set("dns_servers", dnsServers)
+		d.Set("internal_domain_name_suffix", internalDomainNameSuffix)
 		d.Set("ip_forwarding_enabled", props.EnableIPForwarding)
 		d.Set("accelerated_networking_enabled", props.EnableAcceleratedNetworking)
 	}

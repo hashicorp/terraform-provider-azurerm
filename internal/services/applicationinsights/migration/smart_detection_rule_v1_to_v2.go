@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -7,7 +7,7 @@ import (
 	"context"
 	"log"
 
-	smartdetection "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentproactivedetectionapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentproactivedetectionapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -21,7 +21,7 @@ func (SmartDetectionRuleUpgradeV1ToV2) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (SmartDetectionRuleUpgradeV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		// old:
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/microsoft.insights/components/component1/SmartDetectionRule/rule1
 		// new:
@@ -32,7 +32,7 @@ func (SmartDetectionRuleUpgradeV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc
 			return rawState, err
 		}
 
-		id := smartdetection.NewProactiveDetectionConfigID(oldId.SubscriptionId, oldId.ResourceGroup, oldId.ComponentName, oldId.SmartDetectionRuleName)
+		id := componentproactivedetectionapis.NewProactiveDetectionConfigID(oldId.SubscriptionId, oldId.ResourceGroup, oldId.ComponentName, oldId.SmartDetectionRuleName)
 
 		newId := id.ID()
 		log.Printf("[DEBUG] Updating ID from %q to %q", oldIdRaw, newId)

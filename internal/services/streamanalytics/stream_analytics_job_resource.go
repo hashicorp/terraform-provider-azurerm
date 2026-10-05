@@ -1,9 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -21,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -106,34 +108,25 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 			},
 
 			"events_out_of_order_policy": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(streamingjobs.EventsOutOfOrderPolicyAdjust),
-					string(streamingjobs.EventsOutOfOrderPolicyDrop),
-				}, false),
-				Default: string(streamingjobs.EventsOutOfOrderPolicyAdjust),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(streamingjobs.PossibleValuesForEventsOutOfOrderPolicy(), false),
+				Default:      string(streamingjobs.EventsOutOfOrderPolicyAdjust),
 			},
 
 			"type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(streamingjobs.JobTypeCloud),
-					string(streamingjobs.JobTypeEdge),
-				}, false),
-				Default: string(streamingjobs.JobTypeCloud),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(streamingjobs.PossibleValuesForJobType(), false),
+				Default:      string(streamingjobs.JobTypeCloud),
 			},
 
 			"output_error_policy": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(streamingjobs.OutputErrorPolicyDrop),
-					string(streamingjobs.OutputErrorPolicyStop),
-				}, false),
-				Default: string(streamingjobs.OutputErrorPolicyDrop),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(streamingjobs.PossibleValuesForOutputErrorPolicy(), false),
+				Default:      string(streamingjobs.OutputErrorPolicyDrop),
 			},
 
 			"streaming_units": {
@@ -143,18 +136,16 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 			},
 
 			"content_storage_policy": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(streamingjobs.ContentStoragePolicySystemAccount),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(streamingjobs.ContentStoragePolicySystemAccount),
-					string(streamingjobs.ContentStoragePolicyJobStorageAccount),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(streamingjobs.ContentStoragePolicySystemAccount),
+				ValidateFunc: validation.StringInSlice(streamingjobs.PossibleValuesForContentStoragePolicy(), false),
 			},
 
 			"job_storage_account": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*schema.Schema{
 						"authentication_mode": {
@@ -163,6 +154,7 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 							Default:  string(streamingjobs.AuthenticationModeConnectionString),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(streamingjobs.AuthenticationModeConnectionString),
+								string(streamingjobs.AuthenticationModeMsi),
 							}, false),
 						},
 
@@ -174,7 +166,7 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 
 						"account_key": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -207,31 +199,38 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
+
+		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i any) error {
+			if d.Get("job_storage_account.0.authentication_mode") == string(streamingjobs.AuthenticationModeMsi) && d.Get("job_storage_account.0.account_key") != "" {
+				return fmt.Errorf("`job_storage_account.0.account_key` cannot be set when `job_storage_account.0.authentication_mode` is `Msi`")
+			}
+			return nil
+		},
 	}
 }
 
-func resourceStreamAnalyticsJobCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsJobCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.JobsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Job creation.")
 
 	id := streamingjobs.NewStreamingJobID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	locks.ByID(id.ID())
 	defer locks.UnlockByID(id.ID())
 
-	existing, err := client.Get(ctx, id, streamingjobs.DefaultGetOperationOptions())
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id, streamingjobs.DefaultGetOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_stream_analytics_job", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_stream_analytics_job", id.ID())
+		}
 	}
 
 	// needs to be defined inline for a Create but via a separate API for Update
@@ -262,19 +261,19 @@ func resourceStreamAnalyticsJobCreate(d *pluginsdk.ResourceData, meta interface{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &streamingjobs.StreamingJobProperties{
 			Sku: &streamingjobs.Sku{
-				Name: pointer.To(streamingjobs.SkuName(d.Get("sku_name").(string))),
+				Name: pointer.ToEnum[streamingjobs.SkuName](d.Get("sku_name").(string)),
 			},
-			ContentStoragePolicy:               pointer.To(streamingjobs.ContentStoragePolicy(contentStoragePolicy)),
+			ContentStoragePolicy:               pointer.ToEnum[streamingjobs.ContentStoragePolicy](contentStoragePolicy),
 			EventsLateArrivalMaxDelayInSeconds: pointer.To(int64(d.Get("events_late_arrival_max_delay_in_seconds").(int))),
 			EventsOutOfOrderMaxDelayInSeconds:  pointer.To(int64(d.Get("events_out_of_order_max_delay_in_seconds").(int))),
-			EventsOutOfOrderPolicy:             pointer.To(streamingjobs.EventsOutOfOrderPolicy(d.Get("events_out_of_order_policy").(string))),
-			OutputErrorPolicy:                  pointer.To(streamingjobs.OutputErrorPolicy(d.Get("output_error_policy").(string))),
-			JobType:                            pointer.To(streamingjobs.JobType(jobType)),
+			EventsOutOfOrderPolicy:             pointer.ToEnum[streamingjobs.EventsOutOfOrderPolicy](d.Get("events_out_of_order_policy").(string)),
+			OutputErrorPolicy:                  pointer.ToEnum[streamingjobs.OutputErrorPolicy](d.Get("output_error_policy").(string)),
+			JobType:                            pointer.ToEnum[streamingjobs.JobType](jobType),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
-	expandedIdentity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
+	expandedIdentity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -293,15 +292,11 @@ func resourceStreamAnalyticsJobCreate(d *pluginsdk.ResourceData, meta interface{
 	props.Identity = expandedIdentity
 
 	if _, ok := d.GetOk("compatibility_level"); ok {
-		props.Properties.CompatibilityLevel = pointer.To(streamingjobs.CompatibilityLevel(d.Get("compatibility_level").(string)))
+		props.Properties.CompatibilityLevel = pointer.ToEnum[streamingjobs.CompatibilityLevel](d.Get("compatibility_level").(string))
 	}
 
-	if contentStoragePolicy == string(streamingjobs.ContentStoragePolicyJobStorageAccount) {
-		if v, ok := d.GetOk("job_storage_account"); ok {
-			props.Properties.JobStorageAccount = expandJobStorageAccount(v.([]interface{}))
-		} else {
-			return fmt.Errorf("`job_storage_account` must be set when `content_storage_policy` is `JobStorageAccount`")
-		}
+	if v, ok := d.GetOk("job_storage_account"); ok {
+		props.Properties.JobStorageAccount = expandJobStorageAccount(v.([]any))
 	}
 
 	if jobType == string(streamingjobs.JobTypeEdge) {
@@ -314,9 +309,7 @@ func resourceStreamAnalyticsJobCreate(d *pluginsdk.ResourceData, meta interface{
 				Id: pointer.To(streamAnalyticsCluster.(string)),
 			}
 		} else {
-			props.Properties.Cluster = &streamingjobs.ClusterInfo{
-				Id: nil,
-			}
+			props.Properties.Cluster = &streamingjobs.ClusterInfo{}
 		}
 	}
 
@@ -326,16 +319,15 @@ func resourceStreamAnalyticsJobCreate(d *pluginsdk.ResourceData, meta interface{
 
 	props.Properties.Transformation = &transformation
 
-	if err := client.CreateOrReplaceThenPoll(ctx, id, props, streamingjobs.DefaultCreateOrReplaceOperationOptions()); err != nil {
+	if err := client.CreateOrReplaceCallbackThenPoll(ctx, id, props, streamingjobs.DefaultCreateOrReplaceOperationOptions(), sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-
 	d.SetId(id.ID())
 
 	return resourceStreamAnalyticsJobRead(d, meta)
 }
 
-func resourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.JobsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -394,7 +386,7 @@ func resourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{})
 
 			sku := ""
 			if props.Sku != nil {
-				sku = string(pointer.From(props.Sku.Name))
+				sku = pointer.FromEnum(props.Sku.Name)
 			}
 			d.Set("sku_name", sku)
 			d.Set("content_storage_policy", pointer.From(props.ContentStoragePolicy))
@@ -407,20 +399,20 @@ func resourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{})
 					d.Set("transformation_query", pointer.From(transformProps.Query))
 				}
 			}
-			return tags.FlattenAndSet(d, model.Tags)
+			if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
 }
 
-func resourceStreamAnalyticsJobUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsJobUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.JobsClient
 	transformationsClient := meta.(*clients.Client).StreamAnalytics.TransformationsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Job update.")
 
 	id, err := streamingjobs.ParseStreamingJobID(d.Id())
 	if err != nil {
@@ -457,7 +449,7 @@ func resourceStreamAnalyticsJobUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("compatibility_level") {
-		payload.Properties.CompatibilityLevel = pointer.To(streamingjobs.CompatibilityLevel(d.Get("compatibility_level").(string)))
+		payload.Properties.CompatibilityLevel = pointer.ToEnum[streamingjobs.CompatibilityLevel](d.Get("compatibility_level").(string))
 	}
 
 	if d.HasChange("data_locale") {
@@ -473,20 +465,20 @@ func resourceStreamAnalyticsJobUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("events_out_of_order_policy") {
-		payload.Properties.EventsOutOfOrderPolicy = pointer.To(streamingjobs.EventsOutOfOrderPolicy(d.Get("events_out_of_order_policy").(string)))
+		payload.Properties.EventsOutOfOrderPolicy = pointer.ToEnum[streamingjobs.EventsOutOfOrderPolicy](d.Get("events_out_of_order_policy").(string))
 	}
 
 	if d.HasChange("output_error_policy") {
-		payload.Properties.OutputErrorPolicy = pointer.To(streamingjobs.OutputErrorPolicy(d.Get("output_error_policy").(string)))
+		payload.Properties.OutputErrorPolicy = pointer.ToEnum[streamingjobs.OutputErrorPolicy](d.Get("output_error_policy").(string))
 	}
 
 	if d.HasChange("content_storage_policy") {
-		payload.Properties.ContentStoragePolicy = pointer.To(streamingjobs.ContentStoragePolicy(d.Get("contentStoragePolicy").(string)))
+		payload.Properties.ContentStoragePolicy = pointer.ToEnum[streamingjobs.ContentStoragePolicy](d.Get("content_storage_policy").(string))
 	}
 
 	if d.HasChange("job_storage_account") {
-		storageAccount := d.Get("job_storage_account").([]interface{})
-		if d.Get("contentStoragePolicy").(string) == string(streamingjobs.ContentStoragePolicyJobStorageAccount) {
+		storageAccount := d.Get("job_storage_account").([]any)
+		if d.Get("content_storage_policy").(string) == string(streamingjobs.ContentStoragePolicyJobStorageAccount) {
 			if len(storageAccount) == 0 {
 				return fmt.Errorf("`job_storage_account` must be set when `content_storage_policy` is `JobStorageAccount`")
 			}
@@ -495,7 +487,7 @@ func resourceStreamAnalyticsJobUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("identity") {
-		expandedIdentity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
+		expandedIdentity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -508,12 +500,12 @@ func resourceStreamAnalyticsJobUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	if d.HasChange("sku_name") {
 		payload.Properties.Sku = &streamingjobs.Sku{
-			Name: pointer.To(streamingjobs.SkuName(d.Get("sku_name").(string))),
+			Name: pointer.ToEnum[streamingjobs.SkuName](d.Get("sku_name").(string)),
 		}
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if _, err := client.Update(ctx, *id, *payload, streamingjobs.DefaultUpdateOperationOptions()); err != nil {
@@ -546,7 +538,7 @@ func resourceStreamAnalyticsJobUpdate(d *pluginsdk.ResourceData, meta interface{
 	return resourceStreamAnalyticsJobRead(d, meta)
 }
 
-func resourceStreamAnalyticsJobDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsJobDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.JobsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -563,35 +555,34 @@ func resourceStreamAnalyticsJobDelete(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func expandJobStorageAccount(input []interface{}) *streamingjobs.JobStorageAccount {
-	if input == nil {
+func expandJobStorageAccount(input []any) *streamingjobs.JobStorageAccount {
+	if len(input) == 0 {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
-	authenticationMode := v["authentication_mode"].(string)
-	accountName := v["account_name"].(string)
-	accountKey := v["account_key"].(string)
+	v := input[0].(map[string]any)
 
-	return &streamingjobs.JobStorageAccount{
-		AuthenticationMode: pointer.To(streamingjobs.AuthenticationMode(authenticationMode)),
-		AccountName:        pointer.To(accountName),
-		AccountKey:         pointer.To(accountKey),
+	jobStorageAccount := streamingjobs.JobStorageAccount{
+		AuthenticationMode: pointer.ToEnum[streamingjobs.AuthenticationMode](v["authentication_mode"].(string)),
+		AccountName:        pointer.To(v["account_name"].(string)),
 	}
+
+	if accountKey := v["account_key"].(string); accountKey != "" {
+		jobStorageAccount.AccountKey = pointer.To(accountKey)
+	}
+
+	return &jobStorageAccount
 }
 
-func flattenJobStorageAccount(d *pluginsdk.ResourceData, input *streamingjobs.JobStorageAccount) []interface{} {
+func flattenJobStorageAccount(d *pluginsdk.ResourceData, input *streamingjobs.JobStorageAccount) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	accountName := ""
-	if v := input.AccountName; v != nil {
-		accountName = *v
-	}
+	accountName := pointer.From(input.AccountName)
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"authentication_mode": string(*input.AuthenticationMode),
 			"account_name":        accountName,
 			"account_key":         d.Get("job_storage_account.0.account_key").(string),
