@@ -22,11 +22,11 @@ import (
 type ClusterResource struct{}
 
 type ClusterModel struct {
-	Name              string                 `tfschema:"name"`
-	ResourceGroup     string                 `tfschema:"resource_group_name"`
-	Location          string                 `tfschema:"location"`
-	StreamingCapacity int64                  `tfschema:"streaming_capacity"`
-	Tags              map[string]interface{} `tfschema:"tags"`
+	Name              string         `tfschema:"name"`
+	ResourceGroup     string         `tfschema:"resource_group_name"`
+	Location          string         `tfschema:"location"`
+	StreamingCapacity int64          `tfschema:"streaming_capacity"`
+	Tags              map[string]any `tfschema:"tags"`
 }
 
 var (
@@ -34,7 +34,7 @@ var (
 	_ sdk.ResourceWithStateMigration = ClusterResource{}
 )
 
-func (r ClusterResource) ModelObject() interface{} {
+func (r ClusterResource) ModelObject() any {
 	return &ClusterModel{}
 }
 
@@ -149,11 +149,7 @@ func (r ClusterResource) Read() sdk.ResourceFunc {
 				state.Location = *model.Location
 				state.Tags = tags.Flatten(model.Tags)
 
-				var capacity int64
-				if v := model.Sku.Capacity; v != nil {
-					capacity = *v
-				}
-				state.StreamingCapacity = capacity
+				state.StreamingCapacity = pointer.From(model.Sku.Capacity)
 			}
 
 			return metadata.Encode(&state)
@@ -196,7 +192,7 @@ func (r ClusterResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			if metadata.ResourceData.HasChange("streaming_capacity") || metadata.ResourceData.HasChange("tags") {
+			if metadata.ResourceData.HasChanges("streaming_capacity", "tags") {
 				props := clusters.Cluster{
 					Sku: &clusters.ClusterSku{
 						Capacity: pointer.To(state.StreamingCapacity),

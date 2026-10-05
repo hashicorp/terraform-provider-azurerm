@@ -54,8 +54,9 @@ func resourceApiManagementApiPolicy() *pluginsdk.Resource {
 			"api_name": schemaz.SchemaApiManagementApiName(),
 
 			"xml_content": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// Note: O+C because when `xml_link` is provided the API downloads it into `xml_content`
 				Computed:         true,
 				ConflictsWith:    []string{"xml_link"},
 				DiffSuppressFunc: XmlWithDotNetInterpolationsDiffSuppress,
@@ -70,7 +71,7 @@ func resourceApiManagementApiPolicy() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementAPIPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementAPIPolicyCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ApiPoliciesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -130,7 +131,7 @@ func resourceApiManagementAPIPolicyCreateUpdate(d *pluginsdk.ResourceData, meta 
 	return resourceApiManagementAPIPolicyRead(d, meta)
 }
 
-func resourceApiManagementAPIPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementAPIPolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ApiPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -153,8 +154,7 @@ func resourceApiManagementAPIPolicyRead(d *pluginsdk.ResourceData, meta interfac
 
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("api_management_name", id.ServiceName)
-	apiName := getApiName(id.ApiId)
-	d.Set("api_name", apiName)
+	d.Set("api_name", getApiName(id.ApiId))
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
@@ -171,7 +171,7 @@ func resourceApiManagementAPIPolicyRead(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func resourceApiManagementAPIPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementAPIPolicyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ApiPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
