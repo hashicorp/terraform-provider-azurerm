@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
@@ -61,7 +61,7 @@ func dataSourceKubernetesServiceVersions() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceKubernetesServiceVersionsRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceKubernetesServiceVersionsRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Containers.ServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -73,7 +73,7 @@ func dataSourceKubernetesServiceVersionsRead(d *pluginsdk.ResourceData, meta int
 	listResp, err := client.ListOrchestrators(ctx, id, options)
 	if err != nil {
 		if response.WasNotFound(listResp.HttpResponse) {
-			return fmt.Errorf("Error: No Kubernetes Service versions found for location %q", id.LocationName)
+			return fmt.Errorf("no Kubernetes Service versions found for location %q", id.LocationName)
 		}
 		return fmt.Errorf("retrieving Kubernetes Versions in %q: %+v", id.LocationName, err)
 	}

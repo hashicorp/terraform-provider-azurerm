@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -9,11 +9,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkinterfaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/publicipaddresses"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/publicipaddresses"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-// nolint: deadcode unused
 type connectionInfo struct {
 	// primaryPrivateAddress is the Primary Private IP Address for this VM
 	primaryPrivateAddress string
@@ -29,7 +28,6 @@ type connectionInfo struct {
 }
 
 // retrieveConnectionInformation retrieves all of the Public and Private IP Addresses assigned to a Virtual Machine
-// nolint: deadcode unused
 func retrieveConnectionInformation(ctx context.Context, nicsClient *networkinterfaces.NetworkInterfacesClient, pipsClient *publicipaddresses.PublicIPAddressesClient, input *virtualmachines.VirtualMachineProperties) connectionInfo {
 	if input == nil || input.NetworkProfile == nil || input.NetworkProfile.NetworkInterfaces == nil {
 		return connectionInfo{}
@@ -69,7 +67,6 @@ func retrieveConnectionInformation(ctx context.Context, nicsClient *networkinter
 	}
 }
 
-// nolint: deadcode unused
 type interfaceDetails struct {
 	// privateIPAddresses is a slice of the Private IP Addresses supported by this VM
 	privateIPAddresses []string
@@ -80,7 +77,6 @@ type interfaceDetails struct {
 
 // retrieveIPAddressesForNIC returns the Public and Private IP Addresses associated
 // with the specified Network Interface
-// nolint: deadcode unused
 func retrieveIPAddressesForNIC(ctx context.Context, nicClient *networkinterfaces.NetworkInterfacesClient, pipClient *publicipaddresses.PublicIPAddressesClient, nicID string) *interfaceDetails {
 	id, err := commonids.ParseNetworkInterfaceID(nicID)
 	if err != nil {
@@ -126,7 +122,6 @@ func retrieveIPAddressesForNIC(ctx context.Context, nicClient *networkinterfaces
 }
 
 // retrievePublicIPAddress returns the Public IP Address associated with an Azure Public IP
-// nolint: deadcode unused
 func retrievePublicIPAddress(ctx context.Context, client *publicipaddresses.PublicIPAddressesClient, publicIPAddressID string) (*string, error) {
 	id, err := commonids.ParsePublicIPAddressID(publicIPAddressID)
 	if err != nil {
@@ -153,7 +148,6 @@ func retrievePublicIPAddress(ctx context.Context, client *publicipaddresses.Publ
 // setConnectionInformation sets the connection information required for Provisioners
 // to connect to the Virtual Machine. A Public IP Address is used if one is available
 // but this falls back to a Private IP Address (which should always exist)
-// nolint: deadcode unused
 func setConnectionInformation(d *pluginsdk.ResourceData, input connectionInfo, isWindows bool) {
 	provisionerType := "ssh"
 	if isWindows {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -51,6 +51,31 @@ func TestPrivateLinkSubResourceName(t *testing.T) {
 		{
 			Name:  "Blob Space Secondary",
 			Input: "blob secondary",
+			Valid: true,
+		},
+		{
+			Name:  "ADME Sub-Resource With Spaces",
+			Input: "Azure Data Manager for Energy",
+			Valid: true,
+		},
+		{
+			Name:  "App Service Environment Sub-Resource With Space",
+			Input: "hosting environment",
+			Valid: true,
+		},
+		{
+			Name:  "Power BI Sub-Resource With Space",
+			Input: "Power BI",
+			Valid: true,
+		},
+		{
+			Name:  "Start With Space",
+			Input: " SqlServer",
+			Valid: false,
+		},
+		{
+			Name:  "End With Space",
+			Input: "SqlServer ",
 			Valid: false,
 		},
 		{
