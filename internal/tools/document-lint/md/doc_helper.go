@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package md
@@ -11,14 +11,14 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-lint/util"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var (
 	docRDir             string
 	resourceFilePathMap map[string]string
-	file2Reosurce       = map[string]string{}
+	file2Resource       = map[string]string{}
 	once                sync.Once
 )
 
@@ -47,8 +47,8 @@ func getMappingPath(resourceName string) (res string) {
 				fullPath := path.Join(ResourceDir(), en.Name())
 				name := fileResource(fullPath)
 				tmpMap[name] = fullPath
-				if _, ok := file2Reosurce[fullPath]; !ok {
-					file2Reosurce[fullPath] = name
+				if _, ok := file2Resource[fullPath]; !ok {
+					file2Resource[fullPath] = name
 				}
 			}
 			resourceFilePathMap = tmpMap
@@ -70,8 +70,16 @@ func fileResource(path string) string {
 }
 
 func docDir() string {
-	file, _ := util.FuncFileLine(utils.Int32)
-	return path.Join(path.Dir(path.Dir(file)), "website", "docs")
+	// FuncFileLine gives the source file that defines the function, and the docs live at the
+	// repository root. Walk up to the directory holding go.mod rather than counting parents,
+	// so this keeps working if the function is ever moved to a different package.
+	file, _ := util.FuncFileLine(pluginsdk.ExpandStringSlice)
+	for dir := path.Dir(file); dir != "/" && dir != "."; dir = path.Dir(dir) {
+		if _, err := os.Stat(path.Join(dir, "go.mod")); err == nil {
+			return path.Join(dir, "website", "docs")
+		}
+	}
+	return ""
 }
 
 func ResourceDir() string {
@@ -79,4 +87,9 @@ func ResourceDir() string {
 		docRDir = path.Join(docDir(), "r")
 	}
 	return docRDir
+}
+
+// DocDir returns the base documentation directory
+func DocDir() string {
+	return docDir()
 }

@@ -1,24 +1,26 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package frontdoor
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2020-05-01/frontdoors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
@@ -56,7 +58,7 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azValidate.FrontDoorName,
+				ValidateFunc: validate.FrontDoorName,
 			},
 			"location": commonschema.LocationComputed(),
 
@@ -183,13 +185,9 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 												"header_action_type": {
-													Type: pluginsdk.TypeString,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(frontdoors.HeaderActionTypeAppend),
-														string(frontdoors.HeaderActionTypeDelete),
-														string(frontdoors.HeaderActionTypeOverwrite),
-													}, false),
-													Optional: true,
+													Type:         pluginsdk.TypeString,
+													ValidateFunc: validation.StringInSlice(frontdoors.PossibleValuesForHeaderActionType(), false),
+													Optional:     true,
 												},
 
 												"header_name": {
@@ -214,13 +212,9 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 												"header_action_type": {
-													Type: pluginsdk.TypeString,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(frontdoors.HeaderActionTypeAppend),
-														string(frontdoors.HeaderActionTypeDelete),
-														string(frontdoors.HeaderActionTypeOverwrite),
-													}, false),
-													Optional: true,
+													Type:         pluginsdk.TypeString,
+													ValidateFunc: validation.StringInSlice(frontdoors.PossibleValuesForHeaderActionType(), false),
+													Optional:     true,
 												},
 
 												"header_name": {
@@ -244,66 +238,78 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 				},
 			},
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v any) error {
+			if IsFrontDoorFullyRetired() {
+				return fmt.Errorf("%s", FullyRetiredMessage)
+			}
+
+			// New resources are not supported, and since these fields are 'ForceNew' we also need to block changing them as
+			// the re-create would fail with the create error from the service API...
+			if IsFrontDoorDeprecatedForCreation() && d.HasChanges("name", "frontdoor_name", "resource_group_name") {
+				return fmt.Errorf("%s", CreateDeprecationMessage)
+			}
+
+			return nil
+		}),
 	}
 }
 
-func resourceFrontDoorRulesEngineCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceFrontDoorRulesEngineCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Frontdoor.FrontDoorsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	frontDoorName := d.Get("frontdoor_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	rulesEngineName := d.Get("name").(string)
+	rules := d.Get("rule").([]any)
 
-	rules := d.Get("rule").([]interface{})
-
-	id := frontdoors.NewRulesEngineID(subscriptionId, resourceGroup, frontDoorName, rulesEngineName)
-
-	frontdoorRulesEngineProperties := frontdoors.RulesEngineProperties{
-		Rules: expandFrontDoorRulesEngineRules(rules),
-	}
+	id := frontdoors.NewRulesEngineID(subscriptionId, d.Get("resource_group_name").(string), d.Get("frontdoor_name").(string), d.Get("name").(string))
 
 	frontdoorRulesEngine := frontdoors.RulesEngine{
-		Name:       utils.String(rulesEngineName),
-		Properties: &frontdoorRulesEngineProperties,
+		Name: pointer.To(id.RulesEngineName),
+		Properties: &frontdoors.RulesEngineProperties{
+			Rules: expandFrontDoorRulesEngineRules(rules),
+		},
 	}
 
-	if err := client.RulesEnginesCreateOrUpdateThenPoll(ctx, id, frontdoorRulesEngine); err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.RulesEnginesCreateOrUpdateCallbackThenPoll(ctx, id, frontdoorRulesEngine, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.RulesEnginesCreateOrUpdateThenPoll(ctx, id, frontdoorRulesEngine); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
-	d.SetId(id.ID())
 	return resourceFrontDoorRulesEngineRead(d, meta)
 }
 
-func expandFrontDoorRulesEngineAction(input []interface{}) frontdoors.RulesEngineAction {
+func expandFrontDoorRulesEngineAction(input []any) frontdoors.RulesEngineAction {
 	if len(input) == 0 || input[0] == nil {
 		return frontdoors.RulesEngineAction{}
 	}
 
-	ruleAction := input[0].(map[string]interface{})
+	ruleAction := input[0].(map[string]any)
 
-	requestHeaderActions := ruleAction["request_header"].([]interface{})
-	responseHeaderActions := ruleAction["response_header"].([]interface{})
+	requestHeaderActions := ruleAction["request_header"].([]any)
+	responseHeaderActions := ruleAction["response_header"].([]any)
 
-	frontdoorRulesEngineRuleAction := frontdoors.RulesEngineAction{
+	return frontdoors.RulesEngineAction{
 		RequestHeaderActions:  expandHeaderAction(requestHeaderActions),
 		ResponseHeaderActions: expandHeaderAction(responseHeaderActions),
 	}
-
-	return frontdoorRulesEngineRuleAction
 }
 
-func expandHeaderAction(input []interface{}) *[]frontdoors.HeaderAction {
+func expandHeaderAction(input []any) *[]frontdoors.HeaderAction {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 	output := make([]frontdoors.HeaderAction, 0)
 
 	for _, a := range input {
-		action := a.(map[string]interface{})
+		action := a.(map[string]any)
 
 		headerName := action["header_name"].(string)
 		value := action["value"].(string)
@@ -311,7 +317,7 @@ func expandHeaderAction(input []interface{}) *[]frontdoors.HeaderAction {
 
 		frontdoorRulesEngineRuleHeaderAction := frontdoors.HeaderAction{
 			HeaderName:       headerName,
-			Value:            utils.String(value),
+			Value:            pointer.To(value),
 			HeaderActionType: frontdoors.HeaderActionType(headerActionType),
 		}
 
@@ -321,7 +327,7 @@ func expandHeaderAction(input []interface{}) *[]frontdoors.HeaderAction {
 	return &output
 }
 
-func expandFrontDoorRulesEngineRules(input []interface{}) *[]frontdoors.RulesEngineRule {
+func expandFrontDoorRulesEngineRules(input []any) *[]frontdoors.RulesEngineRule {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
@@ -329,12 +335,12 @@ func expandFrontDoorRulesEngineRules(input []interface{}) *[]frontdoors.RulesEng
 	output := make([]frontdoors.RulesEngineRule, 0)
 
 	for _, r := range input {
-		rule := r.(map[string]interface{})
+		rule := r.(map[string]any)
 
 		ruleName := rule["name"].(string)
 		priority := int64(rule["priority"].(int))
-		actions := rule["action"].([]interface{})
-		matchConditions := rule["match_condition"].([]interface{})
+		actions := rule["action"].([]any)
+		matchConditions := rule["match_condition"].([]any)
 
 		frontdoorRulesEngineRule := frontdoors.RulesEngineRule{
 			Name:            ruleName,
@@ -348,7 +354,7 @@ func expandFrontDoorRulesEngineRules(input []interface{}) *[]frontdoors.RulesEng
 	return &output
 }
 
-func expandFrontDoorRulesEngineMatchCondition(input []interface{}) *[]frontdoors.RulesEngineMatchCondition {
+func expandFrontDoorRulesEngineMatchCondition(input []any) *[]frontdoors.RulesEngineMatchCondition {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
@@ -356,14 +362,13 @@ func expandFrontDoorRulesEngineMatchCondition(input []interface{}) *[]frontdoors
 	output := make([]frontdoors.RulesEngineMatchCondition, 0)
 
 	for _, c := range input {
-		condition := c.(map[string]interface{})
+		condition := c.(map[string]any)
 
 		selector := condition["selector"].(string)
-		negateCondition := condition["negate_condition"].(bool)
 		matchVariable := condition["variable"].(string)
 		operator := condition["operator"].(string)
-		transform := condition["transform"].([]interface{})
-		matchValue := condition["value"].([]interface{})
+		transform := condition["transform"].([]any)
+		matchValue := condition["value"].([]any)
 
 		matchValueArray := make([]string, 0)
 		for _, v := range matchValue {
@@ -372,9 +377,9 @@ func expandFrontDoorRulesEngineMatchCondition(input []interface{}) *[]frontdoors
 
 		matchCondition := frontdoors.RulesEngineMatchCondition{
 			RulesEngineMatchVariable: frontdoors.RulesEngineMatchVariable(matchVariable),
-			Selector:                 utils.String(selector),
+			Selector:                 pointer.To(selector),
 			RulesEngineOperator:      frontdoors.RulesEngineOperator(operator),
-			NegateCondition:          &negateCondition,
+			NegateCondition:          pointer.To(condition["negate_condition"].(bool)),
 			RulesEngineMatchValue:    matchValueArray,
 			Transforms:               expandFrontDoorRulesEngineMatchConditionTransform(transform),
 		}
@@ -383,7 +388,7 @@ func expandFrontDoorRulesEngineMatchCondition(input []interface{}) *[]frontdoors
 	return &output
 }
 
-func expandFrontDoorRulesEngineMatchConditionTransform(input []interface{}) *[]frontdoors.Transform {
+func expandFrontDoorRulesEngineMatchConditionTransform(input []any) *[]frontdoors.Transform {
 	if len(input) == 0 || input[0] == nil {
 		return &[]frontdoors.Transform{}
 	}
@@ -398,7 +403,7 @@ func expandFrontDoorRulesEngineMatchConditionTransform(input []interface{}) *[]f
 	return &output
 }
 
-func resourceFrontDoorRulesEngineRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceFrontDoorRulesEngineRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Frontdoor.FrontDoorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -420,7 +425,7 @@ func resourceFrontDoorRulesEngineRead(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func resourceFrontDoorRulesEngineDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceFrontDoorRulesEngineDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Frontdoor.FrontDoorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()

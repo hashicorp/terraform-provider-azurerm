@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package datasource
@@ -21,8 +21,7 @@ type ConfigValidator interface {
 
 	// ValidateDataSource performs the validation.
 	//
-	// This method name is separate from the provider.ConfigValidator
-	// interface ValidateProvider method name and resource.ConfigValidator
-	// interface ValidateResource method name to allow generic validators.
+	// This method name is separate from ConfigValidators in resource and other packages in
+	// order to allow generic validators.
 	ValidateDataSource(context.Context, ValidateConfigRequest, *ValidateConfigResponse)
 }

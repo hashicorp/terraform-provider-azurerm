@@ -47,8 +47,10 @@ The following arguments are supported:
 
 * `coordinator_public_ip_access_enabled` - (Optional) Is public access enabled on coordinator? Defaults to `true`.
 
-* `coordinator_server_edition` - (Optional) The edition of the coordinator server. Possible values are `BurstableGeneralPurpose`, `BurstableMemoryOptimized`, `GeneralPurpose` and `MemoryOptimized`. Defaults to `GeneralPurpose`.
+* `coordinator_server_edition` - (Optional) The edition of the coordinator server. Possible values are `BurstableGeneralPurpose`, `BurstableMemoryOptimized`, `GeneralPurpose`, and `MemoryOptimized`. Defaults to `GeneralPurpose`.
 
+-> **Note:** When using `BurstableGeneralPurpose`, the minimum supported value for `coordinator_vcore_count` is `2`. Setting `coordinator_vcore_count = 1` with this edition will result in an error from the Azure API. See [Azure Cosmos DB for PostgreSQL compute documentation](https://learn.microsoft.com/azure/cosmos-db/postgresql/resources-compute) for more details.
+  
 * `coordinator_storage_quota_in_mb` - (Optional) The coordinator storage allowed for the Azure Cosmos DB for PostgreSQL Cluster. Possible values are `32768`, `65536`, `131072`, `262144`, `524288`, `1048576`, `2097152`, `4194304`, `8388608`, `16777216`, and `33554432`.
 
 -> **Note:** More information on [the types of compute resources available for CosmosDB can be found in the product documentation](https://learn.microsoft.com/azure/cosmos-db/postgresql/resources-compute)
@@ -111,7 +113,7 @@ A `servers` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 3 hours) Used when creating the Azure Cosmos DB for PostgreSQL Cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure Cosmos DB for PostgreSQL Cluster.
@@ -130,4 +132,4 @@ terraform import azurerm_cosmosdb_postgresql_cluster.example /subscriptions/0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DBforPostgreSQL`: 2022-11-08
+* `Microsoft.DBforPostgreSQL` - 2022-11-08

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -10,8 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apimanagementservice"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/gateway"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
@@ -82,7 +82,7 @@ func resourceApiManagementGateway() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementGatewayCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementGatewayCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.GatewayClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -95,20 +95,22 @@ func resourceApiManagementGatewayCreateUpdate(d *pluginsdk.ResourceData, meta in
 	id := gateway.NewGatewayID(apimId.SubscriptionId, apimId.ResourceGroupName, apimId.ServiceName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("making read request %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("making read request %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_gateway", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_api_management_gateway", id.ID())
+			}
 		}
 	}
 
 	description := d.Get("description").(string)
-	locationData := expandApiManagementGatewayLocationData(d.Get("location_data").([]interface{}))
+	locationData := expandApiManagementGatewayLocationData(d.Get("location_data").([]any))
 
 	parameters := gateway.GatewayContract{
 		Properties: &gateway.GatewayContractProperties{
@@ -126,7 +128,7 @@ func resourceApiManagementGatewayCreateUpdate(d *pluginsdk.ResourceData, meta in
 	return resourceApiManagementGatewayRead(d, meta)
 }
 
-func resourceApiManagementGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementGatewayRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.GatewayClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -161,7 +163,7 @@ func resourceApiManagementGatewayRead(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func resourceApiManagementGatewayDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementGatewayDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.GatewayClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -180,14 +182,14 @@ func resourceApiManagementGatewayDelete(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func expandApiManagementGatewayLocationData(input []interface{}) *gateway.ResourceLocationDataContract {
+func expandApiManagementGatewayLocationData(input []any) *gateway.ResourceLocationDataContract {
 	if len(input) == 0 {
 		return nil
 	}
 
 	locationData := gateway.ResourceLocationDataContract{}
 
-	vs := input[0].(map[string]interface{})
+	vs := input[0].(map[string]any)
 	for k, v := range vs {
 		switch k {
 		case "name":
@@ -204,17 +206,17 @@ func expandApiManagementGatewayLocationData(input []interface{}) *gateway.Resour
 	return &locationData
 }
 
-func flattenApiManagementGatewayLocationData(input *gateway.ResourceLocationDataContract) []interface{} {
+func flattenApiManagementGatewayLocationData(input *gateway.ResourceLocationDataContract) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	locationData := map[string]interface{}{
+	locationData := map[string]any{
 		"name":     input.Name,
 		"city":     pointer.From(input.City),
 		"region":   pointer.From(input.CountryOrRegion),
 		"district": pointer.From(input.District),
 	}
 
-	return []interface{}{locationData}
+	return []any{locationData}
 }

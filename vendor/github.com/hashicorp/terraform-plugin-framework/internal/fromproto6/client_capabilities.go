@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package fromproto6
@@ -6,8 +6,10 @@ package fromproto6
 import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 
+	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -87,5 +89,45 @@ func OpenEphemeralResourceClientCapabilities(in *tfprotov6.OpenEphemeralResource
 
 	return ephemeral.OpenClientCapabilities{
 		DeferralAllowed: in.DeferralAllowed,
+	}
+}
+
+func ValidateResourceConfigClientCapabilities(in *tfprotov6.ValidateResourceConfigClientCapabilities) resource.ValidateConfigClientCapabilities {
+	if in == nil {
+		// Client did not indicate any supported capabilities
+		return resource.ValidateConfigClientCapabilities{
+			WriteOnlyAttributesAllowed: false,
+		}
+	}
+
+	return resource.ValidateConfigClientCapabilities{
+		WriteOnlyAttributesAllowed: in.WriteOnlyAttributesAllowed,
+	}
+}
+
+func ModifyPlanActionClientCapabilities(in *tfprotov6.PlanActionClientCapabilities) action.ModifyPlanClientCapabilities {
+	if in == nil {
+		// Client did not indicate any supported capabilities
+		return action.ModifyPlanClientCapabilities{
+			DeferralAllowed: false,
+		}
+	}
+
+	return action.ModifyPlanClientCapabilities{
+		DeferralAllowed: in.DeferralAllowed,
+	}
+}
+
+func ConfigureStateStoreClientCapabilities(in *tfprotov6.ConfigureStateStoreClientCapabilities) fwserver.ConfigureStateStoreClientCapabilities {
+	if in == nil {
+		// Client did not indicate any supported capabilities, in practice this shouldn't happen, but if it does
+		// we'll just default to the same chunk size that Terraform core does, 8MB.
+		return fwserver.ConfigureStateStoreClientCapabilities{
+			ChunkSize: 8 << 20,
+		}
+	}
+
+	return fwserver.ConfigureStateStoreClientCapabilities{
+		ChunkSize: in.ChunkSize,
 	}
 }

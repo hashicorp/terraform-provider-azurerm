@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package devcenter
@@ -28,6 +28,7 @@ type DevCenterDevBoxDefinitionDataSourceModel struct {
 	Location         string            `tfschema:"location"`
 	DevCenterId      string            `tfschema:"dev_center_id"`
 	ImageReferenceId string            `tfschema:"image_reference_id"`
+	HibernateSupport bool              `tfschema:"hibernate_support_enabled"`
 	SkuName          string            `tfschema:"sku_name"`
 	Tags             map[string]string `tfschema:"tags"`
 }
@@ -53,6 +54,11 @@ func (DevCenterDevBoxDefinitionDataSource) Attributes() map[string]*pluginsdk.Sc
 
 		"location": commonschema.LocationComputed(),
 
+		"hibernate_support_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
 		"sku_name": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -62,7 +68,7 @@ func (DevCenterDevBoxDefinitionDataSource) Attributes() map[string]*pluginsdk.Sc
 	}
 }
 
-func (DevCenterDevBoxDefinitionDataSource) ModelObject() interface{} {
+func (DevCenterDevBoxDefinitionDataSource) ModelObject() any {
 	return &DevCenterDevBoxDefinitionDataSourceModel{}
 }
 
@@ -111,6 +117,8 @@ func (r DevCenterDevBoxDefinitionDataSource) Read() sdk.ResourceFunc {
 					if v := props.ImageReference; v != nil {
 						state.ImageReferenceId = pointer.From(v.Id)
 					}
+
+					state.HibernateSupport = pointer.From(props.HibernateSupport) == devboxdefinitions.HibernateSupportEnabled
 
 					if v := props.Sku; v != nil {
 						state.SkuName = v.Name

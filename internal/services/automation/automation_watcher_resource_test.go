@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation_test
@@ -114,7 +114,7 @@ resource "azurerm_automation_watcher" "test" {
   }
 
   script_parameters = {
-    foo = "bar"
+    param_foo = "arg_bar"
   }
 
   etag                           = "etag example"

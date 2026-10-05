@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_key_vault_managed_hardware_security_module_role_definition
 
-Manages a Key Vault Managed Hardware Security Module Role Definition. This resource works together with [Managed hardware security module resource](./key_vault_managed_hardware_security_module).
+Manages a Key Vault Managed Hardware Security Module Role Definition. This resource works together with [Managed hardware security module resource](./key_vault_managed_hardware_security_module.html).
 
 ## Example Usage
 
@@ -62,7 +62,7 @@ The following arguments are supported:
 
 ---
 
-A `permission` block supports the following, more details about permission see [permitted-operations](https://learn.microsoft.com/en-us/azure/key-vault/managed-hsm/built-in-roles#permitted-operations):
+A `permission` block supports the following, more details about permission see [permitted-operations](https://learn.microsoft.com/azure/key-vault/managed-hsm/built-in-roles#permitted-operations):
 
 * `actions` - (Optional) One or more Allowed Actions, such as `*`, `Microsoft.Resources/subscriptions/resourceGroups/read`. See ['Azure Resource Manager resource provider operations'](https://docs.microsoft.com/azure/role-based-access-control/resource-provider-operations) for details.
 
@@ -84,7 +84,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Key Vault Managed Hardware Security Module Role Definition.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault Managed Hardware Security Module Role Definition.

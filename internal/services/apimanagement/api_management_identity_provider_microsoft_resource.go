@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -57,7 +57,7 @@ func resourceApiManagementIdentityProviderMicrosoft() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementIdentityProviderMicrosoftCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderMicrosoftCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -68,15 +68,17 @@ func resourceApiManagementIdentityProviderMicrosoftCreateUpdate(d *pluginsdk.Res
 	id := identityprovider.NewIdentityProviderID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), identityprovider.IdentityProviderTypeMicrosoft)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_identity_provider_microsoft", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_api_management_identity_provider_microsoft", id.ID())
+			}
 		}
 	}
 
@@ -97,7 +99,7 @@ func resourceApiManagementIdentityProviderMicrosoftCreateUpdate(d *pluginsdk.Res
 	return resourceApiManagementIdentityProviderMicrosoftRead(d, meta)
 }
 
-func resourceApiManagementIdentityProviderMicrosoftRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderMicrosoftRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -106,8 +108,6 @@ func resourceApiManagementIdentityProviderMicrosoftRead(d *pluginsdk.ResourceDat
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroupName
-	serviceName := id.ServiceName
 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
@@ -120,8 +120,8 @@ func resourceApiManagementIdentityProviderMicrosoftRead(d *pluginsdk.ResourceDat
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("api_management_name", serviceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("api_management_name", id.ServiceName)
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
@@ -132,7 +132,7 @@ func resourceApiManagementIdentityProviderMicrosoftRead(d *pluginsdk.ResourceDat
 	return nil
 }
 
-func resourceApiManagementIdentityProviderMicrosoftDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderMicrosoftDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
