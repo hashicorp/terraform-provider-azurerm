@@ -1166,11 +1166,13 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                = "acctestVM-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  size                = "Standard_DC2as_v5"
-  admin_username      = "adminuser"
+  name                       = "acctestVM-%[2]d"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  size                       = "Standard_DC2as_v5"
+  admin_username             = "adminuser"
+  encryption_at_host_enabled = true
+
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]

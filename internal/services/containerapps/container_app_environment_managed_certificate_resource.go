@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package containerapps
@@ -22,17 +22,17 @@ import (
 type ContainerAppEnvironmentManagedCertificateResource struct{}
 
 type ContainerAppEnvironmentManagedCertificateModel struct {
-	Name                      string                 `tfschema:"name"`
-	ContainerAppEnvironmentId string                 `tfschema:"container_app_environment_id"`
-	SubjectName               string                 `tfschema:"subject_name"`
-	DomainControlValidation   string                 `tfschema:"domain_control_validation"`
-	Tags                      map[string]interface{} `tfschema:"tags"`
-	ValidationToken           string                 `tfschema:"validation_token"`
+	Name                      string         `tfschema:"name"`
+	ContainerAppEnvironmentId string         `tfschema:"container_app_environment_id"`
+	SubjectName               string         `tfschema:"subject_name"`
+	DomainControlValidation   string         `tfschema:"domain_control_validation"`
+	Tags                      map[string]any `tfschema:"tags"`
+	ValidationToken           string         `tfschema:"validation_token"`
 }
 
 var _ sdk.ResourceWithUpdate = ContainerAppEnvironmentManagedCertificateResource{}
 
-func (r ContainerAppEnvironmentManagedCertificateResource) ModelObject() interface{} {
+func (r ContainerAppEnvironmentManagedCertificateResource) ModelObject() any {
 	return &ContainerAppEnvironmentManagedCertificateModel{}
 }
 
@@ -144,7 +144,7 @@ func (r ContainerAppEnvironmentManagedCertificateResource) Create() sdk.Resource
 				Location: env.Model.Location,
 				Properties: &managedenvironments.ManagedCertificateProperties{
 					SubjectName:             pointer.To(model.SubjectName),
-					DomainControlValidation: pointer.To(managedenvironments.ManagedCertificateDomainControlValidation(model.DomainControlValidation)),
+					DomainControlValidation: pointer.ToEnum[managedenvironments.ManagedCertificateDomainControlValidation](model.DomainControlValidation),
 				},
 				Tags: tags.Expand(model.Tags),
 			}

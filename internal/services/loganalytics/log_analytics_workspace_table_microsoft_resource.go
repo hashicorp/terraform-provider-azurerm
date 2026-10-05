@@ -1,9 +1,11 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package loganalytics
 
 import (
 	"context"
 	"fmt"
-	"log"
 	"regexp"
 	"time"
 
@@ -222,7 +224,7 @@ func (r WorkspaceTableMicrosoftResource) Attributes() map[string]*pluginsdk.Sche
 	}
 }
 
-func (r WorkspaceTableMicrosoftResource) ModelObject() interface{} {
+func (r WorkspaceTableMicrosoftResource) ModelObject() any {
 	return &WorkspaceTableMicrosoftResourceModel{}
 }
 
@@ -245,7 +247,6 @@ func (r WorkspaceTableMicrosoftResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.LogAnalytics.TablesClient
 
 			tableName := model.Name
-			log.Printf("[INFO] preparing arguments for AzureRM Log Analytics Workspace Table %s create", tableName)
 
 			workspaceId, err := workspaces.ParseWorkspaceID(model.WorkspaceId)
 			if err != nil {
@@ -491,7 +492,7 @@ func expandWorkspaceTableMicrosoftColumns(columns []Column) *[]tables.Column {
 
 func flattenWorkspaceTableMicrosoftColumns(columns *[]tables.Column) []Column {
 	if columns == nil {
-		return nil
+		return []Column{}
 	}
 	result := make([]Column, 0, len(*columns))
 	for _, column := range *columns {

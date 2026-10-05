@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/routetables"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/routetables"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -24,7 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name route_table -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 var routeTableResourceName = "azurerm_route_table"
 
@@ -64,7 +64,7 @@ func resourceRouteTable() *pluginsdk.Resource {
 				Type:       pluginsdk.TypeSet,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Optional:   true,
-				Computed:   true,
+				Computed:   true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -80,15 +80,9 @@ func resourceRouteTable() *pluginsdk.Resource {
 						},
 
 						"next_hop_type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(routetables.RouteNextHopTypeVirtualNetworkGateway),
-								string(routetables.RouteNextHopTypeVnetLocal),
-								string(routetables.RouteNextHopTypeInternet),
-								string(routetables.RouteNextHopTypeVirtualAppliance),
-								string(routetables.RouteNextHopTypeNone),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(routetables.PossibleValuesForRouteNextHopType(), false),
 						},
 
 						"next_hop_in_ip_address": {
@@ -118,7 +112,7 @@ func resourceRouteTable() *pluginsdk.Resource {
 	}
 }
 
-func resourceRouteTableCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRouteTableCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.RouteTables
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -151,7 +145,7 @@ func resourceRouteTableCreate(d *pluginsdk.ResourceData, meta interface{}) error
 			Routes:                     expandRouteTableRoutes(d),
 			DisableBgpRoutePropagation: pointer.To(!bgpRoutePropagationEnabled),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, routeSet, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
@@ -166,7 +160,7 @@ func resourceRouteTableCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	return resourceRouteTableRead(d, meta)
 }
 
-func resourceRouteTableUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRouteTableUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.RouteTables
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -199,7 +193,7 @@ func resourceRouteTableUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	locks.ByID(id.ID())
@@ -212,7 +206,7 @@ func resourceRouteTableUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	return resourceRouteTableRead(d, meta)
 }
 
-func resourceRouteTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRouteTableRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.RouteTables
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -264,7 +258,7 @@ func resourceRouteTableFlatten(d *pluginsdk.ResourceData, id *routetables.RouteT
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceRouteTableDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRouteTableDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.RouteTables
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -289,7 +283,7 @@ func expandRouteTableRoutes(d *pluginsdk.ResourceData) *[]routetables.Route {
 	routes := make([]routetables.Route, 0, len(configs))
 
 	for _, configRaw := range configs {
-		data := configRaw.(map[string]interface{})
+		data := configRaw.(map[string]any)
 
 		route := routetables.Route{
 			Name: pointer.To(data["name"].(string)),
@@ -309,12 +303,12 @@ func expandRouteTableRoutes(d *pluginsdk.ResourceData) *[]routetables.Route {
 	return &routes
 }
 
-func flattenRouteTableRoutes(input *[]routetables.Route) []interface{} {
-	results := make([]interface{}, 0)
+func flattenRouteTableRoutes(input *[]routetables.Route) []any {
+	results := make([]any, 0)
 
 	if routes := input; routes != nil {
 		for _, route := range *routes {
-			r := make(map[string]interface{})
+			r := make(map[string]any)
 
 			r["name"] = *route.Name
 
