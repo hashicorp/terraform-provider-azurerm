@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package rule
@@ -14,6 +14,9 @@ import (
 // TODO: externalize as configurable item?
 var Exceptions = map[string]map[string]struct{}{
 	"r.azurerm_resource_provider_registration": {
+		"S002": struct{}{},
+	},
+	"r.azurerm_resource_provider_feature_registration": {
 		"S002": struct{}{},
 	},
 }

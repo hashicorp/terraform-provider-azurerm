@@ -133,7 +133,7 @@ A `error_details` block exports the following:
 
 A `extension_service` block exports the following:
 
-* `startup_type` - The behavior of the service when the Arc-enabled machine starts up.
+* `startup_type` - The behaviour of the service when the Arc-enabled machine starts up.
 
 * `status` - The current status of the service.
 
@@ -157,7 +157,7 @@ A `extensions_block_list` block exports the following:
 
 A `guest_configuration_service` block exports the following:
 
-* `startup_type` - The behavior of the service when the Arc-enabled machine starts up.
+* `startup_type` - The behaviour of the service when the Arc-enabled machine starts up.
 
 * `status` - The current status of the service.
 
@@ -223,7 +223,7 @@ A `windows` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure Arc machine.
 

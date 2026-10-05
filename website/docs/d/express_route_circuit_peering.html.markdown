@@ -20,7 +20,7 @@ data "azurerm_express_route_circuit_peering" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -56,9 +56,35 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the ExpressRoute Circuit Peering.
 
+---
+
+A `microsoft_peering_config` block contains:
+
+* `advertised_public_prefixes` - A list of Advertised Public Prefixes.
+
+* `customer_asn` - The CustomerASN of the peering.
+
+* `routing_registry_name` - he Routing Registry against which the AS number and prefixes are registered.
+
+* `advertised_communities` - The communities of Bgp Peering specified for microsoft peering.
+
+---
+
+A `ipv6` block contains:
+
+* `primary_peer_address_prefix` - A subnet for the primary link.
+
+* `secondary_peer_address_prefix` - A subnet for the secondary link.
+
+* `enabled` - A boolean value indicating whether the IPv6 peering is enabled. Defaults to `true`.
+
+* `microsoft_peering` - A `microsoft_peering` block as defined below. 
+
+* `route_filter_id` - The ID of the Route Filter.
+
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the ExpressRoute Circuit Peering.
 
@@ -66,4 +92,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2024-05-01
+* `Microsoft.Network` - 2025-07-01

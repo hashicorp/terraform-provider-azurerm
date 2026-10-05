@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -11,11 +11,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -79,19 +80,16 @@ func resourceVirtualHubIP() *pluginsdk.Resource {
 			},
 
 			"private_ip_allocation_method": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  virtualwans.IPAllocationMethodDynamic,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualwans.IPAllocationMethodDynamic),
-					string(virtualwans.IPAllocationMethodStatic),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      virtualwans.IPAllocationMethodDynamic,
+				ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForIPAllocationMethod(), false),
 			},
 		},
 	}
 }
 
-func resourceVirtualHubIPCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubIPCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -106,14 +104,16 @@ func resourceVirtualHubIPCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	id := commonids.NewVirtualHubIPConfigurationID(virtualHubId.SubscriptionId, virtualHubId.ResourceGroupName, virtualHubId.VirtualHubName, d.Get("name").(string))
 
-	existing, err := client.VirtualHubIPConfigurationGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.VirtualHubIPConfigurationGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_virtual_hub_ip", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_virtual_hub_ip", id.ID())
+		}
 	}
 
 	parameters := virtualwans.HubIPConfiguration{
@@ -130,7 +130,7 @@ func resourceVirtualHubIPCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if v, ok := d.GetOk("private_ip_allocation_method"); ok {
-		parameters.Properties.PrivateIPAllocationMethod = pointer.To(virtualwans.IPAllocationMethod(v.(string)))
+		parameters.Properties.PrivateIPAllocationMethod = pointer.ToEnum[virtualwans.IPAllocationMethod](v.(string))
 	}
 
 	if v, ok := d.GetOk("public_ip_address_id"); ok {
@@ -139,16 +139,19 @@ func resourceVirtualHubIPCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
-	if err := client.VirtualHubIPConfigurationCreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.VirtualHubIPConfigurationCreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceVirtualHubIPRead(d, meta)
 }
 
-func resourceVirtualHubIPUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubIPUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -185,7 +188,7 @@ func resourceVirtualHubIPUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if d.HasChange("private_ip_allocation_method") {
-		payload.Properties.PrivateIPAllocationMethod = pointer.To(virtualwans.IPAllocationMethod(d.Get("private_ip_allocation_method").(string)))
+		payload.Properties.PrivateIPAllocationMethod = pointer.ToEnum[virtualwans.IPAllocationMethod](d.Get("private_ip_allocation_method").(string))
 	}
 
 	if err := client.VirtualHubIPConfigurationCreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
@@ -197,7 +200,7 @@ func resourceVirtualHubIPUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	return resourceVirtualHubIPRead(d, meta)
 }
 
-func resourceVirtualHubIPRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubIPRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -223,7 +226,7 @@ func resourceVirtualHubIPRead(d *pluginsdk.ResourceData, meta interface{}) error
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("private_ip_address", props.PrivateIPAddress)
-			d.Set("private_ip_allocation_method", string(pointer.From(props.PrivateIPAllocationMethod)))
+			d.Set("private_ip_allocation_method", pointer.FromEnum(props.PrivateIPAllocationMethod))
 
 			if v := props.PublicIPAddress; v != nil {
 				d.Set("public_ip_address_id", v.Id)
@@ -238,7 +241,7 @@ func resourceVirtualHubIPRead(d *pluginsdk.ResourceData, meta interface{}) error
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceVirtualHubIPDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubIPDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

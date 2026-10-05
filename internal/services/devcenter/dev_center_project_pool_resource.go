@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package devcenter
@@ -27,7 +27,7 @@ var (
 
 type DevCenterProjectPoolResource struct{}
 
-func (r DevCenterProjectPoolResource) ModelObject() interface{} {
+func (r DevCenterProjectPoolResource) ModelObject() any {
 	return &DevCenterProjectPoolResourceModel{}
 }
 
@@ -39,6 +39,7 @@ type DevCenterProjectPoolResourceModel struct {
 	LocalAdministratorEnabled          bool              `tfschema:"local_administrator_enabled"`
 	DevCenterAttachedNetworkName       string            `tfschema:"dev_center_attached_network_name"`
 	ManagedVirtualNetworkRegions       []string          `tfschema:"managed_virtual_network_regions"`
+	SingleSignOnEnabled                bool              `tfschema:"single_sign_on_enabled"`
 	StopOnDisconnectGracePeriodMinutes int64             `tfschema:"stop_on_disconnect_grace_period_minutes"`
 	Tags                               map[string]string `tfschema:"tags"`
 }
@@ -93,6 +94,12 @@ func (r DevCenterProjectPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"single_sign_on_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
 		"stop_on_disconnect_grace_period_minutes": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
@@ -126,14 +133,16 @@ func (r DevCenterProjectPoolResource) Create() sdk.ResourceFunc {
 
 			id := pools.NewPoolID(subscriptionId, devCenterProjectId.ResourceGroupName, devCenterProjectId.ProjectName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := pools.Pool{
@@ -159,7 +168,12 @@ func (r DevCenterProjectPoolResource) Create() sdk.ResourceFunc {
 				parameters.Properties.LocalAdministrator = pointer.To(pools.LocalAdminStatusDisabled)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+			parameters.Properties.SingleSignOnStatus = pointer.To(pools.SingleSignOnStatusDisabled)
+			if model.SingleSignOnEnabled {
+				parameters.Properties.SingleSignOnStatus = pointer.To(pools.SingleSignOnStatusEnabled)
+			}
+
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -202,6 +216,7 @@ func (r DevCenterProjectPoolResource) Read() sdk.ResourceFunc {
 					state.LocalAdministratorEnabled = pointer.From(props.LocalAdministrator) == pools.LocalAdminStatusEnabled
 					state.DevCenterAttachedNetworkName = pointer.From(props.NetworkConnectionName)
 					state.ManagedVirtualNetworkRegions = flattenDevCenterProjectManagedVirtualNetworkRegions(props.ManagedVirtualNetworkRegions)
+					state.SingleSignOnEnabled = pointer.From(props.SingleSignOnStatus) == pools.SingleSignOnStatusEnabled
 					state.StopOnDisconnectGracePeriodMinutes = flattenDevCenterProjectPoolStopOnDisconnect(props.StopOnDisconnect)
 				}
 			}
@@ -253,6 +268,13 @@ func (r DevCenterProjectPoolResource) Update() sdk.ResourceFunc {
 
 				if len(model.ManagedVirtualNetworkRegions) != 0 {
 					parameters.Properties.VirtualNetworkType = pointer.To(pools.VirtualNetworkTypeManaged)
+				}
+			}
+
+			if metadata.ResourceData.HasChange("single_sign_on_enabled") {
+				parameters.Properties.SingleSignOnStatus = pointer.To(pools.SingleSignOnStatusDisabled)
+				if model.SingleSignOnEnabled {
+					parameters.Properties.SingleSignOnStatus = pointer.To(pools.SingleSignOnStatusEnabled)
 				}
 			}
 

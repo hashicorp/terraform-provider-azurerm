@@ -22,7 +22,7 @@ data "azurerm_shared_image_version" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -30,7 +30,7 @@ The following arguments are supported:
 
 ~> **Note:** You may specify `latest` to obtain the latest version or `recent` to obtain the most recently updated version.
 
-~> **Note:** In 3.0, `latest` may return an image version with `exclude_from_latest` set to `true`. Starting from 4.0 onwards `latest` will not return image versions with `exlude_from_latest` set to `true`.
+~> **Note:** In 3.0, `latest` may return an image version with `exclude_from_latest` set to `true`. Starting from 4.0 onwards `latest` will not return image versions with `exclude_from_latest` set to `true`.
 
 * `image_name` - The name of the Shared Image in which this Version exists.
 
@@ -72,7 +72,7 @@ The `target_region` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Version of a Shared Image within a Shared Image Gallery.
 
