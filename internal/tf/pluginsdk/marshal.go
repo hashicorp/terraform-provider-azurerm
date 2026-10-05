@@ -19,7 +19,7 @@ import (
 //	input := []interface{}{"a", "b", nil, "c"}
 //	result := ExpandSlice(input, func(i string) string { return i }, true)
 //	// *result is []string{"a", "b", "", "c"}
-func ExpandSlice[I, O any](input []interface{}, convert func(I) O, appendOnNil bool) *[]O {
+func ExpandSlice[I, O any](input []any, convert func(I) O, appendOnNil bool) *[]O {
 	result := make([]O, 0, len(input))
 	for _, item := range input {
 		if item != nil {
@@ -39,8 +39,8 @@ func ExpandSlice[I, O any](input []interface{}, convert func(I) O, appendOnNil b
 //	input := []string{"a", "b", "c"}
 //	result := FlattenSlice(&input)
 //	// result is []interface{}{"a", "b", "c"}
-func FlattenSlice[T any](input *[]T) []interface{} {
-	result := make([]interface{}, 0)
+func FlattenSlice[T any](input *[]T) []any {
+	result := make([]any, 0)
 	if input != nil {
 		for _, item := range *input {
 			result = append(result, item)
@@ -56,7 +56,7 @@ func FlattenSlice[T any](input *[]T) []interface{} {
 //	input := map[string]interface{}{"key": "value"}
 //	result := ExpandMap(input, func(i string) string { return i })
 //	// result is map[string]string{"key": "value"}
-func ExpandMap[I, O any](input map[string]interface{}, convert func(I) O) map[string]O {
+func ExpandMap[I, O any](input map[string]any, convert func(I) O) map[string]O {
 	result := make(map[string]O, len(input))
 	for k, v := range input {
 		result[k] = convert(v.(I))
@@ -72,7 +72,7 @@ func ExpandMap[I, O any](input map[string]interface{}, convert func(I) O) map[st
 //	input := []interface{}{int(1), int(2), nil, int(3)}
 //	result := ExpandSliceWithDelimiter(input, strconv.Itoa, ",")
 //	// *result is "1,2,,3"
-func ExpandSliceWithDelimiter[I any](input []interface{}, convert func(I) string, delimiter string) *string {
+func ExpandSliceWithDelimiter[I any](input []any, convert func(I) string, delimiter string) *string {
 	result := make([]string, 0, len(input))
 	for _, item := range input {
 		if item != nil {
@@ -92,42 +92,42 @@ func ExpandStringSlice(input []any) *[]string {
 
 // ExpandFloatSlice converts a slice of interface{} to a pointer to a slice of float64s.
 // Nil elements are ignored.
-func ExpandFloatSlice(input []interface{}) *[]float64 {
+func ExpandFloatSlice(input []any) *[]float64 {
 	return ExpandSlice(input, func(i float64) float64 { return i }, false)
 }
 
 // ExpandFloatRangeSlice converts a slice of interface{} to a pointer to a slice of float64 slices.
 // Nil elements are ignored.
-func ExpandFloatRangeSlice(input []interface{}) *[][]float64 {
-	return ExpandSlice(input, func(i []interface{}) []float64 { return *ExpandFloatSlice(i) }, false)
+func ExpandFloatRangeSlice(input []any) *[][]float64 {
+	return ExpandSlice(input, func(i []any) []float64 { return *ExpandFloatSlice(i) }, false)
 }
 
 // ExpandPtrMapStringString converts a map of interface{} to a pointer to a map of strings.
-func ExpandPtrMapStringString(input map[string]interface{}) *map[string]string {
+func ExpandPtrMapStringString(input map[string]any) *map[string]string {
 	res := ExpandMap(input, func(i string) string { return i })
 	return &res
 }
 
 // ExpandMapStringPtrString converts a map of interface{} to a map of string pointers.
-func ExpandMapStringPtrString(input map[string]interface{}) map[string]*string {
+func ExpandMapStringPtrString(input map[string]any) map[string]*string {
 	return ExpandMap(input, pointer.To[string])
 }
 
 // ExpandInt32Slice converts a slice of interface{} to a pointer to a slice of int32s.
 // Nil elements are converted to 0.
-func ExpandInt32Slice(input []interface{}) *[]int32 {
+func ExpandInt32Slice(input []any) *[]int32 {
 	return ExpandSlice(input, func(i int) int32 { return int32(i) }, true)
 }
 
 // ExpandInt64Slice converts a slice of interface{} to a pointer to a slice of int64s.
 // Nil elements are converted to 0.
-func ExpandInt64Slice(input []interface{}) *[]int64 {
+func ExpandInt64Slice(input []any) *[]int64 {
 	return ExpandSlice(input, func(i int) int64 { return int64(i) }, true)
 }
 
 // FlattenFloatRangeSlice converts a pointer to a slice of float64 slices into a slice of interface{} slices.
-func FlattenFloatRangeSlice(input *[][]float64) [][]interface{} {
-	result := make([][]interface{}, 0)
+func FlattenFloatRangeSlice(input *[][]float64) [][]any {
+	result := make([][]any, 0)
 	if input != nil {
 		for _, item := range *input {
 			result = append(result, FlattenSlice(&item))
@@ -138,8 +138,8 @@ func FlattenFloatRangeSlice(input *[][]float64) [][]interface{} {
 
 // FlattenMapStringPtrString converts a map of string pointers into a map of interface{}.
 // Nil pointers are converted to empty strings.
-func FlattenMapStringPtrString(input map[string]*string) map[string]interface{} {
-	result := make(map[string]interface{})
+func FlattenMapStringPtrString(input map[string]*string) map[string]any {
+	result := make(map[string]any)
 	for k, v := range input {
 		if v == nil {
 			result[k] = ""
@@ -151,8 +151,8 @@ func FlattenMapStringPtrString(input map[string]*string) map[string]interface{} 
 }
 
 // FlattenPtrMapStringString converts a pointer to a map of strings into a map of interface{}.
-func FlattenPtrMapStringString(input *map[string]string) map[string]interface{} {
-	result := make(map[string]interface{})
+func FlattenPtrMapStringString(input *map[string]string) map[string]any {
+	result := make(map[string]any)
 	if input == nil {
 		return result
 	}
@@ -163,18 +163,18 @@ func FlattenPtrMapStringString(input *map[string]string) map[string]interface{} 
 }
 
 // ExpandStringSliceWithDelimiter converts an interface slice to a delimited string pointer.
-func ExpandStringSliceWithDelimiter(input []interface{}, delimiter string) *string {
+func ExpandStringSliceWithDelimiter(input []any, delimiter string) *string {
 	return ExpandSliceWithDelimiter(input, func(i string) string { return i }, delimiter)
 }
 
 // ExpandIntSliceWithDelimiter converts an interface slice of ints to a delimited string pointer.
-func ExpandIntSliceWithDelimiter(input []interface{}, delimiter string) *string {
+func ExpandIntSliceWithDelimiter(input []any, delimiter string) *string {
 	return ExpandSliceWithDelimiter(input, strconv.Itoa, delimiter)
 }
 
 // FlattenStringSliceWithDelimiter splits a delimited string pointer into a slice of interface{}.
-func FlattenStringSliceWithDelimiter(input *string, delimiter string) []interface{} {
-	result := make([]interface{}, 0)
+func FlattenStringSliceWithDelimiter(input *string, delimiter string) []any {
+	result := make([]any, 0)
 	if input != nil {
 		inputStrings := strings.SplitSeq(*input, delimiter)
 		for item := range inputStrings {

@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func DedicatedHardwareSecurityModuleName(i interface{}, k string) ([]string, []error) {
+func DedicatedHardwareSecurityModuleName(i any, k string) ([]string, []error) {
 	return validation.All(
 		validation.StringMatch(regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9-]{1,22}[a-zA-Z0-9]$`), "must be between 3 and 24 alphanumeric characters. It must begin with a letter, end with a letter or digit"),
 		// No consecutive hyphens

@@ -83,7 +83,7 @@ func resourceBatchApplication() *pluginsdk.Resource {
 	}
 }
 
-func resourceBatchApplicationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBatchApplicationCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Batch.ApplicationClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -127,7 +127,7 @@ func resourceBatchApplicationCreate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceBatchApplicationRead(d, meta)
 }
 
-func resourceBatchApplicationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBatchApplicationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Batch.ApplicationClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -166,7 +166,7 @@ func resourceBatchApplicationFlatten(d *pluginsdk.ResourceData, id *application.
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceBatchApplicationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBatchApplicationUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Batch.ApplicationClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -195,7 +195,7 @@ func resourceBatchApplicationUpdate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceBatchApplicationRead(d, meta)
 }
 
-func resourceBatchApplicationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBatchApplicationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Batch.ApplicationClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

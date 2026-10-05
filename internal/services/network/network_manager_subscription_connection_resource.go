@@ -36,7 +36,7 @@ func (r ManagerSubscriptionConnectionResource) ResourceType() string {
 	return "azurerm_network_manager_subscription_connection"
 }
 
-func (r ManagerSubscriptionConnectionResource) ModelObject() interface{} {
+func (r ManagerSubscriptionConnectionResource) ModelObject() any {
 	return &ManagerSubscriptionConnectionModel{}
 }
 

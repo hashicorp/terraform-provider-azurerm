@@ -74,7 +74,7 @@ func resourceRouteServerBgpConnection() *pluginsdk.Resource {
 	}
 }
 
-func resourceRouteServerBgpConnectionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRouteServerBgpConnectionCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -122,7 +122,7 @@ func resourceRouteServerBgpConnectionCreate(d *pluginsdk.ResourceData, meta inte
 	return resourceRouteServerBgpConnectionRead(d, meta)
 }
 
-func resourceRouteServerBgpConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRouteServerBgpConnectionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -160,7 +160,7 @@ func resourceRouteServerBgpConnectionRead(d *pluginsdk.ResourceData, meta interf
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceRouteServerBgpConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRouteServerBgpConnectionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

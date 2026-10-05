@@ -53,6 +53,6 @@ var charsets = []string{
 	"WIN1258",
 }
 
-func DatabaseCharset(v interface{}, k string) ([]string, []error) {
+func DatabaseCharset(v any, k string) ([]string, []error) {
 	return validation.StringInSlice(charsets, true)(v, k)
 }

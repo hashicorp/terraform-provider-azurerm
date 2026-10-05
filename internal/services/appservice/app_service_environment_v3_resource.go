@@ -237,7 +237,7 @@ func (r AppServiceEnvironmentV3Resource) Attributes() map[string]*pluginsdk.Sche
 	}
 }
 
-func (r AppServiceEnvironmentV3Resource) ModelObject() interface{} {
+func (r AppServiceEnvironmentV3Resource) ModelObject() any {
 	return &AppServiceEnvironmentV3Model{}
 }
 
@@ -666,7 +666,7 @@ func flattenInboundNetworkDependencies(ctx context.Context, client *appserviceen
 }
 
 func checkNetworkConfigUpdate(ctx context.Context, client *appserviceenvironments.AppServiceEnvironmentsClient, id commonids.AppServiceEnvironmentId, values appserviceenvironments.AseV3NetworkingConfigurationProperties) pluginsdk.StateRefreshFunc {
-	return func() (result interface{}, state string, err error) {
+	return func() (result any, state string, err error) {
 		resp, err := client.GetAseV3NetworkingConfiguration(ctx, id)
 		if err != nil || resp.Model == nil || resp.Model.Properties == nil {
 			return nil, "", err

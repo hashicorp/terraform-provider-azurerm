@@ -48,7 +48,7 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) ResourceTy
 	return "azurerm_data_protection_backup_instance_postgresql_flexible_server"
 }
 
-func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) ModelObject() interface{} {
+func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) ModelObject() any {
 	return &BackupInstancePostgreSQLFlexibleServerModel{}
 }
 
@@ -323,7 +323,7 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Delete() s
 }
 
 func dataProtectionBackupInstancePostgreSQLFlexibleServerStateRefreshFunc(ctx context.Context, client *backupinstanceresources.BackupInstanceResourcesClient, id backupinstanceresources.BackupInstanceId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		resp, err := client.BackupInstancesGet(ctx, id)
 		if err != nil {
 			return nil, "", fmt.Errorf("polling for %s: %+v", id, err)

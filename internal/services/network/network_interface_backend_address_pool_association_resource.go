@@ -62,7 +62,7 @@ func resourceNetworkInterfaceBackendAddressPoolAssociation() *pluginsdk.Resource
 	}
 }
 
-func resourceNetworkInterfaceBackendAddressPoolAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceBackendAddressPoolAssociationCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -149,7 +149,7 @@ func resourceNetworkInterfaceBackendAddressPoolAssociationCreate(d *pluginsdk.Re
 	return resourceNetworkInterfaceBackendAddressPoolAssociationRead(d, meta)
 }
 
-func resourceNetworkInterfaceBackendAddressPoolAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceBackendAddressPoolAssociationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -211,7 +211,7 @@ func resourceNetworkInterfaceBackendAddressPoolAssociationRead(d *pluginsdk.Reso
 	return nil
 }
 
-func resourceNetworkInterfaceBackendAddressPoolAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceBackendAddressPoolAssociationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

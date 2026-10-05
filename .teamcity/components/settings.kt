@@ -81,7 +81,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "containerapps" to testConfiguration(parallelism = 10, locationOverride = LocationConfiguration("eastus2","westus2","southcentralus", true)),
 
         // The AKS API has a low rate limit
-        "containers" to testConfiguration(parallelism = 5, locationOverride = LocationConfiguration("eastus","westeurope","eastus2", false), timeout = 18),
+        "containers" to testConfiguration(parallelism = 6, locationOverride = LocationConfiguration("eastus","westeurope","eastus2", false), timeout = 18),
 
         // `azurerm_cost_management_scheduled_action` that can be targeted on a cost management view is limited
         "costmanagement" to testConfiguration(parallelism = 4),
@@ -167,9 +167,6 @@ var serviceTestConfigurationOverrides = mapOf(
         // oracle can't be schedule tested on the acctest subscription due to licencing limitations, results in build agent deadlock due to no tests.
         "oracle" to testConfiguration(disableTriggers = true),
 
-        // Orbital is deprecated and can no longer be created - to be removed along with service ref: https://azure.microsoft.com/en-gb/updates?id=azure-orbital-ground-station-retirement
-        "orbital" to testConfiguration(locationOverride = LocationConfiguration("eastus", "southcentralus", "westus2", false), disableTriggers = true),
-
         "paloalto" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus", "westus", false)),
 
         "policy" to testConfiguration(useAltSubscription = true),
@@ -184,9 +181,6 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // Qumulo asked to use canary env for testing, eastasia is a canary region for qumulo
         "qumulo" to testConfiguration(locationOverride = LocationConfiguration("eastasia", "centraluseuap", "westeurope", true)),
-
-        // redisenterprise is costly - Monday, Wednesday, Friday
-        "redisenterprise" to testConfiguration(daysOfWeek = "2,4,6"),
 
         // servicebus quotas are limited and we experience failures if tests
         // execute too quickly as we run out of namespaces in the sub

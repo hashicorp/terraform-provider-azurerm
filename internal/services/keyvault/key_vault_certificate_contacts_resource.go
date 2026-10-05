@@ -78,7 +78,7 @@ func (r KeyVaultCertificateContactsResource) ResourceType() string {
 	return "azurerm_key_vault_certificate_contacts"
 }
 
-func (r KeyVaultCertificateContactsResource) ModelObject() interface{} {
+func (r KeyVaultCertificateContactsResource) ModelObject() any {
 	return &KeyVaultCertificateContactsResourceModel{}
 }
 

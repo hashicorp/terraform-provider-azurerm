@@ -152,7 +152,7 @@ func resourceStorageShare() *pluginsdk.Resource {
 	}
 }
 
-func resourceStorageShareCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageShareCreate(d *pluginsdk.ResourceData, meta any) error {
 	sharesClient := meta.(*clients.Client).Storage.ResourceManager.FileShares
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -179,7 +179,7 @@ func resourceStorageShareCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	payload := fileshares.FileShare{
 		Properties: &fileshares.FileShareProperties{
 			EnabledProtocols:  pointer.ToEnum[fileshares.EnabledProtocols](d.Get("enabled_protocol").(string)),
-			Metadata:          pointer.To(ExpandMetaData(d.Get("metadata").(map[string]interface{}))),
+			Metadata:          pointer.To(ExpandMetaData(d.Get("metadata").(map[string]any))),
 			ShareQuota:        pointer.To(int64(d.Get("quota").(int))),
 			SignedIdentifiers: expandStorageShareACLs(d.Get("acl").(*pluginsdk.Set).List()),
 		},
@@ -201,7 +201,7 @@ func resourceStorageShareCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	return resourceStorageShareRead(d, meta)
 }
 
-func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageShareRead(d *pluginsdk.ResourceData, meta any) error {
 	sharesClient := meta.(*clients.Client).Storage.ResourceManager.FileShares
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -263,7 +263,7 @@ func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error
 	return nil
 }
 
-func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta any) error {
 	sharesClient := meta.(*clients.Client).Storage.ResourceManager.FileShares
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -283,7 +283,7 @@ func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if d.HasChange("metadata") {
-		metaDataRaw := d.Get("metadata").(map[string]interface{})
+		metaDataRaw := d.Get("metadata").(map[string]any)
 		metaData := ExpandMetaData(metaDataRaw)
 
 		update.Properties.Metadata = pointer.To(metaData)
@@ -305,7 +305,7 @@ func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	return resourceStorageShareRead(d, meta)
 }
 
-func resourceStorageShareDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageShareDelete(d *pluginsdk.ResourceData, meta any) error {
 	fileSharesClient := meta.(*clients.Client).Storage.ResourceManager.FileShares
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -324,14 +324,14 @@ func resourceStorageShareDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	return nil
 }
 
-func expandStorageShareACLs(input []interface{}) *[]fileshares.SignedIdentifier {
+func expandStorageShareACLs(input []any) *[]fileshares.SignedIdentifier {
 	results := make([]fileshares.SignedIdentifier, 0)
 
 	for _, v := range input {
-		acl := v.(map[string]interface{})
+		acl := v.(map[string]any)
 
-		policies := acl["access_policy"].([]interface{})
-		policy := policies[0].(map[string]interface{})
+		policies := acl["access_policy"].([]any)
+		policy := policies[0].(map[string]any)
 
 		identifier := fileshares.SignedIdentifier{
 			Id: pointer.To(acl["id"].(string)),
@@ -347,14 +347,14 @@ func expandStorageShareACLs(input []interface{}) *[]fileshares.SignedIdentifier 
 	return pointer.To(results)
 }
 
-func flattenStorageShareACLs(input []fileshares.SignedIdentifier) []interface{} {
-	result := make([]interface{}, 0)
+func flattenStorageShareACLs(input []fileshares.SignedIdentifier) []any {
+	result := make([]any, 0)
 
 	for _, v := range input {
-		output := map[string]interface{}{
+		output := map[string]any{
 			"id": v.Id,
-			"access_policy": []interface{}{
-				map[string]interface{}{
+			"access_policy": []any{
+				map[string]any{
 					"start":       v.AccessPolicy.StartTime,
 					"expiry":      v.AccessPolicy.ExpiryTime,
 					"permissions": v.AccessPolicy.Permission,
