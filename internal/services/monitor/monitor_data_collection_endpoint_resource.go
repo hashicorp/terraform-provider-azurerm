@@ -27,17 +27,17 @@ var (
 type DataCollectionEndpointResource struct{}
 
 type DataCollectionEndpoint struct {
-	ConfigurationAccessEndpoint string                 `tfschema:"configuration_access_endpoint"`
-	Description                 string                 `tfschema:"description"`
-	ImmutableId                 string                 `tfschema:"immutable_id"`
-	Kind                        string                 `tfschema:"kind"`
-	Name                        string                 `tfschema:"name"`
-	Location                    string                 `tfschema:"location"`
-	LogsIngestionEndpoint       string                 `tfschema:"logs_ingestion_endpoint"`
-	MetricsIngestionEndpoint    string                 `tfschema:"metrics_ingestion_endpoint"`
-	PublicNetworkAccessEnabled  bool                   `tfschema:"public_network_access_enabled"`
-	ResourceGroupName           string                 `tfschema:"resource_group_name"`
-	Tags                        map[string]interface{} `tfschema:"tags"`
+	ConfigurationAccessEndpoint string         `tfschema:"configuration_access_endpoint"`
+	Description                 string         `tfschema:"description"`
+	ImmutableId                 string         `tfschema:"immutable_id"`
+	Kind                        string         `tfschema:"kind"`
+	Name                        string         `tfschema:"name"`
+	Location                    string         `tfschema:"location"`
+	LogsIngestionEndpoint       string         `tfschema:"logs_ingestion_endpoint"`
+	MetricsIngestionEndpoint    string         `tfschema:"metrics_ingestion_endpoint"`
+	PublicNetworkAccessEnabled  bool           `tfschema:"public_network_access_enabled"`
+	ResourceGroupName           string         `tfschema:"resource_group_name"`
+	Tags                        map[string]any `tfschema:"tags"`
 }
 
 func (r DataCollectionEndpointResource) Arguments() map[string]*pluginsdk.Schema {
@@ -108,7 +108,7 @@ func (r DataCollectionEndpointResource) IDValidationFunc() pluginsdk.SchemaValid
 	return datacollectionendpoints.ValidateDataCollectionEndpointID
 }
 
-func (r DataCollectionEndpointResource) ModelObject() interface{} {
+func (r DataCollectionEndpointResource) ModelObject() any {
 	return &DataCollectionEndpoint{}
 }
 
@@ -178,7 +178,7 @@ func (r DataCollectionEndpointResource) Read() sdk.ResourceFunc {
 			}
 			var publicNetWorkAccessEnabled bool
 			var description, kind, loc, configurationAccessEndpoint, logsIngestionEndpoint, metricsIngestionEndpoint, immutableId string
-			var tag map[string]interface{}
+			var tag map[string]any
 			if model := resp.Model; model != nil {
 				kind = flattenDataCollectionEndpointKind(model.Kind)
 				loc = location.Normalize(model.Location)

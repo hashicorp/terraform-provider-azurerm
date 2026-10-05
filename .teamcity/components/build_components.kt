@@ -118,6 +118,7 @@ fun BuildSteps.PostTestResultsToGitHubPullRequest() {
         conditions {
             equals("env.SCHEDULE_MATCHES", "true")
         }
+        executionMode = BuildStep.ExecutionMode.RUN_ON_FAILURE
     })
 }
 

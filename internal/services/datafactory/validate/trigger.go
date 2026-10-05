@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func TriggerTimespan(i interface{}, k string) ([]string, []error) {
+func TriggerTimespan(i any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile(`^\-?((\d+)\.)?(\d\d):(60|([0-5][0-9])):(60|([0-5][0-9]))`), "invalid timespan, must be of format hh:mm:ss")(i, k)
 }

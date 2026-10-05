@@ -1,6 +1,7 @@
 name: changelog-entry-add-to-pr
 
-on:
+# workflow_run is needed for write access on fork PRs, which pull_request cannot provide
+on:  # zizmor: ignore[dangerous-triggers]
   workflow_run:
     workflows:
       - changelog-entry-read-on-comment
@@ -18,7 +19,10 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+      # the persisted token is what pushes the entry to the PR branch
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6 # zizmor: ignore[artipacked]
+        with:
+          token: ${{ secrets.SERVICE_ACCOUNT_CHANGELOG_TOKEN }}
 
       - name: Download event metadata
         id: download
@@ -57,7 +61,8 @@ jobs:
         run: make .tools/bin/changeloggy
 
       - name: Add changeloggy to PATH
-        run: echo "$PWD/.tools/bin" >> "$GITHUB_PATH"
+        # a constant path, not untrusted input
+        run: echo "$PWD/.tools/bin" >> "$GITHUB_PATH"  # zizmor: ignore[github-env]
 
       - name: Checkout PR branch
         env:
@@ -88,6 +93,11 @@ jobs:
               replace_flag=""
             fi
           done < <(tail -n +2 artifacts/comment-body)
+
+          if (( count == 0 )); then
+            echo "::error::No changelog entries found. Add at least one entry in the format '[type] description' on a new line after /changelog."
+            exit 1
+          fi
 
       - name: Commit and push changelog entries to PR branch
         env:

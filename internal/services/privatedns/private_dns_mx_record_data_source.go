@@ -70,7 +70,7 @@ func dataSourcePrivateDnsMxRecord() *pluginsdk.Resource {
 	}
 }
 
-func dataSourcePrivateDnsMxRecordRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourcePrivateDnsMxRecordRead(d *pluginsdk.ResourceData, meta any) error {
 	recordSetsClient := meta.(*clients.Client).PrivateDns.RecordSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
