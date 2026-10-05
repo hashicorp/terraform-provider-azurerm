@@ -122,7 +122,6 @@ func resourceFlexibleServerConfigurationCreateUpdate(d *pluginsdk.ResourceData, 
 }
 
 func resourceFlexibleServerConfigurationRead(d *pluginsdk.ResourceData, meta any) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Postgres.FlexibleServersConfigurationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
