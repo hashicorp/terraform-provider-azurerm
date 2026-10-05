@@ -180,7 +180,7 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 	}
 }
 
-func resourceSecurityCenterAutomationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSecurityCenterAutomationCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.AutomationsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -212,18 +212,18 @@ func resourceSecurityCenterAutomationCreateUpdate(d *pluginsdk.ResourceData, met
 			Description: pointer.To(d.Get("description").(string)),
 			IsEnabled:   &enabled,
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
-	automation.Properties.Scopes = expandSecurityCenterAutomationScopes(d.Get("scopes").([]interface{}))
+	automation.Properties.Scopes = expandSecurityCenterAutomationScopes(d.Get("scopes").([]any))
 
 	var err error
-	automation.Properties.Actions, err = expandSecurityCenterAutomationActions(d.Get("action").([]interface{}))
+	automation.Properties.Actions, err = expandSecurityCenterAutomationActions(d.Get("action").([]any))
 	if err != nil {
 		return err
 	}
 
-	automation.Properties.Sources, err = expandSecurityCenterAutomationSources(d.Get("source").([]interface{}))
+	automation.Properties.Sources, err = expandSecurityCenterAutomationSources(d.Get("source").([]any))
 	if err != nil {
 		return err
 	}
@@ -236,7 +236,7 @@ func resourceSecurityCenterAutomationCreateUpdate(d *pluginsdk.ResourceData, met
 	return resourceSecurityCenterAutomationRead(d, meta)
 }
 
-func resourceSecurityCenterAutomationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSecurityCenterAutomationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.AutomationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -293,7 +293,7 @@ func resourceSecurityCenterAutomationRead(d *pluginsdk.ResourceData, meta interf
 	return tags.FlattenAndSet(d, resp.Model.Tags)
 }
 
-func resourceSecurityCenterAutomationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSecurityCenterAutomationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.AutomationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -310,7 +310,7 @@ func resourceSecurityCenterAutomationDelete(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func expandSecurityCenterAutomationSources(sourcesRaw []interface{}) (*[]automations.AutomationSource, error) {
+func expandSecurityCenterAutomationSources(sourcesRaw []any) (*[]automations.AutomationSource, error) {
 	if len(sourcesRaw) == 0 {
 		return &[]automations.AutomationSource{}, nil
 	}
@@ -320,23 +320,23 @@ func expandSecurityCenterAutomationSources(sourcesRaw []interface{}) (*[]automat
 
 	// Top level loop over sources array
 	for _, sourceRaw := range sourcesRaw {
-		sourceMap, ok := sourceRaw.(map[string]interface{})
+		sourceMap, ok := sourceRaw.(map[string]any)
 		if !ok {
 			return nil, errors.New("'Security Center Automation' unable to decode sources")
 		}
 
 		// Build and parse array of RuleSets
 		ruleSets := make([]automations.AutomationRuleSet, 0)
-		ruleSetsRaw := sourceMap["rule_set"].([]interface{})
+		ruleSetsRaw := sourceMap["rule_set"].([]any)
 		for _, ruleSetRaw := range ruleSetsRaw {
-			ruleSetMap := ruleSetRaw.(map[string]interface{})
-			rulesRaw := ruleSetMap["rule"].([]interface{})
+			ruleSetMap := ruleSetRaw.(map[string]any)
+			rulesRaw := ruleSetMap["rule"].([]any)
 
 			// Build and parse array of Rules in each RuleSet
 			rules := make([]automations.AutomationTriggeringRule, 0)
 			for _, ruleRaw := range rulesRaw {
 				// Parse the rule fields
-				ruleMap := ruleRaw.(map[string]interface{})
+				ruleMap := ruleRaw.(map[string]any)
 
 				// Create AutomationTriggeringRule struct and push into array
 				rule := automations.AutomationTriggeringRule{
@@ -368,7 +368,7 @@ func expandSecurityCenterAutomationSources(sourcesRaw []interface{}) (*[]automat
 	return &output, nil
 }
 
-func expandSecurityCenterAutomationScopes(scopePathsRaw []interface{}) *[]automations.AutomationScope {
+func expandSecurityCenterAutomationScopes(scopePathsRaw []any) *[]automations.AutomationScope {
 	scopes := make([]automations.AutomationScope, 0)
 
 	for _, scopePathRaw := range scopePathsRaw {
@@ -385,7 +385,7 @@ func expandSecurityCenterAutomationScopes(scopePathsRaw []interface{}) *[]automa
 	return &scopes
 }
 
-func expandSecurityCenterAutomationActions(actionsRaw []interface{}) (*[]automations.AutomationAction, error) {
+func expandSecurityCenterAutomationActions(actionsRaw []any) (*[]automations.AutomationAction, error) {
 	if len(actionsRaw) == 0 {
 		return &[]automations.AutomationAction{}, nil
 	}
@@ -393,7 +393,7 @@ func expandSecurityCenterAutomationActions(actionsRaw []interface{}) (*[]automat
 	output := make([]automations.AutomationAction, 0)
 
 	for _, actionRaw := range actionsRaw {
-		actionMap := actionRaw.(map[string]interface{})
+		actionMap := actionRaw.(map[string]any)
 
 		var autoAction automations.AutomationAction
 		var resourceID string
@@ -440,14 +440,14 @@ func expandSecurityCenterAutomationActions(actionsRaw []interface{}) (*[]automat
 	return &output, nil
 }
 
-func flattenSecurityCenterAutomationSources(sources *[]automations.AutomationSource) ([]map[string]interface{}, error) {
+func flattenSecurityCenterAutomationSources(sources *[]automations.AutomationSource) ([]map[string]any, error) {
 	if sources == nil {
-		return make([]map[string]interface{}, 0), nil
+		return make([]map[string]any, 0), nil
 	}
 
-	resultSlice := make([]map[string]interface{}, 0)
+	resultSlice := make([]map[string]any, 0)
 	for _, source := range *sources {
-		ruleSetSlice := make([]interface{}, 0)
+		ruleSetSlice := make([]any, 0)
 
 		// RuleSets is an optional field need check for nil
 		if source.RuleSets != nil {
@@ -470,14 +470,14 @@ func flattenSecurityCenterAutomationSources(sources *[]automations.AutomationSou
 					ruleSlice = append(ruleSlice, ruleMap)
 				}
 
-				ruleSetMap := map[string]interface{}{
+				ruleSetMap := map[string]any{
 					"rule": ruleSlice,
 				}
 				ruleSetSlice = append(ruleSetSlice, ruleSetMap)
 			}
 		}
 
-		sourceMap := map[string]interface{}{
+		sourceMap := map[string]any{
 			"event_source": source.EventSource,
 			"rule_set":     ruleSetSlice,
 		}

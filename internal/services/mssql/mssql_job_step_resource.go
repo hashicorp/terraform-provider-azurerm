@@ -176,7 +176,7 @@ func (r MsSqlJobStepResource) CustomizeDiff() sdk.ResourceFunc {
 	}
 }
 
-func (r MsSqlJobStepResource) ModelObject() interface{} {
+func (r MsSqlJobStepResource) ModelObject() any {
 	return &MsSqlJobStepResourceModel{}
 }
 

@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func SnapshotName(v interface{}, k string) (warnings []string, errors []error) {
+func SnapshotName(v any, k string) (warnings []string, errors []error) {
 	// a-z, A-Z, 0-9, _ and -. The max name length is 80
 	return validation.All(
 		validation.StringMatch(regexp.MustCompile("^[A-Za-z0-9_-]+$"), "can only contain alphanumeric characters, dashes and underscores"),
