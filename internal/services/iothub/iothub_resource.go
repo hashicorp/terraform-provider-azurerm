@@ -721,7 +721,7 @@ func resourceIotHubCreate(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	if v, ok := d.GetOk("data_residency_enabled"); ok {
-		props.Properties.EnableDataResidency = pointer.FromBool(v.(bool))
+		props.Properties.EnableDataResidency = pointer.To(v.(bool))
 	}
 
 	retention, retentionOk := d.GetOk("event_hub_retention_in_days")
@@ -880,7 +880,7 @@ func resourceIotHubUpdate(d *pluginsdk.ResourceData, meta any) error {
 
 	if d.HasChange("data_residency_enabled") {
 		if v, ok := d.GetOk("data_residency_enabled"); ok {
-			prop.EnableDataResidency = pointer.FromBool(v.(bool))
+			prop.EnableDataResidency = pointer.To(v.(bool))
 		}
 	}
 
@@ -1048,7 +1048,7 @@ func resourceIotHubRead(d *pluginsdk.ResourceData, meta any) error {
 		}
 
 		if properties.EnableDataResidency != nil {
-			d.Set("data_residency_enabled", pointer.ToBool(properties.EnableDataResidency))
+			d.Set("data_residency_enabled", pointer.From(properties.EnableDataResidency))
 		}
 
 		if err := d.Set("cloud_to_device", flattenIoTHubCloudToDevice(properties.CloudToDevice)); err != nil {

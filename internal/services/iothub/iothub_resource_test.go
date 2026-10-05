@@ -2328,9 +2328,9 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 resource "azurerm_iothub" "test" {
-  name                = "acctestIoTHub-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  name                   = "acctestIoTHub-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
   data_residency_enabled = true
   sku {
     name     = "S1"
