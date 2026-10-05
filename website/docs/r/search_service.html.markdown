@@ -79,7 +79,7 @@ The following arguments are supported:
 
 ~> **Note:** The SKUs `standard2`, `standard3`, `storage_optimized_l1` and `storage_optimized_l2` are only available by submitting a quota increase request to Microsoft. Please see the [product documentation](https://learn.microsoft.com/azure/azure-resource-manager/troubleshooting/error-resource-quota?tabs=azure-cli) on how to submit a quota increase request.
 
--> **Note:** SKU upgrades between Basic and Standard (S1, S2, S3) tiers from a lower tier to a higher tier (e.g., Basic → S1, S1 → S2, S2 → S3) are supported without recreating the resource. And your region must support the higher tier. All other SKU changes (downgrades, changes from/to Free tier, or changes to/from Storage Optimized tiers) will force creation of a new Search Service.
+-> **Note:** SKU upgrades and downgrades between Basic and Standard (S1, S2, S3) tiers are supported without recreating the resource. Your region must support the new tier. All other SKU changes (downgrades, changes from/to Free tier, or changes to/from Storage Optimized tiers) will force creation of a new Search Service.
 
 ---
 
@@ -135,6 +135,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `id` - The ID of the Search Service.
 
 * `customer_managed_key_encryption_compliance_status` - Describes whether the search service is compliant or not with respect to having non-customer encrypted resources. If a service has more than one non-customer encrypted resource and `Enforcement` is `enabled` then the service will be marked as `NonCompliant`. If all the resources are customer encrypted, then the service will be marked as `Compliant`.
+
+* `endpoint` - The endpoint used to connect to this Search Service.
 
 * `primary_key` - The Primary Key used for Search Service Administration.
 
