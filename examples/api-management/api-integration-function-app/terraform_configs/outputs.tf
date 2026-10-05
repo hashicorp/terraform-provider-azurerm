@@ -1,3 +1,6 @@
+# Copyright IBM Corp. 2014, 2026
+# SPDX-License-Identifier: MPL-2.0
+
 output "resource_group_name" {
   value = data.azurerm_resource_group.rg.name
 }
