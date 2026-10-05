@@ -490,8 +490,8 @@ resource "azurerm_virtual_network_peering" "test_primary_secondary" {
   use_remote_gateways          = false
 
   depends_on = [
-    azurerm_subent.aadds_secondary,
-    azurerm_subent.workload_secondary,
+    azurerm_subnet.aadds_secondary,
+    azurerm_subnet.workload_secondary,
   ]
 }
 
@@ -507,8 +507,8 @@ resource "azurerm_virtual_network_peering" "test_secondary_primary" {
   use_remote_gateways          = false
 
   depends_on = [
-    azurerm_subent.aadds_secondary,
-    azurerm_subent.workload_secondary,
+    azurerm_subnet.aadds_secondary,
+    azurerm_subnet.workload_secondary,
   ]
 }
 

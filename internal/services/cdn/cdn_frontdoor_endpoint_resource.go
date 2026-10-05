@@ -71,7 +71,7 @@ func resourceCdnFrontDoorEndpoint() *pluginsdk.Resource {
 	}
 }
 
-func resourceCdnFrontDoorEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorEndpointCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.AFDEndpointsClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -109,7 +109,7 @@ func resourceCdnFrontDoorEndpointCreate(d *pluginsdk.ResourceData, meta interfac
 			EnabledState: &enabledState,
 		},
 
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if err := client.CreateCallbackThenPoll(ctx, id, props, sdk.SetIDCallback(meta, &id, d)); err != nil {
@@ -121,7 +121,7 @@ func resourceCdnFrontDoorEndpointCreate(d *pluginsdk.ResourceData, meta interfac
 	return resourceCdnFrontDoorEndpointRead(d, meta)
 }
 
-func resourceCdnFrontDoorEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorEndpointRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.AFDEndpointsClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -158,7 +158,7 @@ func resourceCdnFrontDoorEndpointRead(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func resourceCdnFrontDoorEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorEndpointUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.AFDEndpointsClient
 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -184,7 +184,7 @@ func resourceCdnFrontDoorEndpointUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if d.HasChange("tags") {
-		props.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		props.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, props); err != nil {
@@ -194,7 +194,7 @@ func resourceCdnFrontDoorEndpointUpdate(d *pluginsdk.ResourceData, meta interfac
 	return resourceCdnFrontDoorEndpointRead(d, meta)
 }
 
-func resourceCdnFrontDoorEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorEndpointDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.AFDEndpointsClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)

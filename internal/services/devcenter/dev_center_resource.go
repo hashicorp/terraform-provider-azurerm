@@ -26,7 +26,7 @@ var (
 
 type DevCenterResource struct{}
 
-func (r DevCenterResource) ModelObject() interface{} {
+func (r DevCenterResource) ModelObject() any {
 	return &DevCenterResourceSchema{}
 }
 
@@ -37,7 +37,7 @@ type DevCenterResourceSchema struct {
 	Name                          string                                     `tfschema:"name"`
 	ResourceGroupName             string                                     `tfschema:"resource_group_name"`
 	ProjectCatalogItemSyncEnabled bool                                       `tfschema:"project_catalog_item_sync_enabled"`
-	Tags                          map[string]interface{}                     `tfschema:"tags"`
+	Tags                          map[string]any                             `tfschema:"tags"`
 }
 
 func (r DevCenterResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

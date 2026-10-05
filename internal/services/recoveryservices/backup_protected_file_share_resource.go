@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-12-01/backup" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-12-01/backup" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -81,7 +81,7 @@ func resourceBackupProtectedFileShare() *pluginsdk.Resource {
 	}
 }
 
-func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	protectedClient := meta.(*clients.Client).RecoveryServices.ProtectedItemsGroupClient
 	protectableClient := meta.(*clients.Client).RecoveryServices.ProtectableItemsClient
 	protectionContainerClient := meta.(*clients.Client).RecoveryServices.BackupProtectionContainersClient
@@ -144,7 +144,7 @@ func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, met
 	operationID := parsedLocation.Path["operationResults"]
 
 	// `inquire` API is an async operation and the results should be tracked using location header or Azure-async-url.
-	//  The Azure-AsyncOperation is not included in swagger, so call location (https://docs.microsoft.com/en-us/rest/api/backup/protection-container-operation-results/get)
+	//  The Azure-AsyncOperation is not included in swagger, so call location (https://docs.microsoft.com/rest/api/backup/protection-container-operation-results/get)
 	//  to wait the operation successfully completes.
 	state := &pluginsdk.StateChangeConf{
 		MinTimeout: 10 * time.Second,
@@ -254,7 +254,7 @@ func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, met
 	return resourceBackupProtectedFileShareRead(d, meta)
 }
 
-func resourceBackupProtectedFileShareRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBackupProtectedFileShareRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).RecoveryServices.ProtectedItemsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -281,8 +281,7 @@ func resourceBackupProtectedFileShareRead(d *pluginsdk.ResourceData, meta interf
 		if properties := model.Properties; properties != nil {
 			if item, ok := properties.(protecteditems.AzureFileshareProtectedItem); ok {
 				if item.SourceResourceId != nil {
-					sourceResourceID := strings.Replace(*item.SourceResourceId, "Microsoft.storage", "Microsoft.Storage", 1) // The SDK is returning inconsistent capitalization
-					d.Set("source_storage_account_id", sourceResourceID)
+					d.Set("source_storage_account_id", strings.Replace(*item.SourceResourceId, "Microsoft.storage", "Microsoft.Storage", 1))
 				}
 				d.Set("source_file_share_name", item.FriendlyName)
 
@@ -296,7 +295,7 @@ func resourceBackupProtectedFileShareRead(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func resourceBackupProtectedFileShareDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBackupProtectedFileShareDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).RecoveryServices.ProtectedItemsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -314,7 +313,7 @@ func resourceBackupProtectedFileShareDelete(d *pluginsdk.ResourceData, meta inte
 }
 
 func protectionContainerOperationResultsRefreshFunc(ctx context.Context, client *backup.ProtectionContainerOperationResultsClient, vaultName, resourceGroup, containerName string, operationID string) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		resp, err := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, operationID)
 		if err != nil {
 			return nil, "Error", fmt.Errorf("making Read request on Recovery Service Protection Container operation %q (Vault %q in Resource Group %q): %+v", operationID, vaultName, resourceGroup, err)
