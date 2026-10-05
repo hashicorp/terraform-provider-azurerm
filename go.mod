@@ -17,9 +17,9 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-azure-helpers v0.82.0
-	github.com/hashicorp/go-azure-sdk/data-plane v0.20260917.1142820
-	github.com/hashicorp/go-azure-sdk/resource-manager v0.20260917.1142820
-	github.com/hashicorp/go-azure-sdk/sdk v0.20260917.1142820
+	github.com/hashicorp/go-azure-sdk/data-plane v0.20260928.1201942
+	github.com/hashicorp/go-azure-sdk/resource-manager v0.20260928.1201942
+	github.com/hashicorp/go-azure-sdk/sdk v0.20260928.1201942
 	github.com/hashicorp/go-cty v1.5.0
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-multierror v1.1.1
@@ -40,7 +40,7 @@ require (
 	github.com/magodo/terraform-provider-azurerm-example-gen v0.0.0-20250424222324-b015d063c1fc
 	github.com/mitchellh/cli v1.1.5
 	github.com/mitchellh/mapstructure v1.5.0
-	github.com/rickb777/date v1.12.5-0.20200422084442-6300e543c4d9
+	github.com/rickb777/period v1.2.1
 	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/afero v1.15.0
@@ -68,6 +68,7 @@ require (
 	github.com/bgentry/speakeasy v0.2.0 // indirect
 	github.com/cloudflare/circl v1.6.3 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
+	github.com/govalues/decimal v0.1.36 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-checkpoint v0.5.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
@@ -91,7 +92,7 @@ require (
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/oklog/run v1.2.0 // indirect
 	github.com/posener/complete v1.2.3 // indirect
-	github.com/rickb777/plural v1.4.4 // indirect
+	github.com/rickb777/plural/v2 v2.1.1 // indirect
 	github.com/shopspring/decimal v1.4.0 // indirect
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect

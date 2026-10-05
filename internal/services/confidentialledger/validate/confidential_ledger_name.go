@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func ConfidentialLedgerName(v interface{}, k string) (warnings []string, errors []error) {
+func ConfidentialLedgerName(v any, k string) (warnings []string, errors []error) {
 	return validation.All(
 		validation.StringLenBetween(1, 32),
 		validation.StringDoesNotMatch(regexp.MustCompile(`^-`), "may not start with a dash"),

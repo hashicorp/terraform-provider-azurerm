@@ -25,7 +25,7 @@ type KeyVaultMHSMKeyRotationPolicyResource struct{}
 
 var _ sdk.ResourceWithUpdate = KeyVaultMHSMKeyRotationPolicyResource{}
 
-func (r KeyVaultMHSMKeyRotationPolicyResource) ModelObject() interface{} {
+func (r KeyVaultMHSMKeyRotationPolicyResource) ModelObject() any {
 	return &MHSMKeyRotationPolicyResourceSchema{}
 }
 

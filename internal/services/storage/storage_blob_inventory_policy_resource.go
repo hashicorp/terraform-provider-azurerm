@@ -169,7 +169,7 @@ func resourceStorageBlobInventoryPolicy() *pluginsdk.Resource {
 	}
 }
 
-func resourceStorageBlobInventoryPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageBlobInventoryPolicyCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Storage.ResourceManager.BlobInventoryPolicies
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -223,7 +223,7 @@ func resourceStorageBlobInventoryPolicyCreateUpdate(d *pluginsdk.ResourceData, m
 	return resourceStorageBlobInventoryPolicyRead(d, meta)
 }
 
-func resourceStorageBlobInventoryPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageBlobInventoryPolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.ResourceManager.BlobInventoryPolicies
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -259,7 +259,7 @@ func resourceStorageBlobInventoryPolicyRead(d *pluginsdk.ResourceData, meta inte
 	return pluginsdk.SetResourceIdentityData(d, id, pluginsdk.ResourceTypeForIdentityVirtual)
 }
 
-func resourceStorageBlobInventoryPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageBlobInventoryPolicyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.ResourceManager.BlobInventoryPolicies
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -275,12 +275,12 @@ func resourceStorageBlobInventoryPolicyDelete(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func expandBlobInventoryPolicyRules(input []interface{}) ([]blobinventorypolicies.BlobInventoryPolicyRule, error) {
+func expandBlobInventoryPolicyRules(input []any) ([]blobinventorypolicies.BlobInventoryPolicyRule, error) {
 	results := make([]blobinventorypolicies.BlobInventoryPolicyRule, 0)
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 
-		filters, err := expandBlobInventoryPolicyFilter(v["filter"].([]interface{}), v["scope"].(string))
+		filters, err := expandBlobInventoryPolicyFilter(v["filter"].([]any), v["scope"].(string))
 		if err != nil {
 			return nil, fmt.Errorf("%s rule is invalid: %+v", v["name"].(string), err)
 		}
@@ -293,7 +293,7 @@ func expandBlobInventoryPolicyRules(input []interface{}) ([]blobinventorypolicie
 				Format:       blobinventorypolicies.Format(v["format"].(string)),
 				Schedule:     blobinventorypolicies.Schedule(v["schedule"].(string)),
 				ObjectType:   blobinventorypolicies.ObjectType(v["scope"].(string)),
-				SchemaFields: *pluginsdk.ExpandStringSlice(v["schema_fields"].([]interface{})),
+				SchemaFields: *pluginsdk.ExpandStringSlice(v["schema_fields"].([]any)),
 				Filters:      filters,
 			},
 		})
@@ -301,12 +301,11 @@ func expandBlobInventoryPolicyRules(input []interface{}) ([]blobinventorypolicie
 	return results, nil
 }
 
-func expandBlobInventoryPolicyFilter(input []interface{}, objectType string) (*blobinventorypolicies.BlobInventoryPolicyFilter, error) {
+func expandBlobInventoryPolicyFilter(input []any, objectType string) (*blobinventorypolicies.BlobInventoryPolicyFilter, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
-	v := input[0].(map[string]interface{})
-
+	v := input[0].(map[string]any)
 	policyFilter := &blobinventorypolicies.BlobInventoryPolicyFilter{
 		PrefixMatch:         pluginsdk.ExpandStringSlice(v["prefix_match"].(*pluginsdk.Set).List()),
 		ExcludePrefix:       pluginsdk.ExpandStringSlice(v["exclude_prefixes"].(*pluginsdk.Set).List()),
@@ -335,8 +334,8 @@ func expandBlobInventoryPolicyFilter(input []interface{}, objectType string) (*b
 	return policyFilter, nil
 }
 
-func flattenBlobInventoryPolicyRules(input []blobinventorypolicies.BlobInventoryPolicyRule) []interface{} {
-	results := make([]interface{}, 0)
+func flattenBlobInventoryPolicyRules(input []blobinventorypolicies.BlobInventoryPolicyRule) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
@@ -346,7 +345,7 @@ func flattenBlobInventoryPolicyRules(input []blobinventorypolicies.BlobInventory
 			continue
 		}
 
-		results = append(results, map[string]interface{}{
+		results = append(results, map[string]any{
 			"name":                   item.Name,
 			"storage_container_name": item.Destination,
 			"format":                 string(item.Definition.Format),
@@ -359,9 +358,9 @@ func flattenBlobInventoryPolicyRules(input []blobinventorypolicies.BlobInventory
 	return results
 }
 
-func flattenBlobInventoryPolicyFilter(input *blobinventorypolicies.BlobInventoryPolicyFilter) []interface{} {
+func flattenBlobInventoryPolicyFilter(input *blobinventorypolicies.BlobInventoryPolicyFilter) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
 	var createdWithinDays int
@@ -369,8 +368,8 @@ func flattenBlobInventoryPolicyFilter(input *blobinventorypolicies.BlobInventory
 		createdWithinDays = int(pointer.From(input.CreationTime.LastNDays))
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"blob_types":            pluginsdk.FlattenSlice(input.BlobTypes),
 			"created_within_days":   createdWithinDays,
 			"include_blob_versions": pointer.From(input.IncludeBlobVersions),

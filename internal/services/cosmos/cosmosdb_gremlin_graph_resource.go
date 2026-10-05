@@ -183,14 +183,14 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			// `analytical_storage_ttl` can't be disabled once it's enabled
-			pluginsdk.ForceNewIfChange("analytical_storage_ttl", func(ctx context.Context, old, new, _ interface{}) bool {
+			pluginsdk.ForceNewIfChange("analytical_storage_ttl", func(ctx context.Context, old, new, _ any) bool {
 				return (old.(int) == -1 || (old.(int) >= 1 && old.(int) <= math.MaxInt32)) && new.(int) == 0
 			}),
 		),
 	}
 }
 
-func resourceCosmosDbGremlinGraphCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbGremlinGraphCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -216,7 +216,7 @@ func resourceCosmosDbGremlinGraphCreate(d *pluginsdk.ResourceData, meta interfac
 			Resource: cosmosdb.GremlinGraphResource{
 				Id:                       id.GraphName,
 				IndexingPolicy:           expandAzureRmCosmosDbGremlinGraphIndexingPolicy(d),
-				ConflictResolutionPolicy: common.ExpandCosmosDbConflicResolutionPolicy(d.Get("conflict_resolution_policy").([]interface{})),
+				ConflictResolutionPolicy: common.ExpandCosmosDbConflicResolutionPolicy(d.Get("conflict_resolution_policy").([]any)),
 			},
 			Options: &cosmosdb.CreateUpdateOptions{},
 		},
@@ -267,7 +267,7 @@ func resourceCosmosDbGremlinGraphCreate(d *pluginsdk.ResourceData, meta interfac
 	return resourceCosmosDbGremlinGraphRead(d, meta)
 }
 
-func resourceCosmosDbGremlinGraphUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbGremlinGraphUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -331,7 +331,7 @@ func resourceCosmosDbGremlinGraphUpdate(d *pluginsdk.ResourceData, meta interfac
 	return resourceCosmosDbGremlinGraphRead(d, meta)
 }
 
-func resourceCosmosDbGremlinGraphRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbGremlinGraphRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -423,7 +423,7 @@ func resourceCosmosDbGremlinGraphRead(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func resourceCosmosDbGremlinGraphDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbGremlinGraphDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -442,23 +442,23 @@ func resourceCosmosDbGremlinGraphDelete(d *pluginsdk.ResourceData, meta interfac
 }
 
 func expandAzureRmCosmosDbGremlinGraphIndexingPolicy(d *pluginsdk.ResourceData) *cosmosdb.IndexingPolicy {
-	i := d.Get("index_policy").([]interface{})
+	i := d.Get("index_policy").([]any)
 	if len(i) == 0 || i[0] == nil {
 		return nil
 	}
 
-	input := i[0].(map[string]interface{})
+	input := i[0].(map[string]any)
 	indexingPolicy := cosmosdb.IndexingMode(strings.ToLower(input["indexing_mode"].(string)))
 	policy := &cosmosdb.IndexingPolicy{
 		IndexingMode:  &indexingPolicy,
 		IncludedPaths: expandAzureRmCosmosDbGremlinGraphIncludedPath(input),
 		ExcludedPaths: expandAzureRmCosmosDbGremlinGraphExcludedPath(input),
 	}
-	if v, ok := input["composite_index"].([]interface{}); ok {
+	if v, ok := input["composite_index"].([]any); ok {
 		policy.CompositeIndexes = common.ExpandAzureRmCosmosDBIndexingPolicyCompositeIndexes(v)
 	}
 
-	policy.SpatialIndexes = common.ExpandAzureRmCosmosDBIndexingPolicySpatialIndexes(input["spatial_index"].([]interface{}))
+	policy.SpatialIndexes = common.ExpandAzureRmCosmosDBIndexingPolicySpatialIndexes(input["spatial_index"].([]any))
 
 	if automatic, ok := input["automatic"].(bool); ok {
 		policy.Automatic = pointer.To(automatic)
@@ -467,7 +467,7 @@ func expandAzureRmCosmosDbGremlinGraphIndexingPolicy(d *pluginsdk.ResourceData) 
 	return policy
 }
 
-func expandAzureRmCosmosDbGremlinGraphIncludedPath(input map[string]interface{}) *[]cosmosdb.IncludedPath {
+func expandAzureRmCosmosDbGremlinGraphIncludedPath(input map[string]any) *[]cosmosdb.IncludedPath {
 	includedPath := input["included_paths"].(*pluginsdk.Set).List()
 	paths := make([]cosmosdb.IncludedPath, len(includedPath))
 
@@ -481,7 +481,7 @@ func expandAzureRmCosmosDbGremlinGraphIncludedPath(input map[string]interface{})
 	return &paths
 }
 
-func expandAzureRmCosmosDbGremlinGraphExcludedPath(input map[string]interface{}) *[]cosmosdb.ExcludedPath {
+func expandAzureRmCosmosDbGremlinGraphExcludedPath(input map[string]any) *[]cosmosdb.ExcludedPath {
 	excludedPath := input["excluded_paths"].(*pluginsdk.Set).List()
 	paths := make([]cosmosdb.ExcludedPath, len(excludedPath))
 
@@ -503,7 +503,7 @@ func expandAzureRmCosmosDbGremlinGraphUniqueKeys(s *pluginsdk.Set) *[]cosmosdb.U
 
 	keys := make([]cosmosdb.UniqueKey, 0)
 	for _, k := range i {
-		key := k.(map[string]interface{})
+		key := k.(map[string]any)
 
 		paths := key["paths"].(*pluginsdk.Set).List()
 		if len(paths) == 0 {
@@ -518,11 +518,11 @@ func expandAzureRmCosmosDbGremlinGraphUniqueKeys(s *pluginsdk.Set) *[]cosmosdb.U
 	return &keys
 }
 
-func flattenAzureRmCosmosDBGremlinGraphIndexingPolicy(input *cosmosdb.IndexingPolicy) []interface{} {
+func flattenAzureRmCosmosDBGremlinGraphIndexingPolicy(input *cosmosdb.IndexingPolicy) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
-	indexPolicy := make(map[string]interface{})
+	indexPolicy := make(map[string]any)
 
 	indexPolicy["automatic"] = input.Automatic
 	indexPolicy["indexing_mode"] = input.IndexingMode
@@ -531,15 +531,15 @@ func flattenAzureRmCosmosDBGremlinGraphIndexingPolicy(input *cosmosdb.IndexingPo
 	indexPolicy["composite_index"] = common.FlattenCosmosDBIndexingPolicyCompositeIndexes(input.CompositeIndexes)
 	indexPolicy["spatial_index"] = common.FlattenCosmosDBIndexingPolicySpatialIndexes(input.SpatialIndexes)
 
-	return []interface{}{indexPolicy}
+	return []any{indexPolicy}
 }
 
-func flattenAzureRmCosmosDBGremlinGraphIncludedPaths(input *[]cosmosdb.IncludedPath) []interface{} {
+func flattenAzureRmCosmosDBGremlinGraphIncludedPaths(input *[]cosmosdb.IncludedPath) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	includedPaths := make([]interface{}, 0)
+	includedPaths := make([]any, 0)
 	for _, includedPath := range *input {
 		if includedPath.Path == nil {
 			continue
@@ -551,12 +551,12 @@ func flattenAzureRmCosmosDBGremlinGraphIncludedPaths(input *[]cosmosdb.IncludedP
 	return includedPaths
 }
 
-func flattenAzureRmCosmosDBGremlinGraphExcludedPaths(input *[]cosmosdb.ExcludedPath) []interface{} {
+func flattenAzureRmCosmosDBGremlinGraphExcludedPaths(input *[]cosmosdb.ExcludedPath) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	excludedPaths := make([]interface{}, 0)
+	excludedPaths := make([]any, 0)
 	for _, excludedPath := range *input {
 		if excludedPath.Path == nil {
 			continue
@@ -568,18 +568,18 @@ func flattenAzureRmCosmosDBGremlinGraphExcludedPaths(input *[]cosmosdb.ExcludedP
 	return excludedPaths
 }
 
-func flattenCosmosGremlinGraphUniqueKeys(keys *[]cosmosdb.UniqueKey) *[]map[string]interface{} {
+func flattenCosmosGremlinGraphUniqueKeys(keys *[]cosmosdb.UniqueKey) *[]map[string]any {
 	if keys == nil {
 		return nil
 	}
 
-	slice := make([]map[string]interface{}, 0)
+	slice := make([]map[string]any, 0)
 	for _, k := range *keys {
 		if k.Paths == nil {
 			continue
 		}
 
-		slice = append(slice, map[string]interface{}{
+		slice = append(slice, map[string]any{
 			"paths": *k.Paths,
 		})
 	}

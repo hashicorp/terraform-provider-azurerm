@@ -73,7 +73,7 @@ type LinuxFunctionAppDataSourceModel struct {
 	SiteCredentials []helpers.SiteCredential `tfschema:"site_credential"`
 }
 
-func (d LinuxFunctionAppDataSource) ModelObject() interface{} {
+func (d LinuxFunctionAppDataSource) ModelObject() any {
 	return &LinuxFunctionAppDataSourceModel{}
 }
 

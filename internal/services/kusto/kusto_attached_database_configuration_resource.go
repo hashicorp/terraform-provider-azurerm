@@ -42,7 +42,7 @@ func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
 			return err
 		}),
 
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v any) error {
 			databaseName := diff.Get("database_name").(string)
 			databaseNameOverride := diff.Get("database_name_override").(string)
 
@@ -197,7 +197,7 @@ func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
 	}
 }
 
-func resourceKustoAttachedDatabaseConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoAttachedDatabaseConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.AttachedDatabaseConfigurationsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -239,7 +239,7 @@ func resourceKustoAttachedDatabaseConfigurationCreateUpdate(d *pluginsdk.Resourc
 	return resourceKustoAttachedDatabaseConfigurationRead(d, meta)
 }
 
-func resourceKustoAttachedDatabaseConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoAttachedDatabaseConfigurationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.AttachedDatabaseConfigurationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -284,7 +284,7 @@ func resourceKustoAttachedDatabaseConfigurationRead(d *pluginsdk.ResourceData, m
 	return nil
 }
 
-func resourceKustoAttachedDatabaseConfigurationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoAttachedDatabaseConfigurationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.AttachedDatabaseConfigurationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -327,16 +327,16 @@ func expandKustoAttachedDatabaseConfigurationProperties(d *pluginsdk.ResourceDat
 		AttachedDatabaseConfigurationProperties.DefaultPrincipalsModificationKind = attacheddatabaseconfigurations.DefaultPrincipalsModificationKind(defaultPrincipalModificationKind.(string))
 	}
 
-	AttachedDatabaseConfigurationProperties.TableLevelSharingProperties = expandAttachedDatabaseConfigurationTableLevelSharingProperties(d.Get("sharing").([]interface{}))
+	AttachedDatabaseConfigurationProperties.TableLevelSharingProperties = expandAttachedDatabaseConfigurationTableLevelSharingProperties(d.Get("sharing").([]any))
 
 	return AttachedDatabaseConfigurationProperties
 }
 
-func expandAttachedDatabaseConfigurationTableLevelSharingProperties(input []interface{}) *attacheddatabaseconfigurations.TableLevelSharingProperties {
+func expandAttachedDatabaseConfigurationTableLevelSharingProperties(input []any) *attacheddatabaseconfigurations.TableLevelSharingProperties {
 	if len(input) == 0 {
 		return nil
 	}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	return &attacheddatabaseconfigurations.TableLevelSharingProperties{
 		TablesToInclude:            pluginsdk.ExpandStringSlice(v["tables_to_include"].(*pluginsdk.Set).List()),
 		TablesToExclude:            pluginsdk.ExpandStringSlice(v["tables_to_exclude"].(*pluginsdk.Set).List()),
@@ -349,13 +349,13 @@ func expandAttachedDatabaseConfigurationTableLevelSharingProperties(input []inte
 	}
 }
 
-func flattenAttachedDatabaseConfigurationTableLevelSharingProperties(input *attacheddatabaseconfigurations.TableLevelSharingProperties) []interface{} {
+func flattenAttachedDatabaseConfigurationTableLevelSharingProperties(input *attacheddatabaseconfigurations.TableLevelSharingProperties) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"external_tables_to_exclude":    pluginsdk.FlattenSlice(input.ExternalTablesToExclude),
 			"external_tables_to_include":    pluginsdk.FlattenSlice(input.ExternalTablesToInclude),
 			"functions_to_exclude":          pluginsdk.FlattenSlice(input.FunctionsToExclude),

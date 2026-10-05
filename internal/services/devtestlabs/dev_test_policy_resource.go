@@ -108,7 +108,7 @@ func resourceArmDevTestPolicy() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmDevTestPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmDevTestPolicyCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DevTestLabs.PoliciesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -138,7 +138,7 @@ func resourceArmDevTestPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	description := d.Get("description").(string)
 
 	parameters := policies.Policy{
-		Tags: expandTags(d.Get("tags").(map[string]interface{})),
+		Tags: expandTags(d.Get("tags").(map[string]any)),
 		Properties: policies.PolicyProperties{
 			FactName:      pointer.ToEnum[policies.PolicyFactName](id.PolicyName),
 			FactData:      pointer.To(factData),
@@ -157,7 +157,7 @@ func resourceArmDevTestPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	return resourceArmDevTestPolicyRead(d, meta)
 }
 
-func resourceArmDevTestPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmDevTestPolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DevTestLabs.PoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -197,7 +197,7 @@ func resourceArmDevTestPolicyRead(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceArmDevTestPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmDevTestPolicyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DevTestLabs.PoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

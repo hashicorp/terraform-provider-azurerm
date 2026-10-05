@@ -79,7 +79,7 @@ func resourceSpringCloudStorage() *pluginsdk.Resource {
 	}
 }
 
-func resourceSpringCloudStorageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudStorageCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).AppPlatform.StoragesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -131,7 +131,7 @@ func resourceSpringCloudStorageCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	return resourceSpringCloudStorageRead(d, meta)
 }
 
-func resourceSpringCloudStorageRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudStorageRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.StoragesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -162,7 +162,7 @@ func resourceSpringCloudStorageRead(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceSpringCloudStorageDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudStorageDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.StoragesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

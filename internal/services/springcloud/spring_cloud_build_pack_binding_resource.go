@@ -104,7 +104,7 @@ func resourceSpringCloudBuildPackBinding() *pluginsdk.Resource {
 	}
 }
 
-func resourceSpringCloudBuildPackBindingCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudBuildPackBindingCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).AppPlatform.BuildPackBindingClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -135,7 +135,7 @@ func resourceSpringCloudBuildPackBindingCreateUpdate(d *pluginsdk.ResourceData, 
 	buildpackBinding := appplatform.BuildpackBindingResource{
 		Properties: &appplatform.BuildpackBindingProperties{
 			BindingType:      appplatform.BindingType(d.Get("binding_type").(string)),
-			LaunchProperties: expandBuildPackBindingBuildPackBindingLaunchProperties(d.Get("launch").([]interface{})),
+			LaunchProperties: expandBuildPackBindingBuildPackBindingLaunchProperties(d.Get("launch").([]any)),
 		},
 	}
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.SpringName, id.BuildServiceName, id.BuilderName, id.BuildPackBindingName, buildpackBinding)
@@ -152,7 +152,7 @@ func resourceSpringCloudBuildPackBindingCreateUpdate(d *pluginsdk.ResourceData, 
 	return resourceSpringCloudBuildPackBindingRead(d, meta)
 }
 
-func resourceSpringCloudBuildPackBindingRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudBuildPackBindingRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.BuildPackBindingClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -177,14 +177,14 @@ func resourceSpringCloudBuildPackBindingRead(d *pluginsdk.ResourceData, meta int
 	d.Set("spring_cloud_builder_id", appplatform_rm.NewBuilderID(id.SubscriptionId, id.ResourceGroupName, id.SpringName, id.BuildServiceName, id.BuilderName).ID())
 	if props := resp.Properties; props != nil {
 		d.Set("binding_type", props.BindingType)
-		if err := d.Set("launch", flattenBuildPackBindingBuildPackBindingLaunchProperties(props.LaunchProperties, d.Get("launch").([]interface{}))); err != nil {
+		if err := d.Set("launch", flattenBuildPackBindingBuildPackBindingLaunchProperties(props.LaunchProperties, d.Get("launch").([]any))); err != nil {
 			return fmt.Errorf("setting `launch`: %+v", err)
 		}
 	}
 	return nil
 }
 
-func resourceSpringCloudBuildPackBindingDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudBuildPackBindingDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.BuildPackBindingClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -207,17 +207,17 @@ func resourceSpringCloudBuildPackBindingDelete(d *pluginsdk.ResourceData, meta i
 	return nil
 }
 
-func expandBuildPackBindingBuildPackBindingLaunchProperties(input []interface{}) *appplatform.BuildpackBindingLaunchProperties {
+func expandBuildPackBindingBuildPackBindingLaunchProperties(input []any) *appplatform.BuildpackBindingLaunchProperties {
 	if len(input) == 0 {
 		return nil
 	}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	var properties, secrets map[string]*string
 	if valueRaw, ok := v["properties"]; ok && valueRaw != nil {
-		properties = pluginsdk.ExpandMapStringPtrString(valueRaw.(map[string]interface{}))
+		properties = pluginsdk.ExpandMapStringPtrString(valueRaw.(map[string]any))
 	}
 	if valueRaw, ok := v["secrets"]; ok && valueRaw != nil {
-		secrets = pluginsdk.ExpandMapStringPtrString(valueRaw.(map[string]interface{}))
+		secrets = pluginsdk.ExpandMapStringPtrString(valueRaw.(map[string]any))
 	}
 	return &appplatform.BuildpackBindingLaunchProperties{
 		Properties: properties,
@@ -225,24 +225,24 @@ func expandBuildPackBindingBuildPackBindingLaunchProperties(input []interface{})
 	}
 }
 
-func flattenBuildPackBindingBuildPackBindingLaunchProperties(input *appplatform.BuildpackBindingLaunchProperties, old []interface{}) []interface{} {
+func flattenBuildPackBindingBuildPackBindingLaunchProperties(input *appplatform.BuildpackBindingLaunchProperties, old []any) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	props := make(map[string]interface{})
+	props := make(map[string]any)
 	if input.Properties != nil {
 		props = pluginsdk.FlattenMapStringPtrString(input.Properties)
 	}
-	secrets := make(map[string]interface{})
+	secrets := make(map[string]any)
 	if len(old) != 0 {
-		v := old[0].(map[string]interface{})
+		v := old[0].(map[string]any)
 		if secretsRaw, ok := v["secrets"]; ok && secretsRaw != nil {
-			secrets = secretsRaw.(map[string]interface{})
+			secrets = secretsRaw.(map[string]any)
 		}
 	}
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"properties": props,
 			"secrets":    secrets,
 		},
