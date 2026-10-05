@@ -176,7 +176,7 @@ func TestAccPolicyDefinition_removeParameter(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPolicyDefinition_renameParameter(t *testing.T) {
+func TestAccPolicyDefinition_renameParameter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	r := PolicyDefinitionResource{}
 
