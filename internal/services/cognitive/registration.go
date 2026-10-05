@@ -95,5 +95,6 @@ func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 		CognitiveAccountConnectionCustomKeysListResource{},
 		CognitiveAccountConnectionEntraIDListResource{},
 		CognitiveAccountListResource{},
+		CognitiveDeploymentListResource{},
 	}
 }

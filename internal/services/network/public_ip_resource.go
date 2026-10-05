@@ -18,9 +18,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/ddosprotectionplans"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/publicipaddresses"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/ddosprotectionplans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/publicipaddresses"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/publicipprefixes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -66,24 +66,17 @@ func resourcePublicIp() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"allocation_method": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(publicipaddresses.IPAllocationMethodStatic),
-					string(publicipaddresses.IPAllocationMethodDynamic),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(publicipaddresses.PossibleValuesForIPAllocationMethod(), false),
 			},
 
 			// Optional
 			"ddos_protection_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(publicipaddresses.DdosSettingsProtectionModeDisabled),
-					string(publicipaddresses.DdosSettingsProtectionModeEnabled),
-					string(publicipaddresses.DdosSettingsProtectionModeVirtualNetworkInherited),
-				}, false),
-				Default: string(publicipaddresses.DdosSettingsProtectionModeVirtualNetworkInherited),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(publicipaddresses.PossibleValuesForDdosSettingsProtectionMode(), false),
+				Default:      string(publicipaddresses.DdosSettingsProtectionModeVirtualNetworkInherited),
 			},
 
 			"ddos_protection_plan_id": {
@@ -95,14 +88,11 @@ func resourcePublicIp() *pluginsdk.Resource {
 			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
 			"ip_version": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(publicipaddresses.IPVersionIPvFour),
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(publicipaddresses.IPVersionIPvFour),
-					string(publicipaddresses.IPVersionIPvSix),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(publicipaddresses.IPVersionIPvFour),
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(publicipaddresses.PossibleValuesForIPVersion(), false),
 			},
 
 			"sku": {
@@ -113,14 +103,11 @@ func resourcePublicIp() *pluginsdk.Resource {
 			},
 
 			"sku_tier": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(publicipaddresses.PublicIPAddressSkuTierRegional),
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(publicipaddresses.PublicIPAddressSkuTierGlobal),
-					string(publicipaddresses.PublicIPAddressSkuTierRegional),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(publicipaddresses.PublicIPAddressSkuTierRegional),
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(publicipaddresses.PossibleValuesForPublicIPAddressSkuTier(), false),
 			},
 
 			"idle_timeout_in_minutes": {
@@ -179,7 +166,7 @@ func resourcePublicIp() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			pluginsdk.CustomizeDiffShim(func(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+			pluginsdk.CustomizeDiffShim(func(_ context.Context, d *pluginsdk.ResourceDiff, _ any) error {
 				sku := d.Get("sku").(string)
 				if strings.EqualFold(sku, string(publicipaddresses.PublicIPAddressSkuNameBasic)) && d.HasChanges(
 					"name",
@@ -199,7 +186,7 @@ func resourcePublicIp() *pluginsdk.Resource {
 
 				return nil
 			}),
-			pluginsdk.CustomizeDiffShim(func(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+			pluginsdk.CustomizeDiffShim(func(_ context.Context, d *pluginsdk.ResourceDiff, _ any) error {
 				skuTier := d.Get("sku_tier").(string)
 				sku := d.Get("sku").(string)
 				if strings.EqualFold(skuTier, string(publicipaddresses.PublicIPAddressSkuTierGlobal)) && !strings.EqualFold(sku, string(publicipaddresses.PublicIPAddressSkuNameStandard)) {
@@ -207,7 +194,7 @@ func resourcePublicIp() *pluginsdk.Resource {
 				}
 				return nil
 			}),
-			pluginsdk.CustomizeDiffShim(func(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+			pluginsdk.CustomizeDiffShim(func(_ context.Context, d *pluginsdk.ResourceDiff, _ any) error {
 				sku := d.Get("sku").(string)
 				allocationMethod := d.Get("allocation_method").(string)
 				if isStandardPublicIpSku(sku) && !strings.EqualFold(allocationMethod, string(publicipaddresses.IPAllocationMethodStatic)) {
@@ -215,10 +202,10 @@ func resourcePublicIp() *pluginsdk.Resource {
 				}
 				return nil
 			}),
-			pluginsdk.ForceNewIfChange("sku", func(ctx context.Context, old, new, meta interface{}) bool {
+			pluginsdk.ForceNewIfChange("sku", func(ctx context.Context, old, new, meta any) bool {
 				return !isPublicIpSkuUpgrade(old.(string), new.(string))
 			}),
-			pluginsdk.ForceNewIfChange("domain_name_label_scope", func(ctx context.Context, old, new, meta interface{}) bool {
+			pluginsdk.ForceNewIfChange("domain_name_label_scope", func(ctx context.Context, old, new, meta any) bool {
 				return old.(string) != "" || new.(string) == ""
 			}),
 		),
@@ -242,7 +229,7 @@ func isStandardPublicIpSku(sku string) bool {
 
 const publicIPBasicSkuCreateDeprecationMessage = "creation of new `Basic` SKU public IP addresses is no longer permitted following its deprecation on March 31, 2025. This also affects `allocation_method` set to `Dynamic`, as it is only available with the `Basic` SKU. For more information, see https://azure.microsoft.com/updates/upgrade-to-standard-sku-public-ip-addresses-in-azure-by-30-september-2025-basic-sku-will-be-retired/"
 
-func resourcePublicIpCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePublicIpCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.PublicIPAddresses
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -290,7 +277,7 @@ func resourcePublicIpCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 				ProtectionMode: pointer.ToEnum[publicipaddresses.DdosSettingsProtectionMode](ddosProtectionMode),
 			},
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	ddosProtectionPlanId, planOk := d.GetOk("ddos_protection_plan_id")
@@ -339,7 +326,7 @@ func resourcePublicIpCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if v, ok := d.GetOk("ip_tags"); ok {
-		ipTags := v.(map[string]interface{})
+		ipTags := v.(map[string]any)
 		newIpTags := []publicipaddresses.IPTag{}
 
 		for key, val := range ipTags {
@@ -365,7 +352,7 @@ func resourcePublicIpCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	return resourcePublicIpRead(d, meta)
 }
 
-func resourcePublicIpUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePublicIpUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.PublicIPAddresses
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -452,7 +439,7 @@ func resourcePublicIpUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChanges("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err = client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
@@ -462,7 +449,7 @@ func resourcePublicIpUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	return resourcePublicIpRead(d, meta)
 }
 
-func resourcePublicIpRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePublicIpRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.PublicIPAddresses
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -495,12 +482,12 @@ func resourcePublicIpFlatten(d *pluginsdk.ResourceData, id *commonids.PublicIPAd
 		d.Set("zones", zones.FlattenUntyped(model.Zones))
 
 		if sku := model.Sku; sku != nil {
-			d.Set("sku", string(pointer.From(sku.Name)))
-			d.Set("sku_tier", string(pointer.From(sku.Tier)))
+			d.Set("sku", pointer.FromEnum(sku.Name))
+			d.Set("sku_tier", pointer.FromEnum(sku.Tier))
 		}
 		if props := model.Properties; props != nil {
-			d.Set("allocation_method", string(pointer.From(props.PublicIPAllocationMethod)))
-			d.Set("ip_version", string(pointer.From(props.PublicIPAddressVersion)))
+			d.Set("allocation_method", pointer.FromEnum(props.PublicIPAllocationMethod))
+			d.Set("ip_version", pointer.FromEnum(props.PublicIPAddressVersion))
 
 			if publicIpPrefix := props.PublicIPPrefix; publicIpPrefix != nil {
 				d.Set("public_ip_prefix_id", publicIpPrefix.Id)
@@ -524,7 +511,7 @@ func resourcePublicIpFlatten(d *pluginsdk.ResourceData, id *commonids.PublicIPAd
 
 			ddosProtectionMode := string(publicipaddresses.DdosSettingsProtectionModeVirtualNetworkInherited)
 			if ddosSetting := props.DdosSettings; ddosSetting != nil {
-				ddosProtectionMode = string(pointer.From(ddosSetting.ProtectionMode))
+				ddosProtectionMode = pointer.FromEnum(ddosSetting.ProtectionMode)
 				if subResource := ddosSetting.DdosProtectionPlan; subResource != nil {
 					d.Set("ddos_protection_plan_id", subResource.Id)
 				}
@@ -543,7 +530,7 @@ func resourcePublicIpFlatten(d *pluginsdk.ResourceData, id *commonids.PublicIPAd
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourcePublicIpDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePublicIpDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.PublicIPAddresses
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -560,8 +547,8 @@ func resourcePublicIpDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func flattenPublicIpPropsIpTags(input *[]publicipaddresses.IPTag) map[string]interface{} {
-	out := make(map[string]interface{})
+func flattenPublicIpPropsIpTags(input *[]publicipaddresses.IPTag) map[string]any {
+	out := make(map[string]any)
 
 	if input != nil {
 		for _, tag := range *input {

@@ -22,6 +22,7 @@ import (
 var resourceTypeSupportSubResType = map[string][]string{
 	"Microsoft.KeyVault":                {"vault"},
 	"Microsoft.Cache":                   {"redisCache"},
+	"Microsoft.CognitiveServices":       {"account"},
 	"Microsoft.MachineLearningServices": {"amlworkspace"},
 	"Microsoft.Storage":                 {"blob", "table", "queue", "file", "web", "dfs"},
 }
@@ -42,7 +43,7 @@ func (r WorkspaceNetworkOutboundRulePrivateEndpoint) ResourceType() string {
 	return "azurerm_machine_learning_workspace_network_outbound_rule_private_endpoint"
 }
 
-func (r WorkspaceNetworkOutboundRulePrivateEndpoint) ModelObject() interface{} {
+func (r WorkspaceNetworkOutboundRulePrivateEndpoint) ModelObject() any {
 	return &machineLearningWorkspaceOutboundRulePrivateEndpointModel{}
 }
 
@@ -78,6 +79,7 @@ func (r WorkspaceNetworkOutboundRulePrivateEndpoint) Arguments() map[string]*plu
 			Required: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
+				"account",
 				"vault",
 				"amlworkspace",
 				"blob",

@@ -37,7 +37,7 @@ type DevCenterCatalogsResource struct{}
 
 var _ sdk.Resource = DevCenterCatalogsResource{}
 
-func (r DevCenterCatalogsResource) ModelObject() interface{} {
+func (r DevCenterCatalogsResource) ModelObject() any {
 	return &DevCenterCatalogsResourceModel{}
 }
 
