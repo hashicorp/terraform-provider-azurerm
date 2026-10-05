@@ -1,4 +1,5 @@
-// Copyright © 2024, Oracle and/or its affiliates. All rights reserved
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
 
 package oracle_test
 
@@ -8,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/autonomousdatabases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/autonomousdatabases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -38,6 +39,7 @@ func TestAdbsRegularResource_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ocid").Exists(),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -100,7 +102,7 @@ func TestAdbsRegularResource_updateBackupSchedule(t *testing.T) {
 	})
 }
 
-func TestAdbsRegularResource_updatePublicAcces(t *testing.T) {
+func TestAdbsRegularResource_updatePublicAccess(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseRegularResource{}.ResourceType(), "test")
 	r := AdbsRegularResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -166,13 +168,13 @@ resource "azurerm_oracle_autonomous_database" "test" {
   location                         = "%[3]s"
   compute_model                    = "ECPU"
   compute_count                    = 2
-  license_model                    = "BringYourOwnLicense"
+  license_model                    = "LicenseIncluded"
   backup_retention_period_in_days  = 12
   auto_scaling_enabled             = false
   auto_scaling_for_storage_enabled = false
-  mtls_connection_required         = false
+  mtls_connection_required         = true
   data_storage_size_in_tbs         = 1
-  db_workload                      = "OLTP"
+  db_workload                      = "APEX"
   admin_password                   = "TestPass#2024#"
   db_version                       = "19c"
   character_set                    = "AL32UTF8"
@@ -240,14 +242,14 @@ resource "azurerm_oracle_autonomous_database" "test" {
   location                         = "%[3]s"
   compute_model                    = "ECPU"
   compute_count                    = 3
-  license_model                    = "BringYourOwnLicense"
+  license_model                    = "LicenseIncluded"
   backup_retention_period_in_days  = 30
   auto_scaling_enabled             = false
   auto_scaling_for_storage_enabled = false
-  mtls_connection_required         = false
+  mtls_connection_required         = true
   data_storage_size_in_tbs         = 1
   db_workload                      = "OLTP"
-  admin_password                   = "TestPass#2024#"
+  admin_password                   = "TestPass$2024$"
   db_version                       = "19c"
   character_set                    = "AL32UTF8"
   national_character_set           = "AL16UTF16"
@@ -381,7 +383,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
   mtls_connection_required         = true
   data_storage_size_in_tbs         = 1
   db_workload                      = "OLTP"
-  admin_password                   = "TestPass#2024#"
+  admin_password                   = "TestPass$2024$"
   db_version                       = "19c"
   character_set                    = "AL32UTF8"
   national_character_set           = "AL16UTF16"

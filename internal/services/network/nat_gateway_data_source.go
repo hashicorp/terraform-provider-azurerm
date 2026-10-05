@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/natgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/natgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -46,7 +46,7 @@ func dataSourceNatGateway() *pluginsdk.Resource {
 			"public_ip_address_ids": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
@@ -55,7 +55,7 @@ func dataSourceNatGateway() *pluginsdk.Resource {
 			"public_ip_prefix_ids": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
@@ -78,8 +78,8 @@ func dataSourceNatGateway() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceNatGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.NatGateways
+func dataSourceNatGatewayRead(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Network.NatGateways
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -102,7 +102,7 @@ func dataSourceNatGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("location", location.NormalizeNilable(model.Location))
 		sku := ""
 		if model.Sku != nil {
-			sku = string(pointer.From(model.Sku.Name))
+			sku = pointer.FromEnum(model.Sku.Name)
 		}
 		d.Set("sku_name", sku)
 		d.Set("zones", zones.FlattenUntyped(model.Zones))
@@ -123,8 +123,8 @@ func dataSourceNatGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error
 	return nil
 }
 
-func flattenNetworkSubResourceID(input *[]natgateways.SubResource) []interface{} {
-	results := make([]interface{}, 0)
+func flattenNetworkSubResourceID(input *[]natgateways.SubResource) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}

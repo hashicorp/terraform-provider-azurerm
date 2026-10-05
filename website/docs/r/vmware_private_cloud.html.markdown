@@ -120,7 +120,7 @@ A `management_cluster` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 10 hours) Used when creating the Azure VMware Solution Private Cloud.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure VMware Solution Private Cloud.
@@ -139,4 +139,4 @@ terraform import azurerm_vmware_private_cloud.example /subscriptions/00000000-00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.AVS`: 2022-05-01
+* `Microsoft.AVS` - 2022-05-01
