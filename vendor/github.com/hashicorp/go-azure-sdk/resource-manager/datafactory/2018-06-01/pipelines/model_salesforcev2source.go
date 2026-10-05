@@ -12,19 +12,20 @@ var _ CopySource = SalesforceV2Source{}
 
 type SalesforceV2Source struct {
 	AdditionalColumns     *interface{} `json:"additionalColumns,omitempty"`
-	IncludeDeletedObjects *bool        `json:"includeDeletedObjects,omitempty"`
-	PageSize              *int64       `json:"pageSize,omitempty"`
-	Query                 *string      `json:"query,omitempty"`
-	QueryTimeout          *string      `json:"queryTimeout,omitempty"`
-	SOQLQuery             *string      `json:"SOQLQuery,omitempty"`
+	IncludeDeletedObjects *interface{} `json:"includeDeletedObjects,omitempty"`
+	PageSize              *interface{} `json:"pageSize,omitempty"`
+	PartitionOption       *interface{} `json:"partitionOption,omitempty"`
+	Query                 *interface{} `json:"query,omitempty"`
+	QueryTimeout          *interface{} `json:"queryTimeout,omitempty"`
+	SOQLQuery             *interface{} `json:"SOQLQuery,omitempty"`
 
 	// Fields inherited from CopySource
 
-	DisableMetricsCollection *bool   `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64  `json:"maxConcurrentConnections,omitempty"`
-	SourceRetryCount         *int64  `json:"sourceRetryCount,omitempty"`
-	SourceRetryWait          *string `json:"sourceRetryWait,omitempty"`
-	Type                     string  `json:"type"`
+	DisableMetricsCollection *interface{} `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *interface{} `json:"maxConcurrentConnections,omitempty"`
+	SourceRetryCount         *interface{} `json:"sourceRetryCount,omitempty"`
+	SourceRetryWait          *interface{} `json:"sourceRetryWait,omitempty"`
+	Type                     string       `json:"type"`
 }
 
 func (s SalesforceV2Source) CopySource() BaseCopySourceImpl {

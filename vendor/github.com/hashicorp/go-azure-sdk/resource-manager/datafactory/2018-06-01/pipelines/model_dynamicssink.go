@@ -11,19 +11,21 @@ import (
 var _ CopySink = DynamicsSink{}
 
 type DynamicsSink struct {
-	AlternateKeyName *string                   `json:"alternateKeyName,omitempty"`
-	IgnoreNullValues *bool                     `json:"ignoreNullValues,omitempty"`
-	WriteBehavior    DynamicsSinkWriteBehavior `json:"writeBehavior"`
+	AlternateKeyName             *interface{}              `json:"alternateKeyName,omitempty"`
+	BypassBusinessLogicExecution *interface{}              `json:"bypassBusinessLogicExecution,omitempty"`
+	BypassPowerAutomateFlows     *interface{}              `json:"bypassPowerAutomateFlows,omitempty"`
+	IgnoreNullValues             *interface{}              `json:"ignoreNullValues,omitempty"`
+	WriteBehavior                DynamicsSinkWriteBehavior `json:"writeBehavior"`
 
 	// Fields inherited from CopySink
 
-	DisableMetricsCollection *bool   `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64  `json:"maxConcurrentConnections,omitempty"`
-	SinkRetryCount           *int64  `json:"sinkRetryCount,omitempty"`
-	SinkRetryWait            *string `json:"sinkRetryWait,omitempty"`
-	Type                     string  `json:"type"`
-	WriteBatchSize           *int64  `json:"writeBatchSize,omitempty"`
-	WriteBatchTimeout        *string `json:"writeBatchTimeout,omitempty"`
+	DisableMetricsCollection *interface{} `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *interface{} `json:"maxConcurrentConnections,omitempty"`
+	SinkRetryCount           *interface{} `json:"sinkRetryCount,omitempty"`
+	SinkRetryWait            *interface{} `json:"sinkRetryWait,omitempty"`
+	Type                     string       `json:"type"`
+	WriteBatchSize           *interface{} `json:"writeBatchSize,omitempty"`
+	WriteBatchTimeout        *interface{} `json:"writeBatchTimeout,omitempty"`
 }
 
 func (s DynamicsSink) CopySink() BaseCopySinkImpl {

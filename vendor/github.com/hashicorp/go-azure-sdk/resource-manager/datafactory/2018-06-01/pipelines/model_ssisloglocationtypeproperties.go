@@ -5,5 +5,5 @@ package pipelines
 
 type SSISLogLocationTypeProperties struct {
 	AccessCredential   *SSISAccessCredential `json:"accessCredential,omitempty"`
-	LogRefreshInterval *string               `json:"logRefreshInterval,omitempty"`
+	LogRefreshInterval *interface{}          `json:"logRefreshInterval,omitempty"`
 }

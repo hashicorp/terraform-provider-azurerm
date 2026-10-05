@@ -58,9 +58,20 @@ func (c ApiDefinitionsClient) ExportSpecification(ctx context.Context, id Defini
 
 // ExportSpecificationThenPoll performs ExportSpecification then polls until it's completed
 func (c ApiDefinitionsClient) ExportSpecificationThenPoll(ctx context.Context, id DefinitionId) error {
+	return c.ExportSpecificationCallbackThenPoll(ctx, id, nil)
+}
+
+// ExportSpecificationCallbackThenPoll performs ExportSpecification, runs the optional callback function, then polls until it's completed
+func (c ApiDefinitionsClient) ExportSpecificationCallbackThenPoll(ctx context.Context, id DefinitionId, callback func() error) error {
 	result, err := c.ExportSpecification(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ExportSpecification: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

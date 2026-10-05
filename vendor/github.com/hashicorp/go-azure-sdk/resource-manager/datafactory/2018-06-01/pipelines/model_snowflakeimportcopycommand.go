@@ -13,7 +13,7 @@ var _ ImportSettings = SnowflakeImportCopyCommand{}
 type SnowflakeImportCopyCommand struct {
 	AdditionalCopyOptions   *map[string]interface{} `json:"additionalCopyOptions,omitempty"`
 	AdditionalFormatOptions *map[string]interface{} `json:"additionalFormatOptions,omitempty"`
-	StorageIntegration      *string                 `json:"storageIntegration,omitempty"`
+	StorageIntegration      *interface{}            `json:"storageIntegration,omitempty"`
 
 	// Fields inherited from ImportSettings
 

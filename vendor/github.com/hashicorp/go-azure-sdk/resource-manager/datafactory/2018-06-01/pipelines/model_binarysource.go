@@ -16,11 +16,11 @@ type BinarySource struct {
 
 	// Fields inherited from CopySource
 
-	DisableMetricsCollection *bool   `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64  `json:"maxConcurrentConnections,omitempty"`
-	SourceRetryCount         *int64  `json:"sourceRetryCount,omitempty"`
-	SourceRetryWait          *string `json:"sourceRetryWait,omitempty"`
-	Type                     string  `json:"type"`
+	DisableMetricsCollection *interface{} `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *interface{} `json:"maxConcurrentConnections,omitempty"`
+	SourceRetryCount         *interface{} `json:"sourceRetryCount,omitempty"`
+	SourceRetryWait          *interface{} `json:"sourceRetryWait,omitempty"`
+	Type                     string       `json:"type"`
 }
 
 func (s BinarySource) CopySource() BaseCopySourceImpl {
@@ -63,10 +63,10 @@ var _ json.Unmarshaler = &BinarySource{}
 func (s *BinarySource) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
 		FormatSettings           *BinaryReadSettings `json:"formatSettings,omitempty"`
-		DisableMetricsCollection *bool               `json:"disableMetricsCollection,omitempty"`
-		MaxConcurrentConnections *int64              `json:"maxConcurrentConnections,omitempty"`
-		SourceRetryCount         *int64              `json:"sourceRetryCount,omitempty"`
-		SourceRetryWait          *string             `json:"sourceRetryWait,omitempty"`
+		DisableMetricsCollection *interface{}        `json:"disableMetricsCollection,omitempty"`
+		MaxConcurrentConnections *interface{}        `json:"maxConcurrentConnections,omitempty"`
+		SourceRetryCount         *interface{}        `json:"sourceRetryCount,omitempty"`
+		SourceRetryWait          *interface{}        `json:"sourceRetryWait,omitempty"`
 		Type                     string              `json:"type"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {

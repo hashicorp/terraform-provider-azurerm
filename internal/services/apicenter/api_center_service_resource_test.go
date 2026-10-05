@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ApiCenterServiceResource struct{}
@@ -80,7 +79,7 @@ func (ApiCenterServiceResource) Exists(ctx context.Context, clients *clients.Cli
 		return nil, fmt.Errorf("making Read request on ApiCenter Service %s: %+v", id.ID(), err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (ApiCenterServiceResource) template(data acceptance.TestData) string {

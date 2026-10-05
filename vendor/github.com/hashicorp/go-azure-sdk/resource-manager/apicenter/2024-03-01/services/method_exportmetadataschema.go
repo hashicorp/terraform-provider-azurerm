@@ -62,9 +62,20 @@ func (c ServicesClient) ExportMetadataSchema(ctx context.Context, id ServiceId, 
 
 // ExportMetadataSchemaThenPoll performs ExportMetadataSchema then polls until it's completed
 func (c ServicesClient) ExportMetadataSchemaThenPoll(ctx context.Context, id ServiceId, input MetadataSchemaExportRequest) error {
+	return c.ExportMetadataSchemaCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ExportMetadataSchemaCallbackThenPoll performs ExportMetadataSchema, runs the optional callback function, then polls until it's completed
+func (c ServicesClient) ExportMetadataSchemaCallbackThenPoll(ctx context.Context, id ServiceId, input MetadataSchemaExportRequest, callback func() error) error {
 	result, err := c.ExportMetadataSchema(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ExportMetadataSchema: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

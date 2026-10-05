@@ -101,7 +101,7 @@ func (r ApiCenterEnvironmentResource) Attributes() map[string]*pluginsdk.Schema 
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r ApiCenterEnvironmentResource) ModelObject() interface{} {
+func (r ApiCenterEnvironmentResource) ModelObject() any {
 	return &ApiCenterEnvironmentResourceModel{}
 }
 

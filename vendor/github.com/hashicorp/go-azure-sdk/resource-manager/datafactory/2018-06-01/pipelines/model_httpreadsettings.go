@@ -12,16 +12,16 @@ var _ StoreReadSettings = HTTPReadSettings{}
 
 type HTTPReadSettings struct {
 	AdditionalColumns *interface{} `json:"additionalColumns,omitempty"`
-	AdditionalHeaders *string      `json:"additionalHeaders,omitempty"`
-	RequestBody       *string      `json:"requestBody,omitempty"`
-	RequestMethod     *string      `json:"requestMethod,omitempty"`
-	RequestTimeout    *string      `json:"requestTimeout,omitempty"`
+	AdditionalHeaders *interface{} `json:"additionalHeaders,omitempty"`
+	RequestBody       *interface{} `json:"requestBody,omitempty"`
+	RequestMethod     *interface{} `json:"requestMethod,omitempty"`
+	RequestTimeout    *interface{} `json:"requestTimeout,omitempty"`
 
 	// Fields inherited from StoreReadSettings
 
-	DisableMetricsCollection *bool  `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64 `json:"maxConcurrentConnections,omitempty"`
-	Type                     string `json:"type"`
+	DisableMetricsCollection *interface{} `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *interface{} `json:"maxConcurrentConnections,omitempty"`
+	Type                     string       `json:"type"`
 }
 
 func (s HTTPReadSettings) StoreReadSettings() BaseStoreReadSettingsImpl {

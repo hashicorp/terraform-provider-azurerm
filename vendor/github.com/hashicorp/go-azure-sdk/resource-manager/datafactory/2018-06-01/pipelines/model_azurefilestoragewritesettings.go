@@ -14,9 +14,9 @@ type AzureFileStorageWriteSettings struct {
 
 	// Fields inherited from StoreWriteSettings
 
-	CopyBehavior             *string         `json:"copyBehavior,omitempty"`
-	DisableMetricsCollection *bool           `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64          `json:"maxConcurrentConnections,omitempty"`
+	CopyBehavior             *interface{}    `json:"copyBehavior,omitempty"`
+	DisableMetricsCollection *interface{}    `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *interface{}    `json:"maxConcurrentConnections,omitempty"`
 	Metadata                 *[]MetadataItem `json:"metadata,omitempty"`
 	Type                     string          `json:"type"`
 }

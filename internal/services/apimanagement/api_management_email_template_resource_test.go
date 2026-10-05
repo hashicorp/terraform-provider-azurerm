@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement_test
@@ -10,11 +10,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/emailtemplates"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 type ApiManagementEmailTemplateResource struct{}
@@ -79,11 +80,10 @@ func (ApiManagementEmailTemplateResource) Exists(ctx context.Context, clients *c
 		return nil, err
 	}
 
-	templateName := emailtemplates.TemplateName(azure.TitleCase(string(id.TemplateName)))
+	templateName := emailtemplates.TemplateName(cases.Title(language.English, cases.NoLower).String(string(id.TemplateName)))
 	newId := emailtemplates.NewTemplateID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, templateName)
 
-	_, err = clients.ApiManagement.EmailTemplatesClient.EmailTemplateGet(ctx, newId)
-	if err != nil {
+	if _, err = clients.ApiManagement.EmailTemplatesClient.EmailTemplateGet(ctx, newId); err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", newId, err)
 	}
 

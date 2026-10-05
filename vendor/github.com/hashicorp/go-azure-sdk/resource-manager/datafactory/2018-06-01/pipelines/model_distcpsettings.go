@@ -4,7 +4,7 @@ package pipelines
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type DistcpSettings struct {
-	DistcpOptions           *string `json:"distcpOptions,omitempty"`
-	ResourceManagerEndpoint string  `json:"resourceManagerEndpoint"`
-	TempScriptPath          string  `json:"tempScriptPath"`
+	DistcpOptions           *interface{} `json:"distcpOptions,omitempty"`
+	ResourceManagerEndpoint interface{}  `json:"resourceManagerEndpoint"`
+	TempScriptPath          interface{}  `json:"tempScriptPath"`
 }

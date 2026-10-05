@@ -1,24 +1,21 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobcredentials"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/jobagents"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/jobcredentials"
 	"github.com/hashicorp/go-cty/cty"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
@@ -30,7 +27,7 @@ func resourceMsSqlJobCredential() *pluginsdk.Resource {
 		Delete: resourceMsSqlJobCredentialDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.JobCredentialID(id)
+			_, err := jobcredentials.ParseCredentialID(id)
 			return err
 		}),
 
@@ -39,10 +36,6 @@ func resourceMsSqlJobCredential() *pluginsdk.Resource {
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
-		},
-
-		ValidateRawResourceConfigFuncs: []schema.ValidateRawResourceConfigFunc{
-			validation.PreferWriteOnlyAttribute(cty.GetAttrPath("password"), cty.GetAttrPath("password_wo")),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -56,7 +49,7 @@ func resourceMsSqlJobCredential() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.JobAgentID,
+				ValidateFunc: validation.AsGeneratedID(jobagents.ParseJobAgentIDInsensitively),
 			},
 
 			"username": {
@@ -88,12 +81,10 @@ func resourceMsSqlJobCredential() *pluginsdk.Resource {
 	}
 }
 
-func resourceMsSqlJobCredentialCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlJobCredentialCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.JobCredentialsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Job Credential creation.")
 
 	jaId, err := jobcredentials.ParseJobAgentID(d.Get("job_agent_id").(string))
 	if err != nil {
@@ -101,13 +92,15 @@ func resourceMsSqlJobCredentialCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 	jobCredentialId := jobcredentials.NewCredentialID(jaId.SubscriptionId, jaId.ResourceGroupName, jaId.ServerName, jaId.JobAgentName, d.Get("name").(string))
 
-	existing, err := client.Get(ctx, jobCredentialId)
-	if err != nil && !response.WasNotFound(existing.HttpResponse) {
-		return fmt.Errorf("checking for presence of existing %s: %+v", jobCredentialId, err)
-	}
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, jobCredentialId)
+		if err != nil && !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", jobCredentialId, err)
+		}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_mssql_job_credential", jobCredentialId.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_mssql_job_credential", jobCredentialId.ID())
+		}
 	}
 
 	woPassword, err := pluginsdk.GetWriteOnly(d, "password_wo", cty.String)
@@ -137,12 +130,10 @@ func resourceMsSqlJobCredentialCreate(d *pluginsdk.ResourceData, meta interface{
 	return resourceMsSqlJobCredentialRead(d, meta)
 }
 
-func resourceMsSqlJobCredentialUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlJobCredentialUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.JobCredentialsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Job Credential update.")
 
 	jaId, err := jobcredentials.ParseJobAgentID(d.Get("job_agent_id").(string))
 	if err != nil {
@@ -190,7 +181,7 @@ func resourceMsSqlJobCredentialUpdate(d *pluginsdk.ResourceData, meta interface{
 	return resourceMsSqlJobCredentialRead(d, meta)
 }
 
-func resourceMsSqlJobCredentialRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlJobCredentialRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.JobCredentialsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -224,7 +215,7 @@ func resourceMsSqlJobCredentialRead(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceMsSqlJobCredentialDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlJobCredentialDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.JobCredentialsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -234,8 +225,7 @@ func resourceMsSqlJobCredentialDelete(d *pluginsdk.ResourceData, meta interface{
 		return err
 	}
 
-	_, err = client.Delete(ctx, *id)
-	if err != nil {
+	if _, err = client.Delete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 

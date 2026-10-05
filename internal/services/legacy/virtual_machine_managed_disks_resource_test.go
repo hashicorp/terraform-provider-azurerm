@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package legacy_test
@@ -675,9 +675,10 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "${var.prefix}-keyvault"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  name                       = "${var.prefix}-keyvault"
+  resource_group_name        = "${azurerm_resource_group.test.name}"
+  rbac_authorization_enabled = false
+  location                   = "${azurerm_resource_group.test.location}"
 
   sku_name = "standard"
 
@@ -2222,7 +2223,7 @@ resource "azurerm_virtual_machine" "test" {
   storage_image_reference {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
-    sku       = "2012-Datacenter"
+    sku       = "2016-Datacenter"
     version   = "latest"
   }
 
@@ -2364,7 +2365,7 @@ resource "azurerm_virtual_machine" "test" {
   storage_image_reference {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
-    sku       = "2012-Datacenter"
+    sku       = "2016-Datacenter"
     version   = "latest"
   }
 
@@ -2446,7 +2447,7 @@ resource "azurerm_virtual_machine" "test" {
   storage_image_reference {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
-    sku       = "2012-Datacenter"
+    sku       = "2016-Datacenter"
     version   = "latest"
   }
 

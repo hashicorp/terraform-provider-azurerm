@@ -61,7 +61,7 @@ resource "azurerm_healthcare_fhir_service" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -83,7 +83,7 @@ The following arguments are supported:
 
 * `container_registry_login_server_url` - (Optional) A list of azure container registry settings used for convert data operation of the service instance.
 
-* `oci_artifact` - (Optional) [A list](/docs/configuration/attr-as-blocks.html) of `oci_artifact` objects as defined below to describe [OCI artifacts for export](https://learn.microsoft.com/en-gb/azure/healthcare-apis/fhir/de-identified-export).
+* `oci_artifact` - (Optional) [A list](/docs/configuration/attr-as-blocks.html) of `oci_artifact` objects as defined below to describe [OCI artifacts for export](https://learn.microsoft.com/azure/healthcare-apis/fhir/de-identified-export).
 
 * `authentication` - (Required) An `authentication` block as defined below.
 
@@ -135,11 +135,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 90 minutes) Used when creating the Healthcare FHIR Service.
-* `update` - (Defaults to 90 minutes) Used when updating the Healthcare FHIR Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Healthcare FHIR Service.
+* `update` - (Defaults to 90 minutes) Used when updating the Healthcare FHIR Service.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Healthcare FHIR Service.
 
 ## Import
@@ -149,3 +149,9 @@ Healthcare FHIR Service can be imported using the resource`id`, e.g.
 ```shell
 terraform import azurerm_healthcare_fhir_service.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.HealthcareApis/workspaces/workspace1/fhirServices/service1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.HealthcareApis` - 2022-12-01

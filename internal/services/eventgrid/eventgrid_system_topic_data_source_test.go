@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package eventgrid_test
@@ -23,9 +23,9 @@ func TestAccEventGridSystemTopicDataSource_complete(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.Foo").HasValue("Bar"),
-				check.That(data.ResourceName).Key("source_arm_resource_id").Exists(),
+				check.That(data.ResourceName).Key("source_resource_id").Exists(),
 				check.That(data.ResourceName).Key("topic_type").Exists(),
-				check.That(data.ResourceName).Key("metric_arm_resource_id").Exists(),
+				check.That(data.ResourceName).Key("metric_resource_id").Exists(),
 			),
 		},
 	})

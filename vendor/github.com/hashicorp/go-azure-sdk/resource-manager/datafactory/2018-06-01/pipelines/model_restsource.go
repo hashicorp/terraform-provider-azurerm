@@ -11,21 +11,21 @@ import (
 var _ CopySource = RestSource{}
 
 type RestSource struct {
-	AdditionalColumns  *map[string]string `json:"additionalColumns,omitempty"`
-	AdditionalHeaders  *string            `json:"additionalHeaders,omitempty"`
-	HTTPRequestTimeout *string            `json:"httpRequestTimeout,omitempty"`
-	PaginationRules    *string            `json:"paginationRules,omitempty"`
-	RequestBody        *string            `json:"requestBody,omitempty"`
-	RequestInterval    *interface{}       `json:"requestInterval,omitempty"`
-	RequestMethod      *string            `json:"requestMethod,omitempty"`
+	AdditionalColumns  *interface{} `json:"additionalColumns,omitempty"`
+	AdditionalHeaders  *interface{} `json:"additionalHeaders,omitempty"`
+	HTTPRequestTimeout *interface{} `json:"httpRequestTimeout,omitempty"`
+	PaginationRules    *interface{} `json:"paginationRules,omitempty"`
+	RequestBody        *interface{} `json:"requestBody,omitempty"`
+	RequestInterval    *interface{} `json:"requestInterval,omitempty"`
+	RequestMethod      *interface{} `json:"requestMethod,omitempty"`
 
 	// Fields inherited from CopySource
 
-	DisableMetricsCollection *bool   `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64  `json:"maxConcurrentConnections,omitempty"`
-	SourceRetryCount         *int64  `json:"sourceRetryCount,omitempty"`
-	SourceRetryWait          *string `json:"sourceRetryWait,omitempty"`
-	Type                     string  `json:"type"`
+	DisableMetricsCollection *interface{} `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *interface{} `json:"maxConcurrentConnections,omitempty"`
+	SourceRetryCount         *interface{} `json:"sourceRetryCount,omitempty"`
+	SourceRetryWait          *interface{} `json:"sourceRetryWait,omitempty"`
+	Type                     string       `json:"type"`
 }
 
 func (s RestSource) CopySource() BaseCopySourceImpl {

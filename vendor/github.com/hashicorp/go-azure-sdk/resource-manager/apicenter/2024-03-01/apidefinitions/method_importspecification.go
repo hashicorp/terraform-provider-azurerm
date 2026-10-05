@@ -61,9 +61,20 @@ func (c ApiDefinitionsClient) ImportSpecification(ctx context.Context, id Defini
 
 // ImportSpecificationThenPoll performs ImportSpecification then polls until it's completed
 func (c ApiDefinitionsClient) ImportSpecificationThenPoll(ctx context.Context, id DefinitionId, input ApiSpecImportRequest) error {
+	return c.ImportSpecificationCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ImportSpecificationCallbackThenPoll performs ImportSpecification, runs the optional callback function, then polls until it's completed
+func (c ApiDefinitionsClient) ImportSpecificationCallbackThenPoll(ctx context.Context, id DefinitionId, input ApiSpecImportRequest, callback func() error) error {
 	result, err := c.ImportSpecification(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ImportSpecification: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

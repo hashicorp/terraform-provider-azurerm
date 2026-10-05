@@ -16,7 +16,7 @@ type Pipeline struct {
 	Folder        *PipelineFolder                    `json:"folder,omitempty"`
 	Parameters    *map[string]ParameterSpecification `json:"parameters,omitempty"`
 	Policy        *PipelinePolicy                    `json:"policy,omitempty"`
-	RunDimensions *map[string]string                 `json:"runDimensions,omitempty"`
+	RunDimensions *map[string]interface{}            `json:"runDimensions,omitempty"`
 	Variables     *map[string]VariableSpecification  `json:"variables,omitempty"`
 }
 
@@ -30,7 +30,7 @@ func (s *Pipeline) UnmarshalJSON(bytes []byte) error {
 		Folder        *PipelineFolder                    `json:"folder,omitempty"`
 		Parameters    *map[string]ParameterSpecification `json:"parameters,omitempty"`
 		Policy        *PipelinePolicy                    `json:"policy,omitempty"`
-		RunDimensions *map[string]string                 `json:"runDimensions,omitempty"`
+		RunDimensions *map[string]interface{}            `json:"runDimensions,omitempty"`
 		Variables     *map[string]VariableSpecification  `json:"variables,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {

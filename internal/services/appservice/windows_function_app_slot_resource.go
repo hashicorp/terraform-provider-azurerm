@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
@@ -24,9 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
-	kvValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -34,53 +33,55 @@ import (
 type WindowsFunctionAppSlotResource struct{}
 
 type WindowsFunctionAppSlotModel struct {
-	Name                             string                                     `tfschema:"name"`
-	FunctionAppID                    string                                     `tfschema:"function_app_id"`
-	ServicePlanID                    string                                     `tfschema:"service_plan_id"`
-	StorageAccountName               string                                     `tfschema:"storage_account_name"`
-	StorageAccountKey                string                                     `tfschema:"storage_account_access_key"`
-	StorageUsesMSI                   bool                                       `tfschema:"storage_uses_managed_identity"` // Storage uses MSI not account key
-	StorageKeyVaultSecretID          string                                     `tfschema:"storage_key_vault_secret_id"`
-	AppSettings                      map[string]string                          `tfschema:"app_settings"`
-	AuthSettings                     []helpers.AuthSettings                     `tfschema:"auth_settings"`
-	AuthV2Settings                   []helpers.AuthV2Settings                   `tfschema:"auth_settings_v2"`
-	Backup                           []helpers.Backup                           `tfschema:"backup"` // Not supported on Dynamic or Basic plans
-	BuiltinLogging                   bool                                       `tfschema:"builtin_logging_enabled"`
-	ClientCertEnabled                bool                                       `tfschema:"client_certificate_enabled"`
-	ClientCertMode                   string                                     `tfschema:"client_certificate_mode"`
-	ClientCertExclusionPaths         string                                     `tfschema:"client_certificate_exclusion_paths"`
-	ConnectionStrings                []helpers.ConnectionString                 `tfschema:"connection_string"`
-	DailyMemoryTimeQuota             int64                                      `tfschema:"daily_memory_time_quota"`
-	Enabled                          bool                                       `tfschema:"enabled"`
-	FunctionExtensionsVersion        string                                     `tfschema:"functions_extension_version"`
-	ForceDisableContentShare         bool                                       `tfschema:"content_share_force_disabled"`
-	HttpsOnly                        bool                                       `tfschema:"https_only"`
-	KeyVaultReferenceIdentityID      string                                     `tfschema:"key_vault_reference_identity_id"`
-	PublicNetworkAccess              bool                                       `tfschema:"public_network_access_enabled"`
-	PublishingDeployBasicAuthEnabled bool                                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
-	PublishingFTPBasicAuthEnabled    bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
-	Identity                         []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	SiteConfig                       []helpers.SiteConfigWindowsFunctionAppSlot `tfschema:"site_config"`
-	Tags                             map[string]string                          `tfschema:"tags"`
-	CustomDomainVerificationId       string                                     `tfschema:"custom_domain_verification_id"`
-	HostingEnvId                     string                                     `tfschema:"hosting_environment_id"`
-	DefaultHostname                  string                                     `tfschema:"default_hostname"`
-	Kind                             string                                     `tfschema:"kind"`
-	OutboundIPAddresses              string                                     `tfschema:"outbound_ip_addresses"`
-	OutboundIPAddressList            []string                                   `tfschema:"outbound_ip_address_list"`
-	PossibleOutboundIPAddresses      string                                     `tfschema:"possible_outbound_ip_addresses"`
-	PossibleOutboundIPAddressList    []string                                   `tfschema:"possible_outbound_ip_address_list"`
-	SiteCredentials                  []helpers.SiteCredential                   `tfschema:"site_credential"`
-	StorageAccounts                  []helpers.StorageAccount                   `tfschema:"storage_account"`
-	VirtualNetworkSubnetID           string                                     `tfschema:"virtual_network_subnet_id"`
-	VnetImagePullEnabled             bool                                       `tfschema:"vnet_image_pull_enabled,addedInNextMajorVersion"`
+	Name                               string                                     `tfschema:"name"`
+	FunctionAppID                      string                                     `tfschema:"function_app_id"`
+	ServicePlanID                      string                                     `tfschema:"service_plan_id"`
+	StorageAccountName                 string                                     `tfschema:"storage_account_name"`
+	StorageAccountKey                  string                                     `tfschema:"storage_account_access_key"`
+	StorageUsesMSI                     bool                                       `tfschema:"storage_uses_managed_identity"` // Storage uses MSI not account key
+	StorageKeyVaultSecretID            string                                     `tfschema:"storage_key_vault_secret_id"`
+	AppSettings                        map[string]string                          `tfschema:"app_settings"`
+	AuthSettings                       []helpers.AuthSettings                     `tfschema:"auth_settings"`
+	AuthV2Settings                     []helpers.AuthV2Settings                   `tfschema:"auth_settings_v2"`
+	Backup                             []helpers.Backup                           `tfschema:"backup"` // Not supported on Dynamic or Basic plans
+	BuiltinLogging                     bool                                       `tfschema:"builtin_logging_enabled"`
+	ClientCertEnabled                  bool                                       `tfschema:"client_certificate_enabled"`
+	ClientCertMode                     string                                     `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths           string                                     `tfschema:"client_certificate_exclusion_paths"`
+	ConnectionStrings                  []helpers.ConnectionString                 `tfschema:"connection_string"`
+	DailyMemoryTimeQuota               int64                                      `tfschema:"daily_memory_time_quota"`
+	Enabled                            bool                                       `tfschema:"enabled"`
+	FunctionExtensionsVersion          string                                     `tfschema:"functions_extension_version"`
+	ForceDisableContentShare           bool                                       `tfschema:"content_share_force_disabled"`
+	HttpsOnly                          bool                                       `tfschema:"https_only"`
+	KeyVaultReferenceIdentityID        string                                     `tfschema:"key_vault_reference_identity_id"`
+	PublicNetworkAccess                bool                                       `tfschema:"public_network_access_enabled"`
+	PublishingDeployBasicAuthEnabled   bool                                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
+	PublishingFTPBasicAuthEnabled      bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
+	Identity                           []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	SiteConfig                         []helpers.SiteConfigWindowsFunctionAppSlot `tfschema:"site_config"`
+	Tags                               map[string]string                          `tfschema:"tags"`
+	CustomDomainVerificationId         string                                     `tfschema:"custom_domain_verification_id"`
+	HostingEnvId                       string                                     `tfschema:"hosting_environment_id"`
+	DefaultHostname                    string                                     `tfschema:"default_hostname"`
+	Kind                               string                                     `tfschema:"kind"`
+	OutboundIPAddresses                string                                     `tfschema:"outbound_ip_addresses"`
+	OutboundIPAddressList              []string                                   `tfschema:"outbound_ip_address_list"`
+	PossibleOutboundIPAddresses        string                                     `tfschema:"possible_outbound_ip_addresses"`
+	PossibleOutboundIPAddressList      []string                                   `tfschema:"possible_outbound_ip_address_list"`
+	SiteCredentials                    []helpers.SiteCredential                   `tfschema:"site_credential"`
+	StorageAccounts                    []helpers.StorageAccount                   `tfschema:"storage_account"`
+	VirtualNetworkBackupRestoreEnabled bool                                       `tfschema:"virtual_network_backup_restore_enabled"`
+	VirtualNetworkSubnetID             string                                     `tfschema:"virtual_network_subnet_id"`
+	VnetImagePullEnabled               bool                                       `tfschema:"vnet_image_pull_enabled"`
+	EndToEndTLSEncryptionEnabled       bool                                       `tfschema:"end_to_end_tls_encryption_enabled"`
 }
 
 var _ sdk.ResourceWithUpdate = WindowsFunctionAppSlotResource{}
 
 var _ sdk.ResourceWithStateMigration = WindowsFunctionAppSlotResource{}
 
-func (r WindowsFunctionAppSlotResource) ModelObject() interface{} {
+func (r WindowsFunctionAppSlotResource) ModelObject() any {
 	return &WindowsFunctionAppSlotModel{}
 }
 
@@ -153,7 +154,7 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 		"storage_key_vault_secret_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: kvValidate.NestedItemIdWithOptionalVersion,
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
 			ExactlyOneOf: []string{
 				"storage_account_name",
 				"storage_key_vault_secret_id",
@@ -167,7 +168,7 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			Description: "A map of key-value pairs for [App Settings](https://docs.microsoft.com/en-us/azure/azure-functions/functions-app-settings) and custom values.",
+			Description: "A map of key-value pairs for [App Settings](https://docs.microsoft.com/azure/azure-functions/functions-app-settings) and custom values.",
 		},
 
 		"auth_settings": helpers.AuthSettingsSchema(),
@@ -242,12 +243,18 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 			Description: "Can the Function App Slot only be accessed via HTTPS?",
 		},
 
+		"end_to_end_tls_encryption_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"key_vault_reference_identity_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 			Description:  "The User Assigned Identity to use for Key Vault access.",
 		},
@@ -274,7 +281,13 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 
 		"storage_account": helpers.StorageAccountSchemaWindows(),
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
+
+		"virtual_network_backup_restore_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
 
 		"virtual_network_subnet_id": {
 			Type:         pluginsdk.TypeString,
@@ -462,13 +475,15 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			// Only send for Dynamic and ElasticPremium
 			sendContentSettings := (helpers.PlanIsConsumption(planSKU) || helpers.PlanIsElastic(planSKU)) && !functionAppSlot.ForceDisableContentShare
 
-			existing, err := client.GetSlot(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing Windows %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetSlot(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing Windows %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			subscriptionID := commonids.NewSubscriptionID(subscriptionId)
@@ -536,14 +551,16 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				Kind:     pointer.To("functionapp"),
 				Identity: expandedIdentity,
 				Properties: &webapps.SiteProperties{
-					Enabled:              pointer.To(functionAppSlot.Enabled),
-					HTTPSOnly:            pointer.To(functionAppSlot.HttpsOnly),
-					SiteConfig:           siteConfig,
-					ClientCertEnabled:    pointer.To(functionAppSlot.ClientCertEnabled),
-					ClientCertMode:       pointer.To(webapps.ClientCertMode(functionAppSlot.ClientCertMode)),
-					DailyMemoryTimeQuota: pointer.To(functionAppSlot.DailyMemoryTimeQuota),
-					VnetImagePullEnabled: pointer.To(functionAppSlot.VnetImagePullEnabled),
-					VnetRouteAllEnabled:  siteConfig.VnetRouteAllEnabled,
+					Enabled:                   pointer.To(functionAppSlot.Enabled),
+					HTTPSOnly:                 pointer.To(functionAppSlot.HttpsOnly),
+					SiteConfig:                siteConfig,
+					ClientCertEnabled:         pointer.To(functionAppSlot.ClientCertEnabled),
+					ClientCertMode:            pointer.ToEnum[webapps.ClientCertMode](functionAppSlot.ClientCertMode),
+					DailyMemoryTimeQuota:      pointer.To(functionAppSlot.DailyMemoryTimeQuota),
+					VnetBackupRestoreEnabled:  pointer.To(functionAppSlot.VirtualNetworkBackupRestoreEnabled),
+					VnetImagePullEnabled:      pointer.To(functionAppSlot.VnetImagePullEnabled),
+					VnetRouteAllEnabled:       siteConfig.VnetRouteAllEnabled,
+					EndToEndEncryptionEnabled: pointer.To(functionAppSlot.EndToEndTLSEncryptionEnabled),
 				},
 			}
 			if differentServicePlanToParent {
@@ -572,15 +589,15 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				siteEnvelope.Properties.ClientCertExclusionPaths = pointer.To(functionAppSlot.ClientCertExclusionPaths)
 			}
 
-			if err = client.CreateOrUpdateSlotThenPoll(ctx, id, siteEnvelope); err != nil {
+			if err = client.CreateOrUpdateSlotCallbackThenPoll(ctx, id, siteEnvelope, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating Windows %s: %+v", id, err)
 			}
 
+			metadata.SetID(id)
+
 			if !functionAppSlot.PublishingDeployBasicAuthEnabled {
 				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
-					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-						Allow: false,
-					},
+					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{},
 				}
 				if _, err = client.UpdateScmAllowedSlot(ctx, id, sitePolicy); err != nil {
 					return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
@@ -589,9 +606,7 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 
 			if !functionAppSlot.PublishingFTPBasicAuthEnabled {
 				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
-					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-						Allow: false,
-					},
+					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{},
 				}
 				if _, err = client.UpdateFtpAllowedSlot(ctx, id, sitePolicy); err != nil {
 					return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
@@ -601,8 +616,6 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			if err = client.CreateOrUpdateSlotThenPoll(ctx, id, siteEnvelope); err != nil {
 				return fmt.Errorf("updating properties of Windows %s: %+v", id, err)
 			}
-
-			metadata.SetID(id)
 
 			backupConfig, err := helpers.ExpandBackupConfig(functionAppSlot.Backup)
 			if err != nil {
@@ -632,9 +645,7 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			storageConfig := helpers.ExpandStorageConfig(functionAppSlot.StorageAccounts)
 			if storageConfig.Properties != nil {
 				if _, err := client.UpdateAzureStorageAccountsSlot(ctx, id, *storageConfig); err != nil {
-					if err != nil {
-						return fmt.Errorf("setting Storage Accounts for Windows %s: %+v", id, err)
-					}
+					return fmt.Errorf("setting Storage Accounts for Windows %s: %+v", id, err)
 				}
 			}
 
@@ -760,14 +771,16 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 
 				if props := model.Properties; props != nil {
 					state.Enabled = pointer.From(props.Enabled)
-					state.ClientCertMode = string(pointer.From(props.ClientCertMode))
+					state.ClientCertMode = pointer.FromEnum(props.ClientCertMode)
 					state.ClientCertExclusionPaths = pointer.From(props.ClientCertExclusionPaths)
 					state.DailyMemoryTimeQuota = pointer.From(props.DailyMemoryTimeQuota)
 					state.KeyVaultReferenceIdentityID = pointer.From(props.KeyVaultReferenceIdentity)
 					state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 					state.DefaultHostname = pointer.From(props.DefaultHostName)
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
+					state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetBackupRestoreEnabled)
 					state.VnetImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
+					state.EndToEndTLSEncryptionEnabled = pointer.From(props.EndToEndEncryptionEnabled)
 
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 						state.HostingEnvId = pointer.From(hostingEnv.Id)
@@ -835,8 +848,6 @@ func (r WindowsFunctionAppSlotResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-
-			metadata.Logger.Infof("deleting Windows %s", *id)
 
 			delOpts := webapps.DeleteSlotOperationOptions{
 				DeleteEmptyServerFarm: pointer.To(false),
@@ -922,7 +933,7 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("client_certificate_mode") {
-				model.Properties.ClientCertMode = pointer.To(webapps.ClientCertMode(state.ClientCertMode))
+				model.Properties.ClientCertMode = pointer.ToEnum[webapps.ClientCertMode](state.ClientCertMode)
 			}
 
 			if metadata.ResourceData.HasChange("client_certificate_exclusion_paths") {
@@ -945,6 +956,10 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				model.Tags = pointer.To(state.Tags)
 			}
 
+			if metadata.ResourceData.HasChange("virtual_network_backup_restore_enabled") {
+				model.Properties.VnetBackupRestoreEnabled = pointer.To(state.VirtualNetworkBackupRestoreEnabled)
+			}
+
 			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {
 				subnetId := metadata.ResourceData.Get("virtual_network_subnet_id").(string)
 				if subnetId == "" {
@@ -960,6 +975,10 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("vnet_image_pull_enabled") {
 				model.Properties.VnetImagePullEnabled = pointer.To(state.VnetImagePullEnabled)
+			}
+
+			if metadata.ResourceData.HasChange("end_to_end_tls_encryption_enabled") {
+				model.Properties.EndToEndEncryptionEnabled = pointer.To(state.EndToEndTLSEncryptionEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("storage_account") {
@@ -1067,17 +1086,7 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				authUpdate := helpers.ExpandAuthSettings(state.AuthSettings)
 				// (@jackofallops) - in the case of a removal of this block, we need to zero these settings
 				if authUpdate.Properties == nil {
-					authUpdate.Properties = &webapps.SiteAuthSettingsProperties{
-						Enabled:                           pointer.To(false),
-						ClientSecret:                      pointer.To(""),
-						ClientSecretSettingName:           pointer.To(""),
-						ClientSecretCertificateThumbprint: pointer.To(""),
-						GoogleClientSecret:                pointer.To(""),
-						FacebookAppSecret:                 pointer.To(""),
-						GitHubClientSecret:                pointer.To(""),
-						TwitterConsumerSecret:             pointer.To(""),
-						MicrosoftAccountClientSecret:      pointer.To(""),
-					}
+					authUpdate.Properties = helpers.DefaultAuthSettingsProperties()
 				}
 				if _, err = client.UpdateAuthSettingsSlot(ctx, *id, *authUpdate); err != nil {
 					return fmt.Errorf("updating Auth Settings for Windows %s: %+v", id, err)
@@ -1086,6 +1095,10 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("auth_settings_v2") {
 				authV2Update := helpers.ExpandAuthV2Settings(state.AuthV2Settings)
+				// (@toddgiguere) - in the case of a removal of this block, we need to zero these settings
+				if authV2Update.Properties == nil {
+					authV2Update.Properties = helpers.DefaultAuthV2SettingsProperties()
+				}
 				if _, err := client.UpdateAuthSettingsV2Slot(ctx, *id, *authV2Update); err != nil {
 					return fmt.Errorf("updating AuthV2 Settings for Windows %s: %+v", id, err)
 				}
@@ -1178,8 +1191,7 @@ func (m *WindowsFunctionAppSlotModel) unpackWindowsFunctionAppSettings(input *we
 
 		case "AzureWebJobsStorage":
 			if strings.HasPrefix(v, "@Microsoft.KeyVault") {
-				trimmed := strings.TrimPrefix(strings.TrimSuffix(v, ")"), "@Microsoft.KeyVault(SecretUri=")
-				m.StorageKeyVaultSecretID = trimmed
+				m.StorageKeyVaultSecretID = strings.TrimPrefix(strings.TrimSuffix(v, ")"), "@Microsoft.KeyVault(SecretUri=")
 			} else {
 				m.StorageAccountName, m.StorageAccountKey = helpers.ParseWebJobsStorageString(v)
 			}
@@ -1239,7 +1251,7 @@ func (r WindowsFunctionAppSlotResource) CustomizeDiff() sdk.ResourceFunc {
 					return fmt.Errorf("retrieving %s: %+v", functionAppId, err)
 				}
 				if functionAppModel := functionApp.Model; functionAppModel != nil && functionAppModel.Properties != nil {
-					if ase := functionAppModel.Properties.HostingEnvironmentProfile; ase != nil && ase.Id != nil && *(ase.Id) != "" && !newValue.(bool) {
+					if ase := functionAppModel.Properties.HostingEnvironmentProfile; ase != nil && ase.Id != nil && *ase.Id != "" && !newValue.(bool) {
 						return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app slot running in an app service environment")
 					}
 				}

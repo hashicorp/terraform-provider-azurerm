@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package network_test
 
 import (
@@ -6,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/verifierworkspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/verifierworkspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -15,7 +18,7 @@ import (
 
 type ManagerVerifierWorkspaceResource struct{}
 
-func testAccNetorkManagerVerifierWorkspace_basic(t *testing.T) {
+func testAccNetworkManagerVerifierWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_verifier_workspace", "test")
 	r := ManagerVerifierWorkspaceResource{}
 
@@ -30,7 +33,7 @@ func testAccNetorkManagerVerifierWorkspace_basic(t *testing.T) {
 	})
 }
 
-func testAccNetorkManagerVerifierWorkspace_update(t *testing.T) {
+func testAccNetworkManagerVerifierWorkspace_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_verifier_workspace", "test")
 	r := ManagerVerifierWorkspaceResource{}
 
@@ -66,7 +69,7 @@ func testAccNetorkManagerVerifierWorkspace_update(t *testing.T) {
 	})
 }
 
-func testAccNetorkManagerVerifierWorkspace_requiresImport(t *testing.T) {
+func testAccNetworkManagerVerifierWorkspace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_verifier_workspace", "test")
 	r := ManagerVerifierWorkspaceResource{}
 
@@ -81,7 +84,7 @@ func testAccNetorkManagerVerifierWorkspace_requiresImport(t *testing.T) {
 	})
 }
 
-func testAccNetorkManagerVerifierWorkspace_complete(t *testing.T) {
+func testAccNetworkManagerVerifierWorkspace_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_verifier_workspace", "test")
 	r := ManagerVerifierWorkspaceResource{}
 

@@ -11,8 +11,8 @@ import (
 var _ ImportSettings = AzureDatabricksDeltaLakeImportCommand{}
 
 type AzureDatabricksDeltaLakeImportCommand struct {
-	DateFormat      *string `json:"dateFormat,omitempty"`
-	TimestampFormat *string `json:"timestampFormat,omitempty"`
+	DateFormat      *interface{} `json:"dateFormat,omitempty"`
+	TimestampFormat *interface{} `json:"timestampFormat,omitempty"`
 
 	// Fields inherited from ImportSettings
 
