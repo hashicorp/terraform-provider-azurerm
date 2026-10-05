@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package servicenetworking
@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2023-11-01/associationsinterface"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2023-11-01/trafficcontrollerinterface"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2025-01-01/associationsinterface"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2025-01-01/trafficcontrollerinterface"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicenetworking/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -23,10 +23,10 @@ import (
 type ApplicationLoadBalancerSubnetAssociationResource struct{}
 
 type AssociationResourceModel struct {
-	Name                      string                 `tfschema:"name"`
-	ApplicationLoadBalancerId string                 `tfschema:"application_load_balancer_id"`
-	SubnetId                  string                 `tfschema:"subnet_id"`
-	Tags                      map[string]interface{} `tfschema:"tags"`
+	Name                      string         `tfschema:"name"`
+	ApplicationLoadBalancerId string         `tfschema:"application_load_balancer_id"`
+	SubnetId                  string         `tfschema:"subnet_id"`
+	Tags                      map[string]any `tfschema:"tags"`
 }
 
 var _ sdk.ResourceWithUpdate = ApplicationLoadBalancerSubnetAssociationResource{}
@@ -52,7 +52,7 @@ func (t ApplicationLoadBalancerSubnetAssociationResource) Attributes() map[strin
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (t ApplicationLoadBalancerSubnetAssociationResource) ModelObject() interface{} {
+func (t ApplicationLoadBalancerSubnetAssociationResource) ModelObject() any {
 	return &AssociationResourceModel{}
 }
 
@@ -82,13 +82,16 @@ func (t ApplicationLoadBalancerSubnetAssociationResource) Create() sdk.ResourceF
 			}
 
 			id := associationsinterface.NewAssociationID(albId.SubscriptionId, albId.ResourceGroupName, albId.TrafficControllerName, config.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of exisiting %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(t.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(t.ResourceType(), id)
+				}
 			}
 
 			controller, err := trafficControllerClient.Get(ctx, *albId)
@@ -111,11 +114,11 @@ func (t ApplicationLoadBalancerSubnetAssociationResource) Create() sdk.ResourceF
 				Tags: tags.Expand(config.Tags),
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, association); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, association, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}
@@ -137,7 +140,7 @@ func (t ApplicationLoadBalancerSubnetAssociationResource) Read() sdk.ResourceFun
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("retreiving %s: %v", *id, err)
+				return fmt.Errorf("retrieving %s: %v", *id, err)
 			}
 
 			trafficControllerId := associationsinterface.NewTrafficControllerID(id.SubscriptionId, id.ResourceGroupName, id.TrafficControllerName)

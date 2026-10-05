@@ -1,26 +1,31 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobagents"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/jobagents"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name mssql_job_agent -service-package-name mssql -properties "name" -compare-values "resource_group_name:database_id,server_name:database_id"
 
 func resourceMsSqlJobAgent() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -29,10 +34,11 @@ func resourceMsSqlJobAgent() *pluginsdk.Resource {
 		Update: resourceMsSqlJobAgentUpdate,
 		Delete: resourceMsSqlJobAgentDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.JobAgentID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&jobagents.JobAgentId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&jobagents.JobAgentId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -58,17 +64,26 @@ func resourceMsSqlJobAgent() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
+			"identity": commonschema.UserAssignedIdentityOptional(),
+
+			// This is a top level argument rather than a block because while Azure accepts input for both sku name and capacity fields,
+			// the capacity must always be equal to the number included in the sku name.
+			"sku": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      helper.SqlJobAgentSkuJA100,
+				ValidateFunc: validation.StringInSlice(helper.PossibleValuesForJobAgentSku(), false),
+			},
+
 			"tags": commonschema.Tags(),
 		},
 	}
 }
 
-func resourceMsSqlJobAgentCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlJobAgentCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.JobAgentsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Job Agent creation.")
 
 	databaseId := d.Get("database_id").(string)
 	dbId, err := commonids.ParseSqlDatabaseID(databaseId)
@@ -77,15 +92,17 @@ func resourceMsSqlJobAgentCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 	id := jobagents.NewJobAgentID(dbId.SubscriptionId, dbId.ResourceGroupName, dbId.ServerName, d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_mssql_job_agent", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_mssql_job_agent", id.ID())
+		}
 	}
 
 	params := jobagents.JobAgent{
@@ -94,25 +111,33 @@ func resourceMsSqlJobAgentCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		Properties: &jobagents.JobAgentProperties{
 			DatabaseId: databaseId,
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Sku: &jobagents.Sku{
+			Name: d.Get("sku").(string),
+		},
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, params)
+	expandedIdentity, err := expandJobAgentIdentity(d.Get("identity").([]any))
 	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+	params.Identity = expandedIdentity
+
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, params, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceMsSqlJobAgentRead(d, meta)
 }
 
-func resourceMsSqlJobAgentUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlJobAgentUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.JobAgentsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Job Agent update.")
 
 	databaseId := d.Get("database_id").(string)
 	dbId, err := commonids.ParseSqlDatabaseID(databaseId)
@@ -131,19 +156,32 @@ func resourceMsSqlJobAgentUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 	params := existing.Model
 
-	if d.HasChanges("tags") {
-		params.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	if d.HasChanges("identity") {
+		expandedIdentity, err := expandJobAgentIdentity(d.Get("identity").([]any))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		params.Identity = expandedIdentity
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, *params)
-	if err != nil {
+	if d.HasChanges("sku") {
+		params.Sku = &jobagents.Sku{
+			Name: d.Get("sku").(string),
+		}
+	}
+
+	if d.HasChanges("tags") {
+		params.Tags = tags.Expand(d.Get("tags").(map[string]any))
+	}
+
+	if err = client.CreateOrUpdateThenPoll(ctx, id, *params); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	return resourceMsSqlJobAgentRead(d, meta)
 }
 
-func resourceMsSqlJobAgentRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlJobAgentRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.JobAgentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -159,23 +197,39 @@ func resourceMsSqlJobAgentRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading %s: %s", *id, err)
+		return fmt.Errorf("retrieving %s: %s", *id, err)
 	}
-
-	d.Set("name", id.JobAgentName)
-
-	if model := resp.Model; model != nil {
-		d.Set("location", location.Normalize(model.Location))
-
-		if props := resp.Model.Properties; props != nil {
-			d.Set("database_id", props.DatabaseId)
-		}
-		return tags.FlattenAndSet(d, model.Tags)
-	}
-	return nil
+	return resourceMssqlJobAgentSetFlatten(d, id, resp.Model)
 }
 
-func resourceMsSqlJobAgentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMssqlJobAgentSetFlatten(d *pluginsdk.ResourceData, id *jobagents.JobAgentId, model *jobagents.JobAgent) error {
+	d.Set("name", id.JobAgentName)
+
+	if model != nil {
+		d.Set("location", location.Normalize(model.Location))
+
+		if props := model.Properties; props != nil {
+			d.Set("database_id", props.DatabaseId)
+		}
+
+		flattenedIdentity, err := flattenJobAgentIdentity(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		d.Set("identity", flattenedIdentity)
+
+		if sku := model.Sku; sku != nil {
+			d.Set("sku", sku.Name)
+		}
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
+	}
+	return pluginsdk.SetResourceIdentityData(d, id)
+}
+
+func resourceMsSqlJobAgentDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.JobAgentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -185,10 +239,59 @@ func resourceMsSqlJobAgentDelete(d *pluginsdk.ResourceData, meta interface{}) er
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
+}
+
+func expandJobAgentIdentity(input []any) (*jobagents.JobAgentIdentity, error) {
+	expanded, err := identity.ExpandUserAssignedMap(input)
+	if err != nil {
+		return nil, err
+	}
+	if expanded == nil || expanded.Type == identity.TypeNone {
+		return nil, nil
+	}
+
+	result := &jobagents.JobAgentIdentity{
+		Type: jobagents.JobAgentIdentityType(string(expanded.Type)),
+	}
+
+	if len(expanded.IdentityIds) > 0 {
+		uai := make(map[string]jobagents.JobAgentUserAssignedIdentity, len(expanded.IdentityIds))
+		for id := range expanded.IdentityIds {
+			uai[id] = jobagents.JobAgentUserAssignedIdentity{}
+		}
+		result.UserAssignedIdentities = &uai
+	}
+
+	return result, nil
+}
+
+func flattenJobAgentIdentity(input *jobagents.JobAgentIdentity) ([]any, error) {
+	if input == nil {
+		result, err := identity.FlattenUserAssignedMap(&identity.UserAssignedMap{Type: identity.TypeNone})
+		if err != nil {
+			return nil, err
+		}
+		return *result, nil
+	}
+
+	identityIds := make(map[string]identity.UserAssignedIdentityDetails)
+	if input.UserAssignedIdentities != nil {
+		for id := range *input.UserAssignedIdentities {
+			identityIds[id] = identity.UserAssignedIdentityDetails{}
+		}
+	}
+
+	result, err := identity.FlattenUserAssignedMap(&identity.UserAssignedMap{
+		Type:        identity.Type(string(input.Type)),
+		IdentityIds: identityIds,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return *result, nil
 }

@@ -103,6 +103,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `virtual_network_subnet_id` - The subnet id which the Linux Web App is vNet Integrated with.
 
+* `virtual_network_image_pull_enabled` - Whether image pull traffic is routed through the virtual network integration. 
+
 * `usage` - The current usage state. Possible values are `Normal` and `Exceeded`.
 
 * `webdeploy_publish_basic_authentication_enabled` - Are the default WebDeploy Basic Authentication publishing credentials enabled.
@@ -162,8 +164,6 @@ An `application_stack` block exports the following:
 * `php_version` - The version of PHP in use.
 
 * `python_version` - The version of Python in use.
-
-* `ruby_version` - The version of Ruby in use.
 
 ---
 
@@ -645,10 +645,6 @@ A `slow_request` block exports the following:
 
 * `interval` - The time interval.
 
-* `path` - The App Path for which this rule applies.
-
-~> **NOTE:** `path` in `slow_request` block will be deprecated in 4.0 provider. Please use `slow_request_with_path` to set a slow request trigger with path specified.
-
 * `time_taken` - The amount of time that qualifies as slow for this rule.
 
 ---
@@ -727,6 +723,12 @@ A `twitter` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Linux Web App.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Web` - 2023-12-01

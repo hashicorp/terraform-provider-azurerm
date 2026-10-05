@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -15,28 +15,31 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/privatelinkservices"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/privatelinkservices"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourcePrivateLinkService() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourcePrivateLinkServiceCreate,
-		Read:   resourcePrivateLinkServiceRead,
-		Update: resourcePrivateLinkServiceUpdate,
-		Delete: resourcePrivateLinkServiceDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := privatelinkservices.ParsePrivateLinkServiceID(id)
-			return err
-		}),
+		Create:   resourcePrivateLinkServiceCreate,
+		Read:     resourcePrivateLinkServiceRead,
+		Update:   resourcePrivateLinkServiceUpdate,
+		Delete:   resourcePrivateLinkServiceDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&privatelinkservices.PrivateLinkServiceId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&privatelinkservices.PrivateLinkServiceId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -50,7 +53,7 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.PrivateLinkName,
+				ValidateFunc: validate.PrivateLinkName,
 			},
 
 			"location": commonschema.Location(),
@@ -67,10 +70,17 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 				Set: pluginsdk.HashString,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_proxy_protocol": {
+			"destination_ip_address": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.IsIPv4Address,
+				ExactlyOneOf: []string{"load_balancer_frontend_ip_configuration_ids", "destination_ip_address"},
+			},
+
+			"proxy_protocol_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Default:  false,
 			},
 
 			"visibility_subscription_ids": {
@@ -104,13 +114,12 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 						"name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: networkValidate.PrivateLinkName,
+							ValidateFunc: validate.PrivateLinkName,
 						},
 						"private_ip_address": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.IPv4Address,
+							ValidateFunc: validation.IsIPv4Address,
 						},
 						// Only IPv4 is supported by the API, but I am exposing this
 						// as they will support IPv6 in a future release.
@@ -130,22 +139,21 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 						"primary": {
 							Type:     pluginsdk.TypeBool,
 							Required: true,
-							ForceNew: true,
 						},
 					},
 				},
 			},
 
-			// Required by the API you can't create the resource without at least one load balancer id
 			"load_balancer_frontend_ip_configuration_ids": {
 				Type:     pluginsdk.TypeSet,
-				Required: true,
+				Optional: true,
 				ForceNew: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: azure.ValidateResourceID,
 				},
-				Set: pluginsdk.HashString,
+				Set:          pluginsdk.HashString,
+				ExactlyOneOf: []string{"load_balancer_frontend_ip_configuration_ids", "destination_ip_address"},
 			},
 
 			"alias": {
@@ -156,7 +164,7 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v any) error {
 			if err := validatePrivateLinkNatIpConfiguration(d); err != nil {
 				return err
 			}
@@ -166,7 +174,7 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 	}
 }
 
-func resourcePrivateLinkServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePrivateLinkServiceCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.PrivateLinkServices
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -174,37 +182,49 @@ func resourcePrivateLinkServiceCreate(d *pluginsdk.ResourceData, meta interface{
 
 	id := privatelinkservices.NewPrivateLinkServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id, privatelinkservices.DefaultGetOperationOptions())
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id, privatelinkservices.DefaultGetOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_private_link_service", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_private_link_service", id.ID())
+		}
 	}
 
 	parameters := privatelinkservices.PrivateLinkService{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &privatelinkservices.PrivateLinkServiceProperties{
 			AutoApproval: &privatelinkservices.ResourceSet{
-				Subscriptions: utils.ExpandStringSlice(d.Get("auto_approval_subscription_ids").(*pluginsdk.Set).List()),
+				Subscriptions: pluginsdk.ExpandStringSlice(d.Get("auto_approval_subscription_ids").(*pluginsdk.Set).List()),
 			},
-			EnableProxyProtocol: pointer.To(d.Get("enable_proxy_protocol").(bool)),
+			EnableProxyProtocol: pointer.To(d.Get("proxy_protocol_enabled").(bool)),
 			Visibility: &privatelinkservices.ResourceSet{
-				Subscriptions: utils.ExpandStringSlice(d.Get("visibility_subscription_ids").(*pluginsdk.Set).List()),
+				Subscriptions: pluginsdk.ExpandStringSlice(d.Get("visibility_subscription_ids").(*pluginsdk.Set).List()),
 			},
-			IPConfigurations:                     expandPrivateLinkServiceIPConfiguration(d.Get("nat_ip_configuration").([]interface{})),
+			IPConfigurations:                     expandPrivateLinkServiceIPConfiguration(d.Get("nat_ip_configuration").([]any)),
 			LoadBalancerFrontendIPConfigurations: expandPrivateLinkServiceFrontendIPConfiguration(d.Get("load_balancer_frontend_ip_configuration_ids").(*pluginsdk.Set).List()),
-			Fqdns:                                utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
+			Fqdns:                                pluginsdk.ExpandStringSlice(d.Get("fqdns").([]any)),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if v, ok := d.GetOk("destination_ip_address"); ok {
+		parameters.Properties.DestinationIPAddress = pointer.To(v.(string))
+	}
+
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
+	// TODO: confirm whether this can be removed
 	// we can't rely on the use of the Future here due to the resource being successfully completed but now the service is applying those values.
 	// currently being tracked with issue #6466: https://github.com/Azure/azure-sdk-for-go/issues/6466
 	log.Printf("[DEBUG] Waiting for %s to finish applying", id)
@@ -221,12 +241,10 @@ func resourcePrivateLinkServiceCreate(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("waiting for %s to become available: %s", id, err)
 	}
 
-	d.SetId(id.ID())
-
 	return resourcePrivateLinkServiceRead(d, meta)
 }
 
-func resourcePrivateLinkServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePrivateLinkServiceUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.PrivateLinkServices
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -252,34 +270,34 @@ func resourcePrivateLinkServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	if d.HasChange("auto_approval_subscription_ids") {
 		payload.Properties.AutoApproval = &privatelinkservices.ResourceSet{
-			Subscriptions: utils.ExpandStringSlice(d.Get("auto_approval_subscription_ids").(*pluginsdk.Set).List()),
+			Subscriptions: pluginsdk.ExpandStringSlice(d.Get("auto_approval_subscription_ids").(*pluginsdk.Set).List()),
 		}
 	}
 
-	if d.HasChange("enable_proxy_protocol") {
-		payload.Properties.EnableProxyProtocol = pointer.To(d.Get("enable_proxy_protocol").(bool))
+	if d.HasChange("proxy_protocol_enabled") {
+		payload.Properties.EnableProxyProtocol = pointer.To(d.Get("proxy_protocol_enabled").(bool))
 	}
 
 	if d.HasChange("visibility_subscription_ids") {
 		payload.Properties.Visibility = &privatelinkservices.ResourceSet{
-			Subscriptions: utils.ExpandStringSlice(d.Get("visibility_subscription_ids").(*pluginsdk.Set).List()),
+			Subscriptions: pluginsdk.ExpandStringSlice(d.Get("visibility_subscription_ids").(*pluginsdk.Set).List()),
 		}
 	}
 
 	if d.HasChange("fqdns") {
-		payload.Properties.Fqdns = utils.ExpandStringSlice(d.Get("fqdns").([]interface{}))
+		payload.Properties.Fqdns = pluginsdk.ExpandStringSlice(d.Get("fqdns").([]any))
 	}
 
 	if d.HasChange("nat_ip_configuration") {
-		payload.Properties.IPConfigurations = expandPrivateLinkServiceIPConfiguration(d.Get("nat_ip_configuration").([]interface{}))
+		payload.Properties.IPConfigurations = expandPrivateLinkServiceIPConfiguration(d.Get("nat_ip_configuration").([]any))
 	}
 
-	if d.HasChange("load_balancer_frontend_ip_configuration_ids") {
-		payload.Properties.LoadBalancerFrontendIPConfigurations = expandPrivateLinkServiceFrontendIPConfiguration(d.Get("load_balancer_frontend_ip_configuration_ids").(*pluginsdk.Set).List())
+	if d.HasChange("destination_ip_address") {
+		payload.Properties.DestinationIPAddress = pointer.To(d.Get("destination_ip_address").(string))
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
@@ -307,7 +325,7 @@ func resourcePrivateLinkServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 	return resourcePrivateLinkServiceRead(d, meta)
 }
 
-func resourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.PrivateLinkServices
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -334,25 +352,28 @@ func resourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{})
 		d.Set("location", location.NormalizeNilable(model.Location))
 		if props := model.Properties; props != nil {
 			d.Set("alias", props.Alias)
-			d.Set("enable_proxy_protocol", props.EnableProxyProtocol)
 
-			var autoApprovalSub []interface{}
+			d.Set("proxy_protocol_enabled", props.EnableProxyProtocol)
+
+			d.Set("destination_ip_address", pointer.From(props.DestinationIPAddress))
+
+			var autoApprovalSub []any
 			if autoApproval := props.AutoApproval; autoApproval != nil {
-				autoApprovalSub = utils.FlattenStringSlice(autoApproval.Subscriptions)
+				autoApprovalSub = pluginsdk.FlattenSlice(autoApproval.Subscriptions)
 			}
 			if err := d.Set("auto_approval_subscription_ids", autoApprovalSub); err != nil {
 				return fmt.Errorf("setting `auto_approval_subscription_ids`: %+v", err)
 			}
 
-			var subscriptions []interface{}
+			var subscriptions []any
 			if visibility := props.Visibility; visibility != nil {
-				subscriptions = utils.FlattenStringSlice(visibility.Subscriptions)
+				subscriptions = pluginsdk.FlattenSlice(visibility.Subscriptions)
 			}
 			if err := d.Set("visibility_subscription_ids", subscriptions); err != nil {
 				return fmt.Errorf("setting `visibility_subscription_ids`: %+v", err)
 			}
 
-			if err := d.Set("fqdns", utils.FlattenStringSlice(props.Fqdns)); err != nil {
+			if err := d.Set("fqdns", pluginsdk.FlattenSlice(props.Fqdns)); err != nil {
 				return fmt.Errorf("setting `fqdns`: %+v", err)
 			}
 
@@ -364,12 +385,15 @@ func resourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{})
 				return fmt.Errorf("setting `load_balancer_frontend_ip_configuration_ids`: %+v", err)
 			}
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
-	return nil
+
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourcePrivateLinkServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePrivateLinkServiceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.PrivateLinkServices
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -386,7 +410,7 @@ func resourcePrivateLinkServiceDelete(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func expandPrivateLinkServiceIPConfiguration(input []interface{}) *[]privatelinkservices.PrivateLinkServiceIPConfiguration {
+func expandPrivateLinkServiceIPConfiguration(input []any) *[]privatelinkservices.PrivateLinkServiceIPConfiguration {
 	if len(input) == 0 {
 		return nil
 	}
@@ -394,7 +418,7 @@ func expandPrivateLinkServiceIPConfiguration(input []interface{}) *[]privatelink
 	results := make([]privatelinkservices.PrivateLinkServiceIPConfiguration, 0)
 
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 		privateIpAddress := v["private_ip_address"].(string)
 		subnetId := v["subnet_id"].(string)
 		privateIpAddressVersion := v["private_ip_address_version"].(string)
@@ -405,7 +429,7 @@ func expandPrivateLinkServiceIPConfiguration(input []interface{}) *[]privatelink
 			Name: pointer.To(name),
 			Properties: &privatelinkservices.PrivateLinkServiceIPConfigurationProperties{
 				PrivateIPAddress:        pointer.To(privateIpAddress),
-				PrivateIPAddressVersion: pointer.To(privatelinkservices.IPVersion(privateIpAddressVersion)),
+				PrivateIPAddressVersion: pointer.ToEnum[privatelinkservices.IPVersion](privateIpAddressVersion),
 				Subnet: &privatelinkservices.Subnet{
 					Id: pointer.To(subnetId),
 				},
@@ -425,7 +449,7 @@ func expandPrivateLinkServiceIPConfiguration(input []interface{}) *[]privatelink
 	return &results
 }
 
-func expandPrivateLinkServiceFrontendIPConfiguration(input []interface{}) *[]privatelinkservices.FrontendIPConfiguration {
+func expandPrivateLinkServiceFrontendIPConfiguration(input []any) *[]privatelinkservices.FrontendIPConfiguration {
 	if len(input) == 0 {
 		return nil
 	}
@@ -443,18 +467,13 @@ func expandPrivateLinkServiceFrontendIPConfiguration(input []interface{}) *[]pri
 	return &results
 }
 
-func flattenPrivateLinkServiceIPConfiguration(input *[]privatelinkservices.PrivateLinkServiceIPConfiguration) []interface{} {
-	results := make([]interface{}, 0)
+func flattenPrivateLinkServiceIPConfiguration(input *[]privatelinkservices.PrivateLinkServiceIPConfiguration) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		name := ""
-		if item.Name != nil {
-			name = *item.Name
-		}
-
 		privateIpAddress := ""
 		privateIpVersion := ""
 		subnetId := ""
@@ -465,7 +484,7 @@ func flattenPrivateLinkServiceIPConfiguration(input *[]privatelinkservices.Priva
 				privateIpAddress = *props.PrivateIPAddress
 			}
 
-			privateIpVersion = string(pointer.From(props.PrivateIPAddressVersion))
+			privateIpVersion = pointer.FromEnum(props.PrivateIPAddressVersion)
 
 			if props.Subnet != nil && props.Subnet.Id != nil {
 				subnetId = *props.Subnet.Id
@@ -476,8 +495,8 @@ func flattenPrivateLinkServiceIPConfiguration(input *[]privatelinkservices.Priva
 			}
 		}
 
-		results = append(results, map[string]interface{}{
-			"name":                       name,
+		results = append(results, map[string]any{
+			"name":                       pointer.From(item.Name),
 			"primary":                    primary,
 			"private_ip_address":         privateIpAddress,
 			"private_ip_address_version": privateIpVersion,
@@ -504,7 +523,7 @@ func flattenPrivateLinkServiceFrontendIPConfiguration(input *[]privatelinkservic
 }
 
 func privateLinkServiceWaitForReadyRefreshFunc(ctx context.Context, client *privatelinkservices.PrivateLinkServicesClient, id privatelinkservices.PrivateLinkServiceId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		res, err := client.Get(ctx, id, privatelinkservices.DefaultGetOperationOptions())
 		if err != nil {
 			// the API is eventually consistent during recreates..
@@ -530,10 +549,10 @@ func privateLinkServiceWaitForReadyRefreshFunc(ctx context.Context, client *priv
 func validatePrivateLinkNatIpConfiguration(d *pluginsdk.ResourceDiff) error {
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	ipConfigurations := d.Get("nat_ip_configuration").([]interface{})
+	ipConfigurations := d.Get("nat_ip_configuration").([]any)
 
 	for i, item := range ipConfigurations {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 		p := fmt.Sprintf("nat_ip_configuration.%d.private_ip_address", i)
 		s := fmt.Sprintf("nat_ip_configuration.%d.subnet_id", i)
 		isPrimary := v["primary"].(bool)
@@ -542,14 +561,14 @@ func validatePrivateLinkNatIpConfiguration(d *pluginsdk.ResourceDiff) error {
 		if d.HasChange(p) {
 			o, n := d.GetChange(p)
 			if o != "" && n == "" {
-				return fmt.Errorf("Private Link Service %q (Resource Group %q) nat_ip_configuration %q private_ip_address once assigned can not be removed", name, resourceGroup, in)
+				return fmt.Errorf("for Private Link Service %q (Resource Group %q) nat_ip_configuration %q `private_ip_address` once assigned cannot be removed", name, resourceGroup, in)
 			}
 		}
 
 		if isPrimary && d.HasChange(s) {
 			o, _ := d.GetChange(s)
 			if o != "" {
-				return fmt.Errorf("Private Link Service %q (Resource Group %q) nat_ip_configuration %q primary subnet_id once assigned can not be changed", name, resourceGroup, in)
+				return fmt.Errorf("for Private Link Service %q (Resource Group %q) nat_ip_configuration %q `subnet_id` once assigned cannot be changed", name, resourceGroup, in)
 			}
 		}
 	}

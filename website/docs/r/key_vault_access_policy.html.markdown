@@ -10,9 +10,9 @@ description: |-
 
 Manages a Key Vault Access Policy.
 
-~> **NOTE:** It's possible to define Key Vault Access Policies both within [the `azurerm_key_vault` resource](key_vault.html) via the `access_policy` block and by using [the `azurerm_key_vault_access_policy` resource](key_vault_access_policy.html). However it's not possible to use both methods to manage Access Policies within a KeyVault, since there'll be conflicts.
+~> **Note:** It's possible to define Key Vault Access Policies both within [the `azurerm_key_vault` resource](key_vault.html) via the `access_policy` block and by using [the `azurerm_key_vault_access_policy` resource](key_vault_access_policy.html). However it's not possible to use both methods to manage Access Policies within a KeyVault, since there'll be conflicts.
 
--> **NOTE:** Azure permits a maximum of 1024 Access Policies per Key Vault - [more information can be found in this document](https://docs.microsoft.com/azure/key-vault/key-vault-secure-your-key-vault#data-plane-access-control).
+-> **Note:** Azure permits a maximum of 1024 Access Policies per Key Vault - [more information can be found in this document](https://docs.microsoft.com/azure/key-vault/key-vault-secure-your-key-vault#data-plane-access-control).
 
 ## Example Usage
 
@@ -25,11 +25,12 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_key_vault" "example" {
-  name                = "examplekeyvault"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"
+  name                       = "examplekeyvault"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
 }
 
 resource "azurerm_key_vault_access_policy" "example" {
@@ -61,7 +62,7 @@ resource "azurerm_key_vault_access_policy" "example-principal" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -87,15 +88,15 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - Key Vault Access Policy ID.
 
--> **NOTE:** This Identifier is unique to Terraform and doesn't map to an existing object within Azure.
+-> **Note:** This Identifier is unique to Terraform and doesn't map to an existing object within Azure.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Key Vault Access Policy.
-* `update` - (Defaults to 30 minutes) Used when updating the Key Vault Access Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault Access Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the Key Vault Access Policy.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Key Vault Access Policy.
 
 ## Import
@@ -120,4 +121,10 @@ terraform import azurerm_key_vault_access_policy.example /subscriptions/00000000
 
 where `11111111-1111-1111-1111-111111111111` is the `object_id`.
 
--> **NOTE:** Both Identifiers are unique to Terraform and don't map to an existing object within Azure.
+-> **Note:** Both Identifiers are unique to Terraform and don't map to an existing object within Azure.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.KeyVault` - 2026-02-01

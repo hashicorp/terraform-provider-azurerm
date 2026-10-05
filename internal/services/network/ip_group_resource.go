@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -13,18 +13,21 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/azurefirewalls"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/firewallpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/ipgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/azurefirewalls"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/firewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/ipgroups"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceIpGroup() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -33,10 +36,11 @@ func resourceIpGroup() *pluginsdk.Resource {
 		Update: resourceIpGroupUpdate,
 		Delete: resourceIpGroupDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := ipgroups.ParseIPGroupID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&ipgroups.IPGroupId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&ipgroups.IPGroupId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -87,13 +91,13 @@ func resourceIpGroup() *pluginsdk.Resource {
 	}
 }
 
-func resourceIpGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.IPGroups
+func resourceIpGroupCreate(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Network.IPGroups
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	for _, fw := range d.Get("firewall_ids").([]interface{}) {
+	for _, fw := range d.Get("firewall_ids").([]any) {
 		id, err := azurefirewalls.ParseAzureFirewallID(fw.(string))
 		if err != nil {
 			return fmt.Errorf("parsing Azure Firewall ID %q: %+v", fw, err)
@@ -102,7 +106,7 @@ func resourceIpGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		defer locks.UnlockByName(id.AzureFirewallName, firewall.AzureFirewallResourceName)
 	}
 
-	for _, fwpol := range d.Get("firewall_policy_ids").([]interface{}) {
+	for _, fwpol := range d.Get("firewall_policy_ids").([]any) {
 		id, err := firewallpolicies.ParseFirewallPolicyID(fwpol.(string))
 		if err != nil {
 			return fmt.Errorf("parsing Azure Firewall Policy ID %q: %+v", fwpol, err)
@@ -116,15 +120,17 @@ func resourceIpGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	locks.ByID(id.ID())
 	defer locks.UnlockByID(id.ID())
 
-	existing, err := client.Get(ctx, id, ipgroups.DefaultGetOperationOptions())
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id, ipgroups.DefaultGetOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_ip_group", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_ip_group", id.ID())
+		}
 	}
 
 	ipAddresses := d.Get("cidrs").(*pluginsdk.Set).List()
@@ -133,22 +139,25 @@ func resourceIpGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		Name:     &id.IpGroupName,
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &ipgroups.IPGroupPropertiesFormat{
-			IPAddresses: utils.ExpandStringSlice(ipAddresses),
+			IPAddresses: pluginsdk.ExpandStringSlice(ipAddresses),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, sg); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, sg, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceIpGroupRead(d, meta)
 }
 
-func resourceIpGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.IPGroups
+func resourceIpGroupRead(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Network.IPGroups
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -165,11 +174,14 @@ func resourceIpGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
+	return resourceIpGroupFlatten(d, id, resp.Model)
+}
 
+func resourceIpGroupFlatten(d *pluginsdk.ResourceData, id *ipgroups.IPGroupId, model *ipgroups.IPGroup) error {
 	d.Set("name", id.IpGroupName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 
 		if props := model.Properties; props != nil {
@@ -200,17 +212,20 @@ func resourceIpGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 			d.Set("firewall_policy_ids", firewallPolicyIDs)
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
-	return nil
+
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceIpGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.IPGroups
+func resourceIpGroupUpdate(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Network.IPGroups
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	for _, fw := range d.Get("firewall_ids").([]interface{}) {
+	for _, fw := range d.Get("firewall_ids").([]any) {
 		id, err := azurefirewalls.ParseAzureFirewallID(fw.(string))
 		if err != nil {
 			return fmt.Errorf("parsing Azure Firewall ID %q: %+v", fw, err)
@@ -219,7 +234,7 @@ func resourceIpGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		defer locks.UnlockByName(id.AzureFirewallName, firewall.AzureFirewallResourceName)
 	}
 
-	for _, fwpol := range d.Get("firewall_policy_ids").([]interface{}) {
+	for _, fwpol := range d.Get("firewall_policy_ids").([]any) {
 		id, err := firewallpolicies.ParseFirewallPolicyID(fwpol.(string))
 		if err != nil {
 			return fmt.Errorf("parsing Azure Firewall Policy ID %q: %+v", fwpol, err)
@@ -255,11 +270,11 @@ func resourceIpGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	payload := existing.Model
 
 	if d.HasChange("cidrs") {
-		payload.Properties.IPAddresses = utils.ExpandStringSlice(d.Get("cidrs").(*pluginsdk.Set).List())
+		payload.Properties.IPAddresses = pluginsdk.ExpandStringSlice(d.Get("cidrs").(*pluginsdk.Set).List())
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
@@ -288,8 +303,8 @@ func getIds(subResource *[]ipgroups.SubResource) []string {
 	return ids
 }
 
-func resourceIpGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.IPGroups
+func resourceIpGroupDelete(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Network.IPGroups
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
