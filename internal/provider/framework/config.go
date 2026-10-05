@@ -137,8 +137,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 	// features is required, but we'll play safe here
 	if !data.Features.IsNull() && !data.Features.IsUnknown() {
 		var featuresList []Features
-		d := data.Features.ElementsAs(ctx, &featuresList, true)
-		diags.Append(d...)
+		diags.Append(data.Features.ElementsAs(ctx, &featuresList, true)...)
 		if diags.HasError() {
 			return
 		}
@@ -147,8 +146,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.APIManagement.IsNull() && !features.APIManagement.IsUnknown() {
 			var feature []APIManagement
-			d := features.APIManagement.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.APIManagement.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -169,8 +167,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.AppConfiguration.IsNull() && !features.AppConfiguration.IsUnknown() {
 			var feature []AppConfiguration
-			d := features.AppConfiguration.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.AppConfiguration.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -191,8 +188,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.ApplicationInsights.IsNull() && !features.ApplicationInsights.IsUnknown() {
 			var feature []ApplicationInsights
-			d := features.ApplicationInsights.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.ApplicationInsights.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -205,8 +201,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.CognitiveAccount.IsNull() && !features.CognitiveAccount.IsUnknown() {
 			var feature []CognitiveAccount
-			d := features.CognitiveAccount.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.CognitiveAccount.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -221,8 +216,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.KeyVault.IsNull() && !features.KeyVault.IsUnknown() {
 			var feature []KeyVault
-			d := features.KeyVault.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.KeyVault.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -303,8 +297,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.LogAnalyticsWorkspace.IsNull() && !features.LogAnalyticsWorkspace.IsUnknown() {
 			var feature []LogAnalyticsWorkspace
-			d := features.LogAnalyticsWorkspace.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.LogAnalyticsWorkspace.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -319,8 +312,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.TemplateDeployment.IsNull() && !features.TemplateDeployment.IsUnknown() {
 			var feature []TemplateDeployment
-			d := features.TemplateDeployment.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.TemplateDeployment.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -335,8 +327,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.VirtualMachine.IsNull() && !features.VirtualMachine.IsUnknown() {
 			var feature []VirtualMachine
-			d := features.VirtualMachine.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.VirtualMachine.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -357,8 +348,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.VirtualMachineScaleSet.IsNull() && !features.VirtualMachineScaleSet.IsUnknown() {
 			var feature []VirtualMachineScaleSet
-			d := features.VirtualMachineScaleSet.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.VirtualMachineScaleSet.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -391,8 +381,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.ResourceGroup.IsNull() && !features.ResourceGroup.IsUnknown() {
 			var feature []ResourceGroup
-			d := features.ResourceGroup.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.ResourceGroup.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -407,8 +396,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.ManagedDisk.IsNull() && !features.ManagedDisk.IsUnknown() {
 			var feature []ManagedDisk
-			d := features.ManagedDisk.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.ManagedDisk.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -423,8 +411,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.Storage.IsNull() && !features.Storage.IsUnknown() {
 			var feature []Storage
-			d := features.Storage.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.Storage.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -436,8 +423,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.Subscription.IsNull() && !features.Subscription.IsUnknown() {
 			var feature []Subscription
-			d := features.Subscription.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.Subscription.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -452,8 +438,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.PostgresqlFlexibleServer.IsNull() && !features.PostgresqlFlexibleServer.IsUnknown() {
 			var feature []PostgresqlFlexibleServer
-			d := features.PostgresqlFlexibleServer.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.PostgresqlFlexibleServer.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -468,8 +453,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.RecoveryService.IsNull() && !features.RecoveryService.IsUnknown() {
 			var feature []RecoveryService
-			d := features.RecoveryService.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.RecoveryService.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -495,8 +479,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.NetApp.IsNull() && !features.NetApp.IsUnknown() {
 			var feature []NetApp
-			d := features.NetApp.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.NetApp.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -517,8 +500,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.DatabricksWorkspace.IsNull() && !features.DatabricksWorkspace.IsUnknown() {
 			var feature []DatabricksWorkspace
-			d := features.DatabricksWorkspace.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.DatabricksWorkspace.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -533,8 +515,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.ServiceBus.IsNull() && !features.ServiceBus.IsUnknown() {
 			var feature []ServiceBus
-			d := features.ServiceBus.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.ServiceBus.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -554,8 +535,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.EnhancedValidation.IsNull() && !features.EnhancedValidation.IsUnknown() {
 			var evList []EnhancedValidationModel
-			d := features.EnhancedValidation.ElementsAs(ctx, &evList, true)
-			diags.Append(d...)
+			diags.Append(features.EnhancedValidation.ElementsAs(ctx, &evList, true)...)
 			if diags.HasError() {
 				return
 			}

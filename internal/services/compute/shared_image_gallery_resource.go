@@ -72,14 +72,10 @@ func resourceSharedImageGallery() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"permission": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(galleries.GallerySharingPermissionTypesCommunity),
-								string(galleries.GallerySharingPermissionTypesGroups),
-								string(galleries.GallerySharingPermissionTypesPrivate),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(galleries.PossibleValuesForGallerySharingPermissionTypes(), false),
 						},
 
 						"community_gallery": {
@@ -134,7 +130,7 @@ func resourceSharedImageGallery() *pluginsdk.Resource {
 	}
 }
 
-func resourceSharedImageGalleryCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSharedImageGalleryCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.GalleriesClient
 	gallerySharingUpdateClient := meta.(*clients.Client).Compute.GallerySharingUpdateClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -156,7 +152,7 @@ func resourceSharedImageGalleryCreate(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
-	sharing, permission, err := expandSharedImageGallerySharing(d.Get("sharing").([]interface{}))
+	sharing, permission, err := expandSharedImageGallerySharing(d.Get("sharing").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `sharing`: %+v", err)
 	}
@@ -167,7 +163,7 @@ func resourceSharedImageGalleryCreate(d *pluginsdk.ResourceData, meta interface{
 			Description:    pointer.To(d.Get("description").(string)),
 			SharingProfile: sharing,
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
@@ -191,7 +187,7 @@ func resourceSharedImageGalleryCreate(d *pluginsdk.ResourceData, meta interface{
 	return resourceSharedImageGalleryRead(d, meta)
 }
 
-func resourceSharedImageGalleryRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSharedImageGalleryRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.GalleriesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -238,7 +234,7 @@ func resourceSharedImageGalleryRead(d *pluginsdk.ResourceData, meta interface{})
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceSharedImageGalleryUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSharedImageGalleryUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.GalleriesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -267,7 +263,7 @@ func resourceSharedImageGalleryUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
@@ -276,7 +272,7 @@ func resourceSharedImageGalleryUpdate(d *pluginsdk.ResourceData, meta interface{
 	return resourceSharedImageGalleryRead(d, meta)
 }
 
-func resourceSharedImageGalleryDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSharedImageGalleryDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.GalleriesClient
 	gallerySharingUpdateClient := meta.(*clients.Client).Compute.GallerySharingUpdateClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -299,7 +295,7 @@ func resourceSharedImageGalleryDelete(d *pluginsdk.ResourceData, meta interface{
 					OperationType: gallerysharingupdate.SharingUpdateOperationTypesReset,
 				}
 				if err = gallerySharingUpdateClient.GallerySharingProfileUpdateThenPoll(ctx, *id, updatePayload); err != nil {
-					return fmt.Errorf("reseting community sharing of %s: %+v", id, err)
+					return fmt.Errorf("resetting community sharing of %s: %+v", id, err)
 				}
 			}
 		}
@@ -312,14 +308,14 @@ func resourceSharedImageGalleryDelete(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func expandSharedImageGallerySharing(input []interface{}) (*galleries.SharingProfile, galleries.GallerySharingPermissionTypes, error) {
+func expandSharedImageGallerySharing(input []any) (*galleries.SharingProfile, galleries.GallerySharingPermissionTypes, error) {
 	if len(input) == 0 || input[0] == nil {
 		return nil, "", nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	permission := galleries.GallerySharingPermissionTypes(v["permission"].(string))
-	communityGallery := v["community_gallery"].([]interface{})
+	communityGallery := v["community_gallery"].([]any)
 
 	if permission == galleries.GallerySharingPermissionTypesCommunity {
 		if len(communityGallery) == 0 || communityGallery[0] == nil {
@@ -333,30 +329,30 @@ func expandSharedImageGallerySharing(input []interface{}) (*galleries.SharingPro
 	}, permission, nil
 }
 
-func flattenSharedImageGallerySharing(input *galleries.SharingProfile) []interface{} {
+func flattenSharedImageGallerySharing(input *galleries.SharingProfile) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
 	permission := ""
 	if v := input.Permissions; v != nil {
-		permission = string(pointer.From(v))
+		permission = pointer.FromEnum(v)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"permission":        permission,
 			"community_gallery": flattenSharedImageGalleryCommunityGallery(input.CommunityGalleryInfo),
 		},
 	}
 }
 
-func expandSharedImageGalleryCommunityGallery(input []interface{}) *galleries.CommunityGalleryInfo {
+func expandSharedImageGalleryCommunityGallery(input []any) *galleries.CommunityGalleryInfo {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	return &galleries.CommunityGalleryInfo{
 		Eula:             pointer.To(v["eula"].(string)),
@@ -366,9 +362,9 @@ func expandSharedImageGalleryCommunityGallery(input []interface{}) *galleries.Co
 	}
 }
 
-func flattenSharedImageGalleryCommunityGallery(input *galleries.CommunityGalleryInfo) []interface{} {
+func flattenSharedImageGalleryCommunityGallery(input *galleries.CommunityGalleryInfo) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
 	eula := ""
@@ -398,8 +394,8 @@ func flattenSharedImageGalleryCommunityGallery(input *galleries.CommunityGallery
 		publisherUri = pointer.From(input.PublisherUri)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"eula":            eula,
 			"name":            publicName,
 			"prefix":          publicNamePrefix,

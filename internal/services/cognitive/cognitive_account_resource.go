@@ -20,12 +20,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/cognitiveservicesaccounts"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/subnets"
-	search "github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/services"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/subnets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/services"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -216,12 +214,9 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"default_action": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(cognitiveservicesaccounts.NetworkRuleActionAllow),
-								string(cognitiveservicesaccounts.NetworkRuleActionDeny),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(cognitiveservicesaccounts.PossibleValuesForNetworkRuleAction(), false),
 						},
 
 						"ip_rules": {
@@ -230,8 +225,8 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 								ValidateFunc: validation.Any(
-									commonValidate.IPv4Address,
-									commonValidate.CIDR,
+									validation.IsIPv4Address,
+									validation.IsCIDRIPv4,
 								),
 							},
 							Set: set.HashIPv4AddressOrCIDR,
@@ -313,7 +308,7 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 			"custom_question_answering_search_service_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: search.ValidateSearchServiceID,
+				ValidateFunc: services.ValidateSearchServiceID,
 			},
 
 			"custom_question_answering_search_service_key": {
@@ -363,7 +358,7 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 			},
 		},
 
-		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
+		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i any) error {
 			kind := d.Get("kind").(string)
 
 			if d.Get("project_management_enabled").(bool) {
@@ -371,11 +366,11 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 					return errors.New("`project_management_enabled` can only be set to `true` when `kind` is set to `AIServices`")
 				}
 
-				if len(d.Get("identity").([]interface{})) == 0 {
+				if len(d.Get("identity").([]any)) == 0 {
 					return errors.New("for `project_management_enabled` to be set to `true`, a managed identity must be assigned. Please configure the `identity` block")
 				}
 
-				if d.HasChange("customer_managed_key") && len(d.Get("customer_managed_key").([]interface{})) == 0 {
+				if d.HasChange("customer_managed_key") && len(d.Get("customer_managed_key").([]any)) == 0 {
 					if err := d.ForceNew("customer_managed_key"); err != nil {
 						return err
 					}
@@ -394,7 +389,7 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				return fmt.Errorf("`network_acls.bypass` cannot be set when `kind` is set to `%s`", kind)
 			}
 
-			networkInjection := d.Get("network_injection").([]interface{})
+			networkInjection := d.Get("network_injection").([]any)
 			if len(networkInjection) > 0 && networkInjection[0] != nil {
 				if kind != "AIServices" {
 					return errors.New("the `network_injection` block is only supported when `kind` is set to `AIServices`")
@@ -426,7 +421,7 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 	}
 }
 
-func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cognitive.AccountsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -478,7 +473,7 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -491,18 +486,18 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 			ApiProperties:                 apiProps,
 			NetworkAcls:                   networkAcls,
 			CustomSubDomainName:           pointer.To(d.Get("custom_subdomain_name").(string)),
-			AllowedFqdnList:               helpers.ExpandStringSlice(d.Get("fqdns").([]interface{})),
+			AllowedFqdnList:               pluginsdk.ExpandStringSlice(d.Get("fqdns").([]any)),
 			PublicNetworkAccess:           &publicNetworkAccess,
-			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
+			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]any)),
 			RestrictOutboundNetworkAccess: pointer.To(d.Get("outbound_network_access_restricted").(bool)),
 			DisableLocalAuth:              pointer.To(!d.Get("local_auth_enabled").(bool)),
 			DynamicThrottlingEnabled:      pointer.To(d.Get("dynamic_throttling_enabled").(bool)),
 			AllowProjectManagement:        pointer.To(d.Get("project_management_enabled").(bool)),
-			NetworkInjections:             expandCognitiveAccountNetworkInjection(d.Get("network_injection").([]interface{})),
-			Encryption:                    expandCognitiveAccountCustomerManagedKey(d.Get("customer_managed_key").([]interface{})),
+			NetworkInjections:             expandCognitiveAccountNetworkInjection(d.Get("network_injection").([]any)),
+			Encryption:                    expandCognitiveAccountCustomerManagedKey(d.Get("customer_managed_key").([]any)),
 		},
 		Identity: identity,
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if err := client.AccountsCreateCallbackThenPoll(ctx, id, props, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
@@ -517,7 +512,7 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceCognitiveAccountRead(d, meta)
 }
 
-func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cognitive.AccountsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -565,23 +560,23 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 			ApiProperties:                 apiProps,
 			NetworkAcls:                   networkAcls,
 			CustomSubDomainName:           pointer.To(d.Get("custom_subdomain_name").(string)),
-			AllowedFqdnList:               helpers.ExpandStringSlice(d.Get("fqdns").([]interface{})),
+			AllowedFqdnList:               pluginsdk.ExpandStringSlice(d.Get("fqdns").([]any)),
 			PublicNetworkAccess:           &publicNetworkAccess,
-			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
+			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]any)),
 			RestrictOutboundNetworkAccess: pointer.To(d.Get("outbound_network_access_restricted").(bool)),
 			DisableLocalAuth:              pointer.To(!d.Get("local_auth_enabled").(bool)),
 			DynamicThrottlingEnabled:      pointer.To(d.Get("dynamic_throttling_enabled").(bool)),
 			AllowProjectManagement:        pointer.To(d.Get("project_management_enabled").(bool)),
-			NetworkInjections:             expandCognitiveAccountNetworkInjection(d.Get("network_injection").([]interface{})),
-			Encryption:                    expandCognitiveAccountCustomerManagedKey(d.Get("customer_managed_key").([]interface{})),
+			NetworkInjections:             expandCognitiveAccountNetworkInjection(d.Get("network_injection").([]any)),
+			Encryption:                    expandCognitiveAccountCustomerManagedKey(d.Get("customer_managed_key").([]any)),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if d.HasChanges("customer_managed_key") {
 		old, new := d.GetChange("customer_managed_key")
 		// Remove `customer_managed_key` (switch using a customer managed key to microsoft managed), and explicitly specify KeySource as `Microsoft.CognitiveServices`.
-		if len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0 {
+		if len(old.([]any)) > 0 && len(new.([]any)) == 0 {
 			props.Properties.Encryption = &cognitiveservicesaccounts.Encryption{
 				KeySource: pointer.To(cognitiveservicesaccounts.KeySourceMicrosoftPointCognitiveServices),
 			}
@@ -589,7 +584,7 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if d.HasChange("identity") {
-		identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -603,7 +598,7 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceCognitiveAccountRead(d, meta)
 }
 
-func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cognitive.AccountsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -723,7 +718,7 @@ func resourceCognitiveAccountFlatten(ctx context.Context, client *cognitiveservi
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceCognitiveAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCognitiveAccountDelete(d *pluginsdk.ResourceData, meta any) error {
 	accountsClient := meta.(*clients.Client).Cognitive.AccountsClient
 	deletedAccountsClient := meta.(*clients.Client).Cognitive.AccountsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -797,7 +792,7 @@ func resourceCognitiveAccountDelete(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func serviceAssociationLinkStateRefreshFunc(ctx context.Context, client *subnets.SubnetsClient, subnetId commonids.SubnetId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		resp, err := client.Get(ctx, subnetId, subnets.DefaultGetOperationOptions())
 		if err != nil {
 			return nil, "Error", fmt.Errorf("retrieving subnet %s: %+v", subnetId, err)
@@ -824,15 +819,13 @@ func serviceAssociationLinkStateRefreshFunc(ctx context.Context, client *subnets
 }
 
 func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveservicesaccounts.NetworkRuleSet, []string) {
-	input := d.Get("network_acls").([]interface{})
+	input := d.Get("network_acls").([]any)
 	subnetIds := make([]string, 0)
 	if len(input) == 0 || input[0] == nil {
 		return nil, subnetIds
 	}
 
-	v := input[0].(map[string]interface{})
-
-	defaultAction := cognitiveservicesaccounts.NetworkRuleAction(v["default_action"].(string))
+	v := input[0].(map[string]any)
 
 	ipRulesRaw := v["ip_rules"].(*pluginsdk.Set)
 	ipRules := make([]cognitiveservicesaccounts.IPRule, 0)
@@ -847,7 +840,7 @@ func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveser
 	networkRules := make([]cognitiveservicesaccounts.VirtualNetworkRule, 0)
 	networkRulesRaw := v["virtual_network_rules"]
 	for _, v := range networkRulesRaw.(*pluginsdk.Set).List() {
-		value := v.(map[string]interface{})
+		value := v.(map[string]any)
 		subnetId := value["subnet_id"].(string)
 		subnetIds = append(subnetIds, subnetId)
 		rule := cognitiveservicesaccounts.VirtualNetworkRule{
@@ -858,26 +851,25 @@ func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveser
 	}
 
 	ruleSet := cognitiveservicesaccounts.NetworkRuleSet{
-		DefaultAction:       &defaultAction,
+		DefaultAction:       pointer.ToEnum[cognitiveservicesaccounts.NetworkRuleAction](v["default_action"].(string)),
 		IPRules:             &ipRules,
 		VirtualNetworkRules: &networkRules,
 	}
 
 	if b, ok := d.GetOk("network_acls.0.bypass"); ok && b != "" {
-		bypass := cognitiveservicesaccounts.ByPassSelection(v["bypass"].(string))
-		ruleSet.Bypass = &bypass
+		ruleSet.Bypass = pointer.ToEnum[cognitiveservicesaccounts.ByPassSelection](v["bypass"].(string))
 	}
 
 	return &ruleSet, subnetIds
 }
 
-func expandCognitiveAccountStorage(input []interface{}) *[]cognitiveservicesaccounts.UserOwnedStorage {
+func expandCognitiveAccountStorage(input []any) *[]cognitiveservicesaccounts.UserOwnedStorage {
 	if len(input) == 0 {
 		return nil
 	}
 	results := make([]cognitiveservicesaccounts.UserOwnedStorage, 0)
 	for _, v := range input {
-		value := v.(map[string]interface{})
+		value := v.(map[string]any)
 		results = append(results, cognitiveservicesaccounts.UserOwnedStorage{
 			ResourceId:       pointer.To(value["storage_account_id"].(string)),
 			IdentityClientId: pointer.To(value["identity_client_id"].(string)),
@@ -942,19 +934,19 @@ func expandCognitiveAccountAPIProperties(d *pluginsdk.ResourceData) (*cognitives
 	return &props, nil
 }
 
-func flattenCognitiveAccountNetworkAcls(input *cognitiveservicesaccounts.NetworkRuleSet) []interface{} {
+func flattenCognitiveAccountNetworkAcls(input *cognitiveservicesaccounts.NetworkRuleSet) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	ipRules := make([]interface{}, 0)
+	ipRules := make([]any, 0)
 	if input.IPRules != nil {
 		for _, v := range *input.IPRules {
 			ipRules = append(ipRules, v.Value)
 		}
 	}
 
-	virtualNetworkRules := make([]interface{}, 0)
+	virtualNetworkRules := make([]any, 0)
 	if input.VirtualNetworkRules != nil {
 		for _, v := range *input.VirtualNetworkRules {
 			id := v.Id
@@ -963,14 +955,14 @@ func flattenCognitiveAccountNetworkAcls(input *cognitiveservicesaccounts.Network
 				id = subnetId.ID()
 			}
 
-			virtualNetworkRules = append(virtualNetworkRules, map[string]interface{}{
+			virtualNetworkRules = append(virtualNetworkRules, map[string]any{
 				"subnet_id":                            id,
 				"ignore_missing_vnet_service_endpoint": *v.IgnoreMissingVnetServiceEndpoint,
 			})
 		}
 	}
 
-	return []interface{}{map[string]interface{}{
+	return []any{map[string]any{
 		"bypass":                input.Bypass,
 		"default_action":        input.DefaultAction,
 		"ip_rules":              pluginsdk.NewSet(pluginsdk.HashString, ipRules),
@@ -978,13 +970,13 @@ func flattenCognitiveAccountNetworkAcls(input *cognitiveservicesaccounts.Network
 	}}
 }
 
-func flattenCognitiveAccountStorage(input *[]cognitiveservicesaccounts.UserOwnedStorage) []interface{} {
+func flattenCognitiveAccountStorage(input *[]cognitiveservicesaccounts.UserOwnedStorage) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
-	results := make([]interface{}, 0)
+	results := make([]any, 0)
 	for _, v := range *input {
-		value := make(map[string]interface{})
+		value := make(map[string]any)
 		if v.ResourceId != nil {
 			value["storage_account_id"] = *v.ResourceId
 		}
@@ -996,18 +988,16 @@ func flattenCognitiveAccountStorage(input *[]cognitiveservicesaccounts.UserOwned
 	return results
 }
 
-func expandCognitiveAccountCustomerManagedKey(input []interface{}) *cognitiveservicesaccounts.Encryption {
+func expandCognitiveAccountCustomerManagedKey(input []any) *cognitiveservicesaccounts.Encryption {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	keyId, _ := keyvault.ParseNestedItemID(v["key_vault_key_id"].(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 	if keyId == nil {
 		return nil
 	}
-
-	keySource := cognitiveservicesaccounts.KeySourceMicrosoftPointKeyVault
 
 	var identity string
 	if value := v["identity_client_id"]; value != nil && value != "" {
@@ -1015,7 +1005,7 @@ func expandCognitiveAccountCustomerManagedKey(input []interface{}) *cognitiveser
 	}
 
 	return &cognitiveservicesaccounts.Encryption{
-		KeySource: &keySource,
+		KeySource: pointer.To(cognitiveservicesaccounts.KeySourceMicrosoftPointKeyVault),
 		KeyVaultProperties: &cognitiveservicesaccounts.KeyVaultProperties{
 			KeyName:          pointer.To(keyId.Name),
 			KeyVersion:       pointer.To(keyId.Version),
@@ -1025,9 +1015,9 @@ func expandCognitiveAccountCustomerManagedKey(input []interface{}) *cognitiveser
 	}
 }
 
-func flattenCognitiveAccountCustomerManagedKey(input *cognitiveservicesaccounts.Encryption) ([]interface{}, error) {
+func flattenCognitiveAccountCustomerManagedKey(input *cognitiveservicesaccounts.Encryption) ([]any, error) {
 	if input == nil || pointer.From(input.KeySource) == cognitiveservicesaccounts.KeySourceMicrosoftPointCognitiveServices {
-		return []interface{}{}, nil
+		return []any{}, nil
 	}
 
 	var keyId string
@@ -1043,24 +1033,22 @@ func flattenCognitiveAccountCustomerManagedKey(input *cognitiveservicesaccounts.
 		}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"key_vault_key_id":   keyId,
 			"identity_client_id": identityClientId,
 		},
 	}, nil
 }
 
-func expandCognitiveAccountNetworkInjection(input []interface{}) *[]cognitiveservicesaccounts.NetworkInjection {
+func expandCognitiveAccountNetworkInjection(input []any) *[]cognitiveservicesaccounts.NetworkInjection {
 	if len(input) == 0 {
 		return nil
 	}
 
 	results := make([]cognitiveservicesaccounts.NetworkInjection, 0)
 	for _, v := range input {
-		m := v.(map[string]interface{})
-
-		scenario := cognitiveservicesaccounts.ScenarioType(m["scenario"].(string))
+		m := v.(map[string]any)
 
 		var subnetId *string
 		if m["subnet_id"] != nil && m["subnet_id"] != "" {
@@ -1068,7 +1056,7 @@ func expandCognitiveAccountNetworkInjection(input []interface{}) *[]cognitiveser
 		}
 
 		results = append(results, cognitiveservicesaccounts.NetworkInjection{
-			Scenario:    &scenario,
+			Scenario:    pointer.ToEnum[cognitiveservicesaccounts.ScenarioType](m["scenario"].(string)),
 			SubnetArmId: subnetId,
 		})
 	}
@@ -1076,12 +1064,12 @@ func expandCognitiveAccountNetworkInjection(input []interface{}) *[]cognitiveser
 	return &results
 }
 
-func flattenCognitiveAccountNetworkInjection(input *[]cognitiveservicesaccounts.NetworkInjection) ([]interface{}, error) {
+func flattenCognitiveAccountNetworkInjection(input *[]cognitiveservicesaccounts.NetworkInjection) ([]any, error) {
 	if input == nil {
-		return []interface{}{}, nil
+		return []any{}, nil
 	}
 
-	results := make([]interface{}, 0)
+	results := make([]any, 0)
 	for _, v := range *input {
 		var subnetId string
 		if v.SubnetArmId != nil {
@@ -1092,7 +1080,7 @@ func flattenCognitiveAccountNetworkInjection(input *[]cognitiveservicesaccounts.
 			subnetId = subnet.ID()
 		}
 
-		results = append(results, map[string]interface{}{
+		results = append(results, map[string]any{
 			"scenario":  v.Scenario,
 			"subnet_id": subnetId,
 		})

@@ -27,7 +27,7 @@ var (
 
 type DevCenterDevBoxDefinitionResource struct{}
 
-func (r DevCenterDevBoxDefinitionResource) ModelObject() interface{} {
+func (r DevCenterDevBoxDefinitionResource) ModelObject() any {
 	return &DevCenterDevBoxDefinitionResourceModel{}
 }
 
