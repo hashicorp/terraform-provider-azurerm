@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -71,7 +72,7 @@ func resourcePurviewAccount() *pluginsdk.Resource {
 			"managed_resource_group_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ForceNew:     true,
 				ValidateFunc: resourcegroups.ValidateName,
 			},
@@ -140,7 +141,7 @@ func resourcePurviewAccount() *pluginsdk.Resource {
 	}
 }
 
-func resourcePurviewAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePurviewAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Purview.AccountsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -148,24 +149,26 @@ func resourcePurviewAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	id := account.NewAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_purview_account", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_purview_account", id.ID())
+		}
 	}
 
 	purviewAccount := account.Account{
 		Properties: &account.AccountProperties{},
 		Location:   pointer.To(location.Normalize(d.Get("location").(string))),
-		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:       tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
-	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -187,15 +190,15 @@ func resourcePurviewAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		purviewAccount.Properties.ManagedEventHubState = pointer.To(account.ManagedEventHubStateDisabled)
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, purviewAccount); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, purviewAccount, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-
 	d.SetId(id.ID())
+
 	return resourcePurviewAccountRead(d, meta)
 }
 
-func resourcePurviewAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePurviewAccountRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Purview.AccountsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -275,7 +278,7 @@ func resourcePurviewAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourcePurviewAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePurviewAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Purview.AccountsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -306,11 +309,11 @@ func resourcePurviewAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("tags") {
-		parameters.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		parameters.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if d.HasChange("identity") {
-		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -324,7 +327,7 @@ func resourcePurviewAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	return resourcePurviewAccountRead(d, meta)
 }
 
-func resourcePurviewAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePurviewAccountDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Purview.AccountsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -334,21 +337,20 @@ func resourcePurviewAccountDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func flattenPurviewAccountManagedResources(managedResources *account.ManagedResources) interface{} {
+func flattenPurviewAccountManagedResources(managedResources *account.ManagedResources) any {
 	if managedResources == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"resource_group_id":      pointer.From(managedResources.ResourceGroup),
 			"storage_account_id":     pointer.From(managedResources.StorageAccount),
 			"event_hub_namespace_id": pointer.From(managedResources.EventHubNamespace),
@@ -375,7 +377,7 @@ func resourcePurviewAccountIdentitySchema() *schema.Schema {
 	return customSchema
 }
 
-func resourcePurviewAccountIdentityIdsSetHash(v interface{}) int {
+func resourcePurviewAccountIdentityIdsSetHash(v any) int {
 	var buf bytes.Buffer
 
 	buf.WriteString(strings.ToLower(v.(string)))

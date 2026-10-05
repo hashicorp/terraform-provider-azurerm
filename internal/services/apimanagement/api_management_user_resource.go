@@ -64,13 +64,10 @@ func resourceApiManagementUser() *pluginsdk.Resource {
 			},
 
 			"confirmation": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(user.ConfirmationInvite),
-					string(user.ConfirmationSignup),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(user.PossibleValuesForConfirmation(), false),
 			},
 
 			"note": {
@@ -87,7 +84,7 @@ func resourceApiManagementUser() *pluginsdk.Resource {
 			"state": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice([]string{
 					string(user.UserStateActive),
 					string(user.UserStateBlocked),
@@ -98,7 +95,7 @@ func resourceApiManagementUser() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementUserCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementUserCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.UsersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -114,15 +111,17 @@ func resourceApiManagementUserCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	password := d.Get("password").(string)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_user", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_api_management_user", id.ID())
+			}
 		}
 	}
 
@@ -136,7 +135,7 @@ func resourceApiManagementUserCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 	confirmation := d.Get("confirmation").(string)
 	if confirmation != "" {
-		properties.Properties.Confirmation = pointer.To(user.Confirmation(confirmation))
+		properties.Properties.Confirmation = pointer.ToEnum[user.Confirmation](confirmation)
 	}
 	if note != "" {
 		properties.Properties.Note = pointer.To(note)
@@ -145,7 +144,7 @@ func resourceApiManagementUserCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		properties.Properties.Password = pointer.To(password)
 	}
 	if state != "" {
-		properties.Properties.State = pointer.To(user.UserState(state))
+		properties.Properties.State = pointer.ToEnum[user.UserState](state)
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, properties, user.CreateOrUpdateOperationOptions{Notify: pointer.To(false)}); err != nil {
@@ -157,7 +156,7 @@ func resourceApiManagementUserCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	return resourceApiManagementUserRead(d, meta)
 }
 
-func resourceApiManagementUserRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementUserRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.UsersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -188,14 +187,14 @@ func resourceApiManagementUserRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("last_name", pointer.From(props.LastName))
 			d.Set("email", pointer.From(props.Email))
 			d.Set("note", pointer.From(props.Note))
-			d.Set("state", string(pointer.From(props.State)))
+			d.Set("state", pointer.FromEnum(props.State))
 		}
 	}
 
 	return nil
 }
 
-func resourceApiManagementUserDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementUserDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.UsersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

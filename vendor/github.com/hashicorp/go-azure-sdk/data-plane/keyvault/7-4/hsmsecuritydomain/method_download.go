@@ -61,9 +61,20 @@ func (c HSMSecurityDomainClient) Download(ctx context.Context, input Certificate
 
 // DownloadThenPoll performs Download then polls until it's completed
 func (c HSMSecurityDomainClient) DownloadThenPoll(ctx context.Context, input CertificateInfoObject) error {
+	return c.DownloadCallbackThenPoll(ctx, input, nil)
+}
+
+// DownloadCallbackThenPoll performs Download, runs the optional callback function, then polls until it's completed
+func (c HSMSecurityDomainClient) DownloadCallbackThenPoll(ctx context.Context, input CertificateInfoObject, callback func() error) error {
 	result, err := c.Download(ctx, input)
 	if err != nil {
 		return fmt.Errorf("performing Download: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

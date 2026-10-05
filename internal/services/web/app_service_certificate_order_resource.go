@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/certificateregistration/2023-12-01/appservicecertificateorders"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -93,14 +94,14 @@ func resourceAppServiceCertificateOrder() *pluginsdk.Resource {
 			"csr": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
-				Computed:      true,
+				Computed:      true, // azignore:AZS007 - pre-existing violation
 				ConflictsWith: []string{"distinguished_name"},
 			},
 
 			"distinguished_name": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
-				Computed:      true,
+				Computed:      true, // azignore:AZS007 - pre-existing violation
 				ConflictsWith: []string{"csr"},
 			},
 
@@ -176,7 +177,7 @@ func resourceAppServiceCertificateOrder() *pluginsdk.Resource {
 	}
 }
 
-func resourceAppServiceCertificateOrderCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceCertificateOrderCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.AppServiceCertificateOrdersClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -184,15 +185,17 @@ func resourceAppServiceCertificateOrderCreate(d *pluginsdk.ResourceData, meta in
 
 	id := appservicecertificateorders.NewCertificateOrderID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_app_service_certificate_order", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_app_service_certificate_order", id.ID())
+		}
 	}
 
 	certificateOrder := appservicecertificateorders.AppServiceCertificateOrder{
@@ -205,10 +208,10 @@ func resourceAppServiceCertificateOrderCreate(d *pluginsdk.ResourceData, meta in
 			ValidityInYears:   pointer.To(int64(d.Get("validity_in_years").(int))),
 		},
 		Location: location.Normalize(d.Get("location").(string)),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, certificateOrder); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, certificateOrder, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %w", id, err)
 	}
 
@@ -217,7 +220,7 @@ func resourceAppServiceCertificateOrderCreate(d *pluginsdk.ResourceData, meta in
 	return resourceAppServiceCertificateOrderRead(d, meta)
 }
 
-func resourceAppServiceCertificateOrderRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceCertificateOrderRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.AppServiceCertificateOrdersClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -276,7 +279,7 @@ func resourceAppServiceCertificateOrderRead(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func resourceAppServiceCertificateOrderUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceCertificateOrderUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.AppServiceCertificateOrdersClient
 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -326,7 +329,7 @@ func resourceAppServiceCertificateOrderUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if d.HasChange("tags") {
-		existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
@@ -336,7 +339,7 @@ func resourceAppServiceCertificateOrderUpdate(d *pluginsdk.ResourceData, meta in
 	return resourceAppServiceCertificateOrderRead(d, meta)
 }
 
-func resourceAppServiceCertificateOrderDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceCertificateOrderDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.AppServiceCertificateOrdersClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -354,14 +357,14 @@ func resourceAppServiceCertificateOrderDelete(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func flattenArmCertificateOrderCertificate(input *map[string]appservicecertificateorders.AppServiceCertificate) []interface{} {
-	results := make([]interface{}, 0)
+func flattenArmCertificateOrderCertificate(input *map[string]appservicecertificateorders.AppServiceCertificate) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	for k, v := range *input {
-		result := make(map[string]interface{})
+		result := make(map[string]any)
 
 		result["certificate_name"] = k
 

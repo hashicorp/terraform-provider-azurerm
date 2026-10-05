@@ -62,9 +62,20 @@ func (c IntegrationRuntimeEnableInteractiveQueryClient) IntegrationRuntimeEnable
 
 // IntegrationRuntimeEnableInteractiveQueryThenPoll performs IntegrationRuntimeEnableInteractiveQuery then polls until it's completed
 func (c IntegrationRuntimeEnableInteractiveQueryClient) IntegrationRuntimeEnableInteractiveQueryThenPoll(ctx context.Context, id IntegrationRuntimeId, input EnableInteractiveQueryRequest) error {
+	return c.IntegrationRuntimeEnableInteractiveQueryCallbackThenPoll(ctx, id, input, nil)
+}
+
+// IntegrationRuntimeEnableInteractiveQueryCallbackThenPoll performs IntegrationRuntimeEnableInteractiveQuery, runs the optional callback function, then polls until it's completed
+func (c IntegrationRuntimeEnableInteractiveQueryClient) IntegrationRuntimeEnableInteractiveQueryCallbackThenPoll(ctx context.Context, id IntegrationRuntimeId, input EnableInteractiveQueryRequest, callback func() error) error {
 	result, err := c.IntegrationRuntimeEnableInteractiveQuery(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing IntegrationRuntimeEnableInteractiveQuery: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
