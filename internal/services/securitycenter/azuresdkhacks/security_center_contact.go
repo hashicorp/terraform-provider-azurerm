@@ -7,7 +7,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" //nolint:staticcheck
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
@@ -53,13 +53,12 @@ func CreateSecurityCenterContact(ctx context.Context, client *security.ContactsC
 }
 
 func createResponder(resp *http.Response) (result security.Contact, err error) {
-	err = autorest.Respond(
+	if err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing(),
-	)
-	if err != nil {
+	); err != nil {
 		return result, err
 	}
 	result.Response = autorest.Response{Response: resp}
