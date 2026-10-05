@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managedidentity_test
@@ -8,19 +8,19 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type UserAssignedIdentityTestResource struct{}
+type UserAssignedIdentityResource struct{}
 
 func TestAccUserAssignedIdentity_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_user_assigned_identity", "test")
-	r := UserAssignedIdentityTestResource{}
+	r := UserAssignedIdentityResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccUserAssignedIdentity_basic(t *testing.T) {
 
 func TestAccUserAssignedIdentity_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_user_assigned_identity", "test")
-	r := UserAssignedIdentityTestResource{}
+	r := UserAssignedIdentityResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccUserAssignedIdentity_requiresImport(t *testing.T) {
 
 func TestAccUserAssignedIdentity_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_user_assigned_identity", "test")
-	r := UserAssignedIdentityTestResource{}
+	r := UserAssignedIdentityResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -65,7 +65,7 @@ func TestAccUserAssignedIdentity_complete(t *testing.T) {
 
 func TestAccUserAssignedIdentity_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_user_assigned_identity", "test")
-	r := UserAssignedIdentityTestResource{}
+	r := UserAssignedIdentityResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -92,7 +92,7 @@ func TestAccUserAssignedIdentity_update(t *testing.T) {
 	})
 }
 
-func (r UserAssignedIdentityTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r UserAssignedIdentityResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseUserAssignedIdentityID(state.ID)
 	if err != nil {
 		return nil, err
@@ -103,10 +103,10 @@ func (r UserAssignedIdentityTestResource) Exists(ctx context.Context, clients *c
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
-func (r UserAssignedIdentityTestResource) basic(data acceptance.TestData) string {
+func (r UserAssignedIdentityResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -122,7 +122,7 @@ resource "azurerm_user_assigned_identity" "test" {
 `, r.template(data))
 }
 
-func (r UserAssignedIdentityTestResource) requiresImport(data acceptance.TestData) string {
+func (r UserAssignedIdentityResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -134,7 +134,7 @@ resource "azurerm_user_assigned_identity" "import" {
 `, r.basic(data))
 }
 
-func (r UserAssignedIdentityTestResource) complete(data acceptance.TestData) string {
+func (r UserAssignedIdentityResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -146,6 +146,8 @@ resource "azurerm_user_assigned_identity" "test" {
   location            = azurerm_resource_group.test.location
   name                = "acctestuai-${var.random_string}"
   resource_group_name = azurerm_resource_group.test.name
+  isolation_scope     = "Regional"
+
   tags = {
     environment = "terraform-acctests"
     some_key    = "some-value"
@@ -154,7 +156,7 @@ resource "azurerm_user_assigned_identity" "test" {
 `, r.template(data))
 }
 
-func (r UserAssignedIdentityTestResource) template(data acceptance.TestData) string {
+func (r UserAssignedIdentityResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "primary_location" {
   default = %q

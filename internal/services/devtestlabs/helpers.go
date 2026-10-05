@@ -1,14 +1,13 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package devtestlabs
 
 import (
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/virtualmachines"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func schemaDevTestVirtualMachineInboundNatRule() *pluginsdk.Schema {
@@ -20,19 +19,16 @@ func schemaDevTestVirtualMachineInboundNatRule() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"protocol": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(virtualmachines.TransportProtocolTcp),
-						string(virtualmachines.TransportProtocolUdp),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForTransportProtocol(), false),
 				},
 
 				"backend_port": {
 					Type:         pluginsdk.TypeInt,
 					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: validate.PortNumber,
+					ValidateFunc: validation.IsPortNumber,
 				},
 
 				"frontend_port": {
@@ -51,13 +47,12 @@ func expandDevTestLabVirtualMachineNatRules(input *pluginsdk.Set) []virtualmachi
 	}
 
 	for _, val := range input.List() {
-		v := val.(map[string]interface{})
+		v := val.(map[string]any)
 		backendPort := v["backend_port"].(int)
-		protocol := virtualmachines.TransportProtocol(v["protocol"].(string))
 
 		rule := virtualmachines.InboundNatRule{
-			TransportProtocol: &protocol,
-			BackendPort:       utils.Int64(int64(backendPort)),
+			TransportProtocol: pointer.ToEnum[virtualmachines.TransportProtocol](v["protocol"].(string)),
+			BackendPort:       pointer.To(int64(backendPort)),
 		}
 
 		rules = append(rules, rule)
@@ -66,23 +61,23 @@ func expandDevTestLabVirtualMachineNatRules(input *pluginsdk.Set) []virtualmachi
 	return rules
 }
 
-func expandDevTestLabVirtualMachineGalleryImageReference(input []interface{}, osType string) *virtualmachines.GalleryImageReference {
+func expandDevTestLabVirtualMachineGalleryImageReference(input []any, osType string) *virtualmachines.GalleryImageReference {
 	if len(input) == 0 {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	offer := v["offer"].(string)
 	publisher := v["publisher"].(string)
 	sku := v["sku"].(string)
 	version := v["version"].(string)
 
 	return &virtualmachines.GalleryImageReference{
-		Offer:     utils.String(offer),
-		OsType:    utils.String(osType),
-		Publisher: utils.String(publisher),
-		Sku:       utils.String(sku),
-		Version:   utils.String(version),
+		Offer:     pointer.To(offer),
+		OsType:    pointer.To(osType),
+		Publisher: pointer.To(publisher),
+		Sku:       pointer.To(sku),
+		Version:   pointer.To(version),
 	}
 }
 
@@ -118,11 +113,11 @@ func schemaDevTestVirtualMachineGalleryImageReference() *pluginsdk.Schema {
 	}
 }
 
-func flattenDevTestVirtualMachineGalleryImage(input *virtualmachines.GalleryImageReference) []interface{} {
-	results := make([]interface{}, 0)
+func flattenDevTestVirtualMachineGalleryImage(input *virtualmachines.GalleryImageReference) []any {
+	results := make([]any, 0)
 
 	if input != nil {
-		output := make(map[string]interface{})
+		output := make(map[string]any)
 
 		if input.Offer != nil {
 			output["offer"] = *input.Offer

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation
@@ -37,7 +37,7 @@ func (v AutomationVariablesDataSource) ResourceType() string {
 	return "azurerm_automation_variables"
 }
 
-func (v AutomationVariablesDataSource) ModelObject() interface{} {
+func (v AutomationVariablesDataSource) ModelObject() any {
 	return &AutomationVariablesDataSourceModel{}
 }
 
@@ -145,13 +145,12 @@ func (v AutomationVariablesDataSource) Read() sdk.ResourceFunc {
 			var var_str []helper.StringVariable
 
 			for _, v := range variableList.Items {
-				_, err := variable.ParseVariableID(pointer.From(v.Id))
-				if err != nil {
+				if _, err := variable.ParseVariableID(pointer.From(v.Id)); err != nil {
 					return err
 				}
 
 				datePattern := regexp.MustCompile(`"\\/Date\((-?[0-9]+)\)\\/"`)
-				var objVar map[string]interface{}
+				var objVar map[string]any
 
 				if pointer.From(v.Properties.IsEncrypted) {
 					var_encrypt = append(var_encrypt, helper.EncryptedVariable{

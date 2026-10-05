@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package iothub
@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -20,8 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub"
+	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub" // azignore:AZG010 - package name does not match its path
 )
 
 func resourceIotHubEnrichment() *pluginsdk.Resource {
@@ -87,7 +87,7 @@ func resourceIotHubEnrichment() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmIotHubEnrichmentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmIotHubEnrichmentCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -101,7 +101,7 @@ func resourceArmIotHubEnrichmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	iothub, err := client.Get(ctx, resourceGroup, iothubName)
 	if err != nil {
-		if utils.ResponseWasNotFound(iothub.Response) {
+		if response.WasNotFound(iothub.Response.Response) {
 			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", iothubName, resourceGroup)
 		}
 
@@ -110,12 +110,12 @@ func resourceArmIotHubEnrichmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	enrichmentKey := d.Get("key").(string)
 	enrichmentValue := d.Get("value").(string)
-	endpointNamesRaw := d.Get("endpoint_names").([]interface{})
+	endpointNamesRaw := d.Get("endpoint_names").([]any)
 
 	enrichment := devices.EnrichmentProperties{
 		Key:           &enrichmentKey,
 		Value:         &enrichmentValue,
-		EndpointNames: utils.ExpandStringSlice(endpointNamesRaw),
+		EndpointNames: pluginsdk.ExpandStringSlice(endpointNamesRaw),
 	}
 
 	routing := iothub.Properties.Routing
@@ -136,7 +136,9 @@ func resourceArmIotHubEnrichmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 		if existingEnrichment.Key != nil {
 			if strings.EqualFold(*existingEnrichment.Key, enrichmentKey) {
 				if d.IsNewResource() {
-					return tf.ImportAsExistsError("azurerm_iothub_enrichment", id.ID())
+					if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+						return tf.ImportAsExistsError("azurerm_iothub_enrichment", id.ID())
+					}
 				}
 				enrichments = append(enrichments, enrichment)
 				alreadyExists = true
@@ -158,16 +160,16 @@ func resourceArmIotHubEnrichmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("creating/updating IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
 	}
 
+	d.SetId(id.ID())
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for the completion of the creating/updating of IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
 	}
 
-	d.SetId(id.ID())
-
 	return resourceArmIotHubEnrichmentRead(d, meta)
 }
 
-func resourceArmIotHubEnrichmentRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmIotHubEnrichmentRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -179,7 +181,7 @@ func resourceArmIotHubEnrichmentRead(d *pluginsdk.ResourceData, meta interface{}
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[DEBUG] IoTHub %q was not found in Resource Group %q (so Enrichment cannot exist) - removing from state", id.IotHubName, id.ResourceGroup)
 			d.SetId("")
 			return nil
@@ -214,7 +216,7 @@ func resourceArmIotHubEnrichmentRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceArmIotHubEnrichmentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmIotHubEnrichmentDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -229,7 +231,7 @@ func resourceArmIotHubEnrichmentDelete(d *pluginsdk.ResourceData, meta interface
 
 	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {
-		if utils.ResponseWasNotFound(iothub.Response) {
+		if response.WasNotFound(iothub.Response.Response) {
 			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", id.IotHubName, id.ResourceGroup)
 		}
 		return fmt.Errorf("retrieving IotHub %q (Resource Group %q): %+v", id.IotHubName, id.ResourceGroup, err)

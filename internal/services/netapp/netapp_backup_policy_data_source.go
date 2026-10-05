@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp
@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/backuppolicy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/backuppolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -26,12 +26,12 @@ func (r NetAppBackupPolicyDataSource) ResourceType() string {
 	return "azurerm_netapp_backup_policy"
 }
 
-func (r NetAppBackupPolicyDataSource) ModelObject() interface{} {
-	return &netAppModels.NetAppBackupVaultModel{}
+func (r NetAppBackupPolicyDataSource) ModelObject() any {
+	return &models.NetAppBackupVaultModel{}
 }
 
 func (r NetAppBackupPolicyDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return backuppolicy.ValidateBackupPolicyID
+	return backuppolicies.ValidateBackupPolicyID
 }
 
 func (r NetAppBackupPolicyDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -84,14 +84,14 @@ func (r NetAppBackupPolicyDataSource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.NetApp.BackupPolicyClient
 
-			var state netAppModels.NetAppBackupPolicyModel
+			var state models.NetAppBackupPolicyModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			backupPolicyID := backuppolicy.NewBackupPolicyID(metadata.Client.Account.SubscriptionId, state.ResourceGroupName, state.AccountName, state.Name)
+			backupPolicyID := backuppolicies.NewBackupPolicyID(metadata.Client.Account.SubscriptionId, state.ResourceGroupName, state.AccountName, state.Name)
 
-			existing, err := client.BackupPoliciesGet(ctx, backupPolicyID)
+			existing, err := client.Get(ctx, backupPolicyID)
 			if err != nil {
 				if response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("%s was not found", backupPolicyID)

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managedredis
@@ -30,12 +30,14 @@ func (r Registration) Name() string {
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
+		ManagedRedisAccessPolicyAssignmentDataSource{},
 		ManagedRedisDataSource{},
 	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		ManagedRedisAccessPolicyAssignmentResource{},
 		ManagedRedisGeoReplicationResource{},
 		ManagedRedisResource{},
 	}
