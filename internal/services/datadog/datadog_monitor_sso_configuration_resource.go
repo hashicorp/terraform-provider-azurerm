@@ -72,7 +72,7 @@ func resourceDatadogSingleSignOnConfigurations() *pluginsdk.Resource {
 	}
 }
 
-func resourceDatadogSingleSignOnConfigurationsCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatadogSingleSignOnConfigurationsCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Datadog.DatadogSingleSignOnResources
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -114,7 +114,7 @@ func resourceDatadogSingleSignOnConfigurationsCreate(d *pluginsdk.ResourceData, 
 	return resourceDatadogSingleSignOnConfigurationsRead(d, meta)
 }
 
-func resourceDatadogSingleSignOnConfigurationsRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatadogSingleSignOnConfigurationsRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Datadog.DatadogSingleSignOnResources
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -139,7 +139,7 @@ func resourceDatadogSingleSignOnConfigurationsRead(d *pluginsdk.ResourceData, me
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			// per the create func
-			d.Set("single_sign_on", string(pointer.From(props.SingleSignOnState)))
+			d.Set("single_sign_on", pointer.FromEnum(props.SingleSignOnState))
 			d.Set("login_url", props.SingleSignOnURL)
 			d.Set("enterprise_application_id", props.EnterpriseAppId)
 		}
@@ -148,7 +148,7 @@ func resourceDatadogSingleSignOnConfigurationsRead(d *pluginsdk.ResourceData, me
 	return nil
 }
 
-func resourceDatadogSingleSignOnConfigurationsUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatadogSingleSignOnConfigurationsUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Datadog.DatadogSingleSignOnResources
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -175,7 +175,7 @@ func resourceDatadogSingleSignOnConfigurationsUpdate(d *pluginsdk.ResourceData, 
 	return resourceDatadogSingleSignOnConfigurationsRead(d, meta)
 }
 
-func resourceDatadogSingleSignOnConfigurationsDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatadogSingleSignOnConfigurationsDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Datadog.DatadogSingleSignOnResources
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

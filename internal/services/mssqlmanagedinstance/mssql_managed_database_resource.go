@@ -17,9 +17,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstancelongtermretentionpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstances"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	helperValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	miParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -58,12 +57,12 @@ func (r MsSqlManagedDatabaseResource) ResourceType() string {
 	return "azurerm_mssql_managed_database"
 }
 
-func (r MsSqlManagedDatabaseResource) ModelObject() interface{} {
+func (r MsSqlManagedDatabaseResource) ModelObject() any {
 	return &MsSqlManagedDatabaseModel{}
 }
 
 func (r MsSqlManagedDatabaseResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ManagedDatabaseID
+	return commonids.ValidateSqlManagedInstanceDatabaseID
 }
 
 func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
@@ -84,13 +83,13 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ManagedInstanceID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseSqlManagedInstanceIDInsensitively),
 		},
 
 		"long_term_retention_policy": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -99,7 +98,7 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      "PT0S",
-						ValidateFunc: helperValidate.ISO8601Duration,
+						ValidateFunc: validation.ISO8601Duration,
 						AtLeastOneOf: atLeastOneOf,
 					},
 
@@ -108,7 +107,7 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      "PT0S",
-						ValidateFunc: helperValidate.ISO8601Duration,
+						ValidateFunc: validation.ISO8601Duration,
 						AtLeastOneOf: atLeastOneOf,
 					},
 
@@ -117,7 +116,7 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      "PT0S",
-						ValidateFunc: helperValidate.ISO8601Duration,
+						ValidateFunc: validation.ISO8601Duration,
 						AtLeastOneOf: atLeastOneOf,
 					},
 
@@ -125,7 +124,7 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 					"week_of_year": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						Computed:     true,
+						Computed:     true, // azignore:AZS007 - pre-existing violation
 						ValidateFunc: validation.IntBetween(0, 52),
 						AtLeastOneOf: atLeastOneOf,
 					},
@@ -158,7 +157,7 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         schema.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: validation.Any(validate.ManagedDatabaseID, validate.RestorableDatabaseID),
+						ValidateFunc: validation.Any(validation.AsGeneratedID(commonids.ParseSqlManagedInstanceDatabaseIDInsensitively), validate.RestorableDatabaseID),
 					},
 				},
 			},
@@ -221,7 +220,7 @@ func (r MsSqlManagedDatabaseResource) Create() sdk.ResourceFunc {
 				parameters.Properties.CreateMode = pointer.To(manageddatabases.ManagedDatabaseCreateModePointInTimeRestore)
 				parameters.Properties.RestorePointInTime = &restorePointInTime.RestorePointInTime
 
-				if _, err := miParse.RestorableDroppedDatabaseID(restorePointInTime.SourceDatabaseId); err == nil {
+				if _, err := parse.RestorableDroppedDatabaseID(restorePointInTime.SourceDatabaseId); err == nil {
 					parameters.Properties.RestorableDroppedDatabaseId = pointer.To(restorePointInTime.SourceDatabaseId)
 				} else {
 					parameters.Properties.SourceDatabaseId = pointer.To(restorePointInTime.SourceDatabaseId)
@@ -443,21 +442,21 @@ func flattenLongTermRetentionPolicy(ltrPolicy managedinstancelongtermretentionpo
 	return []LongTermRetentionPolicy{ltrModel}
 }
 
-func flattenManagedDatabasePointInTimeRestore(input interface{}) []PointInTimeRestore {
+func flattenManagedDatabasePointInTimeRestore(input any) []PointInTimeRestore {
 	output := make([]PointInTimeRestore, 0)
 
 	if input == nil {
 		return output
 	}
 
-	attrs := input.([]interface{})
+	attrs := input.([]any)
 
 	for _, attr := range attrs {
 		if attr == nil {
 			return output
 		}
 
-		v := attr.(map[string]interface{})
+		v := attr.(map[string]any)
 
 		output = append(output, PointInTimeRestore{
 			RestorePointInTime: v["restore_point_in_time"].(string),

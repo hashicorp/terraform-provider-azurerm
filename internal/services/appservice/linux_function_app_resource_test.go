@@ -47,6 +47,20 @@ func TestAccLinuxFunctionApp_basicBasicPlan(t *testing.T) {
 	})
 }
 
+func TestAccLinuxFunctionApp_regression(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	}, "")
+}
+
 func TestAccLinuxFunctionApp_basicRuntimeCheck(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
 	r := LinuxFunctionAppResource{}
@@ -1514,6 +1528,23 @@ func TestAccLinuxFunctionApp_appStackPowerShellCore74(t *testing.T) {
 	})
 }
 
+func TestAccLinuxFunctionApp_appStackPowerShellCore76(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appStackPowerShellCore(data, SkuBasicPlan, "7.6"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("POWERSHELL|7.6"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 // (@jackofallops) - The portal does not allow the active stack to be changed currently, however, the API accepts it and the changes are reflected in the portal.
 func TestAccLinuxFunctionApp_appStackUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
@@ -1883,6 +1914,50 @@ func TestAccLinuxFunctionApp_tlsSettingUpdate(t *testing.T) {
 		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.basic(data, SkuPremiumPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccLinuxFunctionApp_e2eEncryptionEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.endToEndTLSEncryptionEnabled(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccLinuxFunctionApp_e2eEncryptionEnabledUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.endToEndTLSEncryptionEnabled(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.basic(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -3064,7 +3139,7 @@ resource "azurerm_linux_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger, pythonVersion)
 }
 
-// nolint: unparam
+//nolint:unparam
 func (r LinuxFunctionAppResource) appStackJava(data acceptance.TestData, planSku string, javaVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3216,6 +3291,7 @@ resource "azurerm_linux_function_app" "test" {
 `, r.identityTemplate(data, planSku), data.RandomInteger)
 }
 
+//nolint:unparam
 func (r LinuxFunctionAppResource) appStackPowerShellCore(data acceptance.TestData, planSku string, version string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -4625,7 +4701,6 @@ resource "azurerm_user_assigned_identity" "test" {
 `, r.template(data, planSku), data.RandomInteger)
 }
 
-//nolint:unparam
 func (r LinuxFunctionAppResource) vNetIntegration_basic(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -4992,6 +5067,30 @@ resource "azurerm_linux_function_app" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   public_network_access_enabled = false
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
+}
+`, r.template(data, planSku), data.RandomInteger)
+}
+
+func (r LinuxFunctionAppResource) endToEndTLSEncryptionEnabled(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_function_app" "test" {
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  end_to_end_tls_encryption_enabled = true
 
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key

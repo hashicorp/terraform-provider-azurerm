@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/types"
@@ -199,7 +199,7 @@ func (BackendAddressPoolAddressResourceTests) Destroy(ctx context.Context, clien
 	return pointer.To(true), nil
 }
 
-// nolint unused - for future use
+//nolint:unused // for future use
 func (BackendAddressPoolAddressResourceTests) backendAddressPoolHasAddresses(expected int) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 		id, err := loadbalancers.ParseLoadBalancerBackendAddressPoolID(state.ID)

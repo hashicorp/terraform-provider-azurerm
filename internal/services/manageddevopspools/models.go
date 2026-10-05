@@ -20,11 +20,6 @@ type ResourcePredictionsSdkModel struct {
 	DaysData []map[string]int64 `tfschema:"days_data"`
 }
 
-type ResourcePredictionsModel struct {
-	Kind                 string `tfschema:"kind"`
-	PredictionPreference string `tfschema:"prediction_preference"`
-}
-
 type ManualResourcePredictionModel struct {
 	TimeZoneName      string             `tfschema:"time_zone_name"`
 	AllWeekSchedule   int64              `tfschema:"all_week_schedule"`
