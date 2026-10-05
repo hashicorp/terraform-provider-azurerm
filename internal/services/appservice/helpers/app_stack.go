@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
@@ -29,21 +29,17 @@ const (
 )
 
 type ApplicationStackWindows struct {
-	CurrentStack            string `tfschema:"current_stack"`
-	DockerContainerName     string `tfschema:"docker_container_name,removedInNextMajorVersion"`
-	DockerContainerRegistry string `tfschema:"docker_container_registry,removedInNextMajorVersion"`
-	DockerContainerTag      string `tfschema:"docker_container_tag,removedInNextMajorVersion"`
-	JavaContainer           string `tfschema:"java_container"`
-	JavaContainerVersion    string `tfschema:"java_container_version"`
-	JavaEmbeddedServer      bool   `tfschema:"java_embedded_server_enabled"`
-	JavaVersion             string `tfschema:"java_version"`
-	NetFrameworkVersion     string `tfschema:"dotnet_version"`
-	NetCoreVersion          string `tfschema:"dotnet_core_version"`
-	NodeVersion             string `tfschema:"node_version"`
-	PhpVersion              string `tfschema:"php_version"`
-	PythonVersion           string `tfschema:"python_version,removedInNextMajorVersion"`
-	Python                  bool   `tfschema:"python"`
-	TomcatVersion           string `tfschema:"tomcat_version"`
+	CurrentStack         string `tfschema:"current_stack"`
+	JavaContainer        string `tfschema:"java_container"`
+	JavaContainerVersion string `tfschema:"java_container_version"`
+	JavaEmbeddedServer   bool   `tfschema:"java_embedded_server_enabled"`
+	JavaVersion          string `tfschema:"java_version"`
+	NetFrameworkVersion  string `tfschema:"dotnet_version"`
+	NetCoreVersion       string `tfschema:"dotnet_core_version"`
+	NodeVersion          string `tfschema:"node_version"`
+	PhpVersion           string `tfschema:"php_version"`
+	Python               bool   `tfschema:"python"`
+	TomcatVersion        string `tfschema:"tomcat_version"`
 
 	DockerRegistryUrl      string `tfschema:"docker_registry_url"`
 	DockerRegistryUsername string `tfschema:"docker_registry_username"`
@@ -65,14 +61,14 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"dotnet_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringInSlice([]string{ // Note: DotNet versions are abstracted between API and Portal displayed values, so do not match 1:1. A table of the converted values is provided in the resource doc.
 						"v2.0",
 						"v3.0",
@@ -82,6 +78,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 						"v7.0",
 						"v8.0",
 						"v9.0",
+						"v10.0",
 					}, false),
 					AtLeastOneOf: windowsApplicationStackConstraint,
 				},
@@ -99,7 +96,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				"php_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringInSlice([]string{
 						PhpVersionSevenPointOne,  // Deprecated
 						PhpVersionSevenPointFour, // Deprecated
@@ -123,6 +120,8 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 						"~16",
 						"~18",
 						"~20",
+						"~22",
+						"~24",
 					}, false),
 					AtLeastOneOf: windowsApplicationStackConstraint,
 				},
@@ -137,7 +136,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				"java_embedded_server_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					ConflictsWith: []string{
 						"site_config.0.application_stack.0.tomcat_version",
 					},
@@ -214,7 +213,8 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				"current_stack": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true, // This will be set to the configured type from above if not explicitly set
+					// Note: O+C because This will be set to the configured type from above if not explicitly set
+					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"dotnet",
 						"dotnetcore",
@@ -329,9 +329,6 @@ type ApplicationStackLinux struct {
 	JavaVersion         string `tfschema:"java_version"`
 	JavaServer          string `tfschema:"java_server"`
 	JavaServerVersion   string `tfschema:"java_server_version"`
-	DockerImageTag      string `tfschema:"docker_image_tag,removedInNextMajorVersion"`
-	DockerImage         string `tfschema:"docker_image,removedInNextMajorVersion"`
-	RubyVersion         string `tfschema:"ruby_version"`
 
 	DockerRegistryUrl      string `tfschema:"docker_registry_url"`
 	DockerRegistryUsername string `tfschema:"docker_registry_username"`
@@ -346,7 +343,6 @@ var linuxApplicationStackConstraint = []string{
 	"site_config.0.application_stack.0.node_version",
 	"site_config.0.application_stack.0.php_version",
 	"site_config.0.application_stack.0.python_version",
-	"site_config.0.application_stack.0.ruby_version",
 	"site_config.0.application_stack.0.go_version",
 }
 
@@ -354,7 +350,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -368,6 +364,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"7.0",
 						"8.0",
 						"9.0",
+						"10.0",
 					}, false),
 					ExactlyOneOf: linuxApplicationStackConstraint,
 				},
@@ -391,6 +388,8 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"8.1",
 						"8.2",
 						"8.3",
+						"8.4",
+						"8.5",
 					}, false),
 					ExactlyOneOf: linuxApplicationStackConstraint,
 				},
@@ -405,6 +404,8 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"3.10",
 						"3.11",
 						"3.12",
+						"3.13",
+						"3.14",
 					}, false),
 					ExactlyOneOf: linuxApplicationStackConstraint,
 				},
@@ -419,16 +420,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"18-lts",
 						"20-lts",
 						"22-lts",
-					}, false),
-					ExactlyOneOf: linuxApplicationStackConstraint,
-				},
-
-				"ruby_version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						"2.6", // TODO: 4.0 Deprecated - accepted but not offered in the portal. Remove in 4.0
-						"2.7", // TODO: 4.0 EOL 31/03/2023 https://github.com/Azure/app-service-linux-docs/blob/master/Runtime_Support/ruby_support.md Remove Ruby support in 4.0?
+						"24-lts",
 					}, false),
 					ExactlyOneOf: linuxApplicationStackConstraint,
 				},
@@ -441,6 +433,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"11",
 						"17",
 						"21",
+						"25",
 					}, false),
 					ExactlyOneOf: linuxApplicationStackConstraint,
 					RequiredWith: []string{
@@ -526,11 +519,6 @@ func linuxApplicationStackSchemaComputed() *pluginsdk.Schema {
 				},
 
 				"node_version": { // Discarded by service if JavaVersion is specified
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"ruby_version": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},

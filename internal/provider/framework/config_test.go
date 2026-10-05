@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package framework
@@ -26,15 +26,16 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 		t.Skip("ARM_CLIENT_SECRET env var not set")
 	}
 
-	// Skip enhanced validation
-	t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION", "false")
-
 	testData := &ProviderModel{
 		ResourceProviderRegistrations: types.StringValue("none"),
 		Features:                      defaultFeaturesList(),
 	}
 
-	testConfig.Load(context.Background(), testData, "unittest", &diag.Diagnostics{})
+	diags := new(diag.Diagnostics)
+	testConfig.Load(context.Background(), testData, "unittest", diags)
+	if diags.HasError() {
+		t.Fatalf("failed to configure provider: %+v ", diags.Errors())
+	}
 
 	if testConfig.Client == nil {
 		t.Fatal("client nil after Load")
@@ -66,6 +67,14 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 	}
 
 	features := client.Features
+
+	if features.PersistIDOnCreateBeforePollingForCompletion {
+		t.Error("expected `persist_id_on_create_before_polling_for_completion` to be false")
+	}
+
+	if features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		t.Error("expected `skip_import_check_on_create_and_allow_overwriting_existing_resources` to be false")
+	}
 
 	if !features.ApiManagement.PurgeSoftDeleteOnDestroy {
 		t.Errorf("expected api_management.purge_soft_delete_on_destroy to be true")
@@ -135,8 +144,8 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 		t.Errorf("expected key_vault.recover_soft_deleted_hsm_keys to be true")
 	}
 
-	if !features.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy {
-		t.Errorf("expected log_analytics_workspace.permanently_delete_on_destroy to be true")
+	if features.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy {
+		t.Errorf("expected log_analytics_workspace.permanently_delete_on_destroy to be false")
 	}
 
 	if features.TemplateDeployment.DeleteNestedItemsDuringDeletion {
@@ -149,10 +158,6 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 
 	if features.VirtualMachine.DetachImplicitDataDiskOnDeletion {
 		t.Errorf("expected virtual_machine.detach_implicit_data_disk_on_deletion to be false")
-	}
-
-	if features.VirtualMachine.GracefulShutdown {
-		t.Errorf("expected virtual_machine.graceful_shutdown to be false")
 	}
 
 	if features.VirtualMachine.SkipShutdownAndForceDelete {
@@ -214,6 +219,18 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 	if !features.NetApp.PreventVolumeDestruction {
 		t.Errorf("expected netapp.PreventVolumeDestruction to be true")
 	}
+
+	if features.DatabricksWorkspace.ForceDelete {
+		t.Errorf("expected databricks_workspace.ForceDelete to be false")
+	}
+
+	if features.EnhancedValidation.PreflightEnabled {
+		t.Errorf("expected enhanced_validation.preflight_enabled to be false")
+	}
+
+	if features.ServiceBus.AutoDeleteSubscriptionDefaultRule {
+		t.Errorf("expected servicebus.AutoDeleteSubscriptionDefaultRule to be false")
+	}
 }
 
 // TODO - helper functions to make setting up test date more easily so we can add more configuration coverage
@@ -266,7 +283,6 @@ func defaultFeaturesList() types.List {
 
 	virtualMachine, _ := basetypes.NewObjectValueFrom(context.Background(), VirtualMachineAttributes, map[string]attr.Value{
 		"delete_os_disk_on_deletion":     basetypes.NewBoolNull(),
-		"graceful_shutdown":              basetypes.NewBoolNull(),
 		"skip_shutdown_and_force_delete": basetypes.NewBoolNull(),
 	})
 	virtualMachineList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(VirtualMachineAttributes), []attr.Value{virtualMachine})
@@ -329,7 +345,29 @@ func defaultFeaturesList() types.List {
 	})
 	netappList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(NetAppAttributes), []attr.Value{netapp})
 
+	databricksWorkspace, _ := basetypes.NewObjectValueFrom(context.Background(), DatabricksWorkspaceAttributes, map[string]attr.Value{
+		"force_delete": basetypes.NewBoolNull(),
+	})
+	databricksWorkspaceList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(DatabricksWorkspaceAttributes), []attr.Value{databricksWorkspace})
+
+	enhancedValidation, _ := basetypes.NewObjectValueFrom(context.Background(), EnhancedValidationModelAttributes, map[string]attr.Value{
+		"locations":                   basetypes.NewBoolNull(),
+		"resource_providers":          basetypes.NewBoolNull(),
+		"preflight_enabled":           basetypes.NewBoolNull(),
+		"preflight_location_fallback": basetypes.NewStringNull(),
+	})
+	enhancedValidationList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(EnhancedValidationModelAttributes), []attr.Value{enhancedValidation})
+
+	servicebus, _ := basetypes.NewObjectValueFrom(context.Background(), ServiceBusAttributes, map[string]attr.Value{
+		"auto_delete_subscription_default_rule": basetypes.NewBoolNull(),
+	})
+	servicebusList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(ServiceBusAttributes), []attr.Value{servicebus})
+
 	fData, d := basetypes.NewObjectValue(FeaturesAttributes, map[string]attr.Value{
+		"persist_id_on_create_before_polling_for_completion":                   basetypes.NewBoolNull(),
+		"skip_import_check_on_create_and_allow_overwriting_existing_resources": basetypes.NewBoolNull(),
+
+		"enhanced_validation":        enhancedValidationList,
 		"api_management":             apiManagementList,
 		"app_configuration":          appConfigurationList,
 		"application_insights":       applicationInsightsList,
@@ -348,6 +386,8 @@ func defaultFeaturesList() types.List {
 		"recovery_service":           recoveryServicesList,
 		"recovery_services_vaults":   recoveryServicesVaultsList,
 		"netapp":                     netappList,
+		"databricks_workspace":       databricksWorkspaceList,
+		"servicebus":                 servicebusList,
 	})
 
 	fmt.Printf("%+v", d)

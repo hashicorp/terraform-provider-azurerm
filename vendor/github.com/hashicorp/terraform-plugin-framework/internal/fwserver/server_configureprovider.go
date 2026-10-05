@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package fwserver
@@ -38,4 +38,7 @@ func (s *Server) ConfigureProvider(ctx context.Context, req *provider.ConfigureR
 	s.DataSourceConfigureData = resp.DataSourceData
 	s.ResourceConfigureData = resp.ResourceData
 	s.EphemeralResourceConfigureData = resp.EphemeralResourceData
+	s.ActionConfigureData = resp.ActionData
+	s.ListResourceConfigureData = resp.ListResourceData
+	s.StateStoreProviderData = resp.StateStoreData
 }

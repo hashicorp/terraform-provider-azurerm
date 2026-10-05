@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn
@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -36,7 +36,7 @@ func dataSourceCdnFrontDoorProfile() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 			"response_timeout_seconds": {
 				Type:     pluginsdk.TypeInt,
@@ -46,6 +46,19 @@ func dataSourceCdnFrontDoorProfile() *pluginsdk.Resource {
 			"sku_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
+			},
+
+			"log_scrubbing_rule": {
+				Type:     pluginsdk.TypeSet,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"match_variable": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 
 			"tags": commonschema.TagsDataSource(),
@@ -58,7 +71,7 @@ func dataSourceCdnFrontDoorProfile() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorProfilesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -81,10 +94,10 @@ func dataSourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta interface
 		d.Set("resource_group_name", id.ResourceGroupName)
 
 		if skuName := model.Sku.Name; skuName != nil {
-			d.Set("sku_name", string(pointer.From(skuName)))
+			d.Set("sku_name", pointer.FromEnum(skuName))
 		}
 
-		if identity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity); err == nil {
+		if identity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity); err == nil {
 			d.Set("identity", identity)
 		}
 
@@ -94,6 +107,10 @@ func dataSourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta interface
 			// whilst this is returned in the API as FrontDoorID other resources refer to
 			// this as the Resource GUID, so we will for consistency
 			d.Set("resource_guid", pointer.From(props.FrontDoorId))
+
+			if err := d.Set("log_scrubbing_rule", flattenCdnFrontDoorProfileLogScrubbingRules(props.LogScrubbing)); err != nil {
+				return fmt.Errorf("setting `log_scrubbing_rule`: %+v", err)
+			}
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {

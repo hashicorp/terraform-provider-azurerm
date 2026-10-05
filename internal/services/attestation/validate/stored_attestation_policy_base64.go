@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -13,7 +13,7 @@ import (
 	"github.com/jackofallops/kermit/sdk/attestation/2022-08-01/attestation"
 )
 
-func ContainsABase64UriEncodedJWTOfAStoredAttestationPolicy(value interface{}, key string) (warnings []string, errs []error) {
+func ContainsABase64UriEncodedJWTOfAStoredAttestationPolicy(value any, key string) (warnings []string, errs []error) {
 	v, ok := value.(string)
 	if !ok {
 		errs = append(errs, fmt.Errorf("%q cannot be an empty string", key))

@@ -79,7 +79,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Microsoft SQL Virtual Machine Group.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Microsoft SQL Virtual Machine Group.
@@ -94,5 +94,8 @@ Microsoft SQL Virtual Machine Groups can be imported using the `resource id`, e.
 terraform import azurerm_mssql_virtual_machine_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SqlVirtualMachine/sqlVirtualMachineGroups/vmgroup1
 ```
 
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
 
-
+* `Microsoft.SqlVirtualMachine` - 2023-10-01

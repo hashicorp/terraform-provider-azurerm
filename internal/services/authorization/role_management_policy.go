@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package authorization
@@ -156,8 +156,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 		}
 	}
 
-	if metadata.ResourceData.HasChange("activation_rules.0.require_approval") ||
-		metadata.ResourceData.HasChange("activation_rules.0.approval_stage") {
+	if metadata.ResourceData.HasChanges("activation_rules.0.require_approval", "activation_rules.0.approval_stage") {
 		if approvalEndUserAssignmentBase, ok := existingRules["Approval_EndUser_Assignment"]; ok {
 			if approvalEndUserAssignment, ok := approvalEndUserAssignmentBase.(rolemanagementpolicies.RoleManagementPolicyApprovalRule); ok {
 				if len(model.ActivationRules) == 1 {
@@ -181,7 +180,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 								for ia, approver := range stage.PrimaryApprovers {
 									primaryApprovers[ia] = rolemanagementpolicies.UserSet{
 										Id:       pointer.To(approver.ID),
-										UserType: pointer.To(rolemanagementpolicies.UserType(approver.Type)),
+										UserType: pointer.ToEnum[rolemanagementpolicies.UserType](approver.Type),
 									}
 								}
 
@@ -214,9 +213,11 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 		}
 	}
 
-	if metadata.ResourceData.HasChange("activation_rules.0.require_multifactor_authentication") ||
-		metadata.ResourceData.HasChange("activation_rules.0.require_justification") ||
-		metadata.ResourceData.HasChange("activation_rules.0.require_ticket_info") {
+	if metadata.ResourceData.HasChanges(
+		"activation_rules.0.require_multifactor_authentication",
+		"activation_rules.0.require_justification",
+		"activation_rules.0.require_ticket_info",
+	) {
 		if enablementEndUserAssignmentBase, ok := existingRules["Enablement_EndUser_Assignment"]; ok {
 			if enablementEndUserAssignment, ok := enablementEndUserAssignmentBase.(rolemanagementpolicies.RoleManagementPolicyEnablementRule); ok {
 				enabledRules := make([]rolemanagementpolicies.EnablementRules, 0)
@@ -244,7 +245,8 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 				if len(model.NotificationRules) == 1 {
 					if len(model.NotificationRules[0].EligibleAssignments) == 1 {
 						if len(model.NotificationRules[0].EligibleAssignments[0].AdminNotifications) == 1 {
-							updatedRules = append(updatedRules,
+							updatedRules = append(
+								updatedRules,
 								expandNotificationSettings(
 									notificationAdminAdminEligibility,
 									model.NotificationRules[0].EligibleAssignments[0].AdminNotifications[0],
@@ -264,7 +266,8 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 				if len(model.NotificationRules) == 1 {
 					if len(model.NotificationRules[0].ActiveAssignments) == 1 {
 						if len(model.NotificationRules[0].ActiveAssignments[0].AdminNotifications) == 1 {
-							updatedRules = append(updatedRules,
+							updatedRules = append(
+								updatedRules,
 								expandNotificationSettings(
 									notificationAdminAdminAssignment,
 									model.NotificationRules[0].ActiveAssignments[0].AdminNotifications[0],
@@ -284,7 +287,8 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 				if len(model.NotificationRules) == 1 {
 					if len(model.NotificationRules[0].EligibleActivations) == 1 {
 						if len(model.NotificationRules[0].EligibleActivations[0].AdminNotifications) == 1 {
-							updatedRules = append(updatedRules,
+							updatedRules = append(
+								updatedRules,
 								expandNotificationSettings(
 									notificationAdminEndUserAssignment,
 									model.NotificationRules[0].EligibleActivations[0].AdminNotifications[0],
@@ -304,7 +308,8 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 				if len(model.NotificationRules) == 1 {
 					if len(model.NotificationRules[0].EligibleAssignments) == 1 {
 						if len(model.NotificationRules[0].EligibleAssignments[0].ApproverNotifications) == 1 {
-							updatedRules = append(updatedRules,
+							updatedRules = append(
+								updatedRules,
 								expandNotificationSettings(
 									notificationApproverAdminEligibility,
 									model.NotificationRules[0].EligibleAssignments[0].ApproverNotifications[0],
@@ -324,7 +329,8 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 				if len(model.NotificationRules) == 1 {
 					if len(model.NotificationRules[0].ActiveAssignments) == 1 {
 						if len(model.NotificationRules[0].ActiveAssignments[0].ApproverNotifications) == 1 {
-							updatedRules = append(updatedRules,
+							updatedRules = append(
+								updatedRules,
 								expandNotificationSettings(
 									notificationApproverAdminAssignment,
 									model.NotificationRules[0].ActiveAssignments[0].ApproverNotifications[0],
@@ -344,7 +350,8 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 				if len(model.NotificationRules) == 1 {
 					if len(model.NotificationRules[0].EligibleActivations) == 1 {
 						if len(model.NotificationRules[0].EligibleActivations[0].ApproverNotifications) == 1 {
-							updatedRules = append(updatedRules,
+							updatedRules = append(
+								updatedRules,
 								expandNotificationSettings(
 									notificationApproverEndUserAssignment,
 									model.NotificationRules[0].EligibleActivations[0].ApproverNotifications[0],
@@ -364,7 +371,8 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 				if len(model.NotificationRules) == 1 {
 					if len(model.NotificationRules[0].EligibleAssignments) == 1 {
 						if len(model.NotificationRules[0].EligibleAssignments[0].AssigneeNotifications) == 1 {
-							updatedRules = append(updatedRules,
+							updatedRules = append(
+								updatedRules,
 								expandNotificationSettings(
 									notificationRequestorAdminEligibility,
 									model.NotificationRules[0].EligibleAssignments[0].AssigneeNotifications[0],
@@ -384,7 +392,8 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 				if len(model.NotificationRules) == 1 {
 					if len(model.NotificationRules[0].ActiveAssignments) == 1 {
 						if len(model.NotificationRules[0].ActiveAssignments[0].AssigneeNotifications) == 1 {
-							updatedRules = append(updatedRules,
+							updatedRules = append(
+								updatedRules,
 								expandNotificationSettings(
 									notificationRequestorAdminAssignment,
 									model.NotificationRules[0].ActiveAssignments[0].AssigneeNotifications[0],
@@ -404,7 +413,8 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 				if len(model.NotificationRules) == 1 {
 					if len(model.NotificationRules[0].EligibleActivations) == 1 {
 						if len(model.NotificationRules[0].EligibleActivations[0].AssigneeNotifications) == 1 {
-							updatedRules = append(updatedRules,
+							updatedRules = append(
+								updatedRules,
 								expandNotificationSettings(
 									notificationRequestorEndUserAssignment,
 									model.NotificationRules[0].EligibleActivations[0].AssigneeNotifications[0],
@@ -430,7 +440,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 
 func expandNotificationSettings(rule rolemanagementpolicies.RoleManagementPolicyNotificationRule, data RoleManagementPolicyNotificationSettings, recipientChange bool) rolemanagementpolicies.RoleManagementPolicyRule {
 	if pointer.From(rule.NotificationLevel) != rolemanagementpolicies.NotificationLevel(data.NotificationLevel) {
-		rule.NotificationLevel = pointer.To(rolemanagementpolicies.NotificationLevel(data.NotificationLevel))
+		rule.NotificationLevel = pointer.ToEnum[rolemanagementpolicies.NotificationLevel](data.NotificationLevel)
 	}
 
 	if pointer.From(rule.IsDefaultRecipientsEnabled) != data.DefaultRecipients {
@@ -446,7 +456,7 @@ func expandNotificationSettings(rule rolemanagementpolicies.RoleManagementPolicy
 
 func flattenNotificationSettings(rule rolemanagementpolicies.RoleManagementPolicyNotificationRule) *RoleManagementPolicyNotificationSettings {
 	return &RoleManagementPolicyNotificationSettings{
-		NotificationLevel:    string(pointer.From(rule.NotificationLevel)),
+		NotificationLevel:    pointer.FromEnum(rule.NotificationLevel),
 		DefaultRecipients:    pointer.From(rule.IsDefaultRecipientsEnabled),
 		AdditionalRecipients: pointer.From(rule.NotificationRecipients),
 	}
