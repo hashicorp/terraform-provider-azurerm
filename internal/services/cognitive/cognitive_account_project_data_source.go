@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesprojects"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/cognitiveservicesprojects"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/validate"
@@ -41,7 +41,7 @@ func (r CognitiveAccountProjectDataSource) ResourceType() string {
 	return "azurerm_cognitive_account_project"
 }
 
-func (r CognitiveAccountProjectDataSource) ModelObject() interface{} {
+func (r CognitiveAccountProjectDataSource) ModelObject() any {
 	return &CognitiveAccountProjectDataSourceModel{}
 }
 

@@ -149,7 +149,7 @@ func TestAccDnsAAAARecord_RecordsToAlias(t *testing.T) {
 	})
 }
 
-func TestAccDnsAaaaRecord_AliasToRecords(t *testing.T) {
+func TestAccDnsAAAARecord_AliasToRecords(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_aaaa_record", "test")
 	r := DnsAAAARecordResource{}
 	targetResourceName := "azurerm_public_ip.test"
@@ -359,7 +359,7 @@ resource "azurerm_public_ip" "test" {
   name                = "mypublicip%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
   ip_version          = "IPv6"
 }
 
@@ -393,7 +393,7 @@ resource "azurerm_public_ip" "test2" {
   name                = "mypublicip%d2"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
   ip_version          = "IPv6"
 }
 
@@ -427,7 +427,7 @@ resource "azurerm_public_ip" "test" {
   name                = "mypublicip%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
   ip_version          = "IPv6"
 }
 

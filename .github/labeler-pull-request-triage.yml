@@ -424,10 +424,10 @@ service/notifications:
   - any-glob-to-any-file:
     - internal/services/notificationhub/**/*
 
-service/orbital:
+service/oracle:
 - changed-files:
   - any-glob-to-any-file:
-    - internal/services/orbital/**/*
+    - internal/services/oracle/**/*
 
 service/paloalto:
 - changed-files:
@@ -484,7 +484,6 @@ service/redis:
   - any-glob-to-any-file:
     - internal/services/managedredis/**/*
     - internal/services/redis/**/*
-    - internal/services/redisenterprise/**/*
 
 service/relay:
 - changed-files:
