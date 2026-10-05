@@ -56,6 +56,7 @@ const (
 	RollingUpgradeStatusCodeCancelled      RollingUpgradeStatusCode = "Cancelled"
 	RollingUpgradeStatusCodeCompleted      RollingUpgradeStatusCode = "Completed"
 	RollingUpgradeStatusCodeFaulted        RollingUpgradeStatusCode = "Faulted"
+	RollingUpgradeStatusCodeRollingBack    RollingUpgradeStatusCode = "RollingBack"
 	RollingUpgradeStatusCodeRollingForward RollingUpgradeStatusCode = "RollingForward"
 )
 
@@ -64,6 +65,7 @@ func PossibleValuesForRollingUpgradeStatusCode() []string {
 		string(RollingUpgradeStatusCodeCancelled),
 		string(RollingUpgradeStatusCodeCompleted),
 		string(RollingUpgradeStatusCodeFaulted),
+		string(RollingUpgradeStatusCodeRollingBack),
 		string(RollingUpgradeStatusCodeRollingForward),
 	}
 }
@@ -86,6 +88,7 @@ func parseRollingUpgradeStatusCode(input string) (*RollingUpgradeStatusCode, err
 		"cancelled":      RollingUpgradeStatusCodeCancelled,
 		"completed":      RollingUpgradeStatusCodeCompleted,
 		"faulted":        RollingUpgradeStatusCodeFaulted,
+		"rollingback":    RollingUpgradeStatusCodeRollingBack,
 		"rollingforward": RollingUpgradeStatusCodeRollingForward,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {

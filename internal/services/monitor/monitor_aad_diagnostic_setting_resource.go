@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azureactivedirectory/2017-04-01/diagnosticsettings"
-	authRuleParse "github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationrulesnamespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationrulesnamespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
@@ -67,7 +67,7 @@ func resourceMonitorAADDiagnosticSetting() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: authRuleParse.ValidateAuthorizationRuleID,
+				ValidateFunc: authorizationrulesnamespaces.ValidateAuthorizationRuleID,
 				AtLeastOneOf: []string{"eventhub_authorization_rule_id", "log_analytics_workspace_id", "storage_account_id"},
 			},
 
@@ -102,7 +102,7 @@ func resourceMonitorAADDiagnosticSetting() *pluginsdk.Resource {
 	}
 }
 
-func resourceMonitorAADDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorAADDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.AADDiagnosticSettingsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -174,7 +174,7 @@ func resourceMonitorAADDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta i
 	return resourceMonitorAADDiagnosticSettingRead(d, meta)
 }
 
-func resourceMonitorAADDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorAADDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.AADDiagnosticSettingsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -246,7 +246,7 @@ func resourceMonitorAADDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta i
 	return resourceMonitorAADDiagnosticSettingRead(d, meta)
 }
 
-func resourceMonitorAADDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorAADDiagnosticSettingRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.AADDiagnosticSettingsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -275,7 +275,7 @@ func resourceMonitorAADDiagnosticSettingRead(d *pluginsdk.ResourceData, meta int
 
 			eventhubAuthorizationRuleId := ""
 			if props.EventHubAuthorizationRuleId != nil && *props.EventHubAuthorizationRuleId != "" {
-				parsedId, err := authRuleParse.ParseAuthorizationRuleIDInsensitively(*props.EventHubAuthorizationRuleId)
+				parsedId, err := authorizationrulesnamespaces.ParseAuthorizationRuleIDInsensitively(*props.EventHubAuthorizationRuleId)
 				if err != nil {
 					return err
 				}
@@ -315,7 +315,7 @@ func resourceMonitorAADDiagnosticSettingRead(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func resourceMonitorAADDiagnosticSettingDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorAADDiagnosticSettingDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.AADDiagnosticSettingsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -342,17 +342,17 @@ func resourceMonitorAADDiagnosticSettingDelete(d *pluginsdk.ResourceData, meta i
 	return nil
 }
 
-func expandMonitorAADDiagnosticsSettingsEnabledLogs(input []interface{}) []diagnosticsettings.LogSettings {
+func expandMonitorAADDiagnosticsSettingsEnabledLogs(input []any) []diagnosticsettings.LogSettings {
 	results := make([]diagnosticsettings.LogSettings, 0)
 
 	for _, raw := range input {
 		if raw == nil {
 			continue
 		}
-		v := raw.(map[string]interface{})
+		v := raw.(map[string]any)
 
 		logSettings := diagnosticsettings.LogSettings{
-			Category: pointer.To(diagnosticsettings.Category(v["category"].(string))),
+			Category: pointer.ToEnum[diagnosticsettings.Category](v["category"].(string)),
 			Enabled:  true,
 		}
 
@@ -362,8 +362,8 @@ func expandMonitorAADDiagnosticsSettingsEnabledLogs(input []interface{}) []diagn
 	return results
 }
 
-func flattenMonitorAADDiagnosticEnabledLogs(input *[]diagnosticsettings.LogSettings) []interface{} {
-	results := make([]interface{}, 0)
+func flattenMonitorAADDiagnosticEnabledLogs(input *[]diagnosticsettings.LogSettings) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
@@ -378,7 +378,7 @@ func flattenMonitorAADDiagnosticEnabledLogs(input *[]diagnosticsettings.LogSetti
 			category = string(*v.Category)
 		}
 
-		result := map[string]interface{}{
+		result := map[string]any{
 			"category": category,
 		}
 
@@ -391,9 +391,9 @@ func flattenMonitorAADDiagnosticEnabledLogs(input *[]diagnosticsettings.LogSetti
 var _ pollers.PollerType = &waitForAADDiagnosticSettingToBeGonePoller{}
 
 type waitForAADDiagnosticSettingToBeGonePoller struct {
-	client                    *diagnosticsettings.DiagnosticSettingsClient
-	id                        diagnosticsettings.DiagnosticSettingId
-	continuousTargetOccurence int
+	client                     *diagnosticsettings.DiagnosticSettingsClient
+	id                         diagnosticsettings.DiagnosticSettingId
+	continuousTargetOccurrence int
 }
 
 func (p *waitForAADDiagnosticSettingToBeGonePoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
@@ -403,7 +403,7 @@ func (p *waitForAADDiagnosticSettingToBeGonePoller) Poll(ctx context.Context) (*
 	}
 
 	if response.WasNotFound(resp.HttpResponse) {
-		if p.continuousTargetOccurence >= 3 {
+		if p.continuousTargetOccurrence >= 3 {
 			return &pollers.PollResult{
 				HttpResponse: &client.Response{
 					Response: resp.HttpResponse,
@@ -412,9 +412,9 @@ func (p *waitForAADDiagnosticSettingToBeGonePoller) Poll(ctx context.Context) (*
 				Status:       pollers.PollingStatusSucceeded,
 			}, nil
 		}
-		p.continuousTargetOccurence++
+		p.continuousTargetOccurrence++
 	} else {
-		p.continuousTargetOccurence = 0
+		p.continuousTargetOccurrence = 0
 	}
 
 	return &pollers.PollResult{
