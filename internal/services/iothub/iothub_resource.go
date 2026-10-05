@@ -878,12 +878,6 @@ func resourceIotHubUpdate(d *pluginsdk.ResourceData, meta any) error {
 		}
 	}
 
-	if d.HasChange("data_residency_enabled") {
-		if v, ok := d.GetOk("data_residency_enabled"); ok {
-			prop.EnableDataResidency = pointer.To(v.(bool))
-		}
-	}
-
 	if d.HasChange("event_hub_retention_in_days") {
 		retention, retentionOk := d.GetOk("event_hub_retention_in_days")
 		if prop.EventHubEndpoints == nil {
