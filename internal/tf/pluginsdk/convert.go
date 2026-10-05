@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package pluginsdk
 
 import (
@@ -6,7 +9,7 @@ import (
 )
 
 // GoValueFromTerraformValue returns a pointer to the Native Go value for the provided input cty.Value
-// If the input value is null, a nil pointer for the type is returned.
+// If the input value is null, a pointer to the zero-value for the type is returned.
 // This is a generics function, usage requires supplying the expected type.
 // e.g. out, err := GoValueFromTerraformValue[string](someVal)
 // NOTE: This helper is experimental and should only be used by Hashicorp maintainers until further notice

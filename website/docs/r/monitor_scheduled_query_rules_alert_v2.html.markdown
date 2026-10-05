@@ -87,6 +87,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "example" {
       key  = "value"
       key2 = "value2"
     }
+    email_subject = "Email Header"
   }
 
   identity {
@@ -116,7 +117,7 @@ The following arguments are supported:
 
 * `criteria` - (Required) A `criteria` block as defined below.
 
-* `evaluation_frequency` - (Optional) How often the scheduled query rule is evaluated, represented in ISO 8601 duration format. Possible values are `PT1M`, `PT5M`, `PT10M`, `PT15M`, `PT30M`, `PT45M`, `PT1H`, `PT2H`, `PT3H`, `PT4H`, `PT5H`, `PT6H`, `P1D`.
+* `evaluation_frequency` - (Required) How often the scheduled query rule is evaluated, represented in ISO 8601 duration format. Possible values are `PT1M`, `PT5M`, `PT10M`, `PT15M`, `PT30M`, `PT45M`, `PT1H`, `PT2H`, `PT3H`, `PT4H`, `PT5H`, `PT6H`, `P1D`.
 
 -> **Note:** `evaluation_frequency` cannot be greater than the query look back which is `window_duration`*`number_of_evaluation_periods`.
 
@@ -163,6 +164,8 @@ An `action` block supports the following:
 * `action_groups` - (Optional) List of Action Group resource IDs to invoke when the alert fires.
 
 * `custom_properties` - (Optional) Specifies the properties of an alert payload.
+
+* `email_subject` - (Optional) Custom subject override for all email ids in Azure action group.
 
 ---
 
@@ -216,7 +219,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Scheduled Query Rule.
 
-~> **Note:** This is required when `type` is set to `UserAssigned`. The identity associated must have required roles, read the [Azure documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-create-log-alert-rule#configure-the-alert-rule-details) for more information.
+~> **Note:** This is required when `type` is set to `UserAssigned`. The identity associated must have required roles, read the [Azure documentation](https://learn.microsoft.com/azure/azure-monitor/alerts/alerts-create-log-alert-rule#configure-the-alert-rule-details) for more information.
 
 ## Attributes Reference
 
@@ -244,7 +247,7 @@ A `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Monitor Scheduled Query Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Monitor Scheduled Query Rule.

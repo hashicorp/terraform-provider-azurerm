@@ -37,7 +37,7 @@ The following arguments are supported:
 
 * `ingestion_access_mode` - (Optional) The default ingestion access mode for the associated private endpoints in scope. Possible values are `Open` and `PrivateOnly`. Defaults to `Open`.
 
-* `query_access_mode` - (Optional) The default query access mode for hte associated private endpoints in scope. Possible values are `Open` and `PrivateOnly`. Defaults to `Open`.
+* `query_access_mode` - (Optional) The default query access mode for the associated private endpoints in scope. Possible values are `Open` and `PrivateOnly`. Defaults to `Open`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Azure Monitor Private Link Scope.
 
@@ -49,7 +49,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Azure Monitor Private Link Scope.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure Monitor Private Link Scope.

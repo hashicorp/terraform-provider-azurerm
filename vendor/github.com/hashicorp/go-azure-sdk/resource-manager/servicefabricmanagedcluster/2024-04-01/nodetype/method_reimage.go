@@ -61,9 +61,20 @@ func (c NodeTypeClient) Reimage(ctx context.Context, id NodeTypeId, input NodeTy
 
 // ReimageThenPoll performs Reimage then polls until it's completed
 func (c NodeTypeClient) ReimageThenPoll(ctx context.Context, id NodeTypeId, input NodeTypeActionParameters) error {
+	return c.ReimageCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ReimageCallbackThenPoll performs Reimage, runs the optional callback function, then polls until it's completed
+func (c NodeTypeClient) ReimageCallbackThenPoll(ctx context.Context, id NodeTypeId, input NodeTypeActionParameters, callback func() error) error {
 	result, err := c.Reimage(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Reimage: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -102,6 +102,8 @@ The following arguments are supported:
 
 ~> **Note:** Currently only one region can be specified for `managed_virtual_network_regions`.
 
+* `single_sign_on_enabled` - (Optional) Specifies whether Dev Boxes in the Pool will have SSO enabled or disabled. Defaults to `false`.
+
 * `stop_on_disconnect_grace_period_minutes` - (Optional) The specified time in minutes to wait before stopping a Dev Center Dev Box once disconnect is detected. Possible values are between `60` and `480`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Dev Center Project Pool.
@@ -114,7 +116,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Dev Center Project Pool.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Dev Center Project Pool.

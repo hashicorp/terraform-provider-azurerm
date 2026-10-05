@@ -43,7 +43,7 @@ The following arguments are supported:
 
 * `description` - (Optional) The description for this Local Rulestack.
 
-* `dns_subscription` - (Optional) TThe setting to use for DNS Subscription. Possible values include `BestPractice`, and `Custom`.
+* `dns_subscription` - (Optional) The setting to use for DNS Subscription. Possible values include `BestPractice`, and `Custom`.
 
 * `file_blocking_profile` - (Optional) The setting to use for the File Blocking Profile. Possible values include `BestPractice`, and `Custom`.
 
@@ -59,7 +59,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Palo Alto Networks Rulestack.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Palo Alto Networks Rulestack.
@@ -78,4 +78,4 @@ terraform import azurerm_palo_alto_local_rulestack.example /subscriptions/000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `PaloAltoNetworks.Cloudngfw` - 2022-08-29
+* `PaloAltoNetworks.Cloudngfw` - 2025-10-08

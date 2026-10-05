@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package resource
@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/hashicorp/terraform-exec/tfexec"
 	tfjson "github.com/hashicorp/terraform-json"
@@ -28,6 +29,13 @@ var expectNonEmptyPlanOutputChangesMinTFVersion = tfversion.Version0_14_0
 
 func testStepNewConfig(ctx context.Context, t testing.T, c TestCase, wd *plugintest.WorkingDir, step TestStep, providers *providerFactories, stepIndex int, helper *plugintest.Helper) error {
 	t.Helper()
+
+	// When `refreshAfterApply` is true, a `Config`-mode test step will invoke
+	// a refresh before successful completion. This is a compatibility measure
+	// for test cases that have different -- but semantically-equal -- state
+	// representations in their test steps. When comparing two states, the
+	// testing framework is not aware of semantic equality or set equality.
+	_, refreshAfterApply := os.LookupEnv(EnvTfAccRefreshAfterApply)
 
 	configRequest := teststep.PrepareConfigurationRequest{
 		Directory: step.ConfigDirectory,
@@ -173,6 +181,17 @@ func testStepNewConfig(ctx context.Context, t testing.T, c TestCase, wd *plugint
 
 			if err != nil {
 				return fmt.Errorf("Error retrieving pre-apply state: %w", err)
+			}
+
+			// Create Destroy Plan
+			err = runProviderCommand(ctx, t, wd, providers, func() error {
+				var opts []tfexec.PlanOption
+				opts = append(opts, tfexec.Destroy(true))
+
+				return wd.CreatePlan(ctx, opts...)
+			})
+			if err != nil {
+				return fmt.Errorf("Error running destroy plan after step.Check shimmed state was retrieved: %w", err)
 			}
 		}
 
@@ -435,9 +454,30 @@ func testStepNewConfig(ctx context.Context, t testing.T, c TestCase, wd *plugint
 		// this fails. If refresh isn't read-only, then this will have
 		// caught a different bug.
 		if idRefreshCheck != nil {
+			fmt.Println("Not Writing by testing ID Refresh")
 			if err := testIDRefresh(ctx, t, c, wd, step, idRefreshCheck, providers, stepIndex, helper); err != nil {
 				return fmt.Errorf(
 					"[ERROR] Test: ID-only test failed: %s", err)
+			}
+		}
+	}
+
+	if step.PostApplyFunc != nil {
+		logging.HelperResourceDebug(ctx, "Calling TestCase PostApplyFunc")
+		step.PostApplyFunc()
+		logging.HelperResourceDebug(ctx, "Called TestCase PostApplyFunc")
+	}
+
+	if refreshAfterApply && !step.Destroy && !step.PlanOnly && !step.ExpectNonEmptyPlan {
+		if len(c.Steps) > stepIndex+1 {
+			// If the next step is a refresh, then we have no need to refresh here
+			if !c.Steps[stepIndex+1].RefreshState {
+				// Log a searchable message to easily determine when this is no longer being used
+				logging.HelperResourceDebug(ctx, EnvTfAccRefreshAfterApply+": running apply -refresh-only -refresh=true")
+				err := runProviderCommandApplyRefreshOnly(ctx, t, wd, providers)
+				if err != nil {
+					return fmt.Errorf("Error running apply refresh-only: %w", err)
+				}
 			}
 		}
 	}
