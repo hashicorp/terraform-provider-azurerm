@@ -116,7 +116,7 @@ func resourceSentinelAlertRuleMsSecurityIncident() *pluginsdk.Resource {
 	}
 }
 
-func resourceSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -185,7 +185,7 @@ func resourceSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *pluginsdk.Resour
 	return resourceSentinelAlertRuleMsSecurityIncidentRead(d, meta)
 }
 
-func resourceSentinelAlertRuleMsSecurityIncidentRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleMsSecurityIncidentRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -239,7 +239,7 @@ func resourceSentinelAlertRuleMsSecurityIncidentRead(d *pluginsdk.ResourceData, 
 	return nil
 }
 
-func resourceSentinelAlertRuleMsSecurityIncidentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleMsSecurityIncidentDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -256,7 +256,7 @@ func resourceSentinelAlertRuleMsSecurityIncidentDelete(d *pluginsdk.ResourceData
 	return nil
 }
 
-func expandAlertRuleMsSecurityIncidentSeverityFilter(input []interface{}) *[]alertrules.AlertSeverity {
+func expandAlertRuleMsSecurityIncidentSeverityFilter(input []any) *[]alertrules.AlertSeverity {
 	result := make([]alertrules.AlertSeverity, 0)
 
 	for _, e := range input {
@@ -266,12 +266,12 @@ func expandAlertRuleMsSecurityIncidentSeverityFilter(input []interface{}) *[]ale
 	return &result
 }
 
-func flattenAlertRuleMsSecurityIncidentSeverityFilter(input *[]alertrules.AlertSeverity) []interface{} {
+func flattenAlertRuleMsSecurityIncidentSeverityFilter(input *[]alertrules.AlertSeverity) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 
 	for _, e := range *input {
 		output = append(output, string(e))

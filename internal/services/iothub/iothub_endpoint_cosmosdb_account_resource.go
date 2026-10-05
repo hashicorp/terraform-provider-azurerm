@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub"
+	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub" // azignore:AZG010 - package name does not match its path
 )
 
 type IotHubEndpointCosmosDBAccountResource struct{}
@@ -146,7 +146,7 @@ func (r IotHubEndpointCosmosDBAccountResource) ResourceType() string {
 	return "azurerm_iothub_endpoint_cosmosdb_account"
 }
 
-func (r IotHubEndpointCosmosDBAccountResource) ModelObject() interface{} {
+func (r IotHubEndpointCosmosDBAccountResource) ModelObject() any {
 	return &IotHubEndpointCosmosDBAccountResource{}
 }
 

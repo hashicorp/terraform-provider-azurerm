@@ -112,7 +112,7 @@ func resourceStreamAnalyticsStreamInputBlob() *pluginsdk.Resource {
 	}
 }
 
-func resourceStreamAnalyticsStreamInputBlobCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsStreamInputBlobCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.InputsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -142,7 +142,7 @@ func resourceStreamAnalyticsStreamInputBlobCreateUpdate(d *pluginsdk.ResourceDat
 	storageAccountName := d.Get("storage_account_name").(string)
 	timeFormat := d.Get("time_format").(string)
 
-	serializationRaw := d.Get("serialization").([]interface{})
+	serializationRaw := d.Get("serialization").([]any)
 	serialization, err := expandStreamAnalyticsStreamInputSerialization(serializationRaw)
 	if err != nil {
 		return fmt.Errorf("expanding `serialization`: %+v", err)
@@ -187,7 +187,7 @@ func resourceStreamAnalyticsStreamInputBlobCreateUpdate(d *pluginsdk.ResourceDat
 	return resourceStreamAnalyticsStreamInputBlobRead(d, meta)
 }
 
-func resourceStreamAnalyticsStreamInputBlobRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsStreamInputBlobRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.InputsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -254,7 +254,7 @@ func resourceStreamAnalyticsStreamInputBlobRead(d *pluginsdk.ResourceData, meta 
 	return nil
 }
 
-func resourceStreamAnalyticsStreamInputBlobDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsStreamInputBlobDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.InputsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

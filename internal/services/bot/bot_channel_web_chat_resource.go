@@ -95,7 +95,7 @@ func resourceBotChannelWebChat() *pluginsdk.Resource {
 	}
 }
 
-func resourceBotChannelWebChatCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelWebChatCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -157,7 +157,7 @@ func resourceBotChannelWebChatCreate(d *pluginsdk.ResourceData, meta interface{}
 	return resourceBotChannelWebChatRead(d, meta)
 }
 
-func resourceBotChannelWebChatRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelWebChatRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -195,7 +195,7 @@ func resourceBotChannelWebChatRead(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceBotChannelWebChatUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelWebChatUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -231,7 +231,7 @@ func resourceBotChannelWebChatUpdate(d *pluginsdk.ResourceData, meta interface{}
 	return resourceBotChannelWebChatRead(d, meta)
 }
 
-func resourceBotChannelWebChatDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelWebChatDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -271,11 +271,11 @@ func resourceBotChannelWebChatDelete(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func expandSites(input []interface{}) *[]botservice.WebChatSite {
+func expandSites(input []any) *[]botservice.WebChatSite {
 	results := make([]botservice.WebChatSite, 0)
 
 	for _, item := range input {
-		site := item.(map[string]interface{})
+		site := item.(map[string]any)
 		result := botservice.WebChatSite{
 			IsEnabled:                   pointer.To(true),
 			IsBlockUserUploadEnabled:    pointer.To(!site["user_upload_enabled"].(bool)),
@@ -293,11 +293,11 @@ func expandSites(input []interface{}) *[]botservice.WebChatSite {
 	return &results
 }
 
-func flattenSites(input *[]botservice.WebChatSite) []interface{} {
-	results := make([]interface{}, 0)
+func flattenSites(input *[]botservice.WebChatSite) []any {
+	results := make([]any, 0)
 
 	for _, item := range *input {
-		result := make(map[string]interface{})
+		result := make(map[string]any)
 
 		result["name"] = pointer.From(item.SiteName)
 

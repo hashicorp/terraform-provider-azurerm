@@ -168,6 +168,20 @@ lint-fix: $(GOLANGCI_LINT_MODULES) ## Fix source code with all golangci linters
 	@echo "==> Fixing source code with all golangci linters..."
 	@$(GOLANGCI_LINT_MODULES) run ./... --fix
 
+lint-diff: $(GOLANGCI_LINT_MODULES) ## Lint only packages changed vs main
+	@pkgs=$$(git diff --name-only origin/main...HEAD \
+	  | grep '\.go$$' | xargs -I{} dirname {} | sort -u \
+	  | xargs printf './%s\n'); \
+	[ -z "$$pkgs" ] && echo "No changed packages." && exit 0; \
+	$(GOLANGCI_LINT_MODULES) run $$pkgs
+
+lint-fix-diff: $(GOLANGCI_LINT_MODULES) ## Fix only packages changed vs main
+	@pkgs=$$(git diff --name-only origin/main...HEAD \
+	  | grep '\.go$$' | xargs -I{} dirname {} | sort -u \
+	  | xargs printf './%s\n'); \
+	[ -z "$$pkgs" ] && echo "No changed packages." && exit 0; \
+	$(GOLANGCI_LINT_MODULES) run --fix $$pkgs
+
 # tfproviderlint and azproviderlint run as part of lint; these targets run just their checks
 tfproviderlint: $(GOLANGCI_LINT_MODULES) ## Check terraform schema definitions with only the tfproviderlint checks
 	@echo "==> Checking terraform schemas with tfproviderlint (via golangci-lint)..."
@@ -344,4 +358,4 @@ resource-counts: ## Print the number of resources and data sources in the provid
 
 pr-check: generate build test lint website-lint ## Run the same set of checks CI runs against a PR
 
-.PHONY: default help tools build fmt goimports quick-checks fmtcheck terrafmt generate lint actionlint yamllint markdownlint linkcheck linkcheck-local linkcheck-external shellcheck zizmor copyright copyright-fix typos typos-fix depscheck gencheck tfproviderlint tflint azproviderlint lint-fix golangci-fix test testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts pr-check
+.PHONY: default help tools build fmt goimports quick-checks fmtcheck terrafmt generate lint lint-diff lint-diff-fix actionlint yamllint markdownlint linkcheck linkcheck-local linkcheck-external shellcheck zizmor copyright copyright-fix typos typos-fix depscheck gencheck tfproviderlint tflint azproviderlint lint-fix golangci-fix test testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts pr-check
