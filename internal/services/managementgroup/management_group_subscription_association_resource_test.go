@@ -12,7 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/managementgroups/2020-05-01/managementgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/management/2020-05-01/managementgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -25,7 +25,7 @@ type ManagementGroupSubscriptionAssociation struct{}
 // all testcases in this file share the same subscription instance so that
 // these testcases have to be run sequentially.
 
-func TestAccManagementGroupSubscriptionAssociation(t *testing.T) {
+func TestAccManagementGroupSubscriptionAssociation_sequential(t *testing.T) {
 	testCases := map[string]map[string]func(t *testing.T){
 		"Resource": {
 			"basic":          testAccManagementGroupSubscriptionAssociation_basic,
@@ -34,10 +34,8 @@ func TestAccManagementGroupSubscriptionAssociation(t *testing.T) {
 	}
 
 	for group, m := range testCases {
-		m := m
 		t.Run(group, func(t *testing.T) {
 			for name, tc := range m {
-				tc := tc
 				t.Run(name, func(t *testing.T) {
 					tc(t)
 				})
