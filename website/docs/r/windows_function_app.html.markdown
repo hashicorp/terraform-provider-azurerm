@@ -651,7 +651,7 @@ A `site_config` block supports the following:
 
 * `application_insights_authentication_string` - (Optional) The Instrumentation Key for connecting the Windows Function App to Application Insights using either the system-assigned or a user-assigned identity.
 
-~> **Note:** For system-assigned identity this must be set to `Authorization=AAD` and for user-assigned `Authorization=AAD;ClientId=<USER_ASSIGNED_CLIENT_ID>`. For additional steps and information on using identity-based authentication see [APPLICATIONINSIGHTS_AUTHENTICATION_STRING](https://learn.microsoft.com/en-us/azure/azure-functions/functions-app-settings#applicationinsights_authentication_string)
+~> **Note:** For system-assigned identity this must be set to `Authorization=AAD` and for user-assigned `Authorization=AAD;ClientId=<USER_ASSIGNED_CLIENT_ID>`. For additional steps and information on using identity-based authentication see [APPLICATIONINSIGHTS_AUTHENTICATION_STRING](https://learn.microsoft.com/azure/azure-functions/functions-app-settings#applicationinsights_authentication_string)
 
 * `application_stack` - (Optional) An `application_stack` block as defined above.
 
