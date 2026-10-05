@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2020, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package tfexec
@@ -11,7 +11,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
+	"iter"
+	"maps"
 	"os"
 	"os/exec"
 	"runtime"
@@ -122,6 +123,16 @@ func envSlice(environ map[string]string) []string {
 	return env
 }
 
+// buildEnv determines which environment variables should affect use of a Terraform
+// executable.
+//
+// Factors that can affect the final set of environment variables are:
+// > Whether a user has explicitly set environment variables via (tf *Terraform) SetEnv.
+// > The environment of the machine terraform-exec is run on.
+// > Any override ENVs set in command-specific code (e.g. use of TF_REATTACH_PROVIDERS).
+//
+// This method also enforces some rules for the entire terraform-exec library,
+// for example User Agent data set via ENVs.
 func (tf *Terraform) buildEnv(mergeEnv map[string]string) []string {
 	// set Terraform level env, if env is nil, fall back to os.Environ
 	var env map[string]string
@@ -129,15 +140,11 @@ func (tf *Terraform) buildEnv(mergeEnv map[string]string) []string {
 		env = envMap(os.Environ())
 	} else {
 		env = make(map[string]string, len(tf.env))
-		for k, v := range tf.env {
-			env[k] = v
-		}
+		maps.Copy(env, tf.env)
 	}
 
 	// override env with any command specific environment
-	for k, v := range mergeEnv {
-		env[k] = v
-	}
+	maps.Copy(env, mergeEnv)
 
 	// always propagate CHECKPOINT_DISABLE env var unless it is
 	// explicitly overridden with tf.SetEnv or command env
@@ -217,53 +224,70 @@ func (tf *Terraform) runTerraformCmdJSON(ctx context.Context, cmd *exec.Cmd, v i
 	return dec.Decode(v)
 }
 
-func (tf *Terraform) runTerraformCmdJSONLog(ctx context.Context, cmd *exec.Cmd) *LogMsgEmitter {
+func (tf *Terraform) runTerraformCmdJSONLog(ctx context.Context, cmd *exec.Cmd) iter.Seq[NextMessage] {
 	pr, pw := io.Pipe()
 	tf.SetStdout(pw)
 
+	emitter := newLogMsgEmitter(pr)
+
 	go func() {
-		_ = tf.runTerraformCmd(ctx, cmd)
-		// TODO: handle error
-		_ = pr.Close()
-		// TODO: handle error
-		_ = pw.Close()
-		// TODO: handle error
+		err := tf.runTerraformCmd(ctx, cmd)
+		emitter.done <- errors.Join(err, pw.Close())
 	}()
 
-	return newLogMsgEmitter(pr)
-}
-
-func newLogMsgEmitter(stdout io.ReadCloser) *LogMsgEmitter {
-	return &LogMsgEmitter{
-		scanner:            bufio.NewScanner(stdout),
-		stdoutReaderCloser: stdout,
+	return func(yield func(msg NextMessage) bool) {
+		for {
+			nextMsg := emitter.NextMessage()
+			ok := yield(nextMsg)
+			if !ok || nextMsg.Msg == nil {
+				return
+			}
+		}
 	}
 }
 
-type LogMsgEmitter struct {
-	scanner            *bufio.Scanner
-	stdoutReaderCloser io.Closer
+func newLogMsgEmitter(stdoutReader io.ReadCloser) *logMsgEmitter {
+	return &logMsgEmitter{
+		scanner:      bufio.NewScanner(stdoutReader),
+		stdoutReader: stdoutReader,
+		done:         make(chan error, 1),
+	}
 }
 
-// NextMessage returns next decoded message along with true until the last one.
+type logMsgEmitter struct {
+	scanner      *bufio.Scanner
+	stdoutReader io.Closer
+	done         chan error
+}
+
+type NextMessage struct {
+	Msg tfjson.LogMsg
+	Err error
+}
+
+// NextMessage returns next decoded message, if any, along with any errors.
 // Stdout reader is closed when the last message is received.
 //
-// Error returned can be related to decoding of the message (nil, true, error)
-// or closing of stdout reader (nil, false, error).
+// Error returned can be related to decoding of the message, the Terraform command
+// or closing of stdout reader.
 //
 // Any error coming from Terraform (such as wrong configuration syntax) is
 // represented as LogMsg of Level [tfjson.Error].
-func (e *LogMsgEmitter) NextMessage() (tfjson.LogMsg, bool, error) {
-	ok := e.scanner.Scan()
-	if !ok {
-		return nil, ok, nil
+func (e *logMsgEmitter) NextMessage() NextMessage {
+	if e.scanner.Scan() {
+		msg, err := tfjson.UnmarshalLogMessage(e.scanner.Bytes())
+		return NextMessage{
+			Msg: msg,
+			Err: err,
+		}
 	}
-	msg, err := tfjson.UnmarshalLogMessage(e.scanner.Bytes())
-	return msg, true, err
-}
 
-func (e *LogMsgEmitter) Err() error {
-	return e.scanner.Err()
+	err := <-e.done
+	err = errors.Join(err, e.scanner.Err(), e.stdoutReader.Close())
+	return NextMessage{
+		Msg: nil,
+		Err: err,
+	}
 }
 
 // mergeUserAgent does some minor deduplication to ensure we aren't
@@ -294,7 +318,7 @@ func mergeWriters(writers ...io.Writer) io.Writer {
 		}
 	}
 	if len(compact) == 0 {
-		return ioutil.Discard
+		return io.Discard
 	}
 	if len(compact) == 1 {
 		return compact[0]

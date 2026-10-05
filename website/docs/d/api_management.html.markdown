@@ -67,7 +67,7 @@ output "api_management_id" {
 
 * `scm_url` - The SCM (Source Code Management) endpoint.
 
-* `sku` - A `sku` block as documented below.
+* `sku_name` - The SKU of the API Management Service consisting of the name and capacity, separated by an underscore.
 
 * `tenant_access` - A `tenant_access` block as defined below.
 
@@ -168,14 +168,6 @@ A `scm` block exports the following:
 * `key_vault_certificate_id` - The ID of the Key Vault Secret which contains the SSL Certificate.
 
 * `negotiate_client_certificate` - Is Client Certificate Negotiation enabled?
-
----
-
-A `sku` block exports the following:
-
-* `name` - Specifies the plan's pricing tier.
-
-* `capacity` - Specifies the number of units associated with this API Management service.
 
 ---
 

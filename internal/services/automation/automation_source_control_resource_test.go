@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation_test
@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/sourcecontrol"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/sourcecontrol"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -29,8 +29,8 @@ type githubRepo struct {
 
 func newSourceControlResource(t *testing.T) SourceControlResource {
 	// - ARM_TEST_ASC_GITHUB_REPOSITORY_URL represents the user repo
-	// - ARM_TEST_ASC_GITHUB_USER_TOKEN represents the github personal token with the appropriate permissions per: https://docs.microsoft.com/en-us/azure/container-registry/container-registry-tutorial-build-task#create-a-github-personal-access-token
-	// Checkout https://docs.microsoft.com/en-us/azure/container-registry/container-registry-tutorial-build-task for details.
+	// - ARM_TEST_ASC_GITHUB_USER_TOKEN represents the github personal token with the appropriate permissions per: https://docs.microsoft.com/azure/container-registry/container-registry-tutorial-build-task#create-a-github-personal-access-token
+	// Checkout https://docs.microsoft.com/azure/container-registry/container-registry-tutorial-build-task for details.
 	ins := SourceControlResource{
 		githubRepo: githubRepo{
 			url:   os.Getenv("ARM_TEST_ASC_GITHUB_REPOSITORY_URL"),

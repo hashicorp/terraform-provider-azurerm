@@ -12,7 +12,7 @@ var _ FormatReadSettings = DelimitedTextReadSettings{}
 
 type DelimitedTextReadSettings struct {
 	CompressionProperties CompressionReadSettings `json:"compressionProperties"`
-	SkipLineCount         *int64                  `json:"skipLineCount,omitempty"`
+	SkipLineCount         *interface{}            `json:"skipLineCount,omitempty"`
 
 	// Fields inherited from FormatReadSettings
 
@@ -54,8 +54,8 @@ var _ json.Unmarshaler = &DelimitedTextReadSettings{}
 
 func (s *DelimitedTextReadSettings) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		SkipLineCount *int64 `json:"skipLineCount,omitempty"`
-		Type          string `json:"type"`
+		SkipLineCount *interface{} `json:"skipLineCount,omitempty"`
+		Type          string       `json:"type"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql
@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobcredentials"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobsteps"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobtargetgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/jobcredentials"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/jobsteps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/jobtargetgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -176,7 +176,7 @@ func (r MsSqlJobStepResource) CustomizeDiff() sdk.ResourceFunc {
 	}
 }
 
-func (r MsSqlJobStepResource) ModelObject() interface{} {
+func (r MsSqlJobStepResource) ModelObject() any {
 	return &MsSqlJobStepResourceModel{}
 }
 
@@ -202,13 +202,15 @@ func (r MsSqlJobStepResource) Create() sdk.ResourceFunc {
 
 			id := jobsteps.NewStepID(job.SubscriptionId, job.ResourceGroupName, job.ServerName, job.JobAgentName, job.JobName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := jobsteps.JobStep{
@@ -281,21 +283,23 @@ func (r MsSqlJobStepResource) Read() sdk.ResourceFunc {
 						state.JobCredentialID = credentialID.ID()
 					}
 
-					state.JobStepIndex = pointer.From(props.StepId)
-					state.JobTargetGroupID = props.TargetGroup
-					state.SqlScript = props.Action.Value
-					state.InitialRetryIntervalSeconds = pointer.From(props.ExecutionOptions.InitialRetryIntervalSeconds)
-					state.MaximumRetryIntervalSeconds = pointer.From(props.ExecutionOptions.MaximumRetryIntervalSeconds)
-
 					target, err := flattenOutputTarget(props.Output)
 					if err != nil {
 						return fmt.Errorf("flattening `output_target`: %+v", err)
 					}
 					state.OutputTarget = target
 
-					state.RetryAttempts = pointer.From(props.ExecutionOptions.RetryAttempts)
-					state.RetryIntervalBackoffMultiplier = pointer.From(props.ExecutionOptions.RetryIntervalBackoffMultiplier)
-					state.TimeoutSeconds = pointer.From(props.ExecutionOptions.TimeoutSeconds)
+					state.JobStepIndex = pointer.From(props.StepId)
+					state.JobTargetGroupID = props.TargetGroup
+					state.SqlScript = props.Action.Value
+
+					if exec := props.ExecutionOptions; exec != nil {
+						state.InitialRetryIntervalSeconds = pointer.From(exec.InitialRetryIntervalSeconds)
+						state.MaximumRetryIntervalSeconds = pointer.From(exec.MaximumRetryIntervalSeconds)
+						state.RetryAttempts = pointer.From(exec.RetryAttempts)
+						state.RetryIntervalBackoffMultiplier = pointer.From(exec.RetryIntervalBackoffMultiplier)
+						state.TimeoutSeconds = pointer.From(exec.TimeoutSeconds)
+					}
 				}
 			}
 

@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `deployment_environment` - (Optional) The deployment environment for Microsoft Teams channel calls. Possible values are `CommercialDeployment` and `GCCModerateDeployment`. Defaults to `CommercialDeployment`.
 
-* `enable_calling` - (Optional) Specifies whether to enable Microsoft Teams channel calls. This defaults to `false`.
+* `calling_enabled` - (Optional) Specifies whether to enable Microsoft Teams channel calls. This defaults to `false`.
 
 ## Attributes Reference
 

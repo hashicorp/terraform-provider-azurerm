@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package loadbalancer
@@ -9,16 +9,15 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func dataSourceArmLoadBalancerOutboundRule() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: dataSourceArmLoadBalancerOutboundRuleRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -82,18 +81,9 @@ func dataSourceArmLoadBalancerOutboundRule() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["enable_tcp_reset"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		}
-	}
-
-	return resource
 }
 
-func dataSourceArmLoadBalancerOutboundRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceArmLoadBalancerOutboundRuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -137,11 +127,8 @@ func dataSourceArmLoadBalancerOutboundRuleRead(d *pluginsdk.ResourceData, meta i
 			}
 			d.Set("backend_address_pool_id", backendAddressPoolId)
 			d.Set("tcp_reset_enabled", pointer.From(props.EnableTcpReset))
-			if !features.FivePointOh() {
-				d.Set("enable_tcp_reset", pointer.From(props.EnableTcpReset))
-			}
 
-			frontendIpConfigurations := make([]interface{}, 0)
+			frontendIpConfigurations := make([]any, 0)
 			if configs := props.FrontendIPConfigurations; configs != nil {
 				for _, feConfig := range configs {
 					if feConfig.Id == nil {
@@ -152,7 +139,7 @@ func dataSourceArmLoadBalancerOutboundRuleRead(d *pluginsdk.ResourceData, meta i
 						return err
 					}
 
-					frontendIpConfigurations = append(frontendIpConfigurations, map[string]interface{}{
+					frontendIpConfigurations = append(frontendIpConfigurations, map[string]any{
 						"id":   feid.ID(),
 						"name": feid.FrontendIPConfigurationName,
 					})

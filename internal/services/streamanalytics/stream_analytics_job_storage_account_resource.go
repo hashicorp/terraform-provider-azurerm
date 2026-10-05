@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 package streamanalytics
 
@@ -27,7 +27,7 @@ type JobStorageAccountModel struct {
 
 var _ sdk.ResourceWithUpdate = JobStorageAccountResource{}
 
-func (r JobStorageAccountResource) ModelObject() interface{} {
+func (r JobStorageAccountResource) ModelObject() any {
 	return &JobStorageAccountModel{}
 }
 
@@ -96,22 +96,24 @@ func (r JobStorageAccountResource) Create() sdk.ResourceFunc {
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
 
-			existing, err := client.Get(ctx, *id, streamingjobs.DefaultGetOperationOptions())
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, *id, streamingjobs.DefaultGetOperationOptions())
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 
-			jobStorageAccountExists := existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.JobStorageAccount != nil
+				jobStorageAccountExists := existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.JobStorageAccount != nil
 
-			if !response.WasNotFound(existing.HttpResponse) && jobStorageAccountExists {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) && jobStorageAccountExists {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			payload := streamingjobs.StreamingJob{
 				Properties: &streamingjobs.StreamingJobProperties{
 					JobStorageAccount: &streamingjobs.JobStorageAccount{
 						AccountName:        pointer.To(model.StorageAccountName),
-						AuthenticationMode: pointer.To(streamingjobs.AuthenticationMode(model.AuthenticationMode)),
+						AuthenticationMode: pointer.ToEnum[streamingjobs.AuthenticationMode](model.AuthenticationMode),
 					},
 				},
 			}
@@ -165,7 +167,7 @@ func (r JobStorageAccountResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
 					if jobStorage := props.JobStorageAccount; jobStorage != nil {
-						state.AuthenticationMode = string(pointer.From(jobStorage.AuthenticationMode))
+						state.AuthenticationMode = pointer.FromEnum(jobStorage.AuthenticationMode)
 						state.StorageAccountKey = metadata.ResourceData.Get("storage_account_key").(string)
 						state.StorageAccountName = pointer.From(jobStorage.AccountName)
 					}
@@ -203,7 +205,7 @@ func (r JobStorageAccountResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("authentication_mode") {
-				payload.Properties.JobStorageAccount.AuthenticationMode = pointer.To(streamingjobs.AuthenticationMode(model.AuthenticationMode))
+				payload.Properties.JobStorageAccount.AuthenticationMode = pointer.ToEnum[streamingjobs.AuthenticationMode](model.AuthenticationMode)
 			}
 
 			if metadata.ResourceData.HasChange("storage_account_name") {
