@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `base_policy_name` - (Required) The name of the base policy to use for this RAI Policy. Changing this forces a new resource to be created.
 
-* `content_filter` - (Required) A `content_filter` block as defined below.
+* `content_filter` - (Required) One or more `content_filter` blocks as defined below.
 
 * `mode` - (Optional) The mode of the RAI Policy. Possible values are `Default`, `Deferred`, `Blocking` or `Asynchronous_filter`.
 
@@ -66,13 +66,15 @@ A `content_filter` block supports the following:
 
 * `name` - (Required) The name of the content filter.
 
-* `filter_enabled` - (Required) Whether the filter is enabled. Possible values are `true` or `false`.
-
 * `block_enabled` - (Required) Whether the filter should block content. Possible values are `true` or `false`.
 
-* `severity_threshold` - (Required) The severity threshold for the filter. Possible values are `Low`, `Medium` or `High`.
+* `filter_enabled` - (Required) Whether the filter is enabled. Possible values are `true` or `false`.
 
 * `source` - (Required) Content source to apply the content filter. Possible values are `Prompt` or `Completion`.
+
+* `severity_threshold` - (Optional) The severity threshold for the filter. Possible values are `Low`, `Medium` or `High`.
+
+-> **Note:** This is not applicable for filter types such as `Jailbreak`, `Indirect Attack`, `Protected Material Text`, and `Protected Material Code`.
 
 ## Attributes Reference
 
