@@ -37,7 +37,7 @@ resource "azurerm_sentinel_log_analytics_workspace_onboarding" "example" {
 resource "azurerm_sentinel_threat_intelligence_indicator" "example" {
   workspace_id      = azurerm_sentinel_log_analytics_workspace_onboarding.example.workspace_id
   pattern_type      = "domain-name"
-  pattern           = "http://example.com"
+  pattern           = "example.com"
   source            = "Microsoft Sentinel"
   validate_from_utc = "2022-12-14T16:00:00Z"
   display_name      = "example-indicator"
@@ -48,7 +48,7 @@ resource "azurerm_sentinel_threat_intelligence_indicator" "example" {
 
 The following arguments are supported:
 
-* `display_name` - (Required) The display name of the Threat Intelligence Indicator.
+* `display_name` - (Required) The display name of the Threat Intelligence Indicator. Changing this forces a new resource to be created.
 
 * `pattern_type` - (Required) The type of pattern used by the Threat Intelligence Indicator. Possible values are `domain-name`, `file`, `ipv4-addr`, `ipv6-addr` and `url`.
 
@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `source` - (Required) Source of the Threat Intelligence Indicator. Changing this forces a new resource to be created.
 
-* `validate_from_utc` - (Required) The start of validate date in RFC3339.
+* `validate_from_utc` - (Required) The start of validate date in RFC3339. Changing this forces a new resource to be created.
 
 * `workspace_id` - (Required) The ID of the Log Analytics Workspace. Changing this forces a new Sentinel Threat Intelligence Indicator to be created.
 
@@ -66,7 +66,7 @@ The following arguments are supported:
 
 * `created_by` - (Optional) The creator of the Threat Intelligence Indicator.
 
-* `description` - (Optional) The description of the Threat Intelligence Indicator.
+* `description` - (Optional) The description of the Threat Intelligence Indicator. Changing this forces a new resource to be created.
 
 * `extension` - (Optional) The extension config of the Threat Intelligence Indicator in JSON format.
 
@@ -158,7 +158,7 @@ A `pattern_type_values` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Sentinel Threat Intelligence Indicator.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Sentinel Threat Intelligence Indicator.
@@ -172,3 +172,11 @@ Sentinel Threat Intelligence Indicators can be imported using the `resource id`,
 ```shell
 terraform import azurerm_sentinel_threat_intelligence_indicator.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourcegroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/providers/Microsoft.SecurityInsights/threatIntelligence/main/indicators/indicator1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.OperationalInsights` - 2022-10-01-preview
+
+* `Microsoft.SecurityInsights` - 2022-10-01-preview

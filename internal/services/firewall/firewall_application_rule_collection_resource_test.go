@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package firewall_test
@@ -10,13 +10,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/azurefirewalls"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/azurefirewalls"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type FirewallApplicationRuleCollectionResource struct{}
@@ -409,10 +409,10 @@ func (FirewallApplicationRuleCollectionResource) Exists(ctx context.Context, cli
 		}
 
 		if *rule.Name == id.ApplicationRuleCollectionName {
-			return utils.Bool(true), nil
+			return pointer.To(true), nil
 		}
 	}
-	return utils.Bool(false), nil
+	return pointer.To(false), nil
 }
 
 func (t FirewallApplicationRuleCollectionResource) doesNotExist(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
@@ -462,7 +462,7 @@ func (t FirewallApplicationRuleCollectionResource) disappears(ctx context.Contex
 
 	resp.Model.Properties.ApplicationRuleCollections = &rules
 
-	if err = client.CreateOrUpdateThenPoll(ctx, firewallId, *resp.Model); err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, firewallId, *resp.Model, azurefirewalls.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("removing Firewall Application Rule Collection %q (Firewall %q / Resource Group %q): %v", id.ApplicationRuleCollectionName, id.AzureFirewallName, id.ResourceGroup, err)
 	}
 

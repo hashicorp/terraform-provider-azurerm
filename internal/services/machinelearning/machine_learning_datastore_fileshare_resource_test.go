@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package machinelearning_test
@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/datastore"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/datastore"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MachineLearningDataStoreFileShare struct{}
@@ -96,43 +96,41 @@ func (r MachineLearningDataStoreFileShare) Exists(ctx context.Context, client *c
 	resp, err := dataStoreClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Machine Learning Data Store File Share %q: %+v", state.ID, err)
 	}
 
-	return utils.Bool(resp.Model.Properties != nil), nil
+	return pointer.To(resp.Model.Properties != nil), nil
 }
 
 func (r MachineLearningDataStoreFileShare) fileShareAccountKey(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+	%s
 
 resource "azurerm_storage_share" "test" {
-  name                 = "accfs%[2]d"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 1
+  name               = "accfs%[2]d"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 1
 }
 
 resource "azurerm_machine_learning_datastore_fileshare" "test" {
   name                 = "accdatastore%[2]d"
   workspace_id         = azurerm_machine_learning_workspace.test.id
-  storage_fileshare_id = azurerm_storage_share.test.resource_manager_id
+  storage_fileshare_id = azurerm_storage_share.test.id
   account_key          = azurerm_storage_account.test.primary_access_key
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r MachineLearningDataStoreFileShare) fileShareSas(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+	%s
 
 resource "azurerm_storage_share" "test" {
-  name                 = "accfs%[2]d"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 1
+  name               = "accfs%[2]d"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 1
 }
 
 data "azurerm_storage_account_sas" "test" {
@@ -173,18 +171,13 @@ data "azurerm_storage_account_sas" "test" {
 resource "azurerm_machine_learning_datastore_fileshare" "test" {
   name                    = "accdatastore%[2]d"
   workspace_id            = azurerm_machine_learning_workspace.test.id
-  storage_fileshare_id    = azurerm_storage_share.test.resource_manager_id
+  storage_fileshare_id    = azurerm_storage_share.test.id
   shared_access_signature = data.azurerm_storage_account_sas.test.sas
 }
-
-
-
-
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r MachineLearningDataStoreFileShare) requiresImport(data acceptance.TestData) string {
-	template := r.fileShareAccountKey(data)
 	return fmt.Sprintf(`
 %s
 
@@ -195,7 +188,7 @@ resource "azurerm_machine_learning_datastore_fileshare" "import" {
   account_key          = azurerm_machine_learning_datastore_fileshare.test.account_key
 }
 
-`, template)
+`, r.fileShareAccountKey(data))
 }
 
 func (r MachineLearningDataStoreFileShare) template(data acceptance.TestData) string {
@@ -228,14 +221,16 @@ resource "azurerm_application_insights" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestvault%[3]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
+  name                       = "acctestvault%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
 
   sku_name = "standard"
 
-  purge_protection_enabled = true
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 }
 
 resource "azurerm_key_vault_access_policy" "test" {

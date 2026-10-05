@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package common
@@ -8,7 +8,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func TestValidateAzureRmCosmosDbIndexingPolicy(t *testing.T) {
@@ -42,10 +41,10 @@ func TestValidateAzureRmCosmosDbIndexingPolicy(t *testing.T) {
 				IndexingMode: pointer.To(cosmosdb.IndexingModeConsistent),
 				IncludedPaths: &[]cosmosdb.IncludedPath{
 					{
-						Path: utils.String("/*"),
+						Path: pointer.To("/*"),
 					},
 					{
-						Path: utils.String("/foo/?"),
+						Path: pointer.To("/foo/?"),
 					},
 				},
 			},
@@ -57,10 +56,10 @@ func TestValidateAzureRmCosmosDbIndexingPolicy(t *testing.T) {
 				IndexingMode: pointer.To(cosmosdb.IndexingModeConsistent),
 				ExcludedPaths: &[]cosmosdb.ExcludedPath{
 					{
-						Path: utils.String("/*"),
+						Path: pointer.To("/*"),
 					},
 					{
-						Path: utils.String("/foo/?"),
+						Path: pointer.To("/foo/?"),
 					},
 				},
 			},
@@ -72,18 +71,18 @@ func TestValidateAzureRmCosmosDbIndexingPolicy(t *testing.T) {
 				IndexingMode: pointer.To(cosmosdb.IndexingModeConsistent),
 				IncludedPaths: &[]cosmosdb.IncludedPath{
 					{
-						Path: utils.String("/*"),
+						Path: pointer.To("/*"),
 					},
 					{
-						Path: utils.String("/foo/?"),
+						Path: pointer.To("/foo/?"),
 					},
 				},
 				ExcludedPaths: &[]cosmosdb.ExcludedPath{
 					{
-						Path: utils.String("/testing/?"),
+						Path: pointer.To("/testing/?"),
 					},
 					{
-						Path: utils.String("/bar/?"),
+						Path: pointer.To("/bar/?"),
 					},
 				},
 			},
@@ -95,21 +94,21 @@ func TestValidateAzureRmCosmosDbIndexingPolicy(t *testing.T) {
 				IndexingMode: pointer.To(cosmosdb.IndexingModeConsistent),
 				IncludedPaths: &[]cosmosdb.IncludedPath{
 					{
-						Path: utils.String("/*"),
+						Path: pointer.To("/*"),
 					},
 					{
-						Path: utils.String("/foo/?"),
+						Path: pointer.To("/foo/?"),
 					},
 				},
 				ExcludedPaths: &[]cosmosdb.ExcludedPath{
 					{
-						Path: utils.String("/*"),
+						Path: pointer.To("/*"),
 					},
 					{
-						Path: utils.String("/testing/?"),
+						Path: pointer.To("/testing/?"),
 					},
 					{
-						Path: utils.String("/bar/?"),
+						Path: pointer.To("/bar/?"),
 					},
 				},
 			},
@@ -121,10 +120,10 @@ func TestValidateAzureRmCosmosDbIndexingPolicy(t *testing.T) {
 				IndexingMode: pointer.To(cosmosdb.IndexingModeConsistent),
 				IncludedPaths: &[]cosmosdb.IncludedPath{
 					{
-						Path: utils.String("/testing/?"),
+						Path: pointer.To("/testing/?"),
 					},
 					{
-						Path: utils.String("/foo/?"),
+						Path: pointer.To("/foo/?"),
 					},
 				},
 			},
@@ -136,18 +135,18 @@ func TestValidateAzureRmCosmosDbIndexingPolicy(t *testing.T) {
 				IndexingMode: pointer.To(cosmosdb.IndexingModeConsistent),
 				IncludedPaths: &[]cosmosdb.IncludedPath{
 					{
-						Path: utils.String("/foo/?"),
+						Path: pointer.To("/foo/?"),
 					},
 					{
-						Path: utils.String("/foo/?"),
+						Path: pointer.To("/foo/?"),
 					},
 				},
 				ExcludedPaths: &[]cosmosdb.ExcludedPath{
 					{
-						Path: utils.String("/bar/?"),
+						Path: pointer.To("/bar/?"),
 					},
 					{
-						Path: utils.String("/foo/?"),
+						Path: pointer.To("/foo/?"),
 					},
 				},
 			},
@@ -159,7 +158,7 @@ func TestValidateAzureRmCosmosDbIndexingPolicy(t *testing.T) {
 				IndexingMode: pointer.To(cosmosdb.IndexingModeNone),
 				IncludedPaths: &[]cosmosdb.IncludedPath{
 					{
-						Path: utils.String("/*"),
+						Path: pointer.To("/*"),
 					},
 				},
 			},
@@ -171,7 +170,7 @@ func TestValidateAzureRmCosmosDbIndexingPolicy(t *testing.T) {
 				IndexingMode: pointer.To(cosmosdb.IndexingModeNone),
 				ExcludedPaths: &[]cosmosdb.ExcludedPath{
 					{
-						Path: utils.String("/*"),
+						Path: pointer.To("/*"),
 					},
 				},
 			},
@@ -183,12 +182,12 @@ func TestValidateAzureRmCosmosDbIndexingPolicy(t *testing.T) {
 				IndexingMode: pointer.To(cosmosdb.IndexingModeNone),
 				IncludedPaths: &[]cosmosdb.IncludedPath{
 					{
-						Path: utils.String("/*"),
+						Path: pointer.To("/*"),
 					},
 				},
 				ExcludedPaths: &[]cosmosdb.ExcludedPath{
 					{
-						Path: utils.String("/testing/?"),
+						Path: pointer.To("/testing/?"),
 					},
 				},
 			},

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package paloalto
@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrulestacks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulestackresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
@@ -44,7 +44,7 @@ type LocalRuleStackModel struct {
 }
 
 func (r LocalRuleStack) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return localrulestacks.ValidateLocalRulestackID
+	return localrulestackresources.ValidateLocalRulestackID
 }
 
 func (r LocalRuleStack) ResourceType() string {
@@ -129,7 +129,7 @@ func (r LocalRuleStack) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r LocalRuleStack) ModelObject() interface{} {
+func (r LocalRuleStack) ModelObject() any {
 	return &LocalRuleStackModel{}
 }
 
@@ -137,7 +137,7 @@ func (r LocalRuleStack) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.Client.LocalRulestacks
+			client := metadata.Client.PaloAlto.LocalRulestackResources
 
 			model := LocalRuleStackModel{}
 
@@ -145,21 +145,23 @@ func (r LocalRuleStack) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			id := localrulestacks.NewLocalRulestackID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
+			id := localrulestackresources.NewLocalRulestackID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.LocalRulestacksGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
+				}
 				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
 				}
 			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
-			}
 
-			secServices := localrulestacks.SecurityServices{
+			secServices := localrulestackresources.SecurityServices{
 				AntiSpywareProfile:   pointer.To(RuleStackSecurityServicesNone),
 				AntiVirusProfile:     pointer.To(RuleStackSecurityServicesNone),
 				DnsSubscription:      pointer.To(RuleStackSecurityServicesNone),
@@ -187,20 +189,19 @@ func (r LocalRuleStack) Create() sdk.ResourceFunc {
 				secServices.VulnerabilityProfile = pointer.To(model.VulnerabilityProfile)
 			}
 
-			localRuleStack := localrulestacks.LocalRulestackResource{
+			localRuleStack := localrulestackresources.LocalRulestackResource{
 				Location: location.Normalize(model.Location),
-				Properties: localrulestacks.RulestackProperties{
-					DefaultMode:      pointer.To(localrulestacks.DefaultModeNONE),
+				Properties: localrulestackresources.RulestackProperties{
+					DefaultMode:      pointer.To(localrulestackresources.DefaultModeNONE),
 					Description:      pointer.To(model.Description),
-					Scope:            pointer.To(localrulestacks.ScopeTypeLOCAL),
+					Scope:            pointer.To(localrulestackresources.ScopeTypeLOCAL),
 					SecurityServices: pointer.To(secServices),
 				},
 			}
 
-			if err = client.CreateOrUpdateThenPoll(ctx, id, localRuleStack); err != nil {
+			if err := client.LocalRulestacksCreateOrUpdateCallbackThenPoll(ctx, id, localRuleStack, metadata.SetIDCallback(&id)); err != nil {
 				return err
 			}
-
 			metadata.SetID(id)
 
 			return nil
@@ -212,16 +213,16 @@ func (r LocalRuleStack) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.Client.LocalRulestacks
+			client := metadata.Client.PaloAlto.LocalRulestackResources
 
-			id, err := localrulestacks.ParseLocalRulestackID(metadata.ResourceData.Id())
+			id, err := localrulestackresources.ParseLocalRulestackID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
 			var state LocalRuleStackModel
 
-			existing, err := client.Get(ctx, *id)
+			existing, err := client.LocalRulestacksGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -268,13 +269,13 @@ func (r LocalRuleStack) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.Client.LocalRulestacks
-			id, err := localrulestacks.ParseLocalRulestackID(metadata.ResourceData.Id())
+			client := metadata.Client.PaloAlto.LocalRulestackResources
+			id, err := localrulestackresources.ParseLocalRulestackID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			if err = client.DeleteThenPoll(ctx, *id); err != nil {
+			if err = client.LocalRulestacksDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -287,9 +288,9 @@ func (r LocalRuleStack) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.Client.LocalRulestacks
+			client := metadata.Client.PaloAlto.LocalRulestackResources
 
-			id, err := localrulestacks.ParseLocalRulestackID(metadata.ResourceData.Id())
+			id, err := localrulestackresources.ParseLocalRulestackID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -303,7 +304,7 @@ func (r LocalRuleStack) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			existing, err := client.Get(ctx, *id)
+			existing, err := client.LocalRulestacksGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -372,11 +373,11 @@ func (r LocalRuleStack) Update() sdk.ResourceFunc {
 
 			localRuleStack.Properties = update
 
-			if err = client.CreateOrUpdateThenPoll(ctx, *id, localRuleStack); err != nil {
+			if err = client.LocalRulestacksCreateOrUpdateThenPoll(ctx, *id, localRuleStack); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
-			if err = client.CommitThenPoll(ctx, *id); err != nil {
+			if err = client.LocalRulestackscommitThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("committing config for %s: %+v", *id, err)
 			}
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2018, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recaser
@@ -102,7 +102,6 @@ func reCaseKnownId(input string, ids map[string]resourceids.ResourceId) (*string
 
 // parseId uses the specified ResourceId to parse the input and returns the id string with correct casing
 func parseId(id resourceids.ResourceId, input string) (string, error) {
-
 	// we need to take a local copy of id to work against else we're mutating the original
 	localId := id
 
@@ -137,7 +136,6 @@ func fixSegment(input, segment string) string {
 // buildInputKey takes an input id string and removes user-specified values from it
 // so it can be used as a key to extract the correct id from knownResourceIds
 func buildInputKey(input string) (*string, bool) {
-
 	// Attempt to determine if this is just missing a leading slash and prepend it if it seems to be
 	if !strings.HasPrefix(input, "/") {
 		if len(input) == 0 || !strings.Contains(input, "/") {
