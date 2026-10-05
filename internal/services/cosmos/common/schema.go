@@ -4,7 +4,7 @@
 package common
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -87,7 +87,7 @@ func DatabaseAutoscaleSettingsSchema() *pluginsdk.Schema {
 				"max_throughput": {
 					Type:          pluginsdk.TypeInt,
 					Optional:      true,
-					Computed:      true,
+					Computed:      true, // azignore:AZS007 - pre-existing violation
 					ConflictsWith: []string{"throughput"},
 					ValidateFunc:  validate.CosmosMaxThroughput,
 				},
@@ -100,7 +100,7 @@ func CosmosDbIndexingPolicySchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -109,10 +109,10 @@ func CosmosDbIndexingPolicySchema() *pluginsdk.Schema {
 				"indexing_mode": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Default:  documentdb.IndexingModeConsistent,
+					Default:  cosmosdb.IndexingModeConsistent,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(documentdb.IndexingModeConsistent),
-						string(documentdb.IndexingModeNone),
+						string(cosmosdb.IndexingModeConsistent),
+						string(cosmosdb.IndexingModeNone),
 					}, false),
 				},
 
@@ -154,18 +154,15 @@ func ConflictResolutionPolicy() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
 		ForceNew: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"mode": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(documentdb.ConflictResolutionModeLastWriterWins),
-						string(documentdb.ConflictResolutionModeCustom),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForConflictResolutionMode(), false),
 				},
 
 				"conflict_resolution_path": {
@@ -207,10 +204,7 @@ func CosmosDbIndexingPolicyCompositeIndexSchema() *pluginsdk.Schema {
 								Required: true,
 								// Workaround for Azure/azure-rest-api-specs#11222
 								DiffSuppressFunc: suppress.CaseDifference,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(documentdb.CompositePathSortOrderAscending),
-									string(documentdb.CompositePathSortOrderDescending),
-								}, true),
+								ValidateFunc:     validation.StringInSlice(cosmosdb.PossibleValuesForCompositePathSortOrder(), true),
 							},
 						},
 					},
