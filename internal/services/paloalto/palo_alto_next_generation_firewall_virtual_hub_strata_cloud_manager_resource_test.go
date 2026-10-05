@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-05-23/firewalls"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -111,12 +111,12 @@ func TestAccNextGenerationFirewallVHubStrataCloudManager_update(t *testing.T) {
 }
 
 func (r NextGenerationFirewallVHubStrataCloudManagerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := firewalls.ParseFirewallID(state.ID)
+	id, err := firewallresources.ParseFirewallID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.PaloAlto.PaloAltoClient_v2025_05_23.Firewalls.Get(ctx, *id)
+	resp, err := client.PaloAlto.FirewallResources.FirewallsGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil

@@ -18,17 +18,17 @@ import (
 )
 
 type WatcherModel struct {
-	AutomationAccountID         string                 `tfschema:"automation_account_id"`
-	Name                        string                 `tfschema:"name"`
-	Location                    string                 `tfschema:"location"`
-	Tags                        map[string]interface{} `tfschema:"tags"`
-	Etag                        string                 `tfschema:"etag"`
-	ExecutionFrequencyInSeconds int64                  `tfschema:"execution_frequency_in_seconds"`
-	ScriptName                  string                 `tfschema:"script_name"`
-	ScriptParameters            map[string]interface{} `tfschema:"script_parameters"`
-	ScriptRunOn                 string                 `tfschema:"script_run_on"`
-	Description                 string                 `tfschema:"description"`
-	Status                      string                 `tfschema:"status"`
+	AutomationAccountID         string         `tfschema:"automation_account_id"`
+	Name                        string         `tfschema:"name"`
+	Location                    string         `tfschema:"location"`
+	Tags                        map[string]any `tfschema:"tags"`
+	Etag                        string         `tfschema:"etag"`
+	ExecutionFrequencyInSeconds int64          `tfschema:"execution_frequency_in_seconds"`
+	ScriptName                  string         `tfschema:"script_name"`
+	ScriptParameters            map[string]any `tfschema:"script_parameters"`
+	ScriptRunOn                 string         `tfschema:"script_run_on"`
+	Description                 string         `tfschema:"description"`
+	Status                      string         `tfschema:"status"`
 }
 
 type WatcherResource struct{}
@@ -106,7 +106,7 @@ func (m WatcherResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (m WatcherResource) ModelObject() interface{} {
+func (m WatcherResource) ModelObject() any {
 	return &WatcherModel{}
 }
 
@@ -117,24 +117,26 @@ func (m WatcherResource) ResourceType() string {
 func (m WatcherResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.Automation.WatcherClient
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Automation.WatcherClient
 
 			var model WatcherModel
-			if err := meta.Decode(&model); err != nil {
+			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
 
-			subscriptionID := meta.Client.Account.SubscriptionId
+			subscriptionID := metadata.Client.Account.SubscriptionId
 			accountID, _ := watcher.ParseAutomationAccountID(model.AutomationAccountID)
 			id := watcher.NewWatcherID(subscriptionID, accountID.ResourceGroupName, accountID.AutomationAccountName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if !response.WasNotFound(existing.HttpResponse) {
-				if err != nil {
-					return fmt.Errorf("retrieving %s: %v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					if err != nil {
+						return fmt.Errorf("retrieving %s: %v", id, err)
+					}
+					return metadata.ResourceRequiresImport(m.ResourceType(), id)
 				}
-				return meta.ResourceRequiresImport(m.ResourceType(), id)
 			}
 
 			tags := expandStringInterfaceMap(model.Tags)
@@ -153,12 +155,11 @@ func (m WatcherResource) Create() sdk.ResourceFunc {
 				Tags:     &tags,
 			}
 
-			_, err = client.CreateOrUpdate(ctx, id, param)
-			if err != nil {
+			if _, err := client.CreateOrUpdate(ctx, id, param); err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
 			}
 
-			meta.SetID(id)
+			metadata.SetID(id)
 			return nil
 		},
 	}
@@ -249,7 +250,6 @@ func (m WatcherResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			meta.Logger.Infof("deleting %s", id)
 			client := meta.Client.Automation.WatcherClient
 			if _, err = client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", *id, err)

@@ -4,6 +4,6 @@ package services
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type CheckNameAvailabilityInput struct {
-	Name string       `json:"name"`
-	Type ResourceType `json:"type"`
+	Name string                         `json:"name"`
+	Type CheckNameAvailabilityInputType `json:"type"`
 }

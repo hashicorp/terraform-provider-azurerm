@@ -11,24 +11,22 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/servers"
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type MsSqlServerResource struct{}
+type MssqlServerResource struct{}
 
 func TestAccMsSqlServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
-	r := MsSqlServerResource{}
+	r := MssqlServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -43,7 +41,7 @@ func TestAccMsSqlServer_basic(t *testing.T) {
 
 func TestAccMsSqlServer_basicWithUnknownValue(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
-	r := MsSqlServerResource{}
+	r := MssqlServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -58,7 +56,7 @@ func TestAccMsSqlServer_basicWithUnknownValue(t *testing.T) {
 
 func TestAccMsSqlServer_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
-	r := MsSqlServerResource{}
+	r := MssqlServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -71,27 +69,9 @@ func TestAccMsSqlServer_complete(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlServer_minimumTLSVersionDisabled(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skipf("The service require minimum TLS version to be 1.2+, skip the `disabled` testing.")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
-	r := MsSqlServerResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicWithMinimumTLSVersionDisabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"),
-	})
-}
-
 func TestAccMsSqlServer_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
-	r := MsSqlServerResource{}
+	r := MssqlServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -106,7 +86,7 @@ func TestAccMsSqlServer_requiresImport(t *testing.T) {
 
 func TestAccMsSqlServer_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
-	r := MsSqlServerResource{}
+	r := MssqlServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -142,7 +122,7 @@ func TestAccMsSqlServer_update(t *testing.T) {
 
 func TestAccMsSqlServer_systemAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
-	r := MsSqlServerResource{}
+	r := MssqlServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -157,7 +137,7 @@ func TestAccMsSqlServer_systemAssignedIdentity(t *testing.T) {
 
 func TestAccMsSqlServer_userAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
-	r := MsSqlServerResource{}
+	r := MssqlServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -172,7 +152,7 @@ func TestAccMsSqlServer_userAssignedIdentity(t *testing.T) {
 
 func TestAccMsSqlServer_systemAndUserAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
-	r := MsSqlServerResource{}
+	r := MssqlServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -187,7 +167,7 @@ func TestAccMsSqlServer_systemAndUserAssignedIdentity(t *testing.T) {
 
 func TestAccMsSqlServer_azureadAdmin(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
-	r := MsSqlServerResource{}
+	r := MssqlServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -202,7 +182,7 @@ func TestAccMsSqlServer_azureadAdmin(t *testing.T) {
 
 func TestAccMsSqlServer_azureadAdminUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
-	r := MsSqlServerResource{}
+	r := MssqlServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -238,7 +218,7 @@ func TestAccMsSqlServer_azureadAdminUpdate(t *testing.T) {
 
 func TestAccMsSqlServer_azureadAdminWithAADAuthOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
-	r := MsSqlServerResource{}
+	r := MssqlServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -253,7 +233,7 @@ func TestAccMsSqlServer_azureadAdminWithAADAuthOnly(t *testing.T) {
 
 func TestAccMsSqlServer_azureadAuthenticationOnlyWithIdentityUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
-	r := MsSqlServerResource{}
+	r := MssqlServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -280,9 +260,38 @@ func TestAccMsSqlServer_azureadAuthenticationOnlyWithIdentityUpdate(t *testing.T
 	})
 }
 
+func TestAccMsSqlServer_azureadAuthenticationOnlyWithPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
+	r := MssqlServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.azureadAuthenticationOnlyWithPolicy(data, false, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.azureadAuthenticationOnlyWithPolicy(data, false, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.azureadAuthenticationOnlyWithPolicy(data, true, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+	})
+}
+
 func TestAccMsSqlServer_TDECMKServerDeployment(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
-	r := MsSqlServerResource{}
+	r := MssqlServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -297,7 +306,7 @@ func TestAccMsSqlServer_TDECMKServerDeployment(t *testing.T) {
 
 func TestAccMsSqlServer_CMKServerTagsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
-	r := MsSqlServerResource{}
+	r := MssqlServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -326,7 +335,7 @@ func TestAccMsSqlServer_CMKServerTagsUpdate(t *testing.T) {
 
 func TestAccMsSqlServer_writeOnlyAdminLoginPassword(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
-	r := MsSqlServerResource{}
+	r := MssqlServerResource{}
 
 	resource.ParallelTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -356,7 +365,7 @@ func TestAccMsSqlServer_writeOnlyAdminLoginPassword(t *testing.T) {
 
 func TestAccMsSqlServer_updateToWriteOnlyPassword(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
-	r := MsSqlServerResource{}
+	r := MssqlServerResource{}
 
 	resource.ParallelTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -389,26 +398,24 @@ func TestAccMsSqlServer_updateToWriteOnlyPassword(t *testing.T) {
 	})
 }
 
-func (MsSqlServerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ServerID(state.ID)
+func (MssqlServerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := commonids.ParseSqlServerID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	serverId := commonids.NewSqlServerID(id.SubscriptionId, id.ResourceGroup, id.Name)
-
-	resp, err := client.MSSQL.ServersClient.Get(ctx, serverId, servers.DefaultGetOperationOptions())
+	resp, err := client.MSSQL.ServersClient.Get(ctx, *id, servers.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return nil, fmt.Errorf("SQL Server %q (Resource Group %q) does not exist", id.Name, id.ResourceGroup)
+			return nil, fmt.Errorf("SQL Server %q (Resource Group %q) does not exist", id.ServerName, id.ResourceGroupName)
 		}
-		return nil, fmt.Errorf("reading SQL Server %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("reading SQL Server %q (Resource Group %q): %v", id.ServerName, id.ResourceGroupName, err)
 	}
 
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r MsSqlServerResource) basic(data acceptance.TestData) string {
+func (r MssqlServerResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -425,7 +432,7 @@ resource "azurerm_mssql_server" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MsSqlServerResource) basicWithUnknownValue(data acceptance.TestData) string {
+func (r MssqlServerResource) basicWithUnknownValue(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -442,27 +449,7 @@ resource "azurerm_mssql_server" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MsSqlServerResource) basicWithMinimumTLSVersionDisabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_mssql_server" "test" {
-  name                         = "acctestsqlserver%[2]d"
-  resource_group_name          = azurerm_resource_group.test.name
-  location                     = azurerm_resource_group.test.location
-  version                      = "12.0"
-  administrator_login          = "missadministrator"
-  administrator_login_password = "thisIsKat11"
-  minimum_tls_version          = "Disabled"
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r MsSqlServerResource) basicWithMinimumTLSVersion(data acceptance.TestData) string {
+func (r MssqlServerResource) basicWithMinimumTLSVersion(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -482,7 +469,7 @@ resource "azurerm_mssql_server" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MsSqlServerResource) requiresImport(data acceptance.TestData) string {
+func (r MssqlServerResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -497,7 +484,7 @@ resource "azurerm_mssql_server" "import" {
 `, r.basic(data))
 }
 
-func (r MsSqlServerResource) complete(data acceptance.TestData) string {
+func (r MssqlServerResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -586,7 +573,7 @@ resource "azurerm_private_endpoint" "test" {
 `, r.template(data), data.RandomInteger, data.RandomIntOfLength(15))
 }
 
-func (r MsSqlServerResource) completeUpdate(data acceptance.TestData) string {
+func (r MssqlServerResource) completeUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -673,7 +660,7 @@ resource "azurerm_private_endpoint" "test" {
 `, r.template(data), data.RandomInteger, data.RandomIntOfLength(15))
 }
 
-func (r MsSqlServerResource) systemAssignedIdentity(data acceptance.TestData) string {
+func (r MssqlServerResource) systemAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -692,14 +679,14 @@ resource "azurerm_mssql_server" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MsSqlServerResource) userAssignedIdentity(data acceptance.TestData) string {
+func (r MssqlServerResource) userAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_user_assigned_identity" "test1" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  name                = "test_identity_1"
+  name                = "acctest_identity_1"
 }
 
 resource "azurerm_user_assigned_identity" "test2" {
@@ -725,7 +712,7 @@ resource "azurerm_mssql_server" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MsSqlServerResource) systemAndUserAssignedIdentity(data acceptance.TestData) string {
+func (r MssqlServerResource) systemAndUserAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -753,7 +740,7 @@ resource "azurerm_mssql_server" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MsSqlServerResource) aadAdmin(data acceptance.TestData) string {
+func (r MssqlServerResource) aadAdmin(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -777,7 +764,7 @@ resource "azurerm_mssql_server" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MsSqlServerResource) aadAdminWithAADAuthOnly(data acceptance.TestData) string {
+func (r MssqlServerResource) aadAdminWithAADAuthOnly(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -800,7 +787,7 @@ resource "azurerm_mssql_server" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MsSqlServerResource) updateAzureadAuthenticationOnlyWithIdentity(data acceptance.TestData, enableAzureadAuthenticationOnly bool) string {
+func (r MssqlServerResource) updateAzureadAuthenticationOnlyWithIdentity(data acceptance.TestData, enableAzureadAuthenticationOnly bool) string {
 	return fmt.Sprintf(`
 %s
 
@@ -811,7 +798,7 @@ data "azurerm_client_config" "test" {}
 resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  name                = "test_identity_1"
+  name                = "acctest_identity_1"
 }
 
 resource "azurerm_mssql_server" "test" {
@@ -839,7 +826,64 @@ resource "azurerm_mssql_server" "test" {
 `, r.template(data), data.RandomInteger, enableAzureadAuthenticationOnly)
 }
 
-func (r MsSqlServerResource) tdeCMKServerDeployment(data acceptance.TestData) string {
+func (r MssqlServerResource) azureadAuthenticationOnlyWithPolicy(data acceptance.TestData, enableAzureadAuthenticationOnly bool, enablePolicy bool) string {
+	policyAssignment := ""
+	if enablePolicy {
+		policyAssignment = `
+data "azurerm_policy_definition_built_in" "test" {
+  # Azure SQL built-in policy definition: https://learn.microsoft.com/azure/azure-sql/database/policy-reference
+  name = "abda6d70-9778-44e7-84a8-06713e6db027"
+}
+
+resource "azurerm_resource_group_policy_assignment" "test" {
+  name                 = "acctestpa-mssql"
+  resource_group_id    = azurerm_resource_group.test.id
+  policy_definition_id = data.azurerm_policy_definition_built_in.test.id
+}
+`
+	}
+
+	return fmt.Sprintf(`
+%s
+
+provider "azuread" {}
+
+data "azurerm_client_config" "test" {}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "acctest_identity_1"
+}
+
+resource "azurerm_mssql_server" "test" {
+  name                         = "acctestsqlserver%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  version                      = "12.0"
+  minimum_tls_version          = "1.2"
+  administrator_login          = "missadministrator"
+  administrator_login_password = "thisIsKat11"
+
+  azuread_administrator {
+    login_username              = "AzureAD Admin"
+    object_id                   = data.azurerm_client_config.test.object_id
+    azuread_authentication_only = %[3]t
+  }
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  primary_user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+}
+
+%[4]s
+`, r.template(data), data.RandomInteger, enableAzureadAuthenticationOnly, policyAssignment)
+}
+
+func (r MssqlServerResource) tdeCMKServerDeployment(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -878,6 +922,7 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctest%[3]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
   enabled_for_disk_encryption = true
   tenant_id                   = azurerm_user_assigned_identity.test.tenant_id
   soft_delete_retention_days  = 7
@@ -913,7 +958,7 @@ resource "azurerm_key_vault_key" "test" {
 `, r.template(data), data.RandomInteger, data.RandomString)
 }
 
-func (r MsSqlServerResource) CMKServerTags(data acceptance.TestData, tag string) string {
+func (r MssqlServerResource) CMKServerTags(data acceptance.TestData, tag string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -956,6 +1001,7 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctest%[3]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
   enabled_for_disk_encryption = true
   tenant_id                   = azurerm_user_assigned_identity.test.tenant_id
   soft_delete_retention_days  = 7
@@ -991,7 +1037,7 @@ resource "azurerm_key_vault_key" "test" {
 `, r.template(data), data.RandomInteger, data.RandomString, tag)
 }
 
-func (r MsSqlServerResource) CMKServerNoTags(data acceptance.TestData) string {
+func (r MssqlServerResource) CMKServerNoTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1030,6 +1076,7 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctest%[3]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
   enabled_for_disk_encryption = true
   tenant_id                   = azurerm_user_assigned_identity.test.tenant_id
   soft_delete_retention_days  = 7
@@ -1065,7 +1112,7 @@ resource "azurerm_key_vault_key" "test" {
 `, r.template(data), data.RandomInteger, data.RandomString)
 }
 
-func (r MsSqlServerResource) writeOnlyAdminLoginPassword(data acceptance.TestData, secret string, version int) string {
+func (r MssqlServerResource) writeOnlyAdminLoginPassword(data acceptance.TestData, secret string, version int) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -1085,7 +1132,7 @@ resource "azurerm_mssql_server" "test" {
 `, r.template(data), acceptance.WriteOnlyKeyVaultSecretTemplate(data, secret), data.RandomInteger, version)
 }
 
-func (MsSqlServerResource) template(data acceptance.TestData) string {
+func (MssqlServerResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
