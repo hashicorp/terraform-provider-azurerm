@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package servicebus
@@ -11,16 +11,14 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/queues"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2022-10-01-preview/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/queues"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceServiceBusQueue() *pluginsdk.Resource {
@@ -52,7 +50,7 @@ func resourceServicebusQueueSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: azValidate.QueueName(),
+			ValidateFunc: validate.QueueName(),
 		},
 
 		// lintignore: S013
@@ -68,7 +66,7 @@ func resourceServicebusQueueSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 			// NOTE: O+C this gets a default except when using basic sku and can be updated without issues
 			Computed:     true,
-			ValidateFunc: validate.ISO8601Duration,
+			ValidateFunc: validation.ISO8601Duration,
 		},
 
 		"dead_lettering_on_message_expiration": {
@@ -82,14 +80,14 @@ func resourceServicebusQueueSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 			// NOTE: O+C this gets a default of "P10675199DT2H48M5.4775807S" (Unbounded) and "P14D" in Basic sku and can be updated without issues
 			Computed:     true,
-			ValidateFunc: validate.ISO8601Duration,
+			ValidateFunc: validation.ISO8601Duration,
 		},
 
 		"duplicate_detection_history_time_window": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      "PT10M", // 10 minutes
-			ValidateFunc: validate.ISO8601Duration,
+			ValidateFunc: validation.ISO8601Duration,
 		},
 
 		"batched_operations_enabled": {
@@ -114,13 +112,13 @@ func resourceServicebusQueueSchema() map[string]*pluginsdk.Schema {
 		"forward_dead_lettered_messages_to": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: azValidate.QueueName(),
+			ValidateFunc: validate.QueueName(),
 		},
 
 		"forward_to": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: azValidate.QueueName(),
+			ValidateFunc: validate.QueueName(),
 		},
 
 		"lock_duration": {
@@ -136,12 +134,12 @@ func resourceServicebusQueueSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.IntAtLeast(1),
 		},
 
-		"max_message_size_in_kilobytes": {
+		"max_message_size_in_kilobytes": { // azignore:AZP003 - named `maximum_message_size_in_kb` in the data source to follow new naming conventions
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
 			// NOTE: O+C this gets a variable default based on the sku and can be updated without issues
 			Computed:     true,
-			ValidateFunc: azValidate.ServiceBusMaxMessageSizeInKilobytes(),
+			ValidateFunc: validate.ServiceBusMaxMessageSizeInKilobytes(),
 		},
 
 		"max_size_in_megabytes": {
@@ -149,7 +147,7 @@ func resourceServicebusQueueSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 			// NOTE: O+C this gets a variable default based on the sku and can be updated without issues
 			Computed:     true,
-			ValidateFunc: azValidate.ServiceBusMaxSizeInMegabytes(),
+			ValidateFunc: validate.ServiceBusMaxSizeInMegabytes(),
 		},
 
 		"requires_duplicate_detection": {
@@ -184,7 +182,7 @@ func resourceServicebusQueueSchema() map[string]*pluginsdk.Schema {
 	}
 }
 
-func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceBus.QueuesClient
 	namespaceClient := meta.(*clients.Client).ServiceBus.NamespacesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -198,15 +196,17 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	id := queues.NewQueueID(namespaceId.SubscriptionId, namespaceId.ResourceGroupName, namespaceId.NamespaceName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_servicebus_queue", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_servicebus_queue", id.ID())
+			}
 		}
 	}
 
@@ -223,7 +223,7 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	userConfig := make(map[string]interface{})
+	userConfig := make(map[string]any)
 
 	status := queues.EntityStatus(d.Get("status").(string))
 	userConfig["status"] = status
@@ -255,16 +255,16 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	userConfig["enableBatchOps"] = enableBatchedOperations
 
 	parameters := queues.SBQueue{
-		Name: utils.String(id.QueueName),
+		Name: pointer.To(id.QueueName),
 		Properties: &queues.SBQueueProperties{
-			DeadLetteringOnMessageExpiration: utils.Bool(deadLetteringOnMesExp),
-			EnableBatchedOperations:          utils.Bool(enableBatchedOperations),
-			EnableExpress:                    utils.Bool(enableExpress),
-			EnablePartitioning:               utils.Bool(enablePartitioning),
-			MaxDeliveryCount:                 utils.Int64(int64(maxDeliveryCount)),
-			MaxSizeInMegabytes:               utils.Int64(int64(maxSizeInMB)),
-			RequiresDuplicateDetection:       utils.Bool(requireDuplicateDetection),
-			RequiresSession:                  utils.Bool(requireSession),
+			DeadLetteringOnMessageExpiration: pointer.To(deadLetteringOnMesExp),
+			EnableBatchedOperations:          pointer.To(enableBatchedOperations),
+			EnableExpress:                    pointer.To(enableExpress),
+			EnablePartitioning:               pointer.To(enablePartitioning),
+			MaxDeliveryCount:                 pointer.To(int64(maxDeliveryCount)),
+			MaxSizeInMegabytes:               pointer.To(int64(maxSizeInMB)),
+			RequiresDuplicateDetection:       pointer.To(requireDuplicateDetection),
+			RequiresSession:                  pointer.To(requireSession),
 			Status:                           &status,
 		},
 	}
@@ -315,7 +315,7 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		if isPremiumNamespacePartitioned && !enablePartitioning {
 			return fmt.Errorf("non-partitioned entities are not allowed in partitioned namespace")
 		} else if !isPremiumNamespacePartitioned && enablePartitioning {
-			return fmt.Errorf("the parent premium namespace is not partitioned and the partitioning for premium namespace is only available at the namepsace creation")
+			return fmt.Errorf("the parent premium namespace is not partitioned and the partitioning for premium namespace is only available at the namespace creation")
 		}
 	}
 
@@ -324,14 +324,16 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		if sku != namespaces.SkuNamePremium {
 			return fmt.Errorf("%s does not support input on `max_message_size_in_kilobytes` in %s SKU and should be removed", id, sku)
 		}
-		parameters.Properties.MaxMessageSizeInKilobytes = utils.Int64(int64(v.(int)))
+		parameters.Properties.MaxMessageSizeInKilobytes = pointer.To(int64(v.(int)))
 	}
 
 	if _, err = client.CreateOrUpdate(ctx, id, parameters); err != nil {
 		return err
 	}
 
-	if !d.IsNewResource() {
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	} else {
 		// wait for property update, api issue is being tracked:https://github.com/Azure/azure-rest-api-specs/issues/21445
 		log.Printf("[DEBUG] Waiting for %s status to become ready", id)
 		deadline, ok := ctx.Deadline()
@@ -352,11 +354,10 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	d.SetId(id.ID())
 	return resourceServiceBusQueueRead(d, meta)
 }
 
-func resourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceBus.QueuesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -393,7 +394,7 @@ func resourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) er
 			d.Set("max_message_size_in_kilobytes", props.MaxMessageSizeInKilobytes)
 			d.Set("requires_duplicate_detection", props.RequiresDuplicateDetection)
 			d.Set("requires_session", props.RequiresSession)
-			d.Set("status", string(pointer.From(props.Status)))
+			d.Set("status", pointer.FromEnum(props.Status))
 
 			d.Set("batched_operations_enabled", props.EnableBatchedOperations)
 			d.Set("express_enabled", props.EnableExpress)
@@ -424,7 +425,7 @@ func resourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceServiceBusQueueDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceServiceBusQueueDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceBus.QueuesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -444,8 +445,8 @@ func resourceServiceBusQueueDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func serviceBusQueueStatusRefreshFunc(ctx context.Context, client *queues.QueuesClient, id queues.QueueId, userConfig map[string]interface{}) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+func serviceBusQueueStatusRefreshFunc(ctx context.Context, client *queues.QueuesClient, id queues.QueueId, userConfig map[string]any) pluginsdk.StateRefreshFunc {
+	return func() (any, string, error) {
 		log.Printf("[DEBUG] Checking servicebus queue %s status...", id)
 
 		resp, err := client.Get(ctx, id)

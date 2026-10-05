@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package main
@@ -33,7 +33,7 @@ func main() {
 	websitePath := f.String("website-path", "", "The relative path to the website folder")
 
 	// example generation related flags
-	genExample := f.Bool("example", false, "Wether to generate the Terraform configuration example from AccTest")
+	genExample := f.Bool("example", false, "Whether to generate the Terraform configuration example from AccTest")
 	rootDir := f.String("root-dir", "", "The path to the project root. Required when `-example` is set.")
 	servicePkg := f.String("service-pkg", "", "The service package where the AccTest resides in. Required when `-example` is set.")
 	testCase := f.String("testcase", "", "The name of the AccTest where the Terraform configuration derives from. Required when `-example` is set.")
@@ -51,7 +51,7 @@ func main() {
 	}
 
 	if brandName == nil || *brandName == "" {
-		quitWithError("The friendly/brannd name of the Data Source/Resource must be specified via `-brand`")
+		quitWithError("The friendly/brand name of the Data Source/Resource must be specified via `-brand`")
 		return
 	}
 
@@ -135,7 +135,7 @@ func getContent(resourceName, brandName string, resourceId *string, isResource b
 		}
 
 		if generator.resource == nil {
-			return nil, fmt.Errorf("Data Source %q was not registered!", resourceName)
+			return nil, fmt.Errorf("data source %q was not registered", resourceName)
 		}
 	} else {
 		for _, service := range provider.SupportedTypedServices() {
@@ -164,7 +164,7 @@ func getContent(resourceName, brandName string, resourceId *string, isResource b
 		}
 
 		if generator.resource == nil {
-			return nil, fmt.Errorf("Resource %q was not registered!", resourceName)
+			return nil, fmt.Errorf("resource %q was not registered", resourceName)
 		}
 	}
 
@@ -259,7 +259,7 @@ func (gen documentationGenerator) generate() string {
 // blocks
 func (gen documentationGenerator) argumentsBlock() string {
 	documentationForArguments := func(input map[string]*schema.Schema, onlyRequired, onlyOptional bool, blockName string) string {
-		fields := ""
+		var fields strings.Builder
 
 		for _, fieldName := range gen.sortFields(input) {
 			field := input[fieldName]
@@ -297,12 +297,12 @@ func (gen documentationGenerator) argumentsBlock() string {
 			}
 
 			if field.ForceNew {
-				value += fmt.Sprintf(" Changing this forces a new %s to be created.", gen.brandName)
+				value += " Changing this forces a new resource to be created."
 			}
-			fields += fmt.Sprintf("* `%s` - (%s) %s\n\n", fieldName, status, value)
+			fmt.Fprintf(&fields, "* `%s` - (%s) %s\n\n", fieldName, status, value)
 		}
 
-		return fields
+		return fields.String()
 	}
 
 	// first output the Required fields
@@ -343,7 +343,7 @@ The following arguments are supported:
 
 func (gen documentationGenerator) attributesBlock() string {
 	documentationForAttributes := func(input map[string]*schema.Schema, onlyComputed bool, blockName string) string {
-		fields := ""
+		var fields strings.Builder
 
 		// now list all of the top-level fields / blocks alphabetically
 		for _, fieldName := range gen.sortFields(input) {
@@ -357,10 +357,10 @@ func (gen documentationGenerator) attributesBlock() string {
 			}
 
 			value := gen.buildDescriptionForAttribute(fieldName, field, blockName)
-			fields += fmt.Sprintf("* `%s` - %s\n\n", fieldName, value)
+			fmt.Fprintf(&fields, "* `%s` - %s\n\n", fieldName, value)
 		}
 
-		return fields
+		return fields.String()
 	}
 
 	// present in everything
@@ -472,7 +472,7 @@ func (gen documentationGenerator) timeoutsBlock() string {
 	}
 	timeouts := *gen.resource.Timeouts
 
-	timeoutsBlurb := "The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:"
+	timeoutsBlurb := "The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:"
 
 	timeoutToFriendlyText := func(duration time.Duration) string {
 		hours := int(math.Floor(duration.Hours()))
@@ -556,11 +556,11 @@ func (gen documentationGenerator) blockIsBefore(name string, blockName string) b
 }
 
 func (gen documentationGenerator) buildIndentForExample(level int) string {
-	out := ""
-	for i := 0; i < level; i++ {
-		out += "  "
+	var out strings.Builder
+	for range level {
+		out.WriteString("  ")
 	}
-	return out
+	return out.String()
 }
 
 func (gen documentationGenerator) buildDescriptionForArgument(name string, field *schema.Schema, blockName string) string {
@@ -594,7 +594,7 @@ func (gen documentationGenerator) buildDescriptionForArgument(name string, field
 	}
 
 	if name == "enabled" || strings.HasSuffix(name, "_enabled") {
-		return "Should the TODO be enabled?"
+		return "Whether to enable the TODO."
 	}
 
 	if strings.HasSuffix(name, "_id") {
@@ -650,7 +650,7 @@ func (gen documentationGenerator) buildDescriptionForAttribute(name string, fiel
 	}
 
 	if name == "enabled" || strings.HasSuffix(name, "_enabled") {
-		return "Is the TODO enabled?"
+		return "Whether the TODO is enabled."
 	}
 
 	if strings.HasSuffix(name, "_id") {
@@ -744,7 +744,7 @@ func (gen documentationGenerator) distinctBlockNames(input []string) []string {
 	return output
 }
 
-func (gen documentationGenerator) processElementForExample(field string, indentLevel int, elem interface{}, isAttribute bool) string {
+func (gen documentationGenerator) processElementForExample(field string, indentLevel int, elem any, isAttribute bool) string {
 	indent := gen.buildIndentForExample(indentLevel)
 
 	// it's an array of something, work out what
@@ -777,7 +777,7 @@ func (gen documentationGenerator) processElementForExample(field string, indentL
 
 func (gen documentationGenerator) requiredFieldsForExampleBlock(fields map[string]*schema.Schema, indentLevel int) string {
 	indent := gen.buildIndentForExample(indentLevel)
-	output := ""
+	var output strings.Builder
 
 	processField := func(name string, field *schema.Schema) string {
 		value := gen.determineDefaultValueForExample(name, field)
@@ -786,13 +786,13 @@ func (gen documentationGenerator) requiredFieldsForExampleBlock(fields map[strin
 
 	// if we have a "name", "location" "resource_group_name" field output those first as per convention
 	if v, ok := fields["name"]; ok && v.Required {
-		output += processField("name", v)
+		output.WriteString(processField("name", v))
 	}
 	if v, ok := fields["resource_group_name"]; ok && v.Required {
-		output += processField("resource_group_name", v)
+		output.WriteString(processField("resource_group_name", v))
 	}
 	if v, ok := fields["location"]; ok && v.Required {
-		output += processField("location", v)
+		output.WriteString(processField("location", v))
 	}
 
 	for field, v := range fields {
@@ -805,13 +805,13 @@ func (gen documentationGenerator) requiredFieldsForExampleBlock(fields map[strin
 
 		if v.Elem != nil {
 			isAttribute := v.ConfigMode == schema.SchemaConfigModeAttr
-			output += gen.processElementForExample(field, indentLevel, v.Elem, isAttribute)
+			output.WriteString(gen.processElementForExample(field, indentLevel, v.Elem, isAttribute))
 			continue
 		}
 
-		output += processField(field, v)
+		output.WriteString(processField(field, v))
 	}
-	return strings.TrimSuffix(output, "\n")
+	return strings.TrimSuffix(output.String(), "\n")
 }
 
 func (gen documentationGenerator) sortFields(input map[string]*schema.Schema) []string {
@@ -831,7 +831,7 @@ func (gen documentationGenerator) uniqueBlockNamesForArgument(fields map[string]
 		field := fields[fieldName]
 
 		// compute-only fields can be omitted
-		if field.Computed && !(field.Optional || field.Required) {
+		if field.Computed && (!field.Optional && !field.Required) {
 			continue
 		}
 
@@ -873,10 +873,8 @@ func (gen documentationGenerator) uniqueBlockNamesForArgument(fields map[string]
 
 			innerBlockNames, innerBlocks := gen.uniqueBlockNamesForArgument(innerV.Schema)
 			for _, innerBlockName := range innerBlockNames {
-				innerBlock := innerBlocks[innerBlockName]
-
 				blockNames = append(blockNames, innerBlockName)
-				blocks[innerBlockName] = innerBlock
+				blocks[innerBlockName] = innerBlocks[innerBlockName]
 			}
 		}
 	}
@@ -894,7 +892,7 @@ func (gen documentationGenerator) uniqueBlockNamesForAttribute(fields map[string
 	for _, fieldName := range gen.sortFields(fields) {
 		field := fields[fieldName]
 
-		// fields which are setable but aren't computed-only can be skipped
+		// fields which are settable but aren't computed-only can be skipped
 		if (field.Optional || field.Required) && !field.Computed {
 			continue
 		}
@@ -942,10 +940,8 @@ func (gen documentationGenerator) uniqueBlockNamesForAttribute(fields map[string
 
 			innerBlockNames, innerBlocks := gen.uniqueBlockNamesForAttribute(innerV.Schema)
 			for _, innerBlockName := range innerBlockNames {
-				innerBlock := innerBlocks[innerBlockName]
-
 				blockNames = append(blockNames, innerBlockName)
-				blocks[innerBlockName] = innerBlock
+				blocks[innerBlockName] = innerBlocks[innerBlockName]
 			}
 		}
 	}

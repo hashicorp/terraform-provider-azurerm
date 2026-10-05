@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package client
@@ -13,7 +13,7 @@ import (
 	authWrapper "github.com/hashicorp/go-azure-sdk/sdk/auth/autorest"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	dataplane "github.com/jackofallops/kermit/sdk/iotcentral/2022-10-31-preview/iotcentral"
+	"github.com/jackofallops/kermit/sdk/iotcentral/2022-10-31-preview/iotcentral"
 )
 
 type Client struct {
@@ -39,7 +39,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}, nil
 }
 
-func (c *Client) OrganizationsClient(ctx context.Context, subdomain string) (*dataplane.OrganizationsClient, error) {
+func (c *Client) OrganizationsClient(ctx context.Context, subdomain string) (*iotcentral.OrganizationsClient, error) {
 	if !c.Endpoint.Available() {
 		return nil, errors.New("unable to build SDK Client since IoTCentral is not available in this Azure Environment")
 	}
@@ -49,7 +49,7 @@ func (c *Client) OrganizationsClient(ctx context.Context, subdomain string) (*da
 		return nil, fmt.Errorf("obtaining auth token for %q: %+v", c.Endpoint.Name(), err)
 	}
 
-	client := dataplane.NewOrganizationsClient(subdomain)
+	client := iotcentral.NewOrganizationsClient(subdomain)
 	c.configureClientFunc(&client.Client, authWrapper.AutorestAuthorizer(iotCentralAuth))
 
 	return &client, nil
