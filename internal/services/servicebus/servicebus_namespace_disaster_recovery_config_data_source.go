@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package servicebus
@@ -9,11 +9,10 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/disasterrecoveryconfigs"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2022-10-01-preview/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/armdisasterrecoveries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/disasterrecoveryconfigs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -35,27 +34,8 @@ func dataSourceServiceBusNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
 
 			"namespace_id": {
 				Type:         pluginsdk.TypeString,
-				Optional:     true,
+				Required:     true,
 				ValidateFunc: namespaces.ValidateNamespaceID,
-				AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
-			},
-
-			// TODO Remove in 4.0
-			"namespace_name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validate.NamespaceName,
-				AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
-				Deprecated:   "`namespace_name` will be removed in favour of the property `namespace_id` in version 4.0 of the AzureRM Provider.",
-			},
-
-			// TODO Remove in 4.0
-			"resource_group_name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: resourcegroups.ValidateName,
-				AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
-				Deprecated:   "`resource_group_name` will be removed in favour of the property `namespace_id` in version 4.0 of the AzureRM Provider.",
 			},
 
 			"alias_authorization_rule_id": {
@@ -96,8 +76,9 @@ func dataSourceServiceBusNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ServiceBus.DisasterRecoveryConfigsClient
+func dataSourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).ServiceBus.ArmDisasterRecoveriesClient
+	authRuleClient := meta.(*clients.Client).ServiceBus.DisasterRecoveryConfigsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -105,19 +86,16 @@ func dataSourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.Resour
 	var resourceGroup string
 	var namespaceName string
 	if v, ok := d.Get("namespace_id").(string); ok && v != "" {
-		namespaceId, err := disasterrecoveryconfigs.ParseNamespaceID(v)
+		namespaceId, err := armdisasterrecoveries.ParseNamespaceID(v)
 		if err != nil {
 			return fmt.Errorf("parsing namespace ID %q: %+v", v, err)
 		}
 		resourceGroup = namespaceId.ResourceGroupName
 		namespaceName = namespaceId.NamespaceName
-	} else {
-		resourceGroup = d.Get("resource_group_name").(string)
-		namespaceName = d.Get("namespace_name").(string)
 	}
 
-	id := disasterrecoveryconfigs.NewDisasterRecoveryConfigID(subscriptionId, resourceGroup, namespaceName, d.Get("name").(string))
-	resp, err := client.Get(ctx, id)
+	id := armdisasterrecoveries.NewDisasterRecoveryConfigID(subscriptionId, resourceGroup, namespaceName, d.Get("name").(string))
+	resp, err := client.DisasterRecoveryConfigsGet(ctx, id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
@@ -126,8 +104,6 @@ func dataSourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.Resour
 	}
 
 	d.Set("name", id.DisasterRecoveryConfigName)
-	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("namespace_name", id.NamespaceName)
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
@@ -147,7 +123,7 @@ func dataSourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.Resour
 		authRuleId = *ruleId
 	}
 
-	keys, err := client.ListKeys(ctx, authRuleId)
+	keys, err := authRuleClient.ListKeys(ctx, authRuleId)
 	if err != nil {
 		log.Printf("[WARN] listing default keys for %s: %+v", id, err)
 	} else {

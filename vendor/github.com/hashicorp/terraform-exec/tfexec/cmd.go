@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2020, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package tfexec
@@ -11,12 +11,15 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
+	"iter"
+	"maps"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 
 	"github.com/hashicorp/terraform-exec/internal/version"
+	tfjson "github.com/hashicorp/terraform-json"
 )
 
 const (
@@ -120,6 +123,16 @@ func envSlice(environ map[string]string) []string {
 	return env
 }
 
+// buildEnv determines which environment variables should affect use of a Terraform
+// executable.
+//
+// Factors that can affect the final set of environment variables are:
+// > Whether a user has explicitly set environment variables via (tf *Terraform) SetEnv.
+// > The environment of the machine terraform-exec is run on.
+// > Any override ENVs set in command-specific code (e.g. use of TF_REATTACH_PROVIDERS).
+//
+// This method also enforces some rules for the entire terraform-exec library,
+// for example User Agent data set via ENVs.
 func (tf *Terraform) buildEnv(mergeEnv map[string]string) []string {
 	// set Terraform level env, if env is nil, fall back to os.Environ
 	var env map[string]string
@@ -127,15 +140,11 @@ func (tf *Terraform) buildEnv(mergeEnv map[string]string) []string {
 		env = envMap(os.Environ())
 	} else {
 		env = make(map[string]string, len(tf.env))
-		for k, v := range tf.env {
-			env[k] = v
-		}
+		maps.Copy(env, tf.env)
 	}
 
 	// override env with any command specific environment
-	for k, v := range mergeEnv {
-		env[k] = v
-	}
+	maps.Copy(env, mergeEnv)
 
 	// always propagate CHECKPOINT_DISABLE env var unless it is
 	// explicitly overridden with tf.SetEnv or command env
@@ -187,6 +196,14 @@ func (tf *Terraform) buildTerraformCmd(ctx context.Context, mergeEnv map[string]
 
 	cmd.Env = tf.buildEnv(mergeEnv)
 	cmd.Dir = tf.workingDir
+	if runtime.GOOS != "windows" {
+		// Windows does not support SIGINT so we cannot do graceful cancellation
+		// see https://pkg.go.dev/os#Signal (os.Interrupt)
+		cmd.Cancel = func() error {
+			return cmd.Process.Signal(os.Interrupt)
+		}
+		cmd.WaitDelay = tf.waitDelay
+	}
 
 	tf.logger.Printf("[INFO] running Terraform command: %s", cmd.String())
 
@@ -205,6 +222,72 @@ func (tf *Terraform) runTerraformCmdJSON(ctx context.Context, cmd *exec.Cmd, v i
 	dec := json.NewDecoder(&outbuf)
 	dec.UseNumber()
 	return dec.Decode(v)
+}
+
+func (tf *Terraform) runTerraformCmdJSONLog(ctx context.Context, cmd *exec.Cmd) iter.Seq[NextMessage] {
+	pr, pw := io.Pipe()
+	tf.SetStdout(pw)
+
+	emitter := newLogMsgEmitter(pr)
+
+	go func() {
+		err := tf.runTerraformCmd(ctx, cmd)
+		emitter.done <- errors.Join(err, pw.Close())
+	}()
+
+	return func(yield func(msg NextMessage) bool) {
+		for {
+			nextMsg := emitter.NextMessage()
+			ok := yield(nextMsg)
+			if !ok || nextMsg.Msg == nil {
+				return
+			}
+		}
+	}
+}
+
+func newLogMsgEmitter(stdoutReader io.ReadCloser) *logMsgEmitter {
+	return &logMsgEmitter{
+		scanner:      bufio.NewScanner(stdoutReader),
+		stdoutReader: stdoutReader,
+		done:         make(chan error, 1),
+	}
+}
+
+type logMsgEmitter struct {
+	scanner      *bufio.Scanner
+	stdoutReader io.Closer
+	done         chan error
+}
+
+type NextMessage struct {
+	Msg tfjson.LogMsg
+	Err error
+}
+
+// NextMessage returns next decoded message, if any, along with any errors.
+// Stdout reader is closed when the last message is received.
+//
+// Error returned can be related to decoding of the message, the Terraform command
+// or closing of stdout reader.
+//
+// Any error coming from Terraform (such as wrong configuration syntax) is
+// represented as LogMsg of Level [tfjson.Error].
+func (e *logMsgEmitter) NextMessage() NextMessage {
+	if e.scanner.Scan() {
+		msg, err := tfjson.UnmarshalLogMessage(e.scanner.Bytes())
+		return NextMessage{
+			Msg: msg,
+			Err: err,
+		}
+	}
+
+	err := <-e.done
+	err = errors.Join(err, e.scanner.Err(), e.stdoutReader.Close())
+	return NextMessage{
+		Msg: nil,
+		Err: err,
+	}
 }
 
 // mergeUserAgent does some minor deduplication to ensure we aren't
@@ -235,7 +318,7 @@ func mergeWriters(writers ...io.Writer) io.Writer {
 		}
 	}
 	if len(compact) == 0 {
-		return ioutil.Discard
+		return io.Discard
 	}
 	if len(compact) == 1 {
 		return compact[0]
@@ -243,20 +326,30 @@ func mergeWriters(writers ...io.Writer) io.Writer {
 	return io.MultiWriter(compact...)
 }
 
-func writeOutput(ctx context.Context, r io.ReadCloser, w io.Writer) error {
-	// ReadBytes will block until bytes are read, which can cause a delay in
-	// returning even if the command's context has been canceled. Use a separate
-	// goroutine to prompt ReadBytes to return on cancel
-	closeCtx, closeCancel := context.WithCancel(ctx)
-	defer closeCancel()
-	go func() {
-		select {
-		case <-ctx.Done():
-			r.Close()
-		case <-closeCtx.Done():
-			return
-		}
-	}()
+func (tf *Terraform) writeOutput(ctx context.Context, r io.ReadCloser, w io.Writer) error {
+	// ReadBytes will block until all bytes are read, which can cause a delay in
+	// returning even if the command's context has been canceled. When the
+	// context is canceled, Terraform receives an interrupt signal and will exit
+	// after a short while. Once the process has exited, the stdio pipes will
+	// close, allowing this function to return.
+
+	if tf.enableLegacyPipeClosing {
+		// Rather than wait for the stdio pipes to close naturally, we can close
+		// them ourselves when the command's context is canceled, causing the
+		// process to exit immediately. This works around a bug in Terraform
+		// < v1.1 that would otherwise leave the process (and this function)
+		// hanging after the context is canceled.
+		closeCtx, closeCancel := context.WithCancel(ctx)
+		defer closeCancel()
+		go func() {
+			select {
+			case <-ctx.Done():
+				r.Close()
+			case <-closeCtx.Done():
+				return
+			}
+		}()
+	}
 
 	buf := bufio.NewReader(r)
 	for {

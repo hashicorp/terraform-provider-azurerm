@@ -57,7 +57,7 @@ func (d StorageBlobContentDataSource) Attributes() map[string]*pluginsdk.Schema 
 	}
 }
 
-func (d StorageBlobContentDataSource) ModelObject() interface{} {
+func (d StorageBlobContentDataSource) ModelObject() any {
 	return &StorageBlobContentDataSourceModel{}
 }
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package postgres
@@ -8,16 +8,17 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-12-01/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourcePostgresqlFlexibleServerDatabase() *pluginsdk.Resource {
@@ -71,7 +72,7 @@ func resourcePostgresqlFlexibleServerDatabase() *pluginsdk.Resource {
 	}
 }
 
-func resourcePostgresqlFlexibleServerDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePostgresqlFlexibleServerDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Postgres.FlexibleServerDatabaseClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -87,7 +88,7 @@ func resourcePostgresqlFlexibleServerDatabaseCreate(d *pluginsdk.ResourceData, m
 	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 	defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -101,20 +102,20 @@ func resourcePostgresqlFlexibleServerDatabaseCreate(d *pluginsdk.ResourceData, m
 
 	properties := databases.Database{
 		Properties: &databases.DatabaseProperties{
-			Charset:   utils.String(d.Get("charset").(string)),
-			Collation: utils.String(d.Get("collation").(string)),
+			Charset:   pointer.To(d.Get("charset").(string)),
+			Collation: pointer.To(d.Get("collation").(string)),
 		},
 	}
 
-	if err = client.CreateThenPoll(ctx, id, properties); err != nil {
+	if err = client.CreateCallbackThenPoll(ctx, id, properties, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-
 	d.SetId(id.ID())
+
 	return resourcePostgresqlFlexibleServerDatabaseRead(d, meta)
 }
 
-func resourcePostgresqlFlexibleServerDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePostgresqlFlexibleServerDatabaseRead(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Postgres.FlexibleServerDatabaseClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -147,7 +148,7 @@ func resourcePostgresqlFlexibleServerDatabaseRead(d *pluginsdk.ResourceData, met
 	return nil
 }
 
-func resourcePostgresqlFlexibleServerDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePostgresqlFlexibleServerDatabaseDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Postgres.FlexibleServerDatabaseClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

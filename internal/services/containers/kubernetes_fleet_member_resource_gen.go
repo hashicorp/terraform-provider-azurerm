@@ -74,7 +74,7 @@ func (r KubernetesFleetMemberResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ContainerService.V20231015.FleetMembers
+			client := metadata.Client.ContainerService.V20240401.FleetMembers
 
 			var config KubernetesFleetMemberResourceSchema
 			if err := metadata.Decode(&config); err != nil {
@@ -119,7 +119,7 @@ func (r KubernetesFleetMemberResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ContainerService.V20231015.FleetMembers
+			client := metadata.Client.ContainerService.V20240401.FleetMembers
 			schema := KubernetesFleetMemberResourceSchema{}
 
 			id, err := fleetmembers.ParseMemberID(metadata.ResourceData.Id())
@@ -154,7 +154,7 @@ func (r KubernetesFleetMemberResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ContainerService.V20231015.FleetMembers
+			client := metadata.Client.ContainerService.V20240401.FleetMembers
 
 			id, err := fleetmembers.ParseMemberID(metadata.ResourceData.Id())
 			if err != nil {
@@ -174,7 +174,7 @@ func (r KubernetesFleetMemberResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ContainerService.V20231015.FleetMembers
+			client := metadata.Client.ContainerService.V20240401.FleetMembers
 
 			id, err := fleetmembers.ParseMemberID(metadata.ResourceData.Id())
 			if err != nil {

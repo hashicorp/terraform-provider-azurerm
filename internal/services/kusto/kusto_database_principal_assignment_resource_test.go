@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package kusto_test
@@ -8,7 +8,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/databaseprincipalassignments"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/databaseprincipalassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -58,9 +59,7 @@ func (KustoDatabasePrincipalAssignmentResource) Exists(ctx context.Context, clie
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
-	exists := resp.Model != nil
-
-	return &exists, nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (KustoDatabasePrincipalAssignmentResource) basic(data acceptance.TestData) string {

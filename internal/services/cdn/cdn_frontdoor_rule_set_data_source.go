@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn
@@ -7,13 +7,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rulesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceCdnFrontDoorRuleSet() *pluginsdk.Resource {
@@ -47,26 +49,31 @@ func dataSourceCdnFrontDoorRuleSet() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceCdnFrontDoorRuleSetRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceCdnFrontDoorRuleSetRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewFrontDoorRuleSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("profile_name").(string), d.Get("name").(string))
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.RuleSetName)
+	id := rulesets.NewRuleSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("profile_name").(string), d.Get("name").(string))
+
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	if resp.Model != nil && resp.Model.Properties != nil && pointer.From(resp.Model.Properties.BatchMode) {
+		return fmt.Errorf("%s was provisioned using batch mode, and cannot be read by this data source, use `azurerm_cdn_frontdoor_batch_rule_set` instead", id)
+	}
+
 	d.SetId(id.ID())
 	d.Set("name", id.RuleSetName)
 	d.Set("profile_name", id.ProfileName)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("cdn_frontdoor_profile_id", parse.NewFrontDoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
+	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("cdn_frontdoor_profile_id", profiles.NewProfileID(subscriptionId, id.ResourceGroupName, id.ProfileName).ID())
 
 	return nil
 }
