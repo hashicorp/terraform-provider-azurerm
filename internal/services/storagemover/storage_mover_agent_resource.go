@@ -44,7 +44,7 @@ func (r StorageMoverAgentResource) ResourceType() string {
 	return "azurerm_storage_mover_agent"
 }
 
-func (r StorageMoverAgentResource) ModelObject() interface{} {
+func (r StorageMoverAgentResource) ModelObject() any {
 	return &StorageMoverAgentResourceModel{}
 }
 
@@ -65,7 +65,7 @@ func (r StorageMoverAgentResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: machines.ValidateMachineID,
+			ValidateFunc: validation.AsGeneratedID(machines.ParseMachineIDInsensitively),
 		},
 
 		"arc_virtual_machine_uuid": {

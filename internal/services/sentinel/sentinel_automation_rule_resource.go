@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflows"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2024-09-01/automationrules"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/migration"
@@ -85,7 +84,7 @@ func resourceSentinelAutomationRule() *pluginsdk.Resource {
 			// We can't use the pluginsdk.SuppressJsonDiff here as the "condition_json" is always an array, while that function assume its input is an object.
 			// Once https://github.com/hashicorp/terraform-plugin-sdk/pull/1102 is merged, we can switch to pluginsdk.SuppressJsonDiff.
 			DiffSuppressFunc: func(_, old, new string, _ *pluginsdk.ResourceData) bool {
-				return helpers.NormalizeJson(old) == helpers.NormalizeJson(new)
+				return pluginsdk.NormalizeJson(old) == pluginsdk.NormalizeJson(new)
 			},
 			ValidateFunc: validation.StringIsJSON,
 		},
@@ -193,9 +192,9 @@ func resourceSentinelAutomationRule() *pluginsdk.Resource {
 					},
 
 					"tenant_id": {
-						Type: pluginsdk.TypeString,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
 						// NOTE: O+C We'll use the current tenant id if this property is absent.
-						Optional:     true,
 						Computed:     true,
 						ValidateFunc: validation.IsUUID,
 					},
@@ -231,7 +230,7 @@ func resourceSentinelAutomationRule() *pluginsdk.Resource {
 	}
 }
 
-func resourceSentinelAutomationRuleCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelAutomationRuleCreateOrUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.AutomationRulesClient
 	tenantId := meta.(*clients.Client).Account.TenantId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -296,7 +295,7 @@ func resourceSentinelAutomationRuleCreateOrUpdate(d *pluginsdk.ResourceData, met
 	return resourceSentinelAutomationRuleRead(d, meta)
 }
 
-func resourceSentinelAutomationRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelAutomationRuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.AutomationRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -352,7 +351,7 @@ func resourceSentinelAutomationRuleRead(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func resourceSentinelAutomationRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelAutomationRuleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.AutomationRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -374,8 +373,7 @@ func expandAutomationRuleConditionsFromJSON(input string) (*[]automationrules.Au
 		return nil, nil
 	}
 	triggerLogic := &automationrules.AutomationRuleTriggeringLogic{}
-	err := triggerLogic.UnmarshalJSON([]byte(fmt.Sprintf(`{ "conditions": %s }`, input)))
-	if err != nil {
+	if err := triggerLogic.UnmarshalJSON([]byte(fmt.Sprintf(`{ "conditions": %s }`, input))); err != nil {
 		return nil, err
 	}
 	return triggerLogic.Conditions, nil
@@ -390,13 +388,13 @@ func flattenAutomationRuleConditionsToJSON(input *[]automationrules.AutomationRu
 }
 
 func expandAutomationRuleActions(d *pluginsdk.ResourceData, defaultTenantId string) ([]automationrules.AutomationRuleAction, error) {
-	actionIncident, err := expandAutomationRuleActionIncident(d.Get("action_incident").([]interface{}))
+	actionIncident, err := expandAutomationRuleActionIncident(d.Get("action_incident").([]any))
 	if err != nil {
 		return nil, err
 	}
-	actionPlaybook := expandAutomationRuleActionPlaybook(d.Get("action_playbook").([]interface{}), defaultTenantId)
+	actionPlaybook := expandAutomationRuleActionPlaybook(d.Get("action_playbook").([]any), defaultTenantId)
 
-	actionIncidentTask := expandAutomationRuleActionIncidentTask(d.Get("action_incident_task").([]interface{}))
+	actionIncidentTask := expandAutomationRuleActionIncidentTask(d.Get("action_incident_task").([]any))
 
 	if len(actionIncident)+len(actionPlaybook)+len(actionIncidentTask) == 0 {
 		return nil, nil
@@ -409,10 +407,10 @@ func expandAutomationRuleActions(d *pluginsdk.ResourceData, defaultTenantId stri
 	return out, nil
 }
 
-func flattenAutomationRuleActions(input []automationrules.AutomationRuleAction) (actionIncident []interface{}, actionPlaybook []interface{}, actionIncidentTask []interface{}) {
-	actionIncident = make([]interface{}, 0)
-	actionPlaybook = make([]interface{}, 0)
-	actionIncidentTask = make([]interface{}, 0)
+func flattenAutomationRuleActions(input []automationrules.AutomationRuleAction) (actionIncident []any, actionPlaybook []any, actionIncidentTask []any) {
+	actionIncident = make([]any, 0)
+	actionPlaybook = make([]any, 0)
+	actionIncidentTask = make([]any, 0)
 
 	for _, action := range input {
 		switch action := action.(type) {
@@ -428,14 +426,14 @@ func flattenAutomationRuleActions(input []automationrules.AutomationRuleAction) 
 	return
 }
 
-func expandAutomationRuleActionIncident(input []interface{}) ([]automationrules.AutomationRuleAction, error) {
+func expandAutomationRuleActionIncident(input []any) ([]automationrules.AutomationRuleAction, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
 
 	out := make([]automationrules.AutomationRuleAction, 0, len(input))
 	for _, b := range input {
-		b := b.(map[string]interface{})
+		b := b.(map[string]any)
 
 		status := automationrules.IncidentStatus(b["status"].(string))
 		l := strings.Split(b["classification"].(string), "_")
@@ -459,7 +457,7 @@ func expandAutomationRuleActionIncident(input []interface{}) ([]automationrules.
 		}
 
 		var labelsPtr *[]automationrules.IncidentLabel
-		if labelStrsPtr := helpers.ExpandStringSlice(b["labels"].([]interface{})); labelStrsPtr != nil && len(*labelStrsPtr) > 0 {
+		if labelStrsPtr := pluginsdk.ExpandStringSlice(b["labels"].([]any)); labelStrsPtr != nil && len(*labelStrsPtr) > 0 {
 			labels := make([]automationrules.IncidentLabel, 0, len(*labelStrsPtr))
 			for _, label := range *labelStrsPtr {
 				labels = append(labels, automationrules.IncidentLabel{
@@ -483,19 +481,16 @@ func expandAutomationRuleActionIncident(input []interface{}) ([]automationrules.
 			return nil, fmt.Errorf("at least one of `severity`, `owner_id`, `labels` or `status` should be specified")
 		}
 
-		classificationPtr := automationrules.IncidentClassification(classification)
-		clrPtr := automationrules.IncidentClassificationReason(clr)
-		severityPtr := automationrules.IncidentSeverity(severity)
 		out = append(out, automationrules.AutomationRuleModifyPropertiesAction{
 			Order: int64(b["order"].(int)),
 			ActionConfiguration: &automationrules.IncidentPropertiesAction{
 				Status:                &status,
-				Classification:        &classificationPtr,
+				Classification:        pointer.ToEnum[automationrules.IncidentClassification](classification),
 				ClassificationComment: &classificationComment,
-				ClassificationReason:  &clrPtr,
+				ClassificationReason:  pointer.ToEnum[automationrules.IncidentClassificationReason](clr),
 				Labels:                labelsPtr,
 				Owner:                 ownerPtr,
-				Severity:              &severityPtr,
+				Severity:              pointer.ToEnum[automationrules.IncidentSeverity](severity),
 			},
 		})
 	}
@@ -503,13 +498,13 @@ func expandAutomationRuleActionIncident(input []interface{}) ([]automationrules.
 	return out, nil
 }
 
-func flattenAutomationRuleActionIncident(input automationrules.AutomationRuleModifyPropertiesAction) map[string]interface{} {
+func flattenAutomationRuleActionIncident(input automationrules.AutomationRuleModifyPropertiesAction) map[string]any {
 	var (
 		status      string
 		clsf        string
 		clsfComment string
 		clsfReason  string
-		labels      []interface{}
+		labels      []any
 		owner       string
 		severity    string
 	)
@@ -548,7 +543,7 @@ func flattenAutomationRuleActionIncident(input automationrules.AutomationRuleMod
 		classification = classification + "_" + clsfReason
 	}
 
-	return map[string]interface{}{
+	return map[string]any{
 		"order":                  input.Order,
 		"status":                 status,
 		"classification":         classification,
@@ -559,10 +554,10 @@ func flattenAutomationRuleActionIncident(input automationrules.AutomationRuleMod
 	}
 }
 
-func expandAutomationRuleActionPlaybook(input []interface{}, defaultTenantId string) []automationrules.AutomationRuleAction {
+func expandAutomationRuleActionPlaybook(input []any, defaultTenantId string) []automationrules.AutomationRuleAction {
 	out := make([]automationrules.AutomationRuleAction, 0, len(input))
 	for _, b := range input {
-		b := b.(map[string]interface{})
+		b := b.(map[string]any)
 
 		tid := defaultTenantId
 		if t := b["tenant_id"].(string); t != "" {
@@ -580,7 +575,7 @@ func expandAutomationRuleActionPlaybook(input []interface{}, defaultTenantId str
 	return out
 }
 
-func flattenAutomationRuleActionPlaybook(input automationrules.AutomationRuleRunPlaybookAction) map[string]interface{} {
+func flattenAutomationRuleActionPlaybook(input automationrules.AutomationRuleRunPlaybookAction) map[string]any {
 	var (
 		logicAppId string
 		tenantId   string
@@ -594,18 +589,18 @@ func flattenAutomationRuleActionPlaybook(input automationrules.AutomationRuleRun
 		}
 	}
 
-	return map[string]interface{}{
+	return map[string]any{
 		"order":        input.Order,
 		"logic_app_id": logicAppId,
 		"tenant_id":    tenantId,
 	}
 }
 
-func expandAutomationRuleActionIncidentTask(input []interface{}) []automationrules.AutomationRuleAction {
+func expandAutomationRuleActionIncidentTask(input []any) []automationrules.AutomationRuleAction {
 	output := make([]automationrules.AutomationRuleAction, 0, len(input))
 
 	for _, task := range input {
-		task := task.(map[string]interface{})
+		task := task.(map[string]any)
 		output = append(output, automationrules.AutomationRuleAddIncidentTaskAction{
 			Order: int64(task["order"].(int)),
 			ActionConfiguration: &automationrules.AddIncidentTaskActionProperties{
@@ -618,7 +613,7 @@ func expandAutomationRuleActionIncidentTask(input []interface{}) []automationrul
 	return output
 }
 
-func flattenAutomationRuleACtionIncidentTask(input automationrules.AutomationRuleAddIncidentTaskAction) map[string]interface{} {
+func flattenAutomationRuleACtionIncidentTask(input automationrules.AutomationRuleAddIncidentTaskAction) map[string]any {
 	var (
 		title       string
 		description string
@@ -629,7 +624,7 @@ func flattenAutomationRuleACtionIncidentTask(input automationrules.AutomationRul
 		description = pointer.From(cfg.Description)
 	}
 
-	return map[string]interface{}{
+	return map[string]any{
 		"order":       input.Order,
 		"title":       title,
 		"description": description,

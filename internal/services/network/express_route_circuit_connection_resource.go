@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/expressroutecircuitconnections"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/expressroutecircuits"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressroutecircuitconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressroutecircuits"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -86,7 +86,7 @@ func resourceExpressRouteCircuitConnection() *pluginsdk.Resource {
 	}
 }
 
-func resourceExpressRouteCircuitConnectionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitConnectionCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRouteCircuitConnections
 	circuitClient := meta.(*clients.Client).Network.ExpressRouteCircuits
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -160,7 +160,7 @@ func resourceExpressRouteCircuitConnectionCreate(d *pluginsdk.ResourceData, meta
 	return resourceExpressRouteCircuitConnectionRead(d, meta)
 }
 
-func resourceExpressRouteCircuitConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitConnectionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRouteCircuitConnections
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -214,7 +214,7 @@ func resourceExpressRouteCircuitConnectionRead(d *pluginsdk.ResourceData, meta i
 	return nil
 }
 
-func resourceExpressRouteCircuitConnectionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitConnectionUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRouteCircuitConnections
 	circuitClient := meta.(*clients.Client).Network.ExpressRouteCircuits
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -276,7 +276,7 @@ func resourceExpressRouteCircuitConnectionUpdate(d *pluginsdk.ResourceData, meta
 	return resourceExpressRouteCircuitConnectionRead(d, meta)
 }
 
-func resourceExpressRouteCircuitConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitConnectionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRouteCircuitConnections
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -10,20 +10,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/blobauditing"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/blobauditing"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceMsSqlServerExtendedAuditingPolicy() *pluginsdk.Resource {
-	r := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceMsSqlServerExtendedAuditingPolicyCreateUpdate,
 		Read:   resourceMsSqlServerExtendedAuditingPolicyRead,
 		Update: resourceMsSqlServerExtendedAuditingPolicyCreateUpdate,
@@ -46,7 +43,7 @@ func resourceMsSqlServerExtendedAuditingPolicy() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ServerID,
+				ValidateFunc: validation.AsGeneratedID(commonids.ParseSqlServerIDInsensitively),
 			},
 
 			"enabled": {
@@ -103,7 +100,7 @@ func resourceMsSqlServerExtendedAuditingPolicy() *pluginsdk.Resource {
 			"audit_actions_and_groups": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				// audit_actions_and_groups seems to be pre-populated with values ["SUCCESSFUL_DATABASE_AUTHENTICATION_GROUP", "FAILED_DATABASE_AUTHENTICATION_GROUP", "BATCH_COMPLETED_GROUP"],
+				// Note: O+C because `audit_actions_and_groups` seems to be pre-populated with values ["SUCCESSFUL_DATABASE_AUTHENTICATION_GROUP", "FAILED_DATABASE_AUTHENTICATION_GROUP", "BATCH_COMPLETED_GROUP"],
 				Computed: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
@@ -112,30 +109,9 @@ func resourceMsSqlServerExtendedAuditingPolicy() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		r.Schema["storage_endpoint"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Computed:      true,
-			ValidateFunc:  validation.IsURLWithHTTPS,
-			ConflictsWith: []string{"blob_storage_endpoint"},
-			Deprecated:    "`storage_endpoint` is deprecated in favour of `blob_storage_endpoint` and will be removed in version 5.0 of the AzureRM provider",
-		}
-
-		r.Schema["blob_storage_endpoint"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Computed:      true,
-			ValidateFunc:  validation.IsURLWithHTTPS,
-			ConflictsWith: []string{"storage_endpoint"},
-		}
-	}
-
-	return r
 }
 
-func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.BlobAuditingPoliciesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -171,12 +147,6 @@ func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resource
 		},
 	}
 
-	if !features.FivePointOh() {
-		if !pluginsdk.IsExplicitlyNullInConfig(d, "storage_endpoint") {
-			params.Properties.StorageEndpoint = pointer.To(d.Get("storage_endpoint").(string))
-		}
-	}
-
 	if d.Get("enabled").(bool) {
 		params.Properties.State = blobauditing.BlobAuditingPolicyStateEnabled
 	} else {
@@ -195,12 +165,11 @@ func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resource
 		params.Properties.PredicateExpression = pointer.To(v.(string))
 	}
 
-	if v, ok := d.GetOk("audit_actions_and_groups"); ok && len(v.([]interface{})) > 0 {
-		params.Properties.AuditActionsAndGroups = helpers.ExpandStringSlice(v.([]interface{}))
+	if v, ok := d.GetOk("audit_actions_and_groups"); ok && len(v.([]any)) > 0 {
+		params.Properties.AuditActionsAndGroups = pluginsdk.ExpandStringSlice(v.([]any))
 	}
 
-	err = client.ExtendedServerBlobAuditingPoliciesCreateOrUpdateThenPoll(ctx, *serverId, params)
-	if err != nil {
+	if err = client.ExtendedServerBlobAuditingPoliciesCreateOrUpdateThenPoll(ctx, *serverId, params); err != nil {
 		return fmt.Errorf("creating MsSql Server Extended Auditing Policy %s: %+v", serverId, err)
 	}
 
@@ -211,7 +180,7 @@ func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resource
 	return resourceMsSqlServerExtendedAuditingPolicyRead(d, meta)
 }
 
-func resourceMsSqlServerExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlServerExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.BlobAuditingPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -237,15 +206,12 @@ func resourceMsSqlServerExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, me
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("blob_storage_endpoint", props.StorageEndpoint)
-			if !features.FivePointOh() {
-				d.Set("storage_endpoint", props.StorageEndpoint)
-			}
 			d.Set("storage_account_access_key_is_secondary", props.IsStorageSecondaryKeyInUse)
 			d.Set("retention_in_days", props.RetentionDays)
 			d.Set("log_monitoring_enabled", props.IsAzureMonitorTargetEnabled)
 			d.Set("enabled", props.State == blobauditing.BlobAuditingPolicyStateEnabled)
 			d.Set("predicate_expression", props.PredicateExpression)
-			d.Set("audit_actions_and_groups", helpers.FlattenStringSlice(props.AuditActionsAndGroups))
+			d.Set("audit_actions_and_groups", pluginsdk.FlattenSlice(props.AuditActionsAndGroups))
 
 			if pointer.From(props.StorageAccountSubscriptionId) != "00000000-0000-0000-0000-000000000000" {
 				d.Set("storage_account_subscription_id", props.StorageAccountSubscriptionId)
@@ -256,7 +222,7 @@ func resourceMsSqlServerExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, me
 	return nil
 }
 
-func resourceMsSqlServerExtendedAuditingPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlServerExtendedAuditingPolicyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.BlobAuditingPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -274,8 +240,7 @@ func resourceMsSqlServerExtendedAuditingPolicyDelete(d *pluginsdk.ResourceData, 
 		},
 	}
 
-	err = client.ExtendedServerBlobAuditingPoliciesCreateOrUpdateThenPoll(ctx, serverId, params)
-	if err != nil {
+	if err = client.ExtendedServerBlobAuditingPoliciesCreateOrUpdateThenPoll(ctx, serverId, params); err != nil {
 		return fmt.Errorf("deleting %s: %+v", serverId, err)
 	}
 	return nil

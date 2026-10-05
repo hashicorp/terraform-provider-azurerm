@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/objectreplicationpolicyoperationgroup"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
@@ -120,7 +119,7 @@ func resourceStorageObjectReplication() *pluginsdk.Resource {
 	}
 }
 
-func resourceStorageObjectReplicationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageObjectReplicationCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.ResourceManager.ObjectReplicationPolicyOperationGroup
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -206,7 +205,7 @@ func resourceStorageObjectReplicationCreate(d *pluginsdk.ResourceData, meta inte
 	return resourceStorageObjectReplicationRead(d, meta)
 }
 
-func resourceStorageObjectReplicationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageObjectReplicationUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.ResourceManager.ObjectReplicationPolicyOperationGroup
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -251,7 +250,7 @@ func resourceStorageObjectReplicationUpdate(d *pluginsdk.ResourceData, meta inte
 	return resourceStorageObjectReplicationRead(d, meta)
 }
 
-func resourceStorageObjectReplicationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageObjectReplicationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.ResourceManager.ObjectReplicationPolicyOperationGroup
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -302,7 +301,7 @@ func resourceStorageObjectReplicationRead(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func resourceStorageObjectReplicationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageObjectReplicationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.ResourceManager.ObjectReplicationPolicyOperationGroup
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -322,10 +321,10 @@ func resourceStorageObjectReplicationDelete(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func expandArmObjectReplicationRuleArray(input []interface{}) *[]objectreplicationpolicyoperationgroup.ObjectReplicationPolicyRule {
+func expandArmObjectReplicationRuleArray(input []any) *[]objectreplicationpolicyoperationgroup.ObjectReplicationPolicyRule {
 	results := make([]objectreplicationpolicyoperationgroup.ObjectReplicationPolicyRule, 0)
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 		result := objectreplicationpolicyoperationgroup.ObjectReplicationPolicyRule{
 			SourceContainer:      v["source_container_name"].(string),
 			DestinationContainer: v["destination_container_name"].(string),
@@ -339,7 +338,7 @@ func expandArmObjectReplicationRuleArray(input []interface{}) *[]objectreplicati
 		}
 
 		if f, ok := v["filter_out_blobs_with_prefix"]; ok {
-			result.Filters.PrefixMatch = helpers.ExpandStringSlice(f.(*pluginsdk.Set).List())
+			result.Filters.PrefixMatch = pluginsdk.ExpandStringSlice(f.(*pluginsdk.Set).List())
 		}
 
 		results = append(results, result)
@@ -358,8 +357,8 @@ func expandArmObjectReplicationMinCreationTime(input string) string {
 	}
 }
 
-func flattenObjectReplicationRules(input *[]objectreplicationpolicyoperationgroup.ObjectReplicationPolicyRule) []interface{} {
-	results := make([]interface{}, 0)
+func flattenObjectReplicationRules(input *[]objectreplicationpolicyoperationgroup.ObjectReplicationPolicyRule) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
@@ -368,22 +367,19 @@ func flattenObjectReplicationRules(input *[]objectreplicationpolicyoperationgrou
 		destinationContainer := item.DestinationContainer
 		sourceContainer := item.SourceContainer
 
-		var ruleId string
-		if item.RuleId != nil {
-			ruleId = *item.RuleId
-		}
+		ruleId := pointer.From(item.RuleId)
 
 		var minCreationTime string
 		if item.Filters != nil && item.Filters.MinCreationTime != nil {
 			minCreationTime = *item.Filters.MinCreationTime
 		}
 
-		var prefix []interface{}
+		var prefix []any
 		if item.Filters != nil && item.Filters.PrefixMatch != nil {
-			prefix = helpers.FlattenStringSlice(item.Filters.PrefixMatch)
+			prefix = pluginsdk.FlattenSlice(item.Filters.PrefixMatch)
 		}
 
-		v := map[string]interface{}{
+		v := map[string]any{
 			"destination_container_name":   destinationContainer,
 			"source_container_name":        sourceContainer,
 			"copy_blobs_created_after":     flattenArmObjectReplicationMinCreationTime(minCreationTime),
