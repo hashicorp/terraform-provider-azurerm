@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/netappaccounts"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -154,6 +155,104 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 							Optional:    true,
 							Default:     false,
 							Description: "Specifies whether or not the LDAP traffic needs to be signed.",
+						},
+						"dc_connection_encryption_enabled": {
+							Type:        pluginsdk.TypeBool,
+							Optional:    true,
+							Default:     false,
+							Description: "Specifies if traffic between the Domain Controller and SMB server is encrypted.",
+						},
+						"ldap_client_preferred_server_ips": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 2,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.IsIPv4Address,
+							},
+							Description: "Specifies the preferred LDAP server IPs for the LDAP client.",
+						},
+						"ldap_search_scope": {
+							Type:        pluginsdk.TypeList,
+							Optional:    true,
+							MaxItems:    1,
+							Description: "Specifies the LDAP search scope for the LDAP client.",
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"group_dn": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringLenBetween(1, 255),
+										Description:  "Specifies the group DN, which overrides the base DN for group lookups.",
+										AtLeastOneOf: []string{"active_directory.0.ldap_search_scope.0.group_dn", "active_directory.0.ldap_search_scope.0.group_membership_filter", "active_directory.0.ldap_search_scope.0.user_dn"},
+									},
+									"group_membership_filter": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringLenBetween(1, 255),
+										Description:  "specifies the custom LDAP search filter to be used when looking up group membership from LDAP server.",
+										AtLeastOneOf: []string{"active_directory.0.ldap_search_scope.0.group_dn", "active_directory.0.ldap_search_scope.0.group_membership_filter", "active_directory.0.ldap_search_scope.0.user_dn"},
+									},
+									"user_dn": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringLenBetween(1, 255),
+										Description:  "specifies the user DN, which overrides the base DN for user lookups.",
+										AtLeastOneOf: []string{"active_directory.0.ldap_search_scope.0.group_dn", "active_directory.0.ldap_search_scope.0.group_membership_filter", "active_directory.0.ldap_search_scope.0.user_dn"},
+									},
+								},
+							},
+						},
+						"administrator_users": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+								ValidateFunc: validation.All(
+									validation.StringIsNotEmpty,
+									validation.None(
+										map[string]func(any, string) ([]string, []error){
+											"Email Address": validation.IsEmailAddress,
+											"Object ID":     validation.IsUUID,
+										},
+									),
+								),
+							},
+							Description: "Domain users to be added to the built-in Administrators active directory group.",
+						},
+						"backup_users": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+								ValidateFunc: validation.All(
+									validation.StringIsNotEmpty,
+									validation.None(
+										map[string]func(any, string) ([]string, []error){
+											"Email Address": validation.IsEmailAddress,
+											"Object ID":     validation.IsUUID,
+										},
+									),
+								),
+							},
+							Description: "Domain users to be added to the built-in Backup Operators active directory group.",
+						},
+						"security_users": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+								ValidateFunc: validation.All(
+									validation.StringIsNotEmpty,
+									validation.None(
+										map[string]func(any, string) ([]string, []error){
+											"Email Address": validation.IsEmailAddress,
+											"Object ID":     validation.IsUUID,
+										},
+									),
+								),
+							},
+							Description: "Domain users to be given SeSecurityPrivilege privilege.",
 						},
 					},
 				},
@@ -382,11 +481,47 @@ func expandNetAppActiveDirectories(input []any) *[]netappaccounts.ActiveDirector
 			LdapOverTLS:                pointer.To(v["ldap_over_tls_enabled"].(bool)),
 			ServerRootCACertificate:    pointer.To(v["server_root_ca_certificate"].(string)),
 			LdapSigning:                pointer.To(v["ldap_signing_enabled"].(bool)),
+			EncryptDCConnections:       pointer.To(v["dc_connection_encryption_enabled"].(bool)),
+		}
+
+		if rawSearchScope := v["ldap_search_scope"].([]any); len(rawSearchScope) > 0 {
+			searchScope := rawSearchScope[0].(map[string]any)
+			result.LdapSearchScope = expandNetAppLdapSearchScope(searchScope)
+		}
+
+		if ldapClientServers := v["ldap_client_preferred_server_ips"].([]any); len(ldapClientServers) > 0 {
+			result.PreferredServersForLdapClient = pointer.To(strings.Join(*pluginsdk.ExpandStringSlice(ldapClientServers), ","))
+		}
+
+		if admins := v["administrator_users"].(*pluginsdk.Set); admins != nil {
+			result.Administrators = pluginsdk.ExpandStringSlice(admins.List())
+		}
+
+		if backupUsers := v["backup_users"].(*pluginsdk.Set); backupUsers != nil {
+			result.BackupOperators = pluginsdk.ExpandStringSlice(backupUsers.List())
+		}
+
+		if secUsers := v["security_users"].(*pluginsdk.Set); secUsers != nil {
+			result.SecurityOperators = pluginsdk.ExpandStringSlice(secUsers.List())
 		}
 
 		results = append(results, result)
 	}
 	return &results
+}
+
+func expandNetAppLdapSearchScope(input map[string]any) *netappaccounts.LdapSearchScopeOpt {
+	if input == nil {
+		return nil
+	}
+
+	result := netappaccounts.LdapSearchScopeOpt{
+		GroupDN:               pointer.To(input["group_dn"].(string)),
+		GroupMembershipFilter: pointer.To(input["group_membership_filter"].(string)),
+		UserDN:                pointer.To(input["user_dn"].(string)),
+	}
+
+	return &result
 }
 
 func flattenNetAppActiveDirectories(input *[]netappaccounts.ActiveDirectory, prevPassword *string, prevCaCert *string) []any {
@@ -412,6 +547,26 @@ func flattenNetAppActiveDirectories(input *[]netappaccounts.ActiveDirectory, pre
 			"ldap_over_tls_enabled":             v.LdapOverTLS,
 			"server_root_ca_certificate":        prevCaCert,
 			"ldap_signing_enabled":              v.LdapSigning,
+			"dc_connection_encryption_enabled":  v.EncryptDCConnections,
+			"ldap_client_preferred_server_ips":  pluginsdk.FlattenStringSliceWithDelimiter(v.PreferredServersForLdapClient, ","),
+			"administrator_users":               pluginsdk.FlattenSlice(v.Administrators),
+			"backup_users":                      pluginsdk.FlattenSlice(v.BackupOperators),
+			"security_users":                    pluginsdk.FlattenSlice(v.SecurityOperators),
+			"ldap_search_scope":                 flattenNetAppLdapSearchScope(v.LdapSearchScope),
+		},
+	}
+}
+
+func flattenNetAppLdapSearchScope(input *netappaccounts.LdapSearchScopeOpt) []any {
+	if input == nil || (input.GroupDN == nil && input.GroupMembershipFilter == nil && input.UserDN == nil) {
+		return []any{}
+	}
+
+	return []any{
+		map[string]any{
+			"group_dn":                input.GroupDN,
+			"group_membership_filter": input.GroupMembershipFilter,
+			"user_dn":                 input.UserDN,
 		},
 	}
 }
