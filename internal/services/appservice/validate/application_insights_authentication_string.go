@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-const autorizationAAD = "Authorization=AAD"
+const authorizationAAD = "Authorization=AAD"
 
 func ApplicationInsightsAuthenticationString(input any, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
@@ -21,12 +21,12 @@ func ApplicationInsightsAuthenticationString(input any, key string) (warnings []
 
 	var matched bool = false
 
-	if !strings.HasPrefix(v, autorizationAAD) {
-		errors = append(errors, fmt.Errorf("%q must always begin with %q, got: %q", key, autorizationAAD, v))
+	if !strings.HasPrefix(v, authorizationAAD) {
+		errors = append(errors, fmt.Errorf("%q must always begin with %q, got: %q", key, authorizationAAD, v))
 		return warnings, errors
 	}
 
-	if v == autorizationAAD {
+	if v == authorizationAAD {
 		matched = true
 	} else {
 		parts := strings.Split(v, ";")
