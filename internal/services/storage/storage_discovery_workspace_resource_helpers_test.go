@@ -201,20 +201,20 @@ func TestStorageDiscoveryWorkspaceResourceTypesValidation(t *testing.T) {
 	resource := sdk.WrappedResource(StorageDiscoveryWorkspaceResource{})
 	testCases := []struct {
 		name  string
-		input []interface{}
+		input []any
 		valid bool
 	}{
 		{name: "missing"},
-		{name: "empty set", input: []interface{}{}},
-		{name: "empty string", input: []interface{}{""}},
-		{name: "invalid value", input: []interface{}{"Microsoft.Storage/storageAccounts/blobServices"}},
-		{name: "incorrect casing", input: []interface{}{"microsoft.storage/storageaccounts"}},
-		{name: "valid", input: []interface{}{"Microsoft.Storage/storageAccounts"}, valid: true},
+		{name: "empty set", input: []any{}},
+		{name: "empty string", input: []any{""}},
+		{name: "invalid value", input: []any{"Microsoft.Storage/storageAccounts/blobServices"}},
+		{name: "incorrect casing", input: []any{"microsoft.storage/storageaccounts"}},
+		{name: "valid", input: []any{"Microsoft.Storage/storageAccounts"}, valid: true},
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
-			config := storageDiscoveryWorkspaceConfig([]interface{}{
-				storageDiscoveryScopeConfig("TestScope", testCase.input, []interface{}{}, map[string]interface{}{}),
+			config := storageDiscoveryWorkspaceConfig([]any{
+				storageDiscoveryScopeConfig("TestScope", testCase.input, []any{}, map[string]any{}),
 			})
 			diagnostics := resource.Validate(terraform.NewResourceConfigRaw(config))
 			if diagnostics.HasError() == testCase.valid {

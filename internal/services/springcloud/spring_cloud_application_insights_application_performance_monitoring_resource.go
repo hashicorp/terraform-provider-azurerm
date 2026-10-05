@@ -46,7 +46,7 @@ func (s SpringCloudApplicationInsightsApplicationPerformanceMonitoringResource) 
 	return "azurerm_spring_cloud_application_insights_application_performance_monitoring"
 }
 
-func (s SpringCloudApplicationInsightsApplicationPerformanceMonitoringResource) ModelObject() interface{} {
+func (s SpringCloudApplicationInsightsApplicationPerformanceMonitoringResource) ModelObject() any {
 	return &SpringCloudApplicationInsightsApplicationPerformanceMonitoringModel{}
 }
 

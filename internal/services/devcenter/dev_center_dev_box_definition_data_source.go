@@ -68,7 +68,7 @@ func (DevCenterDevBoxDefinitionDataSource) Attributes() map[string]*pluginsdk.Sc
 	}
 }
 
-func (DevCenterDevBoxDefinitionDataSource) ModelObject() interface{} {
+func (DevCenterDevBoxDefinitionDataSource) ModelObject() any {
 	return &DevCenterDevBoxDefinitionDataSourceModel{}
 }
 
