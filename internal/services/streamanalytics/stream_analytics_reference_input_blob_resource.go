@@ -113,7 +113,7 @@ func resourceStreamAnalyticsReferenceInputBlob() *pluginsdk.Resource {
 	}
 }
 
-func resourceStreamAnalyticsReferenceInputBlobCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsReferenceInputBlobCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.InputsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -134,7 +134,7 @@ func resourceStreamAnalyticsReferenceInputBlobCreate(d *pluginsdk.ResourceData, 
 		}
 	}
 
-	serializationRaw := d.Get("serialization").([]interface{})
+	serializationRaw := d.Get("serialization").([]any)
 	serialization, err := expandStreamAnalyticsStreamInputSerialization(serializationRaw)
 	if err != nil {
 		return fmt.Errorf("expanding `serialization`: %+v", err)
@@ -155,7 +155,7 @@ func resourceStreamAnalyticsReferenceInputBlobCreate(d *pluginsdk.ResourceData, 
 							AccountKey:  normalizeAccountKey(d.Get("storage_account_key").(string)),
 						},
 					},
-					AuthenticationMode: pointer.To(inputs.AuthenticationMode(d.Get("authentication_mode").(string))),
+					AuthenticationMode: pointer.ToEnum[inputs.AuthenticationMode](d.Get("authentication_mode").(string)),
 				},
 			},
 			Serialization: serialization,
@@ -171,7 +171,7 @@ func resourceStreamAnalyticsReferenceInputBlobCreate(d *pluginsdk.ResourceData, 
 	return resourceStreamAnalyticsReferenceInputBlobRead(d, meta)
 }
 
-func resourceStreamAnalyticsReferenceInputBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsReferenceInputBlobUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.InputsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -181,7 +181,7 @@ func resourceStreamAnalyticsReferenceInputBlobUpdate(d *pluginsdk.ResourceData, 
 		return err
 	}
 
-	serializationRaw := d.Get("serialization").([]interface{})
+	serializationRaw := d.Get("serialization").([]any)
 	serialization, err := expandStreamAnalyticsStreamInputSerialization(serializationRaw)
 	if err != nil {
 		return fmt.Errorf("expanding `serialization`: %+v", err)
@@ -203,7 +203,7 @@ func resourceStreamAnalyticsReferenceInputBlobUpdate(d *pluginsdk.ResourceData, 
 							AccountKey:  normalizeAccountKey(d.Get("storage_account_key").(string)),
 						},
 					},
-					AuthenticationMode: pointer.To(inputs.AuthenticationMode(d.Get("authentication_mode").(string))),
+					AuthenticationMode: pointer.ToEnum[inputs.AuthenticationMode](d.Get("authentication_mode").(string)),
 				},
 			},
 			Serialization: serialization,
@@ -218,7 +218,7 @@ func resourceStreamAnalyticsReferenceInputBlobUpdate(d *pluginsdk.ResourceData, 
 	return resourceStreamAnalyticsReferenceInputBlobRead(d, meta)
 }
 
-func resourceStreamAnalyticsReferenceInputBlobRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsReferenceInputBlobRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.InputsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -256,29 +256,13 @@ func resourceStreamAnalyticsReferenceInputBlobRead(d *pluginsdk.ResourceData, me
 			}
 
 			if referenceInputBlob.Properties != nil {
-				dateFormat := ""
-				if v := referenceInputBlob.Properties.DateFormat; v != nil {
-					dateFormat = *v
-				}
-				d.Set("date_format", dateFormat)
+				d.Set("date_format", pointer.From(referenceInputBlob.Properties.DateFormat))
 
-				pathPattern := ""
-				if v := referenceInputBlob.Properties.PathPattern; v != nil {
-					pathPattern = *v
-				}
-				d.Set("path_pattern", pathPattern)
+				d.Set("path_pattern", pointer.From(referenceInputBlob.Properties.PathPattern))
 
-				containerName := ""
-				if v := referenceInputBlob.Properties.Container; v != nil {
-					containerName = *v
-				}
-				d.Set("storage_container_name", containerName)
+				d.Set("storage_container_name", pointer.From(referenceInputBlob.Properties.Container))
 
-				timeFormat := ""
-				if v := referenceInputBlob.Properties.TimeFormat; v != nil {
-					timeFormat = *v
-				}
-				d.Set("time_format", timeFormat)
+				d.Set("time_format", pointer.From(referenceInputBlob.Properties.TimeFormat))
 
 				authMode := ""
 				if v := referenceInputBlob.Properties.AuthenticationMode; v != nil {
@@ -300,7 +284,7 @@ func resourceStreamAnalyticsReferenceInputBlobRead(d *pluginsdk.ResourceData, me
 	return nil
 }
 
-func resourceStreamAnalyticsReferenceInputBlobDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsReferenceInputBlobDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.InputsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()

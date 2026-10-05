@@ -9,10 +9,9 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/api"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -57,7 +56,7 @@ type SiteConfigLinuxWebAppSlot struct {
 }
 
 func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
-	s := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
 		MaxItems: 1,
@@ -72,7 +71,7 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 				"api_management_api_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: apimValidate.ApiID,
+					ValidateFunc: validation.AsGeneratedID(api.ParseApiIDInsensitively),
 				},
 
 				"api_definition_url": {
@@ -105,7 +104,7 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 				"default_documents": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -171,7 +170,7 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 				"remote_debugging_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2022",
 					}, false),
@@ -218,7 +217,7 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 				"worker_count": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.IntBetween(1, 100),
 				},
 
@@ -270,16 +269,6 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		s.Elem.(*pluginsdk.Resource).Schema["remote_debugging_version"].ValidateFunc = validation.StringInSlice([]string{
-			"VS2017",
-			"VS2019",
-			"VS2022",
-		}, false)
-	}
-
-	return s
 }
 
 type SiteConfigWindowsWebAppSlot struct {
@@ -323,7 +312,7 @@ type SiteConfigWindowsWebAppSlot struct {
 }
 
 func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
-	s := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
 		MaxItems: 1,
@@ -338,7 +327,7 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 				"api_management_api_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: apimValidate.ApiID,
+					ValidateFunc: validation.AsGeneratedID(api.ParseApiIDInsensitively),
 				},
 
 				"api_definition_url": {
@@ -377,7 +366,7 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 				"default_documents": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
@@ -442,7 +431,7 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 				"remote_debugging_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2022",
 					}, false),
@@ -456,7 +445,8 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 				"use_32_bit_worker": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
-					Computed: true, // Variable default value depending on several factors, such as plan type.
+					// Note: O+C because Variable default value depending on several factors, such as plan type.
+					Computed: true,
 				},
 
 				"websockets_enabled": {
@@ -489,7 +479,7 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 				"worker_count": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.IntBetween(1, 100),
 				},
 
@@ -539,16 +529,6 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		s.Elem.(*pluginsdk.Resource).Schema["remote_debugging_version"].ValidateFunc = validation.StringInSlice([]string{
-			"VS2017",
-			"VS2019",
-			"VS2022",
-		}, false)
-	}
-
-	return s
 }
 
 func (s *SiteConfigLinuxWebAppSlot) ExpandForCreate(appSettings map[string]string) (*webapps.SiteConfig, error) {
@@ -558,19 +538,19 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForCreate(appSettings map[string]strin
 	expanded.HTTP20Enabled = pointer.To(s.Http2Enabled)
 	expanded.ScmIPSecurityRestrictionsUseMain = pointer.To(s.ScmUseMainIpRestriction)
 	expanded.LocalMySqlEnabled = pointer.To(s.LocalMysql)
-	expanded.LoadBalancing = pointer.To(webapps.SiteLoadBalancing(s.LoadBalancing))
-	expanded.ManagedPipelineMode = pointer.To(webapps.ManagedPipelineMode(s.ManagedPipelineMode))
+	expanded.LoadBalancing = pointer.ToEnum[webapps.SiteLoadBalancing](s.LoadBalancing)
+	expanded.ManagedPipelineMode = pointer.ToEnum[webapps.ManagedPipelineMode](s.ManagedPipelineMode)
 	expanded.RemoteDebuggingEnabled = pointer.To(s.RemoteDebugging)
 	expanded.Use32BitWorkerProcess = pointer.To(s.Use32BitWorker)
 	expanded.WebSocketsEnabled = pointer.To(s.WebSockets)
-	expanded.FtpsState = pointer.To(webapps.FtpsState(s.FtpsState))
-	expanded.MinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.MinTlsVersion))
-	expanded.ScmMinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.ScmMinTlsVersion))
+	expanded.FtpsState = pointer.ToEnum[webapps.FtpsState](s.FtpsState)
+	expanded.MinTlsVersion = pointer.ToEnum[webapps.SupportedTlsVersions](s.MinTlsVersion)
+	expanded.ScmMinTlsVersion = pointer.ToEnum[webapps.SupportedTlsVersions](s.ScmMinTlsVersion)
 	expanded.AutoHealEnabled = pointer.To(false)
-	expanded.MinTlsCipherSuite = pointer.To(webapps.TlsCipherSuites(s.MinTlsCipherSuite))
+	expanded.MinTlsCipherSuite = pointer.ToEnum[webapps.TlsCipherSuites](s.MinTlsCipherSuite)
 	expanded.VnetRouteAllEnabled = pointer.To(s.VnetRouteAllEnabled)
-	expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.IpRestrictionDefaultAction))
-	expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.ScmIpRestrictionDefaultAction))
+	expanded.IPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](s.IpRestrictionDefaultAction)
+	expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](s.ScmIpRestrictionDefaultAction)
 
 	if s.ApiManagementConfigId != "" {
 		expanded.ApiManagementConfig = &webapps.ApiManagementConfig{
@@ -604,10 +584,6 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForCreate(appSettings map[string]strin
 
 		if linuxAppStack.NodeVersion != "" {
 			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("NODE|%s", linuxAppStack.NodeVersion))
-		}
-
-		if linuxAppStack.RubyVersion != "" {
-			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("RUBY|%s", linuxAppStack.RubyVersion))
 		}
 
 		if linuxAppStack.PythonVersion != "" {
@@ -738,10 +714,6 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaDat
 			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("NODE|%s", linuxAppStack.NodeVersion))
 		}
 
-		if linuxAppStack.RubyVersion != "" {
-			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("RUBY|%s", linuxAppStack.RubyVersion))
-		}
-
 		if linuxAppStack.PythonVersion != "" {
 			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("PYTHON|%s", linuxAppStack.PythonVersion))
 		}
@@ -792,7 +764,7 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaDat
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.ip_restriction_default_action") {
-		expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.IpRestrictionDefaultAction))
+		expanded.IPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](s.IpRestrictionDefaultAction)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction") {
@@ -804,15 +776,15 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaDat
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction_default_action") {
-		expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.ScmIpRestrictionDefaultAction))
+		expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](s.ScmIpRestrictionDefaultAction)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.load_balancing_mode") {
-		expanded.LoadBalancing = pointer.To(webapps.SiteLoadBalancing(s.LoadBalancing))
+		expanded.LoadBalancing = pointer.ToEnum[webapps.SiteLoadBalancing](s.LoadBalancing)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.managed_pipeline_mode") {
-		expanded.ManagedPipelineMode = pointer.To(webapps.ManagedPipelineMode(s.ManagedPipelineMode))
+		expanded.ManagedPipelineMode = pointer.ToEnum[webapps.ManagedPipelineMode](s.ManagedPipelineMode)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_version") {
@@ -820,7 +792,7 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaDat
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.ftps_state") {
-		expanded.FtpsState = pointer.To(webapps.FtpsState(s.FtpsState))
+		expanded.FtpsState = pointer.ToEnum[webapps.FtpsState](s.FtpsState)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.health_check_path") {
@@ -832,15 +804,15 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaDat
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.minimum_tls_version") {
-		expanded.MinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.MinTlsVersion))
+		expanded.MinTlsVersion = pointer.ToEnum[webapps.SupportedTlsVersions](s.MinTlsVersion)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_minimum_tls_version") {
-		expanded.ScmMinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.ScmMinTlsVersion))
+		expanded.ScmMinTlsVersion = pointer.ToEnum[webapps.SupportedTlsVersions](s.ScmMinTlsVersion)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.minimum_tls_cipher_suite") {
-		expanded.MinTlsCipherSuite = pointer.To(webapps.TlsCipherSuites(s.MinTlsCipherSuite))
+		expanded.MinTlsCipherSuite = pointer.ToEnum[webapps.TlsCipherSuites](s.MinTlsCipherSuite)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.cors") {
@@ -874,26 +846,26 @@ func (s *SiteConfigLinuxWebAppSlot) Flatten(appSiteSlotConfig *webapps.SiteConfi
 	s.DetailedErrorLogging = pointer.From(appSiteSlotConfig.DetailedErrorLoggingEnabled)
 	s.Http2Enabled = pointer.From(appSiteSlotConfig.HTTP20Enabled)
 	s.IpRestriction = FlattenIpRestrictions(appSiteSlotConfig.IPSecurityRestrictions)
-	s.ManagedPipelineMode = string(pointer.From(appSiteSlotConfig.ManagedPipelineMode))
-	s.ScmType = string(pointer.From(appSiteSlotConfig.ScmType))
-	s.FtpsState = string(pointer.From(appSiteSlotConfig.FtpsState))
+	s.ManagedPipelineMode = pointer.FromEnum(appSiteSlotConfig.ManagedPipelineMode)
+	s.ScmType = pointer.FromEnum(appSiteSlotConfig.ScmType)
+	s.FtpsState = pointer.FromEnum(appSiteSlotConfig.FtpsState)
 	s.HealthCheckPath = pointer.From(appSiteSlotConfig.HealthCheckPath)
-	s.LoadBalancing = string(pointer.From(appSiteSlotConfig.LoadBalancing))
+	s.LoadBalancing = pointer.FromEnum(appSiteSlotConfig.LoadBalancing)
 	s.LocalMysql = pointer.From(appSiteSlotConfig.LocalMySqlEnabled)
-	s.MinTlsVersion = string(pointer.From(appSiteSlotConfig.MinTlsVersion))
+	s.MinTlsVersion = pointer.FromEnum(appSiteSlotConfig.MinTlsVersion)
 	s.WorkerCount = pointer.From(appSiteSlotConfig.NumberOfWorkers)
 	s.RemoteDebugging = pointer.From(appSiteSlotConfig.RemoteDebuggingEnabled)
 	s.RemoteDebuggingVersion = strings.ToUpper(pointer.From(appSiteSlotConfig.RemoteDebuggingVersion))
 	s.ScmIpRestriction = FlattenIpRestrictions(appSiteSlotConfig.ScmIPSecurityRestrictions)
-	s.ScmMinTlsVersion = string(pointer.From(appSiteSlotConfig.ScmMinTlsVersion))
-	s.MinTlsCipherSuite = string(pointer.From(appSiteSlotConfig.MinTlsCipherSuite))
+	s.ScmMinTlsVersion = pointer.FromEnum(appSiteSlotConfig.ScmMinTlsVersion)
+	s.MinTlsCipherSuite = pointer.FromEnum(appSiteSlotConfig.MinTlsCipherSuite)
 	s.ScmUseMainIpRestriction = pointer.From(appSiteSlotConfig.ScmIPSecurityRestrictionsUseMain)
 	s.Use32BitWorker = pointer.From(appSiteSlotConfig.Use32BitWorkerProcess)
 	s.UseManagedIdentityACR = pointer.From(appSiteSlotConfig.AcrUseManagedIdentityCreds)
 	s.WebSockets = pointer.From(appSiteSlotConfig.WebSocketsEnabled)
 	s.VnetRouteAllEnabled = pointer.From(appSiteSlotConfig.VnetRouteAllEnabled)
-	s.IpRestrictionDefaultAction = string(pointer.From(appSiteSlotConfig.IPSecurityRestrictionsDefaultAction))
-	s.ScmIpRestrictionDefaultAction = string(pointer.From(appSiteSlotConfig.ScmIPSecurityRestrictionsDefaultAction))
+	s.IpRestrictionDefaultAction = pointer.FromEnum(appSiteSlotConfig.IPSecurityRestrictionsDefaultAction)
+	s.ScmIpRestrictionDefaultAction = pointer.FromEnum(appSiteSlotConfig.ScmIPSecurityRestrictionsDefaultAction)
 
 	if appSiteSlotConfig.ApiManagementConfig != nil && appSiteSlotConfig.ApiManagementConfig.Id != nil {
 		s.ApiManagementConfigId = *appSiteSlotConfig.ApiManagementConfig.Id
@@ -955,23 +927,23 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForCreate(appSettings map[string]str
 	expanded.AlwaysOn = pointer.To(s.AlwaysOn)
 	expanded.AcrUseManagedIdentityCreds = pointer.To(s.UseManagedIdentityACR)
 	expanded.AutoHealEnabled = pointer.To(false)
-	expanded.FtpsState = pointer.To(webapps.FtpsState(s.FtpsState))
+	expanded.FtpsState = pointer.ToEnum[webapps.FtpsState](s.FtpsState)
 	expanded.HTTP20Enabled = pointer.To(s.Http2Enabled)
-	expanded.LoadBalancing = pointer.To(webapps.SiteLoadBalancing(s.LoadBalancing))
+	expanded.LoadBalancing = pointer.ToEnum[webapps.SiteLoadBalancing](s.LoadBalancing)
 	expanded.LocalMySqlEnabled = pointer.To(s.LocalMysql)
-	expanded.ManagedPipelineMode = pointer.To(webapps.ManagedPipelineMode(s.ManagedPipelineMode))
-	expanded.MinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.MinTlsVersion))
+	expanded.ManagedPipelineMode = pointer.ToEnum[webapps.ManagedPipelineMode](s.ManagedPipelineMode)
+	expanded.MinTlsVersion = pointer.ToEnum[webapps.SupportedTlsVersions](s.MinTlsVersion)
 	expanded.RemoteDebuggingEnabled = pointer.To(s.RemoteDebugging)
 	expanded.ScmIPSecurityRestrictionsUseMain = pointer.To(s.ScmUseMainIpRestriction)
-	expanded.ScmMinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.ScmMinTlsVersion))
-	expanded.MinTlsCipherSuite = pointer.To(webapps.TlsCipherSuites(s.MinTlsCipherSuite))
+	expanded.ScmMinTlsVersion = pointer.ToEnum[webapps.SupportedTlsVersions](s.ScmMinTlsVersion)
+	expanded.MinTlsCipherSuite = pointer.ToEnum[webapps.TlsCipherSuites](s.MinTlsCipherSuite)
 	expanded.Use32BitWorkerProcess = pointer.To(s.Use32BitWorker)
 	expanded.WebSocketsEnabled = pointer.To(s.WebSockets)
 	expanded.HandlerMappings = expandHandlerMapping(s.HandlerMapping)
 	expanded.VirtualApplications = expandVirtualApplications(s.VirtualApplications)
 	expanded.VnetRouteAllEnabled = pointer.To(s.VnetRouteAllEnabled)
-	expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.IpRestrictionDefaultAction))
-	expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.ScmIpRestrictionDefaultAction))
+	expanded.IPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](s.IpRestrictionDefaultAction)
+	expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](s.ScmIpRestrictionDefaultAction)
 
 	if s.ApiManagementConfigId != "" {
 		expanded.ApiManagementConfig = &webapps.ApiManagementConfig{
@@ -1212,7 +1184,7 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaD
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.ip_restriction_default_action") {
-		expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.IpRestrictionDefaultAction))
+		expanded.IPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](s.IpRestrictionDefaultAction)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction") {
@@ -1224,15 +1196,15 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaD
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction_default_action") {
-		expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.ScmIpRestrictionDefaultAction))
+		expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](s.ScmIpRestrictionDefaultAction)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.load_balancing_mode") {
-		expanded.LoadBalancing = pointer.To(webapps.SiteLoadBalancing(s.LoadBalancing))
+		expanded.LoadBalancing = pointer.ToEnum[webapps.SiteLoadBalancing](s.LoadBalancing)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.managed_pipeline_mode") {
-		expanded.ManagedPipelineMode = pointer.To(webapps.ManagedPipelineMode(s.ManagedPipelineMode))
+		expanded.ManagedPipelineMode = pointer.ToEnum[webapps.ManagedPipelineMode](s.ManagedPipelineMode)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_version") {
@@ -1240,7 +1212,7 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaD
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.ftps_state") {
-		expanded.FtpsState = pointer.To(webapps.FtpsState(s.FtpsState))
+		expanded.FtpsState = pointer.ToEnum[webapps.FtpsState](s.FtpsState)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.health_check_path") {
@@ -1252,15 +1224,15 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaD
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.minimum_tls_version") {
-		expanded.MinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.MinTlsVersion))
+		expanded.MinTlsVersion = pointer.ToEnum[webapps.SupportedTlsVersions](s.MinTlsVersion)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_minimum_tls_version") {
-		expanded.ScmMinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.ScmMinTlsVersion))
+		expanded.ScmMinTlsVersion = pointer.ToEnum[webapps.SupportedTlsVersions](s.ScmMinTlsVersion)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.minimum_tls_cipher_suite") {
-		expanded.MinTlsCipherSuite = pointer.To(webapps.TlsCipherSuites(s.MinTlsCipherSuite))
+		expanded.MinTlsCipherSuite = pointer.ToEnum[webapps.TlsCipherSuites](s.MinTlsCipherSuite)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.cors") {
@@ -1300,21 +1272,21 @@ func (s *SiteConfigWindowsWebAppSlot) Flatten(appSiteSlotConfig *webapps.SiteCon
 	s.ContainerRegistryUserMSI = pointer.From(appSiteSlotConfig.AcrUserManagedIdentityID)
 	s.Cors = FlattenCorsSettings(appSiteSlotConfig.Cors)
 	s.DetailedErrorLogging = pointer.From(appSiteSlotConfig.DetailedErrorLoggingEnabled)
-	s.FtpsState = string(pointer.From(appSiteSlotConfig.FtpsState))
+	s.FtpsState = pointer.FromEnum(appSiteSlotConfig.FtpsState)
 	s.HealthCheckPath = pointer.From(appSiteSlotConfig.HealthCheckPath)
 	s.Http2Enabled = pointer.From(appSiteSlotConfig.HTTP20Enabled)
 	s.IpRestriction = FlattenIpRestrictions(appSiteSlotConfig.IPSecurityRestrictions)
-	s.LoadBalancing = string(pointer.From(appSiteSlotConfig.LoadBalancing))
+	s.LoadBalancing = pointer.FromEnum(appSiteSlotConfig.LoadBalancing)
 	s.LocalMysql = pointer.From(appSiteSlotConfig.LocalMySqlEnabled)
-	s.ManagedPipelineMode = string(pointer.From(appSiteSlotConfig.ManagedPipelineMode))
-	s.MinTlsVersion = string(pointer.From(appSiteSlotConfig.MinTlsVersion))
+	s.ManagedPipelineMode = pointer.FromEnum(appSiteSlotConfig.ManagedPipelineMode)
+	s.MinTlsVersion = pointer.FromEnum(appSiteSlotConfig.MinTlsVersion)
 	s.WorkerCount = pointer.From(appSiteSlotConfig.NumberOfWorkers)
 	s.RemoteDebugging = pointer.From(appSiteSlotConfig.RemoteDebuggingEnabled)
 	s.RemoteDebuggingVersion = strings.ToUpper(pointer.From(appSiteSlotConfig.RemoteDebuggingVersion))
 	s.ScmIpRestriction = FlattenIpRestrictions(appSiteSlotConfig.ScmIPSecurityRestrictions)
-	s.ScmMinTlsVersion = string(pointer.From(appSiteSlotConfig.ScmMinTlsVersion))
-	s.MinTlsCipherSuite = string(pointer.From(appSiteSlotConfig.MinTlsCipherSuite))
-	s.ScmType = string(pointer.From(appSiteSlotConfig.ScmType))
+	s.ScmMinTlsVersion = pointer.FromEnum(appSiteSlotConfig.ScmMinTlsVersion)
+	s.MinTlsCipherSuite = pointer.FromEnum(appSiteSlotConfig.MinTlsCipherSuite)
+	s.ScmType = pointer.FromEnum(appSiteSlotConfig.ScmType)
 	s.ScmUseMainIpRestriction = pointer.From(appSiteSlotConfig.ScmIPSecurityRestrictionsUseMain)
 	s.Use32BitWorker = pointer.From(appSiteSlotConfig.Use32BitWorkerProcess)
 	s.UseManagedIdentityACR = pointer.From(appSiteSlotConfig.AcrUseManagedIdentityCreds)
@@ -1322,8 +1294,8 @@ func (s *SiteConfigWindowsWebAppSlot) Flatten(appSiteSlotConfig *webapps.SiteCon
 	s.VirtualApplications = flattenVirtualApplications(appSiteSlotConfig.VirtualApplications, s.AlwaysOn)
 	s.WebSockets = pointer.From(appSiteSlotConfig.WebSocketsEnabled)
 	s.VnetRouteAllEnabled = pointer.From(appSiteSlotConfig.VnetRouteAllEnabled)
-	s.IpRestrictionDefaultAction = string(pointer.From(appSiteSlotConfig.IPSecurityRestrictionsDefaultAction))
-	s.ScmIpRestrictionDefaultAction = string(pointer.From(appSiteSlotConfig.ScmIPSecurityRestrictionsDefaultAction))
+	s.IpRestrictionDefaultAction = pointer.FromEnum(appSiteSlotConfig.IPSecurityRestrictionsDefaultAction)
+	s.ScmIpRestrictionDefaultAction = pointer.FromEnum(appSiteSlotConfig.ScmIPSecurityRestrictionsDefaultAction)
 
 	if appSiteSlotConfig.ApiManagementConfig != nil && appSiteSlotConfig.ApiManagementConfig.Id != nil {
 		s.ApiManagementConfigId = *appSiteSlotConfig.ApiManagementConfig.Id
