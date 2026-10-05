@@ -42,7 +42,6 @@ func (p storageShareCreatePoller) Poll(ctx context.Context) (*pollers.PollResult
 		}
 
 		return &pollers.PollResult{
-			HttpResponse: nil,
 			PollInterval: 5 * time.Second,
 			Status:       pollers.PollingStatusFailed,
 		}, err

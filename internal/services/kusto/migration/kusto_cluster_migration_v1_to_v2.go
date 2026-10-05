@@ -234,33 +234,33 @@ func (s KustoAttachedClusterV1ToV2) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (s KustoAttachedClusterV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		// This migration fixes #27580, which prevented provider upgrades from <4.0.0 to >=4.0.0.
 		// If the current state file contains the `language_extensions` argument as a list, we'll migrate it to the expected
 		// block format. Otherwise, do nothing.
 		if extensionsRaw, ok := rawState["language_extensions"]; ok {
-			if extensions, ok := extensionsRaw.([]interface{}); ok && len(extensions) > 0 {
-				if _, ok := extensions[0].(map[string]interface{}); ok {
+			if extensions, ok := extensionsRaw.([]any); ok && len(extensions) > 0 {
+				if _, ok := extensions[0].(map[string]any); ok {
 					return rawState, nil
 				}
 
 				log.Print("[DEBUG] Migrating `language_extensions` to the block format")
-				newExtensions := make([]map[string]interface{}, 0)
+				newExtensions := make([]map[string]any, 0)
 
 				for _, v := range extensions {
 					switch v {
 					case "R":
-						newExtensions = append(newExtensions, map[string]interface{}{
+						newExtensions = append(newExtensions, map[string]any{
 							"name":  "R",
 							"image": "R",
 						})
 					case "PYTHON":
-						newExtensions = append(newExtensions, map[string]interface{}{
+						newExtensions = append(newExtensions, map[string]any{
 							"name":  "PYTHON",
 							"image": "Python3_6_5",
 						})
 					case "PYTHON_3.10.8":
-						newExtensions = append(newExtensions, map[string]interface{}{
+						newExtensions = append(newExtensions, map[string]any{
 							"name":  "PYTHON",
 							"image": "Python3_10_8",
 						})

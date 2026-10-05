@@ -95,7 +95,7 @@ func resourceKustoClusterManagedPrivateEndpoint() *pluginsdk.Resource {
 	}
 }
 
-func resourceKustoClusterManagedPrivateEndpointCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoClusterManagedPrivateEndpointCreateUpdate(d *schema.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.ClusterManagedPrivateEndpointClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -146,7 +146,7 @@ func resourceKustoClusterManagedPrivateEndpointCreateUpdate(d *schema.ResourceDa
 	return resourceKustoClusterManagedPrivateEndpointRead(d, meta)
 }
 
-func resourceKustoClusterManagedPrivateEndpointRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoClusterManagedPrivateEndpointRead(d *schema.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.ClusterManagedPrivateEndpointClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -188,7 +188,7 @@ func resourceKustoClusterManagedPrivateEndpointRead(d *schema.ResourceData, meta
 	return nil
 }
 
-func resourceKustoClusterManagedPrivateEndpointDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoClusterManagedPrivateEndpointDelete(d *schema.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.ClusterManagedPrivateEndpointClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -198,8 +198,7 @@ func resourceKustoClusterManagedPrivateEndpointDelete(d *schema.ResourceData, me
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

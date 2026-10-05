@@ -58,7 +58,7 @@ func resourceApiManagementIdentityProviderGoogle() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementIdentityProviderGoogleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderGoogleCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -100,7 +100,7 @@ func resourceApiManagementIdentityProviderGoogleCreateUpdate(d *pluginsdk.Resour
 	return resourceApiManagementIdentityProviderGoogleRead(d, meta)
 }
 
-func resourceApiManagementIdentityProviderGoogleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderGoogleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -109,8 +109,6 @@ func resourceApiManagementIdentityProviderGoogleRead(d *pluginsdk.ResourceData, 
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroupName
-	serviceName := id.ServiceName
 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
@@ -123,8 +121,8 @@ func resourceApiManagementIdentityProviderGoogleRead(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("api_management_name", serviceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("api_management_name", id.ServiceName)
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
@@ -135,7 +133,7 @@ func resourceApiManagementIdentityProviderGoogleRead(d *pluginsdk.ResourceData, 
 	return nil
 }
 
-func resourceApiManagementIdentityProviderGoogleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderGoogleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

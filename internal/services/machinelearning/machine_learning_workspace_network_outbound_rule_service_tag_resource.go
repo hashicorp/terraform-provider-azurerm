@@ -35,7 +35,7 @@ func (r WorkspaceNetworkOutboundRuleServiceTag) ResourceType() string {
 	return "azurerm_machine_learning_workspace_network_outbound_rule_service_tag"
 }
 
-func (r WorkspaceNetworkOutboundRuleServiceTag) ModelObject() interface{} {
+func (r WorkspaceNetworkOutboundRuleServiceTag) ModelObject() any {
 	return &MachineLearningWorkspaceServiceTagOutboundRuleModel{}
 }
 
@@ -44,7 +44,7 @@ func (r WorkspaceNetworkOutboundRuleServiceTag) IDValidationFunc() pluginsdk.Sch
 }
 
 func (r WorkspaceNetworkOutboundRuleServiceTag) Arguments() map[string]*pluginsdk.Schema {
-	arguments := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -154,7 +154,6 @@ func (r WorkspaceNetworkOutboundRuleServiceTag) Arguments() map[string]*pluginsd
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
-	return arguments
 }
 
 func (r WorkspaceNetworkOutboundRuleServiceTag) Attributes() map[string]*pluginsdk.Schema {

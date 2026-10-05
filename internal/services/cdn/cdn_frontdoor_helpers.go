@@ -11,14 +11,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afddomains"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/routes"
-	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func flattenTransformSlice(input *[]waf.TransformType) []interface{} {
-	result := make([]interface{}, 0)
+func flattenTransformSlice(input *[]webapplicationfirewallpolicies.TransformType) []any {
+	result := make([]any, 0)
 	if input == nil || len(*input) == 0 {
 		return result
 	}
@@ -30,8 +30,8 @@ func flattenTransformSlice(input *[]waf.TransformType) []interface{} {
 	return result
 }
 
-func flattenFrontendEndpointLinkSlice(input *[]waf.FrontendEndpointLink) []interface{} {
-	result := make([]interface{}, 0)
+func flattenFrontendEndpointLinkSlice(input *[]webapplicationfirewallpolicies.FrontendEndpointLink) []any {
+	result := make([]any, 0)
 	if input == nil || len(*input) == 0 {
 		return result
 	}
@@ -94,18 +94,18 @@ func frontDoorContentTypes() []string {
 }
 
 // Takes a Slice of strings and transforms it into a CSV formatted string.
-func expandStringSliceToCsvFormat(input []interface{}) *string {
+func expandStringSliceToCsvFormat(input []any) *string {
 	if len(input) == 0 {
 		return nil
 	}
 
-	v := utils.ExpandStringSlice(input)
+	v := pluginsdk.ExpandStringSlice(input)
 	csv := strings.Trim(fmt.Sprintf("[%s]", strings.Join(*v, ",")), "[]")
 
 	return &csv
 }
 
-func expandCustomDomainActivatedResourceArray(input []interface{}) *[]routes.ActivatedResourceReference {
+func expandCustomDomainActivatedResourceArray(input []any) *[]routes.ActivatedResourceReference {
 	results := make([]routes.ActivatedResourceReference, 0)
 
 	// NOTE: I have confirmed with the service team that this is required to be an explicit "nil" value, an empty
@@ -124,15 +124,15 @@ func expandCustomDomainActivatedResourceArray(input []interface{}) *[]routes.Act
 }
 
 // Takes a CSV formatted string and transforms it into a Slice of strings.
-func flattenCsvToStringSlice(input *string) []interface{} {
-	results := make([]interface{}, 0)
+func flattenCsvToStringSlice(input *string) []any {
+	results := make([]any, 0)
 	if input == nil || len(*input) == 0 {
 		return results
 	}
 
-	v := strings.Split(*input, ",")
+	v := strings.SplitSeq(*input, ",")
 
-	for _, s := range v {
+	for s := range v {
 		results = append(results, s)
 	}
 
@@ -140,7 +140,7 @@ func flattenCsvToStringSlice(input *string) []interface{} {
 }
 
 // determines if the slice contains the value case-insensitively
-func sliceContainsString(input []interface{}, value string) bool {
+func sliceContainsString(input []any, value string) bool {
 	if len(input) == 0 {
 		return false
 	}
@@ -172,8 +172,8 @@ func routeSliceContains(input *[]routes.RouteId, value string) bool {
 }
 
 // returns the slice with the value removed case-insensitively
-func sliceRemoveString(input []interface{}, value string) []interface{} {
-	out := make([]interface{}, 0)
+func sliceRemoveString(input []any, value string) []any {
+	out := make([]any, 0)
 	if len(input) == 0 {
 		return out
 	}
@@ -189,7 +189,7 @@ func sliceRemoveString(input []interface{}, value string) []interface{} {
 	return out
 }
 
-func getRouteProperties(ctx context.Context, meta interface{}, id *routes.RouteId, resourceName string) ([]interface{}, *routes.RouteProperties, error) {
+func getRouteProperties(ctx context.Context, meta any, id *routes.RouteId, resourceName string) ([]any, *routes.RouteProperties, error) {
 	client := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
 
 	resp, err := client.Get(ctx, *id)
@@ -214,7 +214,7 @@ func getRouteProperties(ctx context.Context, meta interface{}, id *routes.RouteI
 	return customDomains, props, nil
 }
 
-func removeCustomDomainAssociationFromRoutes(ctx context.Context, meta interface{}, routes *[]routes.RouteId, customDomainID *afddomains.CustomDomainId) error {
+func removeCustomDomainAssociationFromRoutes(ctx context.Context, meta any, routes *[]routes.RouteId, customDomainID *afddomains.CustomDomainId) error {
 	if routes != nil && len(*routes) != 0 {
 		for _, route := range *routes {
 			// lock the route resource for update...
@@ -243,7 +243,7 @@ func removeCustomDomainAssociationFromRoutes(ctx context.Context, meta interface
 	return nil
 }
 
-func updateRouteAssociations(ctx context.Context, meta interface{}, routeId *routes.RouteId, customDomains []interface{}, props *routes.RouteProperties, customDomainID *afddomains.CustomDomainId) error {
+func updateRouteAssociations(ctx context.Context, meta any, routeId *routes.RouteId, customDomains []any, props *routes.RouteProperties, customDomainID *afddomains.CustomDomainId) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
 
 	updateParams := routes.RouteUpdateParameters{
@@ -271,7 +271,7 @@ func updateRouteAssociations(ctx context.Context, meta interface{}, routeId *rou
 	return nil
 }
 
-func validateRoutesCustomDomainProfile(customDomains []interface{}, routeProfile string) error {
+func validateRoutesCustomDomainProfile(customDomains []any, routeProfile string) error {
 	wrongProfile := make([]string, 0)
 
 	if len(customDomains) != 0 {
@@ -369,9 +369,9 @@ func routeDelta(oldRoutes *[]routes.RouteId, newRoutes *[]routes.RouteId) (*[]ro
 	return &remove, &shared
 }
 
-func expandRoutes(input []interface{}) (*[]routes.RouteId, []interface{}, error) {
+func expandRoutes(input []any) (*[]routes.RouteId, []any, error) {
 	out := make([]routes.RouteId, 0)
-	config := make([]interface{}, 0)
+	config := make([]any, 0)
 	if len(input) == 0 || input == nil {
 		return &out, config, nil
 	}
