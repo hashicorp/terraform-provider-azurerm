@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package resourcegraph
 
 import (
@@ -97,7 +100,7 @@ func (r ResourceGraphQueryResource) Create() sdk.ResourceFunc {
 
 			properties := &graphquery.GraphQueryResource{
 				Name:     &model.Name,
-				Location: &(model.Location),
+				Location: &model.Location,
 				Properties: &graphquery.GraphQueryProperties{
 					Query: model.Query,
 				},
