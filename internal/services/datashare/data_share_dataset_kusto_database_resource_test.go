@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DataShareDataSetKustoDatabaseResource struct{}
+type DataShareDatasetKustoDatabaseResource struct{}
 
 func TestAccDataShareDataSetKustoDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_kusto_database", "test")
-	r := DataShareDataSetKustoDatabaseResource{}
+	r := DataShareDatasetKustoDatabaseResource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -37,7 +37,7 @@ func TestAccDataShareDataSetKustoDatabase_basic(t *testing.T) {
 
 func TestAccDataShareDataSetKustoDatabase_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_kusto_database", "test")
-	r := DataShareDataSetKustoDatabaseResource{}
+	r := DataShareDatasetKustoDatabaseResource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccDataShareDataSetKustoDatabase_requiresImport(t *testing.T) {
 	})
 }
 
-func (t DataShareDataSetKustoDatabaseResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataShareDatasetKustoDatabaseResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := dataset.ParseDataSetID(state.ID)
 	if err != nil {
 		return nil, err
@@ -70,7 +70,7 @@ func (t DataShareDataSetKustoDatabaseResource) Exists(ctx context.Context, clien
 	return nil, fmt.Errorf("%s is not a kusto database dataset", *id)
 }
 
-func (DataShareDataSetKustoDatabaseResource) template(data acceptance.TestData) string {
+func (DataShareDatasetKustoDatabaseResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -122,7 +122,7 @@ resource "azurerm_role_assignment" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r DataShareDataSetKustoDatabaseResource) basic(data acceptance.TestData) string {
+func (r DataShareDatasetKustoDatabaseResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -137,7 +137,7 @@ resource "azurerm_data_share_dataset_kusto_database" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r DataShareDataSetKustoDatabaseResource) requiresImport(data acceptance.TestData) string {
+func (r DataShareDatasetKustoDatabaseResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

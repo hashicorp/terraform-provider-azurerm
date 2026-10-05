@@ -5,7 +5,6 @@ package helpers
 
 import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -20,6 +19,7 @@ type LogicAppSiteConfig struct {
 	MinTLSVersion                 string          `tfschema:"min_tls_version"`
 	PreWarmedInstanceCount        int64           `tfschema:"pre_warmed_instance_count"`
 	SCMIPRestriction              []IpRestriction `tfschema:"scm_ip_restriction"`
+	SCMIpRestrictionDefaultAction string          `tfschema:"scm_ip_restriction_default_action"`
 	SCMUseMainIpRestriction       bool            `tfschema:"scm_use_main_ip_restriction"`
 	SCMMinTLSVersion              string          `tfschema:"scm_min_tls_version"`
 	SCMType                       string          `tfschema:"scm_type"`
@@ -32,15 +32,14 @@ type LogicAppSiteConfig struct {
 	DotnetFrameworkVersion        string          `tfschema:"dotnet_framework_version"`
 	VNETRouteAllEnabled           bool            `tfschema:"vnet_route_all_enabled"`
 	AutoSwapSlotName              string          `tfschema:"auto_swap_slot_name"`
-
-	PublicNetworkAccessEnabled bool `tfschema:"public_network_access_enabled,removedInNextMajorVersion"`
+	IpRestrictionDefaultAction    string          `tfschema:"ip_restriction_default_action"`
 }
 
 func SchemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
-	schema := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -53,14 +52,10 @@ func SchemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 				"cors": CorsSettingsSchema(),
 
 				"ftps_state": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Computed: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(webapps.FtpsStateAllAllowed),
-						string(webapps.FtpsStateDisabled),
-						string(webapps.FtpsStateFtpsOnly),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForFtpsState(), false),
 				},
 
 				"http2_enabled": {
@@ -74,13 +69,13 @@ func SchemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 				"linux_fx_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 				},
 
 				"min_tls_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringInSlice([]string{
 						string(webapps.SupportedTlsVersionsOnePointTwo),
 						string(webapps.SupportedTlsVersionsOnePointThree),
@@ -90,11 +85,17 @@ func SchemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 				"pre_warmed_instance_count": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.IntBetween(0, 20),
 				},
 
 				"scm_ip_restriction": IpRestrictionSchema(),
+
+				"scm_ip_restriction_default_action": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForDefaultAction(), false),
+				},
 
 				"scm_use_main_ip_restriction": {
 					Type:     pluginsdk.TypeBool,
@@ -105,7 +106,7 @@ func SchemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 				"scm_min_tls_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringInSlice([]string{
 						string(webapps.SupportedTlsVersionsOnePointTwo),
 						string(webapps.SupportedTlsVersionsOnePointThree),
@@ -113,25 +114,10 @@ func SchemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 				},
 
 				"scm_type": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Computed: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(webapps.ScmTypeBitbucketGit),
-						string(webapps.ScmTypeBitbucketHg),
-						string(webapps.ScmTypeCodePlexGit),
-						string(webapps.ScmTypeCodePlexHg),
-						string(webapps.ScmTypeDropbox),
-						string(webapps.ScmTypeExternalGit),
-						string(webapps.ScmTypeExternalHg),
-						string(webapps.ScmTypeGitHub),
-						string(webapps.ScmTypeLocalGit),
-						string(webapps.ScmTypeNone),
-						string(webapps.ScmTypeOneDrive),
-						string(webapps.ScmTypeTfs),
-						string(webapps.ScmTypeVSO),
-						string(webapps.ScmTypeVSTSRM),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForScmType(), false),
 				},
 
 				"use_32_bit_worker_process": {
@@ -154,14 +140,14 @@ func SchemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 				"elastic_instance_minimum": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.IntBetween(0, 20),
 				},
 
 				"app_scale_limit": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.IntAtLeast(0),
 				},
 
@@ -180,13 +166,20 @@ func SchemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 						"v5.0",
 						"v6.0",
 						"v8.0",
+						"v10.0",
 					}, false),
 				},
 
 				"vnet_route_all_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
+				},
+
+				"ip_restriction_default_action": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForDefaultAction(), false),
 				},
 
 				"auto_swap_slot_name": {
@@ -196,37 +189,4 @@ func SchemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		schema.Elem.(*pluginsdk.Resource).Schema["public_network_access_enabled"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "the `site_config.public_network_access_enabled` property has been superseded by the `public_network_access` property and will be removed in v5.0 of the AzureRM Provider.",
-		}
-		schema.Elem.(*pluginsdk.Resource).Schema["scm_min_tls_version"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(webapps.SupportedTlsVersionsOnePointZero),
-				string(webapps.SupportedTlsVersionsOnePointOne),
-				string(webapps.SupportedTlsVersionsOnePointTwo),
-				string(webapps.SupportedTlsVersionsOnePointThree),
-			}, false),
-		}
-		schema.Elem.(*pluginsdk.Resource).Schema["min_tls_version"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(webapps.SupportedTlsVersionsOnePointZero),
-				string(webapps.SupportedTlsVersionsOnePointOne),
-				string(webapps.SupportedTlsVersionsOnePointTwo),
-				string(webapps.SupportedTlsVersionsOnePointThree),
-			}, false),
-		}
-	}
-
-	return schema
 }

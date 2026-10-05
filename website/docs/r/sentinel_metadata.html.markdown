@@ -56,7 +56,7 @@ QUERY
 }
 
 resource "azurerm_sentinel_metadata" "example" {
-  name         = "exampl"
+  name         = "example"
   workspace_id = azurerm_log_analytics_solution.example.workspace_resource_id
   content_id   = azurerm_sentinel_alert_rule_nrt.example.name
   kind         = "AnalyticsRule"

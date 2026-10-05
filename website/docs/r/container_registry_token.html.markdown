@@ -9,7 +9,7 @@ description: |-
 
 # azurerm_container_registry_token
 
-Manages an Azure Container Registry token associated to a scope map. For more information on scope maps and their tokens see the [product documentation](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-repository-scoped-permissions).
+Manages an Azure Container Registry token associated to a scope map. For more information on scope maps and their tokens see the [product documentation](https://learn.microsoft.com/azure/container-registry/container-registry-repository-scoped-permissions).
 
 ## Example Usage
 
@@ -27,10 +27,12 @@ resource "azurerm_container_registry" "example" {
   admin_enabled       = false
 
   georeplications {
-    location = "East US"
+    location                        = "East US"
+    global_endpoint_routing_enabled = true
   }
   georeplications {
-    location = "West Europe"
+    location                        = "West Europe"
+    global_endpoint_routing_enabled = true
   }
 }
 
@@ -95,4 +97,4 @@ terraform import azurerm_container_registry_token.example /subscriptions/0000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ContainerRegistry` - 2025-04-01
+* `Microsoft.ContainerRegistry` - 2025-11-01

@@ -774,7 +774,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "test"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -786,11 +786,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctest"
-  resource_group_name = azurerm_resource_group.test.name
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  partition_count     = 2
-  message_retention   = 1
+  name              = "acctest"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 1
 }
 
 resource "azurerm_eventhub_authorization_rule" "test" {
@@ -850,7 +849,7 @@ resource "azurerm_iothub" "test" {
     purpose = "testing"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
 func (IotHubResource) enrichments(data acceptance.TestData) string {
@@ -874,7 +873,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "test"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -886,11 +885,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctest"
-  resource_group_name = azurerm_resource_group.test.name
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  partition_count     = 2
-  message_retention   = 1
+  name              = "acctest"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 1
 }
 
 resource "azurerm_eventhub_authorization_rule" "test" {
@@ -957,7 +955,7 @@ resource "azurerm_iothub" "test" {
     purpose = "testing"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
 func (IotHubResource) unsetEnrichments(data acceptance.TestData) string {
@@ -981,7 +979,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "test"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -993,11 +991,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctest"
-  resource_group_name = azurerm_resource_group.test.name
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  partition_count     = 2
-  message_retention   = 1
+  name              = "acctest"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 1
 }
 
 resource "azurerm_eventhub_authorization_rule" "test" {
@@ -1054,7 +1051,7 @@ resource "azurerm_iothub" "test" {
     purpose = "testing"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
 func (IotHubResource) removeEndpointsAndRoutes(data acceptance.TestData) string {
@@ -1078,7 +1075,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "test"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -1090,11 +1087,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctest"
-  resource_group_name = azurerm_resource_group.test.name
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  partition_count     = 2
-  message_retention   = 1
+  name              = "acctest"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 1
 }
 
 resource "azurerm_eventhub_authorization_rule" "test" {
@@ -1126,7 +1122,7 @@ resource "azurerm_iothub" "test" {
     purpose = "testing"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
 func (IotHubResource) fallbackRoute(data acceptance.TestData) string {
@@ -1184,7 +1180,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "test"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -1203,7 +1199,7 @@ resource "azurerm_iothub" "test" {
     container_name    = azurerm_storage_container.test.name
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
 func (IotHubResource) fileUploadUpdate(data acceptance.TestData) string {
@@ -1227,7 +1223,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "test"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -1251,7 +1247,7 @@ resource "azurerm_iothub" "test" {
     lock_duration      = "PT5M"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
 func (r IotHubResource) fileUploadAuthenticationTypeDefault(data acceptance.TestData) string {
@@ -1379,7 +1375,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "test"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -1400,7 +1396,7 @@ resource "azurerm_role_assignment" "test_storage_blob_data_contrib_system" {
   scope                = azurerm_storage_account.test.id
   principal_id         = azurerm_iothub.test.identity[0].principal_id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
 func (IotHubResource) publicAccessEnabled(data acceptance.TestData) string {
@@ -1489,7 +1485,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "test"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -1501,11 +1497,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctest"
-  resource_group_name = azurerm_resource_group.test2.name
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  partition_count     = 2
-  message_retention   = 1
+  name              = "acctest"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 1
 }
 
 resource "azurerm_eventhub_authorization_rule" "test" {
@@ -1548,7 +1543,7 @@ resource "azurerm_iothub" "test" {
     resource_group_name = azurerm_resource_group.test2.name
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
 func (IotHubResource) minTLSVersion(data acceptance.TestData) string {
@@ -2107,7 +2102,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctestcont"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -2156,11 +2151,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctesteventhub-%[1]d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 2
-  message_retention   = 1
+  name              = "acctesteventhub-%[1]d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 1
 }
 
 resource "azurerm_eventhub_authorization_rule" "test" {
@@ -2227,7 +2221,7 @@ resource "azurerm_role_assignment" "test_azure_event_hubs_data_sender_system" {
   scope                = azurerm_eventhub.test.id
   principal_id         = azurerm_iothub.test.identity[0].principal_id
 }
-`, data.RandomInteger, data.Locations.Primary)
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (IotHubResource) updateWithCosmosDBRoute(data acceptance.TestData, update bool) string {

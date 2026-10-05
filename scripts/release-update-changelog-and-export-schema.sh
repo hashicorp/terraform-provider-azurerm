@@ -2,47 +2,28 @@
 # Copyright IBM Corp. 2014, 2025
 # SPDX-License-Identifier: MPL-2.0
 
-if [[ "$(uname)" == "Darwin" ]]; then
-  echo "(Using BSD sed)"
-  SED="sed -E"
-else
-  echo "(Using GNU sed)"
-  SED="sed -r"
-fi
-
-DATE="$(date '+%B %d, %Y')"
-PROVIDER_URL="https:\/\/github.com\/hashicorp\/terraform-provider-azurerm\/issues"
+# Set to "echo " to print commands instead of running them
+debug="${debug:-}"
 
 echo "Preparing changelog for release..."
 
-if [[ ! -f CHANGELOG.md ]]; then
-  echo "Error: CHANGELOG.md not found."
-  exit 2
-fi
+echo "Generating changelog..."
+# shellcheck disable=SC2086 # debug is intentionally unquoted for command prefix pattern
+output="$(${debug}./.tools/bin/changeloggy generate)"
+echo "${output}"
 
-echo "Formatting changelog..."
-(
-  set -x
-  go run internal/tools/changelog-formatter/main.go CHANGELOG.md
-)
-
-# Get the next release
-RELEASE="$($SED -n 's/^## v?([0-9.]+) \(Unreleased\)/\1/p' CHANGELOG.md)"
+RELEASE="$(echo "${output}" | sed -E -n 's/^Generated v?([0-9][0-9.]*) .*/\1/p')"
 if [[ "${RELEASE}" == "" ]]; then
-  echo "Error: could not determine next release in CHANGELOG.md" >&2
+  echo "Error: could not determine release version from changeloggy output" >&2
   exit 3
 fi
-
-# Replace [GH-nnnn] references with issue links
-( set -x; ${debug}$SED -i.bak "s/\[GH-([0-9]+)\]/\(\[#\1\]\(${PROVIDER_URL}\/\1\)\)/g" CHANGELOG.md )
-
-# Set the date for the latest release
-( set -x; ${debug}$SED -i.bak "s/^(## v?[0-9.]+) \(Unreleased\)/\1 (${DATE})/i" CHANGELOG.md )
-
-${debug}rm CHANGELOG.md.bak
 
 echo "exporting Provider Schema JSON"
 (
   set -x
+  # shellcheck disable=SC2086 # debug is intentionally unquoted for command prefix pattern
   ${debug}go run internal/tools/schema-api/main.go -export .release/provider-schema.json
 )
+
+# Update the version file with this new version
+printf "%s" "${RELEASE}" > version/VERSION

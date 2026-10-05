@@ -48,8 +48,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 A `long_term_retention_policy` block exports the following:
 
-* `immutable_backups_enabled` - Specifies if the backups are immutable.
-
 * `monthly_retention` - The monthly retention policy for an LTR backup in an ISO 8601 format.
 
 * `week_of_year` - The week of year to take the yearly backup.

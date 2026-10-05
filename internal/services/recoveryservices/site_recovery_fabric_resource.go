@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationfabrics"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -26,12 +26,12 @@ func resourceSiteRecoveryFabric() *pluginsdk.Resource {
 		Read:   resourceSiteRecoveryFabricRead,
 		Delete: resourceSiteRecoveryFabricDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ReplicationFabricID(id)
+			_, err := replicationfabrics.ParseReplicationFabricID(id)
 			return err
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(45 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
@@ -56,7 +56,7 @@ func resourceSiteRecoveryFabric() *pluginsdk.Resource {
 	}
 }
 
-func resourceSiteRecoveryFabricCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryFabricCreate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
@@ -69,7 +69,7 @@ func resourceSiteRecoveryFabricCreate(d *pluginsdk.ResourceData, meta interface{
 
 	id := replicationfabrics.NewReplicationFabricID(subscriptionId, resGroup, vaultName, name)
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id, replicationfabrics.DefaultGetOperationOptions())
 		if err != nil {
 			// NOTE: Bad Request due to https://github.com/Azure/azure-rest-api-specs/issues/12759
@@ -91,17 +91,15 @@ func resourceSiteRecoveryFabricCreate(d *pluginsdk.ResourceData, meta interface{
 		},
 	}
 
-	err := client.CreateThenPoll(ctx, id, parameters)
-	if err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating site recovery fabric %s (vault %s): %+v", name, vaultName, err)
 	}
-
 	d.SetId(id.ID())
 
 	return resourceSiteRecoveryFabricRead(d, meta)
 }
 
-func resourceSiteRecoveryFabricRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryFabricRead(d *pluginsdk.ResourceData, meta any) error {
 	id, err := replicationfabrics.ParseReplicationFabricID(d.Id())
 	if err != nil {
 		return err
@@ -140,7 +138,7 @@ func resourceSiteRecoveryFabricRead(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceSiteRecoveryFabricDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryFabricDelete(d *pluginsdk.ResourceData, meta any) error {
 	id, err := replicationfabrics.ParseReplicationFabricID(d.Id())
 	if err != nil {
 		return err

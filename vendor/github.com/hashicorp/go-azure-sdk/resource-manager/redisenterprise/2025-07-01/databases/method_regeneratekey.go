@@ -62,9 +62,20 @@ func (c DatabasesClient) RegenerateKey(ctx context.Context, id DatabaseId, input
 
 // RegenerateKeyThenPoll performs RegenerateKey then polls until it's completed
 func (c DatabasesClient) RegenerateKeyThenPoll(ctx context.Context, id DatabaseId, input RegenerateKeyParameters) error {
+	return c.RegenerateKeyCallbackThenPoll(ctx, id, input, nil)
+}
+
+// RegenerateKeyCallbackThenPoll performs RegenerateKey, runs the optional callback function, then polls until it's completed
+func (c DatabasesClient) RegenerateKeyCallbackThenPoll(ctx context.Context, id DatabaseId, input RegenerateKeyParameters, callback func() error) error {
 	result, err := c.RegenerateKey(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing RegenerateKey: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

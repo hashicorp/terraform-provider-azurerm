@@ -86,14 +86,13 @@ func (s ServicePlanV0toV1) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (s ServicePlanV0toV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		oldId := rawState["id"].(string)
 		parsedId, err := commonids.ParseAppServicePlanIDInsensitively(oldId)
 		if err != nil {
 			return nil, err
 		}
-		newId := parsedId.ID()
-		rawState["id"] = newId
+		rawState["id"] = parsedId.ID()
 		return rawState, nil
 	}
 }
