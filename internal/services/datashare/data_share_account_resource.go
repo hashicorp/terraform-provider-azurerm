@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	helperTags "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/account"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -24,7 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_share_account -service-package-name datashare -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceDataShareAccount() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -66,7 +66,7 @@ func resourceDataShareAccount() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataShareAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataShareAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataShare.AccountClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -86,7 +86,7 @@ func resourceDataShareAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	expandedIdentity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
+	expandedIdentity, err := identity.ExpandSystemAssigned(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -95,7 +95,7 @@ func resourceDataShareAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 		Name:     pointer.To(id.AccountName),
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Identity: *expandedIdentity,
-		Tags:     helperTags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if err := client.CreateCallbackThenPoll(ctx, id, account, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
@@ -110,7 +110,7 @@ func resourceDataShareAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceDataShareAccountRead(d, meta)
 }
 
-func resourceDataShareAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataShareAccountRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataShare.AccountClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -137,14 +137,14 @@ func resourceDataShareAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if err := d.Set("identity", identity.FlattenSystemAssigned(&model.Identity)); err != nil {
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
-		if err := helperTags.FlattenAndSet(d, model.Tags); err != nil {
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return fmt.Errorf("setting `tags`: %+v", err)
 		}
 	}
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceDataShareAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataShareAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataShare.AccountClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -157,7 +157,7 @@ func resourceDataShareAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 	props := account.AccountUpdateParameters{}
 
 	if d.HasChange("tags") {
-		props.Tags = helperTags.Expand(d.Get("tags").(map[string]interface{}))
+		props.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if _, err = client.Update(ctx, *id, props); err != nil {
@@ -167,7 +167,7 @@ func resourceDataShareAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceDataShareAccountRead(d, meta)
 }
 
-func resourceDataShareAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataShareAccountDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataShare.AccountClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

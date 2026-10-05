@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/volumegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumegroups"
 )
 
 type VolumeSpecNameOracle string
@@ -100,7 +100,7 @@ func ValidateNetAppVolumeGroupOracleVolumes(volumeList *[]volumegroups.VolumeGro
 		// Validating that snapshot policies are not being created in a data protection volume
 		if volume.Properties.DataProtection != nil &&
 			volume.Properties.DataProtection.Snapshot != nil &&
-			(volume.Properties.DataProtection.Replication != nil && strings.EqualFold(string(pointer.From(volume.Properties.DataProtection.Replication.EndpointType)), string(volumegroups.EndpointTypeDst))) {
+			(volume.Properties.DataProtection.Replication != nil && strings.EqualFold(pointer.FromEnum(volume.Properties.DataProtection.Replication.EndpointType), string(volumegroups.EndpointTypeDst))) {
 			errors = append(errors, fmt.Errorf("'snapshot policy cannot be enabled on a data protection volume for %v on volume %v'", applicationType, pointer.From(volume.Name)))
 		}
 
@@ -158,7 +158,7 @@ func ValidateNetAppVolumeGroupOracleVolumes(volumeList *[]volumegroups.VolumeGro
 		// Getting the first EncryptionKeySource for validations, all volumes must have the same EncryptionKeySource
 		if expectedEncryptionKeySource == "" {
 			if volume.Properties.EncryptionKeySource != nil {
-				expectedEncryptionKeySource = string(pointer.From(volume.Properties.EncryptionKeySource))
+				expectedEncryptionKeySource = pointer.FromEnum(volume.Properties.EncryptionKeySource)
 			}
 		}
 

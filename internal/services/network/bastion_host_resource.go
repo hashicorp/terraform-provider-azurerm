@@ -10,8 +10,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -19,17 +17,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/bastionhosts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/bastionhosts"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name bastion_host -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 var skuWeight = map[string]int8{
 	"Developer": 1,
@@ -178,14 +177,14 @@ func resourceBastionHost() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			pluginsdk.ForceNewIfChange("sku", func(ctx context.Context, old, new, meta interface{}) bool {
+			pluginsdk.ForceNewIfChange("sku", func(ctx context.Context, old, new, meta any) bool {
 				// downgrade the SKU is not supported, recreate the resource
 				if old.(string) != "" && new.(string) != "" {
 					return skuWeight[old.(string)] > skuWeight[new.(string)]
 				}
 				return false
 			}),
-			func(ctx context.Context, d *pluginsdk.ResourceDiff, meta interface{}) error {
+			func(ctx context.Context, d *pluginsdk.ResourceDiff, meta any) error {
 				sku := bastionhosts.BastionHostSkuName(d.Get("sku").(string))
 
 				// GetRawConfig is used because `public_ip_address_id` may reference another resource and be unknown during plan.
@@ -212,13 +211,11 @@ func resourceBastionHost() *pluginsdk.Resource {
 	}
 }
 
-func resourceBastionHostCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBastionHostCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.BastionHostsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Println("[INFO] preparing arguments for Azure Bastion Host creation.")
 
 	id := bastionhosts.NewBastionHostID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
@@ -275,13 +272,13 @@ func resourceBastionHostCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	parameters := bastionhosts.BastionHost{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &bastionhosts.BastionHostPropertiesFormat{
-			IPConfigurations: expandBastionHostIPConfiguration(d.Get("ip_configuration").([]interface{})),
+			IPConfigurations: expandBastionHostIPConfiguration(d.Get("ip_configuration").([]any)),
 			ScaleUnits:       pointer.To(int64(d.Get("scale_units").(int))),
 		},
 		Sku: &bastionhosts.Sku{
 			Name: pointer.To(sku),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v := !d.Get("copy_paste_enabled").(bool); v {
@@ -346,7 +343,7 @@ func resourceBastionHostCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	return resourceBastionHostRead(d, meta)
 }
 
-func resourceBastionHostUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBastionHostUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.BastionHostsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -431,7 +428,7 @@ func resourceBastionHostUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if d.HasChange("zones") {
@@ -447,7 +444,7 @@ func resourceBastionHostUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	return resourceBastionHostRead(d, meta)
 }
 
-func resourceBastionHostRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBastionHostRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.BastionHostsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -521,7 +518,7 @@ func resourceBastionHostRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceBastionHostDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBastionHostDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.BastionHostsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -538,20 +535,18 @@ func resourceBastionHostDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func expandBastionHostIPConfiguration(input []interface{}) (ipConfigs *[]bastionhosts.BastionHostIPConfiguration) {
+func expandBastionHostIPConfiguration(input []any) (ipConfigs *[]bastionhosts.BastionHostIPConfiguration) {
 	if len(input) == 0 {
 		return nil
 	}
 
-	property := input[0].(map[string]interface{})
-	ipConfName := property["name"].(string)
-	subID := property["subnet_id"].(string)
+	property := input[0].(map[string]any)
 
 	ipConfig := bastionhosts.BastionHostIPConfiguration{
-		Name: &ipConfName,
+		Name: pointer.To(property["name"].(string)),
 		Properties: &bastionhosts.BastionHostIPConfigurationPropertiesFormat{
 			Subnet: bastionhosts.SubResource{
-				Id: &subID,
+				Id: pointer.To(property["subnet_id"].(string)),
 			},
 		},
 	}
@@ -565,25 +560,21 @@ func expandBastionHostIPConfiguration(input []interface{}) (ipConfigs *[]bastion
 	return &[]bastionhosts.BastionHostIPConfiguration{ipConfig}
 }
 
-func flattenBastionHostIPConfiguration(ipConfigs *[]bastionhosts.BastionHostIPConfiguration) []interface{} {
-	result := make([]interface{}, 0)
+func flattenBastionHostIPConfiguration(ipConfigs *[]bastionhosts.BastionHostIPConfiguration) []any {
+	result := make([]any, 0)
 	if ipConfigs == nil {
 		return result
 	}
 
 	for _, config := range *ipConfigs {
-		ipConfig := make(map[string]interface{})
+		ipConfig := make(map[string]any)
 
 		if config.Name != nil {
 			ipConfig["name"] = *config.Name
 		}
 
 		if props := config.Properties; props != nil {
-			subnetId := ""
-			if subnet := props.Subnet; subnet.Id != nil {
-				subnetId = *subnet.Id
-			}
-			ipConfig["subnet_id"] = subnetId
+			ipConfig["subnet_id"] = pointer.From(props.Subnet.Id)
 
 			publicIpId := ""
 			if pip := props.PublicIPAddress; pip != nil && pip.Id != nil {

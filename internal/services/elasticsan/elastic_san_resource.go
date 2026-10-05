@@ -29,7 +29,7 @@ var (
 
 type ElasticSANResource struct{}
 
-func (r ElasticSANResource) ModelObject() interface{} {
+func (r ElasticSANResource) ModelObject() any {
 	return &ElasticSANResourceModel{}
 }
 
@@ -40,7 +40,7 @@ type ElasticSANResourceModel struct {
 	Name                 string                       `tfschema:"name"`
 	ResourceGroupName    string                       `tfschema:"resource_group_name"`
 	Sku                  []ElasticSANResourceSkuModel `tfschema:"sku"`
-	Tags                 map[string]interface{}       `tfschema:"tags"`
+	Tags                 map[string]any               `tfschema:"tags"`
 	TotalIops            int64                        `tfschema:"total_iops"`
 	TotalMBps            int64                        `tfschema:"total_mbps"`
 	TotalSizeInTiB       int64                        `tfschema:"total_size_in_tib"`
@@ -349,7 +349,7 @@ func ExpandSku(input []ElasticSANResourceSkuModel) elasticsans.Sku {
 	}
 
 	if input[0].Tier != "" {
-		output.Tier = pointer.To(elasticsans.SkuTier(input[0].Tier))
+		output.Tier = pointer.ToEnum[elasticsans.SkuTier](input[0].Tier)
 	}
 
 	return output
@@ -359,7 +359,7 @@ func FlattenSku(input elasticsans.Sku) []ElasticSANResourceSkuModel {
 	return []ElasticSANResourceSkuModel{
 		{
 			Name: string(input.Name),
-			Tier: string(pointer.From(input.Tier)),
+			Tier: pointer.FromEnum(input.Tier),
 		},
 	}
 }

@@ -127,7 +127,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The Kusto Attached Database Configuration ID.
 
-* `attached_database_names` - The list of databases from the `cluster_resource_id` which are currently attached to the cluster.
+* `attached_database_names` - The list of databases from the `cluster_id` which are currently attached to the cluster.
 
 ## Timeouts
 

@@ -45,7 +45,7 @@ func (r DataConnectorOfficeIRMResource) Arguments() map[string]*pluginsdk.Schema
 		"tenant_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validation.IsUUID,
 		},
@@ -60,7 +60,7 @@ func (r DataConnectorOfficeIRMResource) ResourceType() string {
 	return "azurerm_sentinel_data_connector_office_irm"
 }
 
-func (r DataConnectorOfficeIRMResource) ModelObject() interface{} {
+func (r DataConnectorOfficeIRMResource) ModelObject() any {
 	return &DataConnectorOfficeIRMModel{}
 }
 
