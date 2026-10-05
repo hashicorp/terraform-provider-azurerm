@@ -57,7 +57,7 @@ func dataSourceNetAppSnapshot() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceNetAppSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceNetAppSnapshotRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NetApp.SnapshotClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
