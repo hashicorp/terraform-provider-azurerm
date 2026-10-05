@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package devtestlabs
@@ -43,7 +43,7 @@ func dataSourceDevTestLab() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 
 			"artifacts_storage_account_id": {
 				Type:     pluginsdk.TypeString,
@@ -78,7 +78,7 @@ func dataSourceDevTestLab() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceDevTestLabRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceDevTestLabRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DevTestLabs.LabsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -103,17 +103,17 @@ func dataSourceDevTestLabRead(d *pluginsdk.ResourceData, meta interface{}) error
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 
-		if props := model.Properties; props != nil {
-			d.Set("storage_type", string(pointer.From(props.LabStorageType)))
+		props := model.Properties
+		d.Set("storage_type", pointer.FromEnum(props.LabStorageType))
 
-			// Computed fields
-			d.Set("artifacts_storage_account_id", props.ArtifactsStorageAccount)
-			d.Set("default_storage_account_id", props.DefaultStorageAccount)
-			d.Set("default_premium_storage_account_id", props.DefaultPremiumStorageAccount)
-			d.Set("key_vault_id", props.VaultName)
-			d.Set("premium_data_disk_storage_account_id", props.PremiumDataDiskStorageAccount)
-			d.Set("unique_identifier", props.UniqueIdentifier)
-		}
+		// Computed fields
+		d.Set("artifacts_storage_account_id", props.ArtifactsStorageAccount)
+		d.Set("default_storage_account_id", props.DefaultStorageAccount)
+		d.Set("default_premium_storage_account_id", props.DefaultPremiumStorageAccount)
+		d.Set("key_vault_id", props.VaultName)
+		d.Set("premium_data_disk_storage_account_id", props.PremiumDataDiskStorageAccount)
+		d.Set("unique_identifier", props.UniqueIdentifier)
+
 		if err = tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
 			return err
 		}

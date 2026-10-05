@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managementgroup
@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/managementgroups/2020-05-01/managementgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/management/2020-05-01/managementgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
@@ -31,7 +31,7 @@ func dataSourceManagementGroup() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ExactlyOneOf: []string{"name", "display_name"},
 				ValidateFunc: validate.ManagementGroupName,
 			},
@@ -39,7 +39,7 @@ func dataSourceManagementGroup() *pluginsdk.Resource {
 			"display_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ExactlyOneOf: []string{"name", "display_name"},
 			},
 
@@ -80,7 +80,7 @@ func dataSourceManagementGroup() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceManagementGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceManagementGroupRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ManagementGroups.GroupsClient
 	accountClient := meta.(*clients.Client)
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -101,15 +101,14 @@ func dataSourceManagementGroupRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("reading Management Group (Display Name %q): %+v", displayName, err)
 		}
 	}
-	recurse := true
 	resp, err := client.Get(ctx, commonids.NewManagementGroupID(groupName), managementgroups.GetOperationOptions{
 		CacheControl: &managementGroupCacheControl,
 		Expand:       pointer.To(managementgroups.ExpandChildren),
-		Recurse:      &recurse,
+		Recurse:      pointer.To(true),
 	})
 	if err != nil {
 		if response.WasForbidden(resp.HttpResponse) {
-			return fmt.Errorf("Management Group %q was not found", groupName)
+			return fmt.Errorf("the Management Group %q was not found", groupName)
 		}
 
 		return fmt.Errorf("reading Management Group %q: %+v", groupName, err)
@@ -127,8 +126,8 @@ func dataSourceManagementGroupRead(d *pluginsdk.ResourceData, meta interface{}) 
 		if props := model.Properties; props != nil {
 			d.Set("display_name", props.DisplayName)
 
-			subscriptionIds := []interface{}{}
-			mgmtgroupIds := []interface{}{}
+			subscriptionIds := []any{}
+			mgmtgroupIds := []any{}
 			if err := flattenManagementGroupDataSourceChildren(&subscriptionIds, &mgmtgroupIds, props.Children, false); err != nil {
 				return fmt.Errorf("flattening direct children resources: %+v", err)
 			}
@@ -139,8 +138,8 @@ func dataSourceManagementGroupRead(d *pluginsdk.ResourceData, meta interface{}) 
 				return fmt.Errorf("setting `management_group_ids`: %v", err)
 			}
 
-			subscriptionIds = []interface{}{}
-			mgmtgroupIds = []interface{}{}
+			subscriptionIds = []any{}
+			mgmtgroupIds = []any{}
 			if err := flattenManagementGroupDataSourceChildren(&subscriptionIds, &mgmtgroupIds, props.Children, true); err != nil {
 				return fmt.Errorf("flattening all children resources: %+v", err)
 			}
@@ -187,7 +186,7 @@ func getManagementGroupNameByDisplayName(ctx context.Context, client *management
 
 	// we found none
 	if len(results) == 0 {
-		return "", fmt.Errorf("Management Group (Display Name %q) was not found", displayName)
+		return "", fmt.Errorf("the Management Group (Display Name %q) was not found", displayName)
 	}
 
 	// we found more than one
@@ -198,7 +197,7 @@ func getManagementGroupNameByDisplayName(ctx context.Context, client *management
 	return results[0], nil
 }
 
-func flattenManagementGroupDataSourceChildren(subscriptionIds, mgmtgroupIds *[]interface{}, input *[]managementgroups.ManagementGroupChildInfo, recursive bool) error {
+func flattenManagementGroupDataSourceChildren(subscriptionIds, mgmtgroupIds *[]any, input *[]managementgroups.ManagementGroupChildInfo, recursive bool) error {
 	if input == nil {
 		return nil
 	}
@@ -211,13 +210,13 @@ func flattenManagementGroupDataSourceChildren(subscriptionIds, mgmtgroupIds *[]i
 		case managementgroups.ManagementGroupChildTypeMicrosoftPointManagementManagementGroups:
 			id, err := commonids.ParseManagementGroupID(*child.Id)
 			if err != nil {
-				return fmt.Errorf("Unable to parse child Management Group ID %+v", err)
+				return fmt.Errorf("unable to parse child Management Group ID %+v", err)
 			}
 			*mgmtgroupIds = append(*mgmtgroupIds, id.ID())
 		case managementgroups.ManagementGroupChildTypeSubscriptions:
 			id, err := commonids.ParseSubscriptionID(*child.Id)
 			if err != nil {
-				return fmt.Errorf("Unable to parse child Subscription ID %+v", err)
+				return fmt.Errorf("unable to parse child Subscription ID %+v", err)
 			}
 			*subscriptionIds = append(*subscriptionIds, id.SubscriptionId)
 		default:

@@ -115,7 +115,7 @@ JSON
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Required) Specifies the name of the Data Factory Dataset. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/azure/data-factory/naming-rules) for all restrictions.
 
@@ -125,7 +125,8 @@ JSON
 
 * `type` - (Required) The type of dataset that will be associated with Data Factory. Changing this forces a new resource to be created.
 
-* `type_properties_json` - (Required) A JSON object that contains the properties of the Data Factory Dataset.
+* `type_properties_json` - (Required) A JSON object that contains the properties of the Data Factory Dataset. Refer to
+[datafactory/models.go](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/vendor/github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory/models.go) for the shape of the expected JSON. For example, the JSON object for `AzureBlob`-typed Dataset will be unmarshaled into `AzureBlobDatasetTypeProperties struct`.
 
 * `additional_properties` - (Optional) A map of additional properties to associate with the Data Factory Dataset.
 
@@ -155,7 +156,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Data Factory Dataset.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory Dataset.

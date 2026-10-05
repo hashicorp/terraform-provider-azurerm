@@ -1,25 +1,25 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn
 
 import (
+	"context"
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" //nolint:staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceCdnProfile() *pluginsdk.Resource {
@@ -29,9 +29,12 @@ func resourceCdnProfile() *pluginsdk.Resource {
 		Update: resourceCdnProfileUpdate,
 		Delete: resourceCdnProfileDelete,
 
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.CdnProfileV0ToV1{},
+			// v1 -> v2 normalises the casing of IDs imported while this resource parsed them with the
+			// case-insensitive legacy parser, so they can be parsed with the case-sensitive SDK parser
+			1: migration.CdnProfileV1ToV2{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -42,7 +45,7 @@ func resourceCdnProfile() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ProfileID(id)
+			_, err := profiles.ParseProfileID(id)
 			return err
 		}),
 
@@ -57,9 +60,6 @@ func resourceCdnProfile() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
-			// NOTE: 'Standard_Verizon', 'Premium_Verizon' and 'Standard_Akamai' have been deprecated by the RP...
-			// Keeping them to avoid a breaking change since the RP will return an error if the
-			// deprecated fields are passed to the RP...
 			"sku": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
@@ -73,34 +73,66 @@ func resourceCdnProfile() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v any) error {
+			sku := d.Get("sku").(string)
+
+			if IsCdnFullyRetired() {
+				return fmt.Errorf("%s", FullyRetiredMessage)
+			}
+
+			switch sku {
+			case string(cdn.SkuNameStandardAkamai):
+				// The Akamai sku was retired on 31 October 2023...
+				if IsCdnStandardAkamaiDeprecatedForCreation() {
+					return fmt.Errorf("%s", AkamaiDeprecationMessage)
+				}
+			case string(cdn.SkuNameStandardVerizon), string(cdn.SkuNamePremiumVerizon):
+				// The Verizon skus were retired on 15 January 2025...
+				if IsCdnStandardVerizonPremiumVerizonDeprecatedForCreation() {
+					return fmt.Errorf("%s", VerizonDeprecationMessage)
+				}
+			case string(cdn.SkuNameStandardMicrosoft), string(cdn.SkuNameStandardChinaCdn):
+				// The only currently supported sku's for CDN are 'Standard_Microsoft' and 'Standard_ChinaCdn' which
+				// will also be deprecated as of October 1, 2025, but can still be updated until September 30, 2027.
+				// First, check to see if any of the force new fields have changed after the October 1, 2025 deprecation date,
+				// if they have we need to block the update because the force new will cause the deployments to fail...
+				if IsCdnDeprecatedForCreation() && d.HasChanges("name", "location", "resource_group_name", "sku") {
+					return fmt.Errorf("%s", CreateDeprecationMessage)
+				}
+			}
+
+			return nil
+		}),
 	}
 }
 
-func resourceCdnProfileCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnProfileCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.ProfilesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewProfileID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	id := profiles.NewProfileID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id.ResourceGroupName, id.ProfileName)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.Response.Response) {
 			return tf.ImportAsExistsError("azurerm_cdn_profile", id.ID())
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	sku := d.Get("sku").(string)
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
 	cdnProfile := cdn.Profile{
 		Location: &location,
@@ -110,7 +142,7 @@ func resourceCdnProfileCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		},
 	}
 
-	future, err := client.Create(ctx, id.ResourceGroup, id.Name, cdnProfile)
+	future, err := client.Create(ctx, id.ResourceGroupName, id.ProfileName, cdnProfile)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -124,7 +156,7 @@ func resourceCdnProfileCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	return resourceCdnProfileRead(d, meta)
 }
 
-func resourceCdnProfileUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnProfileUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.ProfilesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -133,18 +165,18 @@ func resourceCdnProfileUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		return nil
 	}
 
-	id, err := parse.ProfileID(d.Id())
+	id, err := profiles.ParseProfileID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	newTags := d.Get("tags").(map[string]interface{})
+	newTags := d.Get("tags").(map[string]any)
 
 	props := cdn.ProfileUpdateParameters{
 		Tags: tags.Expand(newTags),
 	}
 
-	future, err := client.Update(ctx, id.ResourceGroup, id.Name, props)
+	future, err := client.Update(ctx, id.ResourceGroupName, id.ProfileName, props)
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
@@ -155,27 +187,27 @@ func resourceCdnProfileUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	return resourceCdnProfileRead(d, meta)
 }
 
-func resourceCdnProfileRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnProfileRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.ProfilesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ProfileID(d.Id())
+	id, err := profiles.ParseProfileID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.ProfileName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on Azure CDN Profile %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on Azure CDN Profile %q (Resource Group %q): %+v", id.ProfileName, id.ResourceGroupName, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.ProfileName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if sku := resp.Sku; sku != nil {
@@ -185,17 +217,17 @@ func resourceCdnProfileRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceCdnProfileDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnProfileDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.ProfilesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ProfileID(d.Id())
+	id, err := profiles.ParseProfileID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroupName, id.ProfileName)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}

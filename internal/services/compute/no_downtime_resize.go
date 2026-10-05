@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -18,8 +18,8 @@ import (
 )
 
 // The logic on this file is based on:
-// Linux: https://learn.microsoft.com/en-us/azure/virtual-machines/linux/expand-disks?tabs=azure-cli%2Cubuntu#expand-without-downtime
-// Windows: https://learn.microsoft.com/en-us/azure/virtual-machines/windows/expand-os-disk#expand-without-downtime
+// Linux: https://learn.microsoft.com/azure/virtual-machines/linux/expand-disks?tabs=azure-cli%2Cubuntu#expand-without-downtime
+// Windows: https://learn.microsoft.com/azure/virtual-machines/windows/expand-os-disk#expand-without-downtime
 // NOTE: whilst the Windows URI says "expand OS disk" it's not supported on OS disks, this is an old document that's not been renamed
 
 // @tombuildsstuff: this is intentionally split out into it's own file since this'll need to be reused
@@ -86,27 +86,15 @@ func determineIfVirtualMachineSupportsNoDowntimeResize(ctx context.Context, disk
 
 	vmLocation := ""
 	vmSku := ""
-	vmDiskControllerType := ""
 	if model := virtualMachine.Model; model != nil {
 		vmLocation = location.Normalize(model.Location)
 		if props := model.Properties; props != nil {
 			if props.HardwareProfile != nil && props.HardwareProfile.VMSize != nil {
 				vmSku = string(*props.HardwareProfile.VMSize)
 			}
-
-			if props.StorageProfile != nil && props.StorageProfile.DiskControllerType != nil {
-				vmDiskControllerType = string(*props.StorageProfile.DiskControllerType)
-			}
 		}
 	}
 
-	isUltraOrPremiumV2Disk := strings.EqualFold(string(*disk.Sku.Name), string(disks.DiskStorageAccountTypesPremiumVTwoLRS)) || strings.EqualFold(string(*disk.Sku.Name), string(disks.DiskStorageAccountTypesUltraSSDLRS))
-	if isUltraOrPremiumV2Disk {
-		// cannot expand a VM that's using NVMe controllers for Ultra or Premium SSD v2 disks without downtime
-		return pointer.To(!strings.EqualFold(vmDiskControllerType, string(virtualmachines.DiskControllerTypesNVMe))), nil
-	}
-
-	// The following limitation doesn't apply to Premium SSD v2 or Ultra Disks
 	if vmLocation == "" || vmSku == "" {
 		return pointer.To(false), nil
 	}

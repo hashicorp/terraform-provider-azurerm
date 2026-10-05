@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -50,7 +50,7 @@ func TestServiceEndpointPolicyName(t *testing.T) {
 			Error: true,
 		},
 		{
-			Name:  "Valid weired name",
+			Name:  "Valid weird name",
 			Input: "1.-_",
 			Error: false,
 		},

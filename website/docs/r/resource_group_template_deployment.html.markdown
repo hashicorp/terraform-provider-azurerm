@@ -10,7 +10,7 @@ description: |-
 
 Manages a Resource Group Template Deployment.
 
-~> **Note:** This resource will automatically attempt to delete resources deployed by the ARM Template when it is deleted. This behavior can be disabled in the provider `features` block by setting the `delete_nested_items_during_deletion` field to `false` within the `template_deployment` block.
+~> **Note:** This resource will automatically attempt to delete resources deployed by the ARM Template when it is deleted. This behaviour can be disabled in the provider `features` block by setting the `delete_nested_items_during_deletion` field to `false` within the `template_deployment` block.
 
 ## Example Usage
 
@@ -127,7 +127,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 3 hours) Used when creating the Resource Group Template Deployment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Resource Group Template Deployment.

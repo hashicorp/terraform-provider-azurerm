@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"crypto/sha1"
 	"crypto/sha256"
+	"crypto/sha512"
 	"math/big"
 )
 
@@ -24,6 +25,12 @@ func sha1Sum(in []byte) []byte {
 // sha256Sum returns the SHA-256 hash of in.
 func sha256Sum(in []byte) []byte {
 	sum := sha256.Sum256(in)
+	return sum[:]
+}
+
+// sha512Sum returns the SHA-512 hash of in.
+func sha512Sum(in []byte) []byte {
+	sum := sha512.Sum512(in)
 	return sum[:]
 }
 
