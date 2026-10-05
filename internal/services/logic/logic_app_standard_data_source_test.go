@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package logic_test
@@ -21,11 +21,13 @@ func TestAccLogicAppStandardDataSource_basic(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("custom_domain_verification_id").Exists(),
+				check.That(data.ResourceName).Key("ftp_publish_basic_authentication_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,workflowapp"),
-				check.That(data.ResourceName).Key("version").HasValue("~4"),
 				check.That(data.ResourceName).Key("outbound_ip_addresses").Exists(),
 				check.That(data.ResourceName).Key("possible_outbound_ip_addresses").Exists(),
-				check.That(data.ResourceName).Key("custom_domain_verification_id").Exists(),
+				check.That(data.ResourceName).Key("scm_publish_basic_authentication_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("version").HasValue("~4"),
 			),
 		},
 	})
@@ -40,4 +42,29 @@ data "azurerm_logic_app_standard" "test" {
   resource_group_name = azurerm_logic_app_standard.test.resource_group_name
 }
 `, LogicAppStandardResource{}.basic(data))
+}
+
+func TestAccLogicAppStandardDataSource_storageKeyVaultSecret(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_logic_app_standard", "test")
+	r := LogicAppStandardDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.storageKeyVaultSecret(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("storage_key_vault_secret_id").Exists(),
+			),
+		},
+	})
+}
+
+func (r LogicAppStandardDataSource) storageKeyVaultSecret(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_logic_app_standard" "test" {
+  name                = azurerm_logic_app_standard.test.name
+  resource_group_name = azurerm_logic_app_standard.test.resource_group_name
+}
+`, LogicAppStandardResource{}.storageKeyVaultSecret(data))
 }

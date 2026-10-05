@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2018, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package commonids
@@ -60,7 +60,6 @@ func ParseCommunityGalleryImageIDInsensitively(input string) (*CommunityGalleryI
 }
 
 func (id *CommunityGalleryImageId) FromParseResult(input resourceids.ParseResult) error {
-
 	var ok bool
 
 	if id.CommunityGalleryName, ok = input.Parsed["communityGalleryName"]; !ok {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -6,17 +6,17 @@ package storage
 import (
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/tombuildsstuff/giovanni/storage/accesscontrol"
+	"github.com/jackofallops/giovanni/storage/accesscontrol"
 )
 
-func ExpandDataLakeGen2AceList(input []interface{}) (*accesscontrol.ACL, error) {
+func ExpandDataLakeGen2AceList(input []any) (*accesscontrol.ACL, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
 	aceList := make([]accesscontrol.ACE, len(input))
 
-	for i := 0; i < len(input); i++ {
-		v := input[i].(map[string]interface{})
+	for i := range input {
+		v := input[i].(map[string]any)
 
 		isDefault := false
 		if scopeRaw, ok := v["scope"]; ok {
@@ -38,30 +38,29 @@ func ExpandDataLakeGen2AceList(input []interface{}) (*accesscontrol.ACL, error) 
 
 		permissions := v["permissions"].(string)
 
-		ace := accesscontrol.ACE{
+		aceList[i] = accesscontrol.ACE{
 			IsDefault:    isDefault,
 			TagType:      tagType,
 			TagQualifier: id,
 			Permissions:  permissions,
 		}
-		aceList[i] = ace
 	}
 
 	return &accesscontrol.ACL{Entries: aceList}, nil
 }
 
-func FlattenDataLakeGen2AceList(d *pluginsdk.ResourceData, acl accesscontrol.ACL) []interface{} {
+func FlattenDataLakeGen2AceList(d *pluginsdk.ResourceData, acl accesscontrol.ACL) []any {
 	existingACLs, _ := ExpandDataLakeGen2AceList(d.Get("ace").(*pluginsdk.Set).List())
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 
 	for _, v := range acl.Entries {
-		// Filter ACL defalt entries (ones without ID value, for scopes 'user', 'group', 'other', 'mask').
+		// Filter ACL default entries (ones without ID value, for scopes 'user', 'group', 'other', 'mask').
 		//    Include default entries, only if use in a configuration, to match the state file.
 		if v.TagQualifier == nil && existingACLs != nil && !isACLContainingEntry(existingACLs, v.TagType, v.TagQualifier, v.IsDefault) {
 			continue
 		}
 
-		ace := make(map[string]interface{})
+		ace := make(map[string]any)
 
 		scope := "access"
 		if v.IsDefault {

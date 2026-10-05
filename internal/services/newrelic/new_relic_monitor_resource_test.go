@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package newrelic_test
@@ -10,18 +10,20 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/monitors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type NewRelicMonitorResource struct{}
 
 func TestAccNewRelicMonitor_basic(t *testing.T) {
+	t.Skip("skipping as they fail intermittently and New Relic support is needed to clean them up")
+
 	data := acceptance.BuildTestData(t, "azurerm_new_relic_monitor", "test")
 	r := NewRelicMonitorResource{}
 	effectiveDate := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
@@ -38,6 +40,8 @@ func TestAccNewRelicMonitor_basic(t *testing.T) {
 }
 
 func TestAccNewRelicMonitor_requiresImport(t *testing.T) {
+	t.Skip("skipping as they fail intermittently and New Relic support is needed to clean them up")
+
 	data := acceptance.BuildTestData(t, "azurerm_new_relic_monitor", "test")
 	r := NewRelicMonitorResource{}
 	effectiveDate := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
@@ -57,6 +61,8 @@ func TestAccNewRelicMonitor_requiresImport(t *testing.T) {
 }
 
 func TestAccNewRelicMonitor_complete(t *testing.T) {
+	t.Skip("skipping as they fail intermittently and New Relic support is needed to clean them up")
+
 	const AccountIdEnv = "ARM_ACCTEST_NEW_RELIC_ACCOUNT_ID"
 	const OrgIdEnv = "ARM_ACCTEST_NEW_RELIC_ORG_ID"
 
@@ -84,6 +90,8 @@ func TestAccNewRelicMonitor_complete(t *testing.T) {
 }
 
 func TestAccNewRelicMonitor_identity(t *testing.T) {
+	t.Skip("skipping as they fail intermittently and New Relic support is needed to clean them up")
+
 	data := acceptance.BuildTestData(t, "azurerm_new_relic_monitor", "test")
 	r := NewRelicMonitorResource{}
 	effectiveDate := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
@@ -108,11 +116,11 @@ func (r NewRelicMonitorResource) Exists(ctx context.Context, clients *clients.Cl
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r NewRelicMonitorResource) template(data acceptance.TestData) string {

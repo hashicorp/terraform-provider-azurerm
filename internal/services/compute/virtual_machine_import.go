@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -13,7 +13,7 @@ import (
 )
 
 func importVirtualMachine(osType virtualmachines.OperatingSystemTypes, resourceType string) pluginsdk.ImporterFunc {
-	return func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) (data []*pluginsdk.ResourceData, err error) {
+	return func(ctx context.Context, d *pluginsdk.ResourceData, meta any) (data []*pluginsdk.ResourceData, err error) {
 		id, err := virtualmachines.ParseVirtualMachineID(d.Id())
 		if err != nil {
 			return []*pluginsdk.ResourceData{}, err
@@ -44,22 +44,19 @@ func importVirtualMachine(osType virtualmachines.OperatingSystemTypes, resourceT
 			return []*pluginsdk.ResourceData{}, fmt.Errorf("the %q resource only supports %s Virtual Machines", resourceType, string(osType))
 		}
 
-		// we don't support VM's without an OS Profile / attach
-		if vm.Model.Properties.OsProfile == nil {
-			return []*pluginsdk.ResourceData{}, fmt.Errorf("the %q resource doesn't support attaching OS Disks - please use the `azurerm_virtual_machine` resource instead", resourceType)
-		}
-
-		hasSshKeys := false
-		if osType == virtualmachines.OperatingSystemTypesLinux {
-			if linux := vm.Model.Properties.OsProfile.LinuxConfiguration; linux != nil {
-				if linux.Ssh != nil && linux.Ssh.PublicKeys != nil {
-					hasSshKeys = len(*linux.Ssh.PublicKeys) > 0
+		if vm.Model.Properties.OsProfile != nil { // machines importing existing managed disks do not have an OSProfile
+			hasSshKeys := false
+			if osType == virtualmachines.OperatingSystemTypesLinux {
+				if linux := vm.Model.Properties.OsProfile.LinuxConfiguration; linux != nil {
+					if linux.Ssh != nil && linux.Ssh.PublicKeys != nil {
+						hasSshKeys = len(*linux.Ssh.PublicKeys) > 0
+					}
 				}
 			}
-		}
 
-		if !hasSshKeys {
-			d.Set("admin_password", "ignored-as-imported")
+			if !hasSshKeys {
+				d.Set("admin_password", "ignored-as-imported")
+			}
 		}
 
 		return []*pluginsdk.ResourceData{d}, nil

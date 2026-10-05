@@ -59,7 +59,7 @@ func (r StaticWebAppBuildResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r StaticWebAppBuildResource) ModelObject() interface{} {
+func (r StaticWebAppBuildResource) ModelObject() any {
 	return &StaticWebAppBuildResourceModel{}
 }
 

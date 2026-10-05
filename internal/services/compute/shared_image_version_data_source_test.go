@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute_test
@@ -9,7 +9,6 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 type SharedImageVersionDataSource struct{}
@@ -23,8 +22,8 @@ func TestAccDataSourceSharedImageVersion_basic(t *testing.T) {
 			// need to create a vm and then reference it in the image creation
 			Config: SharedImageVersionResource{}.setup(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_linux_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -47,8 +46,8 @@ func TestAccDataSourceSharedImageVersion_latest(t *testing.T) {
 			// need to create a vm and then reference it in the image creation
 			Config: SharedImageVersionResource{}.setup(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_linux_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -68,18 +67,14 @@ func TestAccDataSourceSharedImageVersion_excludeFromLatest(t *testing.T) {
 	r := SharedImageVersionDataSource{}
 
 	expectedVersion := "0.0.1"
-	if !features.FourPointOhBeta() {
-		// `ExcludeFromLatest` is not considered in 3.0 so `0.0.2` will still be the latest image
-		expectedVersion = "0.0.2"
-	}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
 			Config: SharedImageVersionResource{}.setup(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_linux_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -104,8 +99,8 @@ func TestAccDataSourceSharedImageVersion_recent(t *testing.T) {
 			Config:  SharedImageVersionResource{}.setup(data),
 			Destroy: false,
 			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_linux_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.testsource"),
 			),
 		},
 		{
@@ -129,8 +124,8 @@ func TestAccDataSourceSharedImageVersion_sortVersionsBySemver(t *testing.T) {
 			// need to create a vm and then reference it in the image creation
 			Config: SharedImageVersionResource{}.setup(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_linux_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.testsource"),
 			),
 		},
 		{

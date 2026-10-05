@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package keyvault
@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-02-01/vaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/vaults"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -118,8 +118,7 @@ func dataSourceKeyVault() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_rbac_authorization": {
+			"rbac_authorization_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
@@ -170,7 +169,7 @@ func dataSourceKeyVault() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceKeyVaultRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -197,7 +196,7 @@ func dataSourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("enabled_for_deployment", props.EnabledForDeployment)
 		d.Set("enabled_for_disk_encryption", props.EnabledForDiskEncryption)
 		d.Set("enabled_for_template_deployment", props.EnabledForTemplateDeployment)
-		d.Set("enable_rbac_authorization", props.EnableRbacAuthorization)
+		d.Set("rbac_authorization_enabled", props.EnableRbacAuthorization)
 		d.Set("purge_protection_enabled", props.EnablePurgeProtection)
 		if v := props.PublicNetworkAccess; v != nil {
 			d.Set("public_network_access_enabled", *v == "Enabled")
@@ -219,8 +218,7 @@ func dataSourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 		d.Set("sku_name", skuName)
 
-		flattenedPolicies := flattenAccessPolicies(props.AccessPolicies)
-		if err := d.Set("access_policy", flattenedPolicies); err != nil {
+		if err := d.Set("access_policy", flattenAccessPolicies(props.AccessPolicies)); err != nil {
 			return fmt.Errorf("setting `access_policy`: %+v", err)
 		}
 
@@ -235,8 +233,8 @@ func dataSourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func flattenKeyVaultDataSourceNetworkAcls(input *vaults.NetworkRuleSet) []interface{} {
-	output := make([]interface{}, 0)
+func flattenKeyVaultDataSourceNetworkAcls(input *vaults.NetworkRuleSet) []any {
+	output := make([]any, 0)
 
 	if input != nil {
 		bypass := ""
@@ -249,21 +247,21 @@ func flattenKeyVaultDataSourceNetworkAcls(input *vaults.NetworkRuleSet) []interf
 			defaultAction = string(*input.DefaultAction)
 		}
 
-		ipRules := make([]interface{}, 0)
+		ipRules := make([]any, 0)
 		if input.IPRules != nil {
 			for _, v := range *input.IPRules {
 				ipRules = append(ipRules, v.Value)
 			}
 		}
 
-		virtualNetworkRules := make([]interface{}, 0)
+		virtualNetworkRules := make([]any, 0)
 		if input.VirtualNetworkRules != nil {
 			for _, v := range *input.VirtualNetworkRules {
 				virtualNetworkRules = append(virtualNetworkRules, v.Id)
 			}
 		}
 
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"bypass":                     bypass,
 			"default_action":             defaultAction,
 			"ip_rules":                   ipRules,

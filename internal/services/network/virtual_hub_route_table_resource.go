@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -10,17 +10,20 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name virtual_hub_route_table -service-package-name network -properties "name" -compare-values "subscription_id:virtual_hub_id,resource_group_name:virtual_hub_id,virtual_hub_name:virtual_hub_id"
 
 func resourceVirtualHubRouteTable() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -36,17 +39,18 @@ func resourceVirtualHubRouteTable() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := virtualwans.ParseHubRouteTableID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&virtualwans.HubRouteTableId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&virtualwans.HubRouteTableId{}),
+		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.HubRouteTableName,
+				ValidateFunc: validate.HubRouteTableName,
 			},
 
 			"virtual_hub_id": {
@@ -67,7 +71,7 @@ func resourceVirtualHubRouteTable() *pluginsdk.Resource {
 			"route": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -116,7 +120,7 @@ func resourceVirtualHubRouteTable() *pluginsdk.Resource {
 	}
 }
 
-func resourceVirtualHubRouteTableCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubRouteTableCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -131,35 +135,40 @@ func resourceVirtualHubRouteTableCreate(d *pluginsdk.ResourceData, meta interfac
 
 	id := virtualwans.NewHubRouteTableID(virtHubId.SubscriptionId, virtHubId.ResourceGroupName, virtHubId.VirtualHubName, d.Get("name").(string))
 
-	existing, err := client.HubRouteTablesGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.HubRouteTablesGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_virtual_hub_route_table", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_virtual_hub_route_table", id.ID())
+		}
 	}
 
 	parameters := virtualwans.HubRouteTable{
 		Name: pointer.To(d.Get("name").(string)),
 		Properties: &virtualwans.HubRouteTableProperties{
-			Labels: utils.ExpandStringSlice(d.Get("labels").(*pluginsdk.Set).List()),
+			Labels: pluginsdk.ExpandStringSlice(d.Get("labels").(*pluginsdk.Set).List()),
 			Routes: expandVirtualHubRouteTableHubRoutes(d.Get("route").(*pluginsdk.Set).List()),
 		},
 	}
 
-	if err := client.HubRouteTablesCreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.HubRouteTablesCreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceVirtualHubRouteTableRead(d, meta)
 }
 
-func resourceVirtualHubRouteTableUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubRouteTableUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -194,7 +203,7 @@ func resourceVirtualHubRouteTableUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if d.HasChange("labels") {
-		payload.Properties.Labels = utils.ExpandStringSlice(d.Get("labels").(*pluginsdk.Set).List())
+		payload.Properties.Labels = pluginsdk.ExpandStringSlice(d.Get("labels").(*pluginsdk.Set).List())
 	}
 
 	if d.HasChange("route") {
@@ -210,7 +219,7 @@ func resourceVirtualHubRouteTableUpdate(d *pluginsdk.ResourceData, meta interfac
 	return resourceVirtualHubRouteTableRead(d, meta)
 }
 
-func resourceVirtualHubRouteTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubRouteTableRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -235,7 +244,7 @@ func resourceVirtualHubRouteTableRead(d *pluginsdk.ResourceData, meta interface{
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("labels", utils.FlattenStringSlice(props.Labels))
+			d.Set("labels", pluginsdk.FlattenSlice(props.Labels))
 
 			if err := d.Set("route", flattenVirtualHubRouteTableHubRoutes(props.Routes)); err != nil {
 				return fmt.Errorf("setting `route`: %+v", err)
@@ -243,10 +252,10 @@ func resourceVirtualHubRouteTableRead(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceVirtualHubRouteTableDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubRouteTableDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -266,16 +275,16 @@ func resourceVirtualHubRouteTableDelete(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func expandVirtualHubRouteTableHubRoutes(input []interface{}) *[]virtualwans.HubRoute {
+func expandVirtualHubRouteTableHubRoutes(input []any) *[]virtualwans.HubRoute {
 	results := make([]virtualwans.HubRoute, 0)
 
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 
 		result := virtualwans.HubRoute{
 			Name:            v["name"].(string),
 			DestinationType: v["destinations_type"].(string),
-			Destinations:    pointer.From(utils.ExpandStringSlice(v["destinations"].(*pluginsdk.Set).List())),
+			Destinations:    pointer.From(pluginsdk.ExpandStringSlice(v["destinations"].(*pluginsdk.Set).List())),
 			NextHopType:     v["next_hop_type"].(string),
 			NextHop:         v["next_hop"].(string),
 		}
@@ -286,16 +295,16 @@ func expandVirtualHubRouteTableHubRoutes(input []interface{}) *[]virtualwans.Hub
 	return &results
 }
 
-func flattenVirtualHubRouteTableHubRoutes(input *[]virtualwans.HubRoute) []interface{} {
-	results := make([]interface{}, 0)
+func flattenVirtualHubRouteTableHubRoutes(input *[]virtualwans.HubRoute) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		v := map[string]interface{}{
+		v := map[string]any{
 			"name":              item.Name,
-			"destinations":      utils.FlattenStringSlice(&item.Destinations),
+			"destinations":      pluginsdk.FlattenSlice(&item.Destinations),
 			"destinations_type": item.DestinationType,
 			"next_hop":          item.NextHop,
 			"next_hop_type":     item.NextHopType,

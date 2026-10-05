@@ -50,11 +50,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Recovery Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Recovery Service.
-* `delete` - (Defaults to 180 minutes) Used when deleting the Recovery Service.
+* `delete` - (Defaults to 3 hours) Used when deleting the Recovery Service.
 
 ## Import
 
@@ -63,3 +63,9 @@ Recovery Services can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_site_recovery_services_vault_hyperv_site.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.RecoveryServices/vaults/vault1/replicationFabrics/fabric1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.RecoveryServices` - 2024-04-01

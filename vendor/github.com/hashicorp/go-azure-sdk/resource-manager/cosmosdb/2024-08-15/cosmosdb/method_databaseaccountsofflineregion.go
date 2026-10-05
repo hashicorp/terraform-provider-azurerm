@@ -61,9 +61,20 @@ func (c CosmosDBClient) DatabaseAccountsOfflineRegion(ctx context.Context, id Da
 
 // DatabaseAccountsOfflineRegionThenPoll performs DatabaseAccountsOfflineRegion then polls until it's completed
 func (c CosmosDBClient) DatabaseAccountsOfflineRegionThenPoll(ctx context.Context, id DatabaseAccountId, input RegionForOnlineOffline) error {
+	return c.DatabaseAccountsOfflineRegionCallbackThenPoll(ctx, id, input, nil)
+}
+
+// DatabaseAccountsOfflineRegionCallbackThenPoll performs DatabaseAccountsOfflineRegion, runs the optional callback function, then polls until it's completed
+func (c CosmosDBClient) DatabaseAccountsOfflineRegionCallbackThenPoll(ctx context.Context, id DatabaseAccountId, input RegionForOnlineOffline, callback func() error) error {
 	result, err := c.DatabaseAccountsOfflineRegion(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing DatabaseAccountsOfflineRegion: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -2,22 +2,45 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Package gcexportdata provides functions for locating, reading, and
-// writing export data files containing type information produced by the
-// gc compiler.  This package supports go1.7 export data format and all
-// later versions.
+// Package gcexportdata provides functions for writing and reading
+// export data, a serialized representation of a [types.Package].
+// It describes the API of a Go package, including the names,
+// kinds, types, and locations of all exported declarations.
 //
-// Although it might seem convenient for this package to live alongside
-// go/types in the standard library, this would cause version skew
-// problems for developer tools that use it, since they must be able to
-// consume the outputs of the gc compiler both before and after a Go
-// update such as from Go 1.7 to Go 1.8.  Because this package lives in
-// golang.org/x/tools, sites can update their version of this repo some
-// time before the Go 1.8 release and rebuild and redeploy their
-// developer tools, which will then be able to consume both Go 1.7 and
-// Go 1.8 export data files, so they will work before and after the
-// Go update. (See discussion at https://golang.org/issue/15651.)
-package gcexportdata // import "golang.org/x/tools/go/gcexportdata"
+// Files may be written and read using the [Write] and [Read]
+// functions.
+// Alternatively, files may be produced by the "go list -export" command.
+// This command runs the type checker on each specified Go package and
+// writes export data for each package into a file named by the Export
+// field of go list's -json output.
+// The [Read] function may then be used to read those files.
+//
+// The export data format evolves with each Go release. As a matter of
+// policy, [Read] supports reading files produced by only the last two
+// Go releases plus tip; see https://go.dev/issue/68898.
+//
+// The name of this package reflects its origins at a time when
+// cmd/compile was named gc, and [Read] parsed export data
+// from .a archives produced by the Go compiler.
+// However, starting with go1.28, the format of the files
+// produced by "go list -export" will diverge from the format
+// used by the standard Go compiler.
+// Consequently, this package will eventually stop being
+// capable of reading those files.
+// In the meantime, when using [Read] on a .a file written by the
+// compiler, be aware that export data is not at the start of the file.
+// Before calling Read, one must use [NewReader] to locate the export
+// data section of the file.
+// For more information on the compiler's export data, see the
+// "Export" section in the GOROOT/src/cmd/compile/README file.
+//
+// # Deprecations
+//
+// The [NewImporter], [Find], and [NewReader] functions are deprecated
+// and should not be used in new code.
+// The [WriteBundle] and [ReadBundle] functions are experimental, and
+// there is an open proposal to deprecate them (https://go.dev/issue/69573).
+package gcexportdata
 
 import (
 	"bufio"
@@ -62,26 +85,23 @@ func Find(importPath, srcDir string) (filename, path string) {
 // NewReader returns a reader for the export data section of an object
 // (.o) or archive (.a) file read from r.  The new reader may provide
 // additional trailing data beyond the end of the export data.
+//
+// Deprecated: This package will stop supporting the reading of export
+// data from compiler-produced archive files in Go 1.29.
 func NewReader(r io.Reader) (io.Reader, error) {
 	buf := bufio.NewReader(r)
-	_, size, err := gcimporter.FindExportData(buf)
+	size, err := gcimporter.FindExportData(buf)
 	if err != nil {
 		return nil, err
 	}
 
-	if size >= 0 {
-		// We were given an archive and found the __.PKGDEF in it.
-		// This tells us the size of the export data, and we don't
-		// need to return the entire file.
-		return &io.LimitedReader{
-			R: buf,
-			N: size,
-		}, nil
-	} else {
-		// We were given an object file. As such, we don't know how large
-		// the export data is and must return the entire file.
-		return buf, nil
-	}
+	// We were given an archive and found the __.PKGDEF in it.
+	// This tells us the size of the export data, and we don't
+	// need to return the entire file.
+	return &io.LimitedReader{
+		R: buf,
+		N: size,
+	}, nil
 }
 
 // readAll works the same way as io.ReadAll, but avoids allocations and copies
@@ -99,6 +119,11 @@ func readAll(r io.Reader) ([]byte, error) {
 
 // Read reads export data from in, decodes it, and returns type
 // information for the package.
+//
+// Read is capable of reading export data produced by [Write] at the
+// same source code version, or by the last two Go releases (plus tip)
+// of the standard Go compiler. Reading files from older compilers may
+// produce an error.
 //
 // The package path (effectively its linker symbol prefix) is
 // specified by path, since unlike the package name, this information
@@ -128,22 +153,22 @@ func Read(in io.Reader, fset *token.FileSet, imports map[string]*types.Package, 
 	// (from "version"). Select appropriate importer.
 	if len(data) > 0 {
 		switch data[0] {
-		case 'v', 'c', 'd': // binary, till go1.10
+		case 'v', 'c', 'd':
+			// binary, produced by cmd/compile till go1.10
 			return nil, fmt.Errorf("binary (%c) import format is no longer supported", data[0])
 
-		case 'i': // indexed, till go1.19
-			_, pkg, err := gcimporter.IImportData(fset, imports, data[1:], path)
-			return pkg, err
+		case 'i':
+			// indexed, produced by cmd/compile till go1.19,
+			// and also by [Write].
+			return gcimporter.IImportData(fset, imports, data[1:], path)
 
-		case 'u': // unified, from go1.20
+		case 'u':
+			// unified, produced by cmd/compile since go1.20
 			_, pkg, err := gcimporter.UImportData(fset, imports, data[1:], path)
 			return pkg, err
 
 		default:
-			l := len(data)
-			if l > 10 {
-				l = 10
-			}
+			l := min(len(data), 10)
 			return nil, fmt.Errorf("unexpected export data with prefix %q for path %s", string(data[:l]), path)
 		}
 	}

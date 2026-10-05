@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `tenant_id` - (Optional) The ID of the tenant that this Microsoft Threat Intelligence Data Connector connects to. Changing this forces a new Microsoft Threat Intelligence Data Connector to be created.
 
--> **NOTE** Currently, only the same tenant as the running account is allowed. Cross-tenant scenario is not supported yet.
+-> **Note:** Currently, only the same tenant as the running account is allowed. Cross-tenant scenario is not supported yet.
 
 
 ## Attributes Reference
@@ -65,7 +65,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the sentinel.
 * `read` - (Defaults to 5 minutes) Used when retrieving the sentinel.
@@ -78,3 +78,9 @@ sentinels can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_sentinel_data_connector_microsoft_threat_intelligence.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/providers/Microsoft.SecurityInsights/dataConnectors/dc1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.OperationalInsights` - 2022-10-01-preview

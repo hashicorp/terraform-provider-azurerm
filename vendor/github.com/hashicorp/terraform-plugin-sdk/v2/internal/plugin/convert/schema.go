@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2019, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package convert
@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/internal/configs/configschema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/internal/logging"
 )
@@ -134,23 +135,26 @@ func ctyTypeFromTFType(in tftypes.Type) (cty.Type, error) {
 // tfprotov5.SchemaBlock for a grpc response.
 func ConfigSchemaToProto(ctx context.Context, b *configschema.Block) *tfprotov5.SchemaBlock {
 	block := &tfprotov5.SchemaBlock{
-		Description:     b.Description,
-		DescriptionKind: protoStringKind(ctx, b.DescriptionKind),
-		Deprecated:      b.Deprecated,
+		Description:        b.Description,
+		DescriptionKind:    protoStringKind(ctx, b.DescriptionKind),
+		Deprecated:         b.Deprecated,
+		DeprecationMessage: b.DeprecationMessage,
 	}
 
 	for _, name := range sortedKeys(b.Attributes) {
 		a := b.Attributes[name]
 
 		attr := &tfprotov5.SchemaAttribute{
-			Name:            name,
-			Description:     a.Description,
-			DescriptionKind: protoStringKind(ctx, a.DescriptionKind),
-			Optional:        a.Optional,
-			Computed:        a.Computed,
-			Required:        a.Required,
-			Sensitive:       a.Sensitive,
-			Deprecated:      a.Deprecated,
+			Name:               name,
+			Description:        a.Description,
+			DescriptionKind:    protoStringKind(ctx, a.DescriptionKind),
+			Optional:           a.Optional,
+			Computed:           a.Computed,
+			Required:           a.Required,
+			Sensitive:          a.Sensitive,
+			Deprecated:         a.Deprecated,
+			DeprecationMessage: a.DeprecationMessage,
+			WriteOnly:          a.WriteOnly,
 		}
 
 		var err error
@@ -168,6 +172,31 @@ func ConfigSchemaToProto(ctx context.Context, b *configschema.Block) *tfprotov5.
 	}
 
 	return block
+}
+
+func ConfigIdentitySchemaToProto(ctx context.Context, identitySchema *configschema.Block) []*tfprotov5.ResourceIdentitySchemaAttribute {
+	output := make([]*tfprotov5.ResourceIdentitySchemaAttribute, 0)
+
+	for _, name := range sortedKeys(identitySchema.Attributes) {
+		a := identitySchema.Attributes[name]
+
+		attr := &tfprotov5.ResourceIdentitySchemaAttribute{
+			Name:              name,
+			Description:       a.Description,
+			OptionalForImport: a.OptionalForImport,
+			RequiredForImport: a.RequiredForImport,
+		}
+
+		var err error
+		attr.Type, err = tftypeFromCtyType(a.Type)
+		if err != nil {
+			panic(err)
+		}
+
+		output = append(output, attr)
+	}
+
+	return output
 }
 
 func protoStringKind(ctx context.Context, k configschema.StringKind) tfprotov5.StringKind {
@@ -214,20 +243,22 @@ func ProtoToConfigSchema(ctx context.Context, b *tfprotov5.SchemaBlock) *configs
 		Attributes: make(map[string]*configschema.Attribute),
 		BlockTypes: make(map[string]*configschema.NestedBlock),
 
-		Description:     b.Description,
-		DescriptionKind: schemaStringKind(ctx, b.DescriptionKind),
-		Deprecated:      b.Deprecated,
+		Description:        b.Description,
+		DescriptionKind:    schemaStringKind(ctx, b.DescriptionKind),
+		Deprecated:         b.Deprecated,
+		DeprecationMessage: b.DeprecationMessage,
 	}
 
 	for _, a := range b.Attributes {
 		attr := &configschema.Attribute{
-			Description:     a.Description,
-			DescriptionKind: schemaStringKind(ctx, a.DescriptionKind),
-			Required:        a.Required,
-			Optional:        a.Optional,
-			Computed:        a.Computed,
-			Sensitive:       a.Sensitive,
-			Deprecated:      a.Deprecated,
+			Description:        a.Description,
+			DescriptionKind:    schemaStringKind(ctx, a.DescriptionKind),
+			Required:           a.Required,
+			Optional:           a.Optional,
+			Computed:           a.Computed,
+			Sensitive:          a.Sensitive,
+			Deprecated:         a.Deprecated,
+			DeprecationMessage: a.DeprecationMessage,
 		}
 
 		var err error

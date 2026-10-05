@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2020, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package fromproto
@@ -24,6 +24,16 @@ func GetProviderSchemaRequest(in *tfplugin5.GetProviderSchema_Request) *tfprotov
 	}
 
 	resp := &tfprotov5.GetProviderSchemaRequest{}
+
+	return resp
+}
+
+func GetResourceIdentitySchemasRequest(in *tfplugin5.GetResourceIdentitySchemas_Request) *tfprotov5.GetResourceIdentitySchemasRequest {
+	if in == nil {
+		return nil
+	}
+
+	resp := &tfprotov5.GetResourceIdentitySchemasRequest{}
 
 	return resp
 }
