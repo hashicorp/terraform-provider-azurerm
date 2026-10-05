@@ -797,7 +797,6 @@ func resourceVirtualMachineRead(d *pluginsdk.ResourceData, meta any) error {
 }
 
 func resourceVirtualMachineFlatten(meta any, d *pluginsdk.ResourceData, id *virtualmachines.VirtualMachineId, model *virtualmachines.VirtualMachine, includeResource bool) error {
-
 	d.Set("name", id.VirtualMachineName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
