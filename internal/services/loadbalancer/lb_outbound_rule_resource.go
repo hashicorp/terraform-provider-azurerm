@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package loadbalancer
@@ -10,10 +10,11 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -93,8 +94,7 @@ func resourceArmLoadBalancerOutboundRule() *pluginsdk.Resource {
 				}, false),
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_tcp_reset": {
+			"tcp_reset_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -116,7 +116,7 @@ func resourceArmLoadBalancerOutboundRule() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmLoadBalancerOutboundRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerOutboundRuleCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -159,7 +159,9 @@ func resourceArmLoadBalancerOutboundRuleCreateUpdate(d *pluginsdk.ResourceData, 
 			if exists {
 				if id.OutboundRuleName == *existingOutboundRule.Name {
 					if d.IsNewResource() {
-						return tf.ImportAsExistsError("azurerm_lb_outbound_rule", *existingOutboundRule.Id)
+						if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+							return tf.ImportAsExistsError("azurerm_lb_outbound_rule", *existingOutboundRule.Id)
+						}
 					}
 
 					// this outbound rule is being updated/reapplied remove old copy from the slice
@@ -171,19 +173,23 @@ func resourceArmLoadBalancerOutboundRuleCreateUpdate(d *pluginsdk.ResourceData, 
 
 			props.OutboundRules = &outboundRules
 
-			err := client.CreateOrUpdateThenPoll(ctx, plbId, *model)
-			if err != nil {
-				return fmt.Errorf("creating/updating %s: %+v", id, err)
+			if d.IsNewResource() {
+				if err := client.CreateOrUpdateCallbackThenPoll(ctx, plbId, *model, sdk.SetIDCallback(meta, &id, d)); err != nil {
+					return fmt.Errorf("creating %s: %+v", id, err)
+				}
+				d.SetId(id.ID())
+			} else {
+				if err := client.CreateOrUpdateThenPoll(ctx, plbId, *model); err != nil {
+					return fmt.Errorf("updating %s: %+v", id, err)
+				}
 			}
 		}
 	}
 
-	d.SetId(id.ID())
-
 	return resourceArmLoadBalancerOutboundRuleRead(d, meta)
 }
 
-func resourceArmLoadBalancerOutboundRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerOutboundRuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -231,9 +237,9 @@ func resourceArmLoadBalancerOutboundRuleRead(d *pluginsdk.ResourceData, meta int
 				backendAddressPoolId = bapid.ID()
 			}
 			d.Set("backend_address_pool_id", backendAddressPoolId)
-			d.Set("enable_tcp_reset", props.EnableTcpReset)
+			d.Set("tcp_reset_enabled", props.EnableTcpReset)
 
-			frontendIpConfigurations := make([]interface{}, 0)
+			frontendIpConfigurations := make([]any, 0)
 			if configs := props.FrontendIPConfigurations; configs != nil {
 				for _, feConfig := range configs {
 					if feConfig.Id == nil {
@@ -244,7 +250,7 @@ func resourceArmLoadBalancerOutboundRuleRead(d *pluginsdk.ResourceData, meta int
 						return err
 					}
 
-					frontendIpConfigurations = append(frontendIpConfigurations, map[string]interface{}{
+					frontendIpConfigurations = append(frontendIpConfigurations, map[string]any{
 						"id":   feid.ID(),
 						"name": feid.FrontendIPConfigurationName,
 					})
@@ -259,7 +265,7 @@ func resourceArmLoadBalancerOutboundRuleRead(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func resourceArmLoadBalancerOutboundRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerOutboundRuleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -295,8 +301,7 @@ func resourceArmLoadBalancerOutboundRuleDelete(d *pluginsdk.ResourceData, meta i
 			outboundRules = append(outboundRules[:index], outboundRules[index+1:]...)
 			props.OutboundRules = &outboundRules
 
-			err := client.CreateOrUpdateThenPoll(ctx, plbId, *model)
-			if err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, plbId, *model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 		}
@@ -308,13 +313,14 @@ func expandAzureRmLoadBalancerOutboundRule(d *pluginsdk.ResourceData, lb *loadba
 	properties := loadbalancers.OutboundRulePropertiesFormat{
 		Protocol:               loadbalancers.LoadBalancerOutboundRuleProtocol(d.Get("protocol").(string)),
 		AllocatedOutboundPorts: pointer.To(int64(d.Get("allocated_outbound_ports").(int))),
+		EnableTcpReset:         pointer.To(d.Get("tcp_reset_enabled").(bool)),
 	}
 
-	feConfigs := d.Get("frontend_ip_configuration").([]interface{})
+	feConfigs := d.Get("frontend_ip_configuration").([]any)
 	feConfigSubResources := make([]loadbalancers.SubResource, 0)
 
 	for _, raw := range feConfigs {
-		v := raw.(map[string]interface{})
+		v := raw.(map[string]any)
 		rule, exists := FindLoadBalancerFrontEndIpConfigurationByName(lb, v["name"].(string))
 		if !exists {
 			return nil, fmt.Errorf("[ERROR] Cannot find FrontEnd IP Configuration with the name %s", v["name"])
@@ -337,10 +343,6 @@ func expandAzureRmLoadBalancerOutboundRule(d *pluginsdk.ResourceData, lb *loadba
 
 	if v, ok := d.GetOk("idle_timeout_in_minutes"); ok {
 		properties.IdleTimeoutInMinutes = pointer.To(int64(v.(int)))
-	}
-
-	if v, ok := d.GetOk("enable_tcp_reset"); ok {
-		properties.EnableTcpReset = pointer.To(v.(bool))
 	}
 
 	return &loadbalancers.OutboundRule{

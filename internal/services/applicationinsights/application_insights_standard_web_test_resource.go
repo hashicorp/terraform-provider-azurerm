@@ -1,5 +1,7 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
+
+//go:generate go run ../../tools/generator-tests resourceidentity -test-name basicConfig
 
 package applicationinsights
 
@@ -7,6 +9,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -14,17 +17,19 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
-	webtests "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	tfbase64 "github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var (
 	_ sdk.ResourceWithUpdate        = ApplicationInsightsStandardWebTestResource{}
 	_ sdk.ResourceWithCustomizeDiff = ApplicationInsightsStandardWebTestResource{}
+	_ sdk.ResourceWithIdentity      = ApplicationInsightsStandardWebTestResource{}
 )
 
 type ApplicationInsightsStandardWebTestResource struct{}
@@ -114,7 +119,7 @@ func (ApplicationInsightsStandardWebTestResource) Arguments() map[string]*plugin
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: components.ValidateComponentID,
+			ValidateFunc: componentsapis.ValidateComponentID,
 		},
 
 		"location": commonschema.Location(),
@@ -220,9 +225,9 @@ func (ApplicationInsightsStandardWebTestResource) Arguments() map[string]*plugin
 
 					// Typo in API spec, issue: https://github.com/Azure/azure-rest-api-specs/issues/22136
 					// "ignore_status_code": {
-					// 	Type:     pluginsdk.TypeBool,
+					// 	Type:   pluginsdk.TypeBool,
 					// 	Optional: true,
-					// 	Default:  false,
+					// 	Default: false,
 					// },
 
 					"ssl_cert_remaining_lifetime": {
@@ -295,12 +300,16 @@ func (ApplicationInsightsStandardWebTestResource) Attributes() map[string]*plugi
 	}
 }
 
-func (ApplicationInsightsStandardWebTestResource) ModelObject() interface{} {
+func (ApplicationInsightsStandardWebTestResource) ModelObject() any {
 	return &ApplicationInsightsStandardWebTestResourceModel{}
 }
 
 func (ApplicationInsightsStandardWebTestResource) ResourceType() string {
 	return "azurerm_application_insights_standard_web_test"
+}
+
+func (ApplicationInsightsStandardWebTestResource) Identity() resourceids.ResourceId {
+	return &webtestsapis.WebTestId{}
 }
 
 func (r ApplicationInsightsStandardWebTestResource) Create() sdk.ResourceFunc {
@@ -317,19 +326,21 @@ func (r ApplicationInsightsStandardWebTestResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			id := webtests.NewWebTestID(subscriptionId, model.ResourceGroupName, model.Name)
+			id := webtestsapis.NewWebTestID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := client.WebTestsGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.WebTestsGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			validations := expandApplicationInsightsStandardWebTestValidations(model.ValidationRules)
 
-			appInsightsId, err := webtests.ParseComponentID(model.ApplicationInsightsID)
+			appInsightsId, err := webtestsapis.ParseComponentID(model.ApplicationInsightsID)
 			if err != nil {
 				return err
 			}
@@ -340,11 +351,11 @@ func (r ApplicationInsightsStandardWebTestResource) Create() sdk.ResourceFunc {
 
 			model.Tags[fmt.Sprintf("hidden-link:%s", appInsightsId.ID())] = "Resource"
 
-			props := webtests.WebTestProperties{
+			props := webtestsapis.WebTestProperties{
 				Name:               id.WebTestName, // API requires this to be specified despite ARM spec guidance that it should come from the ID
 				Enabled:            pointer.To(model.Enabled),
 				Frequency:          pointer.To(model.Frequency),
-				Kind:               webtests.WebTestKindStandard,
+				Kind:               webtestsapis.WebTestKindStandard,
 				SyntheticMonitorId: id.WebTestName,
 				RetryEnabled:       pointer.To(model.Retry),
 				Timeout:            pointer.To(model.Timeout),
@@ -357,8 +368,8 @@ func (r ApplicationInsightsStandardWebTestResource) Create() sdk.ResourceFunc {
 				props.Description = pointer.To(model.Description)
 			}
 
-			param := webtests.WebTest{
-				Kind:       pointer.To(webtests.WebTestKindStandard),
+			param := webtestsapis.WebTest{
+				Kind:       pointer.To(webtestsapis.WebTestKindStandard),
 				Location:   location.Normalize(model.Location),
 				Properties: &props,
 				Tags:       pointer.To(model.Tags),
@@ -369,6 +380,9 @@ func (r ApplicationInsightsStandardWebTestResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -380,7 +394,7 @@ func (r ApplicationInsightsStandardWebTestResource) Update() sdk.ResourceFunc {
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppInsights.StandardWebTestsClient
-			id, err := webtests.ParseWebTestID(metadata.ResourceData.Id())
+			id, err := webtestsapis.ParseWebTestID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -415,7 +429,7 @@ func (r ApplicationInsightsStandardWebTestResource) Update() sdk.ResourceFunc {
 			props.Enabled = pointer.To(model.Enabled)
 			props.RetryEnabled = pointer.To(model.Retry)
 
-			// API requires that ths `Locations` property is always set, even if it is an empty list
+			// API requires that the `Locations` property is always set, even if it is an empty list
 			props.Locations = expandApplicationInsightsStandardWebTestGeoLocations(model.GeoLocations)
 
 			if metadata.ResourceData.HasChange("request") {
@@ -428,7 +442,7 @@ func (r ApplicationInsightsStandardWebTestResource) Update() sdk.ResourceFunc {
 
 			existing.Model.Properties = &props
 
-			appInsightsId, err := webtests.ParseComponentID(metadata.ResourceData.Get("application_insights_id").(string))
+			appInsightsId, err := webtestsapis.ParseComponentID(metadata.ResourceData.Get("application_insights_id").(string))
 			if err != nil {
 				return err
 			}
@@ -449,14 +463,14 @@ func (r ApplicationInsightsStandardWebTestResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (ApplicationInsightsStandardWebTestResource) Read() sdk.ResourceFunc {
+func (r ApplicationInsightsStandardWebTestResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppInsights.StandardWebTestsClient
 
-			id, err := webtests.ParseWebTestID(metadata.ResourceData.Id())
+			id, err := webtestsapis.ParseWebTestID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -470,49 +484,60 @@ func (ApplicationInsightsStandardWebTestResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			state := ApplicationInsightsStandardWebTestResourceModel{
-				Name:              id.WebTestName,
-				ResourceGroupName: id.ResourceGroupName,
-			}
-
-			if model := resp.Model; model != nil {
-				tags := pointer.From(model.Tags)
-				appInsightsId := ""
-				for i := range tags {
-					if strings.HasPrefix(i, "hidden-link") {
-						appInsightsId = strings.Split(i, ":")[1]
-						delete(tags, i)
-					}
-				}
-
-				parsedAppInsightsId, err := webtests.ParseComponentIDInsensitively(appInsightsId)
-				if err != nil {
-					return fmt.Errorf("parsing `application_insights_id` for %s: %+v", *id, err)
-				}
-				state.ApplicationInsightsID = parsedAppInsightsId.ID()
-				state.Tags = tags
-				state.Location = location.Normalize(model.Location)
-
-				if props := model.Properties; props != nil {
-					state.SyntheticMonitorID = props.SyntheticMonitorId
-					state.Description = pointer.From(props.Description)
-					state.Enabled = pointer.From(props.Enabled)
-					state.Frequency = pointer.From(props.Frequency)
-					state.Timeout = pointer.From(props.Timeout)
-					state.Retry = pointer.From(props.RetryEnabled)
-					req, err := flattenApplicationInsightsStandardWebTestRequest(props.Request)
-					if err != nil {
-						return fmt.Errorf("flattening request for %s: %+v", *id, err)
-					}
-					state.Request = req
-					state.ValidationRules = flattenApplicationInsightsStandardWebTestValidations(props.ValidationRules)
-					state.GeoLocations = flattenApplicationInsightsStandardWebTestGeoLocations(props.Locations)
-				}
-			}
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
+}
+
+func (r ApplicationInsightsStandardWebTestResource) flatten(metadata sdk.ResourceMetaData, id *webtestsapis.WebTestId, model *webtestsapis.WebTest) error {
+	state := ApplicationInsightsStandardWebTestResourceModel{
+		Name:              id.WebTestName,
+		ResourceGroupName: id.ResourceGroupName,
+	}
+
+	if model != nil {
+		tags := pointer.From(model.Tags)
+		for i := range tags {
+			if strings.HasPrefix(i, "hidden-link") {
+				appInsightsId := strings.Split(i, ":")[1]
+
+				parsedAppInsightsId, err := webtestsapis.ParseComponentIDInsensitively(appInsightsId)
+				if err != nil {
+					// there might be more than one hidden-link https://github.com/hashicorp/terraform-provider-azurerm/issues/27994
+					log.Printf("[DEBUG] Error parsing hidden-link id: %+v", err)
+					delete(tags, i)
+					continue
+				}
+				state.ApplicationInsightsID = parsedAppInsightsId.ID()
+				delete(tags, i)
+			}
+		}
+
+		state.Tags = tags
+		state.Location = location.Normalize(model.Location)
+
+		if props := model.Properties; props != nil {
+			state.SyntheticMonitorID = props.SyntheticMonitorId
+			state.Description = pointer.From(props.Description)
+			state.Enabled = pointer.From(props.Enabled)
+			state.Frequency = pointer.From(props.Frequency)
+			state.Timeout = pointer.From(props.Timeout)
+			state.Retry = pointer.From(props.RetryEnabled)
+			req, err := flattenApplicationInsightsStandardWebTestRequest(props.Request)
+			if err != nil {
+				return fmt.Errorf("flattening request for %s: %+v", *id, err)
+			}
+			state.Request = req
+			state.ValidationRules = flattenApplicationInsightsStandardWebTestValidations(props.ValidationRules)
+			state.GeoLocations = flattenApplicationInsightsStandardWebTestGeoLocations(props.Locations)
+		}
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
 
 func (ApplicationInsightsStandardWebTestResource) Delete() sdk.ResourceFunc {
@@ -522,13 +547,12 @@ func (ApplicationInsightsStandardWebTestResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppInsights.StandardWebTestsClient
 
-			id, err := webtests.ParseWebTestID(metadata.ResourceData.Id())
+			id, err := webtestsapis.ParseWebTestID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			_, err = client.WebTestsDelete(ctx, *id)
-			if err != nil {
+			if _, err = client.WebTestsDelete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -538,16 +562,16 @@ func (ApplicationInsightsStandardWebTestResource) Delete() sdk.ResourceFunc {
 }
 
 func (ApplicationInsightsStandardWebTestResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return webtests.ValidateWebTestID
+	return webtestsapis.ValidateWebTestID
 }
 
-func expandApplicationInsightsStandardWebTestRequest(input []RequestModel) (request *webtests.WebTestPropertiesRequest) {
+func expandApplicationInsightsStandardWebTestRequest(input []RequestModel) (request *webtestsapis.WebTestPropertiesRequest) {
 	if len(input) == 0 {
 		return nil
 	}
 	requestInput := input[0]
 
-	request = &webtests.WebTestPropertiesRequest{
+	request = &webtestsapis.WebTestPropertiesRequest{
 		FollowRedirects:        pointer.To(requestInput.FollowRedirects),
 		HTTPVerb:               pointer.To(requestInput.HTTPVerb),
 		ParseDependentRequests: pointer.To(requestInput.ParseDependentRequests),
@@ -556,7 +580,7 @@ func expandApplicationInsightsStandardWebTestRequest(input []RequestModel) (requ
 	request.Headers = expandApplicationInsightsStandardWebTestRequestHeaders(requestInput.Header)
 
 	if v := requestInput.Body; v != "" {
-		request.RequestBody = pointer.To(utils.Base64EncodeIfNot(v))
+		request.RequestBody = pointer.To(tfbase64.EncodeIfNot(v))
 	}
 
 	if v := requestInput.URL; v != "" {
@@ -566,17 +590,17 @@ func expandApplicationInsightsStandardWebTestRequest(input []RequestModel) (requ
 	return request
 }
 
-func expandApplicationInsightsStandardWebTestRequestHeaders(input []HeaderModel) *[]webtests.HeaderField {
+func expandApplicationInsightsStandardWebTestRequestHeaders(input []HeaderModel) *[]webtestsapis.HeaderField {
 	if len(input) == 0 {
 		return nil
 	}
 
-	headers := make([]webtests.HeaderField, 0)
+	headers := make([]webtestsapis.HeaderField, 0)
 
 	for _, v := range input {
-		h := webtests.HeaderField{
-			Key:   utils.String(v.Name),
-			Value: utils.String(v.Value),
+		h := webtestsapis.HeaderField{
+			Key:   pointer.To(v.Name),
+			Value: pointer.To(v.Value),
 		}
 		headers = append(headers, h)
 	}
@@ -584,7 +608,7 @@ func expandApplicationInsightsStandardWebTestRequestHeaders(input []HeaderModel)
 	return &headers
 }
 
-func flattenApplicationInsightsStandardWebTestRequest(input *webtests.WebTestPropertiesRequest) ([]RequestModel, error) {
+func flattenApplicationInsightsStandardWebTestRequest(input *webtestsapis.WebTestPropertiesRequest) ([]RequestModel, error) {
 	if input == nil {
 		return []RequestModel{}, nil
 	}
@@ -610,7 +634,7 @@ func flattenApplicationInsightsStandardWebTestRequest(input *webtests.WebTestPro
 	return []RequestModel{result}, nil
 }
 
-func flattenApplicationInsightsStandardWebTestRequestHeaders(input *[]webtests.HeaderField) []HeaderModel {
+func flattenApplicationInsightsStandardWebTestRequestHeaders(input *[]webtestsapis.HeaderField) []HeaderModel {
 	if input == nil || len(*input) == 0 {
 		return []HeaderModel{}
 	}
@@ -630,7 +654,7 @@ func flattenApplicationInsightsStandardWebTestRequestHeaders(input *[]webtests.H
 	return result
 }
 
-func flattenApplicationInsightsStandardWebTestValidations(input *webtests.WebTestPropertiesValidationRules) []ValidationRuleModel {
+func flattenApplicationInsightsStandardWebTestValidations(input *webtestsapis.WebTestPropertiesValidationRules) []ValidationRuleModel {
 	if input == nil {
 		return []ValidationRuleModel{}
 	}
@@ -652,7 +676,7 @@ func flattenApplicationInsightsStandardWebTestValidations(input *webtests.WebTes
 	return []ValidationRuleModel{result}
 }
 
-func flattenApplicationInsightsStandardWebTestContentValidations(input *webtests.WebTestPropertiesValidationRulesContentValidation) []ContentModel {
+func flattenApplicationInsightsStandardWebTestContentValidations(input *webtestsapis.WebTestPropertiesValidationRulesContentValidation) []ContentModel {
 	if input == nil {
 		return []ContentModel{}
 	}
@@ -666,8 +690,8 @@ func flattenApplicationInsightsStandardWebTestContentValidations(input *webtests
 	return []ContentModel{result}
 }
 
-func expandApplicationInsightsStandardWebTestValidations(input []ValidationRuleModel) webtests.WebTestPropertiesValidationRules {
-	rules := webtests.WebTestPropertiesValidationRules{
+func expandApplicationInsightsStandardWebTestValidations(input []ValidationRuleModel) webtestsapis.WebTestPropertiesValidationRules {
+	rules := webtestsapis.WebTestPropertiesValidationRules{
 		SSLCheck: pointer.To(false),
 	}
 
@@ -689,14 +713,14 @@ func expandApplicationInsightsStandardWebTestValidations(input []ValidationRuleM
 	return rules
 }
 
-func expandApplicationInsightsStandardWebTestContentValidations(input []ContentModel) *webtests.WebTestPropertiesValidationRulesContentValidation {
+func expandApplicationInsightsStandardWebTestContentValidations(input []ContentModel) *webtestsapis.WebTestPropertiesValidationRulesContentValidation {
 	if len(input) == 0 {
 		return nil
 	}
 
 	contentInput := input[0]
 
-	content := webtests.WebTestPropertiesValidationRulesContentValidation{
+	content := webtestsapis.WebTestPropertiesValidationRulesContentValidation{
 		ContentMatch:    pointer.To(contentInput.ContentMatch),
 		IgnoreCase:      pointer.To(contentInput.IgnoreCase),
 		PassIfTextFound: pointer.To(contentInput.PassIfTextFound),
@@ -705,15 +729,15 @@ func expandApplicationInsightsStandardWebTestContentValidations(input []ContentM
 	return &content
 }
 
-func expandApplicationInsightsStandardWebTestGeoLocations(input []string) []webtests.WebTestGeolocation {
+func expandApplicationInsightsStandardWebTestGeoLocations(input []string) []webtestsapis.WebTestGeolocation {
 	if len(input) == 0 {
-		return []webtests.WebTestGeolocation{}
+		return []webtestsapis.WebTestGeolocation{}
 	}
 
-	locations := make([]webtests.WebTestGeolocation, 0)
+	locations := make([]webtestsapis.WebTestGeolocation, 0)
 
 	for _, v := range input {
-		loc := webtests.WebTestGeolocation{
+		loc := webtestsapis.WebTestGeolocation{
 			Id: pointer.To(v),
 		}
 		locations = append(locations, loc)
@@ -722,7 +746,7 @@ func expandApplicationInsightsStandardWebTestGeoLocations(input []string) []webt
 	return locations
 }
 
-func flattenApplicationInsightsStandardWebTestGeoLocations(input []webtests.WebTestGeolocation) []string {
+func flattenApplicationInsightsStandardWebTestGeoLocations(input []webtestsapis.WebTestGeolocation) []string {
 	results := make([]string, 0)
 	if input == nil {
 		return results

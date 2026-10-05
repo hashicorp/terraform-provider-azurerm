@@ -6,7 +6,7 @@ import (
 	"github.com/zclconf/go-cty/cty"
 )
 
-// ImpliedType takes an arbitrary Go value (as an interface{}) and attempts
+// ImpliedType takes an arbitrary Go value (as an any) and attempts
 // to find a suitable cty.Type instance that could be used for a conversion
 // with ToCtyValue.
 //
@@ -21,7 +21,7 @@ import (
 // In particular, ImpliedType will never use capsule types in its returned
 // type, because it cannot know the capsule types supported by the calling
 // program.
-func ImpliedType(gv interface{}) (cty.Type, error) {
+func ImpliedType(gv any) (cty.Type, error) {
 	rt := reflect.TypeOf(gv)
 	var path cty.Path
 	return impliedType(rt, path)
