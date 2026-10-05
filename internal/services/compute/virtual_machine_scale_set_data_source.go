@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -16,8 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetvms"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesetvms"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkinterfaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/vmsspublicipaddresses"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -121,7 +121,7 @@ func dataSourceVirtualMachineScaleSet() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.VirtualMachineScaleSetsClient
 	instancesClient := meta.(*clients.Client).Compute.VirtualMachineScaleSetVMsClient
 	virtualMachinesClient := meta.(*clients.Client).Compute.VirtualMachinesClient
@@ -159,8 +159,7 @@ func dataSourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interf
 		if props := model.Properties; props != nil {
 			if profile := props.VirtualMachineProfile; profile != nil {
 				if nwProfile := profile.NetworkProfile; nwProfile != nil {
-					flattenedNics := FlattenVirtualMachineScaleSetNetworkInterface(nwProfile.NetworkInterfaceConfigurations)
-					if err := d.Set("network_interface", flattenedNics); err != nil {
+					if err := d.Set("network_interface", FlattenVirtualMachineScaleSetNetworkInterface(nwProfile.NetworkInterfaceConfigurations)); err != nil {
 						return fmt.Errorf("setting `network_interface`: %+v", err)
 					}
 				}
@@ -168,14 +167,33 @@ func dataSourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interf
 		}
 	}
 
-	instances := make([]interface{}, 0)
+	instances := make([]any, 0)
 	virtualMachineScaleSetId := virtualmachinescalesetvms.NewVirtualMachineScaleSetID(subscriptionId, id.ResourceGroupName, id.VirtualMachineScaleSetName)
-	result, err := instancesClient.ListComplete(ctx, virtualMachineScaleSetId, virtualmachinescalesetvms.DefaultListOperationOptions())
+
+	// If the VMSS is in Uniform Orchestration Mode, we can use instanceView for the VMSS instances
+	// Flexible VMSS instances cannot use instanceView from the VMSS API
+	// Instead we need to use the VM API for instanceView
+	optionsVMSS := virtualmachinescalesetvms.DefaultListOperationOptions()
+	optionsVM := virtualmachines.DefaultGetOperationOptions()
+	var orchestrationMode string
+	if props := resp.Model.Properties; props != nil {
+		if *props.OrchestrationMode == virtualmachinescalesets.OrchestrationModeUniform {
+			optionsVMSS.Expand = pointer.To("instanceView")
+			orchestrationMode = "Uniform"
+		}
+		if *props.OrchestrationMode == virtualmachinescalesets.OrchestrationModeFlexible {
+			optionsVM.Expand = pointer.To(virtualmachines.InstanceViewTypesInstanceView)
+			orchestrationMode = "Flexible"
+		}
+	}
+
+	result, err := instancesClient.ListComplete(ctx, virtualMachineScaleSetId, optionsVMSS)
 	if err != nil {
 		return fmt.Errorf("listing VM Instances for %q: %+v", id, err)
 	}
 
 	var connInfo *connectionInfo
+	var vmModel *virtualmachines.VirtualMachine
 	for _, item := range result.Items {
 		if item.InstanceId != nil {
 			vmId := networkinterfaces.NewVirtualMachineID(subscriptionId, id.ResourceGroupName, id.VirtualMachineScaleSetName, *item.InstanceId)
@@ -187,12 +205,13 @@ func dataSourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interf
 
 				// Network Interfaces of VM in Flexible VMSS are accessed from single VM
 				virtualMachineId := virtualmachines.NewVirtualMachineID(subscriptionId, id.ResourceGroupName, *item.InstanceId)
-				vm, err := virtualMachinesClient.Get(ctx, virtualMachineId, virtualmachines.DefaultGetOperationOptions())
+				vm, err := virtualMachinesClient.Get(ctx, virtualMachineId, optionsVM)
 				if err != nil {
 					return fmt.Errorf("retrieving VM Instance %q for %q: %+v", *item.InstanceId, id, err)
 				}
 				connInfoRaw := retrieveConnectionInformation(ctx, networkInterfacesClient, publicIPAddressesClient, vm.Model.Properties)
 				connInfo = &connInfoRaw
+				vmModel = vm.Model
 			} else {
 				connInfo, err = getVirtualMachineScaleSetVMConnectionInfo(ctx, nics.Items, id.ResourceGroupName, id.VirtualMachineScaleSetName, *item.InstanceId, vmssPublicIpAddressesClient)
 				if err != nil {
@@ -200,7 +219,7 @@ func dataSourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interf
 				}
 			}
 
-			flattenedInstances := flattenVirtualMachineScaleSetVM(item, connInfo)
+			flattenedInstances := flattenVirtualMachineScaleSetVM(item, connInfo, vmModel, orchestrationMode)
 			instances = append(instances, flattenedInstances)
 		}
 	}
@@ -275,29 +294,53 @@ func getVirtualMachineScaleSetVMConnectionInfo(ctx context.Context, networkInter
 	}, nil
 }
 
-func flattenVirtualMachineScaleSetVM(input virtualmachinescalesetvms.VirtualMachineScaleSetVM, connectionInfo *connectionInfo) map[string]interface{} {
-	output := make(map[string]interface{})
+func flattenVirtualMachineScaleSetVM(input virtualmachinescalesetvms.VirtualMachineScaleSetVM, connectionInfo *connectionInfo, vm *virtualmachines.VirtualMachine, mode string) map[string]any {
+	output := make(map[string]any)
 	output["name"] = *input.Name
 	output["instance_id"] = *input.InstanceId
 
-	if props := input.Properties; props != nil {
-		if props.LatestModelApplied != nil {
-			output["latest_model_applied"] = *props.LatestModelApplied
-		}
+	if mode == "Flexible" && vm != nil {
+		if props := vm.Properties; props != nil {
+			if props.VMId != nil {
+				output["virtual_machine_id"] = *props.VMId
+			}
 
-		if props.VMId != nil {
-			output["virtual_machine_id"] = *props.VMId
-		}
+			if profile := props.OsProfile; profile != nil && profile.ComputerName != nil {
+				output["computer_name"] = *profile.ComputerName
+			}
 
-		if profile := props.OsProfile; profile != nil && profile.ComputerName != nil {
-			output["computer_name"] = *profile.ComputerName
+			if instance := props.InstanceView; instance != nil {
+				if statuses := instance.Statuses; statuses != nil {
+					for _, status := range *statuses {
+						if status.Code != nil && strings.HasPrefix(strings.ToLower(*status.Code), "powerstate/") {
+							output["power_state"] = strings.SplitN(*status.Code, "/", 2)[1]
+						}
+					}
+				}
+			}
 		}
+	}
 
-		if instance := props.InstanceView; instance != nil {
-			if statuses := instance.Statuses; statuses != nil {
-				for _, status := range *statuses {
-					if status.Code != nil && strings.HasPrefix(strings.ToLower(*status.Code), "powerstate/") {
-						output["power_state"] = strings.SplitN(*status.Code, "/", 2)[1]
+	if mode == "Uniform" {
+		if props := input.Properties; props != nil {
+			if props.LatestModelApplied != nil {
+				output["latest_model_applied"] = *props.LatestModelApplied
+			}
+
+			if props.VMId != nil {
+				output["virtual_machine_id"] = *props.VMId
+			}
+
+			if profile := props.OsProfile; profile != nil && profile.ComputerName != nil {
+				output["computer_name"] = *profile.ComputerName
+			}
+
+			if instance := props.InstanceView; instance != nil {
+				if statuses := instance.Statuses; statuses != nil {
+					for _, status := range *statuses {
+						if status.Code != nil && strings.HasPrefix(strings.ToLower(*status.Code), "powerstate/") {
+							output["power_state"] = strings.SplitN(*status.Code, "/", 2)[1]
+						}
 					}
 				}
 			}

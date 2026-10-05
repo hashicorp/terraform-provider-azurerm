@@ -40,6 +40,7 @@ func (o ListVirtualMachineScaleSetIPConfigurationsOperationOptions) ToHeaders() 
 
 func (o ListVirtualMachineScaleSetIPConfigurationsOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -51,6 +52,18 @@ func (o ListVirtualMachineScaleSetIPConfigurationsOperationOptions) ToQuery() *c
 	return &out
 }
 
+type ListVirtualMachineScaleSetIPConfigurationsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListVirtualMachineScaleSetIPConfigurationsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListVirtualMachineScaleSetIPConfigurations ...
 func (c NetworkInterfacesClient) ListVirtualMachineScaleSetIPConfigurations(ctx context.Context, id commonids.VirtualMachineScaleSetNetworkInterfaceId, options ListVirtualMachineScaleSetIPConfigurationsOperationOptions) (result ListVirtualMachineScaleSetIPConfigurationsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -59,8 +72,9 @@ func (c NetworkInterfacesClient) ListVirtualMachineScaleSetIPConfigurations(ctx 
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/ipConfigurations", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListVirtualMachineScaleSetIPConfigurationsCustomPager{},
+		Path:          fmt.Sprintf("%s/ipConfigurations", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

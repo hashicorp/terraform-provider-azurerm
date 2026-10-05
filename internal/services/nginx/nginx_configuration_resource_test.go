@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package nginx_test
@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-01-01-preview/nginxconfiguration"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -285,10 +285,13 @@ resource "azurerm_subnet" "test" {
 resource "azurerm_nginx_deployment" "test" {
   name                = "acctest-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "standard_Monthly"
+  sku                 = "standardv3_Monthly"
+  capacity            = 10
   location            = azurerm_resource_group.test.location
 
-  diagnose_support_enabled = false
+  identity {
+    type = "SystemAssigned"
+  }
 
   frontend_public {
     ip_address = [azurerm_public_ip.test.id]
@@ -297,6 +300,7 @@ resource "azurerm_nginx_deployment" "test" {
   network_interface {
     subnet_id = azurerm_subnet.test.id
   }
+
   tags = {
     foo = "bar"
   }

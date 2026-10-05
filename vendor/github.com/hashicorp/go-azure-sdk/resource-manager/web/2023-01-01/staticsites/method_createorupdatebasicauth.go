@@ -50,7 +50,6 @@ func (c StaticSitesClient) CreateOrUpdateBasicAuth(ctx context.Context, id Stati
 
 	var model StaticSiteBasicAuthPropertiesARMResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

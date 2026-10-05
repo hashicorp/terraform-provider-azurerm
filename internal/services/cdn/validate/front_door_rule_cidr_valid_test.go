@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -7,10 +7,9 @@ import "testing"
 
 func TestFrontDoorRuleCidrIsValid(t *testing.T) {
 	cases := []struct {
-		Input interface{}
+		Input any
 		Valid bool
 	}{
-
 		{
 			// IPv6 IPv4 literal
 			Input: "::FFFF:192.168.0.1/24",

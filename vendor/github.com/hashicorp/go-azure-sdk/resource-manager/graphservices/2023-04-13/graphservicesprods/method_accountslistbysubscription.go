@@ -24,6 +24,18 @@ type AccountsListBySubscriptionCompleteResult struct {
 	Items              []AccountResource
 }
 
+type AccountsListBySubscriptionCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *AccountsListBySubscriptionCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // AccountsListBySubscription ...
 func (c GraphservicesprodsClient) AccountsListBySubscription(ctx context.Context, id commonids.SubscriptionId) (result AccountsListBySubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c GraphservicesprodsClient) AccountsListBySubscription(ctx context.Context
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &AccountsListBySubscriptionCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.GraphServices/accounts", id.ID()),
 	}
 

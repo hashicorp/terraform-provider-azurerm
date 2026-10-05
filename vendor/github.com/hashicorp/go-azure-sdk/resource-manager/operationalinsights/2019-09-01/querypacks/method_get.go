@@ -45,7 +45,6 @@ func (c QueryPacksClient) Get(ctx context.Context, id QueryPackId) (result GetOp
 
 	var model LogAnalyticsQueryPack
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

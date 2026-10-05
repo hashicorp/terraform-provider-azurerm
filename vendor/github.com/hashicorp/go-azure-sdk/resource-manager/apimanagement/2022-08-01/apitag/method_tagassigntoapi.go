@@ -46,7 +46,6 @@ func (c ApiTagClient) TagAssignToApi(ctx context.Context, id ApiTagId) (result T
 
 	var model TagContract
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

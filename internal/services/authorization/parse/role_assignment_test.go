@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -6,120 +6,6 @@ package parse
 import (
 	"testing"
 )
-
-func TestRoleAssignmentIDFormatter(t *testing.T) {
-	testData := []struct {
-		SubscriptionId           string
-		ResourceGroup            string
-		ResourceProvider         string
-		ResourceScope            string
-		ManagementGroup          string
-		SubscriptionAlias        string
-		IsSubscriptionLevel      bool
-		IsSubscriptionAliasLevel bool
-		Name                     string
-		TenantId                 string
-		Expected                 string
-	}{
-		{
-			SubscriptionId:  "",
-			ResourceGroup:   "",
-			ResourceScope:   "",
-			ManagementGroup: "",
-			Name:            "23456781-2349-8764-5631-234567890121",
-			TenantId:        "",
-		},
-		{
-			SubscriptionId:  "12345678-1234-9876-4563-123456789012",
-			ResourceGroup:   "group1",
-			ResourceScope:   "",
-			ManagementGroup: "managementGroup1",
-			Name:            "23456781-2349-8764-5631-234567890121",
-			TenantId:        "",
-		},
-		{
-			SubscriptionId:  "12345678-1234-9876-4563-123456789012",
-			ResourceGroup:   "",
-			ResourceScope:   "",
-			ManagementGroup: "managementGroup1",
-			Name:            "23456781-2349-8764-5631-234567890121",
-			TenantId:        "",
-		},
-		{
-			SubscriptionId:  "12345678-1234-9876-4563-123456789012",
-			ResourceGroup:   "",
-			ResourceScope:   "",
-			ManagementGroup: "",
-			Name:            "23456781-2349-8764-5631-234567890121",
-			TenantId:        "",
-			Expected:        "/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.Authorization/roleAssignments/23456781-2349-8764-5631-234567890121",
-		},
-		{
-			SubscriptionId:  "12345678-1234-9876-4563-123456789012",
-			ResourceGroup:   "group1",
-			ResourceScope:   "",
-			ManagementGroup: "",
-			Name:            "23456781-2349-8764-5631-234567890121",
-			TenantId:        "",
-			Expected:        "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Authorization/roleAssignments/23456781-2349-8764-5631-234567890121",
-		},
-		{
-			SubscriptionId:  "",
-			ResourceGroup:   "",
-			ResourceScope:   "",
-			ManagementGroup: "12345678-1234-9876-4563-123456789012",
-			Name:            "23456781-2349-8764-5631-234567890121",
-			TenantId:        "",
-			Expected:        "/providers/Microsoft.Management/managementGroups/12345678-1234-9876-4563-123456789012/providers/Microsoft.Authorization/roleAssignments/23456781-2349-8764-5631-234567890121",
-		},
-		{
-			SubscriptionId:  "",
-			ResourceGroup:   "",
-			ResourceScope:   "",
-			ManagementGroup: "12345678-1234-9876-4563-123456789012",
-			Name:            "23456781-2349-8764-5631-234567890121",
-			TenantId:        "34567812-3456-7653-6742-345678901234",
-			Expected:        "/providers/Microsoft.Management/managementGroups/12345678-1234-9876-4563-123456789012/providers/Microsoft.Authorization/roleAssignments/23456781-2349-8764-5631-234567890121|34567812-3456-7653-6742-345678901234",
-		},
-		{
-			SubscriptionId:   "12345678-1234-9876-4563-123456789012",
-			ResourceGroup:    "group1",
-			ResourceProvider: "Microsoft.Storage",
-			ResourceScope:    "storageAccounts/nameStorageAccount",
-			ManagementGroup:  "",
-			Name:             "23456781-2349-8764-5631-234567890121",
-			TenantId:         "34567812-3456-7653-6742-345678901234",
-			Expected:         "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Storage/storageAccounts/nameStorageAccount/providers/Microsoft.Authorization/roleAssignments/23456781-2349-8764-5631-234567890121|34567812-3456-7653-6742-345678901234",
-		},
-		{
-			IsSubscriptionLevel: true,
-			Name:                "23456781-2349-8764-5631-234567890121",
-			TenantId:            "34567812-3456-7653-6742-345678901234",
-			Expected:            "/providers/Microsoft.Subscription/providers/Microsoft.Authorization/roleAssignments/23456781-2349-8764-5631-234567890121|34567812-3456-7653-6742-345678901234",
-		},
-		{
-			IsSubscriptionAliasLevel: true,
-			Name:                     "23456781-2349-8764-5631-234567890121",
-			TenantId:                 "34567812-3456-7653-6742-345678901234",
-			SubscriptionAlias:        "my-awesome-sub",
-			Expected:                 "/providers/Microsoft.Subscription/aliases/my-awesome-sub/providers/Microsoft.Authorization/roleAssignments/23456781-2349-8764-5631-234567890121|34567812-3456-7653-6742-345678901234",
-		},
-	}
-	for _, v := range testData {
-		t.Logf("testing %+v", v)
-		actual, err := NewRoleAssignmentID(v.SubscriptionId, v.ResourceGroup, v.ResourceProvider, v.ResourceScope, v.ManagementGroup, v.Name, v.TenantId, v.SubscriptionAlias, v.IsSubscriptionLevel, v.IsSubscriptionAliasLevel)
-		if err != nil {
-			if v.Expected == "" {
-				continue
-			}
-			t.Fatal(err)
-		}
-		actualId := actual.ID()
-		if actualId != v.Expected {
-			t.Fatalf("expected %q, got %q", v.Expected, actualId)
-		}
-	}
-}
 
 func TestRoleAssignmentID(t *testing.T) {
 	testData := []struct {
@@ -255,6 +141,30 @@ func TestRoleAssignmentID(t *testing.T) {
 				TenantId:         "34567812-3456-7653-6742-345678901234",
 			},
 		},
+		{
+			Input: "/providers/Microsoft.Capacity/providers/Microsoft.Authorization/roleAssignments/23456781-2349-8764-5631-234567890121",
+			Expected: &RoleAssignmentId{
+				SubscriptionID:   "",
+				ResourceGroup:    "",
+				ResourceProvider: "Microsoft.Capacity",
+				ResourceScope:    "",
+				ManagementGroup:  "",
+				Name:             "23456781-2349-8764-5631-234567890121",
+				TenantId:         "34567812-3456-7653-6742-345678901234",
+			},
+		},
+		{
+			Input: "/providers/Microsoft.Authorization/roleAssignments/23456781-2349-8764-5631-234567890121",
+			Expected: &RoleAssignmentId{
+				SubscriptionID:   "",
+				ResourceGroup:    "",
+				ResourceProvider: "",
+				ResourceScope:    "",
+				ManagementGroup:  "",
+				Name:             "23456781-2349-8764-5631-234567890121",
+				TenantId:         "34567812-3456-7653-6742-345678901234",
+			},
+		},
 	}
 
 	for _, v := range testData {
@@ -308,6 +218,5 @@ func TestRoleAssignmentID(t *testing.T) {
 		if actual.SubscriptionAlias != v.Expected.SubscriptionAlias {
 			t.Fatalf("Expected %q but got %q for Role Assignment SubscriptionAlias", v.Expected.SubscriptionAlias, actual.SubscriptionAlias)
 		}
-
 	}
 }

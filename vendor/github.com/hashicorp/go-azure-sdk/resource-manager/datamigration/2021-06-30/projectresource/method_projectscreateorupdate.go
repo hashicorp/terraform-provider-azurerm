@@ -50,7 +50,6 @@ func (c ProjectResourceClient) ProjectsCreateOrUpdate(ctx context.Context, id Pr
 
 	var model Project
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

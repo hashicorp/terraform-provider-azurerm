@@ -23,6 +23,18 @@ type ListCompleteResult struct {
 	Items              []Watchlist
 }
 
+type ListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // List ...
 func (c WatchlistsClient) List(ctx context.Context, id WorkspaceId) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c WatchlistsClient) List(ctx context.Context, id WorkspaceId) (result List
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.SecurityInsights/watchlists", id.ID()),
 	}
 

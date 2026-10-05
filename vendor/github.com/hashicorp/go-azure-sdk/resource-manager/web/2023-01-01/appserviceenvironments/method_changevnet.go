@@ -27,6 +27,18 @@ type ChangeVnetCompleteResult struct {
 	Items              []Site
 }
 
+type ChangeVnetCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ChangeVnetCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ChangeVnet ...
 func (c AppServiceEnvironmentsClient) ChangeVnet(ctx context.Context, id commonids.AppServiceEnvironmentId, input VirtualNetworkProfile) (result ChangeVnetOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -36,6 +48,7 @@ func (c AppServiceEnvironmentsClient) ChangeVnet(ctx context.Context, id commoni
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &ChangeVnetCustomPager{},
 		Path:       fmt.Sprintf("%s/changeVirtualNetwork", id.ID()),
 	}
 
@@ -68,9 +81,20 @@ func (c AppServiceEnvironmentsClient) ChangeVnet(ctx context.Context, id commoni
 
 // ChangeVnetThenPoll performs ChangeVnet then polls until it's completed
 func (c AppServiceEnvironmentsClient) ChangeVnetThenPoll(ctx context.Context, id commonids.AppServiceEnvironmentId, input VirtualNetworkProfile) error {
+	return c.ChangeVnetCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ChangeVnetCallbackThenPoll performs ChangeVnet, runs the optional callback function, then polls until it's completed
+func (c AppServiceEnvironmentsClient) ChangeVnetCallbackThenPoll(ctx context.Context, id commonids.AppServiceEnvironmentId, input VirtualNetworkProfile, callback func() error) error {
 	result, err := c.ChangeVnet(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ChangeVnet: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

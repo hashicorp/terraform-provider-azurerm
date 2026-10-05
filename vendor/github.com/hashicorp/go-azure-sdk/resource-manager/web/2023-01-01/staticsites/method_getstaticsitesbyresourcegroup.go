@@ -24,6 +24,18 @@ type GetStaticSitesByResourceGroupCompleteResult struct {
 	Items              []StaticSiteARMResource
 }
 
+type GetStaticSitesByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *GetStaticSitesByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // GetStaticSitesByResourceGroup ...
 func (c StaticSitesClient) GetStaticSitesByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result GetStaticSitesByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c StaticSitesClient) GetStaticSitesByResourceGroup(ctx context.Context, id
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &GetStaticSitesByResourceGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Web/staticSites", id.ID()),
 	}
 

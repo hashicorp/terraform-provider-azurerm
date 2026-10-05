@@ -1,11 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -13,28 +12,30 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/routefilters"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/routefilters"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity
+
 func resourceRouteFilter() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceRouteFilterCreate,
 		Read:   resourceRouteFilterRead,
 		Update: resourceRouteFilterUpdate,
 		Delete: resourceRouteFilterDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := routefilters.ParseRouteFilterID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&routefilters.RouteFilterId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&routefilters.RouteFilterId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -55,9 +56,11 @@ func resourceRouteFilter() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"rule": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Type:       pluginsdk.TypeList,
+				Optional:   true,
+				Computed:   true, // azignore:AZS007 - pre-existing violation
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				MaxItems:   1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -98,75 +101,29 @@ func resourceRouteFilter() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		resource.Schema["rule"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeList,
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
-			Optional:   true,
-			Computed:   true,
-			MaxItems:   1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
-					"access": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(routefilters.AccessAllow),
-						}, false),
-					},
-
-					"rule_type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							"Community",
-						}, false),
-					},
-
-					"communities": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
-						MinItems: 1,
-						Elem: &pluginsdk.Schema{
-							Type:         pluginsdk.TypeString,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
-				},
-			},
-		}
-	}
-	return resource
 }
 
-func resourceRouteFilterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRouteFilterCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.RouteFilters
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Route Filter create.")
-
 	id := routefilters.NewRouteFilterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	t := d.Get("tags").(map[string]interface{})
+	location := location.Normalize(d.Get("location").(string))
+	t := d.Get("tags").(map[string]any)
 
-	existing, err := client.Get(ctx, id, routefilters.DefaultGetOperationOptions())
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id, routefilters.DefaultGetOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_route_filter", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_route_filter", id.ID())
+		}
 	}
 
 	routeSet := routefilters.RouteFilter{
@@ -178,21 +135,22 @@ func resourceRouteFilterCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Tags: tags.Expand(t),
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, routeSet); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, routeSet, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceRouteFilterRead(d, meta)
 }
 
-func resourceRouteFilterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRouteFilterUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.RouteFilters
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Route Filter update.")
 
 	id, err := routefilters.ParseRouteFilterID(d.Id())
 	if err != nil {
@@ -218,7 +176,7 @@ func resourceRouteFilterUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
@@ -230,7 +188,7 @@ func resourceRouteFilterUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	return resourceRouteFilterRead(d, meta)
 }
 
-func resourceRouteFilterRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRouteFilterRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.RouteFilters
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -261,13 +219,15 @@ func resourceRouteFilterRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			}
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceRouteFilterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRouteFilterDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.RouteFilters
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -285,18 +245,18 @@ func resourceRouteFilterDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 }
 
 func expandRouteFilterRules(d *pluginsdk.ResourceData) *[]routefilters.RouteFilterRule {
-	configs := d.Get("rule").([]interface{})
+	configs := d.Get("rule").([]any)
 	rules := make([]routefilters.RouteFilterRule, 0, len(configs))
 
 	for _, configRaw := range configs {
-		data := configRaw.(map[string]interface{})
+		data := configRaw.(map[string]any)
 
 		rule := routefilters.RouteFilterRule{
-			Name: utils.String(data["name"].(string)),
+			Name: pointer.To(data["name"].(string)),
 			Properties: &routefilters.RouteFilterRulePropertiesFormat{
 				Access:              routefilters.Access(data["access"].(string)),
 				RouteFilterRuleType: routefilters.RouteFilterRuleType(data["rule_type"].(string)),
-				Communities:         *utils.ExpandStringSlice(data["communities"].([]interface{})),
+				Communities:         *pluginsdk.ExpandStringSlice(data["communities"].([]any)),
 			},
 		}
 
@@ -306,12 +266,12 @@ func expandRouteFilterRules(d *pluginsdk.ResourceData) *[]routefilters.RouteFilt
 	return &rules
 }
 
-func flattenRouteFilterRules(input *[]routefilters.RouteFilterRule) []interface{} {
-	results := make([]interface{}, 0)
+func flattenRouteFilterRules(input *[]routefilters.RouteFilterRule) []any {
+	results := make([]any, 0)
 
 	if rules := input; rules != nil {
 		for _, rule := range *rules {
-			r := make(map[string]interface{})
+			r := make(map[string]any)
 
 			r["name"] = *rule.Name
 			if props := rule.Properties; props != nil {

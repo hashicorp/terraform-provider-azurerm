@@ -15,7 +15,7 @@ type GraphservicesprodsClient struct {
 }
 
 func NewGraphservicesprodsClientWithBaseURI(sdkApi sdkEnv.Api) (*GraphservicesprodsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "graphservicesprods", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "graphservicesprods", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating GraphservicesprodsClient: %+v", err)
 	}

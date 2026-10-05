@@ -23,6 +23,18 @@ type ListByElasticSanCompleteResult struct {
 	Items              []PrivateLinkResource
 }
 
+type ListByElasticSanCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByElasticSanCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByElasticSan ...
 func (c PrivateLinkResourcesClient) ListByElasticSan(ctx context.Context, id ElasticSanId) (result ListByElasticSanOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c PrivateLinkResourcesClient) ListByElasticSan(ctx context.Context, id Ela
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByElasticSanCustomPager{},
 		Path:       fmt.Sprintf("%s/privateLinkResources", id.ID()),
 	}
 

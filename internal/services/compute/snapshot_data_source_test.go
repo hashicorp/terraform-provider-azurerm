@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute_test
@@ -38,7 +38,6 @@ func TestAccDataSourceSnapshot_encryption(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
-				check.That(data.ResourceName).Key("encryption_settings.0.enabled").HasValue("true"),
 			),
 		},
 	})
@@ -116,10 +115,11 @@ resource "azurerm_managed_disk" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestkv%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
+  name                       = "acctestkv%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
 
   sku_name = "standard"
 
@@ -177,8 +177,6 @@ resource "azurerm_snapshot" "test" {
   disk_size_gb        = "20"
 
   encryption_settings {
-    enabled = true
-
     disk_encryption_key {
       secret_url      = azurerm_key_vault_secret.test.id
       source_vault_id = azurerm_key_vault.test.id

@@ -47,7 +47,6 @@ func (c ExtensionsClient) GetMonitoringStatus(ctx context.Context, id commonids.
 
 	var model ClusterMonitoringResponse
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

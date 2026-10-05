@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -122,7 +122,7 @@ func dataSourceApiManagementApi() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceApiManagementApiRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceApiManagementApiRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ApiClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -143,8 +143,7 @@ func dataSourceApiManagementApiRead(d *pluginsdk.ResourceData, meta interface{})
 	d.SetId(id.ID())
 
 	d.Set("api_management_name", id.ServiceName)
-	name := getApiName(id.ApiId)
-	d.Set("name", name)
+	d.Set("name", getApiName(id.ApiId))
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
@@ -155,7 +154,7 @@ func dataSourceApiManagementApiRead(d *pluginsdk.ResourceData, meta interface{})
 			d.Set("is_online", pointer.From(props.IsOnline))
 			d.Set("path", props.Path)
 			d.Set("revision", pointer.From(props.ApiRevision))
-			d.Set("service_url", pointer.From(props.ServiceUrl))
+			d.Set("service_url", pointer.From(props.ServiceURL))
 			d.Set("soap_pass_through", pointer.From(props.Type) == api.ApiTypeSoap)
 			d.Set("subscription_required", pointer.From(props.SubscriptionRequired))
 			d.Set("version", pointer.From(props.ApiVersion))
@@ -185,15 +184,15 @@ func flattenApiManagementApiDataSourceProtocols(input *[]api.Protocol) []string 
 	return results
 }
 
-func flattenApiManagementApiDataSourceSubscriptionKeyParamNames(paramNames *api.SubscriptionKeyParameterNamesContract) []interface{} {
+func flattenApiManagementApiDataSourceSubscriptionKeyParamNames(paramNames *api.SubscriptionKeyParameterNamesContract) []any {
 	if paramNames == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 
 	result["header"] = pointer.From(paramNames.Header)
 	result["query"] = pointer.From(paramNames.Query)
 
-	return []interface{}{result}
+	return []any{result}
 }

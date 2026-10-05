@@ -15,7 +15,7 @@ type RoleManagementPolicyAssignmentsClient struct {
 }
 
 func NewRoleManagementPolicyAssignmentsClientWithBaseURI(sdkApi sdkEnv.Api) (*RoleManagementPolicyAssignmentsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "rolemanagementpolicyassignments", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "rolemanagementpolicyassignments", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating RoleManagementPolicyAssignmentsClient: %+v", err)
 	}

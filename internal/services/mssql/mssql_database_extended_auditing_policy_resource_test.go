@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql_test
@@ -8,12 +8,14 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MsSqlDatabaseExtendedAuditingPolicyResource struct{}
@@ -200,16 +202,18 @@ func (MsSqlDatabaseExtendedAuditingPolicyResource) Exists(ctx context.Context, c
 		return nil, err
 	}
 
-	resp, err := client.MSSQL.DatabaseExtendedBlobAuditingPoliciesClient.Get(ctx, id.ResourceGroup, id.ServerName, id.DatabaseName)
+	dbId := commonids.NewSqlDatabaseID(id.SubscriptionId, id.ResourceGroup, id.ServerName, id.DatabaseName)
+
+	resp, err := client.MSSQL.BlobAuditingPoliciesClient.ExtendedDatabaseBlobAuditingPoliciesGet(ctx, dbId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return nil, fmt.Errorf("SQL Virtual Machine %q (Server %q, Resource Group %q) does not exist", id.DatabaseName, id.ServerName, id.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			return nil, fmt.Errorf("%s does not exist", *id)
 		}
 
-		return nil, fmt.Errorf("reading SQL Database ExtendedAuditingPolicy %q (Server %q, Resource Group %q): %v", id.DatabaseName, id.ServerName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("reading %s: %v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (MsSqlDatabaseExtendedAuditingPolicyResource) template(data acceptance.TestData) string {
@@ -253,7 +257,7 @@ func (r MsSqlDatabaseExtendedAuditingPolicyResource) basic(data acceptance.TestD
 
 resource "azurerm_mssql_database_extended_auditing_policy" "test" {
   database_id                = azurerm_mssql_database.test.id
-  storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
+  blob_storage_endpoint      = azurerm_storage_account.test.primary_blob_endpoint
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 `, r.template(data))
@@ -290,7 +294,7 @@ resource "azurerm_mssql_database" "secondary" {
 
 resource "azurerm_mssql_database_extended_auditing_policy" "test" {
   database_id                = azurerm_mssql_database.test.id
-  storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
+  blob_storage_endpoint      = azurerm_storage_account.test.primary_blob_endpoint
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   depends_on = [azurerm_mssql_database.secondary]
@@ -304,7 +308,7 @@ func (r MsSqlDatabaseExtendedAuditingPolicyResource) requiresImport(data accepta
 
 resource "azurerm_mssql_database_extended_auditing_policy" "import" {
   database_id                = azurerm_mssql_database.test.id
-  storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
+  blob_storage_endpoint      = azurerm_storage_account.test.primary_blob_endpoint
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 `, r.template(data))
@@ -316,7 +320,7 @@ func (r MsSqlDatabaseExtendedAuditingPolicyResource) complete(data acceptance.Te
 
 resource "azurerm_mssql_database_extended_auditing_policy" "test" {
   database_id                             = azurerm_mssql_database.test.id
-  storage_endpoint                        = azurerm_storage_account.test.primary_blob_endpoint
+  blob_storage_endpoint                   = azurerm_storage_account.test.primary_blob_endpoint
   storage_account_access_key              = azurerm_storage_account.test.primary_access_key
   storage_account_access_key_is_secondary = false
   retention_in_days                       = 6
@@ -382,7 +386,7 @@ resource "azurerm_storage_account" "test2" {
 
 resource "azurerm_mssql_database_extended_auditing_policy" "test" {
   database_id                             = azurerm_mssql_database.test.id
-  storage_endpoint                        = azurerm_storage_account.test2.primary_blob_endpoint
+  blob_storage_endpoint                   = azurerm_storage_account.test2.primary_blob_endpoint
   storage_account_access_key              = azurerm_storage_account.test2.primary_access_key
   storage_account_access_key_is_secondary = true
   retention_in_days                       = 3
@@ -426,12 +430,18 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                                           = "acctestsubnet%[1]d"
-  resource_group_name                            = azurerm_resource_group.test.name
-  virtual_network_name                           = azurerm_virtual_network.test.name
-  address_prefixes                               = ["10.0.2.0/24"]
-  service_endpoints                              = ["Microsoft.Storage", "Microsoft.Sql"]
-  enforce_private_link_endpoint_network_policies = true
+  name                 = "acctestsubnet%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
+
+  service_endpoint {
+    service = "Microsoft.Sql"
+  }
+  private_endpoint_network_policies = "Disabled"
 }
 
 resource "azurerm_storage_account" "test" {
@@ -470,8 +480,8 @@ resource "azurerm_mssql_firewall_rule" "test" {
 
 
 resource "azurerm_mssql_database_extended_auditing_policy" "test" {
-  database_id      = azurerm_mssql_database.test.id
-  storage_endpoint = azurerm_storage_account.test.primary_blob_endpoint
+  database_id           = azurerm_mssql_database.test.id
+  blob_storage_endpoint = azurerm_storage_account.test.primary_blob_endpoint
 
   depends_on = [
     azurerm_role_assignment.test,
@@ -488,7 +498,7 @@ resource "azurerm_role_assignment" "test" {
 }
 
 resource "azurerm_mssql_server_extended_auditing_policy" "test" {
-  storage_endpoint       = azurerm_storage_account.test.primary_blob_endpoint
+  blob_storage_endpoint  = azurerm_storage_account.test.primary_blob_endpoint
   server_id              = azurerm_mssql_server.test.id
   retention_in_days      = 6
   log_monitoring_enabled = false
@@ -500,8 +510,6 @@ resource "azurerm_mssql_server_extended_auditing_policy" "test" {
     azurerm_storage_account.test,
   ]
 }
-
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.Client().SubscriptionID)
 }
 
@@ -525,11 +533,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctest-EH-%[2]d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 2
-  message_retention   = 1
+  name              = "acctest-EH-%[2]d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 1
 }
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
@@ -557,26 +564,17 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   target_resource_id         = azurerm_mssql_database.test.id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
 
-  log {
+  enabled_log {
     category = "SQLSecurityAuditEvents"
-    enabled  = true
-
-    retention_policy {
-      enabled = false
-    }
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
-
-    retention_policy {
-      enabled = false
-    }
   }
 
-  // log, metric will return all disabled categories
+  // enabled_log, metric will return all disabled categories
   lifecycle {
-    ignore_changes = [log, metric]
+    ignore_changes = [enabled_log, enabled_metric]
   }
 }
 
@@ -596,32 +594,23 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   target_resource_id         = azurerm_mssql_database.test.id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
 
-  log {
+  enabled_log {
     category = "SQLSecurityAuditEvents"
-    enabled  = true
-
-    retention_policy {
-      enabled = false
-    }
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
-
-    retention_policy {
-      enabled = false
-    }
   }
 
-  // log, metric will return all disabled categories
+  // enabled_log, metric will return all disabled categories
   lifecycle {
-    ignore_changes = [log, metric]
+    ignore_changes = [enabled_log, enabled_metric]
   }
 }
 
 resource "azurerm_mssql_database_extended_auditing_policy" "test" {
   database_id                = azurerm_mssql_database.test.id
-  storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
+  blob_storage_endpoint      = azurerm_storage_account.test.primary_blob_endpoint
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
   log_monitoring_enabled     = true
 }
@@ -638,27 +627,17 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
   eventhub_name                  = azurerm_eventhub.test.name
 
-
-  log {
+  enabled_log {
     category = "SQLSecurityAuditEvents"
-    enabled  = true
-
-    retention_policy {
-      enabled = false
-    }
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
-
-    retention_policy {
-      enabled = false
-    }
   }
 
-  // log, metric will return all disabled categories
+  // enabled_log, metric will return all disabled categories
   lifecycle {
-    ignore_changes = [log, metric]
+    ignore_changes = [enabled_log, enabled_metric]
   }
 
 }
@@ -680,34 +659,24 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
   eventhub_name                  = azurerm_eventhub.test.name
 
-
-  log {
+  enabled_log {
     category = "SQLSecurityAuditEvents"
-    enabled  = true
-
-    retention_policy {
-      enabled = false
-    }
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
-
-    retention_policy {
-      enabled = false
-    }
   }
 
-  // log, metric will return all disabled categories
+  // enabled_log, metric will return all disabled categories
   lifecycle {
-    ignore_changes = [log, metric]
+    ignore_changes = [enabled_log, enabled_metric]
   }
 
 }
 
 resource "azurerm_mssql_database_extended_auditing_policy" "test" {
   database_id                = azurerm_mssql_database.test.id
-  storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
+  blob_storage_endpoint      = azurerm_storage_account.test.primary_blob_endpoint
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
   log_monitoring_enabled     = true
 }

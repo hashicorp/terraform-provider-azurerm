@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -8,8 +8,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -103,7 +104,12 @@ func dataSourceVirtualHubConnection() *pluginsdk.Resource {
 							Computed: true,
 						},
 
-						//lintignore:XS003
+						"static_vnet_propagate_static_routes_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
+						// lintignore:XS003
 						"static_vnet_route": {
 							Type:     pluginsdk.TypeList,
 							Computed: true,
@@ -136,7 +142,7 @@ func dataSourceVirtualHubConnection() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceVirtualHubConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceVirtualHubConnectionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -165,7 +171,11 @@ func dataSourceVirtualHubConnectionRead(d *pluginsdk.ResourceData, meta interfac
 			d.Set("internet_security_enabled", props.EnableInternetSecurity)
 			remoteVirtualNetworkId := ""
 			if props.RemoteVirtualNetwork != nil && props.RemoteVirtualNetwork.Id != nil {
-				remoteVirtualNetworkId = *props.RemoteVirtualNetwork.Id
+				parsedRemoteVirtualNetworkId, err := commonids.ParseVirtualNetworkIDInsensitively(*props.RemoteVirtualNetwork.Id)
+				if err != nil {
+					return err
+				}
+				remoteVirtualNetworkId = parsedRemoteVirtualNetworkId.ID()
 			}
 			d.Set("remote_virtual_network_id", remoteVirtualNetworkId)
 

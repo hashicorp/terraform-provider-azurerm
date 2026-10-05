@@ -23,6 +23,18 @@ type SkuListCompleteResult struct {
 	Items              []GetStreamingJobSkuResult
 }
 
+type SkuListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *SkuListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // SkuList ...
 func (c StreamingJobsClient) SkuList(ctx context.Context, id StreamingJobId) (result SkuListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c StreamingJobsClient) SkuList(ctx context.Context, id StreamingJobId) (re
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &SkuListCustomPager{},
 		Path:       fmt.Sprintf("%s/skus", id.ID()),
 	}
 

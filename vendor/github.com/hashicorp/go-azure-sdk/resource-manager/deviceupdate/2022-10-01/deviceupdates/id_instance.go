@@ -44,7 +44,7 @@ func ParseInstanceID(input string) (*InstanceId, error) {
 	}
 
 	id := InstanceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseInstanceIDInsensitively(input string) (*InstanceId, error) {
 	}
 
 	id := InstanceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id InstanceId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDeviceUpdate", "Microsoft.DeviceUpdate", "Microsoft.DeviceUpdate"),
 		resourceids.StaticSegment("staticAccounts", "accounts", "accounts"),
-		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.UserSpecifiedSegment("accountName", "accountName"),
 		resourceids.StaticSegment("staticInstances", "instances", "instances"),
-		resourceids.UserSpecifiedSegment("instanceName", "instanceValue"),
+		resourceids.UserSpecifiedSegment("instanceName", "instanceName"),
 	}
 }
 

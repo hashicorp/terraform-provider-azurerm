@@ -37,7 +37,7 @@ resource "azurerm_mssql_virtual_machine" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -77,9 +77,8 @@ The following arguments are supported:
 
 The `auto_backup` block supports the following:
 
-* `encryption_enabled` - (Optional) Enable or disable encryption for backups. Defaults to `false`.
 
-* `encryption_password` - (Optional) Encryption password to use. Must be specified when encryption is enabled.
+* `encryption_password` - (Optional) Encryption password to use. Setting a password will enable encryption.
 
 * `manual_schedule` - (Optional) A `manual_schedule` block as documented below. When this block is present, the schedule type is set to `Manual`. Without this block, the schedule type is set to `Automated`.
 
@@ -105,7 +104,7 @@ The `manual_schedule` block supports the following:
 
 * `days_of_week` - (Optional) A list of days on which backup can take place. Possible values are `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday` and `Sunday`
 
-~> **NOTE:** `days_of_week` can only be specified when `manual_schedule` is set to `Weekly`
+~> **Note:** `days_of_week` can only be specified when `manual_schedule` is set to `Weekly`
 
 ---
 
@@ -147,7 +146,7 @@ The `sql_instance` block supports the following:
 
 * `min_server_memory_mb` - (Optional) Minimum amount memory that SQL Server Memory Manager can allocate to the SQL Server process. Possible values are between `0` and `2147483647` Defaults to `0`.
 
-~> **NOTE:** `max_server_memory_mb` must be greater than or equal to `min_server_memory_mb`
+~> **Note:** `max_server_memory_mb` must be greater than or equal to `min_server_memory_mb`
 
 ---
 
@@ -209,7 +208,7 @@ The `schedule` block supports the following:
 
 * `monthly_occurrence` - (Optional) How many months between assessment runs. Valid values are between `1` and `5`.
 
-~> **NOTE:** Either one of `weekly_interval` or `monthly_occurrence` must be specified.
+~> **Note:** Either one of `weekly_interval` or `monthly_occurrence` must be specified.
 
 * `day_of_week` - (Required) What day of the week the assessment will be run. Possible values are `Friday`, `Monday`, `Saturday`, `Sunday`, `Thursday`, `Tuesday` and `Wednesday`.
 
@@ -233,12 +232,12 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Microsoft SQL Virtual Machine.
-* `update` - (Defaults to 60 minutes) Used when updating the Microsoft SQL Virtual Machine.
+* `create` - (Defaults to 1 hour) Used when creating the Microsoft SQL Virtual Machine.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Microsoft SQL Virtual Machine.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Microsoft SQL Virtual Machine.
+* `update` - (Defaults to 1 hour) Used when updating the Microsoft SQL Virtual Machine.
+* `delete` - (Defaults to 1 hour) Used when deleting the Microsoft SQL Virtual Machine.
 
 ## Import
 
@@ -247,3 +246,11 @@ Microsoft SQL Virtual Machines can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_mssql_virtual_machine.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SqlVirtualMachine/sqlVirtualMachines/example1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Compute` - 2024-03-01
+
+* `Microsoft.SqlVirtualMachine` - 2023-10-01

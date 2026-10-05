@@ -47,7 +47,6 @@ func (c AppPlatformClient) EurekaServersGet(ctx context.Context, id commonids.Sp
 
 	var model EurekaServerResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

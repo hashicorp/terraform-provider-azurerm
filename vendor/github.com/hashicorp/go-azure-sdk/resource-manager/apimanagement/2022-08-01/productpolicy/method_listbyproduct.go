@@ -23,6 +23,18 @@ type ListByProductCompleteResult struct {
 	Items              []PolicyContract
 }
 
+type ListByProductCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByProductCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByProduct ...
 func (c ProductPolicyClient) ListByProduct(ctx context.Context, id ProductId) (result ListByProductOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ProductPolicyClient) ListByProduct(ctx context.Context, id ProductId) (r
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByProductCustomPager{},
 		Path:       fmt.Sprintf("%s/policies", id.ID()),
 	}
 

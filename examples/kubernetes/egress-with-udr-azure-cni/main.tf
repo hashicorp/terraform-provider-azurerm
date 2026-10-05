@@ -1,4 +1,4 @@
-# Copyright (c) HashiCorp, Inc.
+# Copyright IBM Corp. 2014, 2025
 # SPDX-License-Identifier: MPL-2.0
 
 provider "azurerm" {
@@ -28,7 +28,7 @@ resource "azurerm_route_table" "example" {
   name                          = "${var.prefix}fwrt"
   location                      = azurerm_resource_group.example.location
   resource_group_name           = azurerm_resource_group.example.name
-  disable_bgp_route_propagation = false
+  bgp_route_propagation_enabled = true
 
   route {
     name                   = "${var.prefix}fwrn"
@@ -54,6 +54,10 @@ resource "azurerm_kubernetes_cluster" "example" {
     node_count     = 1
     vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = azurerm_subnet.internal.id
+  }
+
+  node_provisioning_profile {
+    mode = "Manual"
   }
 
   network_profile {

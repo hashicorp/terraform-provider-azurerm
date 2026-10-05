@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package signalr_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01/webpubsub"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2024-03-01/webpubsub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type WebPubsubNetworkACLResource struct{}
@@ -41,7 +41,8 @@ func TestAccWebPubsubNetworkACL_complete(t *testing.T) {
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 	})
@@ -55,7 +56,8 @@ func TestAccWebPubsubNetworkACL_complete_withoutPrivateEndpoint(t *testing.T) {
 		{
 			Config: r.complete_withoutPrivateEndpoint(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 	})
@@ -69,13 +71,15 @@ func TestAccWebPubsubNetworkACL_update(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 	})
@@ -104,13 +108,15 @@ func TestAccWebPubsubNetworkACL_updateMultiplePrivateEndpoints(t *testing.T) {
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.multiplePrivateEndpoints(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 	})
@@ -146,7 +152,7 @@ func (r WebPubsubNetworkACLResource) Exists(ctx context.Context, clients *client
 		}
 	}
 
-	return utils.Bool(!isDefaultConfiguration), nil
+	return pointer.To(!isDefaultConfiguration), nil
 }
 
 func (r WebPubsubNetworkACLResource) basic(data acceptance.TestData) string {
@@ -175,11 +181,11 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.5.0.0/16"]
 }
 resource "azurerm_subnet" "test" {
-  name                                           = "acctest-subnet-%d"
-  resource_group_name                            = azurerm_resource_group.test.name
-  virtual_network_name                           = azurerm_virtual_network.test.name
-  address_prefixes                               = ["10.5.2.0/24"]
-  enforce_private_link_endpoint_network_policies = true
+  name                                          = "acctest-subnet-%d"
+  resource_group_name                           = azurerm_resource_group.test.name
+  virtual_network_name                          = azurerm_virtual_network.test.name
+  address_prefixes                              = ["10.5.2.0/24"]
+  private_link_service_network_policies_enabled = true
 }
 resource "azurerm_private_endpoint" "test" {
   name                = "acctest-pe-%d"
@@ -254,11 +260,11 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.5.0.0/16"]
 }
 resource "azurerm_subnet" "test" {
-  name                                           = "acctest-subnet-%d"
-  resource_group_name                            = azurerm_resource_group.test.name
-  virtual_network_name                           = azurerm_virtual_network.test.name
-  address_prefixes                               = ["10.5.2.0/24"]
-  enforce_private_link_endpoint_network_policies = true
+  name                                          = "acctest-subnet-%d"
+  resource_group_name                           = azurerm_resource_group.test.name
+  virtual_network_name                          = azurerm_virtual_network.test.name
+  address_prefixes                              = ["10.5.2.0/24"]
+  private_link_service_network_policies_enabled = true
 }
 
 resource "azurerm_private_endpoint" "test" {
@@ -288,7 +294,7 @@ resource "azurerm_subnet" "test2" {
   virtual_network_name = azurerm_virtual_network.test2.name
   address_prefixes     = ["10.5.2.0/24"]
 
-  enforce_private_link_endpoint_network_policies = true
+  private_link_service_network_policies_enabled = true
 }
 
 resource "azurerm_private_endpoint" "test2" {

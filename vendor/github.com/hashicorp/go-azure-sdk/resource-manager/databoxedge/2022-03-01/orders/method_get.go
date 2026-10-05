@@ -46,7 +46,6 @@ func (c OrdersClient) Get(ctx context.Context, id DataBoxEdgeDeviceId) (result G
 
 	var model Order
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

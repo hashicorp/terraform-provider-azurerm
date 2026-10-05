@@ -23,6 +23,18 @@ type ListByArcSettingCompleteResult struct {
 	Items              []Extension
 }
 
+type ListByArcSettingCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByArcSettingCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByArcSetting ...
 func (c ExtensionsClient) ListByArcSetting(ctx context.Context, id ArcSettingId) (result ListByArcSettingOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ExtensionsClient) ListByArcSetting(ctx context.Context, id ArcSettingId)
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByArcSettingCustomPager{},
 		Path:       fmt.Sprintf("%s/extensions", id.ID()),
 	}
 

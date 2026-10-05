@@ -327,7 +327,7 @@ A `facebook_v2` block supports the following:
 
 A `github_v2` block supports the following:
 
-* `client_id` - The ID of the GitHub app used for login..
+* `client_id` - The ID of the GitHub app used for login.
 
 * `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for GitHub Login.
 
@@ -573,8 +573,6 @@ A `site_config` block exports the following:
 
 * `application_stack` - A `application_stack` block as defined above.
 
-* `auto_heal_enabled` - Are Auto heal rules to be enabled.
-
 * `auto_heal_setting` - A `auto_heal_setting` block as defined above.
 
 * `auto_swap_slot_name` - The Windows Web App Slot Name to automatically swap to when deployment to that slot is successfully completed.
@@ -652,10 +650,6 @@ A `slow_request` block exports the following:
 * `count` - The number of requests within the interval at which to trigger.
 
 * `interval` - The time interval.
-
-* `path` - The App Path for which this rule applies.
-
-~> **NOTE:** `path` in `slow_request` block will be deprecated in 4.0 provider. Please use `slow_request_with_path` to set a slow request trigger with path specified.
 
 * `time_taken` - The amount of time that qualifies as slow for this rule.
 
@@ -767,6 +761,12 @@ A `virtual_directory` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 10 minutes) Used when retrieving the Windows Web App.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Web` - 2023-12-01

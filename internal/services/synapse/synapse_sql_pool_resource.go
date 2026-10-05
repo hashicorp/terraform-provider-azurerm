@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package synapse
@@ -9,12 +9,15 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" //nolint:staticcheck
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	mssqlValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
@@ -22,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 const (
@@ -32,7 +34,7 @@ const (
 )
 
 func resourceSynapseSqlPool() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceSynapseSqlPoolCreate,
 		Read:   resourceSynapseSqlPoolRead,
 		Update: resourceSynapseSqlPoolUpdate,
@@ -48,7 +50,7 @@ func resourceSynapseSqlPool() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.SqlPoolID(id)
 			return err
-		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
 			d.Set("create_mode", DefaultCreateMode)
 			if v, ok := d.GetOk("create_mode"); ok && v.(string) != "" {
 				d.Set("create_mode", v)
@@ -69,7 +71,7 @@ func resourceSynapseSqlPool() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.WorkspaceID,
+				ValidateFunc: validation.AsGeneratedID(workspaces.ParseWorkspaceIDInsensitively),
 			},
 
 			"sku_name": {
@@ -93,6 +95,13 @@ func resourceSynapseSqlPool() *pluginsdk.Resource {
 					"DW15000c",
 					"DW30000c",
 				}, false),
+			},
+
+			"storage_account_type": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInEnumSlice(synapse.PossibleStorageAccountTypeValues(), false),
 			},
 
 			"create_mode": {
@@ -168,42 +177,14 @@ func resourceSynapseSqlPool() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(synapseSqlPoolCustomizeDiff),
 	}
-
-	if !features.FourPointOhBeta() {
-		// NOTE: In v3.0 providers this will be an Optional field with a 'Default'
-		// of 'GRS' to match existing v3.0 behavior, the 'ForceNew' logic will be
-		// applied in the CustomizeDiff function...
-		resource.Schema["storage_account_type"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Default:  string(synapse.StorageAccountTypeGRS),
-			Optional: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(synapse.StorageAccountTypeLRS),
-				string(synapse.StorageAccountTypeGRS),
-			}, false),
-		}
-	} else {
-		resource.Schema["storage_account_type"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(synapse.StorageAccountTypeLRS),
-				string(synapse.StorageAccountTypeGRS),
-			}, false),
-		}
-	}
-
-	return resource
 }
 
-func synapseSqlPoolCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+func synapseSqlPoolCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, v any) error {
 	_, value := d.GetChange("geo_backup_policy_enabled")
 	geoBackupEnabled := value.(bool)
 
@@ -217,7 +198,7 @@ func synapseSqlPoolCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff,
 	return nil
 }
 
-func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta any) error {
 	sqlClient := meta.(*clients.Client).Synapse.SqlPoolClient
 	sqlPTDEClient := meta.(*clients.Client).Synapse.SqlPoolTransparentDataEncryptionClient
 	workspaceClient := meta.(*clients.Client).Synapse.WorkspaceClient
@@ -225,24 +206,28 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	workspaceId, err := parse.WorkspaceID(d.Get("synapse_workspace_id").(string))
+	// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
+	// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
+	workspaceId, err := workspaces.ParseWorkspaceIDInsensitively(d.Get("synapse_workspace_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewSqlPoolID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, d.Get("name").(string))
-	existing, err := sqlClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	id := parse.NewSqlPoolID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, d.Get("name").(string))
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := sqlClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+		if err != nil {
+			if !response.WasNotFound(existing.Response.Response) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+		}
+
+		if !response.WasNotFound(existing.Response.Response) {
+			return tf.ImportAsExistsError("azurerm_synapse_sql_pool", id.ID())
 		}
 	}
-
-	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_synapse_sql_pool", id.ID())
-	}
-
-	workspace, err := workspaceClient.Get(ctx, workspaceId.ResourceGroup, workspaceId.Name)
+	workspace, err := workspaceClient.Get(ctx, workspaceId.ResourceGroupName, workspaceId.WorkspaceName)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", workspaceId, err)
 	}
@@ -254,18 +239,18 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	sqlPoolInfo := synapse.SQLPool{
 		Location: workspace.Location,
 		SQLPoolResourceProperties: &synapse.SQLPoolResourceProperties{
-			CreateMode:         synapse.CreateMode(*utils.String(mode)),
+			CreateMode:         synapse.CreateMode(*pointer.To(mode)),
 			StorageAccountType: storageAccountType,
 		},
 		Sku: &synapse.Sku{
-			Name: utils.String(d.Get("sku_name").(string)),
+			Name: pointer.To(d.Get("sku_name").(string)),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	switch mode {
 	case DefaultCreateMode:
-		sqlPoolInfo.SQLPoolResourceProperties.Collation = utils.String(d.Get("collation").(string))
+		sqlPoolInfo.Collation = pointer.To(d.Get("collation").(string))
 	case RecoveryCreateMode:
 		recoveryDatabaseId := constructSourceDatabaseId(d.Get("recovery_database_id").(string))
 
@@ -273,14 +258,14 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("`recovery_database_id` must be set when `create_mode` is %q", RecoveryCreateMode)
 		}
 
-		sqlPoolInfo.SQLPoolResourceProperties.RecoverableDatabaseID = utils.String(recoveryDatabaseId)
+		sqlPoolInfo.RecoverableDatabaseID = pointer.To(recoveryDatabaseId)
 	case PointInTimeRestoreCreateMode:
-		restore := d.Get("restore").([]interface{})
+		restore := d.Get("restore").([]any)
 		if len(restore) == 0 || restore[0] == nil {
 			return fmt.Errorf("`restore` block must be set when `create_mode` is %q", PointInTimeRestoreCreateMode)
 		}
 
-		v := restore[0].(map[string]interface{})
+		v := restore[0].(map[string]any)
 		sourceDatabaseId := constructSourceDatabaseId(v["source_database_id"].(string))
 		vTime, parseErr := date.ParseTime(time.RFC3339, v["point_in_time"].(string))
 
@@ -288,14 +273,16 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("parsing time format: %+v", parseErr)
 		}
 
-		sqlPoolInfo.SQLPoolResourceProperties.RestorePointInTime = &date.Time{Time: vTime}
-		sqlPoolInfo.SQLPoolResourceProperties.SourceDatabaseID = utils.String(sourceDatabaseId)
+		sqlPoolInfo.RestorePointInTime = &date.Time{Time: vTime}
+		sqlPoolInfo.SourceDatabaseID = pointer.To(sourceDatabaseId)
 	}
 
 	future, err := sqlClient.Create(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, sqlPoolInfo)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+
+	d.SetId(id.ID())
 
 	if err = future.WaitForCompletionRef(ctx, sqlClient.Client); err != nil {
 		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
@@ -327,11 +314,10 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	d.SetId(id.ID())
 	return resourceSynapseSqlPoolRead(d, meta)
 }
 
-func resourceSynapseSqlPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseSqlPoolUpdate(d *pluginsdk.ResourceData, meta any) error {
 	sqlClient := meta.(*clients.Client).Synapse.SqlPoolClient
 	geoBackUpClient := meta.(*clients.Client).Synapse.SqlPoolGeoBackupPoliciesClient
 	sqlPTDEClient := meta.(*clients.Client).Synapse.SqlPoolTransparentDataEncryptionClient
@@ -380,9 +366,9 @@ func resourceSynapseSqlPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	if d.HasChanges("sku_name", "tags") {
 		sqlPoolInfo := synapse.SQLPoolPatchInfo{
 			Sku: &synapse.Sku{
-				Name: utils.String(d.Get("sku_name").(string)),
+				Name: pointer.To(d.Get("sku_name").(string)),
 			},
-			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+			Tags: tags.Expand(d.Get("tags").(map[string]any)),
 		}
 
 		if _, err := sqlClient.Update(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, sqlPoolInfo); err != nil {
@@ -418,7 +404,7 @@ func resourceSynapseSqlPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	return resourceSynapseSqlPoolRead(d, meta)
 }
 
-func resourceSynapseSqlPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseSqlPoolRead(d *pluginsdk.ResourceData, meta any) error {
 	sqlClient := meta.(*clients.Client).Synapse.SqlPoolClient
 	sqlPTDEClient := meta.(*clients.Client).Synapse.SqlPoolTransparentDataEncryptionClient
 	geoBackUpClient := meta.(*clients.Client).Synapse.SqlPoolGeoBackupPoliciesClient
@@ -432,7 +418,7 @@ func resourceSynapseSqlPoolRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	resp, err := sqlClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
@@ -451,9 +437,8 @@ func resourceSynapseSqlPoolRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("retrieving Geo Backup Policy of %s: %+v", *id, err)
 	}
 
-	workspaceId := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID()
 	d.Set("name", id.Name)
-	d.Set("synapse_workspace_id", workspaceId)
+	d.Set("synapse_workspace_id", workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID())
 	if resp.Sku != nil {
 		d.Set("sku_name", resp.Sku.Name)
 	}
@@ -474,12 +459,12 @@ func resourceSynapseSqlPoolRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	// whole "restore" block is not returned. to avoid conflict, so set it from the old state
-	d.Set("restore", d.Get("restore").([]interface{}))
+	d.Set("restore", d.Get("restore").([]any))
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceSynapseSqlPoolDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseSqlPoolDelete(d *pluginsdk.ResourceData, meta any) error {
 	sqlClient := meta.(*clients.Client).Synapse.SqlPoolClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -502,17 +487,17 @@ func resourceSynapseSqlPoolDelete(d *pluginsdk.ResourceData, meta interface{}) e
 }
 
 func synapseSqlPoolScaleStateRefreshFunc(ctx context.Context, client *synapse.SQLPoolsClient, resourceGroup, workspaceName, name string) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		resp, err := client.Get(ctx, resourceGroup, workspaceName, name)
 		if err != nil {
 			return resp, "failed", err
 		}
 
-		if resp.SQLPoolResourceProperties == nil || resp.SQLPoolResourceProperties.Status == nil {
+		if resp.SQLPoolResourceProperties == nil || resp.Status == nil {
 			return resp, "failed", nil
 		}
 
-		return resp, *resp.SQLPoolResourceProperties.Status, nil
+		return resp, *resp.Status, nil
 	}
 }
 

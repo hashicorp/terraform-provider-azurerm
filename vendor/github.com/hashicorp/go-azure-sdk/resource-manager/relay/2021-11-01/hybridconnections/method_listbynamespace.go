@@ -23,6 +23,18 @@ type ListByNamespaceCompleteResult struct {
 	Items              []HybridConnection
 }
 
+type ListByNamespaceCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByNamespaceCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByNamespace ...
 func (c HybridConnectionsClient) ListByNamespace(ctx context.Context, id NamespaceId) (result ListByNamespaceOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c HybridConnectionsClient) ListByNamespace(ctx context.Context, id Namespa
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByNamespaceCustomPager{},
 		Path:       fmt.Sprintf("%s/hybridConnections", id.ID()),
 	}
 

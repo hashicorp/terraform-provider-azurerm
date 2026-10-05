@@ -23,6 +23,18 @@ type CopeRepetitionsListCompleteResult struct {
 	Items              []WorkflowRunActionRepetitionDefinition
 }
 
+type CopeRepetitionsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *CopeRepetitionsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // CopeRepetitionsList ...
 func (c WorkflowRunActionsClient) CopeRepetitionsList(ctx context.Context, id ActionId) (result CopeRepetitionsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c WorkflowRunActionsClient) CopeRepetitionsList(ctx context.Context, id Ac
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &CopeRepetitionsListCustomPager{},
 		Path:       fmt.Sprintf("%s/scopeRepetitions", id.ID()),
 	}
 

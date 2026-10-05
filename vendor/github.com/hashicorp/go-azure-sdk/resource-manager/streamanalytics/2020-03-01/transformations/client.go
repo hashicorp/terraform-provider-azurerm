@@ -15,7 +15,7 @@ type TransformationsClient struct {
 }
 
 func NewTransformationsClientWithBaseURI(sdkApi sdkEnv.Api) (*TransformationsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "transformations", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "transformations", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating TransformationsClient: %+v", err)
 	}

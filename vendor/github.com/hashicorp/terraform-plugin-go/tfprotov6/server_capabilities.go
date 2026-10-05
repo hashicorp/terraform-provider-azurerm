@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2020, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package tfprotov6
@@ -14,9 +14,17 @@ type ServerCapabilities struct {
 	// means the caller can use a cached copy of the provider's schema instead.
 	GetProviderSchemaOptional bool
 
+	// MoveResourceState signals that a provider supports the MoveResourceState
+	// RPC.
+	MoveResourceState bool
+
 	// PlanDestroy signals that a provider expects a call to
 	// PlanResourceChange when a resource is going to be destroyed. This is
 	// opt-in to prevent unexpected errors or panics since the
 	// ProposedNewState in PlanResourceChangeRequest will be a null value.
 	PlanDestroy bool
+
+	// GenerateResourceConfig signals that a provider supports the GenerateResourceConfig
+	// RPC.
+	GenerateResourceConfig bool
 }

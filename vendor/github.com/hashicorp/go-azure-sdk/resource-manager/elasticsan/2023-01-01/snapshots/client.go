@@ -15,7 +15,7 @@ type SnapshotsClient struct {
 }
 
 func NewSnapshotsClientWithBaseURI(sdkApi sdkEnv.Api) (*SnapshotsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "snapshots", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "snapshots", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SnapshotsClient: %+v", err)
 	}

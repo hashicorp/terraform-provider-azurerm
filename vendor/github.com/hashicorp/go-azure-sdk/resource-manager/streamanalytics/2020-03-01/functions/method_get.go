@@ -45,7 +45,6 @@ func (c FunctionsClient) Get(ctx context.Context, id FunctionId) (result GetOper
 
 	var model Function
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

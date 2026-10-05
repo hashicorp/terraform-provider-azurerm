@@ -1,15 +1,17 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/ipgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/ipgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -17,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceIpGroupCidr() *pluginsdk.Resource {
@@ -54,9 +55,8 @@ func resourceIpGroupCidr() *pluginsdk.Resource {
 	}
 }
 
-func resourceIpGroupCidrCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.IPGroups
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+func resourceIpGroupCidrCreate(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Network.IPGroups
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -66,7 +66,7 @@ func resourceIpGroupCidrCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	if err != nil {
 		return err
 	}
-	id := parse.NewIpGroupCidrID(subscriptionId, ipGroupId.ResourceGroupName, ipGroupId.IpGroupName, cidrName)
+	id := parse.NewIpGroupCidrID(ipGroupId.SubscriptionId, ipGroupId.ResourceGroupName, ipGroupId.IpGroupName, cidrName)
 
 	locks.ByID(ipGroupId.ID())
 	defer locks.UnlockByID(ipGroupId.ID())
@@ -85,15 +85,21 @@ func resourceIpGroupCidrCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("retrieving %s: `properties` was nil", ipGroupId)
 	}
 
-	if utils.SliceContainsValue(*existing.Model.Properties.IPAddresses, cidr) {
-		return tf.ImportAsExistsError("azurerm_ip_group_cidr", id.ID())
+	exists := false
+	if slices.Contains(*existing.Model.Properties.IPAddresses, cidr) {
+		exists = true
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			return tf.ImportAsExistsError("azurerm_ip_group_cidr", id.ID())
+		}
 	}
 
 	ipAddresses := make([]string, 0)
 	if existing.Model.Properties.IPAddresses != nil {
 		ipAddresses = *existing.Model.Properties.IPAddresses
 	}
-	ipAddresses = append(ipAddresses, cidr)
+	if !exists {
+		ipAddresses = append(ipAddresses, cidr)
+	}
 
 	params := ipgroups.IPGroup{
 		Name:     &ipGroupId.IpGroupName,
@@ -104,6 +110,7 @@ func resourceIpGroupCidrCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		},
 	}
 
+	// TODO: implement callback, requires migrating to an ID implementing `resourceids.ResourceId`
 	if err := client.CreateOrUpdateThenPoll(ctx, *ipGroupId, params); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -113,8 +120,8 @@ func resourceIpGroupCidrCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	return resourceIpGroupCidrRead(d, meta)
 }
 
-func resourceIpGroupCidrRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.IPGroups
+func resourceIpGroupCidrRead(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Network.IPGroups
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -136,10 +143,11 @@ func resourceIpGroupCidrRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		if resp.Model.Properties == nil {
 			return fmt.Errorf("retrieving %s: `properties` was nil", ipGroupId)
 		}
-		if !utils.SliceContainsValue(*resp.Model.Properties.IPAddresses, cidr) {
-			d.SetId("")
-			return nil
-		}
+	}
+
+	if !slices.Contains(pointer.From(resp.Model.Properties.IPAddresses), cidr) {
+		d.SetId("")
+		return nil
 	}
 
 	d.Set("ip_group_id", ipGroupId.ID())
@@ -148,8 +156,8 @@ func resourceIpGroupCidrRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func resourceIpGroupCidrDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.IPGroups
+func resourceIpGroupCidrDelete(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Network.IPGroups
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -159,7 +167,7 @@ func resourceIpGroupCidrDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	// TODO this resource should use a composite resource ID to remove this instance of d.Get() in the Delete
-	// this file can then be removed from the exceptions list in the run-gradually-deprecated.sh script
+	// this file can then be removed from the exceptions list in the gradually-deprecated.sh script
 	cidr := d.Get("cidr").(string)
 	ipGroupId := ipgroups.NewIPGroupID(id.SubscriptionId, id.ResourceGroup, id.IpGroupName)
 
@@ -180,7 +188,7 @@ func resourceIpGroupCidrDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	ipAddresses := *existing.Model.Properties.IPAddresses
-	ipAddresses = utils.RemoveFromStringArray(ipAddresses, cidr)
+	ipAddresses = slices.DeleteFunc(ipAddresses, func(s string) bool { return s == cidr })
 
 	params := ipgroups.IPGroup{
 		Name:     &ipGroupId.IpGroupName,

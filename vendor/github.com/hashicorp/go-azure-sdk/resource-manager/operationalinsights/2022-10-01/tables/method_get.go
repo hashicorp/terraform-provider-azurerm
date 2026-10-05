@@ -45,7 +45,6 @@ func (c TablesClient) Get(ctx context.Context, id TableId) (result GetOperationR
 
 	var model Table
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

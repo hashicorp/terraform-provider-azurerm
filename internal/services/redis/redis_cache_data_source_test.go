@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package redis_test
@@ -30,6 +30,7 @@ func TestAccRedisCacheDataSource_standard(t *testing.T) {
 				check.That(data.ResourceName).Key("tags.environment").HasValue("production"),
 				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
 				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("access_keys_authentication_enabled").Exists(),
 			),
 		},
 	})

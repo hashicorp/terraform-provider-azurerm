@@ -49,7 +49,6 @@ func (c MachinesClient) CreateOrUpdate(ctx context.Context, id MachineId, input 
 
 	var model Machine
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -23,6 +23,18 @@ type ListBasicAuthCompleteResult struct {
 	Items              []StaticSiteBasicAuthPropertiesARMResource
 }
 
+type ListBasicAuthCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListBasicAuthCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListBasicAuth ...
 func (c StaticSitesClient) ListBasicAuth(ctx context.Context, id StaticSiteId) (result ListBasicAuthOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c StaticSitesClient) ListBasicAuth(ctx context.Context, id StaticSiteId) (
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListBasicAuthCustomPager{},
 		Path:       fmt.Sprintf("%s/basicAuth", id.ID()),
 	}
 

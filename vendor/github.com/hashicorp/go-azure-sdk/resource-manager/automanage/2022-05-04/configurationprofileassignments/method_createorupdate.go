@@ -50,7 +50,6 @@ func (c ConfigurationProfileAssignmentsClient) CreateOrUpdate(ctx context.Contex
 
 	var model ConfigurationProfileAssignment
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

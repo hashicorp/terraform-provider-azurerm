@@ -15,7 +15,7 @@ type ScriptActionsClient struct {
 }
 
 func NewScriptActionsClientWithBaseURI(sdkApi sdkEnv.Api) (*ScriptActionsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "scriptactions", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "scriptactions", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ScriptActionsClient: %+v", err)
 	}

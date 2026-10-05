@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package legacy_test
@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -178,28 +178,6 @@ func TestAccVirtualMachineScaleSet_updateNetworkProfile_ipconfiguration_dns_name
 		},
 
 		data.ImportStep("os_profile.0.admin_password"),
-	})
-}
-
-func TestAccVirtualMachineScaleSet_verify_key_data_changed(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
-	r := VirtualMachineScaleSetResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.linux(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("os_profile.0.admin_password", "os_profile.0.custom_data"),
-		{
-			Config: r.linuxKeyDataUpdated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("os_profile.0.admin_password", "os_profile.0.custom_data"),
 	})
 }
 
@@ -852,7 +830,6 @@ func (VirtualMachineScaleSetResource) hasLoadBalancer(ctx context.Context, clien
 				}
 			}
 		}
-
 	}
 
 	return fmt.Errorf("load balancer configuration was missing")
@@ -943,24 +920,6 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -992,10 +951,9 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
   }
 
   storage_profile_image_reference {
@@ -1005,7 +963,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r VirtualMachineScaleSetResource) requiresImport(data acceptance.TestData) string {
@@ -1042,10 +1000,9 @@ resource "azurerm_virtual_machine_scale_set" "import" {
   }
 
   storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
   }
 
   storage_profile_image_reference {
@@ -1083,24 +1040,6 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -1133,10 +1072,9 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
   }
 
   storage_profile_image_reference {
@@ -1146,7 +1084,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (VirtualMachineScaleSetResource) standardSSD(data acceptance.TestData) string {
@@ -1172,24 +1110,6 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -1236,7 +1156,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (VirtualMachineScaleSetResource) withPPG(data acceptance.TestData) string {
@@ -1262,24 +1182,6 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
 }
 
 resource "azurerm_proximity_placement_group" "test" {
@@ -1334,7 +1236,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   proximity_placement_group_id = azurerm_proximity_placement_group.test.id
 }
-`, data.RandomInteger, data.Locations.Primary)
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (VirtualMachineScaleSetResource) basicPublicIP(data acceptance.TestData) string {
@@ -1360,24 +1262,6 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -1416,10 +1300,9 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
   }
 
   storage_profile_image_reference {
@@ -1429,7 +1312,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (VirtualMachineScaleSetResource) basicEmptyPublicIP(data acceptance.TestData) string {
@@ -1455,24 +1338,6 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -1515,10 +1380,9 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
   }
 
   storage_profile_image_reference {
@@ -1528,7 +1392,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (VirtualMachineScaleSetResource) basicEmptyPublicIP_updated_tags(data acceptance.TestData) string {
@@ -1554,24 +1418,6 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -1614,10 +1460,9 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
   }
 
   storage_profile_image_reference {
@@ -1627,7 +1472,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (VirtualMachineScaleSetResource) basicEmptyNetworkProfile_true_ipforwarding(data acceptance.TestData) string {
@@ -1653,24 +1498,6 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -1714,10 +1541,9 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
   }
 
   storage_profile_image_reference {
@@ -1727,7 +1553,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (VirtualMachineScaleSetResource) basicEmptyPublicIP_updatedDNS_label(data acceptance.TestData) string {
@@ -1753,24 +1579,6 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -1813,10 +1621,9 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
   }
 
   storage_profile_image_reference {
@@ -1826,7 +1633,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (VirtualMachineScaleSetResource) basicApplicationSecurity(data acceptance.TestData) string {
@@ -1860,24 +1667,6 @@ resource "azurerm_application_security_group" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -1909,10 +1698,9 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
   }
 
   storage_profile_image_reference {
@@ -1922,7 +1710,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (VirtualMachineScaleSetResource) basicAcceleratedNetworking(data acceptance.TestData) string {
@@ -1948,24 +1736,6 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -1999,10 +1769,9 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
   }
 
   storage_profile_image_reference {
@@ -2012,7 +1781,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (VirtualMachineScaleSetResource) basicIPForwarding(data acceptance.TestData) string {
@@ -2038,24 +1807,6 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -2089,10 +1840,9 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
   }
 
   storage_profile_image_reference {
@@ -2102,7 +1852,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (VirtualMachineScaleSetResource) basicDNSSettings(data acceptance.TestData) string {
@@ -2128,24 +1878,6 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -2182,10 +1914,9 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
   }
 
   storage_profile_image_reference {
@@ -2195,7 +1926,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (VirtualMachineScaleSetResource) bootDiagnostic(data acceptance.TestData) string {
@@ -2235,12 +1966,6 @@ resource "azurerm_storage_account" "test" {
   }
 }
 
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -2275,10 +2000,9 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
   }
 
   storage_profile_image_reference {
@@ -2288,7 +2012,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (VirtualMachineScaleSetResource) networkSecurityGroup(data acceptance.TestData) string {
@@ -2314,24 +2038,6 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
 }
 
 resource "azurerm_network_security_group" "test" {
@@ -2377,10 +2083,9 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
   }
 
   storage_profile_image_reference {
@@ -2390,7 +2095,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (VirtualMachineScaleSetResource) basicWindows(data acceptance.TestData) string {
@@ -2416,24 +2121,6 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -2475,10 +2162,9 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
   }
 
   storage_profile_image_reference {
@@ -2488,7 +2174,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (VirtualMachineScaleSetResource) singlePlacementGroupFalse(data acceptance.TestData) string {
@@ -2514,24 +2200,6 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -2578,7 +2246,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (VirtualMachineScaleSetResource) linux(data acceptance.TestData) string {
@@ -2606,20 +2274,6 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.1.0/24"]
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "acctestsc-%[1]d"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_public_ip" "test" {
   name                = "acctestpip-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -2683,11 +2337,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    os_type        = "linux"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    os_type           = "linux"
+    managed_disk_type = "Standard_LRS"
   }
 
   storage_profile_image_reference {
@@ -2697,7 +2350,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (VirtualMachineScaleSetResource) linuxUpdated(data acceptance.TestData) string {
@@ -2725,20 +2378,6 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.1.0/24"]
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "acctestsc-%[1]d"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_public_ip" "test" {
   name                = "acctestpip-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -2802,11 +2441,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    os_type        = "linux"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    os_type           = "linux"
+    managed_disk_type = "Standard_LRS"
   }
 
   storage_profile_image_reference {
@@ -2820,7 +2458,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     ThisIs = "a test"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (VirtualMachineScaleSetResource) linuxCustomDataUpdated(data acceptance.TestData) string {
@@ -2846,20 +2484,6 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.1.0/24"]
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "acctestsc-%[1]d"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
 }
 
 resource "azurerm_public_ip" "test" {
@@ -2925,11 +2549,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    os_type        = "linux"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    os_type           = "linux"
+    managed_disk_type = "Standard_LRS"
   }
 
   storage_profile_image_reference {
@@ -2939,126 +2562,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
-}
-
-func (VirtualMachineScaleSetResource) linuxKeyDataUpdated(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvn-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  address_space       = ["10.0.0.0/8"]
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctestsn-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.0/24"]
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "acctestsc-%[1]d"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
-resource "azurerm_public_ip" "test" {
-  name                = "acctestpip-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  allocation_method   = "Static"
-}
-
-resource "azurerm_lb" "test" {
-  name                = "acctestlb-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-
-  frontend_ip_configuration {
-    name                 = "ip-address"
-    public_ip_address_id = azurerm_public_ip.test.id
-  }
-}
-
-resource "azurerm_lb_backend_address_pool" "test" {
-  name            = "acctestbap-%[1]d"
-  loadbalancer_id = azurerm_lb.test.id
-}
-
-resource "azurerm_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  upgrade_policy_mode = "Automatic"
-
-  sku {
-    name     = "Standard_F2"
-    tier     = "Standard"
-    capacity = "1"
-  }
-
-  os_profile {
-    computer_name_prefix = "prefix"
-    admin_username       = "ubuntu"
-    custom_data          = "updated custom data!"
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = true
-
-    ssh_keys {
-      path     = "/home/ubuntu/.ssh/authorized_keys"
-      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDvXYZAjVUt2aojUV3XIA+PY6gXrgbvktXwf2NoIHGlQFhogpMEyOfqgogCtTBM7MNCS3ELul6SV+mlpH08Ki45ADIQuDXdommCvsMFW096JrsHOJpGfjCsJ1gbbv7brB3Ag+BSGb4qO3pRsEVTtZCeJDwfH5D7vmqP5xXcELKR4UAtKQKUhLvt6mhW90sFLTJeOTiYGbavIKqfCUFSeSMQkUPr8o3uzOfeWyCw7tc7szLuvfwJ5poGHuve73KKAlUnDTPUrhyj7iITZSDl+/i+bpDzPyCyJWDMsC0ON7q2fDr2mEz0L9ACrsI5Nx3lt5fe+IaHSrjivqnL8SqUWSN45o9Qp99sGWFiuTfos8f1jp+AXzC4ArVtKyRg/CnzKRiK0CGSxBJ5s9zAoa7yBBmjCszq89vFa0eMgpEIZFwa6kKJKt9AfRBXgO9YGPV4uaN7topy92/p2pE+vF8IafarbvnTDOQt62mS07tXYqYg1DhecrmBVWKlq9oafBweoeTjoq52SoGsuDc/YAOzIgWVIuvV8yKoh9KbXPWowjLtxDhRIS/d1nMMNdNI8X0TQivgi5+umMgAXhsVAKSNDUauLt4jimYkWAuE+R6KoCqVFdaB9bQDySBjAziruDSe3reToydjzzluvHMjWK8QiDynxs41pi4zZz6gAlca3QPkEQ== hello@world.com"
-    }
-  }
-
-  network_profile {
-    name    = "TestNetworkProfile"
-    primary = true
-
-    ip_configuration {
-      name                                   = "TestIPConfiguration"
-      primary                                = true
-      subnet_id                              = azurerm_subnet.test.id
-      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
-    }
-  }
-
-  storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    os_type        = "linux"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
-  }
-
-  storage_profile_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
-    version   = "latest"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary)
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (VirtualMachineScaleSetResource) basicLinux_managedDisk(data acceptance.TestData) string {
@@ -3388,20 +2892,6 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -3433,10 +2923,9 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    name           = "os-disk"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
   }
 
   storage_profile_image_reference {
@@ -3459,7 +2948,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-pubip-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_application_gateway" "test" {
@@ -3468,9 +2958,9 @@ resource "azurerm_application_gateway" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   sku {
-    name     = "Standard_Medium"
-    tier     = "Standard"
-    capacity = 1
+    name     = "Standard_v2"
+    tier     = "Standard_v2"
+    capacity = 2
   }
 
   gateway_ip_configuration {
@@ -3483,15 +2973,6 @@ resource "azurerm_application_gateway" "test" {
     # id = computed
     name                 = "ip-config-public"
     public_ip_address_id = azurerm_public_ip.test.id
-  }
-
-  frontend_ip_configuration {
-    # id = computed
-    name      = "ip-config-private"
-    subnet_id = azurerm_subnet.gwtest.id
-
-    # private_ip_address = computed
-    private_ip_address_allocation = "Dynamic"
   }
 
   frontend_port {
@@ -3538,6 +3019,9 @@ resource "azurerm_application_gateway" "test" {
     timeout             = 120
     interval            = 300
     unhealthy_threshold = 8
+    match {
+      status_code = ["200-399"]
+    }
   }
 
   request_routing_rule {
@@ -3553,13 +3037,15 @@ resource "azurerm_application_gateway" "test" {
 
     # backend_http_settings_id = computed
     backend_http_settings_name = "backend-http-1"
+
+    priority = 10
   }
 
   tags = {
     environment = "tf01"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (VirtualMachineScaleSetResource) loadBalancerTemplate(data acceptance.TestData) string {
@@ -3585,20 +3071,6 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
 }
 
 resource "azurerm_lb" "test" {
@@ -3661,10 +3133,9 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    name           = "os-disk"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
   }
 
   storage_profile_image_reference {
@@ -3674,7 +3145,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (VirtualMachineScaleSetResource) overProvisionTemplate(data acceptance.TestData) string {
@@ -3700,20 +3171,6 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -3747,10 +3204,9 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    name           = "os-disk"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
   }
 
   storage_profile_image_reference {
@@ -3760,7 +3216,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (VirtualMachineScaleSetResource) priorityTemplate(data acceptance.TestData) string {
@@ -3786,20 +3242,6 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -3835,10 +3277,9 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    name           = "os-disk"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
   }
 
   storage_profile_image_reference {
@@ -3848,7 +3289,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (VirtualMachineScaleSetResource) systemAssignedMSI(data acceptance.TestData) string {
@@ -3874,20 +3315,6 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -3933,10 +3360,9 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    name           = "os-disk"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
   }
 
   storage_profile_image_reference {
@@ -3946,7 +3372,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (VirtualMachineScaleSetResource) userAssignedMSI(data acceptance.TestData) string {
@@ -3972,20 +3398,6 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
 }
 
 resource "azurerm_user_assigned_identity" "test" {
@@ -4039,10 +3451,9 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    name           = "os-disk"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
   }
 
   storage_profile_image_reference {
@@ -4052,7 +3463,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (VirtualMachineScaleSetResource) extensionTemplate(data acceptance.TestData) string {
@@ -4086,12 +3497,10 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-}
 
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
+  tags = {
+    environment = "staging"
+  }
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -4133,10 +3542,9 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    name           = "os-disk"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
   }
 
   storage_profile_image_reference {
@@ -4154,22 +3562,21 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     auto_upgrade_minor_version = true
 
     settings = <<SETTINGS
-		{
-			"commandToExecute": "echo $HOSTNAME"
-		}
-SETTINGS
-
+			{
+				"commandToExecute": "echo $HOSTNAME"
+			}
+	SETTINGS
 
     protected_settings = <<SETTINGS
-		{
-			"storageAccountName": "${azurerm_storage_account.test.name}",
-			"storageAccountKey": "${azurerm_storage_account.test.primary_access_key}"
-		}
-SETTINGS
+			{
+				"storageAccountName": "${azurerm_storage_account.test.name}",
+				"storageAccountKey": "${azurerm_storage_account.test.primary_access_key}"
+			}
+	SETTINGS
 
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (VirtualMachineScaleSetResource) extensionTemplateUpdated(data acceptance.TestData) string {
@@ -4203,12 +3610,10 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-}
 
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
+  tags = {
+    environment = "staging"
+  }
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -4250,10 +3655,9 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    name           = "os-disk"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
   }
 
   storage_profile_image_reference {
@@ -4271,23 +3675,22 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     auto_upgrade_minor_version = true
 
     settings = <<SETTINGS
-		{
-			"commandToExecute": "echo $HOSTNAME",
-			"timestamp": 12345679955
-		}
-SETTINGS
-
+			{
+				"commandToExecute": "echo $HOSTNAME",
+				"timestamp": 12345679955
+			}
+	SETTINGS
 
     protected_settings = <<SETTINGS
-		{
-			"storageAccountName": "${azurerm_storage_account.test.name}",
-			"storageAccountKey": "${azurerm_storage_account.test.primary_access_key}"
-		}
-SETTINGS
+			{
+				"storageAccountName": "${azurerm_storage_account.test.name}",
+				"storageAccountKey": "${azurerm_storage_account.test.primary_access_key}"
+			}
+	SETTINGS
 
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (VirtualMachineScaleSetResource) multipleExtensionsTemplate(data acceptance.TestData) string {
@@ -4321,12 +3724,10 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-}
 
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
+  tags = {
+    environment = "staging"
+  }
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -4360,10 +3761,9 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    name           = "os-disk"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
   }
 
   storage_profile_image_reference {
@@ -4381,18 +3781,17 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     auto_upgrade_minor_version = true
 
     settings = <<SETTINGS
-		{
-			"commandToExecute": "echo $HOSTNAME"
-		}
-SETTINGS
-
+			{
+				"commandToExecute": "echo $HOSTNAME"
+			}
+	SETTINGS
 
     protected_settings = <<SETTINGS
-		{
-			"storageAccountName": "${azurerm_storage_account.test.name}",
-			"storageAccountKey": "${azurerm_storage_account.test.primary_access_key}"
-		}
-SETTINGS
+			{
+				"storageAccountName": "${azurerm_storage_account.test.name}",
+				"storageAccountKey": "${azurerm_storage_account.test.primary_access_key}"
+			}
+	SETTINGS
 
   }
 
@@ -4404,7 +3803,7 @@ SETTINGS
     auto_upgrade_minor_version = true
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (VirtualMachineScaleSetResource) multipleExtensionsTemplate_provision_after_extension(data acceptance.TestData) string {
@@ -4438,12 +3837,10 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-}
 
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
+  tags = {
+    environment = "staging"
+  }
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -4477,10 +3874,9 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    name           = "os-disk"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
   }
 
   storage_profile_image_reference {
@@ -4498,18 +3894,17 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     auto_upgrade_minor_version = true
 
     settings = <<SETTINGS
-		{
-			"commandToExecute": "echo $HOSTNAME"
-		}
-SETTINGS
-
+			{
+				"commandToExecute": "echo $HOSTNAME"
+			}
+	SETTINGS
 
     protected_settings = <<SETTINGS
-		{
-			"storageAccountName": "${azurerm_storage_account.test.name}",
-			"storageAccountKey": "${azurerm_storage_account.test.primary_access_key}"
-		}
-SETTINGS
+			{
+				"storageAccountName": "${azurerm_storage_account.test.name}",
+				"storageAccountKey": "${azurerm_storage_account.test.primary_access_key}"
+			}
+	SETTINGS
 
   }
 
@@ -4522,7 +3917,7 @@ SETTINGS
     provision_after_extensions = ["CustomScript"]
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (VirtualMachineScaleSetResource) osDiskTypeConflict(data acceptance.TestData) string {
@@ -4580,7 +3975,6 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    name              = ""
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
@@ -4719,24 +4113,6 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -4767,10 +4143,9 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
   }
 
   storage_profile_image_reference {
@@ -4780,7 +4155,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (VirtualMachineScaleSetResource) planManagedDisk(data acceptance.TestData) string {
@@ -4884,24 +4259,6 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "acctvmss-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -4943,10 +4300,9 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
   }
 
   storage_profile_image_reference {
@@ -4956,7 +4312,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (VirtualMachineScaleSetResource) rollingAutoUpdates(data acceptance.TestData) string {
@@ -4988,14 +4344,16 @@ resource "azurerm_public_ip" "test" {
   name                    = "acctestpip-%[1]d"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
-  allocation_method       = "Dynamic"
+  allocation_method       = "Static"
   idle_timeout_in_minutes = 4
+  sku                     = "Standard"
 }
 
 resource "azurerm_lb" "test" {
   name                = "acctestlb-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
 
   frontend_ip_configuration {
     name                 = "PublicIPAddress"
@@ -5131,14 +4489,16 @@ resource "azurerm_public_ip" "test" {
   name                    = "acctestpip-%[1]d"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
-  allocation_method       = "Dynamic"
+  allocation_method       = "Static"
   idle_timeout_in_minutes = 4
+  sku                     = "Standard"
 }
 
 resource "azurerm_lb" "test" {
   name                = "acctestlb-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
 
   frontend_ip_configuration {
     name                 = "PublicIPAddress"
@@ -5254,20 +4614,6 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
 resource "azurerm_user_assigned_identity" "test" {
   name                = "acctest%[3]s"
   resource_group_name = azurerm_resource_group.test.name
@@ -5310,10 +4656,9 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_os_disk {
-    name           = "os-disk"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
   }
 
   storage_profile_image_reference {
@@ -5323,5 +4668,5 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

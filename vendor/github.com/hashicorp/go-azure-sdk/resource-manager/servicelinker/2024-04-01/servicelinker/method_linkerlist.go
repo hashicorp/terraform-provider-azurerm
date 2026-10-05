@@ -24,14 +24,27 @@ type LinkerListCompleteResult struct {
 	Items              []LinkerResource
 }
 
+type LinkerListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *LinkerListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // LinkerList ...
-func (c ServiceLinkerClient) LinkerList(ctx context.Context, id commonids.ScopeId) (result LinkerListOperationResponse, err error) {
+func (c ServicelinkerClient) LinkerList(ctx context.Context, id commonids.ScopeId) (result LinkerListOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &LinkerListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.ServiceLinker/linkers", id.ID()),
 	}
 
@@ -63,12 +76,12 @@ func (c ServiceLinkerClient) LinkerList(ctx context.Context, id commonids.ScopeI
 }
 
 // LinkerListComplete retrieves all the results into a single object
-func (c ServiceLinkerClient) LinkerListComplete(ctx context.Context, id commonids.ScopeId) (LinkerListCompleteResult, error) {
+func (c ServicelinkerClient) LinkerListComplete(ctx context.Context, id commonids.ScopeId) (LinkerListCompleteResult, error) {
 	return c.LinkerListCompleteMatchingPredicate(ctx, id, LinkerResourceOperationPredicate{})
 }
 
 // LinkerListCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c ServiceLinkerClient) LinkerListCompleteMatchingPredicate(ctx context.Context, id commonids.ScopeId, predicate LinkerResourceOperationPredicate) (result LinkerListCompleteResult, err error) {
+func (c ServicelinkerClient) LinkerListCompleteMatchingPredicate(ctx context.Context, id commonids.ScopeId, predicate LinkerResourceOperationPredicate) (result LinkerListCompleteResult, err error) {
 	items := make([]LinkerResource, 0)
 
 	resp, err := c.LinkerList(ctx, id)

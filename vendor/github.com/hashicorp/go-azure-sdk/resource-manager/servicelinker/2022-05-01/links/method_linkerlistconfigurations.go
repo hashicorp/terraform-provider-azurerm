@@ -46,7 +46,6 @@ func (c LinksClient) LinkerListConfigurations(ctx context.Context, id ScopedLink
 
 	var model SourceConfigurationResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

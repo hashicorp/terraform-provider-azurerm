@@ -50,7 +50,6 @@ func (c IntegrationAccountCertificatesClient) CreateOrUpdate(ctx context.Context
 
 	var model IntegrationAccountCertificate
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

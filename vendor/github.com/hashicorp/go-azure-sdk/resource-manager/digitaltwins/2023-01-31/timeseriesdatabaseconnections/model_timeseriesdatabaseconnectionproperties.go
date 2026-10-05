@@ -10,18 +10,41 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type TimeSeriesDatabaseConnectionProperties interface {
+	TimeSeriesDatabaseConnectionProperties() BaseTimeSeriesDatabaseConnectionPropertiesImpl
 }
 
-// RawTimeSeriesDatabaseConnectionPropertiesImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+var _ TimeSeriesDatabaseConnectionProperties = BaseTimeSeriesDatabaseConnectionPropertiesImpl{}
+
+type BaseTimeSeriesDatabaseConnectionPropertiesImpl struct {
+	ConnectionType    ConnectionType                     `json:"connectionType"`
+	Identity          *ManagedIdentityReference          `json:"identity,omitempty"`
+	ProvisioningState *TimeSeriesDatabaseConnectionState `json:"provisioningState,omitempty"`
+}
+
+func (s BaseTimeSeriesDatabaseConnectionPropertiesImpl) TimeSeriesDatabaseConnectionProperties() BaseTimeSeriesDatabaseConnectionPropertiesImpl {
+	return s
+}
+
+var _ TimeSeriesDatabaseConnectionProperties = RawTimeSeriesDatabaseConnectionPropertiesImpl{}
+
+// RawTimeSeriesDatabaseConnectionPropertiesImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawTimeSeriesDatabaseConnectionPropertiesImpl struct {
-	Type   string
-	Values map[string]interface{}
+	timeSeriesDatabaseConnectionProperties BaseTimeSeriesDatabaseConnectionPropertiesImpl
+	Type                                   string
+	Values                                 map[string]interface{}
 }
 
-func unmarshalTimeSeriesDatabaseConnectionPropertiesImplementation(input []byte) (TimeSeriesDatabaseConnectionProperties, error) {
+func (s RawTimeSeriesDatabaseConnectionPropertiesImpl) TimeSeriesDatabaseConnectionProperties() BaseTimeSeriesDatabaseConnectionPropertiesImpl {
+	return s.timeSeriesDatabaseConnectionProperties
+}
+
+func (s RawTimeSeriesDatabaseConnectionPropertiesImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
+}
+
+func UnmarshalTimeSeriesDatabaseConnectionPropertiesImplementation(input []byte) (TimeSeriesDatabaseConnectionProperties, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +54,9 @@ func unmarshalTimeSeriesDatabaseConnectionPropertiesImplementation(input []byte)
 		return nil, fmt.Errorf("unmarshaling TimeSeriesDatabaseConnectionProperties into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["connectionType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["connectionType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "AzureDataExplorer") {
@@ -44,10 +67,15 @@ func unmarshalTimeSeriesDatabaseConnectionPropertiesImplementation(input []byte)
 		return out, nil
 	}
 
-	out := RawTimeSeriesDatabaseConnectionPropertiesImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseTimeSeriesDatabaseConnectionPropertiesImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseTimeSeriesDatabaseConnectionPropertiesImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawTimeSeriesDatabaseConnectionPropertiesImpl{
+		timeSeriesDatabaseConnectionProperties: parent,
+		Type:                                   value,
+		Values:                                 temp,
+	}, nil
 
 }

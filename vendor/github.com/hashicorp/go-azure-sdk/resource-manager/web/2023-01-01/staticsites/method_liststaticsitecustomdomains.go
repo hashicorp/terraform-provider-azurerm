@@ -23,6 +23,18 @@ type ListStaticSiteCustomDomainsCompleteResult struct {
 	Items              []StaticSiteCustomDomainOverviewARMResource
 }
 
+type ListStaticSiteCustomDomainsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListStaticSiteCustomDomainsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListStaticSiteCustomDomains ...
 func (c StaticSitesClient) ListStaticSiteCustomDomains(ctx context.Context, id StaticSiteId) (result ListStaticSiteCustomDomainsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c StaticSitesClient) ListStaticSiteCustomDomains(ctx context.Context, id S
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListStaticSiteCustomDomainsCustomPager{},
 		Path:       fmt.Sprintf("%s/customDomains", id.ID()),
 	}
 

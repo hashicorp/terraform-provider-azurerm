@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package signalr_test
@@ -8,16 +8,18 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2023-02-01/signalr"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SignalRServiceResource struct{}
+
+type SignalrServiceResource = SignalRServiceResource
 
 func TestAccSignalRService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
@@ -577,11 +579,11 @@ func (r SignalRServiceResource) Exists(ctx context.Context, client *clients.Clie
 	resp, err := client.SignalR.SignalRClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r SignalRServiceResource) basic(data acceptance.TestData) string {
@@ -603,10 +605,6 @@ resource "azurerm_signalr_service" "test" {
   sku {
     name     = "Standard_S1"
     capacity = 1
-  }
-
-  lifecycle {
-    ignore_changes = [cors]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -638,10 +636,6 @@ resource "azurerm_signalr_service" "test" {
   aad_auth_enabled                         = false
   tls_client_cert_enabled                  = false
   serverless_connection_timeout_in_seconds = 5
-
-  lifecycle {
-    ignore_changes = [cors]
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -683,10 +677,6 @@ resource "azurerm_signalr_service" "test" {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
-
-  lifecycle {
-    ignore_changes = [cors]
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -721,10 +711,6 @@ resource "azurerm_signalr_service" "test" {
   identity {
     type = "SystemAssigned"
   }
-
-  lifecycle {
-    ignore_changes = [cors]
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -748,10 +734,6 @@ resource "azurerm_signalr_service" "test" {
   sku {
     name     = "%s"
     capacity = %d
-  }
-
-  lifecycle {
-    ignore_changes = [cors]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, planSku, capacity)
@@ -793,10 +775,6 @@ resource "azurerm_signalr_service" "test" {
   sku {
     name     = "Standard_S1"
     capacity = %d
-  }
-
-  lifecycle {
-    ignore_changes = [cors]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, capacity)
@@ -857,10 +835,6 @@ resource "azurerm_signalr_service" "test" {
   service_mode              = "%[3]s"
   connectivity_logs_enabled = false
   messaging_logs_enabled    = false
-
-  lifecycle {
-    ignore_changes = [cors]
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, serviceMode)
 }
@@ -917,10 +891,6 @@ resource "azurerm_signalr_service" "test" {
     hub_pattern      = ["*"]
     url_template     = "http://foo4.com"
   }
-
-  lifecycle {
-    ignore_changes = [cors]
-  }
 }
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -970,10 +940,6 @@ resource "azurerm_signalr_service" "test" {
     url_template              = "http://foo.com"
     user_assigned_identity_id = azurerm_user_assigned_identity.test.client_id
   }
-
-  lifecycle {
-    ignore_changes = [cors]
-  }
 }
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -1003,10 +969,6 @@ resource "azurerm_signalr_service" "test" {
   messaging_logs_enabled    = true
   live_trace_enabled        = true
   service_mode              = "Serverless"
-
-  lifecycle {
-    ignore_changes = [cors]
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -1036,10 +998,6 @@ resource "azurerm_signalr_service" "test" {
   messaging_logs_enabled    = false
   live_trace_enabled        = false
   service_mode              = "Classic"
-
-  lifecycle {
-    ignore_changes = [cors]
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -1066,9 +1024,6 @@ resource "azurerm_signalr_service" "test" {
   }
   tags = {
     ENV = "test"
-  }
-  lifecycle {
-    ignore_changes = [cors]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -1099,10 +1054,6 @@ resource "azurerm_signalr_service" "test" {
   sku {
     name     = "Standard_S1"
     capacity = 1
-  }
-
-  lifecycle {
-    ignore_changes = [cors]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -1135,10 +1086,6 @@ resource "azurerm_signalr_service" "test" {
     name     = "Standard_S1"
     capacity = 1
   }
-
-  lifecycle {
-    ignore_changes = [cors]
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -1165,10 +1112,6 @@ resource "azurerm_signalr_service" "test" {
   sku {
     name     = "Standard_S1"
     capacity = 1
-  }
-
-  lifecycle {
-    ignore_changes = [cors]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -1197,10 +1140,6 @@ resource "azurerm_signalr_service" "test" {
   sku {
     name     = "Standard_S1"
     capacity = 1
-  }
-
-  lifecycle {
-    ignore_changes = [cors]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

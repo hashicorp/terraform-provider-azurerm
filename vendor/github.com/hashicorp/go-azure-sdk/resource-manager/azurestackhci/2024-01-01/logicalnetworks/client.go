@@ -15,7 +15,7 @@ type LogicalNetworksClient struct {
 }
 
 func NewLogicalNetworksClientWithBaseURI(sdkApi sdkEnv.Api) (*LogicalNetworksClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "logicalnetworks", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "logicalnetworks", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating LogicalNetworksClient: %+v", err)
 	}

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package loadtestservice
@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2022-12-01/loadtests"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -35,7 +34,7 @@ type LoadTestDataSourceModel struct {
 	Tags              map[string]string                          `tfschema:"tags"`
 }
 
-func (r LoadTestDataSource) ModelObject() interface{} {
+func (r LoadTestDataSource) ModelObject() any {
 	return &LoadTestDataSourceModel{}
 }
 
@@ -99,7 +98,7 @@ func (r LoadTestDataSource) Attributes() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"tags": tags.SchemaDataSource(),
+		"tags": commonschema.TagsDataSource(),
 	}
 }
 
@@ -148,7 +147,7 @@ func (r LoadTestDataSource) Read() sdk.ResourceFunc {
 				if encryption := model.Properties.Encryption; encryption != nil {
 					outputEncryption := make([]LoadTestEncryption, 0)
 					outputEncryption = append(outputEncryption, LoadTestEncryption{
-						KeyURL:   pointer.From(encryption.KeyUrl),
+						KeyURL:   pointer.From(encryption.KeyURL),
 						Identity: []LoadTestEncryptionIdentity{},
 					})
 					loadTest.Encryption = outputEncryption
@@ -159,7 +158,7 @@ func (r LoadTestDataSource) Read() sdk.ResourceFunc {
 						})
 
 						if encryptionIdentity.Type != nil {
-							loadTest.Encryption[0].Identity[0].Type = string(pointer.From(encryptionIdentity.Type))
+							loadTest.Encryption[0].Identity[0].Type = pointer.FromEnum(encryptionIdentity.Type)
 						}
 					}
 				}

@@ -36,6 +36,7 @@ func (o EmailTemplateUpdateOperationOptions) ToHeaders() *client.Headers {
 
 func (o EmailTemplateUpdateOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -53,8 +54,8 @@ func (c EmailTemplatesClient) EmailTemplateUpdate(ctx context.Context, id Templa
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPatch,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -78,7 +79,6 @@ func (c EmailTemplatesClient) EmailTemplateUpdate(ctx context.Context, id Templa
 
 	var model EmailTemplateContract
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

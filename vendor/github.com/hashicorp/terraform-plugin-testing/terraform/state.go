@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package terraform
@@ -7,6 +7,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -17,9 +18,7 @@ import (
 	"sync"
 
 	"github.com/hashicorp/go-cty/cty"
-	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/go-uuid"
-	"github.com/mitchellh/copystructure"
 
 	"github.com/hashicorp/terraform-plugin-testing/internal/addrs"
 	"github.com/hashicorp/terraform-plugin-testing/internal/configs/hcl2shim"
@@ -338,7 +337,7 @@ func (s *State) Validate() error {
 	s.Lock()
 	defer s.Unlock()
 
-	var result error
+	var result []error
 
 	// !!!! FOR DEVELOPERS !!!!
 	//
@@ -360,7 +359,7 @@ func (s *State) Validate() error {
 
 			key := strings.Join(ms.Path, ".")
 			if _, ok := found[key]; ok {
-				result = multierror.Append(result, fmt.Errorf(
+				result = append(result, fmt.Errorf(
 					strings.TrimSpace(stateValidateErrMultiModule), key))
 				continue
 			}
@@ -369,7 +368,7 @@ func (s *State) Validate() error {
 		}
 	}
 
-	return result
+	return errors.Join(result...)
 }
 
 // Remove removes the item in the state at the given address, returning
@@ -626,17 +625,45 @@ func (s *State) DeepCopy() *State {
 		return nil
 	}
 
-	copiedState, err := copystructure.Config{Lock: true}.Copy(s)
-	if err != nil {
-		panic(err)
+	copied := &State{
+		IsBinaryDrivenTest: s.IsBinaryDrivenTest,
+		Lineage:            s.Lineage,
+		Serial:             s.Serial,
+		TFVersion:          s.TFVersion,
+		Version:            s.Version,
 	}
 
-	state, ok := copiedState.(*State)
-	if !ok {
-		panic(fmt.Errorf("unexpected type %T for copiedState", state))
+	if s.Backend != nil {
+		copied.Backend = &BackendState{
+			Hash:      s.Backend.Hash,
+			ConfigRaw: s.Backend.ConfigRaw,
+			Type:      s.Backend.Type,
+		}
 	}
 
-	return state
+	// Best effort single level copy is fine; this is method is not used by this
+	// Go module and its already deprecated.
+	if s.Modules != nil {
+		copied.Modules = make([]*ModuleState, len(s.Modules))
+
+		copy(copied.Modules, s.Modules)
+	}
+
+	if s.Remote != nil {
+		copied.Remote = &RemoteState{
+			Type: s.Remote.Type,
+		}
+
+		if s.Remote.Config != nil {
+			copied.Remote.Config = make(map[string]string, len(s.Remote.Config))
+
+			for key, value := range s.Remote.Config {
+				copied.Remote.Config[key] = value
+			}
+		}
+	}
+
+	return copied
 }
 
 // Deprecated: This method is unintentionally exported by this Go module and not
@@ -776,7 +803,7 @@ func (s *State) String() string {
 			continue
 		}
 
-		buf.WriteString(fmt.Sprintf("module.%s:\n", strings.Join(m.Path[1:], ".")))
+		fmt.Fprintf(&buf, "module.%s:\n", strings.Join(m.Path[1:], "."))
 
 		s := bufio.NewScanner(strings.NewReader(mStr))
 		for s.Scan() {
@@ -785,7 +812,7 @@ func (s *State) String() string {
 				text = "  " + text
 			}
 
-			buf.WriteString(fmt.Sprintf("%s\n", text))
+			fmt.Fprintf(&buf, "%s\n", text)
 		}
 	}
 
@@ -1103,10 +1130,10 @@ func (m *ModuleState) String() string {
 			deposedStr = fmt.Sprintf(" (%d deposed)", len(rs.Deposed))
 		}
 
-		buf.WriteString(fmt.Sprintf("%s:%s%s\n", k, taintStr, deposedStr))
-		buf.WriteString(fmt.Sprintf("  ID = %s\n", id))
+		fmt.Fprintf(&buf, "%s:%s%s\n", k, taintStr, deposedStr)
+		fmt.Fprintf(&buf, "  ID = %s\n", id)
 		if rs.Provider != "" {
-			buf.WriteString(fmt.Sprintf("  provider = %s\n", rs.Provider))
+			fmt.Fprintf(&buf, "  provider = %s\n", rs.Provider)
 		}
 
 		var attributes map[string]string
@@ -1126,7 +1153,7 @@ func (m *ModuleState) String() string {
 
 		for _, ak := range attrKeys {
 			av := attributes[ak]
-			buf.WriteString(fmt.Sprintf("  %s = %s\n", ak, av))
+			fmt.Fprintf(&buf, "  %s = %s\n", ak, av)
 		}
 
 		for idx, t := range rs.Deposed {
@@ -1134,13 +1161,13 @@ func (m *ModuleState) String() string {
 			if t.Tainted {
 				taintStr = " (tainted)"
 			}
-			buf.WriteString(fmt.Sprintf("  Deposed ID %d = %s%s\n", idx+1, t.ID, taintStr))
+			fmt.Fprintf(&buf, "  Deposed ID %d = %s%s\n", idx+1, t.ID, taintStr)
 		}
 
 		if len(rs.Dependencies) > 0 {
 			buf.WriteString("\n  Dependencies:\n")
 			for _, dep := range rs.Dependencies {
-				buf.WriteString(fmt.Sprintf("    %s\n", dep))
+				fmt.Fprintf(&buf, "    %s\n", dep)
 			}
 		}
 	}
@@ -1159,9 +1186,9 @@ func (m *ModuleState) String() string {
 			v := m.Outputs[k]
 			switch vTyped := v.Value.(type) {
 			case string:
-				buf.WriteString(fmt.Sprintf("%s = %s\n", k, vTyped))
+				fmt.Fprintf(&buf, "%s = %s\n", k, vTyped)
 			case []interface{}:
-				buf.WriteString(fmt.Sprintf("%s = %s\n", k, vTyped))
+				fmt.Fprintf(&buf, "%s = %s\n", k, vTyped)
 			case map[string]interface{}:
 				var mapKeys []string
 				for key := range vTyped {
@@ -1172,11 +1199,11 @@ func (m *ModuleState) String() string {
 				var mapBuf bytes.Buffer
 				mapBuf.WriteString("{")
 				for _, key := range mapKeys {
-					mapBuf.WriteString(fmt.Sprintf("%s:%s ", key, vTyped[key]))
+					fmt.Fprintf(&mapBuf, "%s:%s ", key, vTyped[key])
 				}
 				mapBuf.WriteString("}")
 
-				buf.WriteString(fmt.Sprintf("%s = %s\n", k, mapBuf.String()))
+				fmt.Fprintf(&buf, "%s = %s\n", k, mapBuf.String())
 			}
 		}
 	}
@@ -1411,7 +1438,7 @@ func (s *ResourceState) String() string {
 	defer s.Unlock()
 
 	var buf bytes.Buffer
-	buf.WriteString(fmt.Sprintf("Type = %s", s.Type))
+	fmt.Fprintf(&buf, "Type = %s", s.Type)
 	return buf.String()
 }
 
@@ -1549,17 +1576,42 @@ func (s *InstanceState) Set(from *InstanceState) {
 // supported for external consumption. It will be removed in the next major
 // version.
 func (s *InstanceState) DeepCopy() *InstanceState {
-	copiedState, err := copystructure.Config{Lock: true}.Copy(s)
-	if err != nil {
-		panic(err)
+	if s == nil {
+		return nil
 	}
 
-	instanceState, ok := copiedState.(*InstanceState)
-	if !ok {
-		panic(fmt.Errorf("unexpected type %T for copiedState", copiedState))
+	copied := &InstanceState{
+		Ephemeral: EphemeralState{
+			ConnInfo: s.Ephemeral.ConnInfo,
+			Type:     s.Ephemeral.Type,
+		},
+		ID:           s.ID,
+		ProviderMeta: s.ProviderMeta,
+		RawConfig:    s.RawConfig,
+		RawPlan:      s.RawPlan,
+		RawState:     s.RawState,
+		Tainted:      s.Tainted,
 	}
 
-	return instanceState
+	if s.Attributes != nil {
+		copied.Attributes = make(map[string]string, len(s.Attributes))
+
+		for k, v := range s.Attributes {
+			copied.Attributes[k] = v
+		}
+	}
+
+	// Best effort single level copy is fine; this is not used by this Go module
+	// and its already deprecated.
+	if s.Meta != nil {
+		copied.Meta = make(map[string]any, len(s.Meta))
+
+		for k, v := range s.Meta {
+			copied.Meta[k] = v
+		}
+	}
+
+	return copied
 }
 
 // Deprecated: This method is unintentionally exported by this Go module and not
@@ -1696,7 +1748,7 @@ func (s *InstanceState) String() string {
 		return notCreated
 	}
 
-	buf.WriteString(fmt.Sprintf("ID = %s\n", s.ID))
+	fmt.Fprintf(&buf, "ID = %s\n", s.ID)
 
 	attributes := s.Attributes
 	attrKeys := make([]string, 0, len(attributes))
@@ -1711,10 +1763,10 @@ func (s *InstanceState) String() string {
 
 	for _, ak := range attrKeys {
 		av := attributes[ak]
-		buf.WriteString(fmt.Sprintf("%s = %s\n", ak, av))
+		fmt.Fprintf(&buf, "%s = %s\n", ak, av)
 	}
 
-	buf.WriteString(fmt.Sprintf("Tainted = %t\n", s.Tainted))
+	fmt.Fprintf(&buf, "Tainted = %t\n", s.Tainted)
 
 	return buf.String()
 }

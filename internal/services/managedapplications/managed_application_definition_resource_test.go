@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managedapplications_test
@@ -162,7 +162,7 @@ resource "azurerm_managed_application_definition" "test" {
   name                = "acctestAppDef%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  lock_level          = "ReadOnly"
+  lock_level          = "None"
   display_name        = "UpdatedTestManagedApplicationDefinition"
   description         = "Updated Test Managed Application Definition"
   package_enabled     = true

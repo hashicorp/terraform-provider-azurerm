@@ -24,6 +24,18 @@ type ListForScopeCompleteResult struct {
 	Items              []RoleManagementPolicyAssignment
 }
 
+type ListForScopeCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListForScopeCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListForScope ...
 func (c RoleManagementPolicyAssignmentsClient) ListForScope(ctx context.Context, id commonids.ScopeId) (result ListForScopeOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c RoleManagementPolicyAssignmentsClient) ListForScope(ctx context.Context,
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListForScopeCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Authorization/roleManagementPolicyAssignments", id.ID()),
 	}
 

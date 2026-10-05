@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package workloads_test
@@ -10,20 +10,20 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapvirtualinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapvirtualinstances"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type WorkloadsSAPThreeTierVirtualInstanceResource struct{}
+type WorkloadsSapThreeTierVirtualInstanceResource struct{}
 
 func TestAccWorkloadsSAPThreeTierVirtualInstance_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_workloads_sap_three_tier_virtual_instance", "test")
-	r := WorkloadsSAPThreeTierVirtualInstanceResource{}
+	r := WorkloadsSapThreeTierVirtualInstanceResource{}
 	sapVISNameSuffix := RandomInt()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -43,7 +43,7 @@ func TestAccWorkloadsSAPThreeTierVirtualInstance_basic(t *testing.T) {
 
 func TestAccWorkloadsSAPThreeTierVirtualInstance_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_workloads_sap_three_tier_virtual_instance", "test")
-	r := WorkloadsSAPThreeTierVirtualInstanceResource{}
+	r := WorkloadsSapThreeTierVirtualInstanceResource{}
 	sapVISNameSuffix := RandomInt()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -62,7 +62,7 @@ func TestAccWorkloadsSAPThreeTierVirtualInstance_requiresImport(t *testing.T) {
 
 func TestAccWorkloadsSAPThreeTierVirtualInstance_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_workloads_sap_three_tier_virtual_instance", "test")
-	r := WorkloadsSAPThreeTierVirtualInstanceResource{}
+	r := WorkloadsSapThreeTierVirtualInstanceResource{}
 	sapVISNameSuffix := RandomInt()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -82,7 +82,7 @@ func TestAccWorkloadsSAPThreeTierVirtualInstance_complete(t *testing.T) {
 
 func TestAccWorkloadsSAPThreeTierVirtualInstance_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_workloads_sap_three_tier_virtual_instance", "test")
-	r := WorkloadsSAPThreeTierVirtualInstanceResource{}
+	r := WorkloadsSapThreeTierVirtualInstanceResource{}
 	sapVISNameSuffix := RandomInt()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -122,7 +122,7 @@ func TestAccWorkloadsSAPThreeTierVirtualInstance_update(t *testing.T) {
 	})
 }
 
-func (r WorkloadsSAPThreeTierVirtualInstanceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r WorkloadsSapThreeTierVirtualInstanceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := sapvirtualinstances.ParseSapVirtualInstanceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -132,14 +132,14 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Exists(ctx context.Context
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
-func (r WorkloadsSAPThreeTierVirtualInstanceResource) template(data acceptance.TestData) string {
+func (r WorkloadsSapThreeTierVirtualInstanceResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "tls_private_key" "test" {
   algorithm = "RSA"
@@ -177,10 +177,15 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctest-subnet-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
+  name                                          = "acctest-subnet-%d"
+  resource_group_name                           = azurerm_resource_group.test.name
+  virtual_network_name                          = azurerm_virtual_network.test.name
+  address_prefixes                              = ["10.0.2.0/24"]
+  private_endpoint_network_policies             = "Disabled"
+  private_link_service_network_policies_enabled = true
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
 }
 
 resource "azurerm_resource_group" "app" {
@@ -194,7 +199,7 @@ resource "azurerm_resource_group" "app" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r WorkloadsSAPThreeTierVirtualInstanceResource) basic(data acceptance.TestData, sapVISNameSuffix int) string {
+func (r WorkloadsSapThreeTierVirtualInstanceResource) basic(data acceptance.TestData, sapVISNameSuffix int) string {
 	return fmt.Sprintf(`
 %s
 
@@ -229,7 +234,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
@@ -251,7 +256,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
@@ -273,7 +278,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
@@ -301,7 +306,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
 `, r.template(data), sapVISNameSuffix, data.RandomInteger)
 }
 
-func (r WorkloadsSAPThreeTierVirtualInstanceResource) requiresImport(data acceptance.TestData, sapVISNameSuffix int) string {
+func (r WorkloadsSapThreeTierVirtualInstanceResource) requiresImport(data acceptance.TestData, sapVISNameSuffix int) string {
 	return fmt.Sprintf(`
 %s
 
@@ -328,7 +333,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "import" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
@@ -350,7 +355,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "import" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
@@ -372,7 +377,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "import" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
@@ -400,7 +405,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "import" {
 `, r.basic(data, sapVISNameSuffix))
 }
 
-func (r WorkloadsSAPThreeTierVirtualInstanceResource) complete(data acceptance.TestData, sapVISNameSuffix int) string {
+func (r WorkloadsSapThreeTierVirtualInstanceResource) complete(data acceptance.TestData, sapVISNameSuffix int) string {
 	return fmt.Sprintf(`
 %s
 
@@ -412,23 +417,16 @@ provider "azurerm" {
   }
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
 resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
-  name                        = "X%d"
-  resource_group_name         = azurerm_resource_group.test.name
-  location                    = azurerm_resource_group.test.location
-  environment                 = "NonProd"
-  sap_product                 = "S4HANA"
-  managed_resource_group_name = "acctestManagedRG%d"
-  app_location                = azurerm_resource_group.app.location
-  sap_fqdn                    = "sap.bpaas.com"
+  name                                  = "X%d"
+  resource_group_name                   = azurerm_resource_group.test.name
+  location                              = azurerm_resource_group.test.location
+  environment                           = "NonProd"
+  sap_product                           = "S4HANA"
+  managed_resource_group_name           = "acctestManagedRG%d"
+  app_location                          = azurerm_resource_group.app.location
+  sap_fqdn                              = "sap.bpaas.com"
+  managed_resources_network_access_type = "Private"
 
   three_tier_configuration {
     app_resource_group_name = azurerm_resource_group.app.name
@@ -444,7 +442,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
@@ -466,7 +464,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
@@ -489,7 +487,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
@@ -649,10 +647,10 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
     azurerm_role_assignment.test
   ]
 }
-`, r.template(data), data.RandomString, sapVISNameSuffix, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString)
+`, r.template(data), sapVISNameSuffix, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString)
 }
 
-func (r WorkloadsSAPThreeTierVirtualInstanceResource) update(data acceptance.TestData, sapVISNameSuffix int) string {
+func (r WorkloadsSapThreeTierVirtualInstanceResource) update(data acceptance.TestData, sapVISNameSuffix int) string {
 	return fmt.Sprintf(`
 %s
 
@@ -664,23 +662,16 @@ provider "azurerm" {
   }
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
 resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
-  name                        = "X%d"
-  resource_group_name         = azurerm_resource_group.test.name
-  location                    = azurerm_resource_group.test.location
-  environment                 = "NonProd"
-  sap_product                 = "S4HANA"
-  managed_resource_group_name = "acctestManagedRG%d"
-  app_location                = azurerm_resource_group.app.location
-  sap_fqdn                    = "sap.bpaas.com"
+  name                                  = "X%d"
+  resource_group_name                   = azurerm_resource_group.test.name
+  location                              = azurerm_resource_group.test.location
+  environment                           = "NonProd"
+  sap_product                           = "S4HANA"
+  managed_resource_group_name           = "acctestManagedRG%d"
+  app_location                          = azurerm_resource_group.app.location
+  sap_fqdn                              = "sap.bpaas.com"
+  managed_resources_network_access_type = "Public"
 
   three_tier_configuration {
     app_resource_group_name = azurerm_resource_group.app.name
@@ -696,7 +687,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
@@ -718,7 +709,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
@@ -741,7 +732,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
@@ -889,12 +880,10 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
     azurerm_role_assignment.test
   ]
 }
-`, r.template(data), data.RandomString, sapVISNameSuffix, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString)
+`, r.template(data), sapVISNameSuffix, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString)
 }
 
 func RandomInt() int {
 	rand.NewSource(time.Now().UnixNano())
-	num := rand.Intn(90) + 10
-
-	return num
+	return rand.Intn(90) + 10
 }

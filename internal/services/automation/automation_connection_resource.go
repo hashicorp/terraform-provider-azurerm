@@ -1,32 +1,31 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation
 
 import (
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/connection"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/connectiontype"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/connection"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/connectiontype"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceAutomationConnection() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationConnectionCreateUpdate,
+		Create: resourceAutomationConnectionCreate,
 		Read:   resourceAutomationConnectionRead,
-		Update: resourceAutomationConnectionCreateUpdate,
+		Update: resourceAutomationConnectionUpdate,
 		Delete: resourceAutomationConnectionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -81,18 +80,16 @@ func resourceAutomationConnection() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationConnectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Connection
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	connectionTypeClient := meta.(*clients.Client).Automation.ConnectionType
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for AzureRM Automation Connection creation.")
 
 	id := connection.NewConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -106,7 +103,7 @@ func resourceAutomationConnectionCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	connectionTypeName := d.Get("type").(string)
-	values := expandStringInterfaceMap(d.Get("values").(map[string]interface{}))
+	values := expandStringInterfaceMap(d.Get("values").(map[string]any))
 
 	connectionTypeId := connectiontype.NewConnectionTypeID(subscriptionId, id.ResourceGroupName, id.AutomationAccountName, connectionTypeName)
 	// check `type` exists and required fields are passed by users
@@ -129,16 +126,16 @@ func resourceAutomationConnectionCreateUpdate(d *pluginsdk.ResourceData, meta in
 	parameters := connection.ConnectionCreateOrUpdateParameters{
 		Name: id.ConnectionName,
 		Properties: connection.ConnectionCreateOrUpdateProperties{
-			Description: utils.String(d.Get("description").(string)),
+			Description: pointer.To(d.Get("description").(string)),
 			ConnectionType: connection.ConnectionTypeAssociationProperty{
-				Name: utils.String(connectionTypeName),
+				Name: pointer.To(connectionTypeName),
 			},
 			FieldDefinitionValues: &values,
 		},
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
-		return err
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -146,7 +143,38 @@ func resourceAutomationConnectionCreateUpdate(d *pluginsdk.ResourceData, meta in
 	return resourceAutomationConnectionRead(d, meta)
 }
 
-func resourceAutomationConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionUpdate(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Automation.Connection
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := connection.ParseConnectionID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	parameters := connection.ConnectionUpdateParameters{
+		Name:       pointer.To(id.ConnectionName),
+		Properties: &connection.ConnectionUpdateProperties{},
+	}
+
+	if d.HasChange("description") {
+		parameters.Properties.Description = pointer.To(d.Get("description").(string))
+	}
+
+	if d.HasChange("values") {
+		values := expandStringInterfaceMap(d.Get("values").(map[string]any))
+		parameters.Properties.FieldDefinitionValues = &values
+	}
+
+	if _, err := client.Update(ctx, *id, parameters); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
+
+	return resourceAutomationConnectionRead(d, meta)
+}
+
+func resourceAutomationConnectionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Connection
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -188,7 +216,7 @@ func resourceAutomationConnectionRead(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func resourceAutomationConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Connection
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -23,6 +23,18 @@ type BuildServiceListBuildResultsCompleteResult struct {
 	Items              []BuildResult
 }
 
+type BuildServiceListBuildResultsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *BuildServiceListBuildResultsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // BuildServiceListBuildResults ...
 func (c AppPlatformClient) BuildServiceListBuildResults(ctx context.Context, id BuildId) (result BuildServiceListBuildResultsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c AppPlatformClient) BuildServiceListBuildResults(ctx context.Context, id 
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &BuildServiceListBuildResultsCustomPager{},
 		Path:       fmt.Sprintf("%s/results", id.ID()),
 	}
 

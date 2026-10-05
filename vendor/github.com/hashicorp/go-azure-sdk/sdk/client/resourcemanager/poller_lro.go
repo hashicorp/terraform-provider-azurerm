@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -15,10 +16,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
 
 var _ pollers.PollerType = &longRunningOperationPoller{}
@@ -29,20 +28,24 @@ type longRunningOperationPoller struct {
 	initialRetryDuration time.Duration
 	originalUrl          *url.URL
 	pollingUrl           *url.URL
+
+	droppedConnectionCount int
+	maxDroppedConnections  int
 }
 
 func pollingUriForLongRunningOperation(resp *client.Response) string {
-	pollingUrl := resp.Header.Get(http.CanonicalHeaderKey("Azure-AsyncOperation"))
+	pollingUrl := resp.Header.Get("Azure-AsyncOperation")
 	if pollingUrl == "" {
 		pollingUrl = resp.Header.Get("Location")
 	}
 	return pollingUrl
 }
 
-func longRunningOperationPollerFromResponse(resp *client.Response, client *client.Client) (*longRunningOperationPoller, error) {
+func longRunningOperationPollerFromResponse(resp *client.Response, c *client.Client) (*longRunningOperationPoller, error) {
 	poller := longRunningOperationPoller{
-		client:               client,
-		initialRetryDuration: 10 * time.Second,
+		client:                c,
+		initialRetryDuration:  10 * time.Second,
+		maxDroppedConnections: 3,
 	}
 
 	pollingUrl := pollingUriForLongRunningOperation(resp)
@@ -69,6 +72,10 @@ func longRunningOperationPollerFromResponse(resp *client.Response, client *clien
 		}
 	}
 
+	if s, ok := resp.Header[client.SkipPollingDelayHeader]; ok && s[0] == "true" {
+		poller.initialRetryDuration = 0
+	}
+
 	return &poller, nil
 }
 
@@ -79,14 +86,6 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 		return nil, fmt.Errorf("internal error: cannot poll without a pollingUrl")
 	}
 
-	// Retry the polling operation if a 404 was returned
-	retryOn404 := func(resp *http.Response, _ *odata.OData) (bool, error) {
-		if resp != nil && response.WasStatusCode(resp, http.StatusNotFound) {
-			return true, nil
-		}
-		return false, nil
-	}
-
 	reqOpts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -94,11 +93,14 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 			http.StatusCreated,
 			http.StatusAccepted,
 			http.StatusNoContent,
+
+			// NOTE: 404 doesn't want to be a retry since we already retry on 404
+			http.StatusNotFound,
 		},
 		HttpMethod:    http.MethodGet,
 		OptionsObject: nil,
 		Path:          p.pollingUrl.Path,
-		RetryFunc:     client.RequestRetryAny(append(defaultRetryFunctions, retryOn404)...),
+		RetryFunc:     client.RequestRetryAny(defaultRetryFunctions...),
 	}
 
 	// TODO: port over the `api-version` header
@@ -114,8 +116,19 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 	}
 	result.HttpResponse, err = req.Execute(ctx)
 	if err != nil {
+		var e *url.Error
+		if errors.As(err, &e) {
+			p.droppedConnectionCount++
+			if p.droppedConnectionCount < p.maxDroppedConnections {
+				result.Status = pollers.PollingStatusUnknown
+				return result, nil
+			}
+		}
+
 		return nil, err
 	}
+
+	p.droppedConnectionCount = 0
 
 	if result.HttpResponse != nil {
 		var respBody []byte
@@ -133,6 +146,13 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 			if sleep, err := strconv.ParseInt(s[0], 10, 64); err == nil {
 				result.PollInterval = time.Second * time.Duration(sleep)
 			}
+		}
+
+		// We've just created/changed this resource, so it _should_ exist but some APIs
+		// return a 404 initially - so we should wait for that to complete for non-Delete LROs
+		if result.HttpResponse.StatusCode == http.StatusNotFound {
+			result.Status = pollers.PollingStatusInProgress
+			return
 		}
 
 		// 202's don't necessarily return a body, so there's nothing to deserialize
@@ -158,23 +178,8 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 			return nil, fmt.Errorf("internal-error: polling support for the Content-Type %q was not implemented: %+v", contentType, err)
 		}
 
-		if op.Properties.ProvisioningState == "" && op.Status == "" {
-			return nil, fmt.Errorf("expected either `provisioningState` or `status` to be returned from the LRO API but both were empty")
-		}
-
-		for k, v := range longRunningOperationCustomStatuses {
-			if strings.EqualFold(string(op.Properties.ProvisioningState), string(k)) {
-				result.Status = v
-				break
-			}
-			if strings.EqualFold(string(op.Status), string(k)) {
-				result.Status = v
-				break
-			}
-		}
-
-		if result.Status == pollers.PollingStatusFailed {
-			lroError, parseError := parseErrorFromApiResponse(*result.HttpResponse.Response)
+		if strings.EqualFold(string(result.Status), string(pollers.PollingStatusFailed)) || strings.EqualFold(string(op.Status), string(statusFailed)) || strings.EqualFold(string(op.Properties.ProvisioningState), string(statusFailed)) {
+			lroError, parseError := parseErrorFromApiResponse(result.HttpResponse.Response)
 			if parseError != nil {
 				return nil, parseError
 			}
@@ -183,10 +188,12 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 				HttpResponse: result.HttpResponse,
 				Message:      lroError.Error(),
 			}
+
+			return
 		}
 
-		if result.Status == pollers.PollingStatusCancelled {
-			lroError, parseError := parseErrorFromApiResponse(*result.HttpResponse.Response)
+		if strings.EqualFold(string(result.Status), string(pollers.PollingStatusCancelled)) || strings.EqualFold(string(op.Status), string(statusCanceled)) || strings.EqualFold(string(op.Properties.ProvisioningState), string(statusCanceled)) {
+			lroError, parseError := parseErrorFromApiResponse(result.HttpResponse.Response)
 			if parseError != nil {
 				return nil, parseError
 			}
@@ -195,14 +202,20 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 				HttpResponse: result.HttpResponse,
 				Message:      lroError.Error(),
 			}
+
+			return
 		}
 
-		if result.Status == "" {
-			err = fmt.Errorf("`result.Status` was nil/empty - `op.Status` was %q / `op.Properties.ProvisioningState` was %q", string(op.Status), string(op.Properties.ProvisioningState))
+		if strings.EqualFold(string(result.Status), string(pollers.PollingStatusSucceeded)) || strings.EqualFold(string(op.Status), string(statusSucceeded)) || strings.EqualFold(string(op.Properties.ProvisioningState), string(statusSucceeded)) {
+			result.Status = pollers.PollingStatusSucceeded
+			return
 		}
+
+		// If we don't have a terminal status anywhere, we must assume we're still in progress
+		result.Status = pollers.PollingStatusInProgress
 	}
 
-	return
+	return result, nil
 }
 
 type operationResult struct {
@@ -213,13 +226,15 @@ type operationResult struct {
 	// >  cannot parse " 01:58:30 +0000" as "T"
 	StartTime *string `json:"startTime"`
 
-	Properties struct {
-		// Some APIs (such as Storage) return the Resource Representation from the LRO API, as such we need to check provisioningState
-		ProvisioningState status `json:"provisioningState"`
-	} `json:"properties"`
+	Properties operationResultProperties `json:"properties"`
 
 	// others return Status, so we check that too
 	Status status `json:"status"`
+}
+
+type operationResultProperties struct {
+	// Some APIs (such as Storage) return the Resource Representation from the LRO API, as such we need to check provisioningState
+	ProvisioningState status `json:"provisioningState"`
 }
 
 type status string

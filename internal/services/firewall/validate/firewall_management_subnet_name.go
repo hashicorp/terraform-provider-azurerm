@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
-func FirewallManagementSubnetName(v interface{}, k string) (warnings []string, errors []error) {
+func FirewallManagementSubnetName(v any, k string) (warnings []string, errors []error) {
 	parsed, err := commonids.ParseSubnetID(v.(string))
 	if err != nil {
 		errors = append(errors, fmt.Errorf("parsing %q: %+v", v.(string), err))
@@ -17,7 +17,7 @@ func FirewallManagementSubnetName(v interface{}, k string) (warnings []string, e
 	}
 
 	if parsed.SubnetName != "AzureFirewallManagementSubnet" {
-		errors = append(errors, fmt.Errorf("The name of the management subnet for %q must be exactly 'AzureFirewallManagementSubnet' to be used for the Azure Firewall resource", k))
+		errors = append(errors, fmt.Errorf("the name of the management subnet for %q must be exactly 'AzureFirewallManagementSubnet' to be used for the Azure Firewall resource", k))
 	}
 
 	return warnings, errors

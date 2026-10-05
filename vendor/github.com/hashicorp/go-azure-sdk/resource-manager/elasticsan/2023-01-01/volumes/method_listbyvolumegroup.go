@@ -23,6 +23,18 @@ type ListByVolumeGroupCompleteResult struct {
 	Items              []Volume
 }
 
+type ListByVolumeGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByVolumeGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByVolumeGroup ...
 func (c VolumesClient) ListByVolumeGroup(ctx context.Context, id VolumeGroupId) (result ListByVolumeGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c VolumesClient) ListByVolumeGroup(ctx context.Context, id VolumeGroupId) 
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByVolumeGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/volumes", id.ID()),
 	}
 

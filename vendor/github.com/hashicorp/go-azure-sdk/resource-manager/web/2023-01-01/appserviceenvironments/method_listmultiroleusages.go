@@ -24,6 +24,18 @@ type ListMultiRoleUsagesCompleteResult struct {
 	Items              []Usage
 }
 
+type ListMultiRoleUsagesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListMultiRoleUsagesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListMultiRoleUsages ...
 func (c AppServiceEnvironmentsClient) ListMultiRoleUsages(ctx context.Context, id commonids.AppServiceEnvironmentId) (result ListMultiRoleUsagesOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c AppServiceEnvironmentsClient) ListMultiRoleUsages(ctx context.Context, i
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListMultiRoleUsagesCustomPager{},
 		Path:       fmt.Sprintf("%s/multiRolePools/default/usages", id.ID()),
 	}
 

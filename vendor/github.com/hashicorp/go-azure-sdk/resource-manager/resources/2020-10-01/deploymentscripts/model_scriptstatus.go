@@ -10,12 +10,12 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ScriptStatus struct {
-	ContainerInstanceId *string        `json:"containerInstanceId,omitempty"`
-	EndTime             *string        `json:"endTime,omitempty"`
-	Error               *ErrorResponse `json:"error,omitempty"`
-	ExpirationTime      *string        `json:"expirationTime,omitempty"`
-	StartTime           *string        `json:"startTime,omitempty"`
-	StorageAccountId    *string        `json:"storageAccountId,omitempty"`
+	ContainerInstanceId *string      `json:"containerInstanceId,omitempty"`
+	EndTime             *string      `json:"endTime,omitempty"`
+	Error               *ErrorDetail `json:"error,omitempty"`
+	ExpirationTime      *string      `json:"expirationTime,omitempty"`
+	StartTime           *string      `json:"startTime,omitempty"`
+	StorageAccountId    *string      `json:"storageAccountId,omitempty"`
 }
 
 func (o *ScriptStatus) GetEndTimeAsTime() (*time.Time, error) {

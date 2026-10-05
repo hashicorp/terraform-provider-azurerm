@@ -50,7 +50,6 @@ func (c ProximityPlacementGroupsClient) CreateOrUpdate(ctx context.Context, id P
 
 	var model ProximityPlacementGroup
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

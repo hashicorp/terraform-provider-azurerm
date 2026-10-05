@@ -23,6 +23,18 @@ type ServicesListByResourceGroupCompleteResult struct {
 	Items              []DataMigrationService
 }
 
+type ServicesListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ServicesListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ServicesListByResourceGroup ...
 func (c ServiceResourceClient) ServicesListByResourceGroup(ctx context.Context, id ResourceGroupId) (result ServicesListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ServiceResourceClient) ServicesListByResourceGroup(ctx context.Context, 
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ServicesListByResourceGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.DataMigration/services", id.ID()),
 	}
 

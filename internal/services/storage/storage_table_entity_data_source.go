@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -7,14 +7,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01/tables"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/table/entities"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/table/entities"
 )
 
 func dataSourceStorageTableEntity() *pluginsdk.Resource {
@@ -26,16 +27,10 @@ func dataSourceStorageTableEntity() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-			"table_name": {
+			"storage_table_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validate.StorageTableName,
-			},
-
-			"storage_account_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: validate.StorageAccountName,
+				ValidateFunc: tables.ValidateTableID,
 			},
 
 			"partition_key": {
@@ -61,21 +56,39 @@ func dataSourceStorageTableEntity() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	accountName := d.Get("storage_account_name").(string)
-	tableName := d.Get("table_name").(string)
 	partitionKey := d.Get("partition_key").(string)
 	rowKey := d.Get("row_key").(string)
 
-	account, err := storageClient.FindAccount(ctx, subscriptionId, accountName)
+	var tableName string
+	var accountName string
+	var storageTableIdFmtd string
+	var account *client.AccountDetails
+	var err error
+
+	tableIdRaw, ok := d.GetOk("storage_table_id")
+	if !ok || tableIdRaw.(string) == "" {
+		return fmt.Errorf("`storage_table_id` is required")
+	}
+	storageTableIdRaw := tableIdRaw.(string)
+
+	storageTableId, err := tables.ParseTableID(storageTableIdRaw)
+	if err != nil {
+		return err
+	}
+	storageTableIdFmtd = storageTableId.ID()
+	tableName = storageTableId.TableName
+	accountName = storageTableId.StorageAccountName
+	storageAccountId := commonids.NewStorageAccountID(storageTableId.SubscriptionId, storageTableId.ResourceGroupName, storageTableId.StorageAccountName)
+	account, err = storageClient.GetAccount(ctx, storageAccountId)
 	if err != nil {
 		return fmt.Errorf("retrieving Account %q for Table %q: %v", accountName, tableName, err)
 	}
+
 	if account == nil {
 		return fmt.Errorf("the parent Storage Account %s was not found", accountName)
 	}
@@ -108,8 +121,7 @@ func dataSourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("retrieving %s: %v", id, err)
 	}
 
-	d.Set("storage_account_name", accountName)
-	d.Set("table_name", tableName)
+	d.Set("storage_table_id", storageTableIdFmtd)
 	d.Set("partition_key", partitionKey)
 	d.Set("row_key", rowKey)
 

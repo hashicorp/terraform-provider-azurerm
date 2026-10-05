@@ -15,6 +15,14 @@ type AutomationActionLogicApp struct {
 	Uri                *string `json:"uri,omitempty"`
 
 	// Fields inherited from AutomationAction
+
+	ActionType ActionType `json:"actionType"`
+}
+
+func (s AutomationActionLogicApp) AutomationAction() BaseAutomationActionImpl {
+	return BaseAutomationActionImpl{
+		ActionType: s.ActionType,
+	}
 }
 
 var _ json.Marshaler = AutomationActionLogicApp{}
@@ -28,9 +36,10 @@ func (s AutomationActionLogicApp) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AutomationActionLogicApp: %+v", err)
 	}
+
 	decoded["actionType"] = "LogicApp"
 
 	encoded, err = json.Marshal(decoded)

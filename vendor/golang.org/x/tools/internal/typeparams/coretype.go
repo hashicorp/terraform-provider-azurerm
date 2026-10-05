@@ -7,20 +7,20 @@ package typeparams
 import (
 	"fmt"
 	"go/types"
-
-	"golang.org/x/tools/internal/aliases"
 )
 
 // CoreType returns the core type of T or nil if T does not have a core type.
 //
-// See https://go.dev/ref/spec#Core_types for the definition of a core type.
+// As of Go1.25, the notion of a core type has been removed from the language spec.
+// See https://go.dev/blog/coretypes for more details.
+// TODO(mkalil): We should eventually consider removing all uses of CoreType.
 func CoreType(T types.Type) types.Type {
 	U := T.Underlying()
 	if _, ok := U.(*types.Interface); !ok {
 		return U // for non-interface types,
 	}
 
-	terms, err := _NormalTerms(U)
+	terms, err := NormalTerms(U)
 	if len(terms) == 0 || err != nil {
 		// len(terms) -> empty type set of interface.
 		// err != nil => U is invalid, exceeds complexity bounds, or has an empty type set.
@@ -36,7 +36,7 @@ func CoreType(T types.Type) types.Type {
 	}
 
 	if identical == len(terms) {
-		// https://go.dev/ref/spec#Core_types
+		// From the deprecated core types spec:
 		// "There is a single type U which is the underlying type of all types in the type set of T"
 		return U
 	}
@@ -44,7 +44,7 @@ func CoreType(T types.Type) types.Type {
 	if !ok {
 		return nil // no core type as identical < len(terms) and U is not a channel.
 	}
-	// https://go.dev/ref/spec#Core_types
+	// From the deprecated core types spec:
 	// "the type chan E if T contains only bidirectional channels, or the type chan<- E or
 	// <-chan E depending on the direction of the directional channels present."
 	for chans := identical; chans < len(terms); chans++ {
@@ -66,7 +66,7 @@ func CoreType(T types.Type) types.Type {
 	return ch
 }
 
-// _NormalTerms returns a slice of terms representing the normalized structural
+// NormalTerms returns a slice of terms representing the normalized structural
 // type restrictions of a type, if any.
 //
 // For all types other than *types.TypeParam, *types.Interface, and
@@ -96,23 +96,28 @@ func CoreType(T types.Type) types.Type {
 // expands to ~string|~[]byte|int|string, which reduces to ~string|~[]byte|int,
 // which when intersected with C (~string|~int) yields ~string|int.
 //
-// _NormalTerms computes these expansions and reductions, producing a
+// NormalTerms computes these expansions and reductions, producing a
 // "normalized" form of the embeddings. A structural restriction is normalized
 // if it is a single union containing no interface terms, and is minimal in the
 // sense that removing any term changes the set of types satisfying the
 // constraint. It is left as a proof for the reader that, modulo sorting, there
 // is exactly one such normalized form.
 //
-// Because the minimal representation always takes this form, _NormalTerms
+// Because the minimal representation always takes this form, NormalTerms
 // returns a slice of tilde terms corresponding to the terms of the union in
 // the normalized structural restriction. An error is returned if the type is
 // invalid, exceeds complexity bounds, or has an empty type set. In the latter
-// case, _NormalTerms returns ErrEmptyTypeSet.
+// case, NormalTerms returns ErrEmptyTypeSet.
 //
-// _NormalTerms makes no guarantees about the order of terms, except that it
+// NormalTerms makes no guarantees about the order of terms, except that it
 // is deterministic.
-func _NormalTerms(typ types.Type) ([]*types.Term, error) {
-	switch typ := aliases.Unalias(typ).(type) {
+func NormalTerms(T types.Type) ([]*types.Term, error) {
+	// typeSetOf(T) == typeSetOf(Unalias(T))
+	typ := types.Unalias(T)
+	if named, ok := typ.(*types.Named); ok {
+		typ = named.Underlying()
+	}
+	switch typ := typ.(type) {
 	case *types.TypeParam:
 		return StructuralTerms(typ)
 	case *types.Union:
@@ -120,8 +125,23 @@ func _NormalTerms(typ types.Type) ([]*types.Term, error) {
 	case *types.Interface:
 		return InterfaceTermSet(typ)
 	default:
-		return []*types.Term{types.NewTerm(false, typ)}, nil
+		return []*types.Term{types.NewTerm(false, T)}, nil
 	}
+}
+
+// Deref returns the type of the variable pointed to by t,
+// if t's core type is a pointer; otherwise it returns t.
+//
+// Do not assume that Deref(T)==T implies T is not a pointer:
+// consider "type T *T", for example.
+//
+// TODO(adonovan): ideally this would live in typesinternal, but that
+// creates an import cycle. Move there when we melt this package down.
+func Deref(t types.Type) types.Type {
+	if ptr, ok := CoreType(t).(*types.Pointer); ok {
+		return ptr.Elem()
+	}
+	return t
 }
 
 // MustDeref returns the type of the variable pointed to by t.

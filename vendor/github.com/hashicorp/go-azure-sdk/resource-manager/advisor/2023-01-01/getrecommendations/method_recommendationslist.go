@@ -41,6 +41,7 @@ func (o RecommendationsListOperationOptions) ToHeaders() *client.Headers {
 
 func (o RecommendationsListOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -55,6 +56,18 @@ func (o RecommendationsListOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type RecommendationsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *RecommendationsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // RecommendationsList ...
 func (c GetRecommendationsClient) RecommendationsList(ctx context.Context, id commonids.SubscriptionId, options RecommendationsListOperationOptions) (result RecommendationsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -63,8 +76,9 @@ func (c GetRecommendationsClient) RecommendationsList(ctx context.Context, id co
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.Advisor/recommendations", id.ID()),
 		OptionsObject: options,
+		Pager:         &RecommendationsListCustomPager{},
+		Path:          fmt.Sprintf("%s/providers/Microsoft.Advisor/recommendations", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

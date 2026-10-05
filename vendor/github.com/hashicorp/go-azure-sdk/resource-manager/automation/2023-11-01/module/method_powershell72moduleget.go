@@ -45,7 +45,6 @@ func (c ModuleClient) PowerShell72ModuleGet(ctx context.Context, id PowerShell72
 
 	var model Module
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

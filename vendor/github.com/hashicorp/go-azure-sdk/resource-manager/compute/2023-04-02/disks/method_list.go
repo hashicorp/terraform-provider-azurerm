@@ -24,6 +24,18 @@ type ListCompleteResult struct {
 	Items              []Disk
 }
 
+type ListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // List ...
 func (c DisksClient) List(ctx context.Context, id commonids.SubscriptionId) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c DisksClient) List(ctx context.Context, id commonids.SubscriptionId) (res
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Compute/disks", id.ID()),
 	}
 

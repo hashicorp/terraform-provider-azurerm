@@ -1,9 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
 
 import (
+	"errors"
 	"fmt"
 	"html"
 	"log"
@@ -11,8 +12,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apimanagementservice"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/policy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -54,8 +55,9 @@ func resourceApiManagementPolicy() *pluginsdk.Resource {
 			},
 
 			"xml_content": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// Note: O+C because when `xml_link` is provided the API downloads it into `xml_content`
 				Computed:         true,
 				ConflictsWith:    []string{"xml_link"},
 				ExactlyOneOf:     []string{"xml_link", "xml_content"},
@@ -72,7 +74,7 @@ func resourceApiManagementPolicy() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementPolicyCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.PolicyClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -116,12 +118,11 @@ func resourceApiManagementPolicyCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if parameters.Properties == nil {
-		return fmt.Errorf("Either `xml_content` or `xml_link` must be set")
+		return errors.New("either `xml_content` or `xml_link` must be set")
 	}
 
 	policyServiceId := policy.NewServiceID(apiMgmtId.SubscriptionId, resourceGroup, serviceName)
-	_, err = client.CreateOrUpdate(ctx, policyServiceId, parameters, policy.CreateOrUpdateOperationOptions{})
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, policyServiceId, parameters, policy.CreateOrUpdateOperationOptions{}); err != nil {
 		return fmt.Errorf("creating %s: %+v", policyServiceId, err)
 	}
 
@@ -131,7 +132,7 @@ func resourceApiManagementPolicyCreateUpdate(d *pluginsdk.ResourceData, meta int
 	return resourceApiManagementPolicyRead(d, meta)
 }
 
-func resourceApiManagementPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementPolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	serviceClient := meta.(*clients.Client).ApiManagement.ServiceClient
 	client := meta.(*clients.Client).ApiManagement.PolicyClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -179,7 +180,7 @@ func resourceApiManagementPolicyRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceApiManagementPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementPolicyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.PolicyClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

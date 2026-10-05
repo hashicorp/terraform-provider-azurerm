@@ -46,7 +46,6 @@ func (c SavedSearchesClient) ListByWorkspace(ctx context.Context, id WorkspaceId
 
 	var model SavedSearchesListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

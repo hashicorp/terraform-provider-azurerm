@@ -15,7 +15,7 @@ type ComponentFeaturesAndPricingAPIsClient struct {
 }
 
 func NewComponentFeaturesAndPricingAPIsClientWithBaseURI(sdkApi sdkEnv.Api) (*ComponentFeaturesAndPricingAPIsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "componentfeaturesandpricingapis", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "componentfeaturesandpricingapis", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ComponentFeaturesAndPricingAPIsClient: %+v", err)
 	}

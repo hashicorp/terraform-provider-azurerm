@@ -15,7 +15,7 @@ type DataStoresClient struct {
 }
 
 func NewDataStoresClientWithBaseURI(sdkApi sdkEnv.Api) (*DataStoresClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "datastores", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "datastores", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DataStoresClient: %+v", err)
 	}

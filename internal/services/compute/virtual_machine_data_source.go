@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -74,7 +75,7 @@ func dataSourceVirtualMachine() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceVirtualMachineRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.VirtualMachinesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	networkInterfacesClient := meta.(*clients.Client).Network.NetworkInterfacesClient
@@ -85,7 +86,9 @@ func dataSourceVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	id := virtualmachines.NewVirtualMachineID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id, virtualmachines.DefaultGetOperationOptions())
+	options := virtualmachines.DefaultGetOperationOptions()
+	options.Expand = pointer.To(virtualmachines.InstanceViewTypesInstanceView)
+	resp, err := client.Get(ctx, id, options)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
@@ -118,20 +121,16 @@ func dataSourceVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) e
 				}
 			}
 			connectionInfo := retrieveConnectionInformation(ctx, networkInterfacesClient, publicIPAddressesClient, props)
-			err = d.Set("private_ip_address", connectionInfo.primaryPrivateAddress)
-			if err != nil {
+			if err = d.Set("private_ip_address", connectionInfo.primaryPrivateAddress); err != nil {
 				return err
 			}
-			err = d.Set("private_ip_addresses", connectionInfo.privateAddresses)
-			if err != nil {
+			if err = d.Set("private_ip_addresses", connectionInfo.privateAddresses); err != nil {
 				return err
 			}
-			err = d.Set("public_ip_address", connectionInfo.primaryPublicAddress)
-			if err != nil {
+			if err = d.Set("public_ip_address", connectionInfo.primaryPublicAddress); err != nil {
 				return err
 			}
-			err = d.Set("public_ip_addresses", connectionInfo.publicAddresses)
-			if err != nil {
+			if err = d.Set("public_ip_addresses", connectionInfo.publicAddresses); err != nil {
 				return err
 			}
 		}

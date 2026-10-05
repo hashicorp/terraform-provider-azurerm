@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute_test
@@ -27,7 +27,7 @@ func TestAccLinuxVirtualMachine_imageFromImage(t *testing.T) {
 			Config: r.imageFromExistingMachinePrep(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_linux_virtual_machine.source"),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_linux_virtual_machine.source"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.source"),
 			),
 		},
 		{
@@ -74,7 +74,7 @@ func TestAccLinuxVirtualMachine_imageFromCommunitySharedImageGallery(t *testing.
 			Config: r.imageFromExistingMachinePrep(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_linux_virtual_machine.source"),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_linux_virtual_machine.source"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.source"),
 			),
 		},
 		{
@@ -97,7 +97,7 @@ func TestAccLinuxVirtualMachine_imageFromSharedImageGallery(t *testing.T) {
 			Config: r.imageFromExistingMachinePrep(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_linux_virtual_machine.source"),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_linux_virtual_machine.source"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.source"),
 			),
 		},
 		{
@@ -135,6 +135,10 @@ locals {
   vm_name           = "acctestsourcevm-%[1]d"
   admin_username    = "testadmin%[1]d"
   admin_password    = "Password1234!%[1]d"
+}
+
+provider "azurerm" {
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
@@ -224,6 +228,12 @@ resource "azurerm_linux_virtual_machine" "source" {
     sku       = "22_04-lts"
     version   = "latest"
   }
+
+  custom_data = base64encode(<<-EOT
+#!/bin/bash
+sudo waagent -verbose -deprovision+user -force
+EOT
+  )
 }
 `, r.imageFromExistingMachineDependencies(data), data.RandomInteger)
 }

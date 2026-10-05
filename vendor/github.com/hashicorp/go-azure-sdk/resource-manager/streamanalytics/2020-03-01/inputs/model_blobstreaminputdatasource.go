@@ -14,6 +14,14 @@ type BlobStreamInputDataSource struct {
 	Properties *BlobStreamInputDataSourceProperties `json:"properties,omitempty"`
 
 	// Fields inherited from StreamInputDataSource
+
+	Type string `json:"type"`
+}
+
+func (s BlobStreamInputDataSource) StreamInputDataSource() BaseStreamInputDataSourceImpl {
+	return BaseStreamInputDataSourceImpl{
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = BlobStreamInputDataSource{}
@@ -27,9 +35,10 @@ func (s BlobStreamInputDataSource) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling BlobStreamInputDataSource: %+v", err)
 	}
+
 	decoded["type"] = "Microsoft.Storage/Blob"
 
 	encoded, err = json.Marshal(decoded)
