@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package validate
 
 import (
@@ -6,7 +9,8 @@ import (
 	"strings"
 )
 
-func IpTrafficPort(v interface{}, k string) (warnings []string, errors []error) {
+// lintignore:V013 // false positive - this validates a port or port range; the string comparison checks the "*" wildcard
+func IpTrafficPort(v any, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if value == "*" {

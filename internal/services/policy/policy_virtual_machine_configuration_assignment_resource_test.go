@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package policy_test
@@ -11,12 +11,11 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/guestconfiguration/2020-06-25/guestconfigurationassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/guestconfiguration/2024-04-05/guestconfigurationassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type PolicyVirtualMachineConfigurationAssignmentResource struct{}
@@ -74,14 +73,14 @@ func TestAccPolicyVirtualMachineConfigurationAssignment_update(t *testing.T) {
 }
 
 func (r PolicyVirtualMachineConfigurationAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := guestconfigurationassignments.ParseProviders2GuestConfigurationAssignmentID(state.ID)
+	id, err := guestconfigurationassignments.ParseVirtualMachineProviders2GuestConfigurationAssignmentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 	resp, err := client.Policy.GuestConfigurationAssignmentsClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -227,7 +226,7 @@ resource "azurerm_policy_virtual_machine_configuration_assignment" "test" {
   configuration {
     version         = "1.1.1.1"
     assignment_type = "ApplyAndAutoCorrect"
-    content_hash    = "testcontenthash"
+    content_hash    = upper("db4d5cd43c59c756f9beb1f029c858bc341587bf75332288270a26493565f058")
     content_uri     = "https://testcontenturi/package"
 
     parameter {
@@ -251,7 +250,7 @@ resource "azurerm_policy_virtual_machine_configuration_assignment" "test" {
   configuration {
     version         = "1.1.1.1"
     assignment_type = "Audit"
-    content_hash    = "testcontenthash2"
+    content_hash    = upper("cde01f651f3a3055834753d42d73b44e2a505844ac34f9ccc35d3d6dfffcb2e4")
     content_uri     = "https://testcontenturi/package2"
 
     parameter {

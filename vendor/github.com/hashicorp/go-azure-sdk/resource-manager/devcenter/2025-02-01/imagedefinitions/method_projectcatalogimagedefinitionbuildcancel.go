@@ -56,9 +56,20 @@ func (c ImageDefinitionsClient) ProjectCatalogImageDefinitionBuildCancel(ctx con
 
 // ProjectCatalogImageDefinitionBuildCancelThenPoll performs ProjectCatalogImageDefinitionBuildCancel then polls until it's completed
 func (c ImageDefinitionsClient) ProjectCatalogImageDefinitionBuildCancelThenPoll(ctx context.Context, id BuildId) error {
+	return c.ProjectCatalogImageDefinitionBuildCancelCallbackThenPoll(ctx, id, nil)
+}
+
+// ProjectCatalogImageDefinitionBuildCancelCallbackThenPoll performs ProjectCatalogImageDefinitionBuildCancel, runs the optional callback function, then polls until it's completed
+func (c ImageDefinitionsClient) ProjectCatalogImageDefinitionBuildCancelCallbackThenPoll(ctx context.Context, id BuildId, callback func() error) error {
 	result, err := c.ProjectCatalogImageDefinitionBuildCancel(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ProjectCatalogImageDefinitionBuildCancel: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package machinelearning
@@ -10,17 +10,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/machinelearningcomputes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/workspaces"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/machinelearningcomputes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceComputeCluster() *pluginsdk.Resource {
@@ -68,7 +68,7 @@ func resourceComputeCluster() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice([]string{string(machinelearningcomputes.VMPriorityDedicated), string(machinelearningcomputes.VMPriorityLowPriority)}, false),
+				ValidateFunc: validation.StringInSlice(machinelearningcomputes.PossibleValuesForVMPriority(), false),
 			},
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
@@ -125,6 +125,7 @@ func resourceComputeCluster() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
+							Sensitive:    true,
 							AtLeastOneOf: []string{"ssh.0.admin_password", "ssh.0.key_value"},
 						},
 						"key_value": {
@@ -151,9 +152,9 @@ func resourceComputeCluster() *pluginsdk.Resource {
 			},
 
 			"subnet_resource_id": {
-				Type: pluginsdk.TypeString,
-				// NOTE: O+C as you don't have to specify it for Azure to assign one to the cluster
+				Type:     pluginsdk.TypeString,
 				Optional: true,
+				// NOTE: O+C as you don't have to specify it for Azure to assign one to the cluster
 				Computed: true,
 				ForceNew: true,
 			},
@@ -163,7 +164,7 @@ func resourceComputeCluster() *pluginsdk.Resource {
 	}
 }
 
-func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta any) error {
 	mlWorkspacesClient := meta.(*clients.Client).MachineLearning.Workspaces
 	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -194,28 +195,30 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("retrieving %s: `location` was nil", workspaceID)
 	}
 
-	identity, err := expandIdentity(d.Get("identity").([]interface{}))
+	identity, err := expandIdentity(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
-	existing, err := client.ComputeGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.ComputeGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_machine_learning_compute_cluster", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_machine_learning_compute_cluster", id.ID())
+		}
 	}
 
 	vmPriority := machinelearningcomputes.VMPriority(d.Get("vm_priority").(string))
 	computeClusterAmlComputeProperties := machinelearningcomputes.AmlComputeProperties{
-		VMSize:                 utils.String(d.Get("vm_size").(string)),
+		VMSize:                 pointer.To(d.Get("vm_size").(string)),
 		VMPriority:             &vmPriority,
-		ScaleSettings:          expandScaleSettings(d.Get("scale_settings").([]interface{})),
-		UserAccountCredentials: expandUserAccountCredentials(d.Get("ssh").([]interface{})),
+		ScaleSettings:          expandScaleSettings(d.Get("scale_settings").([]any)),
+		UserAccountCredentials: expandUserAccountCredentials(d.Get("ssh").([]any)),
 		EnableNodePublicIP:     pointer.To(d.Get("node_public_ip_enabled").(bool)),
 	}
 
@@ -232,9 +235,9 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	// to configuration files 'location' field...
 	computeClusterProperties := machinelearningcomputes.AmlCompute{
 		Properties:       &computeClusterAmlComputeProperties,
-		ComputeLocation:  utils.String(d.Get("location").(string)),
-		Description:      utils.String(d.Get("description").(string)),
-		DisableLocalAuth: utils.Bool(!d.Get("local_auth_enabled").(bool)),
+		ComputeLocation:  pointer.To(d.Get("location").(string)),
+		Description:      pointer.To(d.Get("description").(string)),
+		DisableLocalAuth: pointer.To(!d.Get("local_auth_enabled").(bool)),
 	}
 
 	// NOTE: The 'ComputeResource' 'Location' field should always point
@@ -243,27 +246,22 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		Properties: computeClusterProperties,
 		Identity:   identity,
 		Location:   workspaceModel.Location,
-		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:       tags.Expand(d.Get("tags").(map[string]any)),
 		Sku: &machinelearningcomputes.Sku{
 			Name: workspaceModel.Sku.Name,
-			Tier: pointer.To(machinelearningcomputes.SkuTier(*workspaceModel.Sku.Tier)),
+			Tier: pointer.ToEnum[machinelearningcomputes.SkuTier](string(*workspaceModel.Sku.Tier)),
 		},
 	}
 
-	future, err := client.ComputeCreateOrUpdate(ctx, id, computeClusterParameters)
-	if err != nil {
+	if err := client.ComputeCreateOrUpdateCallbackThenPoll(ctx, id, computeClusterParameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-	if err := future.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
-	}
-
 	d.SetId(id.ID())
 
 	return resourceComputeClusterRead(d, meta)
 }
 
-func resourceComputeClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceComputeClusterRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -296,7 +294,7 @@ func resourceComputeClusterRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.Set("description", computeCluster.Description)
 	if props := computeCluster.Properties; props != nil {
 		d.Set("vm_size", props.VMSize)
-		d.Set("vm_priority", string(pointer.From(props.VMPriority)))
+		d.Set("vm_priority", pointer.FromEnum(props.VMPriority))
 		d.Set("scale_settings", flattenScaleSettings(props.ScaleSettings))
 		d.Set("ssh", flattenUserAccountCredentials(props.UserAccountCredentials))
 		enableNodePublicIP := true
@@ -318,8 +316,8 @@ func resourceComputeClusterRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
-	if location := computeResource.Model.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+	if loc := computeResource.Model.Location; loc != nil {
+		d.Set("location", location.Normalize(*loc))
 	}
 
 	identity, err := flattenIdentity(computeResource.Model.Identity)
@@ -333,7 +331,7 @@ func resourceComputeClusterRead(d *pluginsdk.ResourceData, meta interface{}) err
 	return tags.FlattenAndSet(d, computeResource.Model.Tags)
 }
 
-func resourceComputeClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceComputeClusterUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -352,7 +350,7 @@ func resourceComputeClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("retrieving %s: `model` was nil", *id)
 	}
 	if d.HasChange("identity") {
-		identity, err := expandIdentity(d.Get("identity").([]interface{}))
+		identity, err := expandIdentity(d.Get("identity").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -364,11 +362,11 @@ func resourceComputeClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		if !ok {
 			return fmt.Errorf("retrieving %s: `properties` was not of type AmlCompute", *id)
 		}
-		computeClusterProperties.Properties.ScaleSettings = expandScaleSettings(d.Get("scale_settings").([]interface{}))
+		computeClusterProperties.Properties.ScaleSettings = expandScaleSettings(d.Get("scale_settings").([]any))
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.ComputeCreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
@@ -378,7 +376,7 @@ func resourceComputeClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	return resourceComputeClusterRead(d, meta)
 }
 
-func resourceComputeClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceComputeClusterDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -400,44 +398,42 @@ func resourceComputeClusterDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func expandScaleSettings(input []interface{}) *machinelearningcomputes.ScaleSettings {
+func expandScaleSettings(input []any) *machinelearningcomputes.ScaleSettings {
 	if len(input) == 0 {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	maxNodeCount := int64(v["max_node_count"].(int))
-	minNodeCount := int64(v["min_node_count"].(int))
-	scaleDownNodes := v["scale_down_nodes_after_idle_duration"].(string)
 
 	return &machinelearningcomputes.ScaleSettings{
 		MaxNodeCount:                maxNodeCount,
-		MinNodeCount:                &minNodeCount,
-		NodeIdleTimeBeforeScaleDown: &scaleDownNodes,
+		MinNodeCount:                pointer.To(int64(v["min_node_count"].(int))),
+		NodeIdleTimeBeforeScaleDown: pointer.To(v["scale_down_nodes_after_idle_duration"].(string)),
 	}
 }
 
-func expandUserAccountCredentials(input []interface{}) *machinelearningcomputes.UserAccountCredentials {
+func expandUserAccountCredentials(input []any) *machinelearningcomputes.UserAccountCredentials {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	return &machinelearningcomputes.UserAccountCredentials{
 		AdminUserName:         v["admin_username"].(string),
-		AdminUserPassword:     utils.String(v["admin_password"].(string)),
-		AdminUserSshPublicKey: utils.String(v["key_value"].(string)),
+		AdminUserPassword:     pointer.To(v["admin_password"].(string)),
+		AdminUserSshPublicKey: pointer.To(v["key_value"].(string)),
 	}
 }
 
-func flattenScaleSettings(scaleSettings *machinelearningcomputes.ScaleSettings) []interface{} {
+func flattenScaleSettings(scaleSettings *machinelearningcomputes.ScaleSettings) []any {
 	if scaleSettings == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"max_node_count":                       scaleSettings.MaxNodeCount,
 			"min_node_count":                       scaleSettings.MinNodeCount,
 			"scale_down_nodes_after_idle_duration": scaleSettings.NodeIdleTimeBeforeScaleDown,
@@ -445,30 +441,20 @@ func flattenScaleSettings(scaleSettings *machinelearningcomputes.ScaleSettings) 
 	}
 }
 
-func flattenUserAccountCredentials(credentials *machinelearningcomputes.UserAccountCredentials) interface{} {
+func flattenUserAccountCredentials(credentials *machinelearningcomputes.UserAccountCredentials) any {
 	if credentials == nil {
-		return []interface{}{}
+		return []any{}
 	}
 	var username string
 	if credentials.AdminUserName != "" {
 		username = credentials.AdminUserName
 	}
 
-	var adminPassword string
-	if credentials.AdminUserPassword != nil {
-		adminPassword = *credentials.AdminUserPassword
-	}
-
-	var sshPublicKey string
-	if credentials.AdminUserSshPublicKey != nil {
-		sshPublicKey = *credentials.AdminUserSshPublicKey
-	}
-
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"admin_username": username,
-			"admin_password": adminPassword,
-			"key_value":      sshPublicKey,
+			"admin_password": pointer.From(credentials.AdminUserPassword),
+			"key_value":      pointer.From(credentials.AdminUserSshPublicKey),
 		},
 	}
 }

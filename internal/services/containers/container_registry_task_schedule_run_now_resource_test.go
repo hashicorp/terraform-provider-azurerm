@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers_test
@@ -9,6 +9,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -47,8 +48,7 @@ func TestAccContainerRegistryTaskSchedule_basic(t *testing.T) {
 }
 
 func (r ContainerRegistryTaskScheduleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	ret := false
-	return &ret, nil
+	return pointer.To(false), nil
 }
 
 func (r ContainerRegistryTaskScheduleResource) basic(data acceptance.TestData, tpl func(data acceptance.TestData) string) string {
@@ -80,7 +80,7 @@ resource "azurerm_container_registry_task" "test" {
     image_names          = ["helloworld:{{.Run.ID}}"]
   }
 }
-`, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token)
+`, template, data.RandomInteger, r.url, r.token)
 }
 
 func (r ContainerRegistryTaskScheduleResource) fileTaskStep(data acceptance.TestData) string {
@@ -100,7 +100,7 @@ resource "azurerm_container_registry_task" "test" {
     context_access_token = "%s"
   }
 }
-`, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token)
+`, template, data.RandomInteger, r.url, r.token)
 }
 
 func (r ContainerRegistryTaskScheduleResource) encodedTaskStep(data acceptance.TestData) string {
@@ -127,7 +127,7 @@ EOF
     context_access_token = "%s"
   }
 }
-`, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token)
+`, template, data.RandomInteger, r.url, r.token)
 }
 
 func (r ContainerRegistryTaskScheduleResource) template(data acceptance.TestData) string {

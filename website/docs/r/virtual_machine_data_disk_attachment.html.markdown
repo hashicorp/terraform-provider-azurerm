@@ -61,7 +61,7 @@ resource "azurerm_virtual_machine" "example" {
   location              = azurerm_resource_group.example.location
   resource_group_name   = azurerm_resource_group.example.name
   network_interface_ids = [azurerm_network_interface.main.id]
-  vm_size               = "Standard_F2"
+  vm_size               = "Standard_D4_v5"
 
   storage_image_reference {
     publisher = "Canonical"
@@ -105,7 +105,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -129,7 +129,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Virtual Machine Data Disk Attachment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Machine Data Disk Attachment.
@@ -150,4 +150,4 @@ terraform import azurerm_virtual_machine_data_disk_attachment.example /subscript
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Compute`: 2024-03-01, 2023-04-02
+* `Microsoft.Compute` - 2024-03-01, 2023-04-02

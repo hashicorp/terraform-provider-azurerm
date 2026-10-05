@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -583,7 +583,7 @@ func (c CosmosDBAccountV0toV1) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (c CosmosDBAccountV0toV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		if ipfString, ok := rawState["ip_range_filter"].(string); ok {
 			ipfSet := make([]string, 0)
 			if ipfString != "" {

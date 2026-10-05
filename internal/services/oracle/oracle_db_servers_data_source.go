@@ -1,4 +1,5 @@
-// Copyright © 2024, Oracle and/or its affiliates. All rights reserved
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
 
 package oracle
 
@@ -10,10 +11,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/dbservers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/dbservers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type DBServersDataSource struct{}
@@ -53,7 +54,7 @@ func (d DBServersDataSource) Arguments() map[string]*pluginsdk.Schema {
 		"cloud_exadata_infrastructure_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.ExadataName,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
 }
@@ -177,7 +178,7 @@ func (d DBServersDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (d DBServersDataSource) ModelObject() interface{} {
+func (d DBServersDataSource) ModelObject() any {
 	return &DBServersDataModel{}
 }
 
@@ -225,7 +226,7 @@ func (d DBServersDataSource) Read() sdk.ResourceFunc {
 							DisplayName:                 pointer.From(props.DisplayName),
 							ExadataInfrastructureId:     pointer.From(props.ExadataInfrastructureId),
 							LifecycleDetails:            pointer.From(props.LifecycleDetails),
-							LifecycleState:              string(pointer.From(props.LifecycleState)),
+							LifecycleState:              pointer.FromEnum(props.LifecycleState),
 							MaxCPUCount:                 pointer.From(props.MaxCPUCount),
 							MaxDbNodeStorageInGbs:       pointer.From(props.MaxDbNodeStorageInGbs),
 							MaxMemoryInGbs:              pointer.From(props.MaxMemoryInGbs),
