@@ -10,9 +10,9 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/rules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/subscriptions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/topics"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/rules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/subscriptions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/topics"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -174,7 +174,7 @@ func resourceServicebusSubscriptionSchema() map[string]*pluginsdk.Schema {
 	}
 }
 
-func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceBus.SubscriptionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -186,9 +186,9 @@ func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta 
 	var isSubShared bool
 	isClintScopedEnabled := d.Get("client_scoped_subscription_enabled").(bool)
 	if isClintScopedEnabled {
-		clientScopedSubsRawData := d.Get("client_scoped_subscription").([]interface{})
+		clientScopedSubsRawData := d.Get("client_scoped_subscription").([]any)
 		if len(clientScopedSubsRawData) > 0 {
-			clientScopedSubsProps := clientScopedSubsRawData[0].(map[string]interface{})
+			clientScopedSubsProps := clientScopedSubsRawData[0].(map[string]any)
 			if clientScopedSubsProps["client_id"] != "" {
 				clientId = clientScopedSubsProps["client_id"].(string)
 			}
@@ -284,7 +284,7 @@ func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta 
 	return resourceServiceBusSubscriptionRead(d, meta)
 }
 
-func resourceServiceBusSubscriptionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceServiceBusSubscriptionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceBus.SubscriptionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -349,7 +349,7 @@ func resourceServiceBusSubscriptionFlatten(d *pluginsdk.ResourceData, id *subscr
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceServiceBusSubscriptionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceServiceBusSubscriptionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceBus.SubscriptionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -366,9 +366,9 @@ func resourceServiceBusSubscriptionDelete(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func flattenServiceBusNamespaceClientScopedSubscription(clientScopedSubsProps *subscriptions.SBClientAffineProperties) []interface{} {
+func flattenServiceBusNamespaceClientScopedSubscription(clientScopedSubsProps *subscriptions.SBClientAffineProperties) []any {
 	if clientScopedSubsProps == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	var clientId string
@@ -386,8 +386,8 @@ func flattenServiceBusNamespaceClientScopedSubscription(clientScopedSubsProps *s
 		isDurable = *clientScopedSubsProps.IsDurable
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"client_id": clientId,
 			"is_client_scoped_subscription_shareable": isShareable,
 			"is_client_scoped_subscription_durable":   isDurable,

@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func VirtualNetworkRuleName(v interface{}, k string) ([]string, []error) {
+func VirtualNetworkRuleName(v any, k string) ([]string, []error) {
 	return validation.All(
 		validation.StringLenBetween(2, 64),
 		validation.StringMatch(regexp.MustCompile(`^[A-Za-z0-9-\._]*$`), "can only contain alphanumeric characters, underscores, periods and hyphens"),

@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" //nolint:staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func dataSourceArmPolicyDefinition() *pluginsdk.Resource {
+func dataSourcePolicyDefinition() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Read: policyDefinitionReadFunc(false),
 
@@ -95,8 +95,8 @@ func policyDefinitionDataSourceSchema() map[string]*pluginsdk.Schema {
 	}
 }
 
-func policyDefinitionReadFunc(builtInOnly bool) func(d *pluginsdk.ResourceData, meta interface{}) error {
-	return func(d *pluginsdk.ResourceData, meta interface{}) error {
+func policyDefinitionReadFunc(builtInOnly bool) func(d *pluginsdk.ResourceData, meta any) error {
+	return func(d *pluginsdk.ResourceData, meta any) error {
 		client := meta.(*clients.Client).Policy.DefinitionsClient
 		ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 		defer cancel()
@@ -141,7 +141,7 @@ func policyDefinitionReadFunc(builtInOnly bool) func(d *pluginsdk.ResourceData, 
 		d.Set("policy_type", policyDefinition.PolicyType)
 		d.Set("mode", policyDefinition.Mode)
 
-		if policyRuleStr := flattenJSON(policyDefinition.PolicyRule.(map[string]interface{})); policyRuleStr != "" {
+		if policyRuleStr := flattenJSON(policyDefinition.PolicyRule.(map[string]any)); policyRuleStr != "" {
 			d.Set("policy_rule", policyRuleStr)
 			roleIDs, _ := getPolicyRoleDefinitionIDs(policyRuleStr)
 			d.Set("role_definition_ids", roleIDs)

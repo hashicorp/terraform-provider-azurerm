@@ -161,7 +161,7 @@ func (s Server) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (s Server) ModelObject() interface{} {
+func (s Server) ModelObject() any {
 	return &ServerModel{}
 }
 
@@ -346,7 +346,6 @@ func (s Server) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			meta.Logger.Infof("deleting %s", id)
 			if _, err := client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", id, err)
 			}

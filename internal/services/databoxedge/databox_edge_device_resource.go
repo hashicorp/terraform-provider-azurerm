@@ -58,7 +58,7 @@ func (r EdgeDeviceResource) Identity() resourceids.ResourceId {
 	return &devices.DataBoxEdgeDeviceId{}
 }
 
-func (r EdgeDeviceResource) ModelObject() interface{} {
+func (r EdgeDeviceResource) ModelObject() any {
 	return &EdgeDeviceModel{}
 }
 

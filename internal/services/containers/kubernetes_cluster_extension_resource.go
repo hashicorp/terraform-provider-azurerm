@@ -50,12 +50,12 @@ func (r KubernetesClusterExtensionResource) ResourceType() string {
 	return "azurerm_kubernetes_cluster_extension"
 }
 
-func (r KubernetesClusterExtensionResource) ModelObject() interface{} {
+func (r KubernetesClusterExtensionResource) ModelObject() any {
 	return &KubernetesClusterExtensionModel{}
 }
 
 func (r KubernetesClusterExtensionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return func(val interface{}, key string) (warns []string, errs []error) {
+	return func(val any, key string) (warns []string, errs []error) {
 		idRaw, ok := val.(string)
 		if !ok {
 			errs = append(errs, fmt.Errorf("expected `id` to be a string but got %+v", val))
@@ -245,12 +245,10 @@ func (r KubernetesClusterExtensionResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			autoUpgradeMinorVersion := model.Version == ""
-
 			properties := &extensions.Extension{
 				Plan: expandPlanModel(model.Plan),
 				Properties: &extensions.ExtensionProperties{
-					AutoUpgradeMinorVersion:        &autoUpgradeMinorVersion,
+					AutoUpgradeMinorVersion:        pointer.To(model.Version == ""),
 					ConfigurationProtectedSettings: &model.ConfigurationProtectedSettings,
 					ConfigurationSettings:          &model.ConfigurationSettings,
 				},
@@ -455,9 +453,9 @@ func flattenPlanModel(input *extensions.Plan) []PlanModel {
 	return append(outputList, output)
 }
 
-func flattenAksAssignedIdentity(input *extensions.ExtensionPropertiesAksAssignedIdentity) []interface{} {
+func flattenAksAssignedIdentity(input *extensions.ExtensionPropertiesAksAssignedIdentity) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	output := identity.SystemAssigned{

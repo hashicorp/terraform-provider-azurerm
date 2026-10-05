@@ -51,7 +51,7 @@ func (MsSqlJobResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (MsSqlJobResource) ModelObject() interface{} {
+func (MsSqlJobResource) ModelObject() any {
 	return &MsSqlJobResourceModel{}
 }
 
