@@ -1047,7 +1047,7 @@ resource "azurerm_machine_learning_workspace" "test" {
 }
 
 func (r WorkspaceResource) userAssignedAndCustomManagedKey(data acceptance.TestData) string {
-	// nolint: dupword
+	//nolint:dupword
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {

@@ -59,15 +59,6 @@
             <include>tests/*.class</include>
           </includes>
         </configuration>
-        <executions>
-          <execution>
-            <id>compile</id>
-            <phase>process-sources</phase>
-            <goals>
-              <goal>test</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
       <plugin>
         <artifactId>kotlin-maven-plugin</artifactId>

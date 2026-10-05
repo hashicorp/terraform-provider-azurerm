@@ -110,7 +110,7 @@ func resourceDataProtectionBackupInstanceDisk() *schema.Resource {
 	}
 }
 
-func resourceDataProtectionBackupInstanceDiskCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataProtectionBackupInstanceDiskCreateUpdate(d *schema.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DataProtection.BackupInstanceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -210,7 +210,7 @@ func resourceDataProtectionBackupInstanceDiskCreateUpdate(d *schema.ResourceData
 	return resourceDataProtectionBackupInstanceDiskRead(d, meta)
 }
 
-func resourceDataProtectionBackupInstanceDiskRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataProtectionBackupInstanceDiskRead(d *schema.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataProtection.BackupInstanceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -257,7 +257,7 @@ func resourceDataProtectionBackupInstanceDiskRead(d *schema.ResourceData, meta i
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceDataProtectionBackupInstanceDiskDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataProtectionBackupInstanceDiskDelete(d *schema.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataProtection.BackupInstanceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -46,7 +46,7 @@ func resourceApiManagementGroupUser() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementGroupUserCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementGroupUserCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.GroupUsersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -76,7 +76,7 @@ func resourceApiManagementGroupUserCreate(d *pluginsdk.ResourceData, meta interf
 	return resourceApiManagementGroupUserRead(d, meta)
 }
 
-func resourceApiManagementGroupUserRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementGroupUserRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.GroupUsersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -105,7 +105,7 @@ func resourceApiManagementGroupUserRead(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func resourceApiManagementGroupUserDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementGroupUserDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.GroupUsersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

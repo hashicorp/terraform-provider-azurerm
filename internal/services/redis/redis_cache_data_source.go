@@ -246,7 +246,7 @@ func dataSourceRedisCache() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceRedisCacheRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Redis.RedisResourcesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	patchSchedulesClient := meta.(*clients.Client).Redis.PatchSchedulesClient
@@ -269,7 +269,7 @@ func dataSourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error
 			return fmt.Errorf("obtaining patch schedules for %s: %+v", id, err)
 		}
 	}
-	var patchSchedule []interface{}
+	var patchSchedule []any
 	if model := schedule.Model; model != nil {
 		patchSchedule = flattenRedisPatchSchedules(*schedule.Model)
 	}
@@ -348,8 +348,8 @@ func dataSourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error
 	return nil
 }
 
-func flattenDataSourceRedisConfiguration(input *redisresources.RedisCommonPropertiesRedisConfiguration) ([]interface{}, error) {
-	outputs := make(map[string]interface{})
+func flattenDataSourceRedisConfiguration(input *redisresources.RedisCommonPropertiesRedisConfiguration) ([]any, error) {
+	outputs := make(map[string]any)
 
 	if input.AadEnabled != nil {
 		a, err := strconv.ParseBool(*input.AadEnabled)
@@ -445,5 +445,5 @@ func flattenDataSourceRedisConfiguration(input *redisresources.RedisCommonProper
 
 	outputs["storage_account_subscription_id"] = pointer.From(input.StorageSubscriptionId)
 
-	return []interface{}{outputs}, nil
+	return []any{outputs}, nil
 }
