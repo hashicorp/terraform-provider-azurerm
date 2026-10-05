@@ -6,6 +6,7 @@ package containers_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -94,6 +95,8 @@ func TestAccKubernetesCluster_defaultNodePoolSecurity(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_defaultNodePoolSecurityUpgrade(t *testing.T) {
+	os.Setenv("TF_ACC_REFRESH_AFTER_APPLY", "true")
+
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 	config := r.defaultNodePoolSecurity(data, "", "initial")
@@ -130,7 +133,19 @@ func TestAccKubernetesCluster_defaultNodePoolSecurityUpgrade(t *testing.T) {
 					data.CheckWithClient(r.checkDefaultNodePoolSecurity(false, false)),
 				),
 			},
-			{RefreshState: true, ProtoV5ProviderFactories: current},
+			{
+				Config:                   config,
+				ProtoV5ProviderFactories: current,
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply:             []plancheck.PlanCheck{plancheck.ExpectEmptyPlan()},
+					PostApplyPreRefresh:  []plancheck.PlanCheck{plancheck.ExpectEmptyPlan()},
+					PostApplyPostRefresh: []plancheck.PlanCheck{plancheck.ExpectEmptyPlan()},
+				},
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+					data.CheckWithClient(r.checkDefaultNodePoolSecurity(false, false)),
+				),
+			},
 			newImport,
 			{Config: config, PlanOnly: true, ProtoV5ProviderFactories: current},
 		},
