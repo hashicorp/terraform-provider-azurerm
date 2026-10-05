@@ -45,7 +45,7 @@ func (r DataConnectorOfficePowerBIResource) Arguments() map[string]*pluginsdk.Sc
 		"tenant_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validation.IsUUID,
 		},
@@ -60,7 +60,7 @@ func (r DataConnectorOfficePowerBIResource) ResourceType() string {
 	return "azurerm_sentinel_data_connector_office_power_bi"
 }
 
-func (r DataConnectorOfficePowerBIResource) ModelObject() interface{} {
+func (r DataConnectorOfficePowerBIResource) ModelObject() any {
 	return &DataConnectorOfficePowerBIModel{}
 }
 

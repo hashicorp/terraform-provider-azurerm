@@ -121,7 +121,7 @@ func resourceApiConnection() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiConnectionCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiConnectionCreate(d *schema.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Connections.ConnectionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -153,7 +153,7 @@ func resourceApiConnectionCreate(d *schema.ResourceData, meta interface{}) error
 				Id: pointer.To(managedAppId.ID()),
 			},
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 	if v := d.Get("display_name").(string); v != "" {
 		model.Properties.DisplayName = pointer.To(v)
@@ -168,11 +168,11 @@ func resourceApiConnectionCreate(d *schema.ResourceData, meta interface{}) error
 		// parameter_values must not be set when parameter_value_type is used
 	} else if v, ok := d.GetOk("parameter_values"); ok {
 		// Only set parameter_values if parameter_value_type is not set
-		model.Properties.ParameterValues = pointer.To(v.(map[string]interface{}))
+		model.Properties.ParameterValues = pointer.To(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("parameter_value_set"); ok {
-		model.Properties.ParameterValueSet = expandParameterValueSet(v.([]interface{}))
+		model.Properties.ParameterValueSet = expandParameterValueSet(v.([]any))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, model); err != nil {
@@ -183,7 +183,7 @@ func resourceApiConnectionCreate(d *schema.ResourceData, meta interface{}) error
 	return resourceApiConnectionRead(d, meta)
 }
 
-func resourceApiConnectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiConnectionRead(d *schema.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Connections.ConnectionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -238,7 +238,7 @@ func resourceApiConnectionRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceApiConnectionUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiConnectionUpdate(d *schema.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Connections.ConnectionsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -281,15 +281,15 @@ func resourceApiConnectionUpdate(d *schema.ResourceData, meta interface{}) error
 		props.ParameterValues = nil
 	} else if d.HasChange("parameter_values") {
 		// Only update parameter_values if parameter_value_type is not set
-		props.ParameterValues = pointer.To(d.Get("parameter_values").(map[string]interface{}))
+		props.ParameterValues = pointer.To(d.Get("parameter_values").(map[string]any))
 	}
 
 	if d.HasChange("parameter_value_set") {
-		props.ParameterValueSet = expandParameterValueSet(d.Get("parameter_value_set").([]interface{}))
+		props.ParameterValueSet = expandParameterValueSet(d.Get("parameter_value_set").([]any))
 	}
 
 	if d.HasChange("tags") {
-		existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {
@@ -299,7 +299,7 @@ func resourceApiConnectionUpdate(d *schema.ResourceData, meta interface{}) error
 	return resourceApiConnectionRead(d, meta)
 }
 
-func resourceApiConnectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiConnectionDelete(d *schema.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Connections.ConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -318,7 +318,7 @@ func resourceApiConnectionDelete(d *schema.ResourceData, meta interface{}) error
 
 // Because this API may return other primitive types for `parameter_values`
 // we need to ensure each value in the map is a string to prevent panics when setting this into state.
-func flattenParameterValues(input map[string]interface{}) map[string]string {
+func flattenParameterValues(input map[string]any) map[string]string {
 	output := make(map[string]string)
 
 	for k, v := range input {
@@ -328,20 +328,20 @@ func flattenParameterValues(input map[string]interface{}) map[string]string {
 	return output
 }
 
-func expandParameterValueSet(input []interface{}) *connections.ParameterValueSet {
+func expandParameterValueSet(input []any) *connections.ParameterValueSet {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	result := &connections.ParameterValueSet{
 		Name: pointer.To(v["name"].(string)),
 	}
 
-	if values, ok := v["values"].(map[string]interface{}); ok && len(values) > 0 {
-		expandedValues := make(map[string]interface{})
+	if values, ok := v["values"].(map[string]any); ok && len(values) > 0 {
+		expandedValues := make(map[string]any)
 		for key, val := range values {
-			expandedValues[key] = map[string]interface{}{
+			expandedValues[key] = map[string]any{
 				"value": val,
 			}
 		}
@@ -351,31 +351,31 @@ func expandParameterValueSet(input []interface{}) *connections.ParameterValueSet
 	return result
 }
 
-func flattenParameterValueSet(input *connections.ParameterValueSet) []interface{} {
+func flattenParameterValueSet(input *connections.ParameterValueSet) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	result := map[string]interface{}{
+	result := map[string]any{
 		"name": pointer.From(input.Name),
 	}
 
 	result["values"] = flattenParameterValueSetValues(input.Values)
 
-	return []interface{}{result}
+	return []any{result}
 }
 
 // flattenParameterValueSetValues extracts values from the API's parameter value set format.
 // The API returns values in the format {"key": {"value": "actualValue"}}
 // This function extracts the "value" field for each key.
-func flattenParameterValueSetValues(input *map[string]interface{}) map[string]string {
+func flattenParameterValueSetValues(input *map[string]any) map[string]string {
 	values := make(map[string]string)
 	if input == nil {
 		return values
 	}
 
 	for key, val := range *input {
-		if valueMap, ok := val.(map[string]interface{}); ok {
+		if valueMap, ok := val.(map[string]any); ok {
 			if v, exists := valueMap["value"]; exists {
 				values[key] = fmt.Sprintf("%v", v)
 			}
@@ -386,12 +386,12 @@ func flattenParameterValueSetValues(input *map[string]interface{}) map[string]st
 	return values
 }
 
-func resourceApiConnectionCustomizeDiff(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+func resourceApiConnectionCustomizeDiff(_ context.Context, d *pluginsdk.ResourceDiff, _ any) error {
 	// Validate that parameter_values is not set when parameter_value_type is set
 	// The Azure API requires parameter_values to be null when parameter_value_type is specified
 	if paramValueType, ok := d.GetOk("parameter_value_type"); ok && paramValueType.(string) != "" {
 		if paramValues, ok := d.GetOk("parameter_values"); ok {
-			if len(paramValues.(map[string]interface{})) > 0 {
+			if len(paramValues.(map[string]any)) > 0 {
 				return fmt.Errorf("`parameter_values` must not be set when `parameter_value_type` is specified - the Azure API requires parameter_values to be null when parameter_value_type is provided")
 			}
 		}

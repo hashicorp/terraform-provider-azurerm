@@ -44,7 +44,7 @@ func (r ApiConnectionDataSource) ResourceType() string {
 	return "azurerm_api_connection"
 }
 
-func (r ApiConnectionDataSource) ModelObject() interface{} {
+func (r ApiConnectionDataSource) ModelObject() any {
 	return &ApiConnectionDataSourceModel{}
 }
 

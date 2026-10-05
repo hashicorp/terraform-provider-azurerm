@@ -13,9 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/storageinsights"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -40,7 +38,7 @@ func resourceLogAnalyticsStorageInsights() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := storageinsights.ParseStorageInsightConfigID(id)
 			return err
-		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
 			if v, ok := d.GetOk("storage_account_key"); ok && v.(string) != "" {
 				d.Set("storage_account_key", v)
 			}
@@ -52,7 +50,7 @@ func resourceLogAnalyticsStorageInsights() *pluginsdk.Resource {
 	}
 }
 
-func resourceLogAnalyticsStorageInsightsCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsStorageInsightsCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.StorageInsightsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -89,11 +87,11 @@ func resourceLogAnalyticsStorageInsightsCreateUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	if _, ok := d.GetOk("table_names"); ok {
-		parameters.Properties.Tables = helpers.ExpandStringSlice(d.Get("table_names").(*pluginsdk.Set).List())
+		parameters.Properties.Tables = pluginsdk.ExpandStringSlice(d.Get("table_names").(*pluginsdk.Set).List())
 	}
 
 	if _, ok := d.GetOk("blob_container_names"); ok {
-		parameters.Properties.Containers = helpers.ExpandStringSlice(d.Get("blob_container_names").(*pluginsdk.Set).List())
+		parameters.Properties.Containers = pluginsdk.ExpandStringSlice(d.Get("blob_container_names").(*pluginsdk.Set).List())
 	}
 
 	if _, err := client.StorageInsightConfigsCreateOrUpdate(ctx, id, parameters); err != nil {
@@ -104,7 +102,7 @@ func resourceLogAnalyticsStorageInsightsCreateUpdate(d *pluginsdk.ResourceData, 
 	return resourceLogAnalyticsStorageInsightsRead(d, meta)
 }
 
-func resourceLogAnalyticsStorageInsightsRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsStorageInsightsRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.StorageInsightsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -130,7 +128,7 @@ func resourceLogAnalyticsStorageInsightsRead(d *pluginsdk.ResourceData, meta int
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("blob_container_names", helpers.FlattenStringSlice(props.Containers))
+			d.Set("blob_container_names", pluginsdk.FlattenSlice(props.Containers))
 
 			storageAccountIdStr := ""
 			if props.StorageAccount.Id != "" {
@@ -142,14 +140,14 @@ func resourceLogAnalyticsStorageInsightsRead(d *pluginsdk.ResourceData, meta int
 			}
 			d.Set("storage_account_id", storageAccountIdStr)
 
-			d.Set("table_names", helpers.FlattenStringSlice(props.Tables))
+			d.Set("table_names", pluginsdk.FlattenSlice(props.Tables))
 		}
 	}
 
 	return nil
 }
 
-func resourceLogAnalyticsStorageInsightsDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsStorageInsightsDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.StorageInsightsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -201,7 +199,7 @@ func resourceLogAnalyticsStorageInsightsSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,
-			ValidateFunc: azValidate.Base64EncodedString,
+			ValidateFunc: validation.StringIsBase64,
 		},
 
 		"blob_container_names": {

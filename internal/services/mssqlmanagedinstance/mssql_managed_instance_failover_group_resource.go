@@ -12,10 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/instancefailovergroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/instancefailovergroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -56,7 +55,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) ResourceType() string {
 	return "azurerm_mssql_managed_instance_failover_group"
 }
 
-func (r MsSqlManagedInstanceFailoverGroupResource) ModelObject() interface{} {
+func (r MsSqlManagedInstanceFailoverGroupResource) ModelObject() any {
 	return &MsSqlManagedInstanceFailoverGroupModel{}
 }
 
@@ -79,7 +78,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Arguments() map[string]*plugi
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ManagedInstanceID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseSqlManagedInstanceIDInsensitively),
 		},
 
 		"partner_managed_instance_id": {
@@ -168,13 +167,15 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Create() sdk.ResourceFunc {
 			id := instancefailovergroups.NewInstanceFailoverGroupID(managedInstanceId.SubscriptionId,
 				managedInstanceId.ResourceGroupName, model.Location, model.Name)
 
-			partnerId, err := parse.ManagedInstanceID(model.PartnerManagedInstanceId)
+			// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
+			// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
+			partnerId, err := commonids.ParseSqlManagedInstanceIDInsensitively(model.PartnerManagedInstanceId)
 			if err != nil {
 				return err
 			}
 
 			instancesClient := metadata.Client.MSSQLManagedInstance.ManagedInstancesClientForSubscription(partnerId.SubscriptionId)
-			partner, err := instancesClient.Get(ctx, partnerId.ResourceGroup, partnerId.Name, "")
+			partner, err := instancesClient.Get(ctx, partnerId.ResourceGroupName, partnerId.ManagedInstanceName, "")
 			if err != nil || partner.Location == nil || *partner.Location == "" {
 				return fmt.Errorf("checking for existence and region of Partner of %q: %+v", id, err)
 			}
@@ -255,13 +256,15 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			partnerId, err := parse.ManagedInstanceID(state.PartnerManagedInstanceId)
+			// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
+			// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
+			partnerId, err := commonids.ParseSqlManagedInstanceIDInsensitively(state.PartnerManagedInstanceId)
 			if err != nil {
 				return err
 			}
 
 			instancesClient := metadata.Client.MSSQLManagedInstance.ManagedInstancesClientForSubscription(partnerId.SubscriptionId)
-			partner, err := instancesClient.Get(ctx, partnerId.ResourceGroup, partnerId.Name, "")
+			partner, err := instancesClient.Get(ctx, partnerId.ResourceGroupName, partnerId.ManagedInstanceName, "")
 			if err != nil || partner.Location == nil || *partner.Location == "" {
 				return fmt.Errorf("checking for existence and region of Partner of %q: %+v", id, err)
 			}
@@ -339,11 +342,11 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Read() sdk.ResourceFunc {
 
 			if result.Model != nil {
 				if props := result.Model.Properties; props != nil {
-					model.Role = string(pointer.From(props.ReplicationRole))
+					model.Role = pointer.FromEnum(props.ReplicationRole)
 
 					if instancePairs := props.ManagedInstancePairs; len(instancePairs) == 1 {
 						if primaryId := instancePairs[0].PrimaryManagedInstanceId; primaryId != nil {
-							id, err := parse.ManagedInstanceIDInsensitively(*primaryId)
+							id, err := commonids.ParseSqlManagedInstanceIDInsensitively(*primaryId)
 							if err != nil {
 								return fmt.Errorf("parsing `PrimaryManagedInstanceID` from response: %v", err)
 							}
@@ -352,7 +355,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Read() sdk.ResourceFunc {
 						}
 
 						if partnerId := instancePairs[0].PartnerManagedInstanceId; partnerId != nil {
-							id, err := parse.ManagedInstanceIDInsensitively(*partnerId)
+							id, err := commonids.ParseSqlManagedInstanceIDInsensitively(*partnerId)
 							if err != nil {
 								return fmt.Errorf("parsing `PrimaryManagedInstanceID` from response: %v", err)
 							}
@@ -364,7 +367,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Read() sdk.ResourceFunc {
 					for _, partnerRegion := range props.PartnerRegions {
 						model.PartnerRegion = append(model.PartnerRegion, MsSqlManagedInstancePartnerRegionModel{
 							Location: pointer.From(partnerRegion.Location),
-							Role:     string(pointer.From(partnerRegion.ReplicationRole)),
+							Role:     pointer.FromEnum(partnerRegion.ReplicationRole),
 						})
 					}
 
@@ -374,7 +377,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Read() sdk.ResourceFunc {
 						}
 					}
 
-					model.SecondaryType = string(pointer.From(props.SecondaryType))
+					model.SecondaryType = pointer.FromEnum(props.SecondaryType)
 
 					model.ReadWriteEndpointFailurePolicy = []MsSqlManagedInstanceReadWriteEndpointFailurePolicyModel{
 						{
