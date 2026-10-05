@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -8,10 +8,10 @@ import (
 	"log"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/jobschedule"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/runbook"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/schedule"
-	pluginsdk "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/jobschedule"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/runbook"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/schedule"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type AutomationJobScheduleV0ToV1 struct{}
@@ -62,7 +62,7 @@ func (s AutomationJobScheduleV0ToV1) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (s AutomationJobScheduleV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		oldId := rawState["id"].(string)
 		id, err := jobschedule.ParseJobScheduleID(oldId)
 		if err != nil {

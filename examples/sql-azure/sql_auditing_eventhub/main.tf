@@ -1,4 +1,4 @@
-# Copyright (c) HashiCorp, Inc.
+# Copyright IBM Corp. 2014, 2025
 # SPDX-License-Identifier: MPL-2.0
 
 provider "azurerm" {
@@ -32,11 +32,10 @@ resource "azurerm_eventhub_namespace" "example" {
 }
 
 resource "azurerm_eventhub" "example" {
-  name                = "${var.prefix}-EH"
-  namespace_name      = azurerm_eventhub_namespace.example.name
-  resource_group_name = azurerm_resource_group.example.name
-  partition_count     = 2
-  message_retention   = 1
+  name              = "${var.prefix}-EH"
+  namespace_id      = azurerm_eventhub_namespace.example.id
+  partition_count   = 2
+  message_retention = 1
 }
 
 resource "azurerm_eventhub_namespace_authorization_rule" "example" {
@@ -54,25 +53,12 @@ resource "azurerm_monitor_diagnostic_setting" "example" {
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.example.id
   eventhub_name                  = azurerm_eventhub.example.name
 
-  log {
+  enabled_log {
     category = "SQLSecurityAuditEvents"
-    enabled  = true
-
-    retention_policy {
-      enabled = false
-    }
-  }
-
-  metric {
-    category = "AllMetrics"
-
-    retention_policy {
-      enabled = false
-    }
   }
 
   lifecycle {
-    ignore_changes = [log, metric]
+    ignore_changes = [enabled_log]
   }
 }
 

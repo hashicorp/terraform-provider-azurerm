@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containerapps
@@ -14,8 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/managedenvironments"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/containerapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/containerapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -27,6 +27,7 @@ type ContainerAppDataSource struct{}
 type ContainerAppDataSourceModel struct {
 	Name                       string                                     `tfschema:"name"`
 	ResourceGroup              string                                     `tfschema:"resource_group_name"`
+	ReadSecrets                bool                                       `tfschema:"read_secrets"`
 	ManagedEnvironmentId       string                                     `tfschema:"container_app_environment_id"`
 	Location                   string                                     `tfschema:"location"`
 	RevisionMode               string                                     `tfschema:"revision_mode"`
@@ -37,7 +38,7 @@ type ContainerAppDataSourceModel struct {
 	Dapr                       []helpers.Dapr                             `tfschema:"dapr"`
 	Template                   []helpers.ContainerTemplate                `tfschema:"template"`
 	Identity                   []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	Tags                       map[string]interface{}                     `tfschema:"tags"`
+	Tags                       map[string]any                             `tfschema:"tags"`
 	OutboundIpAddresses        []string                                   `tfschema:"outbound_ip_addresses"`
 	LatestRevisionName         string                                     `tfschema:"latest_revision_name"`
 	LatestRevisionFqdn         string                                     `tfschema:"latest_revision_fqdn"`
@@ -56,6 +57,12 @@ func (r ContainerAppDataSource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+
+		"read_secrets": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
 	}
 }
 
@@ -126,7 +133,7 @@ func (r ContainerAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r ContainerAppDataSource) ModelObject() interface{} {
+func (r ContainerAppDataSource) ModelObject() any {
 	return &ContainerAppDataSourceModel{}
 }
 
@@ -173,12 +180,12 @@ func (r ContainerAppDataSource) Read() sdk.ResourceFunc {
 					if config := props.Configuration; config != nil {
 						if config.ActiveRevisionsMode != nil {
 							if config.ActiveRevisionsMode != nil {
-								containerApp.RevisionMode = string(pointer.From(config.ActiveRevisionsMode))
+								containerApp.RevisionMode = pointer.FromEnum(config.ActiveRevisionsMode)
 							}
 							containerApp.Ingress = helpers.FlattenContainerAppIngress(config.Ingress, id.ContainerAppName)
 							containerApp.Registries = helpers.FlattenContainerAppRegistries(config.Registries)
 							containerApp.Dapr = helpers.FlattenContainerAppDapr(config.Dapr)
-							containerApp.MaxInactiveRevisions = pointer.ToInt64(config.MaxInactiveRevisions)
+							containerApp.MaxInactiveRevisions = pointer.From(config.MaxInactiveRevisions)
 						}
 					}
 					containerApp.LatestRevisionName = pointer.From(props.LatestRevisionName)
@@ -189,14 +196,15 @@ func (r ContainerAppDataSource) Read() sdk.ResourceFunc {
 				}
 			}
 
-			secretsResp, err := client.ListSecrets(ctx, id)
-			if err != nil {
-				return fmt.Errorf("listing secrets for %s: %+v", id, err)
+			if containerApp.ReadSecrets {
+				secretsResp, err := client.ListSecrets(ctx, id)
+				if err != nil {
+					return fmt.Errorf("listing secrets for %s: %+v", id, err)
+				}
+				containerApp.Secrets = helpers.FlattenContainerAppSecrets(secretsResp.Model)
 			}
 
-			containerApp.Secrets = helpers.FlattenContainerAppSecrets(secretsResp.Model)
 			metadata.SetID(id)
-
 			return metadata.Encode(&containerApp)
 		},
 	}

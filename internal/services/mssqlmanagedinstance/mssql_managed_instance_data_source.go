@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssqlmanagedinstance
@@ -13,11 +13,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstances"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -29,6 +28,7 @@ type MsSqlManagedInstanceDataSourceModel struct {
 	DnsZonePartnerId          string                              `tfschema:"dns_zone_partner_id"`
 	Fqdn                      string                              `tfschema:"fqdn"`
 	Identity                  []identity.SystemOrUserAssignedList `tfschema:"identity"`
+	GeneralPurposeV2Enabled   bool                                `tfschema:"general_purpose_v2_enabled"`
 	LicenseType               string                              `tfschema:"license_type"`
 	Location                  string                              `tfschema:"location"`
 	MinimumTlsVersion         string                              `tfschema:"minimum_tls_version"`
@@ -53,7 +53,7 @@ func (d MsSqlManagedInstanceDataSource) ResourceType() string {
 	return "azurerm_mssql_managed_instance"
 }
 
-func (d MsSqlManagedInstanceDataSource) ModelObject() interface{} {
+func (d MsSqlManagedInstanceDataSource) ModelObject() any {
 	return &MsSqlManagedInstanceDataSourceModel{}
 }
 
@@ -103,6 +103,11 @@ func (d MsSqlManagedInstanceDataSource) Attributes() map[string]*pluginsdk.Schem
 
 		"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
 
+		"general_purpose_v2_enabled": {
+			Type:     schema.TypeBool,
+			Computed: true,
+		},
+
 		"license_type": {
 			Type:     schema.TypeString,
 			Computed: true,
@@ -145,7 +150,7 @@ func (d MsSqlManagedInstanceDataSource) Attributes() map[string]*pluginsdk.Schem
 			Computed: true,
 		},
 
-		"tags": tags.SchemaDataSource(),
+		"tags": commonschema.TagsDataSource(),
 
 		"timezone_id": {
 			Type:     schema.TypeString,
@@ -201,8 +206,8 @@ func (d MsSqlManagedInstanceDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if props := resp.Model.Properties; props != nil {
-				model.LicenseType = string(pointer.From(props.LicenseType))
-				model.ProxyOverride = string(pointer.From(props.ProxyOverride))
+				model.LicenseType = pointer.FromEnum(props.LicenseType)
+				model.ProxyOverride = pointer.FromEnum(props.ProxyOverride)
 				model.StorageAccountType = backupStorageRedundancyToStorageAccType(pointer.From(props.RequestedBackupStorageRedundancy))
 				model.AdministratorLogin = pointer.From(props.AdministratorLogin)
 				model.Collation = pointer.From(props.Collation)
@@ -215,6 +220,7 @@ func (d MsSqlManagedInstanceDataSource) Read() sdk.ResourceFunc {
 				model.SubnetId = pointer.From(props.SubnetId)
 				model.TimezoneId = pointer.From(props.TimezoneId)
 				model.VCores = pointer.From(props.VCores)
+				model.GeneralPurposeV2Enabled = pointer.From(props.IsGeneralPurposeV2)
 			}
 
 			metadata.SetID(id)
@@ -225,7 +231,7 @@ func (d MsSqlManagedInstanceDataSource) Read() sdk.ResourceFunc {
 
 func (d MsSqlManagedInstanceDataSource) flattenIdentity(input *identity.LegacySystemAndUserAssignedMap) []identity.SystemOrUserAssignedList {
 	if input == nil {
-		return nil
+		return []identity.SystemOrUserAssignedList{}
 	}
 
 	identityIds := make([]string, 0)

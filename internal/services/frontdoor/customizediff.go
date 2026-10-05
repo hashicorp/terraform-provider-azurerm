@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package frontdoor
@@ -10,19 +10,30 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2020-05-01/frontdoors"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func customizeHttpsConfigurationCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+func customizeHttpsConfigurationCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, v any) error {
+	if IsFrontDoorFullyRetired() {
+		return fmt.Errorf("%s", FullyRetiredMessage)
+	}
+
+	// New resources are not supported, and since this is a ForceNew field, we also need to block changing the field as
+	// the re-create would fail with the create error from the service API...
+	if IsFrontDoorDeprecatedForCreation() && d.HasChange("frontend_endpoint_id") {
+		return fmt.Errorf("%s", CreateDeprecationMessage)
+	}
+
 	if v, ok := d.GetOk("frontend_endpoint_id"); ok && v.(string) != "" {
-		id, err := parse.FrontendEndpointID(v.(string))
+		// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
+		// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
+		id, err := frontdoors.ParseFrontendEndpointIDInsensitively(v.(string))
 		if err != nil {
 			return err
 		}
 
 		if err := customHttpsSettings(d); err != nil {
-			return fmt.Errorf("validating Front Door Custom Https Configuration for Endpoint %q (Front Door %q / Resource Group %q): %+v", id.Name, id.FrontDoorName, id.ResourceGroup, err)
+			return fmt.Errorf("validating Front Door Custom Https Configuration for Endpoint %q (Front Door %q / Resource Group %q): %+v", id.FrontendEndpointName, id.FrontDoorName, id.ResourceGroupName, err)
 		}
 	}
 
@@ -30,7 +41,7 @@ func customizeHttpsConfigurationCustomizeDiff(ctx context.Context, d *pluginsdk.
 }
 
 func customHttpsSettings(d *pluginsdk.ResourceDiff) error {
-	frontendEndpointCustomHttpsConfig := d.Get("custom_https_configuration").([]interface{})
+	frontendEndpointCustomHttpsConfig := d.Get("custom_https_configuration").([]any)
 	customHttpsEnabled := d.Get("custom_https_provisioning_enabled").(bool)
 
 	if len(frontendEndpointCustomHttpsConfig) > 0 {
@@ -49,9 +60,9 @@ func customHttpsSettings(d *pluginsdk.ResourceDiff) error {
 	return nil
 }
 
-func verifyCustomHttpsConfiguration(frontendEndpointCustomHttpsConfig []interface{}) error {
+func verifyCustomHttpsConfiguration(frontendEndpointCustomHttpsConfig []any) error {
 	if len(frontendEndpointCustomHttpsConfig) > 0 {
-		customHttpsConfiguration := frontendEndpointCustomHttpsConfig[0].(map[string]interface{})
+		customHttpsConfiguration := frontendEndpointCustomHttpsConfig[0].(map[string]any)
 		certificateSource := customHttpsConfiguration["certificate_source"].(string)
 		certificateVersion := customHttpsConfiguration["azure_key_vault_certificate_secret_version"].(string)
 
@@ -68,10 +79,10 @@ func verifyCustomHttpsConfiguration(frontendEndpointCustomHttpsConfig []interfac
 			if !azureKeyVaultCertificateHasValues(customHttpsConfiguration, false) {
 				if certificateVersion == "" {
 					// If using latest, empty string is now equivalent to using the keyword latest
-					return errors.New(`a "AzureKeyVault" managed "custom_https_configuration" block must have values in the following fileds: "azure_key_vault_certificate_secret_name" and "azure_key_vault_certificate_vault_id"`)
+					return errors.New(`a "AzureKeyVault" managed "custom_https_configuration" block must have values in the following fields: "azure_key_vault_certificate_secret_name" and "azure_key_vault_certificate_vault_id"`)
 				} else {
 					// If using a specific version of the secret
-					return errors.New(`a "AzureKeyVault" managed "custom_https_configuration" block must have values in the following fileds: "azure_key_vault_certificate_secret_name", "azure_key_vault_certificate_secret_version", and "azure_key_vault_certificate_vault_id"`)
+					return errors.New(`a "AzureKeyVault" managed "custom_https_configuration" block must have values in the following fields: "azure_key_vault_certificate_secret_name", "azure_key_vault_certificate_secret_version", and "azure_key_vault_certificate_vault_id"`)
 				}
 			}
 		}
@@ -80,7 +91,7 @@ func verifyCustomHttpsConfiguration(frontendEndpointCustomHttpsConfig []interfac
 	return nil
 }
 
-func azureKeyVaultCertificateHasValues(customHttpsConfiguration map[string]interface{}, isFrontDoorManaged bool) bool {
+func azureKeyVaultCertificateHasValues(customHttpsConfiguration map[string]any, isFrontDoorManaged bool) bool {
 	certificateSecretName := customHttpsConfiguration["azure_key_vault_certificate_secret_name"].(string)
 	certificateSecretVersion := customHttpsConfiguration["azure_key_vault_certificate_secret_version"].(string)
 	certificateVaultId := customHttpsConfiguration["azure_key_vault_certificate_vault_id"].(string)
@@ -107,7 +118,17 @@ func azureKeyVaultCertificateHasValues(customHttpsConfiguration map[string]inter
 	return false
 }
 
-func frontDoorCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+func frontDoorCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, v any) error {
+	if IsFrontDoorFullyRetired() {
+		return fmt.Errorf("%s", FullyRetiredMessage)
+	}
+
+	// New resources are not supported, and since these fields are 'ForceNew' we also need to block changing them as
+	// the re-create would fail with the create error from the service API...
+	if IsFrontDoorDeprecatedForCreation() && d.HasChanges("name", "resource_group_name") {
+		return fmt.Errorf("%s", CreateDeprecationMessage)
+	}
+
 	if err := frontDoorSettings(d); err != nil {
 		return fmt.Errorf("validating Front Door %q (Resource Group %q): %+v", d.Get("name").(string), d.Get("resource_group_name").(string), err)
 	}
@@ -116,11 +137,11 @@ func frontDoorCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, v in
 }
 
 func frontDoorSettings(d *pluginsdk.ResourceDiff) error {
-	routingRules := d.Get("routing_rule").([]interface{})
-	configFrontendEndpoints := d.Get("frontend_endpoint").([]interface{})
-	backendPools := d.Get("backend_pool").([]interface{})
-	loadBalancingSettings := d.Get("backend_pool_load_balancing").([]interface{})
-	healthProbeSettings := d.Get("backend_pool_health_probe").([]interface{})
+	routingRules := d.Get("routing_rule").([]any)
+	configFrontendEndpoints := d.Get("frontend_endpoint").([]any)
+	backendPools := d.Get("backend_pool").([]any)
+	loadBalancingSettings := d.Get("backend_pool_load_balancing").([]any)
+	healthProbeSettings := d.Get("backend_pool_health_probe").([]any)
 
 	if len(configFrontendEndpoints) == 0 {
 		return errors.New(`"frontend_endpoint": must have at least one "frontend_endpoint" defined, found 0`)
@@ -128,10 +149,10 @@ func frontDoorSettings(d *pluginsdk.ResourceDiff) error {
 
 	// Loop over all of the Routing Rules and validate that only one type of configuration is defined per Routing Rule
 	for _, rr := range routingRules {
-		routingRule := rr.(map[string]interface{})
+		routingRule := rr.(map[string]any)
 		routingRuleName := routingRule["name"]
-		redirectConfig := routingRule["redirect_configuration"].([]interface{})
-		forwardConfig := routingRule["forwarding_configuration"].([]interface{})
+		redirectConfig := routingRule["redirect_configuration"].([]any)
+		forwardConfig := routingRule["forwarding_configuration"].([]any)
 
 		// Check 0. validate that at least one routing configuration exists per routing rule
 		if len(redirectConfig) == 0 && len(forwardConfig) == 0 {
@@ -145,7 +166,7 @@ func frontDoorSettings(d *pluginsdk.ResourceDiff) error {
 
 		// Check 2. routing rule is a forwarding_configuration type make sure the backend_pool_name exists in the configuration file
 		if len(forwardConfig) > 0 {
-			fc := forwardConfig[0].(map[string]interface{})
+			fc := forwardConfig[0].(map[string]any)
 
 			if err := verifyBackendPoolExists(fc["backend_pool_name"].(string), backendPools); err != nil {
 				return fmt.Errorf(`routing_rule %s is invalid. %+v`, routingRuleName, err)
@@ -153,7 +174,7 @@ func frontDoorSettings(d *pluginsdk.ResourceDiff) error {
 
 			// cacheConfiguration validation
 			cacheEnabled := fc["cache_enabled"].(bool)
-			cacheQueryParameters := fc["cache_query_parameters"].([]interface{})
+			cacheQueryParameters := fc["cache_query_parameters"].([]any)
 
 			// set cacheQueryParameters to nil if empty
 			if len(cacheQueryParameters) < 1 {
@@ -190,7 +211,7 @@ func frontDoorSettings(d *pluginsdk.ResourceDiff) error {
 		}
 
 		// Check 3. validate that each routing rule frontend_endpoints are actually defined in the resource schema
-		if routingRuleFrontends := routingRule["frontend_endpoints"].([]interface{}); len(routingRuleFrontends) > 0 {
+		if routingRuleFrontends := routingRule["frontend_endpoints"].([]any); len(routingRuleFrontends) > 0 {
 			if err := verifyRoutingRuleFrontendEndpoints(routingRuleFrontends, configFrontendEndpoints); err != nil {
 				return fmt.Errorf(`"routing_rule":%q %+v`, routingRuleName, err)
 			}
@@ -207,13 +228,13 @@ func frontDoorSettings(d *pluginsdk.ResourceDiff) error {
 	return nil
 }
 
-func verifyBackendPoolExists(backendPoolName string, backendPools []interface{}) error {
+func verifyBackendPoolExists(backendPoolName string, backendPools []any) error {
 	if backendPoolName == "" {
 		return fmt.Errorf(`"backend_pool_name" cannot be empty`)
 	}
 
 	for _, bps := range backendPools {
-		backendPool := bps.(map[string]interface{})
+		backendPool := bps.(map[string]any)
 		if backendPool["name"].(string) == backendPoolName {
 			return nil
 		}
@@ -222,7 +243,7 @@ func verifyBackendPoolExists(backendPoolName string, backendPools []interface{})
 	return fmt.Errorf(`unable to locate "backend_pool_name":%q in configuration file`, backendPoolName)
 }
 
-func verifyRoutingRuleFrontendEndpoints(routingRuleFrontends []interface{}, configFrontendEndpoints []interface{}) error {
+func verifyRoutingRuleFrontendEndpoints(routingRuleFrontends []any, configFrontendEndpoints []any) error {
 	for _, routingRuleFrontend := range routingRuleFrontends {
 		// Get the name of the frontend defined in the routing rule
 		routingRulefrontendName := routingRuleFrontend.(string)
@@ -231,7 +252,7 @@ func verifyRoutingRuleFrontendEndpoints(routingRuleFrontends []interface{}, conf
 		// Loop over all of the defined frontend endpoints in the config
 		// seeing if we find the routing rule frontend in the list
 		for _, configFrontendEndpoint := range configFrontendEndpoints {
-			configFrontend := configFrontendEndpoint.(map[string]interface{})
+			configFrontend := configFrontendEndpoint.(map[string]any)
 			configFrontendName := configFrontend["name"]
 			if routingRulefrontendName == configFrontendName {
 				found = true
@@ -247,9 +268,9 @@ func verifyRoutingRuleFrontendEndpoints(routingRuleFrontends []interface{}, conf
 	return nil
 }
 
-func verifyLoadBalancingAndHealthProbeSettings(backendPools []interface{}, loadBalancingSettings []interface{}, healthProbeSettings []interface{}) error {
+func verifyLoadBalancingAndHealthProbeSettings(backendPools []any, loadBalancingSettings []any, healthProbeSettings []any) error {
 	for _, bps := range backendPools {
-		backendPool := bps.(map[string]interface{})
+		backendPool := bps.(map[string]any)
 		backendPoolName := backendPool["name"]
 		backendPoolLoadBalancingName := backendPool["load_balancing_name"]
 		backendPoolHealthProbeName := backendPool["health_probe_name"]
@@ -258,7 +279,7 @@ func verifyLoadBalancingAndHealthProbeSettings(backendPools []interface{}, loadB
 		// Verify backend pool load balancing settings name exists
 		if len(loadBalancingSettings) > 0 {
 			for _, lbs := range loadBalancingSettings {
-				loadBalancing := lbs.(map[string]interface{})
+				loadBalancing := lbs.(map[string]any)
 				loadBalancingName := loadBalancing["name"]
 
 				if loadBalancingName == backendPoolLoadBalancingName {
@@ -277,7 +298,7 @@ func verifyLoadBalancingAndHealthProbeSettings(backendPools []interface{}, loadB
 		// Verify health probe settings name exists
 		if len(healthProbeSettings) > 0 {
 			for _, hps := range healthProbeSettings {
-				healthProbe := hps.(map[string]interface{})
+				healthProbe := hps.(map[string]any)
 				healthProbeName := healthProbe["name"]
 
 				if healthProbeName == backendPoolHealthProbeName {

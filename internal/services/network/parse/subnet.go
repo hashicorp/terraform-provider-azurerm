@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -17,15 +17,6 @@ type SubnetId struct {
 	ResourceGroup      string
 	VirtualNetworkName string
 	Name               string
-}
-
-func NewSubnetID(subscriptionId, resourceGroup, virtualNetworkName, name string) SubnetId {
-	return SubnetId{
-		SubscriptionId:     subscriptionId,
-		ResourceGroup:      resourceGroup,
-		VirtualNetworkName: virtualNetworkName,
-		Name:               name,
-	}
 }
 
 func (id SubnetId) String() string {

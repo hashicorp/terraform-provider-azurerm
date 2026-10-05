@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -39,13 +39,20 @@ type SpringCloudNewRelicApplicationPerformanceMonitoringModel struct {
 
 type SpringCloudNewRelicApplicationPerformanceMonitoringResource struct{}
 
-var _ sdk.ResourceWithUpdate = SpringCloudNewRelicApplicationPerformanceMonitoringResource{}
+func (s SpringCloudNewRelicApplicationPerformanceMonitoringResource) DeprecationMessage() string {
+	return "Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_new_relic_application_performance_monitoring` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information."
+}
+
+var (
+	_ sdk.ResourceWithUpdate                      = SpringCloudNewRelicApplicationPerformanceMonitoringResource{}
+	_ sdk.ResourceWithDeprecationAndNoReplacement = SpringCloudNewRelicApplicationPerformanceMonitoringResource{}
+)
 
 func (s SpringCloudNewRelicApplicationPerformanceMonitoringResource) ResourceType() string {
 	return "azurerm_spring_cloud_new_relic_application_performance_monitoring"
 }
 
-func (s SpringCloudNewRelicApplicationPerformanceMonitoringResource) ModelObject() interface{} {
+func (s SpringCloudNewRelicApplicationPerformanceMonitoringResource) ModelObject() any {
 	return &SpringCloudNewRelicApplicationPerformanceMonitoringModel{}
 }
 
@@ -146,12 +153,14 @@ func (s SpringCloudNewRelicApplicationPerformanceMonitoringResource) Create() sd
 			}
 			id := appplatform.NewApmID(springId.SubscriptionId, springId.ResourceGroupName, springId.ServiceName, model.Name)
 
-			existing, err := client.ApmsGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(s.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.ApmsGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(s.ResourceType(), id)
+				}
 			}
 
 			resource := appplatform.ApmResource{
@@ -172,19 +181,17 @@ func (s SpringCloudNewRelicApplicationPerformanceMonitoringResource) Create() sd
 					}),
 				},
 			}
-			err = client.ApmsCreateOrUpdateThenPoll(ctx, id, resource)
-			if err != nil {
+
+			if err := client.ApmsCreateOrUpdateCallbackThenPoll(ctx, id, resource, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
 
 			if model.GloballyEnabled {
 				apmReference := appplatform.ApmReference{
 					ResourceId: id.ID(),
 				}
-				err = client.ServicesEnableApmGloballyThenPoll(ctx, *springId, apmReference)
-				if err != nil {
+				if err = client.ServicesEnableApmGloballyThenPoll(ctx, *springId, apmReference); err != nil {
 					return fmt.Errorf("enabling %s globally: %+v", id, err)
 				}
 			}
@@ -266,8 +273,7 @@ func (s SpringCloudNewRelicApplicationPerformanceMonitoringResource) Update() sd
 				Properties: properties,
 			}
 
-			err = client.ApmsCreateOrUpdateThenPoll(ctx, *id, resource)
-			if err != nil {
+			if err = client.ApmsCreateOrUpdateThenPoll(ctx, *id, resource); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -277,13 +283,11 @@ func (s SpringCloudNewRelicApplicationPerformanceMonitoringResource) Update() sd
 				}
 				springId := commonids.NewSpringCloudServiceID(id.SubscriptionId, id.ResourceGroupName, id.SpringName)
 				if model.GloballyEnabled {
-					err := client.ServicesEnableApmGloballyThenPoll(ctx, springId, apmReference)
-					if err != nil {
+					if err := client.ServicesEnableApmGloballyThenPoll(ctx, springId, apmReference); err != nil {
 						return fmt.Errorf("enabling %s globally: %+v", id, err)
 					}
 				} else {
-					err := client.ServicesDisableApmGloballyThenPoll(ctx, springId, apmReference)
-					if err != nil {
+					if err := client.ServicesDisableApmGloballyThenPoll(ctx, springId, apmReference); err != nil {
 						return fmt.Errorf("disabling %s globally: %+v", id, err)
 					}
 				}
@@ -392,8 +396,7 @@ func (s SpringCloudNewRelicApplicationPerformanceMonitoringResource) Delete() sd
 				return err
 			}
 
-			err = client.ApmsDeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.ApmsDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -414,11 +417,11 @@ func expandNewRelicLabels(input map[string]string) string {
 }
 
 func flattenNewRelicLabels(input string) map[string]string {
-	if input == "" {
-		return nil
-	}
 	labels := make(map[string]string)
-	for _, label := range strings.Split(input, ";") {
+	if input == "" {
+		return labels
+	}
+	for label := range strings.SplitSeq(input, ";") {
 		parts := strings.Split(label, ":")
 		if len(parts) == 2 {
 			labels[parts[0]] = parts[1]

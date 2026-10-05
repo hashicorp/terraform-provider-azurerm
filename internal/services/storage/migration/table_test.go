@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -23,7 +23,7 @@ func TestTableStateV0ToV1(t *testing.T) {
 	for _, cloud := range clouds {
 		t.Logf("[DEBUG] Testing with Cloud %q", cloud.Name)
 
-		input := map[string]interface{}{
+		input := map[string]any{
 			"id":                   "table1",
 			"name":                 "table1",
 			"storage_account_name": "account1",
@@ -40,7 +40,7 @@ func TestTableStateV0ToV1(t *testing.T) {
 			t.Fatalf("could not determine Storage domain suffix for environment %q", meta.Account.Environment.Name)
 		}
 
-		expected := map[string]interface{}{
+		expected := map[string]any{
 			"id":                   fmt.Sprintf("https://account1.table.%s/table1", *suffix),
 			"name":                 "table1",
 			"storage_account_name": "account1",
@@ -79,12 +79,12 @@ func TestTableStateV1ToV2(t *testing.T) {
 			t.Fatalf("could not determine Storage domain suffix for environment %q", meta.Account.Environment.Name)
 		}
 
-		input := map[string]interface{}{
+		input := map[string]any{
 			"id":                   fmt.Sprintf("https://account1.table.%s/table1", *suffix),
 			"name":                 "table1",
 			"storage_account_name": "account1",
 		}
-		expected := map[string]interface{}{
+		expected := map[string]any{
 			"id":                   fmt.Sprintf("https://account1.table.%s/Tables('table1')", *suffix),
 			"name":                 "table1",
 			"storage_account_name": "account1",
