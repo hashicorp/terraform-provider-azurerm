@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/appserviceenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -237,7 +237,7 @@ func (r AppServiceEnvironmentV3Resource) Attributes() map[string]*pluginsdk.Sche
 	}
 }
 
-func (r AppServiceEnvironmentV3Resource) ModelObject() interface{} {
+func (r AppServiceEnvironmentV3Resource) ModelObject() any {
 	return &AppServiceEnvironmentV3Model{}
 }
 
@@ -464,7 +464,7 @@ func (r AppServiceEnvironmentV3Resource) Read() sdk.ResourceFunc {
 				state.Location = location.Normalize(model.Location)
 				if props := model.Properties; props != nil {
 					state.SubnetId = props.VirtualNetwork.Id
-					state.InternalLoadBalancingMode = string(pointer.From(props.InternalLoadBalancingMode))
+					state.InternalLoadBalancingMode = pointer.FromEnum(props.InternalLoadBalancingMode)
 					state.DedicatedHostCount = pointer.From(props.DedicatedHostCount)
 					state.PricingTier = pointer.From(props.MultiSize)
 					state.ClusterSetting = flattenClusterSettingsModel(props.ClusterSettings)
@@ -666,7 +666,7 @@ func flattenInboundNetworkDependencies(ctx context.Context, client *appserviceen
 }
 
 func checkNetworkConfigUpdate(ctx context.Context, client *appserviceenvironments.AppServiceEnvironmentsClient, id commonids.AppServiceEnvironmentId, values appserviceenvironments.AseV3NetworkingConfigurationProperties) pluginsdk.StateRefreshFunc {
-	return func() (result interface{}, state string, err error) {
+	return func() (result any, state string, err error) {
 		resp, err := client.GetAseV3NetworkingConfiguration(ctx, id)
 		if err != nil || resp.Model == nil || resp.Model.Properties == nil {
 			return nil, "", err

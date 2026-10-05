@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func ConnectionTypeName(i interface{}, k string) ([]string, []error) {
+func ConnectionTypeName(i any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile(`^[\w\-]{1,128}$`), "contain only letters, numbers hyphens and underscore. The value must be between 1 and 128 characters long")(i, k)
 }

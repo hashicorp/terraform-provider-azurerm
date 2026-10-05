@@ -116,7 +116,7 @@ func (r GalleryApplicationResource) ResourceType() string {
 	return "azurerm_gallery_application"
 }
 
-func (r GalleryApplicationResource) ModelObject() interface{} {
+func (r GalleryApplicationResource) ModelObject() any {
 	return &GalleryApplicationModel{}
 }
 

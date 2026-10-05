@@ -64,7 +64,7 @@ func resourceLogicAppIntegrationAccountSession() *pluginsdk.Resource {
 	}
 }
 
-func resourceLogicAppIntegrationAccountSessionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppIntegrationAccountSessionCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Logic.IntegrationAccountSessionClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -102,7 +102,7 @@ func resourceLogicAppIntegrationAccountSessionCreateUpdate(d *pluginsdk.Resource
 	return resourceLogicAppIntegrationAccountSessionRead(d, meta)
 }
 
-func resourceLogicAppIntegrationAccountSessionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppIntegrationAccountSessionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Logic.IntegrationAccountSessionClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -136,7 +136,7 @@ func resourceLogicAppIntegrationAccountSessionRead(d *pluginsdk.ResourceData, me
 	return nil
 }
 
-func resourceLogicAppIntegrationAccountSessionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppIntegrationAccountSessionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Logic.IntegrationAccountSessionClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

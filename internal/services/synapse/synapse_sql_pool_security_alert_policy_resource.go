@@ -8,7 +8,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -106,7 +106,7 @@ func resourceSynapseSqlPoolSecurityAlertPolicy() *pluginsdk.Resource {
 	}
 }
 
-func resourceSynapseSqlPoolSecurityAlertPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseSqlPoolSecurityAlertPolicyCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.SqlPoolSecurityAlertPolicyClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -133,7 +133,7 @@ func resourceSynapseSqlPoolSecurityAlertPolicyCreateUpdate(d *pluginsdk.Resource
 	return resourceSynapseSqlPoolSecurityAlertPolicyRead(d, meta)
 }
 
-func resourceSynapseSqlPoolSecurityAlertPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseSqlPoolSecurityAlertPolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.SqlPoolSecurityAlertPolicyClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -161,7 +161,7 @@ func resourceSynapseSqlPoolSecurityAlertPolicyRead(d *pluginsdk.ResourceData, me
 		d.Set("policy_state", string(props.State))
 
 		if props.DisabledAlerts != nil {
-			disabledAlerts := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
+			disabledAlerts := pluginsdk.NewSet(pluginsdk.HashString, []any{})
 			for _, v := range *props.DisabledAlerts {
 				if v != "" {
 					disabledAlerts.Add(v)
@@ -176,7 +176,7 @@ func resourceSynapseSqlPoolSecurityAlertPolicyRead(d *pluginsdk.ResourceData, me
 		}
 
 		if props.EmailAddresses != nil {
-			emailAddresses := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
+			emailAddresses := pluginsdk.NewSet(pluginsdk.HashString, []any{})
 			for _, v := range *props.EmailAddresses {
 				if v != "" {
 					emailAddresses.Add(v)
@@ -202,7 +202,7 @@ func resourceSynapseSqlPoolSecurityAlertPolicyRead(d *pluginsdk.ResourceData, me
 	return nil
 }
 
-func resourceSynapseSqlPoolSecurityAlertPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseSqlPoolSecurityAlertPolicyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.SqlPoolSecurityAlertPolicyClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
