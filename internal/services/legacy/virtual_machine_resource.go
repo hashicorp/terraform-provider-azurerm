@@ -26,7 +26,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkinterfaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/publicipaddresses"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -794,11 +793,10 @@ func resourceVirtualMachineRead(d *pluginsdk.ResourceData, meta any) error {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return resourceVirtualMachineFlatten(ctx, meta.(*clients.Client), d, id, resp.Model, true)
+	return resourceVirtualMachineFlatten(meta, d, id, resp.Model, true)
 }
 
-func resourceVirtualMachineFlatten(ctx context.Context, clientsClient *clients.Client, d *pluginsdk.ResourceData, id *virtualmachines.VirtualMachineId, model *virtualmachines.VirtualMachine, includeResource bool) error {
-	disksClient := clientsClient.Compute.DisksClient
+func resourceVirtualMachineFlatten(meta any, d *pluginsdk.ResourceData, id *virtualmachines.VirtualMachineId, model *virtualmachines.VirtualMachine, includeResource bool) error {
 
 	d.Set("name", id.VirtualMachineName)
 	d.Set("resource_group_name", id.ResourceGroupName)
@@ -843,7 +841,7 @@ func resourceVirtualMachineFlatten(ctx context.Context, clientsClient *clients.C
 				if osDisk := profile.OsDisk; osDisk != nil {
 					var diskInfo *disks.Disk
 					if includeResource {
-						info, err := resourceVirtualMachineGetManagedDiskInfo(ctx, disksClient, osDisk.ManagedDisk)
+						info, err := resourceVirtualMachineGetManagedDiskInfo(d, osDisk.ManagedDisk, meta)
 						if err != nil {
 							return fmt.Errorf("flattening `storage_os_disk`: %#v", err)
 						}
@@ -858,7 +856,7 @@ func resourceVirtualMachineFlatten(ctx context.Context, clientsClient *clients.C
 					disksInfo := make([]*disks.Disk, len(*dataDisks))
 					if includeResource {
 						for i, dataDisk := range *dataDisks {
-							diskInfo, err := resourceVirtualMachineGetManagedDiskInfo(ctx, disksClient, dataDisk.ManagedDisk)
+							diskInfo, err := resourceVirtualMachineGetManagedDiskInfo(d, dataDisk.ManagedDisk, meta)
 							if err != nil {
 								return fmt.Errorf("[DEBUG] Error getting managed data disk detailed information: %#v", err)
 							}

@@ -75,7 +75,7 @@ func (VirtualMachineListResource) List(ctx context.Context, request list.ListReq
 			}
 			rd.SetId(id.ID())
 
-			if err := resourceVirtualMachineFlatten(ctx, metadata.Client, rd, id, &item, request.IncludeResource); err != nil {
+			if err := resourceVirtualMachineFlatten(metadata, rd, id, &item, request.IncludeResource); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", azureVirtualMachineResourceName), err)
 				return
 			}
