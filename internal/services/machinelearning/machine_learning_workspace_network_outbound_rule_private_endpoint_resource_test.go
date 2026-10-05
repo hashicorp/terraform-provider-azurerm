@@ -420,7 +420,6 @@ resource "azurerm_machine_learning_workspace_network_outbound_rule_private_endpo
 }
 
 func (r WorkspaceNetworkOutboundPrivateEndpointResource) withCognitiveAccount(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -449,26 +448,12 @@ resource "azurerm_machine_learning_workspace" "test" {
   }
 }
 
-resource "azurerm_machine_learning_workspace" "test2" {
-  name                    = "acctest-MLW2-%[2]d"
-  location                = azurerm_resource_group.test.location
-  resource_group_name     = azurerm_resource_group.test.name
-  application_insights_id = azurerm_application_insights.test.id
-  key_vault_id            = azurerm_key_vault.test.id
-  storage_account_id      = azurerm_storage_account.test.id
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-
 resource "azurerm_cognitive_account" "test" {
   name                = "acctestcogaccount-%[3]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   kind                = "OpenAI"
   sku_name            = "S0"
-
 }
 
 resource "azurerm_machine_learning_workspace_network_outbound_rule_private_endpoint" "test" {
@@ -477,7 +462,7 @@ resource "azurerm_machine_learning_workspace_network_outbound_rule_private_endpo
   service_resource_id = azurerm_cognitive_account.test.id
   sub_resource_target = "account"
 }
-`, template, data.RandomInteger, data.RandomStringOfLength(6))
+`, r.template(data), data.RandomInteger, data.RandomStringOfLength(6))
 }
 
 func (r WorkspaceNetworkOutboundPrivateEndpointResource) withRedis(data acceptance.TestData) string {
