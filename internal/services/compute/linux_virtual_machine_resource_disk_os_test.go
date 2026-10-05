@@ -616,6 +616,7 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctestkv%s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "standard"
   purge_protection_enabled    = true
@@ -1165,11 +1166,13 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                = "acctestVM-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  size                = "Standard_DC2as_v5"
-  admin_username      = "adminuser"
+  name                       = "acctestVM-%[2]d"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  size                       = "Standard_DC2as_v5"
+  admin_username             = "adminuser"
+  encryption_at_host_enabled = true
+
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -1207,6 +1210,7 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctestkv%[3]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
   sku_name                    = "premium"
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   enabled_for_disk_encryption = true

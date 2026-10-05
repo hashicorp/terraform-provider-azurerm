@@ -14,15 +14,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	keyvaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyvaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -49,7 +48,7 @@ type AIFoundryModel struct {
 	FriendlyName                string                                     `tfschema:"friendly_name"`
 	DiscoveryUrl                string                                     `tfschema:"discovery_url"`
 	WorkspaceId                 string                                     `tfschema:"workspace_id"`
-	Tags                        map[string]interface{}                     `tfschema:"tags"`
+	Tags                        map[string]any                             `tfschema:"tags"`
 }
 
 type ManagedNetwork struct {
@@ -62,7 +61,7 @@ type Encryption struct {
 	KeyID            string `tfschema:"key_id"`
 }
 
-func (r AIFoundry) ModelObject() interface{} {
+func (r AIFoundry) ModelObject() any {
 	return &AIFoundryModel{}
 }
 
@@ -147,7 +146,7 @@ func (r AIFoundry) Arguments() map[string]*pluginsdk.Schema {
 					"key_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: keyvaultValidate.NestedItemId,
+						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 					},
 					"user_assigned_identity_id": {
 						Type:         pluginsdk.TypeString,
@@ -163,7 +162,7 @@ func (r AIFoundry) Arguments() map[string]*pluginsdk.Schema {
 		"application_insights_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: components.ValidateComponentID,
+			ValidateFunc: componentsapis.ValidateComponentID,
 		},
 
 		"container_registry_id": {
@@ -175,14 +174,14 @@ func (r AIFoundry) Arguments() map[string]*pluginsdk.Schema {
 		"managed_network": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"isolation_mode": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Computed:     true,
+						Computed:     true, // azignore:AZS007 - pre-existing violation
 						ValidateFunc: validation.StringInSlice(workspaces.PossibleValuesForIsolationMode(), false),
 					},
 				},
@@ -246,14 +245,16 @@ func (r AIFoundry) Create() sdk.ResourceFunc {
 
 			id := workspaces.NewWorkspaceID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_ai_foundry", id.ID())
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError("azurerm_ai_foundry", id.ID())
+				}
 			}
 
 			storageAccountId, err := commonids.ParseStorageAccountID(model.StorageAccountId)
@@ -266,7 +267,7 @@ func (r AIFoundry) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+			expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]any))
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
@@ -279,13 +280,13 @@ func (r AIFoundry) Create() sdk.ResourceFunc {
 				Kind:     pointer.To("Hub"),
 				Properties: &workspaces.WorkspaceProperties{
 					KeyVault:            pointer.To(keyVaultId.ID()),
-					PublicNetworkAccess: pointer.To(workspaces.PublicNetworkAccess(model.PublicNetworkAccess)),
+					PublicNetworkAccess: pointer.ToEnum[workspaces.PublicNetworkAccess](model.PublicNetworkAccess),
 					StorageAccount:      pointer.To(storageAccountId.ID()),
 				},
 			}
 
 			if model.ApplicationInsightsId != "" {
-				applicationInsightsId, err := components.ParseComponentID(model.ApplicationInsightsId)
+				applicationInsightsId, err := componentsapis.ParseComponentID(model.ApplicationInsightsId)
 				if err != nil {
 					return err
 				}
@@ -321,15 +322,14 @@ func (r AIFoundry) Create() sdk.ResourceFunc {
 			}
 
 			if len(model.Encryption) > 0 {
-				encryption := expandEncryption(model.Encryption)
-				payload.Properties.Encryption = encryption
+				payload.Properties.Encryption = expandEncryption(model.Encryption)
 			}
 
 			if len(model.ManagedNetwork) > 0 {
 				payload.Properties.ManagedNetwork = expandManagedNetwork(model.ManagedNetwork)
 			}
 
-			if err = client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+			if err = client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -369,7 +369,7 @@ func (r AIFoundry) Update() sdk.ResourceFunc {
 			payload := existing.Model
 
 			if metadata.ResourceData.HasChange("application_insights_id") {
-				applicationInsightsId, err := components.ParseComponentID(state.ApplicationInsightsId)
+				applicationInsightsId, err := componentsapis.ParseComponentID(state.ApplicationInsightsId)
 				if err != nil {
 					return err
 				}
@@ -385,7 +385,7 @@ func (r AIFoundry) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("public_network_access") {
-				payload.Properties.PublicNetworkAccess = pointer.To(workspaces.PublicNetworkAccess(state.PublicNetworkAccess))
+				payload.Properties.PublicNetworkAccess = pointer.ToEnum[workspaces.PublicNetworkAccess](state.PublicNetworkAccess)
 			}
 
 			if metadata.ResourceData.HasChange("description") {
@@ -397,7 +397,7 @@ func (r AIFoundry) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
-				expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+				expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]any))
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
@@ -466,7 +466,7 @@ func (r AIFoundry) Read() sdk.ResourceFunc {
 
 				if props := model.Properties; props != nil {
 					if v := pointer.From(props.ApplicationInsights); v != "" {
-						applicationInsightsId, err := components.ParseComponentIDInsensitively(v)
+						applicationInsightsId, err := componentsapis.ParseComponentIDInsensitively(v)
 						if err != nil {
 							return err
 						}
@@ -584,7 +584,7 @@ func flattenEncryption(input *workspaces.EncryptionProperty) ([]Encryption, erro
 		encryption.KeyVaultID = keyVaultId.ID()
 	}
 	if v := input.KeyVaultProperties.KeyIdentifier; v != "" {
-		keyId, err := keyvaultParse.ParseNestedItemID(v)
+		keyId, err := keyvault.ParseNestedItemID(v, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 		if err != nil {
 			return nil, err
 		}
@@ -606,7 +606,7 @@ func expandManagedNetwork(input []ManagedNetwork) *workspaces.ManagedNetworkSett
 	network := input[0]
 
 	return &workspaces.ManagedNetworkSettings{
-		IsolationMode: pointer.To(workspaces.IsolationMode(network.IsolationMode)),
+		IsolationMode: pointer.ToEnum[workspaces.IsolationMode](network.IsolationMode),
 	}
 }
 
@@ -617,6 +617,6 @@ func flattenManagedNetwork(input *workspaces.ManagedNetworkSettings) []ManagedNe
 	}
 
 	return append(out, ManagedNetwork{
-		IsolationMode: string(pointer.From(input.IsolationMode)),
+		IsolationMode: pointer.FromEnum(input.IsolationMode),
 	})
 }
