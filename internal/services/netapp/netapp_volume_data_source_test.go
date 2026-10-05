@@ -32,6 +32,23 @@ func TestAccDataSourceNetAppVolume_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("mount_target.0.smb_server_fqdn").IsEmpty(),
 				check.That(data.ResourceName).Key("encryption_key_source").HasValue("Microsoft.NetApp"),
 				check.That(data.ResourceName).Key("large_volume_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("breakthrough_mode_enabled").HasValue("false"),
+			),
+		},
+	})
+}
+
+func TestAccDataSourceNetAppVolume_breakthroughMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_netapp_volume", "test")
+	r := NetAppVolumeDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.breakthroughMode(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("large_volume_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("breakthrough_mode_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("storage_quota_in_gb").HasValue("2400"),
 			),
 		},
 	})
@@ -75,6 +92,32 @@ data "azurerm_netapp_volume" "test" {
   name                = azurerm_netapp_volume.test.name
 }
 `, NetAppVolumeResource{}.basic(data))
+}
+
+func (NetAppVolumeDataSource) breakthroughMode(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  alias = "all"
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+    netapp {
+      prevent_volume_destruction             = false
+      delete_backups_on_backup_vault_destroy = true
+    }
+  }
+}
+
+data "azurerm_netapp_volume" "test" {
+  resource_group_name = azurerm_netapp_volume.test.resource_group_name
+  account_name        = azurerm_netapp_volume.test.account_name
+  pool_name           = azurerm_netapp_volume.test.pool_name
+  name                = azurerm_netapp_volume.test.name
+}
+`, NetAppVolumeResource{}.breakthroughMode(data))
 }
 
 func (NetAppVolumeDataSource) backupPolicy(data acceptance.TestData) string {

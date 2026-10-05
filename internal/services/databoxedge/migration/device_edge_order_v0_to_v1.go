@@ -236,7 +236,7 @@ func (DataBoxEdgeOrderV0ToV1) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (DataBoxEdgeOrderV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		oldIdRaw := rawState["id"].(string)
 		oldId, err := parseLegacyResourceID(oldIdRaw)
 		if err != nil {

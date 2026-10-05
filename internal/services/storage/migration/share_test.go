@@ -11,11 +11,11 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	storageClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 )
 
 func TestShareV0ToV1(t *testing.T) {
-	input := map[string]interface{}{
+	input := map[string]any{
 		"id":                   "share1",
 		"name":                 "share1",
 		"resource_group_name":  "group1",
@@ -23,7 +23,7 @@ func TestShareV0ToV1(t *testing.T) {
 		"quota":                5120,
 	}
 
-	expected := map[string]interface{}{
+	expected := map[string]any{
 		"id":                   "share1/group1/account1",
 		"name":                 "share1",
 		"resource_group_name":  "group1",
@@ -53,7 +53,7 @@ func TestShareV1ToV2(t *testing.T) {
 	for _, cloud := range clouds {
 		t.Logf("[DEBUG] Testing with Cloud %q", cloud.Name)
 
-		input := map[string]interface{}{
+		input := map[string]any{
 			"id":                   "share1/group1/account1",
 			"name":                 "share1",
 			"resource_group_name":  "group1",
@@ -70,12 +70,12 @@ func TestShareV1ToV2(t *testing.T) {
 			Account: &clients.ResourceManagerAccount{
 				Environment: *cloud,
 			},
-			Storage: &storageClient.Client{
+			Storage: &client.Client{
 				StorageDomainSuffix: *storageSuffix,
 			},
 		}
 
-		expected := map[string]interface{}{
+		expected := map[string]any{
 			"id":                   fmt.Sprintf("https://account1.file.%s/share1", *storageSuffix),
 			"name":                 "share1",
 			"resource_group_name":  "group1",
