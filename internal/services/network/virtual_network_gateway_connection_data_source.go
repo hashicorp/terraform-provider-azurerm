@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworkgatewayconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworkgatewayconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -57,8 +57,7 @@ func dataSourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_bgp": {
+			"bgp_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
@@ -197,7 +196,7 @@ func dataSourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualNetworkGatewayConnections
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -234,14 +233,14 @@ func dataSourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, me
 		props := model.Properties
 
 		d.Set("authorization_key", props.AuthorizationKey)
-		d.Set("enable_bgp", props.EnableBgp)
+		d.Set("bgp_enabled", props.EnableBgp)
 		d.Set("ingress_bytes_transferred", props.IngressBytesTransferred)
 		d.Set("egress_bytes_transferred", props.EgressBytesTransferred)
 		d.Set("use_policy_based_traffic_selectors", props.UsePolicyBasedTrafficSelectors)
 		d.Set("express_route_gateway_bypass", props.ExpressRouteGatewayBypass)
 		d.Set("private_link_fast_path_enabled", props.EnablePrivateLinkFastPath)
 		d.Set("type", string(props.ConnectionType))
-		d.Set("connection_protocol", string(pointer.From(props.ConnectionProtocol)))
+		d.Set("connection_protocol", pointer.FromEnum(props.ConnectionProtocol))
 		d.Set("routing_weight", props.RoutingWeight)
 
 		d.Set("virtual_network_gateway_id", props.VirtualNetworkGateway1.Id)
@@ -268,13 +267,11 @@ func dataSourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, me
 
 		d.Set("resource_guid", props.ResourceGuid)
 
-		ipsecPoliciesSettingsFlat := flattenVirtualNetworkGatewayConnectionDataSourceIpsecPolicies(props.IPsecPolicies)
-		if err := d.Set("ipsec_policy", ipsecPoliciesSettingsFlat); err != nil {
+		if err := d.Set("ipsec_policy", flattenVirtualNetworkGatewayConnectionDataSourceIpsecPolicies(props.IPsecPolicies)); err != nil {
 			return fmt.Errorf("setting `ipsec_policy`: %+v", err)
 		}
 
-		trafficSelectorsPolicyFlat := flattenVirtualNetworkGatewayConnectionDataSourcePolicyTrafficSelectors(props.TrafficSelectorPolicies)
-		if err := d.Set("traffic_selector_policy", trafficSelectorsPolicyFlat); err != nil {
+		if err := d.Set("traffic_selector_policy", flattenVirtualNetworkGatewayConnectionDataSourcePolicyTrafficSelectors(props.TrafficSelectorPolicies)); err != nil {
 			return fmt.Errorf("setting `traffic_selector_policy`: %+v", err)
 		}
 	}
@@ -282,12 +279,12 @@ func dataSourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, me
 	return nil
 }
 
-func flattenVirtualNetworkGatewayConnectionDataSourceIpsecPolicies(ipsecPolicies *[]virtualnetworkgatewayconnections.IPsecPolicy) []interface{} {
-	schemaIpsecPolicies := make([]interface{}, 0)
+func flattenVirtualNetworkGatewayConnectionDataSourceIpsecPolicies(ipsecPolicies *[]virtualnetworkgatewayconnections.IPsecPolicy) []any {
+	schemaIpsecPolicies := make([]any, 0)
 
 	if ipsecPolicies != nil {
 		for _, ipsecPolicy := range *ipsecPolicies {
-			schemaIpsecPolicy := make(map[string]interface{})
+			schemaIpsecPolicy := make(map[string]any)
 
 			schemaIpsecPolicy["dh_group"] = string(ipsecPolicy.DhGroup)
 			schemaIpsecPolicy["ike_encryption"] = string(ipsecPolicy.IkeEncryption)
@@ -305,12 +302,12 @@ func flattenVirtualNetworkGatewayConnectionDataSourceIpsecPolicies(ipsecPolicies
 	return schemaIpsecPolicies
 }
 
-func flattenVirtualNetworkGatewayConnectionDataSourcePolicyTrafficSelectors(trafficSelectorPolicies *[]virtualnetworkgatewayconnections.TrafficSelectorPolicy) []interface{} {
-	schemaTrafficSelectorPolicies := make([]interface{}, 0)
+func flattenVirtualNetworkGatewayConnectionDataSourcePolicyTrafficSelectors(trafficSelectorPolicies *[]virtualnetworkgatewayconnections.TrafficSelectorPolicy) []any {
+	schemaTrafficSelectorPolicies := make([]any, 0)
 
 	if trafficSelectorPolicies != nil {
 		for _, trafficSelectorPolicy := range *trafficSelectorPolicies {
-			schemaTrafficSelectorPolicies = append(schemaTrafficSelectorPolicies, map[string]interface{}{
+			schemaTrafficSelectorPolicies = append(schemaTrafficSelectorPolicies, map[string]any{
 				"local_address_cidrs":  trafficSelectorPolicy.LocalAddressRanges,
 				"remote_address_cidrs": trafficSelectorPolicy.RemoteAddressRanges,
 			})

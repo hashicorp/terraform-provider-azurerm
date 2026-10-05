@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package privatednsresolver
@@ -33,7 +33,7 @@ func (r PrivateDNSResolverOutboundEndpointDataSource) ResourceType() string {
 	return "azurerm_private_dns_resolver_outbound_endpoint"
 }
 
-func (r PrivateDNSResolverOutboundEndpointDataSource) ModelObject() interface{} {
+func (r PrivateDNSResolverOutboundEndpointDataSource) ModelObject() any {
 	return &PrivateDNSResolverOutboundEndpointDataSourceModel{}
 }
 
@@ -90,7 +90,8 @@ func (r PrivateDNSResolverOutboundEndpointDataSource) Read() sdk.ResourceFunc {
 				privateDnsResolverId.SubscriptionId,
 				privateDnsResolverId.ResourceGroupName,
 				privateDnsResolverId.DnsResolverName,
-				state.Name)
+				state.Name,
+			)
 			resp, err := client.Get(ctx, id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", id, err)

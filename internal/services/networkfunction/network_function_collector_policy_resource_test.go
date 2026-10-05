@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package networkfunction_test
@@ -19,7 +19,7 @@ import (
 
 type NetworkFunctionCollectorPolicyResource struct{}
 
-func TestAccNetworkFunctionCollectorPolicy(t *testing.T) {
+func TestAccNetworkFunctionCollectorPolicy_sequential(t *testing.T) {
 	if os.Getenv("ARM_NETWORK_FUNCTION_PEERING_LOCATION") == "" {
 		t.Skip("Skipping as ARM_NETWORK_FUNCTION_PEERING_LOCATION is not specified")
 	}
