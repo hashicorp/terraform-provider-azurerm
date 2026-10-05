@@ -121,7 +121,7 @@ func dataSourceVirtualMachineScaleSet() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.VirtualMachineScaleSetsClient
 	instancesClient := meta.(*clients.Client).Compute.VirtualMachineScaleSetVMsClient
 	virtualMachinesClient := meta.(*clients.Client).Compute.VirtualMachinesClient
@@ -167,7 +167,7 @@ func dataSourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interf
 		}
 	}
 
-	instances := make([]interface{}, 0)
+	instances := make([]any, 0)
 	virtualMachineScaleSetId := virtualmachinescalesetvms.NewVirtualMachineScaleSetID(subscriptionId, id.ResourceGroupName, id.VirtualMachineScaleSetName)
 
 	// If the VMSS is in Uniform Orchestration Mode, we can use instanceView for the VMSS instances
@@ -178,8 +178,7 @@ func dataSourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interf
 	var orchestrationMode string
 	if props := resp.Model.Properties; props != nil {
 		if *props.OrchestrationMode == virtualmachinescalesets.OrchestrationModeUniform {
-			expandStr := "instanceView"
-			optionsVMSS.Expand = &expandStr
+			optionsVMSS.Expand = pointer.To("instanceView")
 			orchestrationMode = "Uniform"
 		}
 		if *props.OrchestrationMode == virtualmachinescalesets.OrchestrationModeFlexible {
@@ -295,8 +294,8 @@ func getVirtualMachineScaleSetVMConnectionInfo(ctx context.Context, networkInter
 	}, nil
 }
 
-func flattenVirtualMachineScaleSetVM(input virtualmachinescalesetvms.VirtualMachineScaleSetVM, connectionInfo *connectionInfo, vm *virtualmachines.VirtualMachine, mode string) map[string]interface{} {
-	output := make(map[string]interface{})
+func flattenVirtualMachineScaleSetVM(input virtualmachinescalesetvms.VirtualMachineScaleSetVM, connectionInfo *connectionInfo, vm *virtualmachines.VirtualMachine, mode string) map[string]any {
+	output := make(map[string]any)
 	output["name"] = *input.Name
 	output["instance_id"] = *input.InstanceId
 

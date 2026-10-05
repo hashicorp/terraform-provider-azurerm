@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -17,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 func resourceDataFactoryDatasetPostgreSQL() *pluginsdk.Resource {
@@ -145,7 +146,7 @@ func resourceDataFactoryDatasetPostgreSQL() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryDatasetPostgreSQLCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetPostgreSQLCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	subscriptionId := meta.(*clients.Client).DataFactory.DatasetClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -178,10 +179,9 @@ func resourceDataFactoryDatasetPostgreSQLCreateUpdate(d *pluginsdk.ResourceData,
 	}
 
 	linkedServiceName := d.Get("linked_service_name").(string)
-	linkedServiceType := "LinkedServiceReference"
 	linkedService := &datafactory.LinkedServiceReference{
 		ReferenceName: &linkedServiceName,
-		Type:          &linkedServiceType,
+		Type:          pointer.To("LinkedServiceReference"),
 	}
 
 	description := d.Get("description").(string)
@@ -192,33 +192,30 @@ func resourceDataFactoryDatasetPostgreSQLCreateUpdate(d *pluginsdk.ResourceData,
 	}
 
 	if v, ok := d.GetOk("folder"); ok {
-		name := v.(string)
 		postgresqlTableset.Folder = &datafactory.DatasetFolder{
-			Name: &name,
+			Name: pointer.To(v.(string)),
 		}
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		postgresqlTableset.Parameters = expandDataSetParameters(v.(map[string]interface{}))
+		postgresqlTableset.Parameters = expandDataSetParameters(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		postgresqlTableset.Annotations = &annotations
+		postgresqlTableset.Annotations = pointer.To(v.([]any))
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		postgresqlTableset.AdditionalProperties = v.(map[string]interface{})
+		postgresqlTableset.AdditionalProperties = v.(map[string]any)
 	}
 
 	if v, ok := d.GetOk("schema_column"); ok {
-		postgresqlTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
+		postgresqlTableset.Structure = expandDataFactoryDatasetStructure(v.([]any))
 	}
 
-	datasetType := string(datafactory.TypeBasicDatasetTypePostgreSQLTable)
 	dataset := datafactory.DatasetResource{
 		Properties: &postgresqlTableset,
-		Type:       &datasetType,
+		Type:       pointer.To(string(datafactory.TypeBasicDatasetTypePostgreSQLTable)),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, id.Name, dataset, ""); err != nil {
@@ -232,7 +229,7 @@ func resourceDataFactoryDatasetPostgreSQLCreateUpdate(d *pluginsdk.ResourceData,
 	return resourceDataFactoryDatasetPostgreSQLRead(d, meta)
 }
 
-func resourceDataFactoryDatasetPostgreSQLRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetPostgreSQLRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -304,7 +301,7 @@ func resourceDataFactoryDatasetPostgreSQLRead(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func resourceDataFactoryDatasetPostgreSQLDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetPostgreSQLDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

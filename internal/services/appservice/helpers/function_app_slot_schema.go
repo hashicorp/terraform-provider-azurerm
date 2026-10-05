@@ -884,15 +884,15 @@ func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *webapps.
 		HealthCheckPath:               pointer.From(functionAppSlotSiteConfig.HealthCheckPath),
 		Http2Enabled:                  pointer.From(functionAppSlotSiteConfig.HTTP20Enabled),
 		WindowsFxVersion:              pointer.From(functionAppSlotSiteConfig.WindowsFxVersion),
-		LoadBalancing:                 string(pointer.From(functionAppSlotSiteConfig.LoadBalancing)),
-		ManagedPipelineMode:           string(pointer.From(functionAppSlotSiteConfig.ManagedPipelineMode)),
+		LoadBalancing:                 pointer.FromEnum(functionAppSlotSiteConfig.LoadBalancing),
+		ManagedPipelineMode:           pointer.FromEnum(functionAppSlotSiteConfig.ManagedPipelineMode),
 		NumberOfWorkers:               pointer.From(functionAppSlotSiteConfig.NumberOfWorkers),
-		ScmType:                       string(pointer.From(functionAppSlotSiteConfig.ScmType)),
-		FtpsState:                     string(pointer.From(functionAppSlotSiteConfig.FtpsState)),
+		ScmType:                       pointer.FromEnum(functionAppSlotSiteConfig.ScmType),
+		FtpsState:                     pointer.FromEnum(functionAppSlotSiteConfig.FtpsState),
 		RuntimeScaleMonitoring:        pointer.From(functionAppSlotSiteConfig.FunctionsRuntimeScaleMonitoringEnabled),
-		MinTlsVersion:                 string(pointer.From(functionAppSlotSiteConfig.MinTlsVersion)),
-		ScmMinTlsVersion:              string(pointer.From(functionAppSlotSiteConfig.ScmMinTlsVersion)),
-		MinTlsCipherSuite:             string(pointer.From(functionAppSlotSiteConfig.MinTlsCipherSuite)),
+		MinTlsVersion:                 pointer.FromEnum(functionAppSlotSiteConfig.MinTlsVersion),
+		ScmMinTlsVersion:              pointer.FromEnum(functionAppSlotSiteConfig.ScmMinTlsVersion),
+		MinTlsCipherSuite:             pointer.FromEnum(functionAppSlotSiteConfig.MinTlsCipherSuite),
 		PreWarmedInstanceCount:        pointer.From(functionAppSlotSiteConfig.PreWarmedInstanceCount),
 		ElasticInstanceMinimum:        pointer.From(functionAppSlotSiteConfig.MinimumElasticInstanceCount),
 		Use32BitWorker:                pointer.From(functionAppSlotSiteConfig.Use32BitWorkerProcess),
@@ -901,8 +901,8 @@ func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *webapps.
 		RemoteDebugging:               pointer.From(functionAppSlotSiteConfig.RemoteDebuggingEnabled),
 		RemoteDebuggingVersion:        strings.ToUpper(pointer.From(functionAppSlotSiteConfig.RemoteDebuggingVersion)),
 		VnetRouteAllEnabled:           pointer.From(functionAppSlotSiteConfig.VnetRouteAllEnabled),
-		IpRestrictionDefaultAction:    string(pointer.From(functionAppSlotSiteConfig.IPSecurityRestrictionsDefaultAction)),
-		ScmIpRestrictionDefaultAction: string(pointer.From(functionAppSlotSiteConfig.ScmIPSecurityRestrictionsDefaultAction)),
+		IpRestrictionDefaultAction:    pointer.FromEnum(functionAppSlotSiteConfig.IPSecurityRestrictionsDefaultAction),
+		ScmIpRestrictionDefaultAction: pointer.FromEnum(functionAppSlotSiteConfig.ScmIPSecurityRestrictionsDefaultAction),
 	}
 
 	if v := functionAppSlotSiteConfig.ApiDefinition; v != nil && v.Url != nil {
@@ -933,13 +933,11 @@ func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *webapps.
 		}
 	}
 
+	// DotNetIsolated, NodeVersion, and CustomHandler will be set later from app settings
 	result.ApplicationStack = []ApplicationStackWindowsFunctionApp{{
 		DotNetVersion:         pointer.From(functionAppSlotSiteConfig.NetFrameworkVersion),
-		DotNetIsolated:        false, // Note: this is set later from app_settings.FUNCTIONS_WORKER_RUNTIME in unpackWindowsFunctionAppSettings
-		NodeVersion:           "",    // Note: this will be set from app_settings later in unpackWindowsFunctionAppSettings
 		JavaVersion:           pointer.From(functionAppSlotSiteConfig.JavaVersion),
 		PowerShellCoreVersion: powershellVersion,
-		CustomHandler:         false, // Note: this is set later from app_settings
 	}}
 
 	return result, nil
@@ -1234,15 +1232,15 @@ func FlattenSiteConfigLinuxFunctionAppSlot(functionAppSlotSiteConfig *webapps.Si
 		HealthCheckPath:               pointer.From(functionAppSlotSiteConfig.HealthCheckPath),
 		Http2Enabled:                  pointer.From(functionAppSlotSiteConfig.HTTP20Enabled),
 		LinuxFxVersion:                pointer.From(functionAppSlotSiteConfig.LinuxFxVersion),
-		LoadBalancing:                 string(pointer.From(functionAppSlotSiteConfig.LoadBalancing)),
-		ManagedPipelineMode:           string(pointer.From(functionAppSlotSiteConfig.ManagedPipelineMode)),
+		LoadBalancing:                 pointer.FromEnum(functionAppSlotSiteConfig.LoadBalancing),
+		ManagedPipelineMode:           pointer.FromEnum(functionAppSlotSiteConfig.ManagedPipelineMode),
 		WorkerCount:                   pointer.From(functionAppSlotSiteConfig.NumberOfWorkers),
-		ScmType:                       string(pointer.From(functionAppSlotSiteConfig.ScmType)),
-		FtpsState:                     string(pointer.From(functionAppSlotSiteConfig.FtpsState)),
+		ScmType:                       pointer.FromEnum(functionAppSlotSiteConfig.ScmType),
+		FtpsState:                     pointer.FromEnum(functionAppSlotSiteConfig.FtpsState),
 		RuntimeScaleMonitoring:        pointer.From(functionAppSlotSiteConfig.FunctionsRuntimeScaleMonitoringEnabled),
-		MinTlsVersion:                 string(pointer.From(functionAppSlotSiteConfig.MinTlsVersion)),
-		ScmMinTlsVersion:              string(pointer.From(functionAppSlotSiteConfig.ScmMinTlsVersion)),
-		MinTlsCipherSuite:             string(pointer.From(functionAppSlotSiteConfig.MinTlsCipherSuite)),
+		MinTlsVersion:                 pointer.FromEnum(functionAppSlotSiteConfig.MinTlsVersion),
+		ScmMinTlsVersion:              pointer.FromEnum(functionAppSlotSiteConfig.ScmMinTlsVersion),
+		MinTlsCipherSuite:             pointer.FromEnum(functionAppSlotSiteConfig.MinTlsCipherSuite),
 		PreWarmedInstanceCount:        pointer.From(functionAppSlotSiteConfig.PreWarmedInstanceCount),
 		ElasticInstanceMinimum:        pointer.From(functionAppSlotSiteConfig.MinimumElasticInstanceCount),
 		Use32BitWorker:                pointer.From(functionAppSlotSiteConfig.Use32BitWorkerProcess),
@@ -1252,8 +1250,8 @@ func FlattenSiteConfigLinuxFunctionAppSlot(functionAppSlotSiteConfig *webapps.Si
 		RemoteDebugging:               pointer.From(functionAppSlotSiteConfig.RemoteDebuggingEnabled),
 		RemoteDebuggingVersion:        strings.ToUpper(pointer.From(functionAppSlotSiteConfig.RemoteDebuggingVersion)),
 		VnetRouteAllEnabled:           pointer.From(functionAppSlotSiteConfig.VnetRouteAllEnabled),
-		IpRestrictionDefaultAction:    string(pointer.From(functionAppSlotSiteConfig.IPSecurityRestrictionsDefaultAction)),
-		ScmIpRestrictionDefaultAction: string(pointer.From(functionAppSlotSiteConfig.ScmIPSecurityRestrictionsDefaultAction)),
+		IpRestrictionDefaultAction:    pointer.FromEnum(functionAppSlotSiteConfig.IPSecurityRestrictionsDefaultAction),
+		ScmIpRestrictionDefaultAction: pointer.FromEnum(functionAppSlotSiteConfig.ScmIPSecurityRestrictionsDefaultAction),
 	}
 
 	if v := functionAppSlotSiteConfig.ApiDefinition; v != nil && v.Url != nil {

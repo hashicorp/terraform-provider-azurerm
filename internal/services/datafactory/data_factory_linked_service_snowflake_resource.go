@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 func resourceDataFactoryLinkedServiceSnowflake() *pluginsdk.Resource {
@@ -125,7 +125,7 @@ func resourceDataFactoryLinkedServiceSnowflake() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryLinkedServiceSnowflakeCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceSnowflakeCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	subscriptionId := meta.(*clients.Client).DataFactory.LinkedServiceClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -153,7 +153,7 @@ func resourceDataFactoryLinkedServiceSnowflakeCreateUpdate(d *pluginsdk.Resource
 		}
 	}
 
-	password := d.Get("key_vault_password").([]interface{})
+	password := d.Get("key_vault_password").([]any)
 
 	snowflakeLinkedService := &datafactory.SnowflakeLinkedService{
 		Description: pointer.To(d.Get("description").(string)),
@@ -165,7 +165,7 @@ func resourceDataFactoryLinkedServiceSnowflakeCreateUpdate(d *pluginsdk.Resource
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		snowflakeLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]interface{}))
+		snowflakeLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
@@ -173,12 +173,11 @@ func resourceDataFactoryLinkedServiceSnowflakeCreateUpdate(d *pluginsdk.Resource
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		snowflakeLinkedService.AdditionalProperties = v.(map[string]interface{})
+		snowflakeLinkedService.AdditionalProperties = v.(map[string]any)
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		snowflakeLinkedService.Annotations = &annotations
+		snowflakeLinkedService.Annotations = pointer.To(v.([]any))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -194,7 +193,7 @@ func resourceDataFactoryLinkedServiceSnowflakeCreateUpdate(d *pluginsdk.Resource
 	return resourceDataFactoryLinkedServiceSnowflakeRead(d, meta)
 }
 
-func resourceDataFactoryLinkedServiceSnowflakeRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceSnowflakeRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -263,7 +262,7 @@ func resourceDataFactoryLinkedServiceSnowflakeRead(d *pluginsdk.ResourceData, me
 	return nil
 }
 
-func resourceDataFactoryLinkedServiceSnowflakeDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceSnowflakeDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

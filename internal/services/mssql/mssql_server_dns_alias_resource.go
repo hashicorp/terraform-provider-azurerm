@@ -55,7 +55,7 @@ func (m ServerDNSAliasResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (m ServerDNSAliasResource) ModelObject() interface{} {
+func (m ServerDNSAliasResource) ModelObject() any {
 	return &ServerDNSAliasModel{}
 }
 
@@ -87,7 +87,7 @@ func (m ServerDNSAliasResource) Create() sdk.ResourceFunc {
 				existing, err := client.Get(ctx, id)
 				if !response.WasNotFound(existing.HttpResponse) {
 					if err != nil {
-						return fmt.Errorf("retreiving %s: %v", id, err)
+						return fmt.Errorf("retrieving %s: %v", id, err)
 					}
 					return metadata.ResourceRequiresImport(m.ResourceType(), id)
 				}
