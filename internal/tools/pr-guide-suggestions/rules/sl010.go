@@ -31,6 +31,7 @@ var abbreviations = map[string]string{
 	"waf":           "web_application_firewall",
 	"sec":           "seconds",
 	"addr":          "address",
+	"auth":          "authentication",
 	"msg":           "message",
 	"num":           "number",
 	"cfg":           "configuration",
