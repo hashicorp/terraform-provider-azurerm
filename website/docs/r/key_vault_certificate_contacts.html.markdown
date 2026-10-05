@@ -21,11 +21,12 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_key_vault" "example" {
-  name                = "examplekeyvault"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"
+  name                       = "examplekeyvault"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
 }
 
 resource "azurerm_key_vault_access_policy" "example" {
@@ -72,7 +73,7 @@ The following arguments are supported:
 
 * `key_vault_id` - (Required) The ID of the Key Vault. Changing this forces a new resource to be created.
 
-* `contact` - (Optional) One or more `contact` blocks as defined below.
+* `contact` - (Required) One or more `contact` blocks as defined below.
 
 ---
 
@@ -92,7 +93,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Key Vault Certificate Contacts.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault Certificate Contacts.

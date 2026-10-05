@@ -105,7 +105,7 @@ A `destination` block supports the following:
 
 * `address_prefix` - (Required) Specifies the address prefix. 
 
-* `address_prefix_type` - (Required) Specifies the address prefix type. Possible values are `IPPrefix` and `ServiceTag`. For more information, please see [this document](https://learn.microsoft.com/en-us/azure/virtual-network-manager/concept-security-admins#source-and-destination-types).
+* `address_prefix_type` - (Required) Specifies the address prefix type. Possible values are `IPPrefix` and `ServiceTag`. For more information, please see [this document](https://learn.microsoft.com/azure/virtual-network-manager/concept-security-admins#source-and-destination-types).
 
 ---
 
@@ -113,7 +113,7 @@ A `source` block supports the following:
 
 * `address_prefix` - (Required) Specifies the address prefix.
 
-* `address_prefix_type` - (Required) Specifies the address prefix type. Possible values are `IPPrefix` and `ServiceTag`. For more information, please see [this document](https://learn.microsoft.com/en-us/azure/virtual-network-manager/concept-security-admins#source-and-destination-types).
+* `address_prefix_type` - (Required) Specifies the address prefix type. Possible values are `IPPrefix` and `ServiceTag`. For more information, please see [this document](https://learn.microsoft.com/azure/virtual-network-manager/concept-security-admins#source-and-destination-types).
 
 ## Attributes Reference
 
@@ -123,7 +123,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Network Manager Admin Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Network Manager Admin Rule.
@@ -137,3 +137,9 @@ Network Manager Admin Rule can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_network_manager_admin_rule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/networkManagers/networkManager1/securityAdminConfigurations/configuration1/ruleCollections/ruleCollection1/rules/rule1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2025-07-01

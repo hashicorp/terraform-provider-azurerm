@@ -1,10 +1,14 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package toproto5
 
 import (
 	"context"
+	"fmt"
+	"maps"
+	"slices"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
@@ -18,10 +22,12 @@ func GetProviderSchemaResponse(ctx context.Context, fw *fwserver.GetProviderSche
 	}
 
 	protov5 := &tfprotov5.GetProviderSchemaResponse{
+		ActionSchemas:            make(map[string]*tfprotov5.ActionSchema, len(fw.ActionSchemas)),
 		DataSourceSchemas:        make(map[string]*tfprotov5.Schema, len(fw.DataSourceSchemas)),
 		Diagnostics:              Diagnostics(ctx, fw.Diagnostics),
 		EphemeralResourceSchemas: make(map[string]*tfprotov5.Schema, len(fw.EphemeralResourceSchemas)),
 		Functions:                make(map[string]*tfprotov5.Function, len(fw.FunctionDefinitions)),
+		ListResourceSchemas:      make(map[string]*tfprotov5.Schema, len(fw.ListResourceSchemas)),
 		ResourceSchemas:          make(map[string]*tfprotov5.Schema, len(fw.ResourceSchemas)),
 		ServerCapabilities:       ServerCapabilities(ctx, fw.ServerCapabilities),
 	}
@@ -50,6 +56,20 @@ func GetProviderSchemaResponse(ctx context.Context, fw *fwserver.GetProviderSche
 		})
 
 		return protov5
+	}
+
+	for actionType, actionSchema := range fw.ActionSchemas {
+		protov5.ActionSchemas[actionType], err = ActionSchema(ctx, actionSchema)
+
+		if err != nil {
+			protov5.Diagnostics = append(protov5.Diagnostics, &tfprotov5.Diagnostic{
+				Severity: tfprotov5.DiagnosticSeverityError,
+				Summary:  "Error converting action schema",
+				Detail:   "The schema for the action \"" + actionType + "\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+			})
+
+			return protov5
+		}
 	}
 
 	for dataSourceType, dataSourceSchema := range fw.DataSourceSchemas {
@@ -96,6 +116,32 @@ func GetProviderSchemaResponse(ctx context.Context, fw *fwserver.GetProviderSche
 
 			return protov5
 		}
+	}
+
+	for listResourceType, listResourceSchema := range fw.ListResourceSchemas {
+		protov5.ListResourceSchemas[listResourceType], err = Schema(ctx, listResourceSchema)
+
+		if err != nil {
+			protov5.Diagnostics = append(protov5.Diagnostics, &tfprotov5.Diagnostic{
+				Severity: tfprotov5.DiagnosticSeverityError,
+				Summary:  "Error converting list resource schema",
+				Detail:   "The schema for the list resource \"" + listResourceType + "\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+			})
+		}
+	}
+
+	if len(fw.StateStoreSchemas) > 0 {
+		// Grab all the state store type names for diagnostics
+		stateStoreTypes := slices.Sorted(maps.Keys(fw.StateStoreSchemas))
+
+		protov5.Diagnostics = append(protov5.Diagnostics, &tfprotov5.Diagnostic{
+			Severity: tfprotov5.DiagnosticSeverityError,
+			Summary:  "Unsupported State Store(s)",
+			Detail: "The schema for the provider contains at least one state store implementation, which are only supported in protocol v6. " +
+				"The provider is currently being served with protocol v5 and must either be upgraded to v6 or the state store implementation must be removed. " +
+				"This is always a problem with the provider and should be reported to the provider developer:\n\n" +
+				fmt.Sprintf("State store(s) found in provider: %s", strings.Join(stateStoreTypes, ", ")),
+		})
 	}
 
 	return protov5

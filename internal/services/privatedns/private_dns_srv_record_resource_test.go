@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package privatedns_test
@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/recordsets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatedns"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -91,12 +91,12 @@ func TestAccPrivateDnsSrvRecord_withTags(t *testing.T) {
 }
 
 func (r PrivateDnsSrvRecordResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := recordsets.ParseRecordTypeID(state.ID)
+	id, err := privatedns.ParseRecordTypeID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.PrivateDns.RecordSetsClient.Get(ctx, *id)
+	resp, err := clients.PrivateDns.RecordSetsClient.RecordSetsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Private DNS SRV Record (%s): %+v", id.String(), err)
 	}
@@ -106,12 +106,11 @@ func (r PrivateDnsSrvRecordResource) Exists(ctx context.Context, clients *client
 
 func (r PrivateDnsSrvRecordResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_private_dns_srv_record" "test" {
-  name                = "acctestsrv%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
+  name                = "acctestsrv%[2]d"
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
   ttl                 = 300
   record {
     priority = 1
@@ -132,12 +131,11 @@ resource "azurerm_private_dns_srv_record" "test" {
 
 func (r PrivateDnsSrvRecordResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_private_dns_srv_record" "import" {
   name                = azurerm_private_dns_srv_record.test.name
-  resource_group_name = azurerm_private_dns_srv_record.test.resource_group_name
-  zone_name           = azurerm_private_dns_srv_record.test.zone_name
+  private_dns_zone_id = azurerm_private_dns_srv_record.test.private_dns_zone_id
   ttl                 = 300
   record {
     priority = 1
@@ -157,12 +155,11 @@ resource "azurerm_private_dns_srv_record" "import" {
 
 func (r PrivateDnsSrvRecordResource) updateRecords(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_private_dns_srv_record" "test" {
-  name                = "acctestsrv%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
+  name                = "acctestsrv%[2]d"
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
   ttl                 = 300
   record {
     priority = 1
@@ -188,12 +185,11 @@ resource "azurerm_private_dns_srv_record" "test" {
 
 func (r PrivateDnsSrvRecordResource) withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_private_dns_srv_record" "test" {
-  name                = "acctestsrv%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
+  name                = "acctestsrv%[2]d"
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
   ttl                 = 300
   record {
     priority = 1
@@ -218,12 +214,11 @@ resource "azurerm_private_dns_srv_record" "test" {
 
 func (r PrivateDnsSrvRecordResource) withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_private_dns_srv_record" "test" {
-  name                = "acctestsrv%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
+  name                = "acctestsrv%[2]d"
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
   ttl                 = 300
   record {
     priority = 1

@@ -6,7 +6,7 @@ package modfile
 
 import (
 	"fmt"
-	"sort"
+	"slices"
 	"strings"
 )
 
@@ -84,7 +84,7 @@ func ParseWork(file string, data []byte, fix VersionFixer) (*WorkFile, error) {
 }
 
 // Cleanup cleans up the file f after any edit operations.
-// To avoid quadratic behavior, modifications like [WorkFile.DropRequire]
+// To avoid quadratic behavior, modifications like [WorkFile.DropUse]
 // clear the entry but do not remove it from the slice.
 // Cleanup cleans out all the cleared entries.
 func (f *WorkFile) Cleanup() {
@@ -315,9 +315,7 @@ func (f *WorkFile) SortBlocks() {
 		if !ok {
 			continue
 		}
-		sort.SliceStable(block.Line, func(i, j int) bool {
-			return lineLess(block.Line[i], block.Line[j])
-		})
+		slices.SortStableFunc(block.Line, compareLine)
 	}
 }
 
@@ -331,5 +329,5 @@ func (f *WorkFile) SortBlocks() {
 // retract directives are not de-duplicated since comments are
 // meaningful, and versions may be retracted multiple times.
 func (f *WorkFile) removeDups() {
-	removeDups(f.Syntax, nil, &f.Replace, nil)
+	removeDups(f.Syntax, nil, &f.Replace, nil, nil)
 }

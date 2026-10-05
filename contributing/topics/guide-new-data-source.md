@@ -37,7 +37,7 @@ However if the SDK Client you need to use isn't already configured in the Provid
 
 Determining which SDK Client you should be using is a little complicated unfortunately, in this case the SDK Client we want to use is: `github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources`.
 
-The Client for the Service Package can be found in `./internal/services/{name}/client/client.go` - and we can add an instance of the SDK Client we want to use (here `resources.GroupsClient`) and configure it (adding credentials etc): 
+The Client for the Service Package can be found in `./internal/services/{name}/client/client.go` - and we can add an instance of the SDK Client we want to use (here `resources.GroupsClient`) and configure it (adding credentials etc):
 
 ```go
 package client
@@ -57,9 +57,9 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building Resources Client: %+v", err)
     }
 	o.Configure(groupsClient.Client, o.Authorizer.ResourceManager)
-	
+
 	// ...
-	
+
 	return &Client{
 		GroupsClient: groupsClient,
 	}
@@ -88,7 +88,7 @@ Since we're creating a Data Source for a Resource Group, which is a part of the 
 
 In this case, this would be a file called `resource_group_example_data_source.go`, which we'll start out with the following:
 
-> **Note:** We'd normally name this file `resource_group_data_source.go` - but there's an existing Data Source for Resource Groups, so we're appending `example` to the name throughout this guide. 
+> **Note:** We'd normally name this file `resource_group_data_source.go` - but there's an existing Data Source for Resource Groups, so we're appending `example` to the name throughout this guide.
 
 ```go
 package resources
@@ -165,8 +165,10 @@ Schema fields should be ordered as follows:
 1. Any fields that make up the resource's ID, with the last user specified segment (usually the resource's name) first. (e.g. `name`, `resource_group_name`, or `name`, `parent_resource_id`)
 2. The `location` field.
 3. Required fields, sorted alphabetically.
-4. Optional fields, sorted alphabetically.
+4. Optional fields, sorted alphabetically. (As with resources, `tags` is a special case and must always be the final entry in the `optional`/`Attributes` fields list.)
 5. Computed fields, sorted alphabetically. (Although in a typed data source these are always added within the `Attributes` method)
+
+-> **Note:** This ordering applies to both `typed` and `untyped` data sources; even when the schema is generated via `Attributes()`, the documentation must follow the same rules.
 
 ---
 
@@ -175,58 +177,58 @@ Next up, let's implement the Read function - which retrieves the information abo
 ```go
 func (ResourceGroupExampleDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		
+
 		// the Timeout is how long Terraform should wait for this function to run before returning an error
 		// whilst 5 minutes may initially seem excessive, we set this as a default to account for rate
 		// limiting - but having this here means that users can override this in their config as necessary
 		Timeout: 5 * time.Minute,
 
-		// the Func returns a function which retrieves the current state of the Resource Group into the state 
+		// the Func returns a function which retrieves the current state of the Resource Group into the state
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Resource.GroupsClient
-            
+
 			// retrieve the Name for this Resource Group from the Terraform Config
 			// and then create a Resource ID for this Resource Group
-			// using the Subscription ID & name 
+			// using the Subscription ID & name
 			subscriptionId := metadata.Client.Account.SubscriptionId
-			
+
 			// declare a variable called state which we use to decode and encode values into
 			// this simultaneously gets values that have been set in the config for us
 			// and also allows us to set values into state
 			var state ResourceGroupExampleDataSourceModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
-			}   
-			
+			}
+
 			id := resources.NewResourceGroupExampleID(subscriptionId, state.Name)
-			
-			// then retrieve the Resource Group by its ID 
+
+			// then retrieve the Resource Group by its ID
 			resp, err := client.Get(ctx, id)
 			if err != nil {
 				// if the Resource Group doesn't exist (e.g. we get a 404 Not Found)
-				// since this is a Data Source we must return an error if it's Not Found 
+				// since this is a Data Source we must return an error if it's Not Found
 				if response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("%s was not found", id)
 				}
-				
+
 				// otherwise it's a genuine error (auth/api error etc) so raise it
 				// there should be enough context for the user to interpret the error
-				// or raise a bug report if there's something we should handle 
+				// or raise a bug report if there's something we should handle
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
-			
+
 			// now we know the Resource Group exists, set the Resource ID for this Data Source
-			// this means that Terraform will track this as existing 
+			// this means that Terraform will track this as existing
 			metadata.SetID(id)
-			
+
 			// at this point we can set information about this Resource Group into the State
 			// whilst traditionally we would do this via `metadata.ResourceData.Set("foo", "somevalue")
 			// the Location and Tags fields are a little different - and we have a couple of normalization
 			// functions for these.
-			
+
 			// whilst this may seem like a weird thing to call out in an example, because these two fields
 			// are present on the majority of resources, we hope it explains why they're a little different
-			 
+
 			// in this case the Location can be returned in various different forms, for example
 			// "West Europe", "WestEurope" or "westeurope" - as such we normalize these into a
 			// lower-cased singular word with no spaces (e.g. "westeurope") so this is consistent
@@ -236,9 +238,9 @@ func (ResourceGroupExampleDataSource) Read() sdk.ResourceFunc {
 				state.Tags = pointer.From(model.Tags)
 				props := model.Properties; props != nil {
 					// If the data source exposes additional properties that live within the Properties
-					// model of the response they would be set into state here. 
+					// model of the response they would be set into state here.
 				}
-			}   
+			}
 			return metadata.Encode(&state)
 		},
 	}
@@ -286,7 +288,7 @@ func (d ResourceGroupExampleDataSource) Arguments() map[string]*pluginsdk.Schema
 func (d ResourceGroupExampleDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
-		
+
 		"tags": commonschema.TagsDataSource(),
 	}
 }
@@ -395,7 +397,7 @@ To register the Data Source we need to add an instance of the struct used for th
 // DataSources returns a list of Data Sources supported by this Service
 func (Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
-		ResourceGroupExampleDataSource{},	
+		ResourceGroupExampleDataSource{},
 	}
 }
 ```
@@ -422,7 +424,7 @@ output "location" {
 
 We're going to test the Data Source that we've just built by dynamically provisioning a Resource Group using the Azure Provider, then asserting that we can look up that Resource Group using the new `azurerm_resource_group_example` Data Source.
 
-In Go tests are expected to be in a file name in the format `{original_file_name}_test.go` - in our case that'd be `resource_group_example_data_source_test.go`, into which we'll want to add: 
+In Go tests are expected to be in a file name in the format `{original_file_name}_test.go` - in our case that'd be `resource_group_example_data_source_test.go`, into which we'll want to add:
 
 ```go
 package resource_test
@@ -565,7 +567,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Resource Group.
 ```
