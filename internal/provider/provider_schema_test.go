@@ -1,10 +1,12 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package provider
 
 import (
 	"fmt"
+	"reflect"
+	"runtime"
 	"sort"
 	"strings"
 	"testing"
@@ -142,7 +144,7 @@ func TestDataSourcesHaveEnabledFieldsMarkedAsBooleans(t *testing.T) {
 }
 
 func TestResourcesHaveEnabledFieldsMarkedAsBooleans(t *testing.T) {
-	// This test validates that Resources do not contain a field suffixed with `_enabled` that isn't a Boolean.
+	// This test validates that Resources with fields suffixed with `_enabled` have the type 'Boolean'.
 	//
 	// If this test is failing due to a new Resource/new field within an existing Resource, it'd be worth validating
 	// the schema, since fields matching `{some_name}_enabled` should be Booleans. Should a Tri-State Boolean exist,
@@ -157,32 +159,7 @@ func TestResourcesHaveEnabledFieldsMarkedAsBooleans(t *testing.T) {
 	}
 	sort.Strings(resourceNames)
 
-	// TODO: 4.0 - work through this list
-	resourceFieldsWhichNeedToBeAddressed := map[string]map[string]struct{}{
-		// 1: Fields which require renaming etc
-		"azurerm_datadog_monitor_sso_configuration": {
-			// should be fixed in 4.0, presumably ditching `_enabled` and adding Enum validation
-			"single_sign_on_enabled": {},
-		},
-		"azurerm_netapp_volume": {
-			// should be fixed in 4.0, presumably ditching `_enabled` and making this `protocols_to_use` or something?
-			"protocols_enabled": {},
-		},
-		"azurerm_kubernetes_cluster": {
-			// this either wants `enabled` removing, or to be marked as a false-positive
-			"transparent_huge_page_enabled": {},
-		},
-		"azurerm_kubernetes_cluster_node_pool": {
-			// this either wants `enabled` removing, or to be marked as a false-positive
-			"transparent_huge_page_enabled": {},
-		},
-
-		// 2: False Positives
-		"azurerm_iot_security_solution": {
-			// this is a list of recommendations
-			"recommendations_enabled": {},
-		},
-	}
+	resourceFieldsWhichNeedToBeAddressed := map[string]map[string]struct{}{}
 
 	for _, resourceName := range resourceNames {
 		resource := provider.ResourcesMap[resourceName]
@@ -275,51 +252,37 @@ func TestResourcesDoNotContainANameFieldWithADefaultOfDefault(t *testing.T) {
 	}
 	sort.Strings(resourceNames)
 
-	// TODO: 4.0 - work through this list
 	resourceFieldsWhichNeedToBeAddressed := map[string]map[string]struct{}{
-		// 1: to be addressed in 4.0
+		// legacy exceptions
 		"azurerm_datadog_monitor_sso_configuration": {
-			// TODO: in 4.0 this resource probably wants embedding within `azurerm_datadog_monitor`
-			// which'll also need the Monitor resource to have Create call Update
 			"name": {},
 		},
 		"azurerm_datadog_monitor_tag_rule": {
-			// TODO: in 4.0 this resource probably wants embedding within `azurerm_datadog_monitor`
-			// which'll also need the Monitor resource to have Create call Update
 			"name": {},
 		},
+
+		// @sreallymatt: The Spring Cloud service is being retired, so there is no sense in updating these at this stage.
 		"azurerm_spring_cloud_accelerator": {
-			// TODO: in 4.0 this resource probably wants embedding within `azurerm_spring_cloud_service`
 			"name": {},
 		},
 		"azurerm_spring_cloud_api_portal": {
-			// TODO: in 4.0 this resource probably wants embedding within `azurerm_spring_cloud_service`
 			"name": {},
 		},
 		"azurerm_spring_cloud_application_live_view": {
-			// TODO: in 4.0 this resource probably wants embedding within `azurerm_spring_cloud_service`
 			"name": {},
 		},
 		"azurerm_spring_cloud_configuration_service": {
-			// TODO: in 4.0 this resource probably wants embedding within `azurerm_spring_cloud_service`
 			"name": {},
 		},
 		"azurerm_spring_cloud_dev_tool_portal": {
-			// TODO: in 4.0 this resource probably wants embedding within `azurerm_spring_cloud_service`
 			"name": {},
 		},
 		"azurerm_spring_cloud_gateway": {
-			// TODO: in 4.0 this resource probably wants embedding within `azurerm_spring_cloud_service`
 			"name": {},
 		},
 
-		// 2: False Positives?
-		"azurerm_redis_enterprise_database": {
-			"name": {},
-		},
-
-		// 3: Deprecated / to be removed in 4.0
-		"azurerm_cosmosdb_notebook_workspace": {
+		// 2: "default" is the expected name:
+		"azurerm_managed_redis_database": {
 			"name": {},
 		},
 	}
@@ -405,6 +368,22 @@ func runInputForValidateFunction(validateFunc pluginsdk.SchemaValidateFunc, inpu
 	return len(warnings) == 0 && len(errs) == 0
 }
 
+func runInputForValidateFunctionSkipNotEmpty(validateFunc pluginsdk.SchemaValidateFunc, input string) bool {
+	if validateFunc == nil {
+		return false
+	}
+
+	// StringIsNotEmpty / StringIsNotWhiteSpace will return len(warnings) = 0 and len(errs) = 0 for `Microsoft.KeyVault` input causing false positives.
+	// if function name contains either, skip
+	name := runtime.FuncForPC(reflect.ValueOf(validateFunc).Pointer()).Name()
+	if strings.Contains(name, "StringIsNotEmpty") || strings.Contains(name, "StringIsNotWhiteSpace") {
+		return false
+	}
+
+	warnings, errs := validateFunc(input, input)
+	return len(warnings) == 0 && len(errs) == 0
+}
+
 func TestResourcesWithAnEncryptionBlockBehaveConsistently(t *testing.T) {
 	// This test validates that Resources do not contain an `encryption` block which is marked as Computed: true
 	// or a field named `enabled` or `key_source`.
@@ -424,15 +403,7 @@ func TestResourcesWithAnEncryptionBlockBehaveConsistently(t *testing.T) {
 	}
 	sort.Strings(resourceNames)
 
-	// TODO: 4.0 - work through this list
-	resourcesWhichNeedToBeAddressed := map[string]struct{}{
-		"azurerm_automation_account":     {},
-		"azurerm_container_registry":     {},
-		"azurerm_managed_disk":           {},
-		"azurerm_media_services_account": {},
-		"azurerm_snapshot":               {},
-		"azurerm_load_test":              {},
-	}
+	resourcesWhichNeedToBeAddressed := map[string]struct{}{}
 
 	for _, resourceName := range resourceNames {
 		resource := provider.ResourcesMap[resourceName]
@@ -441,7 +412,7 @@ func TestResourcesWithAnEncryptionBlockBehaveConsistently(t *testing.T) {
 			if _, ok := resourcesWhichNeedToBeAddressed[resourceName]; ok {
 				continue
 			}
-			t.Fatalf("the Resource %q contains an `encryption` block marked as Computed - this should be marked as non-Computed (and the key source automatically inferred): %+v", resourceName, err)
+			t.Fatalf("the Resource %q failed validation: %+v", resourceName, err)
 		}
 	}
 }
@@ -478,7 +449,7 @@ func schemaContainsAnEncryptionBlock(input map[string]*schema.Schema, isResource
 						}
 
 						// check that none of the nested fields allow `Microsoft.KeyVault` as a value
-						if supportsKeyVaultAsAValue := runInputForValidateFunction(nestedField.ValidateFunc, "Microsoft.KeyVault"); supportsKeyVaultAsAValue {
+						if supportsKeyVaultAsAValue := runInputForValidateFunctionSkipNotEmpty(nestedField.ValidateFunc, "Microsoft.KeyVault"); supportsKeyVaultAsAValue {
 							return fmt.Errorf("field %q within the block %q appears to be a Key Source (supports `Microsoft.KeyVault` as a value) - this field can be removed and defaulted based on the presence of the containing block", nestedKey, fieldName)
 						}
 					}
@@ -537,13 +508,7 @@ func TestResourcesDoNotContainLocalAuthenticationDisabled(t *testing.T) {
 	}
 	sort.Strings(resourceNames)
 
-	// TODO: 4.0 - work through this list
-	resourcesWhichNeedToBeAddressed := map[string]struct{}{
-		"azurerm_application_insights":    {},
-		"azurerm_cosmosdb_account":        {},
-		"azurerm_log_analytics_workspace": {},
-		"azurerm_search_service":          {},
-	}
+	resourcesWhichNeedToBeAddressed := make(map[string]struct{})
 
 	for _, resourceName := range resourceNames {
 		resource := provider.ResourcesMap[resourceName]

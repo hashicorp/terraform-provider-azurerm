@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -60,7 +60,7 @@ func dataSourceApiManagementUser() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceApiManagementUserRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceApiManagementUserRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.UsersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -85,7 +85,7 @@ func dataSourceApiManagementUserRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("last_name", pointer.From(props.LastName))
 			d.Set("email", pointer.From(props.Email))
 			d.Set("note", pointer.From(props.Note))
-			d.Set("state", string(pointer.From(props.State)))
+			d.Set("state", pointer.FromEnum(props.State))
 		}
 	}
 

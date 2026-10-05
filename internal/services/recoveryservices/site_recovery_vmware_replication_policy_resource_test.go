@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices_test
@@ -9,12 +9,12 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SiteRecoveryVMWareReplicationPolicyResource struct{}
@@ -79,8 +79,6 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
-
-  soft_delete_enabled = false
 }
 
 resource "azurerm_site_recovery_vmware_replication_policy" "test" {
@@ -103,5 +101,5 @@ func (t SiteRecoveryVMWareReplicationPolicyResource) Exists(ctx context.Context,
 		return nil, fmt.Errorf("reading %s: %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }

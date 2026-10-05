@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -12,8 +12,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkinterfaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/applicationsecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkinterfaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -125,7 +125,7 @@ func (t NetworkInterfaceApplicationSecurityGroupAssociationResource) Exists(ctx 
 		return nil, err
 	}
 
-	read, err := clients.Network.Client.NetworkInterfaces.Get(ctx, *id.First, networkinterfaces.DefaultGetOperationOptions())
+	read, err := clients.Network.NetworkInterfaces.Get(ctx, *id.First, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id.First, err)
 	}
@@ -161,7 +161,7 @@ func (NetworkInterfaceApplicationSecurityGroupAssociationResource) destroy(ctx c
 
 	ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
 	defer cancel()
-	read, err := client.Network.Client.NetworkInterfaces.Get(ctx2, *id.First, networkinterfaces.DefaultGetOperationOptions())
+	read, err := client.Network.NetworkInterfaces.Get(ctx2, *id.First, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id.First, err)
 	}
@@ -190,7 +190,7 @@ func (NetworkInterfaceApplicationSecurityGroupAssociationResource) destroy(ctx c
 
 	read.Model.Properties.IPConfigurations = &configs
 
-	if err := client.Network.Client.NetworkInterfaces.CreateOrUpdateThenPoll(ctx2, *id.First, *read.Model); err != nil {
+	if err := client.Network.NetworkInterfaces.CreateOrUpdateThenPoll(ctx2, *id.First, *read.Model); err != nil {
 		return fmt.Errorf("removing Application Security Group Association for %s: %+v", id.First, err)
 	}
 

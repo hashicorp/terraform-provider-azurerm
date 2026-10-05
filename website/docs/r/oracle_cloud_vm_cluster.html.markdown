@@ -75,6 +75,10 @@ resource "azurerm_oracle_cloud_vm_cluster" "example" {
   hostname                        = "hostname"
   subnet_id                       = azurerm_subnet.example.id
   system_version                  = "23.1.19.0.0.241015"
+  file_system_configuration {
+    mount_point = "/var"
+    size_in_gb  = 32
+  }
 }
 ```
 
@@ -124,7 +128,7 @@ The following arguments are supported:
 
 * `domain` - (Optional) The name of the OCI Private DNS Zone to be associated with the Cloud VM Cluster. This is required for specifying your own private domain name. Changing this forces a new Cloud VM Cluster to be created.
 
-* `local_backup_enabled` - (Optional)  If true, database backup on local Exadata storage is configured for the Cloud VM Cluster. If `false`, database backup on local Exadata storage is not available in the Cloud VM Cluster. Changing this forces a new Cloud VM Cluster to be created.
+* `local_backup_enabled` - (Optional) If true, database backup on local Exadata storage is configured for the Cloud VM Cluster. If `false`, database backup on local Exadata storage is not available in the Cloud VM Cluster. Changing this forces a new Cloud VM Cluster to be created.
 
 * `sparse_diskgroup_enabled` - (Optional) If true, the sparse disk group is configured for the Cloud VM Cluster. If `false`, the sparse disk group is not created. Changing this forces a new Cloud VM Cluster to be created.
 
@@ -134,13 +138,15 @@ The following arguments are supported:
 
 * `scan_listener_port_tcp_ssl` - (Optional) The TCPS Single Client Access Name (SCAN) port. The default port to 2484. Changing this forces a new Cloud VM Cluster to be created.
 
-* `system_version` - (Optional) Operating system version of the Exadata image. System version must be <= Db server major version (the first two parts of the DB server version eg 23.1.X.X.XXXX). Accepted Values for Grid Infrastructure (GI) version 19.0.0.0 are 22.1.30.0.0.241204, 22.1.32.0.0.250205, 22.1.31.0.0.250110, 23.1.20.0.0.241112, 23.1.21.0.0.241204, 23.1.22.0.0.250119, 23.1.23.0.0.250207. For Grid Infrastructure (GI) version 23.0.0.0 allowed system versions are 23.1.19.0.0.241015, 23.1.20.0.0.241112, 23.1.22.0.0.250119, 23.1.21.0.0.241204, 23.1.23.0.0.250207.
+* `system_version` - (Optional) Operating system version of the Exadata image. System version must be <= Db server major version (the first two parts of the DB server version eg 23.1.X.X.XXXX). Accepted Values for Grid Infrastructure (GI) version 19.0.0.0 are 22.1.30.0.0.241204, 22.1.32.0.0.250205, 22.1.31.0.0.250110, 23.1.20.0.0.241112, 23.1.21.0.0.241204, 23.1.22.0.0.250119, 23.1.23.0.0.250207. For Grid Infrastructure (GI) version 23.0.0.0 allowed system versions are 23.1.19.0.0.241015, 23.1.20.0.0.241112, 23.1.22.0.0.250119, 23.1.21.0.0.241204, 23.1.23.0.0.250207. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Cloud VM Cluster.
 
 * `time_zone` - (Optional) The time zone of the Cloud VM Cluster. For details, see [Exadata Infrastructure Time Zones](https://docs.cloud.oracle.com/iaas/Content/Database/References/timezones.htm). Changing this forces a new Cloud VM Cluster to be created.
 
 * `zone_id` - (Optional) The OCID of the OCI Private DNS Zone to be associated with the Cloud VM Cluster. This is required for specifying your own private domain name. Changing this forces a new Cloud VM Cluster to be created.
+
+* `file_system_configuration` - (Optional) A `file_system_configuration` block as defined below.
 
 ---
 
@@ -151,6 +157,14 @@ A `data_collection_options` block supports the following:
 * `health_monitoring_enabled` - (Optional) Indicates whether health monitoring is enabled for the VM Cluster / Cloud VM Cluster / VMBM DBCS. Enabling health monitoring allows Oracle to collect diagnostic data and share it with its operations and support personnel. You may also receive notifications for some events. Collecting health diagnostics enables Oracle to provide proactive support and enhanced service for your system. Optionally enable health monitoring while provisioning a system. You can also disable or enable health monitoring anytime using the `UpdateVmCluster`, `UpdateCloudVmCluster` or `updateDbsystem` API. Changing this forces a new Cloud VM Cluster to be created.
 
 * `incident_logs_enabled` - (Optional) Indicates whether incident logs and trace collection are enabled for the VM Cluster / Cloud VM Cluster / VMBM DBCS. Enabling incident logs collection allows Oracle to receive Events service notifications for guest VM issues, collect incident logs and traces, and use them to diagnose issues and resolve them. Optionally enable incident logs collection while provisioning a system. You can also disable or enable incident logs collection anytime using the `UpdateVmCluster`, `updateCloudVmCluster` or `updateDbsystem` API. Changing this forces a new Cloud VM Cluster to be created.
+
+---
+
+A `file_system_configuration` block supports the following:
+
+* `mount_point` - (Optional) The mount path of the file system.
+
+* `size_in_gb` - (Optional) The size of the virtual machine's file system.
 
 ## Attributes Reference
 
@@ -164,7 +178,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 24 hours) Used when creating the Cloud VM Cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Cloud VM Cluster.
@@ -178,3 +192,9 @@ Cloud VM Clusters can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_oracle_cloud_vm_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup/providers/Oracle.Database/cloudVmClusters/cloudVmClusters1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Oracle.Database` - 2025-09-01

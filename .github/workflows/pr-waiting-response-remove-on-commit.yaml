@@ -1,0 +1,18 @@
+---
+name: Pull Request New Commit
+
+# Removes the waiting-response label whenever new commits are pushed to a PR.
+
+permissions:
+  pull-requests: write
+
+# pull_request_target is used to label only; the PR head is never checked out
+on:  # zizmor: ignore[dangerous-triggers]
+  pull_request_target:
+    types: [synchronize]
+
+jobs:
+  remove-waiting-response:
+    uses: $/.github/workflows/issue-remove-label.yaml
+    with:
+      label-name: "waiting-response"

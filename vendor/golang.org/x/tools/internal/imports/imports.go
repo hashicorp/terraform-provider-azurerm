@@ -74,6 +74,10 @@ func Process(filename string, src []byte, opt *Options) (formatted []byte, err e
 // Note that filename's directory influences which imports can be chosen,
 // so it is important that filename be accurate.
 func FixImports(ctx context.Context, filename string, src []byte, goroot string, logf func(string, ...any), source Source) (fixes []*ImportFix, err error) {
+	if source == nil {
+		// In case someone adds a defective call from a new place
+		panic("source is nil")
+	}
 	ctx, done := event.Start(ctx, "imports.FixImports")
 	defer done()
 
@@ -93,7 +97,7 @@ func FixImports(ctx context.Context, filename string, src []byte, goroot string,
 // env is needed.
 func ApplyFixes(fixes []*ImportFix, filename string, src []byte, opt *Options, extraMode parser.Mode) (formatted []byte, err error) {
 	// Don't use parse() -- we don't care about fragments or statement lists
-	// here, and we need to work with unparseable files.
+	// here, and we need to work with unparsable files.
 	fileSet := token.NewFileSet()
 	parserMode := parser.SkipObjectResolution
 	if opt.Comments {

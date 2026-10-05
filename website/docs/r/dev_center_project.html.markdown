@@ -83,12 +83,12 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating this Dev Center Project.
-* `delete` - (Defaults to 30 minutes) Used when deleting this Dev Center Project.
-* `read` - (Defaults to 5 minutes) Used when retrieving this Dev Center Project.
-* `update` - (Defaults to 30 minutes) Used when updating this Dev Center Project.
+* `create` - (Defaults to 30 minutes) Used when creating the Dev Center Project.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Dev Center Project.
+* `update` - (Defaults to 30 minutes) Used when updating the Dev Center Project.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Dev Center Project.
 
 ## Import
 
@@ -101,3 +101,9 @@ terraform import azurerm_dev_center_project.example /subscriptions/{subscription
 * Where `{subscriptionId}` is the ID of the Azure Subscription where the Dev Center Project exists. For example `12345678-1234-9876-4563-123456789012`.
 * Where `{resourceGroupName}` is the name of Resource Group where this Dev Center Project exists. For example `example-resource-group`.
 * Where `{projectName}` is the name of the Project. For example `projectValue`.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DevCenter` - 2025-02-01
