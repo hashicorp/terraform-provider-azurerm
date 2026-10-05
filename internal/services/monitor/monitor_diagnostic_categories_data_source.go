@@ -17,7 +17,7 @@ import (
 )
 
 func dataSourceMonitorDiagnosticCategories() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: dataSourceMonitorDiagnosticCategoriesRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -53,11 +53,9 @@ func dataSourceMonitorDiagnosticCategories() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	return resource
 }
 
-func dataSourceMonitorDiagnosticCategoriesRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceMonitorDiagnosticCategoriesRead(d *pluginsdk.ResourceData, meta any) error {
 	categoriesClient := meta.(*clients.Client).Monitor.DiagnosticSettingsCategoryClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

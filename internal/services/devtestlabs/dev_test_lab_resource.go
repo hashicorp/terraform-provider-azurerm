@@ -26,7 +26,7 @@ import (
 )
 
 func resourceDevTestLab() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceDevTestLabCreateUpdate,
 		Read:   resourceDevTestLabRead,
 		Update: resourceDevTestLabCreateUpdate,
@@ -95,11 +95,9 @@ func resourceDevTestLab() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	return resource
 }
 
-func resourceDevTestLabCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDevTestLabCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DevTestLabs.LabsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -126,7 +124,7 @@ func resourceDevTestLabCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	parameters := labs.Lab{
 		Location: pointer.To(location),
-		Tags:     expandTags(d.Get("tags").(map[string]interface{})),
+		Tags:     expandTags(d.Get("tags").(map[string]any)),
 	}
 
 	if d.IsNewResource() {
@@ -143,7 +141,7 @@ func resourceDevTestLabCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceDevTestLabRead(d, meta)
 }
 
-func resourceDevTestLabRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDevTestLabRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DevTestLabs.LabsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -197,7 +195,7 @@ func resourceDevTestLabRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceDevTestLabDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDevTestLabDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DevTestLabs.LabsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

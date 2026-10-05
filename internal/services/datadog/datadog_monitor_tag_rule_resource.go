@@ -130,7 +130,7 @@ func resourceDatadogTagRules() *pluginsdk.Resource {
 	}
 }
 
-func resourceDatadogTagRulesCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatadogTagRulesCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Datadog.Rules
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -156,8 +156,8 @@ func resourceDatadogTagRulesCreate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	payload := rules.MonitoringTagRules{
 		Properties: &rules.MonitoringTagRulesProperties{
-			LogRules:    expandLogRules(d.Get("log").([]interface{})),
-			MetricRules: expandMetricRules(d.Get("metric").([]interface{})),
+			LogRules:    expandLogRules(d.Get("log").([]any)),
+			MetricRules: expandMetricRules(d.Get("metric").([]any)),
 		},
 	}
 	if _, err := client.TagRulesCreateOrUpdate(ctx, id, payload); err != nil {
@@ -168,7 +168,7 @@ func resourceDatadogTagRulesCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	return resourceDatadogTagRulesRead(d, meta)
 }
 
-func resourceDatadogTagRulesRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatadogTagRulesRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Datadog.Rules
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -205,7 +205,7 @@ func resourceDatadogTagRulesRead(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceDatadogTagRulesUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatadogTagRulesUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Datadog.Rules
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -217,8 +217,8 @@ func resourceDatadogTagRulesUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	payload := rules.MonitoringTagRules{
 		Properties: &rules.MonitoringTagRulesProperties{
-			LogRules:    expandLogRules(d.Get("log").([]interface{})),
-			MetricRules: expandMetricRules(d.Get("metric").([]interface{})),
+			LogRules:    expandLogRules(d.Get("log").([]any)),
+			MetricRules: expandMetricRules(d.Get("metric").([]any)),
 		},
 	}
 	if _, err := client.TagRulesCreateOrUpdate(ctx, *id, payload); err != nil {
@@ -228,7 +228,7 @@ func resourceDatadogTagRulesUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	return resourceDatadogTagRulesRead(d, meta)
 }
 
-func resourceDatadogTagRulesDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatadogTagRulesDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Datadog.Rules
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -259,12 +259,12 @@ func resourceDatadogTagRulesDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func expandLogRules(input []interface{}) *rules.LogRules {
+func expandLogRules(input []any) *rules.LogRules {
 	if len(input) == 0 {
 		return nil
 	}
-	v := input[0].(map[string]interface{})
-	filteringTag := v["filter"].([]interface{})
+	v := input[0].(map[string]any)
+	filteringTag := v["filter"].([]any)
 
 	return &rules.LogRules{
 		SendAadLogs:          pointer.To(v["aad_log_enabled"].(bool)),
@@ -274,23 +274,23 @@ func expandLogRules(input []interface{}) *rules.LogRules {
 	}
 }
 
-func expandMetricRules(input []interface{}) *rules.MetricRules {
+func expandMetricRules(input []any) *rules.MetricRules {
 	if len(input) == 0 {
 		return nil
 	}
-	v := input[0].(map[string]interface{})
-	filteringTag := v["filter"].([]interface{})
+	v := input[0].(map[string]any)
+	filteringTag := v["filter"].([]any)
 
 	return &rules.MetricRules{
 		FilteringTags: expandFilteringTag(filteringTag),
 	}
 }
 
-func expandFilteringTag(input []interface{}) *[]rules.FilteringTag {
+func expandFilteringTag(input []any) *[]rules.FilteringTag {
 	filteringTags := make([]rules.FilteringTag, 0)
 
 	for _, v := range input {
-		config := v.(map[string]interface{})
+		config := v.(map[string]any)
 
 		filteringTags = append(filteringTags, rules.FilteringTag{
 			Name:   pointer.To(config["name"].(string)),
@@ -302,11 +302,11 @@ func expandFilteringTag(input []interface{}) *[]rules.FilteringTag {
 	return &filteringTags
 }
 
-func flattenLogRules(input *rules.LogRules) []interface{} {
-	results := make([]interface{}, 0)
+func flattenLogRules(input *rules.LogRules) []any {
+	results := make([]any, 0)
 
 	if input != nil {
-		results = append(results, map[string]interface{}{
+		results = append(results, map[string]any{
 			"aad_log_enabled":          pointer.From(input.SendAadLogs),
 			"filter":                   flattenFilteringTags(input.FilteringTags),
 			"resource_log_enabled":     pointer.From(input.SendResourceLogs),
@@ -317,27 +317,27 @@ func flattenLogRules(input *rules.LogRules) []interface{} {
 	return results
 }
 
-func flattenMetricRules(input *rules.MetricRules) []interface{} {
+func flattenMetricRules(input *rules.MetricRules) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"filter": flattenFilteringTags(input.FilteringTags),
 		},
 	}
 }
 
-func flattenFilteringTags(input *[]rules.FilteringTag) []interface{} {
-	results := make([]interface{}, 0)
+func flattenFilteringTags(input *[]rules.FilteringTag) []any {
+	results := make([]any, 0)
 	if input != nil {
 		for _, filteringTagRules := range *input {
 			action := ""
 			if filteringTagRules.Action != nil {
 				action = string(*filteringTagRules.Action)
 			}
-			results = append(results, map[string]interface{}{
+			results = append(results, map[string]any{
 				"action": action,
 				"name":   pointer.From(filteringTagRules.Name),
 				"value":  pointer.From(filteringTagRules.Value),
@@ -358,11 +358,9 @@ func isDefaultSettings(input *rules.MonitoringTagRules) bool {
 
 	logRules := input.Properties.LogRules
 	metricRules := input.Properties.MetricRules
-	result := (logRules.SendAadLogs != nil && !*logRules.SendAadLogs) &&
+	return (logRules.SendAadLogs != nil && !*logRules.SendAadLogs) &&
 		(logRules.SendSubscriptionLogs != nil && !*logRules.SendSubscriptionLogs) &&
 		(logRules.SendResourceLogs != nil && !*logRules.SendResourceLogs) &&
 		(logRules.FilteringTags != nil && len(*logRules.FilteringTags) == 0) &&
 		(metricRules.FilteringTags != nil && len(*metricRules.FilteringTags) == 0)
-
-	return result
 }

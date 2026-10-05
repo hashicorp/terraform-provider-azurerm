@@ -170,7 +170,7 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) ResourceType() string {
 	return "azurerm_workloads_sap_three_tier_virtual_instance"
 }
 
-func (r WorkloadsSAPThreeTierVirtualInstanceResource) ModelObject() interface{} {
+func (r WorkloadsSAPThreeTierVirtualInstanceResource) ModelObject() any {
 	return &WorkloadsSAPThreeTierVirtualInstanceModel{}
 }
 
@@ -1084,11 +1084,11 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) CustomizeDiff() sdk.Resour
 	}
 }
 
-func hasDuplicateVolumeName(input []interface{}) bool {
+func hasDuplicateVolumeName(input []any) bool {
 	seen := make(map[string]bool)
 
 	for _, v := range input {
-		diskVolume := v.(map[string]interface{})
+		diskVolume := v.(map[string]any)
 		volumeName := diskVolume["volume_name"].(string)
 
 		if seen[volumeName] {
@@ -1196,7 +1196,7 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Update() sdk.ResourceFunc 
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
-				identityValue, err := identity.ExpandUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+				identityValue, err := identity.ExpandUserAssignedMap(metadata.ResourceData.Get("identity").([]any))
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
@@ -1264,7 +1264,7 @@ func (WorkloadsSAPThreeTierVirtualInstanceResource) flatten(metadata sdk.Resourc
 
 		if props := model.Properties; props != nil {
 			state.Environment = string(props.Environment)
-			state.ManagedResourcesNetworkAccessType = string(pointer.From(props.ManagedResourcesNetworkAccessType))
+			state.ManagedResourcesNetworkAccessType = pointer.FromEnum(props.ManagedResourcesNetworkAccessType)
 			state.SapProduct = string(props.SapProduct)
 			state.Tags = pointer.From(model.Tags)
 
@@ -1328,13 +1328,11 @@ func expandVirtualMachineConfiguration(input []VirtualMachineConfiguration) *sap
 
 	virtualMachineConfiguration := input[0]
 
-	result := &sapvirtualinstances.VirtualMachineConfiguration{
+	return &sapvirtualinstances.VirtualMachineConfiguration{
 		ImageReference: pointer.From(expandImageReference(virtualMachineConfiguration.ImageReference)),
 		OsProfile:      pointer.From(expandOsProfile(virtualMachineConfiguration.OSProfile)),
 		VMSize:         virtualMachineConfiguration.VmSize,
 	}
-
-	return result
 }
 
 func expandImageReference(input []ImageReference) *sapvirtualinstances.ImageReference {
@@ -1344,14 +1342,12 @@ func expandImageReference(input []ImageReference) *sapvirtualinstances.ImageRefe
 
 	imageReference := input[0]
 
-	result := &sapvirtualinstances.ImageReference{
+	return &sapvirtualinstances.ImageReference{
 		Offer:     pointer.To(imageReference.Offer),
 		Publisher: pointer.To(imageReference.Publisher),
 		Sku:       pointer.To(imageReference.Sku),
 		Version:   pointer.To(imageReference.Version),
 	}
-
-	return result
 }
 
 func expandOsProfile(input []OSProfile) *sapvirtualinstances.OSProfile {
@@ -1361,7 +1357,7 @@ func expandOsProfile(input []OSProfile) *sapvirtualinstances.OSProfile {
 
 	osProfile := input[0]
 
-	result := &sapvirtualinstances.OSProfile{
+	return &sapvirtualinstances.OSProfile{
 		AdminUsername: pointer.To(osProfile.AdminUsername),
 		OsConfiguration: &sapvirtualinstances.LinuxConfiguration{
 			DisablePasswordAuthentication: pointer.To(true),
@@ -1371,8 +1367,6 @@ func expandOsProfile(input []OSProfile) *sapvirtualinstances.OSProfile {
 			},
 		},
 	}
-
-	return result
 }
 
 func expandNetworkInterfaceNames(input []string) *[]sapvirtualinstances.NetworkInterfaceResourceNames {
@@ -1413,13 +1407,11 @@ func expandDiskVolumeConfigurations(input []DiskVolumeConfiguration) *sapvirtual
 	result := make(map[string]sapvirtualinstances.DiskVolumeConfiguration, 0)
 
 	for _, v := range input {
-		skuName := sapvirtualinstances.DiskSkuName(v.SkuName)
-
 		result[v.VolumeName] = sapvirtualinstances.DiskVolumeConfiguration{
 			Count:  pointer.To(v.NumberOfDisks),
 			SizeGB: pointer.To(v.SizeGb),
 			Sku: &sapvirtualinstances.DiskSku{
-				Name: &skuName,
+				Name: pointer.ToEnum[sapvirtualinstances.DiskSkuName](v.SkuName),
 			},
 		}
 	}
@@ -1436,13 +1428,11 @@ func expandApplicationServer(input []ApplicationServerConfiguration) *sapvirtual
 
 	applicationServer := input[0]
 
-	result := &sapvirtualinstances.ApplicationServerConfiguration{
+	return &sapvirtualinstances.ApplicationServerConfiguration{
 		InstanceCount:               applicationServer.InstanceCount,
 		SubnetId:                    applicationServer.SubnetId,
 		VirtualMachineConfiguration: pointer.From(expandVirtualMachineConfiguration(applicationServer.VirtualMachineConfiguration)),
 	}
-
-	return result
 }
 
 func expandCentralServer(input []CentralServerConfiguration) *sapvirtualinstances.CentralServerConfiguration {
@@ -1452,13 +1442,11 @@ func expandCentralServer(input []CentralServerConfiguration) *sapvirtualinstance
 
 	centralServer := input[0]
 
-	result := &sapvirtualinstances.CentralServerConfiguration{
+	return &sapvirtualinstances.CentralServerConfiguration{
 		InstanceCount:               centralServer.InstanceCount,
 		SubnetId:                    centralServer.SubnetId,
 		VirtualMachineConfiguration: pointer.From(expandVirtualMachineConfiguration(centralServer.VirtualMachineConfiguration)),
 	}
-
-	return result
 }
 
 func expandDatabaseServer(input []DatabaseServerConfiguration) *sapvirtualinstances.DatabaseConfiguration {
@@ -1476,8 +1464,7 @@ func expandDatabaseServer(input []DatabaseServerConfiguration) *sapvirtualinstan
 	}
 
 	if v := databaseServer.DatabaseType; v != "" {
-		dbType := sapvirtualinstances.SAPDatabaseType(v)
-		result.DatabaseType = &dbType
+		result.DatabaseType = pointer.ToEnum[sapvirtualinstances.SAPDatabaseType](v)
 	}
 
 	return result
@@ -1534,14 +1521,12 @@ func expandResourceNames(input []ResourceNames) *sapvirtualinstances.ThreeTierFu
 
 	resourceNames := input[0]
 
-	result := &sapvirtualinstances.ThreeTierFullResourceNames{
+	return &sapvirtualinstances.ThreeTierFullResourceNames{
 		ApplicationServer: expandApplicationServerResourceNames(resourceNames.ApplicationServer),
 		CentralServer:     expandCentralServerResourceNames(resourceNames.CentralServer),
 		DatabaseServer:    expandDatabaseServerResourceNames(resourceNames.DatabaseServer),
 		SharedStorage:     expandSharedStorage(resourceNames.SharedStorage),
 	}
-
-	return result
 }
 
 func expandApplicationServerResourceNames(input []ApplicationServerResourceNames) *sapvirtualinstances.ApplicationServerFullResourceNames {
@@ -1858,7 +1843,7 @@ func flattenDiskVolumeConfigurations(input *sapvirtualinstances.DiskConfiguratio
 		}
 
 		if sku := v.Sku; sku != nil {
-			diskVolumeConfiguration.SkuName = string(pointer.From(sku.Name))
+			diskVolumeConfiguration.SkuName = pointer.FromEnum(sku.Name)
 		}
 
 		result = append(result, diskVolumeConfiguration)

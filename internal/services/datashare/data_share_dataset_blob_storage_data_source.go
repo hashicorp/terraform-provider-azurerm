@@ -82,7 +82,7 @@ func dataSourceDataShareDatasetBlobStorage() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceDataShareDatasetBlobStorageRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceDataShareDatasetBlobStorageRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

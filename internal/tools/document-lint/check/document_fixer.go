@@ -23,13 +23,12 @@ type Fixer struct {
 }
 
 func NewFixer(d *ResourceDiff) *Fixer {
-	f := &Fixer{
+	return &Fixer{
 		MDFile:       d.MDFile,
 		SchemaFile:   d.SchemaFile,
 		ResourceType: d.tf.ResourceType,
 		Diff:         d.Diff,
 	}
-	return f
 }
 
 // param rt: resource type

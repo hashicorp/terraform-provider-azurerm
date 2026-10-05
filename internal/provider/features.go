@@ -526,7 +526,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 	}
 }
 
-func expandFeatures(input []interface{}) features.UserFeatures {
+func expandFeatures(input []any) features.UserFeatures {
 	// these are the defaults if omitted from the config
 	featuresMap := features.Default()
 
@@ -540,7 +540,7 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 		return featuresMap
 	}
 
-	val := input[0].(map[string]interface{})
+	val := input[0].(map[string]any)
 
 	if v, ok := val["persist_id_on_create_before_polling_for_completion"]; ok {
 		featuresMap.PersistIDOnCreateBeforePollingForCompletion = v.(bool)
@@ -551,9 +551,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	if raw, ok := val["api_management"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 && items[0] != nil {
-			apimRaw := items[0].(map[string]interface{})
+			apimRaw := items[0].(map[string]any)
 			if v, ok := apimRaw["purge_soft_delete_on_destroy"]; ok {
 				featuresMap.ApiManagement.PurgeSoftDeleteOnDestroy = v.(bool)
 			}
@@ -564,9 +564,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	if raw, ok := val["app_configuration"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 && items[0] != nil {
-			appConfRaw := items[0].(map[string]interface{})
+			appConfRaw := items[0].(map[string]any)
 			if v, ok := appConfRaw["purge_soft_delete_on_destroy"]; ok {
 				featuresMap.AppConfiguration.PurgeSoftDeleteOnDestroy = v.(bool)
 			}
@@ -577,9 +577,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	if raw, ok := val["application_insights"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 && items[0] != nil {
-			applicationInsightsRaw := items[0].(map[string]interface{})
+			applicationInsightsRaw := items[0].(map[string]any)
 			if v, ok := applicationInsightsRaw["disable_generated_rule"]; ok {
 				featuresMap.ApplicationInsights.DisableGeneratedRule = v.(bool)
 			}
@@ -587,9 +587,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	if raw, ok := val["cognitive_account"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 && items[0] != nil {
-			cognitiveRaw := items[0].(map[string]interface{})
+			cognitiveRaw := items[0].(map[string]any)
 			if v, ok := cognitiveRaw["purge_soft_delete_on_destroy"]; ok {
 				featuresMap.CognitiveAccount.PurgeSoftDeleteOnDestroy = v.(bool)
 			}
@@ -597,9 +597,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	if raw, ok := val["key_vault"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 && items[0] != nil {
-			keyVaultRaw := items[0].(map[string]interface{})
+			keyVaultRaw := items[0].(map[string]any)
 			if v, ok := keyVaultRaw["purge_soft_delete_on_destroy"]; ok {
 				featuresMap.KeyVault.PurgeSoftDeleteOnDestroy = v.(bool)
 			}
@@ -637,9 +637,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	if raw, ok := val["log_analytics_workspace"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 {
-			logAnalyticsWorkspaceRaw := items[0].(map[string]interface{})
+			logAnalyticsWorkspaceRaw := items[0].(map[string]any)
 			if v, ok := logAnalyticsWorkspaceRaw["permanently_delete_on_destroy"]; ok {
 				featuresMap.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy = v.(bool)
 			}
@@ -647,9 +647,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	if raw, ok := val["template_deployment"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 {
-			templateRaw := items[0].(map[string]interface{})
+			templateRaw := items[0].(map[string]any)
 			if v, ok := templateRaw["delete_nested_items_during_deletion"]; ok {
 				featuresMap.TemplateDeployment.DeleteNestedItemsDuringDeletion = v.(bool)
 			}
@@ -657,9 +657,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	if raw, ok := val["virtual_machine"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 && items[0] != nil {
-			virtualMachinesRaw := items[0].(map[string]interface{})
+			virtualMachinesRaw := items[0].(map[string]any)
 			if v, ok := virtualMachinesRaw["detach_implicit_data_disk_on_deletion"]; ok {
 				featuresMap.VirtualMachine.DetachImplicitDataDiskOnDeletion = v.(bool)
 			}
@@ -673,9 +673,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	if raw, ok := val["virtual_machine_scale_set"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 {
-			scaleSetRaw := items[0].(map[string]interface{})
+			scaleSetRaw := items[0].(map[string]any)
 			if v, ok := scaleSetRaw["reimage_on_manual_upgrade"]; ok {
 				featuresMap.VirtualMachineScaleSet.ReimageOnManualUpgrade = v.(bool)
 			}
@@ -692,9 +692,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	if raw, ok := val["resource_group"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 {
-			resourceGroupRaw := items[0].(map[string]interface{})
+			resourceGroupRaw := items[0].(map[string]any)
 			if v, ok := resourceGroupRaw["prevent_deletion_if_contains_resources"]; ok {
 				featuresMap.ResourceGroup.PreventDeletionIfContainsResources = v.(bool)
 			}
@@ -702,9 +702,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	if raw, ok := val["recovery_services_vaults"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 && items[0] != nil {
-			appConfRaw := items[0].(map[string]interface{})
+			appConfRaw := items[0].(map[string]any)
 			if v, ok := appConfRaw["recover_soft_deleted_backup_protected_vm"]; ok {
 				featuresMap.RecoveryServicesVault.RecoverSoftDeletedBackupProtectedVM = v.(bool)
 			}
@@ -712,18 +712,18 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	if raw, ok := val["managed_disk"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 {
-			managedDiskRaw := items[0].(map[string]interface{})
+			managedDiskRaw := items[0].(map[string]any)
 			if v, ok := managedDiskRaw["expand_without_downtime"]; ok {
 				featuresMap.ManagedDisk.ExpandWithoutDowntime = v.(bool)
 			}
 		}
 	}
 	if raw, ok := val["storage"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 {
-			storageRaw := items[0].(map[string]interface{})
+			storageRaw := items[0].(map[string]any)
 			if v, ok := storageRaw["data_plane_available"]; ok {
 				featuresMap.Storage.DataPlaneAvailable = v.(bool)
 			}
@@ -734,9 +734,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	if raw, ok := val["subscription"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 {
-			subscriptionRaw := items[0].(map[string]interface{})
+			subscriptionRaw := items[0].(map[string]any)
 			if v, ok := subscriptionRaw["prevent_cancellation_on_destroy"]; ok {
 				featuresMap.Subscription.PreventCancellationOnDestroy = v.(bool)
 			}
@@ -744,9 +744,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	if raw, ok := val["postgresql_flexible_server"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 {
-			subscriptionRaw := items[0].(map[string]interface{})
+			subscriptionRaw := items[0].(map[string]any)
 			if v, ok := subscriptionRaw["restart_server_on_configuration_value_change"]; ok {
 				featuresMap.PostgresqlFlexibleServer.RestartServerOnConfigurationValueChange = v.(bool)
 			}
@@ -754,9 +754,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	if raw, ok := val["machine_learning"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 {
-			subscriptionRaw := items[0].(map[string]interface{})
+			subscriptionRaw := items[0].(map[string]any)
 			if v, ok := subscriptionRaw["purge_soft_deleted_workspace_on_destroy"]; ok {
 				featuresMap.MachineLearning.PurgeSoftDeletedWorkspaceOnDestroy = v.(bool)
 			}
@@ -764,9 +764,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	if raw, ok := val["recovery_service"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 {
-			recoveryServicesRaw := items[0].(map[string]interface{})
+			recoveryServicesRaw := items[0].(map[string]any)
 			if v, ok := recoveryServicesRaw["vm_backup_stop_protection_and_retain_data_on_destroy"]; ok {
 				featuresMap.RecoveryService.VMBackupStopProtectionAndRetainDataOnDestroy = v.(bool)
 			}
@@ -780,9 +780,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	if raw, ok := val["netapp"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 {
-			netappRaw := items[0].(map[string]interface{})
+			netappRaw := items[0].(map[string]any)
 			if v, ok := netappRaw["delete_backups_on_backup_vault_destroy"]; ok {
 				featuresMap.NetApp.DeleteBackupsOnBackupVaultDestroy = v.(bool)
 			}
@@ -793,9 +793,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	if raw, ok := val["databricks_workspace"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 {
-			databricksRaw := items[0].(map[string]interface{})
+			databricksRaw := items[0].(map[string]any)
 			if v, ok := databricksRaw["force_delete"]; ok {
 				featuresMap.DatabricksWorkspace.ForceDelete = v.(bool)
 			}
@@ -803,9 +803,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	if raw, ok := val["enhanced_validation"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 && items[0] != nil {
-			evRaw := items[0].(map[string]interface{})
+			evRaw := items[0].(map[string]any)
 			if v, ok := evRaw["locations"]; ok {
 				featuresMap.EnhancedValidation.Locations = v.(bool)
 			}
@@ -824,9 +824,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	}
 
 	if raw, ok := val["servicebus"]; ok {
-		items := raw.([]interface{})
+		items := raw.([]any)
 		if len(items) > 0 {
-			servicebusRaw := items[0].(map[string]interface{})
+			servicebusRaw := items[0].(map[string]any)
 			if v, ok := servicebusRaw["auto_delete_subscription_default_rule"]; ok {
 				featuresMap.ServiceBus.AutoDeleteSubscriptionDefaultRule = v.(bool)
 			}

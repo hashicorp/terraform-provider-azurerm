@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/applicationgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/applicationgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -2473,9 +2473,8 @@ resource "azurerm_application_gateway" "import" {
 `, r.basic(data))
 }
 
-// nolint unused - mistakenly marked as unused
 func (r ApplicationGatewayResource) trustedRootCertificate_keyvault(data acceptance.TestData) string {
-	out := fmt.Sprintf(`
+	return fmt.Sprintf(`
 %[1]s
 
 # since these variables are re-used - a locals block makes this more maintainable
@@ -2640,11 +2639,10 @@ resource "azurerm_application_gateway" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
-	return out
 }
 
 func (r ApplicationGatewayResource) update_trustedRootCertificate_keyvault(data acceptance.TestData) string {
-	out := fmt.Sprintf(`
+	return fmt.Sprintf(`
 %[1]s
 
 # since these variables are re-used - a locals block makes this more maintainable
@@ -2835,7 +2833,6 @@ resource "azurerm_application_gateway" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
-	return out
 }
 
 func (r ApplicationGatewayResource) updateForceFirewallPolicyAssociation(data acceptance.TestData, forceFirewallPolicyAssociation bool) string {

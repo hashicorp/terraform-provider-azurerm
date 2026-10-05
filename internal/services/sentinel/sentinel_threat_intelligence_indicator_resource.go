@@ -6,6 +6,7 @@ package sentinel
 import (
 	"context"
 	"fmt"
+	"maps"
 	"regexp"
 	"time"
 
@@ -98,7 +99,7 @@ func (r ThreatIntelligenceIndicator) ResourceType() string {
 	return "azurerm_sentinel_threat_intelligence_indicator"
 }
 
-func (r ThreatIntelligenceIndicator) ModelObject() interface{} {
+func (r ThreatIntelligenceIndicator) ModelObject() any {
 	return &IndicatorModel{}
 }
 
@@ -811,9 +812,7 @@ func expandThreatIntelligenceExternalReferenceModel(inputList []externalReferenc
 	for _, v := range inputList {
 		input := v
 		hashesValue := make(map[string]string)
-		for k, hash := range input.Hashes {
-			hashesValue[k] = hash
-		}
+		maps.Copy(hashesValue, input.Hashes)
 
 		outputList = append(outputList, threatintelligence.ThreatIntelligenceExternalReference{
 			Hashes:      &hashesValue,
@@ -841,9 +840,7 @@ func flattenThreatIntelligenceExternalReferenceModel(input *[]threatintelligence
 		}
 		if len(pointer.From(v.Hashes)) > 0 {
 			o.Hashes = make(map[string]string)
-			for k, hash := range pointer.From(v.Hashes) {
-				o.Hashes[k] = hash
-			}
+			maps.Copy(o.Hashes, pointer.From(v.Hashes))
 		}
 		output = append(output, o)
 	}
