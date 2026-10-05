@@ -62,9 +62,20 @@ func (c ReplicationRecoveryPlansClient) PlannedFailover(ctx context.Context, id 
 
 // PlannedFailoverThenPoll performs PlannedFailover then polls until it's completed
 func (c ReplicationRecoveryPlansClient) PlannedFailoverThenPoll(ctx context.Context, id ReplicationRecoveryPlanId, input RecoveryPlanPlannedFailoverInput) error {
+	return c.PlannedFailoverCallbackThenPoll(ctx, id, input, nil)
+}
+
+// PlannedFailoverCallbackThenPoll performs PlannedFailover, runs the optional callback function, then polls until it's completed
+func (c ReplicationRecoveryPlansClient) PlannedFailoverCallbackThenPoll(ctx context.Context, id ReplicationRecoveryPlanId, input RecoveryPlanPlannedFailoverInput, callback func() error) error {
 	result, err := c.PlannedFailover(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing PlannedFailover: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

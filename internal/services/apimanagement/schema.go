@@ -1,10 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
 
 import (
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -19,11 +19,10 @@ func apiManagementResourceHostnameSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc:     validation.StringIsNotEmpty,
 		},
 
-		"key_vault_id": {
-			// TODO: 4.0 - should this become `key_vault_key_id` since that's what this is?
+		"key_vault_certificate_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
 		},
 
 		"certificate": {
@@ -85,7 +84,8 @@ func apiManagementResourceHostnameProxySchema() map[string]*pluginsdk.Schema {
 	hostnameSchema["default_ssl_binding"] = &pluginsdk.Schema{
 		Type:     pluginsdk.TypeBool,
 		Optional: true,
-		Computed: true, // Azure has certain logic to set this, which we cannot predict
+		// Note: O+C because Azure has certain logic to set the default SSL binding which cannot be predicted
+		Computed: true,
 	}
 
 	return hostnameSchema

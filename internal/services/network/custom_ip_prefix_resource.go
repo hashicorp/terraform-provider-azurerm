@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"slices"
 	"strings"
 	"time"
 
@@ -17,7 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/customipprefixes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/customipprefixes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -25,17 +26,17 @@ import (
 )
 
 type CustomIpPrefixModel struct {
-	CIDR                        string                 `tfschema:"cidr"`
-	CommissioningEnabled        bool                   `tfschema:"commissioning_enabled"`
-	InternetAdvertisingDisabled bool                   `tfschema:"internet_advertising_disabled"`
-	Location                    string                 `tfschema:"location"`
-	Name                        string                 `tfschema:"name"`
-	ParentCustomIPPrefixID      string                 `tfschema:"parent_custom_ip_prefix_id"`
-	ROAValidityEndDate          string                 `tfschema:"roa_validity_end_date"`
-	ResourceGroupName           string                 `tfschema:"resource_group_name"`
-	Tags                        map[string]interface{} `tfschema:"tags"`
-	WANValidationSignedMessage  string                 `tfschema:"wan_validation_signed_message"`
-	Zones                       []string               `tfschema:"zones"`
+	CIDR                        string         `tfschema:"cidr"`
+	CommissioningEnabled        bool           `tfschema:"commissioning_enabled"`
+	InternetAdvertisingDisabled bool           `tfschema:"internet_advertising_disabled"`
+	Location                    string         `tfschema:"location"`
+	Name                        string         `tfschema:"name"`
+	ParentCustomIPPrefixID      string         `tfschema:"parent_custom_ip_prefix_id"`
+	ROAValidityEndDate          string         `tfschema:"roa_validity_end_date"`
+	ResourceGroupName           string         `tfschema:"resource_group_name"`
+	Tags                        map[string]any `tfschema:"tags"`
+	WANValidationSignedMessage  string         `tfschema:"wan_validation_signed_message"`
+	Zones                       []string       `tfschema:"zones"`
 }
 
 var _ sdk.ResourceWithUpdate = CustomIpPrefixResource{}
@@ -48,7 +49,7 @@ func (CustomIpPrefixResource) ResourceType() string {
 	return "azurerm_custom_ip_prefix"
 }
 
-func (CustomIpPrefixResource) ModelObject() interface{} {
+func (CustomIpPrefixResource) ModelObject() any {
 	return &CustomIpPrefixModel{}
 }
 
@@ -70,22 +71,10 @@ func (r CustomIpPrefixResource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"cidr": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: func(i interface{}, k string) (warnings []string, errors []error) {
-				v, ok := i.(string)
-				if !ok {
-					errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-					return
-				}
-
-				if _, _, err := net.ParseCIDR(v); err != nil {
-					errors = append(errors, fmt.Errorf("expected %q to be a valid IPv4 or IPv6 network, got %v: %v", k, i, err))
-				}
-
-				return
-			},
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.IsCIDR,
 		},
 
 		"parent_custom_ip_prefix_id": {
@@ -99,7 +88,7 @@ func (r CustomIpPrefixResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ForceNew: true,
-			ValidateFunc: func(i interface{}, k string) (warnings []string, errors []error) {
+			ValidateFunc: func(i any, k string) (warnings []string, errors []error) {
 				v, ok := i.(string)
 				if !ok {
 					errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
@@ -148,7 +137,7 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 		Timeout: 9 * time.Hour,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			r.client = metadata.Client.Network.Client.CustomIPPrefixes
+			r.client = metadata.Client.Network.CustomIPPrefixes
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			deadline, ok := ctx.Deadline()
@@ -163,15 +152,17 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 
 			id := customipprefixes.NewCustomIPPrefixID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := r.client.Get(ctx, id, customipprefixes.DefaultGetOperationOptions())
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := r.client.Get(ctx, id, customipprefixes.DefaultGetOperationOptions())
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			_, cidr, err := net.ParseCIDR(model.CIDR)
@@ -200,10 +191,9 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 			}
 
 			payload := customipprefixes.CustomIPPrefix{
-				Name:             &model.Name,
-				Location:         pointer.To(location.Normalize(model.Location)),
-				Tags:             tags.Expand(model.Tags),
-				ExtendedLocation: nil,
+				Name:     &model.Name,
+				Location: pointer.To(location.Normalize(model.Location)),
+				Tags:     tags.Expand(model.Tags),
 				Properties: &customipprefixes.CustomIPPrefixPropertiesFormat{
 					Cidr:              &model.CIDR,
 					CommissionedState: pointer.To(customipprefixes.CommissionedStateProvisioning),
@@ -233,9 +223,10 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 				payload.Zones = &model.Zones
 			}
 
-			if err := r.client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+			if err := r.client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
+			metadata.SetID(id)
 
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending:    []string{string(customipprefixes.ProvisioningStateUpdating)},
@@ -266,7 +257,6 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 			}
 
 			log.Printf("[DEBUG] Final CommissionedState is %q for %s..", *commissionedState, id)
-			metadata.SetID(id)
 			return nil
 		},
 	}
@@ -277,14 +267,13 @@ func (r CustomIpPrefixResource) Update() sdk.ResourceFunc {
 		Timeout: 17 * time.Hour,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			r.client = metadata.Client.Network.Client.CustomIPPrefixes
+			r.client = metadata.Client.Network.CustomIPPrefixes
 
 			id, err := customipprefixes.ParseCustomIPPrefixID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			metadata.Logger.Info("Decoding state...")
 			var state CustomIpPrefixModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
@@ -318,7 +307,7 @@ func (r CustomIpPrefixResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			r.client = metadata.Client.Network.Client.CustomIPPrefixes
+			r.client = metadata.Client.Network.CustomIPPrefixes
 
 			id, err := customipprefixes.ParseCustomIPPrefixID(metadata.ResourceData.Id())
 			if err != nil {
@@ -380,7 +369,7 @@ func (r CustomIpPrefixResource) Delete() sdk.ResourceFunc {
 		Timeout: 17 * time.Hour,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			r.client = metadata.Client.Network.Client.CustomIPPrefixes
+			r.client = metadata.Client.Network.CustomIPPrefixes
 
 			id, err := customipprefixes.ParseCustomIPPrefixID(metadata.ResourceData.Id())
 			if err != nil {
@@ -404,12 +393,7 @@ func (r CustomIpPrefixResource) Delete() sdk.ResourceFunc {
 type commissionedStates []customipprefixes.CommissionedState
 
 func (t commissionedStates) contains(i customipprefixes.CommissionedState) bool {
-	for _, s := range t {
-		if i == s {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(t, i)
 }
 
 func (t commissionedStates) strings() (out []string) {
@@ -434,8 +418,6 @@ func (r CustomIpPrefixResource) updateCommissionedState(ctx context.Context, id 
 	}
 
 	initialState := existing.Model.Properties.CommissionedState
-
-	log.Printf("[DEBUG] Updating CommissionedState for %s from current value %q to desired value %q..", id, *initialState, desiredState)
 
 	// stateTree is a map of desired state, to a map of current state, to the list of transition states needed to get there
 	stateTree := map[customipprefixes.CommissionedState]map[customipprefixes.CommissionedState][]customipprefixes.CommissionedState{
@@ -582,7 +564,6 @@ func (r CustomIpPrefixResource) setCommissionedState(ctx context.Context, id cus
 	existing.Model.Properties.CommissionedState = pointer.To(desiredState)
 	existing.Model.Properties.NoInternetAdvertise = noInternetAdvertise
 
-	log.Printf("[DEBUG] Updating the CommissionedState field to %q for %s..", desiredState, id)
 	if err := r.client.CreateOrUpdateThenPoll(ctx, id, *existing.Model); err != nil {
 		return fmt.Errorf("updating CommissionedState to %q for %s: %+v", desiredState, id, err)
 	}
@@ -619,24 +600,28 @@ func (r CustomIpPrefixResource) waitForCommissionedState(ctx context.Context, id
 		return nil, fmt.Errorf("retrieving %s: response was nil", id)
 	}
 
-	prefix, ok := result.(customipprefixes.CustomIPPrefix)
+	resp, ok := result.(customipprefixes.GetOperationResponse)
 	if !ok {
 		return nil, fmt.Errorf("retrieving %s: response was not a valid Custom IP Prefix", id)
 	}
 
-	if prefix.Properties == nil {
-		return prefix.Properties.CommissionedState, fmt.Errorf("retrieving %s: `properties` was nil", id)
+	if resp.Model == nil {
+		return nil, fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+
+	if resp.Model.Properties == nil {
+		return nil, fmt.Errorf("retrieving %s: `properties` was nil", id)
 	}
 
 	if err != nil {
-		return prefix.Properties.CommissionedState, fmt.Errorf("waiting for CommissionedState of %s: %+v", id, err)
+		return resp.Model.Properties.CommissionedState, fmt.Errorf("waiting for CommissionedState of %s: %+v", id, err)
 	}
 
-	return prefix.Properties.CommissionedState, nil
+	return resp.Model.Properties.CommissionedState, nil
 }
 
 func (r CustomIpPrefixResource) commissionedStateRefreshFunc(ctx context.Context, id customipprefixes.CustomIPPrefixId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		res, err := r.client.Get(ctx, id, customipprefixes.DefaultGetOperationOptions())
 		if err != nil {
 			return nil, "", fmt.Errorf("polling for %s: %+v", id, err)
@@ -649,12 +634,12 @@ func (r CustomIpPrefixResource) commissionedStateRefreshFunc(ctx context.Context
 			return nil, "", fmt.Errorf("polling for %s: `properties` was nil", id)
 		}
 
-		return res, string(pointer.From(res.Model.Properties.CommissionedState)), nil
+		return res, pointer.FromEnum(res.Model.Properties.CommissionedState), nil
 	}
 }
 
 func (r CustomIpPrefixResource) provisioningStateRefreshFunc(ctx context.Context, id customipprefixes.CustomIPPrefixId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		res, err := r.client.Get(ctx, id, customipprefixes.DefaultGetOperationOptions())
 		if err != nil {
 			return nil, "", fmt.Errorf("polling for %s: %+v", id, err)
@@ -667,6 +652,6 @@ func (r CustomIpPrefixResource) provisioningStateRefreshFunc(ctx context.Context
 			return nil, "", fmt.Errorf("polling for %s: `properties` was nil", id)
 		}
 
-		return res, string(pointer.From(res.Model.Properties.ProvisioningState)), nil
+		return res, pointer.FromEnum(res.Model.Properties.ProvisioningState), nil
 	}
 }
