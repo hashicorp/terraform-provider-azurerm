@@ -62,7 +62,7 @@ func (r AppServiceSourceControlTokenResource) Attributes() map[string]*pluginsdk
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r AppServiceSourceControlTokenResource) ModelObject() interface{} {
+func (r AppServiceSourceControlTokenResource) ModelObject() any {
 	return &AppServiceSourceControlTokenModel{}
 }
 

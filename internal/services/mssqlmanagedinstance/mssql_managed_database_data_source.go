@@ -35,12 +35,12 @@ func (d MsSqlManagedDatabaseDataSource) ResourceType() string {
 	return "azurerm_mssql_managed_database"
 }
 
-func (d MsSqlManagedDatabaseDataSource) ModelObject() interface{} {
+func (d MsSqlManagedDatabaseDataSource) ModelObject() any {
 	return &MsSqlManagedDatabaseDataSourceModel{}
 }
 
 func (d MsSqlManagedDatabaseDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ManagedDatabaseID
+	return commonids.ValidateSqlManagedInstanceDatabaseID
 }
 
 func (d MsSqlManagedDatabaseDataSource) Arguments() map[string]*pluginsdk.Schema {
