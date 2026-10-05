@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/loadbalancers"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/list/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -23,23 +23,23 @@ import (
 const azurermLbRuleResourceName = "azurerm_lb_rule"
 
 type (
-	LbRuleListResource struct{}
-	LbRuleListModel    struct {
+	LoadBalancerRuleListResource struct{}
+	LoadBalancerRuleListModel    struct {
 		LoadBalancerId types.String `tfsdk:"loadbalancer_id"`
 	}
 )
 
-var _ sdk.FrameworkListWrappedResource = new(LbRuleListResource)
+var _ sdk.FrameworkListWrappedResource = new(LoadBalancerRuleListResource)
 
-func (LbRuleListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
+func (LoadBalancerRuleListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
 	response.TypeName = azurermLbRuleResourceName
 }
 
-func (LbRuleListResource) ResourceFunc() *pluginsdk.Resource {
+func (LoadBalancerRuleListResource) ResourceFunc() *pluginsdk.Resource {
 	return resourceArmLoadBalancerRule()
 }
 
-func (LbRuleListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
+func (LoadBalancerRuleListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"loadbalancer_id": schema.StringAttribute{
@@ -52,10 +52,10 @@ func (LbRuleListResource) ListResourceConfigSchema(_ context.Context, _ list.Lis
 	}
 }
 
-func (LbRuleListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
+func (LoadBalancerRuleListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.LoadBalancers.LoadBalancersClient
 
-	var data LbRuleListModel
+	var data LoadBalancerRuleListModel
 	if diags := request.Config.Get(ctx, &data); diags.HasError() {
 		stream.Results = list.ListResultsStreamDiagnostics(diags)
 		return
