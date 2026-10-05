@@ -63,7 +63,7 @@ func (StorageContainerV1ToV2) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (StorageContainerV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		oldID, ok := rawState["id"].(string)
 		if !ok {
 			return rawState, fmt.Errorf("expected `id` to be of type string, got %T", rawState["id"])

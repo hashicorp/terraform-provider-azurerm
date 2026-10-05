@@ -99,7 +99,7 @@ func resourcePrivateDnsMxRecord() *pluginsdk.Resource {
 	}
 }
 
-func resourcePrivateDnsMxRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePrivateDnsMxRecordCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).PrivateDns.RecordSetsClient
 
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -130,7 +130,7 @@ func resourcePrivateDnsMxRecordCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	parameters := privatedns.RecordSet{
 		Name: pointer.To(id.RelativeRecordSetName),
 		Properties: &privatedns.RecordSetProperties{
-			Metadata:  tags.Expand(d.Get("tags").(map[string]interface{})),
+			Metadata:  tags.Expand(d.Get("tags").(map[string]any)),
 			Ttl:       pointer.To(int64(d.Get("ttl").(int))),
 			MxRecords: expandAzureRmPrivateDnsMxRecords(d),
 		},
@@ -151,7 +151,7 @@ func resourcePrivateDnsMxRecordCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	return resourcePrivateDnsMxRecordRead(d, meta)
 }
 
-func resourcePrivateDnsMxRecordRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePrivateDnsMxRecordRead(d *pluginsdk.ResourceData, meta any) error {
 	dnsClient := meta.(*clients.Client).PrivateDns.RecordSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -192,7 +192,7 @@ func resourcePrivateDnsMxRecordRead(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func resourcePrivateDnsMxRecordDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePrivateDnsMxRecordDelete(d *pluginsdk.ResourceData, meta any) error {
 	dnsClient := meta.(*clients.Client).PrivateDns.RecordSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -211,8 +211,8 @@ func resourcePrivateDnsMxRecordDelete(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func flattenAzureRmPrivateDnsMxRecords(records *[]privatedns.MxRecord) []map[string]interface{} {
-	results := make([]map[string]interface{}, 0)
+func flattenAzureRmPrivateDnsMxRecords(records *[]privatedns.MxRecord) []map[string]any {
+	results := make([]map[string]any, 0)
 
 	if records != nil {
 		for _, record := range *records {
@@ -221,7 +221,7 @@ func flattenAzureRmPrivateDnsMxRecords(records *[]privatedns.MxRecord) []map[str
 				continue
 			}
 
-			results = append(results, map[string]interface{}{
+			results = append(results, map[string]any{
 				"preference": *record.Preference,
 				"exchange":   *record.Exchange,
 			})
@@ -239,7 +239,7 @@ func expandAzureRmPrivateDnsMxRecords(d *pluginsdk.ResourceData) *[]privatedns.M
 		if v == nil {
 			continue
 		}
-		record := v.(map[string]interface{})
+		record := v.(map[string]any)
 		records[i] = privatedns.MxRecord{
 			Preference: pointer.To(int64(record["preference"].(int))),
 			Exchange:   pointer.To(record["exchange"].(string)),
@@ -249,10 +249,10 @@ func expandAzureRmPrivateDnsMxRecords(d *pluginsdk.ResourceData) *[]privatedns.M
 	return &records
 }
 
-func resourcePrivateDnsMxRecordHash(v interface{}) int {
+func resourcePrivateDnsMxRecordHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
+	if m, ok := v.(map[string]any); ok {
 		fmt.Fprintf(&buf, "%d-", m["preference"].(int))
 		fmt.Fprintf(&buf, "%s-", m["exchange"].(string))
 	}

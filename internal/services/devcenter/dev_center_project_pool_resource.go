@@ -27,7 +27,7 @@ var (
 
 type DevCenterProjectPoolResource struct{}
 
-func (r DevCenterProjectPoolResource) ModelObject() interface{} {
+func (r DevCenterProjectPoolResource) ModelObject() any {
 	return &DevCenterProjectPoolResourceModel{}
 }
 
