@@ -39,7 +39,7 @@ resource "azurerm_iothub_shared_access_policy" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -53,13 +53,13 @@ The following arguments are supported:
 
 * `registry_write` - (Optional) Adds `RegistryWrite` permission to this Shared Access Account. It allows write access to the identity registry.
 
--> **NOTE** When `registry_write` is set to `true`, `registry_read` must also be set to true. This is a limitation of the Azure REST API
+-> **Note:** When `registry_write` is set to `true`, `registry_read` must also be set to true. This is a limitation of the Azure REST API
 
 * `service_connect` - (Optional) Adds `ServiceConnect` permission to this Shared Access Account. It allows sending and receiving on the cloud-side endpoints.
 
 * `device_connect` - (Optional) Adds `DeviceConnect` permission to this Shared Access Account. It allows sending and receiving on the device-side endpoints.
 
--> **NOTE** At least one of `registry_read`, `registry_write`, `service_connect`, `device_connect` permissions must be set to `true`.
+-> **Note:** At least one of `registry_read`, `registry_write`, `service_connect`, `device_connect` permissions must be set to `true`.
 
 ## Attributes Reference
 
@@ -77,11 +77,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the IotHub Shared Access Policy.
-* `update` - (Defaults to 30 minutes) Used when updating the IotHub Shared Access Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the IotHub Shared Access Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the IotHub Shared Access Policy.
 * `delete` - (Defaults to 30 minutes) Used when deleting the IotHub Shared Access Policy.
 
 ## Import

@@ -1,20 +1,25 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -29,10 +34,10 @@ func resourceCdnFrontDoorProfile() *pluginsdk.Resource {
 		Delete: resourceCdnFrontDoorProfileDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(4 * time.Hour),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(4 * time.Hour),
+			Delete: pluginsdk.DefaultTimeout(6 * time.Hour),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -49,6 +54,8 @@ func resourceCdnFrontDoorProfile() *pluginsdk.Resource {
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
+
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"response_timeout_seconds": {
 				Type:         pluginsdk.TypeInt,
@@ -67,6 +74,24 @@ func resourceCdnFrontDoorProfile() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"log_scrubbing_rule": {
+				Type:     pluginsdk.TypeSet,
+				MaxItems: 3,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"match_variable": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice(
+								profiles.PossibleValuesForScrubbingRuleEntryMatchVariable(),
+								false,
+							),
+						},
+					},
+				},
+			},
+
 			"tags": commonschema.Tags(),
 
 			"resource_guid": {
@@ -74,10 +99,25 @@ func resourceCdnFrontDoorProfile() *pluginsdk.Resource {
 				Computed: true,
 			},
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			// Verify that they are not downgrading the service from Premium SKU -> Standard SKU...
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v any) error {
+				oSku, nSku := diff.GetChange("sku_name")
+
+				if oSku != "" {
+					if oSku.(string) == string(profiles.SkuNamePremiumAzureFrontDoor) && nSku.(string) == string(profiles.SkuNameStandardAzureFrontDoor) {
+						return fmt.Errorf("downgrading `sku_name` from `%s` to `%s` is not supported", profiles.SkuNamePremiumAzureFrontDoor, profiles.SkuNameStandardAzureFrontDoor)
+					}
+				}
+
+				return nil
+			}),
+		),
 	}
 }
 
-func resourceCdnFrontDoorProfileCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorProfileCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorProfilesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -85,15 +125,17 @@ func resourceCdnFrontDoorProfileCreate(d *pluginsdk.ResourceData, meta interface
 
 	id := profiles.NewProfileID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_cdn_frontdoor_profile", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_profile", id.ID())
+		}
 	}
 
 	props := profiles.Profile{
@@ -102,13 +144,23 @@ func resourceCdnFrontDoorProfileCreate(d *pluginsdk.ResourceData, meta interface
 			OriginResponseTimeoutSeconds: pointer.To(int64(d.Get("response_timeout_seconds").(int))),
 		},
 		Sku: profiles.Sku{
-			Name: pointer.To(profiles.SkuName(d.Get("sku_name").(string))),
+			Name: pointer.ToEnum[profiles.SkuName](d.Get("sku_name").(string)),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
-	err = client.CreateThenPoll(ctx, id, props)
-	if err != nil {
+	props.Properties.LogScrubbing = expandCdnFrontDoorProfileLogScrubbing(d.Get("log_scrubbing_rule").(*pluginsdk.Set).List())
+
+	if v, ok := d.GetOk("identity"); ok {
+		i, err := identity.ExpandLegacySystemAndUserAssignedMap(v.([]any))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+
+		props.Identity = i
+	}
+
+	if err := client.CreateCallbackThenPoll(ctx, id, props, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -116,7 +168,7 @@ func resourceCdnFrontDoorProfileCreate(d *pluginsdk.ResourceData, meta interface
 	return resourceCdnFrontDoorProfileRead(d, meta)
 }
 
-func resourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorProfilesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -140,7 +192,16 @@ func resourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta interface{}
 
 	if model := resp.Model; model != nil {
 		if skuName := model.Sku.Name; skuName != nil {
-			d.Set("sku_name", string(pointer.From(skuName)))
+			d.Set("sku_name", pointer.FromEnum(skuName))
+		}
+
+		identity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+
+		if err := d.Set("identity", identity); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
 		if props := model.Properties; props != nil {
@@ -149,6 +210,10 @@ func resourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta interface{}
 			// whilst this is returned in the API as FrontDoorID other resources refer to
 			// this as the Resource GUID, so we will for consistency
 			d.Set("resource_guid", pointer.From(props.FrontDoorId))
+
+			if err := d.Set("log_scrubbing_rule", flattenCdnFrontDoorProfileLogScrubbingRules(props.LogScrubbing)); err != nil {
+				return fmt.Errorf("setting `log_scrubbing_rule`: %+v", err)
+			}
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
@@ -159,7 +224,7 @@ func resourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceCdnFrontDoorProfileUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorProfileUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorProfilesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -170,7 +235,7 @@ func resourceCdnFrontDoorProfileUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	props := profiles.ProfileUpdateParameters{
-		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:       tags.Expand(d.Get("tags").(map[string]any)),
 		Properties: &profiles.ProfilePropertiesUpdateParameters{},
 	}
 
@@ -178,15 +243,27 @@ func resourceCdnFrontDoorProfileUpdate(d *pluginsdk.ResourceData, meta interface
 		props.Properties.OriginResponseTimeoutSeconds = pointer.To(int64(d.Get("response_timeout_seconds").(int)))
 	}
 
-	err = client.UpdateThenPoll(ctx, pointer.From(id), props)
-	if err != nil {
+	if d.HasChange("log_scrubbing_rule") {
+		props.Properties.LogScrubbing = expandCdnFrontDoorProfileLogScrubbing(d.Get("log_scrubbing_rule").(*pluginsdk.Set).List())
+	}
+
+	if d.HasChange("identity") {
+		i, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]any))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+
+		props.Identity = i
+	}
+
+	if err = client.UpdateThenPoll(ctx, pointer.From(id), props); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	return resourceCdnFrontDoorProfileRead(d, meta)
 }
 
-func resourceCdnFrontDoorProfileDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorProfileDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorProfilesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -196,10 +273,68 @@ func resourceCdnFrontDoorProfileDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, pointer.From(id))
-	if err != nil {
+	pollerType := custompollers.NewFrontDoorProfileDeletePoller(client, pointer.From(id))
+	poller := pollers.NewPoller(pollerType, 30*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
+}
+
+func expandCdnFrontDoorProfileLogScrubbing(input []any) *profiles.ProfileLogScrubbing {
+	if len(input) == 0 {
+		return &profiles.ProfileLogScrubbing{
+			State: pointer.To(profiles.ProfileScrubbingStateDisabled),
+		}
+	}
+
+	return &profiles.ProfileLogScrubbing{
+		State:          pointer.To(profiles.ProfileScrubbingStateEnabled),
+		ScrubbingRules: expandCdnFrontDoorProfileLogScrubbingRules(input),
+	}
+}
+
+func expandCdnFrontDoorProfileLogScrubbingRules(input []any) *[]profiles.ProfileScrubbingRules {
+	if len(input) == 0 {
+		return nil
+	}
+
+	scrubbingRules := make([]profiles.ProfileScrubbingRules, 0)
+
+	for _, rule := range input {
+		v := rule.(map[string]any)
+
+		item := profiles.ProfileScrubbingRules{
+			MatchVariable:         profiles.ScrubbingRuleEntryMatchVariable(v["match_variable"].(string)),
+			SelectorMatchOperator: profiles.ScrubbingRuleEntryMatchOperatorEqualsAny, // EqualsAny is the only valid SelectorMatchOperator for log scrubbing in the Profile API
+			State:                 pointer.To(profiles.ScrubbingRuleEntryStateEnabled),
+		}
+
+		scrubbingRules = append(scrubbingRules, item)
+	}
+
+	return &scrubbingRules
+}
+
+func flattenCdnFrontDoorProfileLogScrubbingRules(input *profiles.ProfileLogScrubbing) []any {
+	result := make([]any, 0)
+
+	if input == nil || pointer.From(input.State) == profiles.ProfileScrubbingStateDisabled {
+		return result
+	}
+
+	if input.ScrubbingRules == nil {
+		return result
+	}
+
+	for _, scrubbingRule := range *input.ScrubbingRules {
+		if scrubbingRule.State != nil && pointer.From(scrubbingRule.State) == profiles.ScrubbingRuleEntryStateEnabled {
+			result = append(result, map[string]any{
+				"match_variable": scrubbingRule.MatchVariable,
+			})
+		}
+	}
+
+	return result
 }

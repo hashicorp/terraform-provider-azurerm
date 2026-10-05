@@ -1,15 +1,15 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package deliveryruleactions
 
 import (
-	"fmt"
+	"errors"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" //nolint:staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func URLRewrite() *pluginsdk.Resource {
@@ -36,19 +36,19 @@ func URLRewrite() *pluginsdk.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointActionURLRewrite(input []interface{}) (*[]cdn.BasicDeliveryRuleAction, error) {
+func ExpandArmCdnEndpointActionURLRewrite(input []any) (*[]cdn.BasicDeliveryRuleAction, error) {
 	output := make([]cdn.BasicDeliveryRuleAction, 0)
 
 	for _, v := range input {
-		item := v.(map[string]interface{})
+		item := v.(map[string]any)
 
 		output = append(output, cdn.URLRewriteAction{
 			Name: cdn.NameBasicDeliveryRuleActionNameURLRewrite,
 			Parameters: &cdn.URLRewriteActionParameters{
-				OdataType:             utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleUrlRewriteActionParameters"),
-				SourcePattern:         utils.String(item["source_pattern"].(string)),
-				Destination:           utils.String(item["destination"].(string)),
-				PreserveUnmatchedPath: utils.Bool(item["preserve_unmatched_path"].(bool)),
+				OdataType:             pointer.To("Microsoft.Azure.Cdn.Models.DeliveryRuleUrlRewriteActionParameters"),
+				SourcePattern:         pointer.To(item["source_pattern"].(string)),
+				Destination:           pointer.To(item["destination"].(string)),
+				PreserveUnmatchedPath: pointer.To(item["preserve_unmatched_path"].(bool)),
 			},
 		})
 	}
@@ -56,10 +56,10 @@ func ExpandArmCdnEndpointActionURLRewrite(input []interface{}) (*[]cdn.BasicDeli
 	return &output, nil
 }
 
-func FlattenArmCdnEndpointActionURLRewrite(input cdn.BasicDeliveryRuleAction) (*map[string]interface{}, error) {
+func FlattenArmCdnEndpointActionURLRewrite(input cdn.BasicDeliveryRuleAction) (*map[string]any, error) {
 	action, ok := input.AsURLRewriteAction()
 	if !ok {
-		return nil, fmt.Errorf("expected a delivery rule url rewrite action!")
+		return nil, errors.New("expected a delivery rule url rewrite action")
 	}
 
 	sourcePattern := ""
@@ -79,7 +79,7 @@ func FlattenArmCdnEndpointActionURLRewrite(input cdn.BasicDeliveryRuleAction) (*
 		}
 	}
 
-	return &map[string]interface{}{
+	return &map[string]any{
 		"destination":             destination,
 		"preserve_unmatched_path": preserveUnmatchedPath,
 		"source_pattern":          sourcePattern,

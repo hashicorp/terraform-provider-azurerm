@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package logic
@@ -81,6 +81,11 @@ func dataSourceLogicAppStandard() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"ftp_publish_basic_authentication_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"https_only": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
@@ -88,7 +93,12 @@ func dataSourceLogicAppStandard() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
-			"site_config": schemaLogicAppStandardSiteConfig(),
+			"scm_publish_basic_authentication_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"site_config": schemaLogicAppStandardSiteConfigDataSource(),
 
 			"connection_string": {
 				Type:     pluginsdk.TypeSet,
@@ -123,6 +133,12 @@ func dataSourceLogicAppStandard() *pluginsdk.Resource {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
+			},
+
+			"storage_key_vault_secret_id": {
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Description: "The Key Vault Secret ID, optionally including version, that contains the connection string to the backend storage account for the Logic App.",
 			},
 
 			"storage_account_share_name": {
@@ -193,9 +209,10 @@ func dataSourceLogicAppStandard() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppService.WebAppsClient
-	subscriptionId := meta.(*clients.Client).Web.AppServicesClient.SubscriptionID
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -241,7 +258,7 @@ func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{})
 
 			clientCertMode := ""
 			if props.ClientCertEnabled != nil && *props.ClientCertEnabled {
-				clientCertMode = string(pointer.From(props.ClientCertMode))
+				clientCertMode = pointer.FromEnum(props.ClientCertMode)
 			}
 			d.Set("client_certificate_mode", clientCertMode)
 
@@ -258,21 +275,12 @@ func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{})
 
 		connectionString := appSettings["AzureWebJobsStorage"]
 
-		// This teases out the necessary attributes from the storage connection string
-		connectionStringParts := strings.Split(connectionString, ";")
-		for _, part := range connectionStringParts {
-			if strings.HasPrefix(part, "AccountName") {
-				accountNameParts := strings.Split(part, "AccountName=")
-				if len(accountNameParts) > 1 {
-					d.Set("storage_account_name", accountNameParts[1])
-				}
-			}
-			if strings.HasPrefix(part, "AccountKey") {
-				accountKeyParts := strings.Split(part, "AccountKey=")
-				if len(accountKeyParts) > 1 {
-					d.Set("storage_account_access_key", accountKeyParts[1])
-				}
-			}
+		if strings.HasPrefix(connectionString, "@Microsoft.KeyVault") {
+			d.Set("storage_key_vault_secret_id", strings.TrimPrefix(strings.TrimSuffix(connectionString, ")"), "@Microsoft.KeyVault(SecretUri="))
+		} else {
+			name, key := helpers.ParseWebJobsStorageString(connectionString)
+			d.Set("storage_account_name", name)
+			d.Set("storage_account_access_key", key)
 		}
 
 		d.Set("version", appSettings["FUNCTIONS_EXTENSION_VERSION"])
@@ -316,14 +324,31 @@ func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
+	ftpBasicAuth, err := client.GetFtpAllowed(ctx, id)
+	if err != nil || ftpBasicAuth.Model == nil {
+		return fmt.Errorf("retrieving FTP publish basic authentication policy for %s: %+v", id, err)
+	}
+
+	if props := ftpBasicAuth.Model.Properties; props != nil {
+		d.Set("ftp_publish_basic_authentication_enabled", props.Allow)
+	}
+
+	scmBasicAuth, err := client.GetScmAllowed(ctx, id)
+	if err != nil || scmBasicAuth.Model == nil {
+		return fmt.Errorf("retrieving SCM publish basic authentication policy for %s: %+v", id, err)
+	}
+
+	if props := scmBasicAuth.Model.Properties; props != nil {
+		d.Set("scm_publish_basic_authentication_enabled", props.Allow)
+	}
+
 	configResp, err := client.GetConfiguration(ctx, id)
 	if err != nil {
 		return fmt.Errorf("retrieving the configuration for %s: %+v", id, err)
 	}
 
 	if model := configResp.Model; model != nil {
-		siteConfig := flattenLogicAppStandardDataSourceSiteConfig(model.Properties)
-		if err = d.Set("site_config", siteConfig); err != nil {
+		if err = d.Set("site_config", flattenLogicAppStandardDataSourceSiteConfig(model.Properties)); err != nil {
 			return err
 		}
 	}
@@ -340,15 +365,15 @@ func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func flattenLogicAppStandardDataSourceConnectionStrings(input *map[string]webapps.ConnStringValueTypePair) interface{} {
-	results := make([]interface{}, 0)
+func flattenLogicAppStandardDataSourceConnectionStrings(input *map[string]webapps.ConnStringValueTypePair) any {
+	results := make([]any, 0)
 
 	if input == nil || len(*input) == 0 {
 		return results
 	}
 
 	for k, v := range *input {
-		result := make(map[string]interface{})
+		result := make(map[string]any)
 		result["name"] = k
 		result["type"] = string(v.Type)
 		result["value"] = v.Value
@@ -358,9 +383,9 @@ func flattenLogicAppStandardDataSourceConnectionStrings(input *map[string]webapp
 	return results
 }
 
-func flattenLogicAppStandardDataSourceSiteConfig(input *webapps.SiteConfig) []interface{} {
-	results := make([]interface{}, 0)
-	result := make(map[string]interface{})
+func flattenLogicAppStandardDataSourceSiteConfig(input *webapps.SiteConfig) []any {
+	results := make([]any, 0)
+	result := make(map[string]any)
 
 	if input == nil {
 		log.Printf("[DEBUG] SiteConfig is nil")
@@ -376,14 +401,14 @@ func flattenLogicAppStandardDataSourceSiteConfig(input *webapps.SiteConfig) []in
 
 	result["ip_restriction"] = flattenLogicAppStandardIpRestriction(input.IPSecurityRestrictions)
 
-	result["scm_type"] = string(pointer.From(input.ScmType))
-	result["scm_min_tls_version"] = string(pointer.From(input.ScmMinTlsVersion))
+	result["scm_type"] = pointer.FromEnum(input.ScmType)
+	result["scm_min_tls_version"] = pointer.FromEnum(input.ScmMinTlsVersion)
 	result["scm_ip_restriction"] = flattenLogicAppStandardIpRestriction(input.ScmIPSecurityRestrictions)
-
+	result["scm_ip_restriction_default_action"] = pointer.FromEnum(input.ScmIPSecurityRestrictionsDefaultAction)
 	result["scm_use_main_ip_restriction"] = pointer.From(input.ScmIPSecurityRestrictionsUseMain)
 
-	result["min_tls_version"] = string(pointer.From(input.MinTlsVersion))
-	result["ftps_state"] = string(pointer.From(input.FtpsState))
+	result["min_tls_version"] = pointer.FromEnum(input.MinTlsVersion)
+	result["ftps_state"] = pointer.FromEnum(input.FtpsState)
 
 	result["cors"] = flattenLogicAppStandardCorsSettings(input.Cors)
 
@@ -397,6 +422,291 @@ func flattenLogicAppStandardDataSourceSiteConfig(input *webapps.SiteConfig) []in
 
 	result["vnet_route_all_enabled"] = pointer.From(input.VnetRouteAllEnabled)
 
+	result["ip_restriction_default_action"] = pointer.FromEnum(input.IPSecurityRestrictionsDefaultAction)
+
 	results = append(results, result)
 	return results
+}
+
+func flattenLogicAppStandardSiteCredential(input *webapps.User) []any {
+	results := make([]any, 0)
+	result := make(map[string]any)
+
+	if input == nil || input.Properties == nil {
+		log.Printf("[DEBUG] UserProperties is nil")
+		return results
+	}
+
+	result["username"] = input.Properties.PublishingUserName
+
+	result["password"] = pointer.From(input.Properties.PublishingPassword)
+
+	return append(results, result)
+}
+
+func flattenLogicAppStandardCorsSettings(input *webapps.CorsSettings) []any {
+	results := make([]any, 0)
+	if input == nil {
+		return results
+	}
+
+	result := make(map[string]any)
+
+	allowedOrigins := make([]any, 0)
+	if s := input.AllowedOrigins; s != nil {
+		for _, v := range *s {
+			allowedOrigins = append(allowedOrigins, v)
+		}
+	}
+	result["allowed_origins"] = pluginsdk.NewSet(pluginsdk.HashString, allowedOrigins)
+
+	if input.SupportCredentials != nil {
+		result["support_credentials"] = *input.SupportCredentials
+	}
+
+	return append(results, result)
+}
+
+func flattenHeaders(input map[string][]string) []any {
+	output := make([]any, 0)
+	headers := make(map[string]any)
+	if input == nil {
+		return output
+	}
+
+	if forwardedHost, ok := input["x-forwarded-host"]; ok && len(forwardedHost) > 0 {
+		headers["x_forwarded_host"] = forwardedHost
+	}
+	if forwardedFor, ok := input["x-forwarded-for"]; ok && len(forwardedFor) > 0 {
+		headers["x_forwarded_for"] = forwardedFor
+	}
+	if fdids, ok := input["x-azure-fdid"]; ok && len(fdids) > 0 {
+		headers["x_azure_fdid"] = fdids
+	}
+	if healthProbe, ok := input["x-fd-healthprobe"]; ok && len(healthProbe) > 0 {
+		headers["x_fd_health_probe"] = healthProbe
+	}
+
+	return append(output, headers)
+}
+
+func schemaLogicAppStandardSiteConfigDataSource() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"always_on": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"cors": schemaLogicAppCorsSettingsDataSource(),
+
+				"ftps_state": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"http2_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"ip_restriction": schemaLogicAppStandardIpRestrictionDataSource(),
+
+				"linux_fx_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"min_tls_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"pre_warmed_instance_count": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+
+				"scm_ip_restriction": schemaLogicAppStandardIpRestrictionDataSource(),
+
+				"scm_ip_restriction_default_action": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"scm_use_main_ip_restriction": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"scm_min_tls_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"scm_type": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"use_32_bit_worker_process": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"websockets_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"health_check_path": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"elastic_instance_minimum": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+
+				"app_scale_limit": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+
+				"runtime_scale_monitoring_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"dotnet_framework_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"vnet_route_all_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"auto_swap_slot_name": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"ip_restriction_default_action": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
+func schemaLogicAppCorsSettingsDataSource() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"allowed_origins": {
+					Type:     pluginsdk.TypeSet,
+					Computed: true,
+					Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				},
+				"support_credentials": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
+func schemaLogicAppStandardIpRestrictionDataSource() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"ip_address": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"service_tag": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"virtual_network_subnet_id": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"name": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"priority": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+
+				"action": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				// lintignore:XS003
+				"headers": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							// lintignore:S018
+							"x_forwarded_host": {
+								Type:     pluginsdk.TypeSet,
+								Computed: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+
+							// lintignore:S018
+							"x_forwarded_for": {
+								Type:     pluginsdk.TypeSet,
+								Computed: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+
+							// lintignore:S018
+							"x_azure_fdid": {
+								Type:     pluginsdk.TypeSet,
+								Computed: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+
+							// lintignore:S018
+							"x_fd_health_probe": {
+								Type:     pluginsdk.TypeSet,
+								Computed: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
 }

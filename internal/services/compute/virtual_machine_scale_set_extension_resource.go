@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -12,14 +12,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetextensions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-07-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesetextensions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // NOTE (also in the docs): this is not intended to be used with the `azurerm_virtual_machine_scale_set` resource
@@ -131,7 +131,7 @@ func resourceVirtualMachineScaleSetExtension() *pluginsdk.Resource {
 	}
 }
 
-func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.VirtualMachineScaleSetExtensionsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -142,29 +142,30 @@ func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, me
 	}
 	id := virtualmachinescalesetextensions.NewVirtualMachineScaleSetExtensionID(virtualMachineScaleSetId.SubscriptionId, virtualMachineScaleSetId.ResourceGroupName, virtualMachineScaleSetId.VirtualMachineScaleSetName, d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id, virtualmachinescalesetextensions.DefaultGetOperationOptions())
-	if err != nil {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		resp, err := client.Get(ctx, id, virtualmachinescalesetextensions.DefaultGetOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
+		}
+
 		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
+			return tf.ImportAsExistsError("azurerm_virtual_machine_scale_set_extension", id.ID())
 		}
 	}
 
-	if !response.WasNotFound(resp.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_virtual_machine_scale_set_extension", id.ID())
-	}
-
-	var settings *interface{}
+	var settings *any
 	if settingsString := d.Get("settings").(string); settingsString != "" {
-		var result interface{}
-		err := json.Unmarshal([]byte(settingsString), &result)
-		if err != nil {
+		var result any
+		if err := json.Unmarshal([]byte(settingsString), &result); err != nil {
 			return fmt.Errorf("unmarshaling `settings`: %+v", err)
 		}
 		settings = pointer.To(result)
 	}
 
-	provisionAfterExtensionsRaw := d.Get("provision_after_extensions").([]interface{})
-	provisionAfterExtensions := utils.ExpandStringSlice(provisionAfterExtensionsRaw)
+	provisionAfterExtensionsRaw := d.Get("provision_after_extensions").([]any)
+	provisionAfterExtensions := pluginsdk.ExpandStringSlice(provisionAfterExtensionsRaw)
 
 	props := virtualmachinescalesetextensions.VirtualMachineScaleSetExtension{
 		Name: pointer.To(id.ExtensionName),
@@ -175,7 +176,7 @@ func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, me
 			AutoUpgradeMinorVersion:       pointer.To(d.Get("auto_upgrade_minor_version").(bool)),
 			EnableAutomaticUpgrade:        pointer.To(d.Get("automatic_upgrade_enabled").(bool)),
 			SuppressFailures:              pointer.To(d.Get("failure_suppression_enabled").(bool)),
-			ProtectedSettingsFromKeyVault: expandProtectedSettingsFromKeyVaultOldVMSSExtension(d.Get("protected_settings_from_key_vault").([]interface{})),
+			ProtectedSettingsFromKeyVault: expandProtectedSettingsFromKeyVaultOldVMSSExtension(d.Get("protected_settings_from_key_vault").([]any)),
 			ProvisionAfterExtensions:      provisionAfterExtensions,
 			Settings:                      settings,
 		},
@@ -185,15 +186,14 @@ func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, me
 	}
 
 	if protectedSettingsString := d.Get("protected_settings").(string); protectedSettingsString != "" {
-		var result interface{}
-		err := json.Unmarshal([]byte(protectedSettingsString), &result)
-		if err != nil {
+		var result any
+		if err := json.Unmarshal([]byte(protectedSettingsString), &result); err != nil {
 			return fmt.Errorf("unmarshaling `protected_settings`: %+v", err)
 		}
 		props.Properties.ProtectedSettings = pointer.To(result)
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, props); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, props, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -202,7 +202,7 @@ func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, me
 	return resourceVirtualMachineScaleSetExtensionRead(d, meta)
 }
 
-func resourceVirtualMachineScaleSetExtensionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualMachineScaleSetExtensionUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.VirtualMachineScaleSetExtensionsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -227,11 +227,10 @@ func resourceVirtualMachineScaleSetExtensionUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	if d.HasChange("protected_settings") {
-		var protectedSettings interface{}
+		var protectedSettings any
 		if protectedSettingsString := d.Get("protected_settings").(string); protectedSettingsString != "" {
-			var result interface{}
-			err := json.Unmarshal([]byte(protectedSettingsString), &result)
-			if err != nil {
+			var result any
+			if err := json.Unmarshal([]byte(protectedSettingsString), &result); err != nil {
 				return fmt.Errorf("unmarshaling `protected_settings`: %+v", err)
 			}
 
@@ -241,12 +240,12 @@ func resourceVirtualMachineScaleSetExtensionUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	if d.HasChange("protected_settings_from_key_vault") {
-		props.ProtectedSettingsFromKeyVault = expandProtectedSettingsFromKeyVaultOldVMSSExtension(d.Get("protected_settings_from_key_vault").([]interface{}))
+		props.ProtectedSettingsFromKeyVault = expandProtectedSettingsFromKeyVaultOldVMSSExtension(d.Get("protected_settings_from_key_vault").([]any))
 	}
 
 	if d.HasChange("provision_after_extensions") {
-		provisionAfterExtensionsRaw := d.Get("provision_after_extensions").([]interface{})
-		props.ProvisionAfterExtensions = utils.ExpandStringSlice(provisionAfterExtensionsRaw)
+		provisionAfterExtensionsRaw := d.Get("provision_after_extensions").([]any)
+		props.ProvisionAfterExtensions = pluginsdk.ExpandStringSlice(provisionAfterExtensionsRaw)
 	}
 
 	if d.HasChange("publisher") {
@@ -254,11 +253,10 @@ func resourceVirtualMachineScaleSetExtensionUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	if d.HasChange("settings") {
-		var settings interface{}
+		var settings any
 		if settingsString := d.Get("settings").(string); settingsString != "" {
-			var result interface{}
-			err := json.Unmarshal([]byte(settingsString), &result)
-			if err != nil {
+			var result any
+			if err := json.Unmarshal([]byte(settingsString), &result); err != nil {
 				return fmt.Errorf("unmarshaling `settings`: %+v", err)
 			}
 			settings = result
@@ -286,7 +284,7 @@ func resourceVirtualMachineScaleSetExtensionUpdate(d *pluginsdk.ResourceData, me
 	return resourceVirtualMachineScaleSetExtensionRead(d, meta)
 }
 
-func resourceVirtualMachineScaleSetExtensionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualMachineScaleSetExtensionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.VirtualMachineScaleSetExtensionsClient
 	vmssClient := meta.(*clients.Client).Compute.VirtualMachineScaleSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -330,16 +328,12 @@ func resourceVirtualMachineScaleSetExtensionRead(d *pluginsdk.ResourceData, meta
 			d.Set("automatic_upgrade_enabled", props.EnableAutomaticUpgrade)
 			d.Set("force_update_tag", props.ForceUpdateTag)
 			d.Set("protected_settings_from_key_vault", flattenProtectedSettingsFromKeyVaultOldVMSSExtension(props.ProtectedSettingsFromKeyVault))
-			d.Set("provision_after_extensions", utils.FlattenStringSlice(props.ProvisionAfterExtensions))
+			d.Set("provision_after_extensions", pluginsdk.FlattenSlice(props.ProvisionAfterExtensions))
 			d.Set("publisher", props.Publisher)
 			d.Set("type", props.Type)
 			d.Set("type_handler_version", props.TypeHandlerVersion)
 
-			suppressFailure := false
-			if props.SuppressFailures != nil {
-				suppressFailure = *props.SuppressFailures
-			}
-			d.Set("failure_suppression_enabled", suppressFailure)
+			d.Set("failure_suppression_enabled", pointer.From(props.SuppressFailures))
 
 			settings := ""
 			if props.Settings != nil {
@@ -356,7 +350,7 @@ func resourceVirtualMachineScaleSetExtensionRead(d *pluginsdk.ResourceData, meta
 	return nil
 }
 
-func resourceVirtualMachineScaleSetExtensionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualMachineScaleSetExtensionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.VirtualMachineScaleSetExtensionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

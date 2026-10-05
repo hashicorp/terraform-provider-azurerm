@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -17,7 +17,7 @@ import (
 	"sync"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/blobs"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/blobs"
 )
 
 type BlobUpload struct {
@@ -45,7 +45,7 @@ func (sbu BlobUpload) Create(ctx context.Context) error {
 
 	if blobType == "append" {
 		if sbu.Source != "" || sbu.SourceContent != "" || sbu.SourceUri != "" {
-			return errors.New("A source cannot be specified for an Append blob")
+			return errors.New("a source cannot be specified for an Append blob")
 		}
 
 		if sbu.ContentMD5 != "" {
@@ -146,7 +146,7 @@ func (sbu BlobUpload) uploadBlockBlobFromContent(ctx context.Context) error {
 	}
 	defer os.Remove(tmpFile.Name())
 
-	if _, err = tmpFile.Write([]byte(sbu.SourceContent)); err != nil {
+	if _, err = tmpFile.WriteString(sbu.SourceContent); err != nil {
 		return fmt.Errorf("writing Source Content to Temp File: %s", err)
 	}
 	defer tmpFile.Close()
@@ -206,7 +206,7 @@ func (sbu BlobUpload) uploadPageBlobFromContent(ctx context.Context) error {
 	}
 	defer os.Remove(tmpFile.Name())
 
-	if _, err = tmpFile.Write([]byte(sbu.SourceContent)); err != nil {
+	if _, err = tmpFile.WriteString(sbu.SourceContent); err != nil {
 		return fmt.Errorf("writing Source Content to Temp File: %s", err)
 	}
 	defer tmpFile.Close()
@@ -231,7 +231,7 @@ func (sbu BlobUpload) uploadPageBlob(ctx context.Context) error {
 
 	info, err := file.Stat()
 	if err != nil {
-		return fmt.Errorf("Could not stat file %q: %s", file.Name(), err)
+		return fmt.Errorf("could not stat file %q: %s", file.Name(), err)
 	}
 
 	fileSize := info.Size()
@@ -274,7 +274,7 @@ func (sbu BlobUpload) pageUploadFromSource(ctx context.Context, file io.ReaderAt
 
 	// finally we upload the contents of said file
 	pages := make(chan storageBlobPage, len(pageList))
-	errors := make(chan error, len(pageList))
+	errs := make(chan error, len(pageList))
 	wg := &sync.WaitGroup{}
 	wg.Add(len(pageList))
 
@@ -285,19 +285,19 @@ func (sbu BlobUpload) pageUploadFromSource(ctx context.Context, file io.ReaderAt
 	}
 	close(pages)
 
-	for i := 0; i < workerCount; i++ {
+	for range workerCount {
 		go sbu.blobPageUploadWorker(ctx, blobPageUploadContext{
 			blobSize: fileSize,
 			pages:    pages,
-			errors:   errors,
+			errors:   errs,
 			wg:       wg,
 		})
 	}
 
 	wg.Wait()
 
-	if len(errors) > 0 {
-		return fmt.Errorf("while uploading source file %q: %s", sbu.Source, <-errors)
+	if len(errs) > 0 {
+		return fmt.Errorf("while uploading source file %q: %s", sbu.Source, <-errs)
 	}
 
 	return nil
@@ -329,7 +329,7 @@ func (sbu BlobUpload) storageBlobPageSplit(file io.ReaderAt, fileSize int64) ([]
 	for i := int64(0); i < blobSize; i += minPageSize {
 		pageBuf := make([]byte, minPageSize)
 		if _, err := file.ReadAt(pageBuf, i); err != nil && err != io.EOF {
-			return nil, fmt.Errorf("Could not read chunk at %d: %s", i, err)
+			return nil, fmt.Errorf("could not read chunk at %d: %s", i, err)
 		}
 
 		if bytes.Equal(pageBuf, emptyPage) {
@@ -371,10 +371,7 @@ type blobPageUploadContext struct {
 func (sbu BlobUpload) blobPageUploadWorker(ctx context.Context, uploadCtx blobPageUploadContext) {
 	for page := range uploadCtx.pages {
 		start := page.offset
-		end := page.offset + page.section.Size() - 1
-		if end > uploadCtx.blobSize-1 {
-			end = uploadCtx.blobSize - 1
-		}
+		end := min(page.offset+page.section.Size()-1, uploadCtx.blobSize-1)
 		size := end - start + 1
 
 		chunk := make([]byte, size)

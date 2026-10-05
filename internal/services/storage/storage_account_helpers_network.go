@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -7,11 +7,11 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/storageaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storageaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func expandAccountNetworkRules(input []interface{}, tenantId string) *storageaccounts.NetworkRuleSet {
+func expandAccountNetworkRules(input []any, tenantId string) *storageaccounts.NetworkRuleSet {
 	if len(input) == 0 {
 		// Default access is enabled when no network rules are set.
 		return &storageaccounts.NetworkRuleSet{
@@ -23,18 +23,18 @@ func expandAccountNetworkRules(input []interface{}, tenantId string) *storageacc
 		}
 	}
 
-	item := input[0].(map[string]interface{})
+	item := input[0].(map[string]any)
 	return &storageaccounts.NetworkRuleSet{
 		Bypass:              expandAccountNetworkRuleBypass(item["bypass"].(*pluginsdk.Set).List()),
 		DefaultAction:       storageaccounts.DefaultAction(item["default_action"].(string)),
 		IPRules:             expandAccountNetworkRuleIPRules(item["ip_rules"].(*pluginsdk.Set).List()),
-		ResourceAccessRules: expandAccountNetworkRulePrivateLinkAccess(item["private_link_access"].([]interface{}), tenantId),
+		ResourceAccessRules: expandAccountNetworkRulePrivateLinkAccess(item["private_link_access"].([]any), tenantId),
 		VirtualNetworkRules: expandAccountNetworkRuleVirtualNetworkRules(item["virtual_network_subnet_ids"].(*pluginsdk.Set).List()),
 	}
 }
 
-func flattenAccountNetworkRules(input *storageaccounts.NetworkRuleSet) []interface{} {
-	output := make([]interface{}, 0)
+func flattenAccountNetworkRules(input *storageaccounts.NetworkRuleSet) []any {
+	output := make([]any, 0)
 
 	if input != nil {
 		ipRules := flattenAccountNetworkRuleIPRules(input.IPRules)
@@ -48,7 +48,7 @@ func flattenAccountNetworkRules(input *storageaccounts.NetworkRuleSet) []interfa
 			return output
 		}
 
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"bypass":                     pluginsdk.NewSet(pluginsdk.HashString, flattenAccountNetworkRuleBypass(input.Bypass)),
 			"default_action":             string(input.DefaultAction),
 			"ip_rules":                   pluginsdk.NewSet(pluginsdk.HashString, ipRules),
@@ -60,7 +60,7 @@ func flattenAccountNetworkRules(input *storageaccounts.NetworkRuleSet) []interfa
 	return output
 }
 
-func expandAccountNetworkRuleBypass(input []interface{}) *storageaccounts.Bypass {
+func expandAccountNetworkRuleBypass(input []any) *storageaccounts.Bypass {
 	if len(input) == 0 {
 		return nil
 	}
@@ -69,11 +69,11 @@ func expandAccountNetworkRuleBypass(input []interface{}) *storageaccounts.Bypass
 	for _, item := range input {
 		output = append(output, item.(string))
 	}
-	return pointer.To(storageaccounts.Bypass(strings.Join(output, ", ")))
+	return pointer.ToEnum[storageaccounts.Bypass](strings.Join(output, ", "))
 }
 
-func flattenAccountNetworkRuleBypass(input *storageaccounts.Bypass) []interface{} {
-	output := make([]interface{}, 0)
+func flattenAccountNetworkRuleBypass(input *storageaccounts.Bypass) []any {
+	output := make([]any, 0)
 
 	if input != nil {
 		// Whilst this is an Enum it's actually a CSV containing the enum but its exposed as a regular string
@@ -98,7 +98,7 @@ func flattenAccountNetworkRuleBypass(input *storageaccounts.Bypass) []interface{
 	return output
 }
 
-func expandAccountNetworkRuleIPRules(input []interface{}) *[]storageaccounts.IPRule {
+func expandAccountNetworkRuleIPRules(input []any) *[]storageaccounts.IPRule {
 	output := make([]storageaccounts.IPRule, 0)
 	for _, item := range input {
 		output = append(output, storageaccounts.IPRule{
@@ -109,8 +109,8 @@ func expandAccountNetworkRuleIPRules(input []interface{}) *[]storageaccounts.IPR
 	return &output
 }
 
-func flattenAccountNetworkRuleIPRules(input *[]storageaccounts.IPRule) []interface{} {
-	output := make([]interface{}, 0)
+func flattenAccountNetworkRuleIPRules(input *[]storageaccounts.IPRule) []any {
+	output := make([]any, 0)
 
 	if input != nil {
 		for _, item := range *input {
@@ -121,7 +121,7 @@ func flattenAccountNetworkRuleIPRules(input *[]storageaccounts.IPRule) []interfa
 	return output
 }
 
-func expandAccountNetworkRuleVirtualNetworkRules(input []interface{}) *[]storageaccounts.VirtualNetworkRule {
+func expandAccountNetworkRuleVirtualNetworkRules(input []any) *[]storageaccounts.VirtualNetworkRule {
 	output := make([]storageaccounts.VirtualNetworkRule, 0)
 
 	for _, item := range input {
@@ -134,8 +134,8 @@ func expandAccountNetworkRuleVirtualNetworkRules(input []interface{}) *[]storage
 	return &output
 }
 
-func flattenAccountNetworkRuleVirtualNetworkRules(input *[]storageaccounts.VirtualNetworkRule) []interface{} {
-	output := make([]interface{}, 0)
+func flattenAccountNetworkRuleVirtualNetworkRules(input *[]storageaccounts.VirtualNetworkRule) []any {
+	output := make([]any, 0)
 
 	if input != nil {
 		for _, item := range *input {
@@ -146,10 +146,10 @@ func flattenAccountNetworkRuleVirtualNetworkRules(input *[]storageaccounts.Virtu
 	return output
 }
 
-func expandAccountNetworkRulePrivateLinkAccess(input []interface{}, tenantId string) *[]storageaccounts.ResourceAccessRule {
+func expandAccountNetworkRulePrivateLinkAccess(input []any, tenantId string) *[]storageaccounts.ResourceAccessRule {
 	output := make([]storageaccounts.ResourceAccessRule, 0)
 	for _, raw := range input {
-		item := raw.(map[string]interface{})
+		item := raw.(map[string]any)
 		rule := storageaccounts.ResourceAccessRule{
 			ResourceId: pointer.To(item["endpoint_resource_id"].(string)),
 			TenantId:   pointer.To(tenantId),
@@ -163,12 +163,12 @@ func expandAccountNetworkRulePrivateLinkAccess(input []interface{}, tenantId str
 	return &output
 }
 
-func flattenAccountNetworkRulePrivateLinkAccess(input *[]storageaccounts.ResourceAccessRule) []interface{} {
-	output := make([]interface{}, 0)
+func flattenAccountNetworkRulePrivateLinkAccess(input *[]storageaccounts.ResourceAccessRule) []any {
+	output := make([]any, 0)
 
 	if input != nil {
 		for _, item := range *input {
-			output = append(output, map[string]interface{}{
+			output = append(output, map[string]any{
 				"endpoint_resource_id": pointer.From(item.ResourceId),
 				"endpoint_tenant_id":   pointer.From(item.TenantId),
 			})

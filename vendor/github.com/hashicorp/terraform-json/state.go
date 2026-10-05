@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2019, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package tfjson
@@ -78,6 +78,10 @@ func (s *State) Validate() error {
 	return nil
 }
 
+// UnmarshalJSON implements json.Unmarshaler for State.
+//
+// As per established convention this method should only ever
+// be invoked *indirectly* via [encoding/json] library.
 func (s *State) UnmarshalJSON(b []byte) error {
 	type rawState State
 	var state rawState
@@ -173,6 +177,14 @@ type StateResource struct {
 	// DeposedKey is set if the resource instance has been marked Deposed and
 	// will be destroyed on the next apply.
 	DeposedKey string `json:"deposed_key,omitempty"`
+
+	// The version of the resource identity schema the "identity" property
+	// conforms to.
+	IdentitySchemaVersion *uint64 `json:"identity_schema_version,omitempty"`
+
+	// The JSON representation of the resource identity, whose structure
+	// depends on the resource identity schema.
+	IdentityValues map[string]interface{} `json:"identity,omitempty"`
 }
 
 // StateOutput represents an output value in a common state

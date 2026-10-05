@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package servicebus
@@ -9,11 +9,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/queues"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2022-10-01-preview/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/queues"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -30,32 +29,13 @@ func dataSourceServiceBusQueue() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: azValidate.QueueName(),
+				ValidateFunc: validate.QueueName(),
 			},
 
 			"namespace_id": {
 				Type:         pluginsdk.TypeString,
-				Optional:     true,
+				Required:     true,
 				ValidateFunc: namespaces.ValidateNamespaceID,
-				AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
-			},
-
-			// TODO Remove in 4.0
-			"namespace_name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: azValidate.NamespaceName,
-				AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
-				Deprecated:   "`namespace_name` will be removed in favour of the property `namespace_id` in version 4.0 of the AzureRM Provider.",
-			},
-
-			// TODO Remove in 4.0
-			"resource_group_name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: resourcegroups.ValidateName,
-				AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
-				Deprecated:   "`resource_group_name` will be removed in favour of the property `namespace_id` in version 4.0 of the AzureRM Provider.",
 			},
 
 			"auto_delete_on_idle": {
@@ -78,20 +58,17 @@ func dataSourceServiceBusQueue() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_batched_operations": {
+			"batched_operations_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_express": {
+			"express_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_partitioning": {
+			"partitioning_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
@@ -112,6 +89,11 @@ func dataSourceServiceBusQueue() *pluginsdk.Resource {
 			},
 
 			"max_delivery_count": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
+
+			"maximum_message_size_in_kb": {
 				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
@@ -139,7 +121,7 @@ func dataSourceServiceBusQueue() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceBus.QueuesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -154,9 +136,6 @@ func dataSourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 		resourceGroup = namespaceId.ResourceGroupName
 		namespaceName = namespaceId.NamespaceName
-	} else {
-		resourceGroup = d.Get("resource_group_name").(string)
-		namespaceName = d.Get("namespace_name").(string)
 	}
 
 	id := queues.NewQueueID(subscriptionId, resourceGroup, namespaceName, d.Get("name").(string))
@@ -177,16 +156,17 @@ func dataSourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("dead_lettering_on_message_expiration", props.DeadLetteringOnMessageExpiration)
 			d.Set("default_message_ttl", props.DefaultMessageTimeToLive)
 			d.Set("duplicate_detection_history_time_window", props.DuplicateDetectionHistoryTimeWindow)
-			d.Set("enable_batched_operations", props.EnableBatchedOperations)
-			d.Set("enable_express", props.EnableExpress)
-			d.Set("enable_partitioning", props.EnablePartitioning)
+			d.Set("batched_operations_enabled", props.EnableBatchedOperations)
+			d.Set("express_enabled", props.EnableExpress)
+			d.Set("partitioning_enabled", props.EnablePartitioning)
 			d.Set("forward_dead_lettered_messages_to", props.ForwardDeadLetteredMessagesTo)
 			d.Set("forward_to", props.ForwardTo)
 			d.Set("lock_duration", props.LockDuration)
 			d.Set("max_delivery_count", props.MaxDeliveryCount)
+			d.Set("maximum_message_size_in_kb", props.MaxMessageSizeInKilobytes)
 			d.Set("requires_duplicate_detection", props.RequiresDuplicateDetection)
 			d.Set("requires_session", props.RequiresSession)
-			d.Set("status", string(pointer.From(props.Status)))
+			d.Set("status", pointer.FromEnum(props.Status))
 
 			if apiMaxSizeInMegabytes := props.MaxSizeInMegabytes; apiMaxSizeInMegabytes != nil {
 				maxSizeInMegabytes := int(*apiMaxSizeInMegabytes)

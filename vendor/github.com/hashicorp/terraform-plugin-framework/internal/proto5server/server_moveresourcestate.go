@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package proto5server
@@ -36,11 +36,19 @@ func (s *Server) MoveResourceState(ctx context.Context, proto5Req *tfprotov5.Mov
 
 	fwResp.Diagnostics.Append(diags...)
 
+	identitySchema, diags := s.FrameworkServer.ResourceIdentitySchema(ctx, proto5Req.TargetTypeName)
+
+	fwResp.Diagnostics.Append(diags...)
+
 	if fwResp.Diagnostics.HasError() {
 		return toproto5.MoveResourceStateResponse(ctx, fwResp), nil
 	}
 
-	fwReq, diags := fromproto5.MoveResourceStateRequest(ctx, proto5Req, resource, resourceSchema)
+	if fwResp.Diagnostics.HasError() {
+		return toproto5.MoveResourceStateResponse(ctx, fwResp), nil
+	}
+
+	fwReq, diags := fromproto5.MoveResourceStateRequest(ctx, proto5Req, resource, resourceSchema, identitySchema)
 
 	fwResp.Diagnostics.Append(diags...)
 
