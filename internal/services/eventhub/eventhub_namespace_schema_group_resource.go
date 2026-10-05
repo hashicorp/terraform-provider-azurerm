@@ -51,14 +51,10 @@ func resourceEventHubNamespaceSchemaRegistry() *pluginsdk.Resource {
 			},
 
 			"schema_compatibility": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(schemaregistry.SchemaCompatibilityNone),
-					string(schemaregistry.SchemaCompatibilityBackward),
-					string(schemaregistry.SchemaCompatibilityForward),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(schemaregistry.PossibleValuesForSchemaCompatibility(), false),
 			},
 
 			"schema_type": {
@@ -75,7 +71,7 @@ func resourceEventHubNamespaceSchemaRegistry() *pluginsdk.Resource {
 	}
 }
 
-func resourceEventHubNamespaceSchemaRegistryCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceSchemaRegistryCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Eventhub.SchemaRegistryClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -120,7 +116,7 @@ func resourceEventHubNamespaceSchemaRegistryCreate(d *pluginsdk.ResourceData, me
 	return resourceEventHubNamespaceSchemaRegistryRead(d, meta)
 }
 
-func resourceEventHubNamespaceSchemaRegistryRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceSchemaRegistryRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Eventhub.SchemaRegistryClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -158,7 +154,7 @@ func resourceEventHubNamespaceSchemaRegistryRead(d *pluginsdk.ResourceData, meta
 	return nil
 }
 
-func resourceEventHubNamespaceSchemaRegistryDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceSchemaRegistryDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Eventhub.SchemaRegistryClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

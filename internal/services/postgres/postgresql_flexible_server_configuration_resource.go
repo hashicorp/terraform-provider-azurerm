@@ -63,7 +63,7 @@ func resourcePostgresqlFlexibleServerConfiguration() *pluginsdk.Resource {
 	}
 }
 
-func resourceFlexibleServerConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceFlexibleServerConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Postgres.FlexibleServersConfigurationsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -112,7 +112,7 @@ func resourceFlexibleServerConfigurationCreateUpdate(d *pluginsdk.ResourceData, 
 	return resourceFlexibleServerConfigurationRead(d, meta)
 }
 
-func resourceFlexibleServerConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceFlexibleServerConfigurationRead(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Postgres.FlexibleServersConfigurationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -152,7 +152,7 @@ func resourceFlexibleServerConfigurationRead(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func resourceFlexibleServerConfigurationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceFlexibleServerConfigurationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Postgres.FlexibleServersConfigurationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

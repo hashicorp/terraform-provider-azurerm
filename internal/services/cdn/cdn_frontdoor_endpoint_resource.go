@@ -12,10 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -71,18 +71,18 @@ func resourceCdnFrontDoorEndpoint() *pluginsdk.Resource {
 	}
 }
 
-func resourceCdnFrontDoorEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorEndpointCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.AFDEndpointsClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	profileId, err := parse.FrontDoorProfileID(d.Get("cdn_frontdoor_profile_id").(string))
+	profileId, err := profiles.ParseProfileID(d.Get("cdn_frontdoor_profile_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := afdendpoints.NewAfdEndpointID(profileId.SubscriptionId, profileId.ResourceGroup, profileId.ProfileName, d.Get("name").(string))
+	id := afdendpoints.NewAfdEndpointID(profileId.SubscriptionId, profileId.ResourceGroupName, profileId.ProfileName, d.Get("name").(string))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
@@ -109,7 +109,7 @@ func resourceCdnFrontDoorEndpointCreate(d *pluginsdk.ResourceData, meta interfac
 			EnabledState: &enabledState,
 		},
 
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if err := client.CreateCallbackThenPoll(ctx, id, props, sdk.SetIDCallback(meta, &id, d)); err != nil {
@@ -121,7 +121,7 @@ func resourceCdnFrontDoorEndpointCreate(d *pluginsdk.ResourceData, meta interfac
 	return resourceCdnFrontDoorEndpointRead(d, meta)
 }
 
-func resourceCdnFrontDoorEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorEndpointRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.AFDEndpointsClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -158,7 +158,7 @@ func resourceCdnFrontDoorEndpointRead(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func resourceCdnFrontDoorEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorEndpointUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.AFDEndpointsClient
 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -184,7 +184,7 @@ func resourceCdnFrontDoorEndpointUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if d.HasChange("tags") {
-		props.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		props.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, props); err != nil {
@@ -194,7 +194,7 @@ func resourceCdnFrontDoorEndpointUpdate(d *pluginsdk.ResourceData, meta interfac
 	return resourceCdnFrontDoorEndpointRead(d, meta)
 }
 
-func resourceCdnFrontDoorEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorEndpointDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.AFDEndpointsClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
