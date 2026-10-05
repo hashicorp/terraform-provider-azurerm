@@ -34,12 +34,12 @@ func main() {
 
 // event is a line of `go test -json` output, see `go doc test2json`.
 type event struct {
-	Action      string
-	Package     string
-	Test        string
-	Elapsed     float64
-	Output      string
-	FailedBuild string
+	Action      string  `json:"Action"`
+	Package     string  `json:"Package"`
+	Test        string  `json:"Test"`
+	Elapsed     float64 `json:"Elapsed"`
+	Output      string  `json:"Output"`
+	FailedBuild string  `json:"FailedBuild"`
 }
 
 type testKey struct {
