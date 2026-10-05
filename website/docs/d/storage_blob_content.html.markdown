@@ -13,7 +13,7 @@ Use this data source to access the content of an existing Storage Blob.
 ~> **Note:** The content of the blob will be stored in the raw state as plain-text.
 [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
-~> **Note:** The maxiumum blob size is limited to 2MiB to prevent large blobs from breaking state files or crashing due to insufficient memory.
+~> **Note:** The maximum blob size is limited to 2MiB to prevent large blobs from breaking state files or crashing due to insufficient memory.
 
 ## Example Usage
 
