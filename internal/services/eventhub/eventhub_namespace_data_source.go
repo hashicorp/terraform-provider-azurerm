@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package eventhub
@@ -20,7 +20,7 @@ import (
 )
 
 func EventHubNamespaceDataSource() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: EventHubNamespaceDataSourceRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -106,11 +106,9 @@ func EventHubNamespaceDataSource() *pluginsdk.Resource {
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
-
-	return resource
 }
 
-func EventHubNamespaceDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func EventHubNamespaceDataSourceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Eventhub.NamespacesClient
 	authorizationRulesClient := meta.(*clients.Client).Eventhub.NamespaceAuthorizationRulesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId

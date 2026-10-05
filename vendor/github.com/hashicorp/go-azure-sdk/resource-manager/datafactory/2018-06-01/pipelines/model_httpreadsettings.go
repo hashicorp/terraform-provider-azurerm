@@ -19,9 +19,9 @@ type HTTPReadSettings struct {
 
 	// Fields inherited from StoreReadSettings
 
-	DisableMetricsCollection *bool  `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64 `json:"maxConcurrentConnections,omitempty"`
-	Type                     string `json:"type"`
+	DisableMetricsCollection *interface{} `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *interface{} `json:"maxConcurrentConnections,omitempty"`
+	Type                     string       `json:"type"`
 }
 
 func (s HTTPReadSettings) StoreReadSettings() BaseStoreReadSettingsImpl {

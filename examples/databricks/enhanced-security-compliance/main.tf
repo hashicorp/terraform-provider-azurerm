@@ -1,4 +1,4 @@
-# Copyright (c) HashiCorp, Inc.
+# Copyright IBM Corp. 2014, 2025
 # SPDX-License-Identifier: MPL-2.0
 
 provider "azurerm" {
@@ -20,7 +20,7 @@ resource "azurerm_databricks_workspace" "example" {
   enhanced_security_compliance {
     automatic_cluster_update_enabled      = true
     compliance_security_profile_enabled   = true
-    compliance_security_profile_standards = ["HIPAA", "PCI_DSS"]
+    compliance_security_profile_standards = ["HIPAA", "PCI_DSS", "HITRUST", "GERMANY_C5", "GERMANY_TISAX"]
     enhanced_security_monitoring_enabled  = true
   }
 }

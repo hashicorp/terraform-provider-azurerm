@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/applicationsecuritygroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/privateendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/applicationsecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/privateendpoints"
 )
 
 var _ resourceids.Id = PrivateEndpointApplicationSecurityGroupAssociationId{}
@@ -64,7 +64,7 @@ func PrivateEndpointApplicationSecurityGroupAssociationID(input string) (Private
 	}, nil
 }
 
-func PrivateEndpointApplicationSecurityGroupAssociationIDValidation(input interface{}, key string) (warnings []string, errors []error) {
+func PrivateEndpointApplicationSecurityGroupAssociationIDValidation(input any, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
