@@ -9,14 +9,23 @@ var defaultStartHour = 23
 // specifies the default level of parallelism per-service-package
 var defaultParallelism = 20
 
+// specifies the default number of concurrent builds allowed per-service-package
+var defaultMaxConcurrentBuilds = 3
+
+// specifies the default number of concurrent builds allowed per-branch per-service-package
+var defaultMaxConcurrentBuildsPerBranch = 1
+
 // specifies the default build timeout in hours
 var defaultTimeout = 12
 
 // specifies the default version of Terraform Core which should be used for testing
-var defaultTerraformCoreVersion = "1.12.2"
+var defaultTerraformCoreVersion = "1.16.4"
 
 // This represents a cron view of days of the week, Monday - Friday.
 const val defaultDaysOfWeek = "2,3,4,5,6"
+
+// This represents a cron view of Sunday.
+const val defaultWeeklyDay = "1"
 
 // Cron value for any day of month
 const val defaultDaysOfMonth = "*"
@@ -40,7 +49,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "apimanagement" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus2", "westus2", false)),
 
         // App Service Plans for Linux are currently unavailable in WestUS2
-        "appservice" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", true)),
+        "appservice" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", true), maxConcurrentBuilds = 1),
 
         // Arc Kubernetes Provisioned Cluster is only available in certain locations
         "arckubernetes" to testConfiguration(locationOverride = LocationConfiguration("australiaeast", "eastus", "westeurope", true)),
@@ -55,10 +64,13 @@ var serviceTestConfigurationOverrides = mapOf(
         "blueprints" to testConfiguration(parallelism = 1),
 
         // CDN is only available in certain locations
-        "cdn" to testConfiguration(locationOverride = LocationConfiguration("centralus", "eastus2", "westeurope", true)),
+        "cdn" to testConfiguration(locationOverride = LocationConfiguration("centralus", "eastus2", "westeurope", true), disableTriggers = true),
 
         // Chaosstudio is only available in certain locations
         "chaosstudio" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus", "westus", false)),
+
+        // Codesigning is only available in certain locations
+        "codesigning" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus", "westus", true)),
 
         // "cognitive" is expensive - Monday, Wednesday, Friday
         // cognitive is only available in certain locations
@@ -68,14 +80,17 @@ var serviceTestConfigurationOverrides = mapOf(
         "cosmos" to testConfiguration(locationOverride = LocationConfiguration("westus", "northeurope", "eastus2", true)),
 
         // Confidential Ledger
-        "confidentialledger" to testConfiguration(locationOverride = LocationConfiguration("eastus","southcentralus","westeurope", false)),
+        "confidentialledger" to testConfiguration(parallelism = 1, locationOverride = LocationConfiguration("eastus","southeastasia","westeurope", false)),
 
         // Container App Managed Environments are limited to 20 per location, using 10 as they can take some time to clear
         // Enable rotation test to mitigate resource burden in a single region
-        "containerapps" to testConfiguration(parallelism = 10, locationOverride = LocationConfiguration("eastus2","westus2","southcentralus", true)),
+        "containerapps" to testConfiguration(parallelism = 10, locationOverride = LocationConfiguration("eastus2","westus2","southcentralus", true), maxConcurrentBuilds = 1),
 
         // The AKS API has a low rate limit
-        "containers" to testConfiguration(parallelism = 5, locationOverride = LocationConfiguration("eastus","westeurope","eastus2", false), timeout = 18),
+        "containers" to testConfiguration(parallelism = 6, locationOverride = LocationConfiguration("eastus","westeurope","eastus2", false), timeout = 18),
+
+        // `azurerm_cost_management_scheduled_action` that can be targeted on a cost management view is limited
+        "costmanagement" to testConfiguration(parallelism = 4),
 
         // Custom Providers is only available in certain locations
         "customproviders" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westus2", "westeurope", true)),
@@ -90,7 +105,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "datafactory" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "westus2", false)),
 
         // Dev Center only available in some regions / has a quota of 5
-        "devcenter" to testConfiguration(parallelism = 4, locationOverride = LocationConfiguration("westeurope", "uksouth", "canadacentral", false)),
+        "devcenter" to testConfiguration(parallelism = 2, locationOverride = LocationConfiguration("southeastasia", "uksouth", "canadacentral", true)),
 
         // "hdinsight" is super expensive - G class VM's are not available in westus2, quota only available in westeurope currently
         "hdinsight" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "eastus2", false)),
@@ -113,17 +128,23 @@ var serviceTestConfigurationOverrides = mapOf(
         // load balancer global tire Public IP is only available in
         "loadbalancer" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus2", "westus", false)),
 
+        // Playwright workspace is only available in certain locations, parallelism set to 1 as its default quota is 2
+        "loadtestservice" to testConfiguration(parallelism = 1, locationOverride = LocationConfiguration("westeurope", "eastus", "westus3", false)),
+
         // Log Analytics Clusters have a max deployments of 2 - parallelism set to 1 or `importTest` fails
         "loganalytics" to testConfiguration(parallelism = 1),
 
         // Logic uses app service which is only available in certain locations
         "logic" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
 
+        // Rotate machinelearning acctest across supported-but-less-frequently-used locations to prevent quota and rate limiting
+        "machinelearning" to testConfiguration(locationOverride = LocationConfiguration("westus3", "northeurope", "uksouth", true)),
+
+        // Managed Redis is only available in certain locations, and has limited quota
+        "managedredis" to testConfiguration(locationOverride = LocationConfiguration("uksouth", "westus3", "southcentralus", true)),
+
         // Maps is only available in certain locations
         "maps" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "westus2", "eastus", false)),
-
-        // MobileNetwork is only available in certain locations
-        "mobilenetwork" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westeurope", "centraluseuap", false)),
 
         // Mongocluster free tier is currently only available in southindia
         "mongocluster" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus2", "southindia", false)),
@@ -144,19 +165,19 @@ var serviceTestConfigurationOverrides = mapOf(
         "newrelic" to testConfiguration(locationOverride = LocationConfiguration("centraluseuap", "eastus", "eastus", false)),
 
         // Network Function is only available in certain locations
-        "networkfunction" to testConfiguration(locationOverride = LocationConfiguration("westus2", "eastus2", "westeurope", false)),
+        "networkfunction" to testConfiguration(locationOverride = LocationConfiguration("southeastasia", "eastus2", "westeurope", true)),
 
         // Network Regional Tire Public IP is only available in
         "network" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus2", "westus", false), timeout = 24),
 
-        // Orbital is only available in certain locations
-        "orbital" to testConfiguration(locationOverride = LocationConfiguration("eastus", "southcentralus", "westus2", false)),
+        // oracle can't be schedule tested on the acctest subscription due to licencing limitations, results in build agent deadlock due to no tests.
+        "oracle" to testConfiguration(disableTriggers = true),
 
         "paloalto" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus", "westus", false)),
 
         "policy" to testConfiguration(useAltSubscription = true),
 
-        "postgres" to testConfiguration(locationOverride = LocationConfiguration("northeurope", "centralus", "westeurope", false)),
+        "postgres" to testConfiguration(locationOverride = LocationConfiguration("westus3", "northeurope", "westeurope", false)),
 
         // Private DNS Resolver is only available in certain locations
         "privatednsresolver" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westus3", "westeurope", true)),
@@ -165,10 +186,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "purview" to testConfiguration(locationOverride = LocationConfiguration("eastus", "southcentralus", "westus", true)),
 
         // Qumulo asked to use canary env for testing, eastasia is a canary region for qumulo
-        "qumulo" to testConfiguration(locationOverride = LocationConfiguration("eastasia", "centralus2euap", "westeurope", true)),
-
-        // redisenterprise is costly - Monday, Wednesday, Friday
-        "redisenterprise" to testConfiguration(daysOfWeek = "2,4,6"),
+        "qumulo" to testConfiguration(locationOverride = LocationConfiguration("eastasia", "centraluseuap", "westeurope", true)),
 
         // servicebus quotas are limited and we experience failures if tests
         // execute too quickly as we run out of namespaces in the sub
@@ -193,10 +211,6 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // Currently, we have insufficient quota to actually run these, but there are a few nodes in West Europe, so we'll pin it there for now
         "vmware" to testConfiguration(parallelism = 3, locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", false)),
-
-        // In general, Azure Voice Service is available in several different regions, but each subscription will only be allowlisted for specific regions(`westcentralus`, `westcentralus`, `westcentralus`).
-        // Only the regions (`westcentralus`) is specified since the devtest subscription does not support creating resource group for the other two regions.
-        "voiceservices" to testConfiguration(parallelism = 3, locationOverride = LocationConfiguration("westcentralus", "westcentralus", "westcentralus", false)),
 
         // Offset start hour to avoid collision with new App Service, reduce frequency of testing days
         "web" to testConfiguration(startHour = 3, daysOfWeek = "1,3,5", locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", true)),

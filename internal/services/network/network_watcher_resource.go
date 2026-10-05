@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkwatchers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkwatchers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -53,7 +53,7 @@ func resourceNetworkWatcher() *pluginsdk.Resource {
 	}
 }
 
-func resourceNetworkWatcherCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkWatcherCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkWatchers
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -61,20 +61,22 @@ func resourceNetworkWatcherCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	id := networkwatchers.NewNetworkWatcherID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_network_watcher", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_network_watcher", id.ID())
+		}
 	}
 
 	watcher := networkwatchers.NetworkWatcher{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, watcher); err != nil {
@@ -86,7 +88,7 @@ func resourceNetworkWatcherCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	return resourceNetworkWatcherRead(d, meta)
 }
 
-func resourceNetworkWatcherUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkWatcherUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkWatchers
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -108,7 +110,7 @@ func resourceNetworkWatcherUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	payload := existing.Model
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, *id, *payload); err != nil {
@@ -118,7 +120,7 @@ func resourceNetworkWatcherUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	return resourceNetworkWatcherRead(d, meta)
 }
 
-func resourceNetworkWatcherRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkWatcherRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkWatchers
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -152,7 +154,7 @@ func resourceNetworkWatcherRead(d *pluginsdk.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceNetworkWatcherDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkWatcherDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkWatchers
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -57,15 +57,17 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Dynatrace monitor should exist. Changing this forces a new resource to be created.
 
-* `identity` - (Required) The kind of managed identity assigned to this resource.  A `identity` block as defined below.
+* `identity` - (Required) The kind of managed identity assigned to this resource. A `identity` block as defined below.
 
-* `marketplace_subscription` - (Required) Flag specifying the Marketplace Subscription Status of the resource. If payment is not made in time, the resource will go in Suspended state. Possible values are `Active` and `Suspended`.
+* `marketplace_subscription` - (Required) Flag specifying the Marketplace Subscription Status of the resource. If payment is not made in time, the resource will go in Suspended state. Possible values are `Active` and `Suspended`. Changing this forces a new resource to be created.
 
 * `plan` - (Required) Billing plan information. A `plan` block as defined below. Changing this forces a new resource to be created.
 
-* `user` - (Required) User's information. A `user` block as defined below. Chainging this forces a new resource to be created.
+* `user` - (Required) User's information. A `user` block as defined below. Changing this forces a new resource to be created.
 
-* `monitoring_enabled` - (Optional) Flag specifying if the resource monitoring is enabled or disabled. Default is `true`.
+* `monitoring_enabled` - (Optional) Flag specifying if the resource monitoring is enabled or disabled. Default is `true`. Changing this forces a new resource to be created.
+
+* `environment_properties` - (Optional) Properties of the Dynatrace environment. An `environment_properties` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -79,7 +81,7 @@ A `identity` block supports the following:
 
 A `plan` block supports the following:
 
-* `billing_cycle` - (Optional) Different billing cycles. Possible values are `MONTHLY` and `WEEKLY`.
+* `billing_cycle` - (Optional) Different billing cycles. Possible values are `MONTHLY`, `WEEKLY` and `YEARLY`.
 
 * `effective_date` - (Required) Date when plan was applied.
 
@@ -91,7 +93,7 @@ A `plan` block supports the following:
 
 A `user` block supports the following:
 
-* `country` - (Required) Country of the user.
+* `country` - (Optional) Country of the user.
 
 * `email` - (Required) Email of the user used by Dynatrace for contacting them if needed.
 
@@ -99,7 +101,19 @@ A `user` block supports the following:
 
 * `last_name` - (Required) Last name of the user.
 
-* `phone_number` - (Required) phone number of the user by Dynatrace for contacting them if needed.
+* `phone_number` - (Optional) phone number of the user by Dynatrace for contacting them if needed.
+
+---
+
+An `environment_properties` block supports the following:
+
+* `environment_info` - (Required) Information about the Dynatrace environment. An `environment_info` block as defined below.
+
+---
+
+An `environment_info` block supports the following:
+
+* `environment_id` - (Required) The ID of the Dynatrace environment to be created.
 
 ## Attributes Reference
 
@@ -109,7 +123,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Dynatrace monitor.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Dynatrace monitor.
@@ -128,4 +142,4 @@ terraform import azurerm_dynatrace_monitor.example /subscriptions/12345678-1234-
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Dynatrace.Observability`: 2023-04-27
+* `Dynatrace.Observability` - 2023-04-27

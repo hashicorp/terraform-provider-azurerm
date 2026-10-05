@@ -11,7 +11,7 @@ import (
 
 const autorizationAAD = "Authorization=AAD"
 
-func ApplicationInsightsAuthenticationString(input interface{}, key string) (warnings []string, errors []error) {
+func ApplicationInsightsAuthenticationString(input any, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 
 	if !ok {
