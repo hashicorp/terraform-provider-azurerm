@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package policy
@@ -8,7 +8,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" //nolint:staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -16,9 +17,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func dataSourceArmPolicySetDefinition() *pluginsdk.Resource {
+func dataSourcePolicySetDefinition() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceArmPolicySetDefinitionRead,
+		Read: dataSourcePolicySetDefinitionRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -28,7 +29,7 @@ func dataSourceArmPolicySetDefinition() *pluginsdk.Resource {
 			"display_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringIsNotEmpty,
 				ExactlyOneOf: []string{"name", "display_name"},
 			},
@@ -36,7 +37,7 @@ func dataSourceArmPolicySetDefinition() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringIsNotEmpty,
 				ExactlyOneOf: []string{"name", "display_name"},
 			},
@@ -146,7 +147,7 @@ func dataSourceArmPolicySetDefinition() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceArmPolicySetDefinitionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourcePolicySetDefinitionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Policy.SetDefinitionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -188,7 +189,7 @@ func dataSourceArmPolicySetDefinitionRead(d *pluginsdk.ResourceData, meta interf
 	d.Set("policy_type", setDefinition.PolicyType)
 	d.Set("metadata", flattenJSON(setDefinition.Metadata))
 
-	if paramsStr, err := flattenParameterDefinitionsValueToString(setDefinition.Parameters); err != nil {
+	if paramsStr, err := flattenParameterDefinitionsValueToStringTrack1(setDefinition.Parameters); err != nil {
 		return fmt.Errorf("flattening JSON for `parameters`: %+v", err)
 	} else {
 		d.Set("parameters", paramsStr)
@@ -196,11 +197,11 @@ func dataSourceArmPolicySetDefinitionRead(d *pluginsdk.ResourceData, meta interf
 
 	definitionBytes, err := json.Marshal(setDefinition.PolicyDefinitions)
 	if err != nil {
-		return fmt.Errorf("flattening JSON for `policy_defintions`: %+v", err)
+		return fmt.Errorf("flattening JSON for `policy_definitions`: %+v", err)
 	}
 	d.Set("policy_definitions", string(definitionBytes))
 
-	references, err := flattenAzureRMPolicySetDefinitionPolicyDefinitions(setDefinition.PolicyDefinitions)
+	references, err := flattenAzureRMPolicySetDefinitionPolicyDefinitionsTrack1(setDefinition.PolicyDefinitions)
 	if err != nil {
 		return fmt.Errorf("flattening `policy_definition_reference`: %+v", err)
 	}
@@ -208,9 +209,68 @@ func dataSourceArmPolicySetDefinitionRead(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("setting `policy_definition_reference`: %+v", err)
 	}
 
-	if err := d.Set("policy_definition_group", flattenAzureRMPolicySetDefinitionPolicyGroups(setDefinition.PolicyDefinitionGroups)); err != nil {
+	if err := d.Set("policy_definition_group", flattenAzureRMPolicySetDefinitionPolicyGroupsTrack1(setDefinition.PolicyDefinitionGroups)); err != nil {
 		return fmt.Errorf("setting `policy_definition_group`: %+v", err)
 	}
 
 	return nil
+}
+
+func flattenAzureRMPolicySetDefinitionPolicyDefinitionsTrack1(input *[]policy.DefinitionReference) ([]any, error) {
+	result := make([]any, 0)
+	if input == nil {
+		return result, nil
+	}
+
+	for _, definition := range *input {
+		policyDefinitionID := pointer.From(definition.PolicyDefinitionID)
+
+		parametersMap := make(map[string]any)
+		for k, v := range definition.Parameters {
+			if v == nil {
+				continue
+			}
+			parametersMap[k] = fmt.Sprintf("%v", v.Value) // map in terraform only accepts string as its values, therefore we have to convert the value to string
+		}
+
+		parameterValues, err := flattenParameterValuesValueToStringTrack1(definition.Parameters)
+		if err != nil {
+			return nil, fmt.Errorf("serializing JSON from `parameter_values`: %+v", err)
+		}
+
+		policyDefinitionReference := pointer.From(definition.PolicyDefinitionReferenceID)
+
+		result = append(result, map[string]any{
+			"policy_definition_id": policyDefinitionID,
+			"parameter_values":     parameterValues,
+			"reference_id":         policyDefinitionReference,
+			"policy_group_names":   pluginsdk.FlattenSlice(definition.GroupNames),
+		})
+	}
+	return result, nil
+}
+
+func flattenAzureRMPolicySetDefinitionPolicyGroupsTrack1(input *[]policy.DefinitionGroup) []any {
+	result := make([]any, 0)
+	if input == nil {
+		return result
+	}
+
+	for _, group := range *input {
+		name := pointer.From(group.Name)
+		displayName := pointer.From(group.DisplayName)
+		category := pointer.From(group.Category)
+		description := pointer.From(group.Description)
+		metadataID := pointer.From(group.AdditionalMetadataID)
+
+		result = append(result, map[string]any{
+			"name":                            name,
+			"display_name":                    displayName,
+			"category":                        category,
+			"description":                     description,
+			"additional_metadata_resource_id": metadataID,
+		})
+	}
+
+	return result
 }

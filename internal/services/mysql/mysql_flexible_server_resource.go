@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mysql
@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 	"time"
 
@@ -15,21 +16,25 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/serverfailover"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
 	"github.com/hashicorp/go-cty/cty"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -test-expect-non-empty
 
 const (
 	ServerMaintenanceWindowEnabled  = "Enabled"
@@ -46,16 +51,17 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 		Delete: resourceMysqlFlexibleServerDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(1 * time.Hour),
+			Create: pluginsdk.DefaultTimeout(2 * time.Hour),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(1 * time.Hour),
+			Update: pluginsdk.DefaultTimeout(2 * time.Hour),
 			Delete: pluginsdk.DefaultTimeout(1 * time.Hour),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := servers.ParseFlexibleServerID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&servers.FlexibleServerId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&servers.FlexibleServerId{}),
+		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -72,7 +78,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 			"administrator_login": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ForceNew:     true,
 				ValidateFunc: validate.FlexibleServerAdministratorLogin,
 			},
@@ -108,15 +114,10 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 			},
 
 			"create_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(servers.CreateModeDefault),
-					string(servers.CreateModeGeoRestore),
-					string(servers.CreateModePointInTimeRestore),
-					string(servers.CreateModeReplica),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForCreateMode(), false),
 			},
 
 			"customer_managed_key": {
@@ -128,7 +129,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 						"key_vault_key_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+							ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 							RequiredWith: []string{
 								"identity",
 								"customer_managed_key.0.primary_user_assigned_identity_id",
@@ -142,7 +143,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 						"geo_backup_key_vault_key_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+							ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 							RequiredWith: []string{
 								"identity",
 								"customer_managed_key.0.geo_backup_user_assigned_identity_id",
@@ -186,7 +187,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 							}, false),
 						},
 
-						"standby_availability_zone": commonschema.ZoneSingleOptional(),
+						"standby_availability_zone": commonschema.ZoneSingleOptionalComputed(),
 					},
 				},
 			},
@@ -237,10 +238,18 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 				ValidateFunc: privatezones.ValidatePrivateDnsZoneID,
 			},
 
+			"public_network_access": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// NOTE: O+C because Azure normally defaults this to `Enabled` unless values are provided for `delegated_subnet_id` and `private_dns_zone_id`
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForEnableStatusEnum(), false),
+			},
+
 			"replication_role": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice([]string{
 					string(servers.ReplicationRoleNone),
 				}, false),
@@ -249,7 +258,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 			"sku_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validate.FlexibleServerSkuName,
 			},
 
@@ -263,7 +272,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 			"storage": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -276,14 +285,20 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 						"iops": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.IntBetween(360, 48000),
+						},
+
+						"log_on_disk_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
 						},
 
 						"size_gb": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.IntBetween(20, 16384),
 						},
 						"io_scaling_enabled": {
@@ -298,23 +313,19 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 			"version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				// Note: O+C because Azure assigns a version when not explicitly set
 				Computed: true,
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(servers.ServerVersionFivePointSeven),
 					string(servers.ServerVersionEightPointZeroPointTwoOne),
+					string(validate.ServerVersionEightPointFour),
 				}, false),
 			},
 
-			"zone": commonschema.ZoneSingleOptional(),
+			"zone": commonschema.ZoneSingleOptionalComputed(),
 
 			"fqdn": {
 				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"public_network_access_enabled": {
-				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
@@ -327,14 +338,14 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			pluginsdk.ForceNewIfChange("storage.0.size_gb", func(ctx context.Context, old, new, meta interface{}) bool {
+			pluginsdk.ForceNewIfChange("storage.0.size_gb", func(ctx context.Context, old, new, meta any) bool {
 				return new.(int) < old.(int)
 			}),
 		),
 	}
 }
 
-func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).MySQL.FlexibleServers.Servers
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -345,14 +356,16 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 
 	id := servers.NewFlexibleServerID(subscriptionId, resourceGroup, name)
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	{
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_mysql_flexible_server", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_mysql_flexible_server", id.ID())
+		}
 	}
 
 	woPassword, err := pluginsdk.GetWriteOnly(d, "administrator_password_wo", cty.String)
@@ -392,7 +405,7 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	storageSettings := expandArmServerStorage(d.Get("storage").([]interface{}))
+	storageSettings := expandArmServerStorage(d.Get("storage").([]any))
 	if storageSettings != nil {
 		if storageSettings.Iops != nil && *storageSettings.AutoIoScaling == servers.EnableStatusEnumEnabled {
 			return fmt.Errorf("`iops` can not be set if `io_scaling_enabled` is set to true")
@@ -410,22 +423,22 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 		Properties: &servers.ServerProperties{
 			CreateMode:       &createMode,
 			Version:          &version,
-			Storage:          expandArmServerStorage(d.Get("storage").([]interface{})),
+			Storage:          expandArmServerStorage(d.Get("storage").([]any)),
 			Network:          expandArmServerNetwork(d),
-			HighAvailability: expandFlexibleServerHighAvailability(d.Get("high_availability").([]interface{})),
+			HighAvailability: expandFlexibleServerHighAvailability(d.Get("high_availability").([]any)),
 			Backup:           expandArmServerBackup(d),
-			DataEncryption:   expandFlexibleServerDataEncryption(d.Get("customer_managed_key").([]interface{})),
+			DataEncryption:   expandFlexibleServerDataEncryption(d.Get("customer_managed_key").([]any)),
 		},
 		Sku:  sku,
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v, ok := d.GetOk("administrator_login"); ok && v.(string) != "" {
-		parameters.Properties.AdministratorLogin = utils.String(v.(string))
+		parameters.Properties.AdministratorLogin = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("administrator_password"); ok && v.(string) != "" {
-		parameters.Properties.AdministratorLoginPassword = utils.String(v.(string))
+		parameters.Properties.AdministratorLoginPassword = pointer.To(v.(string))
 	}
 
 	if !woPassword.IsNull() {
@@ -433,11 +446,11 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("zone"); ok && v.(string) != "" {
-		parameters.Properties.AvailabilityZone = utils.String(v.(string))
+		parameters.Properties.AvailabilityZone = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("source_server_id"); ok && v.(string) != "" {
-		parameters.Properties.SourceServerResourceId = utils.String(v.(string))
+		parameters.Properties.SourceServerResourceId = pointer.To(v.(string))
 	}
 
 	pointInTimeUTC := d.Get("point_in_time_restore_time_in_utc").(string)
@@ -449,30 +462,27 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 		parameters.Properties.SetRestorePointInTimeAsTime(v)
 	}
 
-	identity, err := expandFlexibleServerIdentity(d.Get("identity").([]interface{}))
+	identity, err := expandFlexibleServerIdentity(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`")
 	}
 	parameters.Identity = identity
 
-	if err := client.CreateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, id, parameters, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	// Add the state wait function until issue https://github.com/Azure/azure-rest-api-specs/issues/21178 is fixed.
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending: []string{
-			"Pending",
-		},
-		Target: []string{
-			"OK",
-		},
-		Refresh:    mySqlFlexibleServerCreationRefreshFunc(ctx, client, id),
-		MinTimeout: 10 * time.Second,
-		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
+	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
 	}
 
-	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+	// Account for eventual consistency until issue https://github.com/Azure/azure-rest-api-specs/issues/21178 is fixed.
+	poller := custompollers.NewEventualConsistencyPoller(1, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.Get(pollerCtx, id)
+		return resp.HttpResponse, err
+	}, custompollers.DefaultCreationEventualConsistencyPollerOptions())
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for creation of Mysql Flexible Server %s: %+v", id, err)
 	}
 
@@ -480,7 +490,7 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 	if v, ok := d.GetOk("maintenance_window"); ok {
 		mwParams := servers.ServerForUpdate{
 			Properties: &servers.ServerPropertiesForUpdate{
-				MaintenanceWindow: expandArmServerMaintenanceWindow(v.([]interface{})),
+				MaintenanceWindow: expandArmServerMaintenanceWindow(v.([]any)),
 			},
 		}
 		if err := client.UpdateThenPoll(ctx, id, mwParams); err != nil {
@@ -488,25 +498,10 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	d.SetId(id.ID())
-
 	return resourceMysqlFlexibleServerRead(d, meta)
 }
 
-func mySqlFlexibleServerCreationRefreshFunc(ctx context.Context, client *servers.ServersClient, id servers.FlexibleServerId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			if response.WasNotFound(resp.HttpResponse) {
-				return resp, "Pending", nil
-			}
-			return resp, "Error", err
-		}
-		return "OK", "OK", nil
-	}
-}
-
-func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MySQL.FlexibleServers.Servers
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -526,22 +521,26 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	return resourceMysqlFlexibleServerFlatten(d, id, resp.Model)
+}
+
+func resourceMysqlFlexibleServerFlatten(d *pluginsdk.ResourceData, id *servers.FlexibleServerId, server *servers.Server) error {
 	d.Set("name", id.FlexibleServerName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(&model.Location))
-		if props := model.Properties; props != nil {
+	if server != nil {
+		d.Set("location", location.NormalizeNilable(&server.Location))
+		if props := server.Properties; props != nil {
 			d.Set("administrator_login", props.AdministratorLogin)
 			d.Set("zone", props.AvailabilityZone)
-			d.Set("version", string(pointer.From(props.Version)))
+			d.Set("version", pointer.FromEnum(props.Version))
 			d.Set("fqdn", props.FullyQualifiedDomainName)
 			d.Set("source_server_id", props.SourceServerResourceId)
 
 			if network := props.Network; network != nil {
-				d.Set("public_network_access_enabled", *network.PublicNetworkAccess == servers.EnableStatusEnumEnabled)
 				d.Set("delegated_subnet_id", network.DelegatedSubnetResourceId)
 				d.Set("private_dns_zone_id", network.PrivateDnsZoneResourceId)
+				d.Set("public_network_access", pointer.FromEnum(network.PublicNetworkAccess))
 			}
 
 			cmk, err := flattenFlexibleServerDataEncryption(props.DataEncryption)
@@ -552,7 +551,7 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 				return fmt.Errorf("setting `customer_managed_key`: %+v", err)
 			}
 
-			identity, err := flattenFlexibleServerIdentity(model.Identity)
+			identity, err := flattenFlexibleServerIdentity(server.Identity)
 			if err != nil {
 				return fmt.Errorf("flattening `identity`: %+v", err)
 			}
@@ -576,10 +575,10 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 			if err := d.Set("high_availability", flattenFlexibleServerHighAvailability(props.HighAvailability)); err != nil {
 				return fmt.Errorf("setting `high_availability`: %+v", err)
 			}
-			d.Set("replication_role", string(pointer.From(props.ReplicationRole)))
+			d.Set("replication_role", pointer.FromEnum(props.ReplicationRole))
 			d.Set("replica_capacity", props.ReplicaCapacity)
 		}
-		sku, err := flattenFlexibleServerSku(model.Sku)
+		sku, err := flattenFlexibleServerSku(server.Sku)
 		if err != nil {
 			return fmt.Errorf("flattening `sku_name`: %+v", err)
 		}
@@ -587,13 +586,15 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 
 		d.Set("administrator_password_wo_version", d.Get("administrator_password_wo_version").(int))
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, server.Tags); err != nil {
+			return err
+		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MySQL.FlexibleServers.Servers
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -637,10 +638,9 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 	if d.HasChange("replication_role") {
 		oldReplicationRole, newReplicationRole := d.GetChange("replication_role")
 		if oldReplicationRole == "Replica" && newReplicationRole == "None" {
-			replicationRole := servers.ReplicationRoleNone
 			parameters := servers.ServerForUpdate{
 				Properties: &servers.ServerPropertiesForUpdate{
-					ReplicationRole: &replicationRole,
+					ReplicationRole: pointer.To(servers.ReplicationRoleNone),
 				},
 			}
 
@@ -657,7 +657,7 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 	if d.HasChange("storage") && d.Get("storage.0.auto_grow_enabled").(bool) {
 		parameters := servers.ServerForUpdate{
 			Properties: &servers.ServerPropertiesForUpdate{
-				Storage: expandArmServerStorage(d.Get("storage").([]interface{})),
+				Storage: expandArmServerStorage(d.Get("storage").([]any)),
 			},
 		}
 
@@ -674,11 +674,10 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 			return fmt.Errorf("failing over %s: %+v", *id, err)
 		}
 	} else if d.HasChange("high_availability") {
-		mode := servers.HighAvailabilityModeDisabled
 		parameters := servers.ServerForUpdate{
 			Properties: &servers.ServerPropertiesForUpdate{
 				HighAvailability: &servers.HighAvailability{
-					Mode: &mode,
+					Mode: pointer.To(servers.HighAvailabilityModeDisabled),
 				},
 			},
 		}
@@ -687,7 +686,7 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 			return fmt.Errorf("disabling `high_availability` for %s: %+v", *id, err)
 		}
 
-		parameters.Properties.HighAvailability = expandFlexibleServerHighAvailability(d.Get("high_availability").([]interface{}))
+		parameters.Properties.HighAvailability = expandFlexibleServerHighAvailability(d.Get("high_availability").([]any))
 
 		if *parameters.Properties.HighAvailability.Mode != servers.HighAvailabilityModeDisabled {
 			if err = client.UpdateThenPoll(ctx, *id, parameters); err != nil {
@@ -701,7 +700,7 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("administrator_password") {
-		parameters.Properties.AdministratorLoginPassword = utils.String(d.Get("administrator_password").(string))
+		parameters.Properties.AdministratorLoginPassword = pointer.To(d.Get("administrator_password").(string))
 	}
 
 	if d.HasChange("administrator_password_wo_version") {
@@ -714,16 +713,16 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	if d.HasChange("backup_retention_days") || d.HasChange("geo_redundant_backup_enabled") {
+	if d.HasChanges("backup_retention_days", "geo_redundant_backup_enabled") {
 		parameters.Properties.Backup = expandArmServerBackup(d)
 	}
 
 	if d.HasChange("customer_managed_key") {
-		parameters.Properties.DataEncryption = expandFlexibleServerDataEncryption(d.Get("customer_managed_key").([]interface{}))
+		parameters.Properties.DataEncryption = expandFlexibleServerDataEncryption(d.Get("customer_managed_key").([]any))
 	}
 
 	if d.HasChange("identity") {
-		identity, err := expandFlexibleServerIdentity(d.Get("identity").([]interface{}))
+		identity, err := expandFlexibleServerIdentity(d.Get("identity").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -731,7 +730,7 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("maintenance_window") {
-		parameters.Properties.MaintenanceWindow = expandArmServerMaintenanceWindow(d.Get("maintenance_window").([]interface{}))
+		parameters.Properties.MaintenanceWindow = expandArmServerMaintenanceWindow(d.Get("maintenance_window").([]any))
 	}
 
 	if d.HasChange("sku_name") {
@@ -743,7 +742,14 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("tags") {
-		parameters.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		parameters.Tags = tags.Expand(d.Get("tags").(map[string]any))
+	}
+
+	if d.HasChange("public_network_access") {
+		if parameters.Properties.Network == nil {
+			parameters.Properties.Network = &servers.Network{}
+		}
+		parameters.Properties.Network.PublicNetworkAccess = pointer.ToEnum[servers.EnableStatusEnum](d.Get("public_network_access").(string))
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
@@ -751,9 +757,25 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("storage") && !d.Get("storage.0.auto_grow_enabled").(bool) {
+		// log_on_disk_enabled must be updated first when auto_grow_enabled and log_on_disk_enabled are updated from true to false in one request
+		if oldLogOnDiskEnabled, newLogOnDiskEnabled := d.GetChange("storage.0.log_on_disk_enabled"); oldLogOnDiskEnabled.(bool) && !newLogOnDiskEnabled.(bool) {
+			if oldAutoGrowEnabled, newAutoGrowEnabled := d.GetChange("storage.0.auto_grow_enabled"); oldAutoGrowEnabled.(bool) && !newAutoGrowEnabled.(bool) {
+				parameters := servers.ServerForUpdate{
+					Properties: &servers.ServerPropertiesForUpdate{
+						Storage: &servers.Storage{
+							LogOnDisk: pointer.To(servers.EnableStatusEnumDisabled),
+						},
+					},
+				}
+				if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
+					return fmt.Errorf("disabling `log_on_disk_enabled` for %s: %+v", *id, err)
+				}
+			}
+		}
+
 		parameters := servers.ServerForUpdate{
 			Properties: &servers.ServerPropertiesForUpdate{
-				Storage: expandArmServerStorage(d.Get("storage").([]interface{})),
+				Storage: expandArmServerStorage(d.Get("storage").([]any)),
 			},
 		}
 
@@ -762,10 +784,22 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
+	if d.HasChange("version") {
+		parameters := servers.ServerForUpdate{
+			Properties: &servers.ServerPropertiesForUpdate{
+				Version: pointer.ToEnum[servers.ServerVersion](d.Get("version").(string)),
+			},
+		}
+
+		if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
+			return fmt.Errorf("updating `version` for %s: %+v", *id, err)
+		}
+	}
+
 	return resourceMysqlFlexibleServerRead(d, meta)
 }
 
-func resourceMysqlFlexibleServerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMysqlFlexibleServerDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MySQL.FlexibleServers.Servers
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -786,40 +820,44 @@ func expandArmServerNetwork(d *pluginsdk.ResourceData) *servers.Network {
 	network := servers.Network{}
 
 	if v, ok := d.GetOk("delegated_subnet_id"); ok {
-		network.DelegatedSubnetResourceId = utils.String(v.(string))
+		network.DelegatedSubnetResourceId = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("private_dns_zone_id"); ok {
-		network.PrivateDnsZoneResourceId = utils.String(v.(string))
+		network.PrivateDnsZoneResourceId = pointer.To(v.(string))
+	}
+
+	if v, ok := d.GetOk("public_network_access"); ok {
+		network.PublicNetworkAccess = pointer.ToEnum[servers.EnableStatusEnum](v.(string))
 	}
 
 	return &network
 }
 
-func expandArmServerMaintenanceWindow(input []interface{}) *servers.MaintenanceWindow {
+func expandArmServerMaintenanceWindow(input []any) *servers.MaintenanceWindow {
 	if len(input) == 0 {
 		return &servers.MaintenanceWindow{
-			CustomWindow: utils.String(ServerMaintenanceWindowDisabled),
+			CustomWindow: pointer.To(ServerMaintenanceWindowDisabled),
 		}
 	}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	maintenanceWindow := servers.MaintenanceWindow{
-		CustomWindow: utils.String(ServerMaintenanceWindowEnabled),
-		StartHour:    utils.Int64(int64(v["start_hour"].(int))),
-		StartMinute:  utils.Int64(int64(v["start_minute"].(int))),
-		DayOfWeek:    utils.Int64(int64(v["day_of_week"].(int))),
+		CustomWindow: pointer.To(ServerMaintenanceWindowEnabled),
+		StartHour:    pointer.To(int64(v["start_hour"].(int))),
+		StartMinute:  pointer.To(int64(v["start_minute"].(int))),
+		DayOfWeek:    pointer.To(int64(v["day_of_week"].(int))),
 	}
 
 	return &maintenanceWindow
 }
 
-func expandArmServerStorage(inputs []interface{}) *servers.Storage {
+func expandArmServerStorage(inputs []any) *servers.Storage {
 	if len(inputs) == 0 || inputs[0] == nil {
 		return nil
 	}
 
-	input := inputs[0].(map[string]interface{})
+	input := inputs[0].(map[string]any)
 	autoGrow := servers.EnableStatusEnumDisabled
 	if v := input["auto_grow_enabled"].(bool); v {
 		autoGrow = servers.EnableStatusEnumEnabled
@@ -830,25 +868,31 @@ func expandArmServerStorage(inputs []interface{}) *servers.Storage {
 		autoIoScaling = servers.EnableStatusEnumEnabled
 	}
 
+	logOnDisk := servers.EnableStatusEnumDisabled
+	if v := input["log_on_disk_enabled"].(bool); v {
+		logOnDisk = servers.EnableStatusEnumEnabled
+	}
+
 	storage := servers.Storage{
 		AutoGrow:      &autoGrow,
 		AutoIoScaling: &autoIoScaling,
+		LogOnDisk:     &logOnDisk,
 	}
 
 	if v := input["size_gb"].(int); v != 0 {
-		storage.StorageSizeGB = utils.Int64(int64(v))
+		storage.StorageSizeGB = pointer.To(int64(v))
 	}
 
 	if v := input["iops"].(int); v != 0 {
-		storage.Iops = utils.Int64(int64(v))
+		storage.Iops = pointer.To(int64(v))
 	}
 
 	return &storage
 }
 
-func flattenArmServerStorage(storage *servers.Storage) []interface{} {
+func flattenArmServerStorage(storage *servers.Storage) []any {
 	if storage == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	var size, iops int64
@@ -860,12 +904,13 @@ func flattenArmServerStorage(storage *servers.Storage) []interface{} {
 		iops = *storage.Iops
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"size_gb":            size,
-			"iops":               iops,
-			"auto_grow_enabled":  *storage.AutoGrow == servers.EnableStatusEnumEnabled,
-			"io_scaling_enabled": *storage.AutoIoScaling == servers.EnableStatusEnumEnabled,
+	return []any{
+		map[string]any{
+			"size_gb":             size,
+			"iops":                iops,
+			"auto_grow_enabled":   *storage.AutoGrow == servers.EnableStatusEnumEnabled,
+			"io_scaling_enabled":  *storage.AutoIoScaling == servers.EnableStatusEnumEnabled,
+			"log_on_disk_enabled": *storage.LogOnDisk == servers.EnableStatusEnumEnabled,
 		},
 	}
 }
@@ -881,7 +926,7 @@ func expandArmServerBackup(d *pluginsdk.ResourceData) *servers.Backup {
 	}
 
 	if v, ok := d.GetOk("backup_retention_days"); ok {
-		backup.BackupRetentionDays = utils.Int64(int64(v.(int)))
+		backup.BackupRetentionDays = pointer.To(int64(v.(int)))
 	}
 
 	return &backup
@@ -931,41 +976,28 @@ func flattenFlexibleServerSku(sku *servers.MySQLServerSku) (string, error) {
 	return strings.Join([]string{tier, sku.Name}, "_"), nil
 }
 
-func flattenArmServerMaintenanceWindow(input *servers.MaintenanceWindow) []interface{} {
+func flattenArmServerMaintenanceWindow(input *servers.MaintenanceWindow) []any {
 	if input == nil || input.CustomWindow == nil || *input.CustomWindow == string(ServerMaintenanceWindowDisabled) {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	var dayOfWeek int64
-	if input.DayOfWeek != nil {
-		dayOfWeek = *input.DayOfWeek
-	}
-	var startHour int64
-	if input.StartHour != nil {
-		startHour = *input.StartHour
-	}
-	var startMinute int64
-	if input.StartMinute != nil {
-		startMinute = *input.StartMinute
-	}
-	return []interface{}{
-		map[string]interface{}{
-			"day_of_week":  dayOfWeek,
-			"start_hour":   startHour,
-			"start_minute": startMinute,
+	return []any{
+		map[string]any{
+			"day_of_week":  pointer.From(input.DayOfWeek),
+			"start_hour":   pointer.From(input.StartHour),
+			"start_minute": pointer.From(input.StartMinute),
 		},
 	}
 }
 
-func expandFlexibleServerHighAvailability(inputs []interface{}) *servers.HighAvailability {
+func expandFlexibleServerHighAvailability(inputs []any) *servers.HighAvailability {
 	if len(inputs) == 0 || inputs[0] == nil {
-		highAvailability := servers.HighAvailabilityModeDisabled
 		return &servers.HighAvailability{
-			Mode: &highAvailability,
+			Mode: pointer.To(servers.HighAvailabilityModeDisabled),
 		}
 	}
 
-	input := inputs[0].(map[string]interface{})
+	input := inputs[0].(map[string]any)
 
 	mode := servers.HighAvailabilityMode(input["mode"].(string))
 
@@ -980,72 +1012,71 @@ func expandFlexibleServerHighAvailability(inputs []interface{}) *servers.HighAva
 	}
 
 	if v, ok := input["standby_availability_zone"]; ok && v.(string) != "" {
-		result.StandbyAvailabilityZone = utils.String(v.(string))
+		result.StandbyAvailabilityZone = pointer.To(v.(string))
 	}
 
 	return &result
 }
 
-func flattenFlexibleServerHighAvailability(ha *servers.HighAvailability) []interface{} {
+func flattenFlexibleServerHighAvailability(ha *servers.HighAvailability) []any {
 	if ha == nil || *ha.Mode == servers.HighAvailabilityModeDisabled {
-		return []interface{}{}
+		return []any{}
 	}
 
-	var zone string
-	if ha.StandbyAvailabilityZone != nil {
-		zone = *ha.StandbyAvailabilityZone
-	}
-
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"mode":                      string(*ha.Mode),
-			"standby_availability_zone": zone,
+			"standby_availability_zone": pointer.From(ha.StandbyAvailabilityZone),
 		},
 	}
 }
 
-func expandFlexibleServerDataEncryption(input []interface{}) *servers.DataEncryption {
-	if len(input) == 0 {
-		det := servers.DataEncryptionTypeSystemManaged
+func expandFlexibleServerDataEncryption(input []any) *servers.DataEncryption {
+	if len(input) == 0 || input[0] == nil {
 		return &servers.DataEncryption{
-			Type: &det,
+			Type: pointer.To(servers.DataEncryptionTypeSystemManaged),
 		}
 	}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
-	det := servers.DataEncryptionTypeAzureKeyVault
 	dataEncryption := servers.DataEncryption{
-		Type: &det,
+		Type: pointer.To(servers.DataEncryptionTypeAzureKeyVault),
 	}
 
 	if keyVaultKeyId := v["key_vault_key_id"].(string); keyVaultKeyId != "" {
-		dataEncryption.PrimaryKeyURI = utils.String(keyVaultKeyId)
+		dataEncryption.PrimaryKeyURI = pointer.To(keyVaultKeyId)
 	}
 
 	if primaryUserAssignedIdentityId := v["primary_user_assigned_identity_id"].(string); primaryUserAssignedIdentityId != "" {
-		dataEncryption.PrimaryUserAssignedIdentityId = utils.String(primaryUserAssignedIdentityId)
+		dataEncryption.PrimaryUserAssignedIdentityId = pointer.To(primaryUserAssignedIdentityId)
 	}
 
 	if geoBackupKeyVaultKeyId := v["geo_backup_key_vault_key_id"].(string); geoBackupKeyVaultKeyId != "" {
-		dataEncryption.GeoBackupKeyURI = utils.String(geoBackupKeyVaultKeyId)
+		dataEncryption.GeoBackupKeyURI = pointer.To(geoBackupKeyVaultKeyId)
 	}
 
 	if geoBackupUserAssignedIdentityId := v["geo_backup_user_assigned_identity_id"].(string); geoBackupUserAssignedIdentityId != "" {
-		dataEncryption.GeoBackupUserAssignedIdentityId = utils.String(geoBackupUserAssignedIdentityId)
+		dataEncryption.GeoBackupUserAssignedIdentityId = pointer.To(geoBackupUserAssignedIdentityId)
 	}
 
 	return &dataEncryption
 }
 
-func flattenFlexibleServerDataEncryption(de *servers.DataEncryption) ([]interface{}, error) {
+func flattenFlexibleServerDataEncryption(de *servers.DataEncryption) ([]any, error) {
 	if de == nil || *de.Type == servers.DataEncryptionTypeSystemManaged {
-		return []interface{}{}, nil
+		return []any{}, nil
 	}
 
-	item := map[string]interface{}{}
+	item := map[string]any{}
 	if de.PrimaryKeyURI != nil {
-		item["key_vault_key_id"] = *de.PrimaryKeyURI
+		keyID, err := keyvault.ParseNestedItemID(*de.PrimaryKeyURI, keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
+		if err != nil {
+			return nil, err
+		}
+
+		item["key_vault_key_id"] = keyID.ID()
 	}
+
 	if identity := de.PrimaryUserAssignedIdentityId; identity != nil {
 		parsed, err := commonids.ParseUserAssignedIdentityIDInsensitively(*identity)
 		if err != nil {
@@ -1065,21 +1096,20 @@ func flattenFlexibleServerDataEncryption(de *servers.DataEncryption) ([]interfac
 		item["geo_backup_user_assigned_identity_id"] = parsed.ID()
 	}
 
-	return []interface{}{item}, nil
+	return []any{item}, nil
 }
 
-func expandFlexibleServerIdentity(input []interface{}) (*servers.MySQLServerIdentity, error) {
+func expandFlexibleServerIdentity(input []any) (*servers.MySQLServerIdentity, error) {
 	expanded, err := identity.ExpandUserAssignedMap(input)
 	if err != nil {
 		return nil, err
 	}
 
-	identityType := servers.ManagedServiceIdentityType(string(expanded.Type))
 	out := servers.MySQLServerIdentity{
-		Type: &identityType,
+		Type: pointer.ToEnum[servers.ManagedServiceIdentityType](string(expanded.Type)),
 	}
 	if expanded.Type == identity.TypeUserAssigned {
-		ids := make(map[string]interface{})
+		ids := make(map[string]any)
 		for k := range expanded.IdentityIds {
 			ids[k] = struct{}{}
 		}
@@ -1089,7 +1119,7 @@ func expandFlexibleServerIdentity(input []interface{}) (*servers.MySQLServerIden
 	return &out, nil
 }
 
-func flattenFlexibleServerIdentity(input *servers.MySQLServerIdentity) (*[]interface{}, error) {
+func flattenFlexibleServerIdentity(input *servers.MySQLServerIdentity) (*[]any, error) {
 	var transform *identity.UserAssignedMap
 
 	if input != nil {

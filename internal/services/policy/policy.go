@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package policy
@@ -9,10 +9,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" // nolint: staticcheck
-	assignments "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" //nolint:staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
 )
 
 func getPolicyDefinitionByDisplayName(ctx context.Context, client *policy.DefinitionsClient, displayName, managementGroupName string,
@@ -62,7 +61,7 @@ func getPolicyDefinitionByDisplayName(ctx context.Context, client *policy.Defini
 func getPolicyDefinitionByName(ctx context.Context, client *policy.DefinitionsClient, name, managementGroupName string) (res policy.Definition, err error) {
 	if managementGroupName == "" {
 		res, err = client.GetBuiltIn(ctx, name)
-		if utils.ResponseWasNotFound(res.Response) {
+		if response.WasNotFound(res.Response.Response) {
 			res, err = client.Get(ctx, name)
 		}
 	} else {
@@ -75,7 +74,7 @@ func getPolicyDefinitionByName(ctx context.Context, client *policy.DefinitionsCl
 func getPolicySetDefinitionByName(ctx context.Context, client *policy.SetDefinitionsClient, name, managementGroupID string) (res policy.SetDefinition, err error) {
 	if managementGroupID == "" {
 		res, err = client.GetBuiltIn(ctx, name)
-		if utils.ResponseWasNotFound(res.Response) {
+		if response.WasNotFound(res.Response.Response) {
 			res, err = client.Get(ctx, name)
 		}
 	} else {
@@ -123,7 +122,7 @@ func getPolicySetDefinitionByDisplayName(ctx context.Context, client *policy.Set
 	return results[0], nil
 }
 
-func expandParameterDefinitionsValueFromString(jsonString string) (map[string]*policy.ParameterDefinitionsValue, error) {
+func expandParameterDefinitionsValueFromStringTrack1(jsonString string) (map[string]*policy.ParameterDefinitionsValue, error) {
 	var result map[string]*policy.ParameterDefinitionsValue
 
 	err := json.Unmarshal([]byte(jsonString), &result)
@@ -131,7 +130,7 @@ func expandParameterDefinitionsValueFromString(jsonString string) (map[string]*p
 	return result, err
 }
 
-func flattenParameterDefinitionsValueToString(input map[string]*policy.ParameterDefinitionsValue) (string, error) {
+func flattenParameterDefinitionsValueToStringTrack1(input map[string]*policy.ParameterDefinitionsValue) (string, error) {
 	if len(input) == 0 {
 		return "", nil
 	}
@@ -149,15 +148,15 @@ func flattenParameterDefinitionsValueToString(input map[string]*policy.Parameter
 	return compactJson.String(), nil
 }
 
-func expandParameterValuesValueFromString(jsonString string) (map[string]assignments.ParameterValuesValue, error) {
-	var result map[string]assignments.ParameterValuesValue
+func expandParameterValuesValueFromString(jsonString string) (map[string]policyassignments.ParameterValuesValue, error) {
+	var result map[string]policyassignments.ParameterValuesValue
 
 	err := json.Unmarshal([]byte(jsonString), &result)
 
 	return result, err
 }
 
-func flattenParameterValuesValueToString(input map[string]*policy.ParameterValuesValue) (string, error) {
+func flattenParameterValuesValueToStringTrack1(input map[string]*policy.ParameterValuesValue) (string, error) {
 	if input == nil {
 		return "", nil
 	}
@@ -171,7 +170,7 @@ func flattenParameterValuesValueToString(input map[string]*policy.ParameterValue
 	return string(result), err
 }
 
-func flattenParameterValuesValueToStringV2(input *map[string]assignments.ParameterValuesValue) (string, error) {
+func flattenParameterValuesValueToStringV2(input *map[string]policyassignments.ParameterValuesValue) (string, error) {
 	if input == nil || *input == nil {
 		return "", nil
 	}
@@ -193,40 +192,14 @@ func getPolicyRoleDefinitionIDs(ruleStr string) (res []string, err error) {
 	return
 }
 
-func policyParamtersCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
-	// `parameters` cannot have values removed or changed so we'll ForceNew if there are differences between Terraform runs
-	if d.HasChange("parameters") {
-		oldParametersRaw, newParametersRaw := d.GetChange("parameters")
-		if oldParametersString := oldParametersRaw.(string); oldParametersString != "" {
-			newParametersString := newParametersRaw.(string)
-			if newParametersString == "" {
-				return d.ForceNew("parameters")
-			}
-
-			oldParameters, err := expandParameterDefinitionsValueFromString(oldParametersString)
-			if err != nil {
-				return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
-			}
-
-			newParameters, err := expandParameterDefinitionsValueFromString(newParametersString)
-			if err != nil {
-				return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
-			}
-
-			if len(newParameters) < len(oldParameters) {
-				return d.ForceNew("parameters")
-			}
-
-			if len(newParameters) == len(oldParameters) {
-				for oldKey := range oldParameters {
-					_, ok := newParameters[oldKey]
-					if !ok {
-						return d.ForceNew("parameters")
-					}
-				}
-			}
+// parametersRemoved reports whether any of the old parameters are missing from the new ones. Parameters can't be
+// removed or renamed in place, so a change like that needs the resource to be recreated.
+func parametersRemoved[T any](oldParameters, newParameters map[string]T) bool {
+	for k := range oldParameters {
+		if _, ok := newParameters[k]; !ok {
+			return true
 		}
 	}
 
-	return nil
+	return false
 }

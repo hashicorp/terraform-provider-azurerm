@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containerapps
@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/managedenvironments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -27,11 +27,11 @@ type ContainerAppEnvironmentDataSourceModel struct {
 	Name          string `tfschema:"name"`
 	ResourceGroup string `tfschema:"resource_group_name"`
 
-	Location                    string                 `tfschema:"location"`
-	LogAnalyticsWorkspaceName   string                 `tfschema:"log_analytics_workspace_name"`
-	InfrastructureSubnetId      string                 `tfschema:"infrastructure_subnet_id"`
-	InternalLoadBalancerEnabled bool                   `tfschema:"internal_load_balancer_enabled"`
-	Tags                        map[string]interface{} `tfschema:"tags"`
+	Location                    string         `tfschema:"location"`
+	LogAnalyticsWorkspaceName   string         `tfschema:"log_analytics_workspace_name"`
+	InfrastructureSubnetId      string         `tfschema:"infrastructure_subnet_id"`
+	InternalLoadBalancerEnabled bool           `tfschema:"internal_load_balancer_enabled"`
+	Tags                        map[string]any `tfschema:"tags"`
 
 	CustomDomainVerificationId string `tfschema:"custom_domain_verification_id"`
 
@@ -39,12 +39,13 @@ type ContainerAppEnvironmentDataSourceModel struct {
 	DockerBridgeCidr      string `tfschema:"docker_bridge_cidr"`
 	PlatformReservedCidr  string `tfschema:"platform_reserved_cidr"`
 	PlatformReservedDnsIP string `tfschema:"platform_reserved_dns_ip_address"`
+	PublicNetworkAccess   string `tfschema:"public_network_access"`
 	StaticIP              string `tfschema:"static_ip_address"`
 }
 
 var _ sdk.DataSource = ContainerAppEnvironmentDataSource{}
 
-func (r ContainerAppEnvironmentDataSource) ModelObject() interface{} {
+func (r ContainerAppEnvironmentDataSource) ModelObject() any {
 	return &ContainerAppEnvironmentDataSourceModel{}
 }
 
@@ -119,6 +120,12 @@ func (r ContainerAppEnvironmentDataSource) Attributes() map[string]*pluginsdk.Sc
 			Description: "The IP address from the IP range defined by `platform_reserved_cidr` that is reserved for the internal DNS server.",
 		},
 
+		"public_network_access": {
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "The public network access setting for this Container App Environment.",
+		},
+
 		"static_ip_address": {
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
@@ -176,6 +183,7 @@ func (r ContainerAppEnvironmentDataSource) Read() sdk.ResourceFunc {
 					environment.StaticIP = pointer.From(props.StaticIP)
 					environment.DefaultDomain = pointer.From(props.DefaultDomain)
 					environment.CustomDomainVerificationId = pointer.From(props.CustomDomainConfiguration.CustomDomainVerificationId)
+					environment.PublicNetworkAccess = pointer.FromEnum(props.PublicNetworkAccess)
 				}
 			}
 

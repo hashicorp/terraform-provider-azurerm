@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sentinel
@@ -22,9 +22,9 @@ type WatchlistItemResource struct{}
 var _ sdk.ResourceWithUpdate = WatchlistItemResource{}
 
 type WatchlistItemModel struct {
-	Name        string                 `tfschema:"name"`
-	WatchlistID string                 `tfschema:"watchlist_id"`
-	Properties  map[string]interface{} `tfschema:"properties"`
+	Name        string         `tfschema:"name"`
+	WatchlistID string         `tfschema:"watchlist_id"`
+	Properties  map[string]any `tfschema:"properties"`
 }
 
 func (r WatchlistItemResource) Arguments() map[string]*pluginsdk.Schema {
@@ -32,7 +32,7 @@ func (r WatchlistItemResource) Arguments() map[string]*pluginsdk.Schema {
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validation.IsUUID,
 		},
@@ -60,7 +60,7 @@ func (r WatchlistItemResource) ResourceType() string {
 	return "azurerm_sentinel_watchlist_item"
 }
 
-func (r WatchlistItemResource) ModelObject() interface{} {
+func (r WatchlistItemResource) ModelObject() any {
 	return &WatchlistItemModel{}
 }
 
@@ -91,14 +91,16 @@ func (r WatchlistItemResource) Create() sdk.ResourceFunc {
 
 			id := watchlistitems.NewWatchlistItemID(watchlistId.SubscriptionId, watchlistId.ResourceGroupName, watchlistId.WorkspaceName, watchlistId.WatchlistAlias, watchListItem.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			params := watchlistitems.WatchlistItem{
@@ -138,11 +140,11 @@ func (r WatchlistItemResource) Read() sdk.ResourceFunc {
 
 			watchlistId := watchlists.NewWatchlistID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName, id.WatchlistAlias)
 
-			var properties map[string]interface{}
+			var properties map[string]any
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
 					if itemsKV := props.ItemsKeyValue; itemsKV != nil {
-						properties = itemsKV.(map[string]interface{})
+						properties = itemsKV.(map[string]any)
 					}
 				}
 			}

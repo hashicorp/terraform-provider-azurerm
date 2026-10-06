@@ -58,6 +58,8 @@ resource "azurerm_function_app_flex_consumption" "example" {
   runtime_version             = "20"
   maximum_instance_count      = 50
   instance_memory_in_mb       = 2048
+
+  site_config {}
 }
 ```
 
@@ -67,31 +69,41 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Function App should exist. Changing this forces a new Function App to be created.
 
-* `name` - (Required) The name which should be used for this Function App. Changing this forces a new Function App to be created. Limit the function name to 32 characters to avoid naming collisions. For more information about [Function App naming rule](https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules#microsoftweb) and [Host ID Collisions](https://github.com/Azure/azure-functions-host/wiki/Host-IDs#host-id-collisions)
+* `name` - (Required) The name which should be used for this Function App. Changing this forces a new Function App to be created. Limit the function name to 32 characters to avoid naming collisions. For more information about [Function App naming rule](https://docs.microsoft.com/azure/azure-resource-manager/management/resource-name-rules#microsoftweb) and [Host ID Collisions](https://github.com/Azure/azure-functions-host/wiki/Host-IDs#host-id-collisions)
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Function App should exist. Changing this forces a new Linux Function App to be created.
 
-* `service_plan_id` - (Required) The ID of the App Service Plan within which to create this Function App.
+* `service_plan_id` - (Required) The ID of the App Service Plan within which to create this Function App. Changing this forces a new Linux Function App to be created.
 
 * `site_config` - (Required) A `site_config` block as defined below.
+
+* `storage_container_type` - (Required) The storage container type used for the Function App. The current supported type is `blobContainer`.
+
+* `storage_container_endpoint` - (Required) The backend storage container endpoint which will be used by this Function App.
+
+* `storage_authentication_type` - (Required) The authentication type which will be used to access the backend storage account for the Function App. Possible values are `StorageAccountConnectionString`, `SystemAssignedIdentity`, and `UserAssignedIdentity`.
+
+* `runtime_name` - (Required) The Runtime of the Linux Function App. Possible values are `node`, `dotnet-isolated`, `powershell`, `python`, `java` and `custom`.
+
+* `runtime_version` - (Required) The Runtime version of the Linux Function App. Accepted values varies with the value of `runtime_name`.
+
+~> **Note:** To get the most up-to-date list of supported versions, use command `az functionapp list-runtimes` or visit [Supported languages in Azure Functions](https://learn.microsoft.com/azure/azure-functions/supported-languages)
 
 ---
 
 * `app_settings` - (Optional) A map of key-value pairs for [App Settings](https://docs.microsoft.com/azure/azure-functions/functions-app-settings) and custom values.
 
-~> **Note:** For storage related settings, please use related properties that are available such as `storage_account_access_key`, terraform will assign the value to keys such as `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING`, `AzureWebJobsStorage` in app_setting.
+~> **Note:** For storage related settings, please use related properties that are available such as `storage_access_key`, terraform will assign the value to keys such as `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING`, `AzureWebJobsStorage` in app_setting.
 
 ~> **Note:** For application insight related settings, please use `application_insights_connection_string` and `application_insights_key`, terraform will assign the value to the key `APPINSIGHTS_INSTRUMENTATIONKEY` and `APPLICATIONINSIGHTS_CONNECTION_STRING` in app setting.
 
 ~> **Note:** For health check related settings, please use `health_check_eviction_time_in_min`, terraform will assign the value to the key `WEBSITE_HEALTHCHECK_MAXPINGFAILURES` in app setting.
 
-~> **Note:** For those app settings that are deprecated or replaced by another properties for flex consumption function app, please check https://learn.microsoft.com/en-us/azure/azure-functions/functions-app-settings.
+~> **Note:** For those app settings that are deprecated or replaced by another properties for flex consumption function app, please check https://learn.microsoft.com/azure/azure-functions/functions-app-settings.
 
 * `auth_settings` - (Optional) A `auth_settings` block as defined below.
 
 * `auth_settings_v2` - (Optional) An `auth_settings_v2` block as defined below.
-
-* `backup` - (Optional) A `backup` block as defined below.
 
 * `client_certificate_enabled` - (Optional) Should the function app use Client Certificates.
 
@@ -105,39 +117,37 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Should public network access be enabled for the Function App. Defaults to `true`.
 
+* `https_only` - (Optional) Is Https Connection enforced to the function app. Defaults to `false`
+
 * `identity` - (Optional) A `identity` block as defined below.
 
 * `sticky_settings` - (Optional) A `sticky_settings` block as defined below.
-
-* `storage_container_type` - (Required) The storage container type used for the Function App. The current supported type is `blobContainer`.
-
-* `storage_container_endpoint` - (Required) The backend storage container endpoint which will be used by this Function App.
-
-* `storage_authentication_type` - (Required) The authentication type which will be used to access the backend storage account for the Function App. Possible values are `StorageAccountConnectionString`, `SystemAssignedIdentity`, and `UserAssignedIdentity`.
 
 * `storage_access_key` - (Optional) The access key which will be used to access the backend storage account for the Function App.
 
 ~> **Note:** The `storage_access_key` must be specified when `storage_authentication_type` is set to `StorageAccountConnectionString`.
 
-* `storage_user_assigned_identity_id` - (Optional) The user assigned Managed Identity to access the storage account. Conflicts with `storage_account_access_key`.
+* `storage_user_assigned_identity_id` - (Optional) The user assigned Managed Identity to access the storage account. Conflicts with `storage_access_key`.
 
 ~> **Note:** The `storage_user_assigned_identity_id` must be specified when `storage_authentication_type` is set to `UserAssignedIdentity`.
 
-* `runtime_name` - (Required) The Runtime of the Linux Function App. Possible values are `node`, `dotnet-isolated`, `powershell`, `python`, `java`.
+* `always_ready` - (Optional) One or more `always_ready` blocks as defined below.
 
-* `runtime_version` - (Required) The Runtime version of the Linux Function App. The values are diff from different runtime version. The supported values are `8.0`, `9.0` for `dotnet-isolated`, `20` for `node`, `3.10`, `3.11` for `python`, `11`, `17` for `java`, `7.4` for `powershell`.
+* `maximum_instance_count` - (Optional) The number of workers this function app can scale out to. The supported value are from `1` to `1000`.
 
-* `maximum_instance_count` - (Optional) The number of workers this function app can scale out to.
+* `instance_memory_in_mb` - (Optional) The memory size of the instances on which your app runs. Reference the Microsoft Documentation for the [currently supported values](https://learn.microsoft.com/azure/azure-functions/flex-consumption-plan#instance-memory). Defaults to `2048`.
 
-* `instance_memory_in_mb` - (Optional) The memory size of the instances on which your app runs. The [currently supported values](https://learn.microsoft.com/en-us/azure/azure-functions/flex-consumption-plan#instance-memory) are `2048` or `4096`.
+* `http_concurrency` - (Optional) The Http concurrency of the instances on which your app runs. The supported value are from `1` to `1000`.
+
+~> **Note:** A value will be assigned by the system if `http_concurrency` is not specified.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Linux Function App.
 
-* `virtual_network_subnet_id` - (Optional) The subnet id which will be used by this Function App for [regional virtual network integration](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
+* `virtual_network_subnet_id` - (Optional) The subnet id which will be used by this Function App for [regional virtual network integration](https://docs.microsoft.com/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
 
-~> **Note on regional virtual network integration:** The AzureRM Terraform provider provides regional virtual network integration via the standalone resource [app_service_virtual_network_swift_connection](app_service_virtual_network_swift_connection.html) and in-line within this resource using the `virtual_network_subnet_id` property. You cannot use both methods simultaneously. If the virtual network is set via the resource `app_service_virtual_network_swift_connection` then `ignore_changes` should be used in the function app configuration.
+~> **Note:** The AzureRM Terraform provider provides regional virtual network integration via the standalone resource [azurerm_app_service_virtual_network_swift_connection](app_service_virtual_network_swift_connection.html) and in-line within this resource using the `virtual_network_subnet_id` property. You cannot use both methods simultaneously. If the virtual network is set via the resource `app_service_virtual_network_swift_connection` then `ignore_changes` should be used in the function app configuration.
 
-~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
+~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/azure/app-service/overview-vnet-integration#permissions)
 
 * `webdeploy_publish_basic_authentication_enabled` - (Optional) Should the default WebDeploy Basic Authentication publishing credentials enabled. Defaults to `true`.
 
@@ -145,7 +155,15 @@ The following arguments are supported:
 
 * `zip_deploy_file` - (Optional) The local path and filename of the Zip packaged application to deploy to this Linux Function App.
 
-~> **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`. Refer to the [Azure docs](https://learn.microsoft.com/en-us/azure/azure-functions/functions-deployment-technologies) for further details.
+~> **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`. Refer to the [Azure docs](https://learn.microsoft.com/azure/azure-functions/functions-deployment-technologies) for further details.
+
+---
+
+An `always_ready` block supports the following:
+
+* `name` - (Required) The name of the `always_ready` of the Function App.
+
+* `instance_count` - (Optional) The instance count of the `always_ready` of the Function App. The minimum number is `0`. The total number of `instance_count` should not exceed the `maximum_instance_count`.
 
 ---
 
@@ -285,7 +303,7 @@ An `active_directory_v2` block supports the following:
 
 * `tenant_auth_endpoint` - (Required) The Azure Tenant Endpoint for the Authenticating Tenant. e.g. `https://login.microsoftonline.com/{tenant-guid}/v2.0/`
 
-~> **Note:** [Here](https://learn.microsoft.com/en-us/entra/identity-platform/authentication-national-cloud#microsoft-entra-authentication-endpoints) is a list of possible authentication endpoints based on the cloud environment. [Here](https://learn.microsoft.com/en-us/azure/app-service/configure-authentication-provider-aad?tabs=workforce-tenant) is more information to better understand how to configure authentication for Azure App Service or Azure Functions.
+~> **Note:** [Here](https://learn.microsoft.com/entra/identity-platform/authentication-national-cloud#microsoft-entra-authentication-endpoints) is a list of possible authentication endpoints based on the cloud environment. [Here](https://learn.microsoft.com/azure/app-service/configure-authentication-provider-aad?tabs=workforce-tenant) is more information to better understand how to configure authentication for Azure App Service or Azure Functions.
 
 * `client_secret_setting_name` - (Optional) The App Setting name that contains the client secret of the Client.
 
@@ -438,18 +456,6 @@ A `login` block supports the following:
 * `validate_nonce` - (Optional) Should the nonce be validated while completing the login flow. Defaults to `true`.
 
 * `nonce_expiration_time` - (Optional) The time after the request is made when the nonce should expire. Defaults to `00:05:00`.
-
----
-
-A `backup` block supports the following:
-
-* `name` - (Required) The name which should be used for this Backup.
-
-* `schedule` - (Required) A `schedule` block as defined below.
-
-* `storage_account_url` - (Required) The SAS URL to the container.
-
-* `enabled` - (Optional) Should this backup job be enabled? Defaults to `true`.
 
 ---
 
@@ -653,7 +659,13 @@ A `site_config` block supports the following:
 
 * `scm_ip_restriction_default_action` - (Optional) The Default action for traffic that does not match any `scm_ip_restriction` rule. possible values include `Allow` and `Deny`. Defaults to `Allow`.
 
+* `scm_minimum_tls_version` - (Optional) The minimum version of TLS required for SSL requests to the SCM site. Possible values include `1.0`, `1.1`, `1.2` and `1.3`. Defaults to `1.2`.
+
 * `scm_use_main_ip_restriction` - (Optional) Should the Linux Function App `ip_restriction` configuration be used for the SCM also.
+
+* `use_32_bit_worker` - (Optional) Should the Linux Web App Linux Function App use a 32-bit worker. Defaults to `false`.
+
+* `vnet_route_all_enabled` - (Optional) Should the Linux Function App route all traffic through the virtual network. Defaults to `false`.
 
 * `websockets_enabled` - (Optional) Should Web Sockets be enabled. Defaults to `false`.
 
@@ -721,7 +733,7 @@ A `site_credential` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Function Flex Consumption App.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Function Flex Consumption App.
@@ -735,3 +747,9 @@ The Function Apps can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_function_app_flex_consumption.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Web` - 2023-12-01, 2023-01-01

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package policy
@@ -7,27 +7,29 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strconv"
+	"net/http"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" //nolint:staticcheck
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	mgmtGrpParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceArmPolicyDefinition() *pluginsdk.Resource {
+func resourcePolicyDefinition() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmPolicyDefinitionCreateUpdate,
-		Update: resourceArmPolicyDefinitionCreateUpdate,
-		Read:   resourceArmPolicyDefinitionRead,
-		Delete: resourceArmPolicyDefinitionDelete,
+		Create: resourcePolicyDefinitionCreateUpdate,
+		Update: resourcePolicyDefinitionCreateUpdate,
+		Read:   resourcePolicyDefinitionRead,
+		Delete: resourcePolicyDefinitionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.PolicyDefinitionID(id)
@@ -41,13 +43,40 @@ func resourceArmPolicyDefinition() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: resourceArmPolicyDefinitionSchema(),
+		Schema: resourcePolicyDefinitionSchema(),
 
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(policyParamtersCustomizeDiff),
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v any) error {
+			// `parameters` cannot have values removed or renamed so we'll ForceNew if any existing parameter is missing between Terraform runs
+			if d.HasChange("parameters") {
+				oldParametersRaw, newParametersRaw := d.GetChange("parameters")
+				if oldParametersString := oldParametersRaw.(string); oldParametersString != "" {
+					newParametersString := newParametersRaw.(string)
+					if newParametersString == "" {
+						return d.ForceNew("parameters")
+					}
+
+					oldParameters, err := expandParameterDefinitionsValueFromStringTrack1(oldParametersString)
+					if err != nil {
+						return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
+					}
+
+					newParameters, err := expandParameterDefinitionsValueFromStringTrack1(newParametersString)
+					if err != nil {
+						return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
+					}
+
+					if parametersRemoved(oldParameters, newParameters) {
+						return d.ForceNew("parameters")
+					}
+				}
+			}
+
+			return nil
+		}),
 	}
 }
 
-func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Policy.DefinitionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -68,23 +97,25 @@ func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.IsNewResource() {
-		existing, err := getPolicyDefinitionByName(ctx, client, name, managementGroupName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Policy Definition %q: %+v", name, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := getPolicyDefinitionByName(ctx, client, name, managementGroupName)
+			if err != nil {
+				if !response.WasNotFound(existing.Response.Response) {
+					return fmt.Errorf("checking for presence of existing Policy Definition %q: %+v", name, err)
+				}
 			}
-		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_policy_definition", *existing.ID)
+			if existing.ID != nil && *existing.ID != "" {
+				return tf.ImportAsExistsError("azurerm_policy_definition", *existing.ID)
+			}
 		}
 	}
 
 	properties := policy.DefinitionProperties{
 		PolicyType:  policy.Type(policyType),
-		Mode:        utils.String(mode),
-		DisplayName: utils.String(displayName),
-		Description: utils.String(description),
+		Mode:        pointer.To(mode),
+		DisplayName: pointer.To(displayName),
+		Description: pointer.To(description),
 	}
 
 	if policyRuleString := d.Get("policy_rule").(string); policyRuleString != "" {
@@ -104,7 +135,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if parametersString := d.Get("parameters").(string); parametersString != "" {
-		parameters, err := expandParameterDefinitionsValueFromString(parametersString)
+		parameters, err := expandParameterDefinitionsValueFromStringTrack1(parametersString)
 		if err != nil {
 			return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
 		}
@@ -112,7 +143,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	definition := policy.Definition{
-		Name:                 utils.String(name),
+		Name:                 pointer.To(name),
 		DefinitionProperties: &properties,
 	}
 
@@ -130,21 +161,15 @@ func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	// Policy Definitions are eventually consistent; wait for them to stabilize
 	log.Printf("[DEBUG] Waiting for Policy Definition %q to become available", name)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"404"},
-		Target:                    []string{"200"},
-		Refresh:                   policyDefinitionRefreshFunc(ctx, client, name, managementGroupName),
-		MinTimeout:                10 * time.Second,
-		ContinuousTargetOccurence: 10,
-	}
-
-	if d.IsNewResource() {
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
-	} else {
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
-	}
-
-	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+	poller := custompollers.NewEventualConsistencyPoller(10, func(pollerCtx context.Context) (*http.Response, error) {
+		res, err := getPolicyDefinitionByName(pollerCtx, client, name, managementGroupName)
+		return res.Response.Response, err
+	}, &custompollers.EventualConsistencyPollerOptions{
+		Interval:              10 * time.Second,
+		TargetStatusCode:      pointer.To(http.StatusOK),
+		RetryErrorStatusCodes: []int{http.StatusNotFound},
+	})
+	if err = poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for Policy Definition %q to become available: %+v", name, err)
 	}
 
@@ -163,10 +188,10 @@ func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 	d.SetId(id.Id)
 
-	return resourceArmPolicyDefinitionRead(d, meta)
+	return resourcePolicyDefinitionRead(d, meta)
 }
 
-func resourceArmPolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePolicyDefinitionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Policy.DefinitionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -178,7 +203,7 @@ func resourceArmPolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface{}
 
 	managementGroupName := ""
 	var managementGroupId mgmtGrpParse.ManagementGroupId
-	switch scopeId := id.PolicyScopeId.(type) { // nolint gocritic
+	switch scopeId := id.PolicyScopeId.(type) { //nolint:gocritic
 	case parse.ScopeAtManagementGroup:
 		managementGroupId = mgmtGrpParse.NewManagementGroupId(scopeId.ManagementGroupName)
 		managementGroupName = managementGroupId.Name
@@ -186,8 +211,7 @@ func resourceArmPolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface{}
 
 	resp, err := getPolicyDefinitionByName(ctx, client, id.Name, managementGroupName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading Policy Definition %q - removing from state", d.Id())
+		if response.WasNotFound(resp.Response.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -218,7 +242,7 @@ func resourceArmPolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("metadata", metadataStr)
 		}
 
-		if parametersStr, err := flattenParameterDefinitionsValueToString(props.Parameters); err == nil {
+		if parametersStr, err := flattenParameterDefinitionsValueToStringTrack1(props.Parameters); err == nil {
 			d.Set("parameters", parametersStr)
 		} else {
 			return fmt.Errorf("flattening policy definition parameters %+v", err)
@@ -228,7 +252,7 @@ func resourceArmPolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceArmPolicyDefinitionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePolicyDefinitionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Policy.DefinitionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -239,7 +263,7 @@ func resourceArmPolicyDefinitionDelete(d *pluginsdk.ResourceData, meta interface
 	}
 
 	managementGroupName := ""
-	switch scopeId := id.PolicyScopeId.(type) { // nolint gocritic
+	switch scopeId := id.PolicyScopeId.(type) { //nolint:gocritic
 	case parse.ScopeAtManagementGroup:
 		managementGroupName = scopeId.ManagementGroupName
 	}
@@ -252,7 +276,7 @@ func resourceArmPolicyDefinitionDelete(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if err != nil {
-		if utils.ResponseWasNotFound(resp) {
+		if response.WasNotFound(resp.Response) {
 			return nil
 		}
 
@@ -262,23 +286,12 @@ func resourceArmPolicyDefinitionDelete(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func policyDefinitionRefreshFunc(ctx context.Context, client *policy.DefinitionsClient, name, managementGroupID string) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := getPolicyDefinitionByName(ctx, client, name, managementGroupID)
-		if err != nil {
-			return nil, strconv.Itoa(res.StatusCode), fmt.Errorf("issuing read request in policyAssignmentRefreshFunc for Policy Assignment %q: %+v", name, err)
-		}
-
-		return res, strconv.Itoa(res.StatusCode), nil
-	}
-}
-
-func flattenJSON(stringMap interface{}) string {
+func flattenJSON(stringMap any) string {
 	if stringMap != nil {
-		if v, ok := stringMap.(*interface{}); ok {
+		if v, ok := stringMap.(*any); ok {
 			stringMap = *v
 		}
-		value := stringMap.(map[string]interface{})
+		value := stringMap.(map[string]any)
 		jsonString, err := pluginsdk.FlattenJsonToString(value)
 		if err == nil {
 			return jsonString
@@ -288,7 +301,7 @@ func flattenJSON(stringMap interface{}) string {
 	return ""
 }
 
-func resourceArmPolicyDefinitionSchema() map[string]*pluginsdk.Schema {
+func resourcePolicyDefinitionSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -297,15 +310,10 @@ func resourceArmPolicyDefinitionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"policy_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(policy.TypeBuiltIn),
-				string(policy.TypeCustom),
-				string(policy.TypeNotSpecified),
-				string(policy.TypeStatic),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInEnumSlice(policy.PossibleTypeValues(), false),
 		},
 
 		"mode": {

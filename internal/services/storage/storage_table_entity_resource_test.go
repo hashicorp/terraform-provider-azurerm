@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/table/entities"
 )
 
@@ -157,11 +157,11 @@ func (r StorageTableEntityResource) Exists(ctx context.Context, client *clients.
 	resp, err := entitiesClient.Get(ctx, id.TableName, input)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Entity (Partition Key %q / Row Key %q) (Table %q in %s): %+v", id.PartitionKey, id.RowKey, id.TableName, account.StorageAccountId, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r StorageTableEntityResource) basic(data acceptance.TestData) string {
@@ -202,8 +202,8 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_table" "test" {
-  name                 = "acctestst%[1]d"
-  storage_account_name = azurerm_storage_account.test.name
+  name               = "acctestst%[1]d"
+  storage_account_id = azurerm_storage_account.test.id
 }
 
 resource "azurerm_storage_table_entity" "test" {
@@ -371,8 +371,8 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_table" "test" {
-  name                 = "acctestst%[1]d"
-  storage_account_name = azurerm_storage_account.test.name
+  name               = "acctestst%[1]d"
+  storage_account_id = azurerm_storage_account.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
