@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func ManagedHardwareSecurityModuleName(i interface{}, k string) ([]string, []error) {
+func ManagedHardwareSecurityModuleName(i any, k string) ([]string, []error) {
 	// The name attribute rules are :
 	// Must be a 3-24 character string, containing only 0-9, a-z. A-Z, and -
 	// The name must begin with a letter, end with a letter or digit, and not contain consecutive hyphens.

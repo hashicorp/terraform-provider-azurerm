@@ -49,7 +49,7 @@ type ContainerAppEnvironmentModel struct {
 	Identity                                []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	PublicNetworkAccess                     string                                     `tfschema:"public_network_access"`
 	ZoneRedundant                           bool                                       `tfschema:"zone_redundancy_enabled"`
-	Tags                                    map[string]interface{}                     `tfschema:"tags"`
+	Tags                                    map[string]any                             `tfschema:"tags"`
 	WorkloadProfiles                        []helpers.WorkloadProfileModel             `tfschema:"workload_profile"`
 	InfrastructureResourceGroup             string                                     `tfschema:"infrastructure_resource_group_name"`
 	Mtls                                    bool                                       `tfschema:"mutual_tls_enabled"`
@@ -67,7 +67,7 @@ var _ sdk.ResourceWithUpdate = ContainerAppEnvironmentResource{}
 
 var _ sdk.ResourceWithCustomizeDiff = ContainerAppEnvironmentResource{}
 
-func (r ContainerAppEnvironmentResource) ModelObject() interface{} {
+func (r ContainerAppEnvironmentResource) ModelObject() any {
 	return &ContainerAppEnvironmentModel{}
 }
 

@@ -40,7 +40,7 @@ func dataSourceTenantTemplateDeployment() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceTenantTemplateDeploymentRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceTenantTemplateDeploymentRead(d *schema.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Resource.LegacyDeploymentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
