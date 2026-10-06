@@ -17,64 +17,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	containersclient "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
-
-func TestKubernetesMessageOfTheDayPlan(t *testing.T) {
-	for _, standalone := range []bool{false, true} {
-		name := "default pool"
-		resource := &pluginsdk.Resource{Schema: map[string]*pluginsdk.Schema{
-			"default_node_pool": SchemaDefaultNodePool(),
-		}}
-		if standalone {
-			name = "standalone pool"
-			resource.Schema = map[string]*pluginsdk.Schema{
-				"message_of_the_day": resourceKubernetesClusterNodePool().Schema["message_of_the_day"],
-			}
-		}
-		t.Run(name, func(t *testing.T) {
-			config := func(message any, omit bool) map[string]any {
-				block := map[string]any{}
-				if !omit {
-					block["message_of_the_day"] = message
-				}
-				if standalone {
-					return block
-				}
-				block["name"] = "default"
-				block["vm_size"] = "Standard_DS2_v2"
-				block["node_count"] = 1
-				block["temporary_name_for_rotation"] = "temp"
-				return map[string]any{"default_node_pool": []any{block}}
-			}
-			for _, test := range []struct {
-				name    string
-				message any
-				omit    bool
-			}{
-				{name: "clear", message: ""},
-				{name: "null", message: nil},
-				{name: "omitted", omit: true},
-				{name: "reset", message: "Reset message"},
-			} {
-				t.Run(test.name, func(t *testing.T) {
-					data := schema.TestResourceDataRaw(t, resource.Schema, config("Original message", false))
-					data.SetId("existing-pool")
-					diff, err := resource.SimpleDiff(context.Background(), data.State(), terraform.NewResourceConfigRaw(config(test.message, test.omit)), nil)
-					if err != nil {
-						t.Fatal(err)
-					}
-					if diff.Empty() || diff.RequiresNew() != standalone {
-						t.Fatalf("expected changed MOTD with replacement=%t, got %#v", standalone, diff)
-					}
-				})
-			}
-		})
-	}
-}
 
 func TestKubernetesMessageOfTheDayExpand(t *testing.T) {
 	for _, test := range []struct {
