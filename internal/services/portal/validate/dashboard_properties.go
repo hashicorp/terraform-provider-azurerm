@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
-func DashboardProperties(v interface{}, k string) (warnings []string, errs []error) {
+func DashboardProperties(v any, k string) (warnings []string, errs []error) {
 	value := v.(string)
 
 	if len(value) == 0 {

@@ -6,6 +6,7 @@ package managedidentity
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -16,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2024-11-30/identities"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedidentity/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -45,19 +47,19 @@ func (r UserAssignedIdentityResource) StateUpgraders() sdk.StateUpgradeData {
 	}
 }
 
-func (r UserAssignedIdentityResource) ModelObject() interface{} {
+func (r UserAssignedIdentityResource) ModelObject() any {
 	return &UserAssignedIdentityResourceSchema{}
 }
 
 type UserAssignedIdentityResourceSchema struct {
-	ClientId          string                 `tfschema:"client_id"`
-	IsolationScope    string                 `tfschema:"isolation_scope"`
-	Location          string                 `tfschema:"location"`
-	Name              string                 `tfschema:"name"`
-	PrincipalId       string                 `tfschema:"principal_id"`
-	ResourceGroupName string                 `tfschema:"resource_group_name"`
-	Tags              map[string]interface{} `tfschema:"tags"`
-	TenantId          string                 `tfschema:"tenant_id"`
+	ClientId          string         `tfschema:"client_id"`
+	IsolationScope    string         `tfschema:"isolation_scope"`
+	Location          string         `tfschema:"location"`
+	Name              string         `tfschema:"name"`
+	PrincipalId       string         `tfschema:"principal_id"`
+	ResourceGroupName string         `tfschema:"resource_group_name"`
+	Tags              map[string]any `tfschema:"tags"`
+	TenantId          string         `tfschema:"tenant_id"`
 }
 
 func (r UserAssignedIdentityResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -149,6 +151,17 @@ func (r UserAssignedIdentityResource) Create() sdk.ResourceFunc {
 
 			if _, err := client.UserAssignedIdentitiesCreateOrUpdate(ctx, id, payload); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			pollerOpts := custompollers.DefaultCreationEventualConsistencyPollerOptions()
+			pollerOpts.Interval = 5 * time.Second
+
+			poller := custompollers.NewEventualConsistencyPoller(5, func(pollerCtx context.Context) (*http.Response, error) {
+				resp, err := client.UserAssignedIdentitiesGet(pollerCtx, id)
+				return resp.HttpResponse, err
+			}, pollerOpts)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("waiting for %s to become available: %+v", id, err)
 			}
 
 			metadata.SetID(id)

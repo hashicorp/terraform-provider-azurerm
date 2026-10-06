@@ -69,7 +69,7 @@ func (r AutonomousDatabaseBackupResource) Attributes() map[string]*pluginsdk.Sch
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r AutonomousDatabaseBackupResource) ModelObject() interface{} {
+func (r AutonomousDatabaseBackupResource) ModelObject() any {
 	return &AutonomousDatabaseBackupResourceModel{}
 }
 

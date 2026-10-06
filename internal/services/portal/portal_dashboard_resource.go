@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/portal/2026-04-01/dashboards"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -62,7 +61,7 @@ func resourcePortalDashboard() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.DashboardProperties,
-				StateFunc:    helpers.NormalizeJson,
+				StateFunc:    pluginsdk.NormalizeJson,
 			},
 		},
 	}
@@ -75,7 +74,7 @@ func resourcePortalDashboard() *pluginsdk.Resource {
 			}
 			if parsedLegacy, ok := parse.LegacyDashboardProperties(new); ok {
 				if converted, err := json.Marshal(parsedLegacy); err == nil {
-					return helpers.NormalizeJson(old) == helpers.NormalizeJson(string(converted))
+					return pluginsdk.NormalizeJson(old) == pluginsdk.NormalizeJson(string(converted))
 				}
 			}
 			return false
@@ -84,7 +83,7 @@ func resourcePortalDashboard() *pluginsdk.Resource {
 	return resource
 }
 
-func resourcePortalDashboardCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePortalDashboardCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Portal.DashboardsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -109,7 +108,7 @@ func resourcePortalDashboardCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	props := dashboards.Dashboard{
 		Location: location.Normalize(d.Get("location").(string)),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	dashboardPropsRaw := d.Get("dashboard_properties").(string)
@@ -148,7 +147,7 @@ func resourcePortalDashboardCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	return resourcePortalDashboardRead(d, meta)
 }
 
-func resourcePortalDashboardRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePortalDashboardRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Portal.DashboardsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -191,7 +190,7 @@ func resourcePortalDashboardRead(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourcePortalDashboardDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePortalDashboardDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Portal.DashboardsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

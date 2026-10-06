@@ -27,8 +27,8 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		ApplicationLoadBalancerResource{},
-		FrontendsResource{},
 		ApplicationLoadBalancerSubnetAssociationResource{},
+		FrontendsResource{},
 		SecurityPoliciesResource{},
 	}
 }

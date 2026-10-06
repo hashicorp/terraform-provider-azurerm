@@ -32,7 +32,7 @@ func LegacyDashboardProperties(v string) (*dashboards.DashboardPropertiesWithPro
 				Order: lens.Order,
 			}
 			if lens.Metadata != nil {
-				m := interface{}(*lens.Metadata)
+				m := any(*lens.Metadata)
 				newLens.Metadata = &m
 			}
 			partKeys := slices.Sorted(maps.Keys(lens.Parts))
@@ -48,11 +48,11 @@ func LegacyDashboardProperties(v string) (*dashboards.DashboardPropertiesWithPro
 					},
 				}
 				if part.Position.Metadata != nil {
-					m := interface{}(*part.Position.Metadata)
+					m := any(*part.Position.Metadata)
 					p.Position.Metadata = &m
 				}
 				if part.Metadata != nil {
-					if metaData, ok := (*part.Metadata).(map[string]interface{}); ok {
+					if metaData, ok := (*part.Metadata).(map[string]any); ok {
 						p.Metadata = rawDashboardPartMetadata(metaData)
 					}
 				}
@@ -65,7 +65,7 @@ func LegacyDashboardProperties(v string) (*dashboards.DashboardPropertiesWithPro
 		dashboardPropertiesWithProvisioningState.Lenses = &lenses
 
 		if dashboardProperties.Metadata != nil {
-			m := interface{}(*dashboardProperties.Metadata)
+			m := any(*dashboardProperties.Metadata)
 			dashboardPropertiesWithProvisioningState.Metadata = &m
 		}
 

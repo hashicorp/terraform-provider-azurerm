@@ -14,7 +14,7 @@ import (
 // wraps unrecognised part types in a {Type, Values} envelope on serialisation, which corrupts
 // the round-trip for metadata that users paste from the Azure Portal. This adapter avoids the
 // envelope by holding the raw map directly.
-type rawDashboardPartMetadata map[string]interface{}
+type rawDashboardPartMetadata map[string]any
 
 var _ dashboards.DashboardPartMetadata = rawDashboardPartMetadata{}
 

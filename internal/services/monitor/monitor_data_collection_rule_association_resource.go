@@ -81,7 +81,7 @@ func (r DataCollectionRuleAssociationResource) IDValidationFunc() pluginsdk.Sche
 	return datacollectionruleassociations.ValidateScopedDataCollectionRuleAssociationID
 }
 
-func (r DataCollectionRuleAssociationResource) ModelObject() interface{} {
+func (r DataCollectionRuleAssociationResource) ModelObject() any {
 	return &DataCollectionRuleAssociationModel{}
 }
 
@@ -141,7 +141,6 @@ func (r DataCollectionRuleAssociationResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("retrieving %s", *id)
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
