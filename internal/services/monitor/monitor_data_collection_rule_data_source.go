@@ -24,7 +24,7 @@ type DataCollectionRuleDataSource struct{}
 
 var _ sdk.DataSource = DataCollectionRuleDataSource{}
 
-func (d DataCollectionRuleDataSource) ModelObject() interface{} {
+func (d DataCollectionRuleDataSource) ModelObject() any {
 	return &DataCollectionRule{}
 }
 
@@ -770,7 +770,7 @@ func (d DataCollectionRuleDataSource) Read() sdk.ResourceFunc {
 			}
 
 			var dataCollectionEndpointId, description, immutableId, kind, loc string
-			var tag map[string]interface{}
+			var tag map[string]any
 			var dataFlows []DataFlow
 			var dataSources []DataSource
 			var destinations []Destination

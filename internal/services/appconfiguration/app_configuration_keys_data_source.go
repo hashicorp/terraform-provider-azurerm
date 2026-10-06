@@ -25,15 +25,15 @@ type KeysDataSource struct{}
 var _ sdk.DataSource = KeysDataSource{}
 
 type KeyDataSourceModel struct {
-	Key               string                 `tfschema:"key"`
-	ContentType       string                 `tfschema:"content_type"`
-	Etag              string                 `tfschema:"etag"`
-	Label             string                 `tfschema:"label"`
-	Value             string                 `tfschema:"value"`
-	Locked            bool                   `tfschema:"locked"`
-	Tags              map[string]interface{} `tfschema:"tags"`
-	Type              string                 `tfschema:"type"`
-	VaultKeyReference string                 `tfschema:"vault_key_reference"`
+	Key               string         `tfschema:"key"`
+	ContentType       string         `tfschema:"content_type"`
+	Etag              string         `tfschema:"etag"`
+	Label             string         `tfschema:"label"`
+	Value             string         `tfschema:"value"`
+	Locked            bool           `tfschema:"locked"`
+	Tags              map[string]any `tfschema:"tags"`
+	Type              string         `tfschema:"type"`
+	VaultKeyReference string         `tfschema:"vault_key_reference"`
 }
 
 type KeysDataSourceModel struct {
@@ -109,7 +109,7 @@ func (k KeysDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (k KeysDataSource) ModelObject() interface{} {
+func (k KeysDataSource) ModelObject() any {
 	return &KeysDataSourceModel{}
 }
 
