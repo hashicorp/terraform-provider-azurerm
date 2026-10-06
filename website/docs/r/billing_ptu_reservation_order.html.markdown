@@ -14,7 +14,7 @@ PTU reservations are billing commitments at the Azure subscription level that gr
 
 ~> **Note:** PTU reservations with `billing_plan = "Upfront"` are non-refundable after the return window (typically 30 days). Use `lifecycle { prevent_destroy = true }` to guard against accidental deletion.
 
-~> **Note:** All arguments force a new resource to be created because Azure does not support in-place modification of reservation order properties.
+~> **Note:** All arguments except `renew` force a new resource to be created because Azure does not support in-place modification of reservation order properties.
 
 ## Example Usage
 
@@ -22,15 +22,15 @@ PTU reservations are billing commitments at the Azure subscription level that gr
 data "azurerm_subscription" "current" {}
 
 resource "azurerm_billing_ptu_reservation_order" "example" {
-  name              = "example-ptu-reservation"
-  location          = "eastus"
-  capacity          = 100
-  billing_scope_id  = data.azurerm_subscription.current.id
-  sku_name          = "DataZoneProvisionedManaged"
-  term              = "P1Y"
-  billing_plan      = "Monthly"
+  name               = "example-ptu-reservation"
+  location           = "eastus"
+  capacity           = 100
+  billing_scope_id   = data.azurerm_subscription.current.id
+  sku_name           = "DataZoneProvisionedManaged"
+  term               = "P1Y"
+  billing_plan       = "Monthly"
   applied_scope_type = "Shared"
-  renew             = false
+  renew              = false
 }
 ```
 
@@ -68,7 +68,7 @@ In addition to the Arguments listed above, the following Attributes are exported
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the PTU Reservation Order.
 * `read` - (Defaults to 5 minutes) Used when retrieving the PTU Reservation Order.
