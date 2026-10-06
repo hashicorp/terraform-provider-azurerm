@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/raiblocklists"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/raiblocklists"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -189,11 +189,11 @@ func (c CognitiveRaiBlocklistResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (c CognitiveRaiBlocklistResource) IDValidationFunc() func(interface{}, string) ([]string, []error) {
+func (c CognitiveRaiBlocklistResource) IDValidationFunc() func(any, string) ([]string, []error) {
 	return raiblocklists.ValidateRaiBlocklistID
 }
 
-func (c CognitiveRaiBlocklistResource) ModelObject() interface{} {
+func (c CognitiveRaiBlocklistResource) ModelObject() any {
 	return &cognitiveRaiBlocklistModel{}
 }
 

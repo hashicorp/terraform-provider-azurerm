@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/scalingplan"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/scalingplan"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -62,7 +62,7 @@ func resourceVirtualDesktopScalingPlanHostPoolAssociation() *pluginsdk.Resource 
 	}
 }
 
-func resourceVirtualDesktopScalingPlanHostPoolAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopScalingPlanHostPoolAssociationCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DesktopVirtualization.ScalingPlansClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -127,7 +127,7 @@ func resourceVirtualDesktopScalingPlanHostPoolAssociationCreate(d *pluginsdk.Res
 	return resourceVirtualDesktopScalingPlanHostPoolAssociationRead(d, meta)
 }
 
-func resourceVirtualDesktopScalingPlanHostPoolAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopScalingPlanHostPoolAssociationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DesktopVirtualization.ScalingPlansClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -173,7 +173,7 @@ func resourceVirtualDesktopScalingPlanHostPoolAssociationRead(d *pluginsdk.Resou
 	return nil
 }
 
-func resourceVirtualDesktopScalingPlanHostPoolAssociationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopScalingPlanHostPoolAssociationUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DesktopVirtualization.ScalingPlansClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -234,7 +234,7 @@ func resourceVirtualDesktopScalingPlanHostPoolAssociationUpdate(d *pluginsdk.Res
 	return nil
 }
 
-func resourceVirtualDesktopScalingPlanHostPoolAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopScalingPlanHostPoolAssociationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DesktopVirtualization.ScalingPlansClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

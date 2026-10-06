@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
@@ -15,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceIotHubSharedAccessPolicy() *pluginsdk.Resource {
@@ -69,7 +69,7 @@ func dataSourceIotHubSharedAccessPolicy() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceIotHubSharedAccessPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceIotHubSharedAccessPolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	subscriptionId := meta.(*clients.Client).IoTHub.ResourceClient.SubscriptionID
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -79,7 +79,7 @@ func dataSourceIotHubSharedAccessPolicyRead(d *pluginsdk.ResourceData, meta inte
 
 	accessPolicy, err := client.GetKeysForKeyName(ctx, id.ResourceGroup, id.IotHubName, id.IotHubKeyName)
 	if err != nil {
-		if utils.ResponseWasNotFound(accessPolicy.Response) {
+		if response.WasNotFound(accessPolicy.Response.Response) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
