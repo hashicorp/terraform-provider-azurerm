@@ -39,7 +39,7 @@ func (r ManagedLustreFileSystemAutoImportJobResource) Attributes() map[string]*p
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r ManagedLustreFileSystemAutoImportJobResource) ModelObject() interface{} {
+func (r ManagedLustreFileSystemAutoImportJobResource) ModelObject() any {
 	return &ManagedLustreFileSystemAutoImportJobModel{}
 }
 

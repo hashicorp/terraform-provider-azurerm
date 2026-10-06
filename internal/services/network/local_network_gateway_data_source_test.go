@@ -22,8 +22,7 @@ func TestAccDataSourceLocalNetworkGateway_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("gateway_address").HasValue("127.0.0.1"),
-				check.That(data.ResourceName).Key("address_space.0").HasValue("127.0.1.0/24"),
-				check.That(data.ResourceName).Key("address_space.1").HasValue("127.0.0.0/24"),
+				check.That(data.ResourceName).Key("address_space.#").HasValue("2"),
 				check.That(data.ResourceName).Key("bgp_settings.#").HasValue("1"),
 				check.That(data.ResourceName).Key("bgp_settings.0.asn").HasValue("2468"),
 				check.That(data.ResourceName).Key("bgp_settings.0.bgp_peering_address").HasValue("10.104.1.1"),

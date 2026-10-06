@@ -16,10 +16,18 @@ func TestAccCapacityReservation_resourceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_capacity_reservation", "test")
 	r := CapacityReservationResource{}
 
+	checkedFields := map[string]struct{}{
+		"name":                            {},
+		"capacity_reservation_group_name": {},
+		"resource_group_name":             {},
+		"subscription_id":                 {},
+	}
+
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
+				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_capacity_reservation.test", checkedFields),
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_capacity_reservation.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_capacity_reservation.test", tfjsonpath.New("capacity_reservation_group_name"), tfjsonpath.New("capacity_reservation_group_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_capacity_reservation.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("capacity_reservation_group_id")),
