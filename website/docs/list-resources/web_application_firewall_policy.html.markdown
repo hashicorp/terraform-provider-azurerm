@@ -22,7 +22,7 @@ list "azurerm_web_application_firewall_policy" "example" {
 }
 ```
 
-### List all Web Application Firewall Policys in a Resource Group
+### List all Web Application Firewall Policies in a Resource Group
 
 ```hcl
 list "azurerm_web_application_firewall_policy" "example" {

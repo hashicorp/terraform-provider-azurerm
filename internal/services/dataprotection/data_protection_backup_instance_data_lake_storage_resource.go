@@ -52,7 +52,7 @@ func (r DataProtectionBackupInstanceDataLakeStorageResource) ResourceType() stri
 	return "azurerm_data_protection_backup_instance_data_lake_storage"
 }
 
-func (r DataProtectionBackupInstanceDataLakeStorageResource) ModelObject() interface{} {
+func (r DataProtectionBackupInstanceDataLakeStorageResource) ModelObject() any {
 	return &BackupInstanceDataLakeStorageModel{}
 }
 
@@ -347,8 +347,7 @@ func (r DataProtectionBackupInstanceDataLakeStorageResource) Delete() sdk.Resour
 				return err
 			}
 
-			err = client.BackupInstancesDeleteThenPoll(ctx, *id, backupinstanceresources.DefaultBackupInstancesDeleteOperationOptions())
-			if err != nil {
+			if err = client.BackupInstancesDeleteThenPoll(ctx, *id, backupinstanceresources.DefaultBackupInstancesDeleteOperationOptions()); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 

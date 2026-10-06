@@ -23,7 +23,7 @@ func (WorkspaceV1ToV2) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (WorkspaceV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 
 		log.Printf("[DEBUG] Migrating IDs to correct casing for Log Analytics Workspace")

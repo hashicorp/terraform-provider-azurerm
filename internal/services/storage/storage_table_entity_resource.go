@@ -14,20 +14,18 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01/tables"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/table/entities"
-	legacyTables "github.com/jackofallops/giovanni/storage/2023-11-03/table/tables"
 )
 
 func resourceStorageTableEntity() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceStorageTableEntityCreate,
 		Read:   resourceStorageTableEntityRead,
 		Update: resourceStorageTableEntityUpdate,
@@ -44,6 +42,11 @@ func resourceStorageTableEntity() *pluginsdk.Resource {
 			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.StorageTableEntityV0ToV1{},
+		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"storage_table_id": {
@@ -75,17 +78,11 @@ func resourceStorageTableEntity() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["storage_table_id"].ValidateFunc = validation.Any(tables.ValidateTableID, storageValidate.StorageTableDataPlaneID)
-	}
-
-	return resource
 }
 
-func resourceStorageTableEntityCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageTableEntityCreate(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -103,37 +100,17 @@ func resourceStorageTableEntityCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 	storageTableIdRaw := tableIdRaw.(string)
 
-	// In 4.x, `storage_table_id` could be either a Management Plane ID or a legacy Data Plane URL.
-	// For 5.0, only the Management Plane ID is permitted. Since the parsing and validation logic
-	// for the Management Plane ID is identical in both 4.x and 5.0, we combine them into a single
-	// `case` block to avoid linter warnings (gocritic: ifElseChain).
-	// TODO: 5.0 - Remove this `switch` statement and retain only the logic within the `case` block,
-	// discarding the `default` legacy Data Plane URL fallback.
-	switch {
-	case features.FivePointOh(), strings.HasPrefix(strings.ToLower(storageTableIdRaw), "/subscriptions/"):
-		storageTableId, err := tables.ParseTableID(storageTableIdRaw)
-		if err != nil {
-			return err
-		}
-		tableName = storageTableId.TableName
-		accountName = storageTableId.StorageAccountName
-		storageAccountId := commonids.NewStorageAccountID(storageTableId.SubscriptionId, storageTableId.ResourceGroupName, storageTableId.StorageAccountName)
-		account, err = storageClient.GetAccount(ctx, storageAccountId)
-		if err != nil {
-			return fmt.Errorf("retrieving Account %q for Table %q: %v", accountName, tableName, err)
-		}
-	default:
-		log.Printf("[WARN] `storage_table_id` is currently configured as a Data Plane URL. This legacy behavior has been deprecated and will be removed in version 5.0 of the AzureRM Provider. Please migrate to the Management Plane ID format.")
-		storageTableId, err := legacyTables.ParseTableID(storageTableIdRaw, storageClient.StorageDomainSuffix)
-		if err != nil {
-			return err
-		}
-		tableName = storageTableId.TableName
-		accountName = storageTableId.AccountId.AccountName
-		account, err = storageClient.FindAccount(ctx, subscriptionId, accountName)
-		if err != nil {
-			return fmt.Errorf("retrieving Account %q for Table %q: %v", accountName, tableName, err)
-		}
+	storageTableId, err := tables.ParseTableID(storageTableIdRaw)
+	if err != nil {
+		return err
+	}
+
+	tableName = storageTableId.TableName
+	accountName = storageTableId.StorageAccountName
+	storageAccountId := commonids.NewStorageAccountID(storageTableId.SubscriptionId, storageTableId.ResourceGroupName, storageTableId.StorageAccountName)
+	account, err = storageClient.GetAccount(ctx, storageAccountId)
+	if err != nil {
+		return fmt.Errorf("retrieving Account %q for Table %q: %v", accountName, tableName, err)
 	}
 
 	if account == nil {
@@ -179,7 +156,7 @@ func resourceStorageTableEntityCreate(d *pluginsdk.ResourceData, meta interface{
 	input := entities.InsertOrMergeEntityInput{
 		PartitionKey: partitionKey,
 		RowKey:       rowKey,
-		Entity:       d.Get("entity").(map[string]interface{}),
+		Entity:       d.Get("entity").(map[string]any),
 	}
 
 	if _, err = client.InsertOrMerge(ctx, tableName, input); err != nil {
@@ -191,9 +168,9 @@ func resourceStorageTableEntityCreate(d *pluginsdk.ResourceData, meta interface{
 	return resourceStorageTableEntityRead(d, meta)
 }
 
-func resourceStorageTableEntityUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageTableEntityUpdate(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -212,36 +189,16 @@ func resourceStorageTableEntityUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 	storageTableIdRaw := tableIdRaw.(string)
 
-	// In 4.x, `storage_table_id` could be either a Management Plane ID or a legacy Data Plane URL.
-	// For 5.0, only the Management Plane ID is permitted. Since the parsing and validation logic
-	// for the Management Plane ID is identical in both 4.x and 5.0, we combine them into a single
-	// `case` block to avoid linter warnings (gocritic: ifElseChain).
-	// TODO: 5.0 - Remove this `switch` statement and retain only the logic within the `case` block,
-	// discarding the `default` legacy Data Plane URL fallback.
-	switch {
-	case features.FivePointOh(), strings.HasPrefix(strings.ToLower(storageTableIdRaw), "/subscriptions/"):
-		storageTableId, err := tables.ParseTableID(storageTableIdRaw)
-		if err != nil {
-			return err
-		}
-		tableName = storageTableId.TableName
-		accountName = storageTableId.StorageAccountName
-		storageAccountId := commonids.NewStorageAccountID(storageTableId.SubscriptionId, storageTableId.ResourceGroupName, storageTableId.StorageAccountName)
-		account, err = storageClient.GetAccount(ctx, storageAccountId)
-		if err != nil {
-			return fmt.Errorf("retrieving Account %q for Table %q: %v", accountName, tableName, err)
-		}
-	default:
-		storageTableId, err := legacyTables.ParseTableID(storageTableIdRaw, storageClient.StorageDomainSuffix)
-		if err != nil {
-			return err
-		}
-		tableName = storageTableId.TableName
-		accountName = storageTableId.AccountId.AccountName
-		account, err = storageClient.FindAccount(ctx, subscriptionId, accountName)
-		if err != nil {
-			return fmt.Errorf("retrieving Account %q for Table %q: %v", accountName, tableName, err)
-		}
+	storageTableId, err := tables.ParseTableID(storageTableIdRaw)
+	if err != nil {
+		return err
+	}
+	tableName = storageTableId.TableName
+	accountName = storageTableId.StorageAccountName
+	storageAccountId := commonids.NewStorageAccountID(storageTableId.SubscriptionId, storageTableId.ResourceGroupName, storageTableId.StorageAccountName)
+	account, err = storageClient.GetAccount(ctx, storageAccountId)
+	if err != nil {
+		return fmt.Errorf("retrieving Account %q for Table %q: %v", accountName, tableName, err)
 	}
 
 	if account == nil {
@@ -258,7 +215,7 @@ func resourceStorageTableEntityUpdate(d *pluginsdk.ResourceData, meta interface{
 	input := entities.InsertOrMergeEntityInput{
 		PartitionKey: d.Get("partition_key").(string),
 		RowKey:       d.Get("row_key").(string),
-		Entity:       d.Get("entity").(map[string]interface{}),
+		Entity:       d.Get("entity").(map[string]any),
 	}
 
 	if _, err = client.InsertOrMerge(ctx, tableName, input); err != nil {
@@ -270,7 +227,7 @@ func resourceStorageTableEntityUpdate(d *pluginsdk.ResourceData, meta interface{
 	return resourceStorageTableEntityRead(d, meta)
 }
 
-func resourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -293,7 +250,6 @@ func resourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if storageTableIdRaw == "" {
-		// Imports on FivePointOh and legacy
 		accountName = id.AccountId.AccountName
 		tableName = id.TableName
 		account, err = storageClient.FindAccount(ctx, subscriptionId, accountName)
@@ -301,47 +257,21 @@ func resourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{})
 			return fmt.Errorf("retrieving Account %q for Table %q: %v", accountName, tableName, err)
 		}
 		if account != nil {
-			if !features.FivePointOh() {
-				storageTableId := legacyTables.NewTableID(id.AccountId, id.TableName)
-				storageTableIdFmtd = storageTableId.ID()
-			} else {
-				storageTableId := tables.NewTableID(subscriptionId, account.StorageAccountId.ResourceGroupName, accountName, tableName)
-				storageTableIdFmtd = storageTableId.ID()
-			}
+			storageTableId := tables.NewTableID(subscriptionId, account.StorageAccountId.ResourceGroupName, accountName, tableName)
+			storageTableIdFmtd = storageTableId.ID()
 		}
 	} else {
-		// In 4.x, `storage_table_id` could be either a Management Plane ID or a legacy Data Plane URL.
-		// For 5.0, only the Management Plane ID is permitted. Since the parsing and validation logic
-		// for the Management Plane ID is identical in both 4.x and 5.0, we combine them into a single
-		// `case` block to avoid linter warnings (gocritic: ifElseChain).
-		// TODO: 5.0 - Remove this `switch` statement and retain only the logic within the `case` block,
-		// discarding the `default` legacy Data Plane URL fallback.
-		switch {
-		case features.FivePointOh(), strings.HasPrefix(strings.ToLower(storageTableIdRaw), "/subscriptions/"):
-			storageTableId, err := tables.ParseTableID(storageTableIdRaw)
-			if err != nil {
-				return err
-			}
-			storageTableIdFmtd = storageTableId.ID()
-			tableName = storageTableId.TableName
-			accountName = storageTableId.StorageAccountName
-			storageAccountId := commonids.NewStorageAccountID(storageTableId.SubscriptionId, storageTableId.ResourceGroupName, storageTableId.StorageAccountName)
-			account, err = storageClient.GetAccount(ctx, storageAccountId)
-			if err != nil {
-				return fmt.Errorf("retrieving Account %q for Table %q: %v", accountName, tableName, err)
-			}
-		default:
-			storageTableId, err := legacyTables.ParseTableID(storageTableIdRaw, storageClient.StorageDomainSuffix)
-			if err != nil {
-				return err
-			}
-			storageTableIdFmtd = storageTableId.ID()
-			tableName = storageTableId.TableName
-			accountName = storageTableId.AccountId.AccountName
-			account, err = storageClient.FindAccount(ctx, subscriptionId, accountName)
-			if err != nil {
-				return fmt.Errorf("retrieving Account %q for Table %q: %v", accountName, tableName, err)
-			}
+		storageTableId, err := tables.ParseTableID(storageTableIdRaw)
+		if err != nil {
+			return err
+		}
+		storageTableIdFmtd = storageTableId.ID()
+		tableName = storageTableId.TableName
+		accountName = storageTableId.StorageAccountName
+		storageAccountId := commonids.NewStorageAccountID(storageTableId.SubscriptionId, storageTableId.ResourceGroupName, storageTableId.StorageAccountName)
+		account, err = storageClient.GetAccount(ctx, storageAccountId)
+		if err != nil {
+			return fmt.Errorf("retrieving Account %q for Table %q: %v", accountName, tableName, err)
 		}
 	}
 
@@ -382,9 +312,9 @@ func resourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceStorageTableEntityDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageTableEntityDelete(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -403,36 +333,16 @@ func resourceStorageTableEntityDelete(d *pluginsdk.ResourceData, meta interface{
 	}
 	storageTableIdRaw := tableIdRaw.(string)
 
-	// In 4.x, `storage_table_id` could be either a Management Plane ID or a legacy Data Plane URL.
-	// For 5.0, only the Management Plane ID is permitted. Since the parsing and validation logic
-	// for the Management Plane ID is identical in both 4.x and 5.0, we combine them into a single
-	// `case` block to avoid linter warnings (gocritic: ifElseChain).
-	// TODO: 5.0 - Remove this `switch` statement and retain only the logic within the `case` block,
-	// discarding the `default` legacy Data Plane URL fallback.
-	switch {
-	case features.FivePointOh(), strings.HasPrefix(strings.ToLower(storageTableIdRaw), "/subscriptions/"):
-		storageTableId, err := tables.ParseTableID(storageTableIdRaw)
-		if err != nil {
-			return err
-		}
-		tableName = storageTableId.TableName
-		accountName = storageTableId.StorageAccountName
-		storageAccountId := commonids.NewStorageAccountID(storageTableId.SubscriptionId, storageTableId.ResourceGroupName, storageTableId.StorageAccountName)
-		account, err = storageClient.GetAccount(ctx, storageAccountId)
-		if err != nil {
-			return fmt.Errorf("retrieving Account %q for Table %q: %v", accountName, tableName, err)
-		}
-	default:
-		storageTableId, err := legacyTables.ParseTableID(storageTableIdRaw, storageClient.StorageDomainSuffix)
-		if err != nil {
-			return err
-		}
-		tableName = storageTableId.TableName
-		accountName = storageTableId.AccountId.AccountName
-		account, err = storageClient.FindAccount(ctx, subscriptionId, accountName)
-		if err != nil {
-			return fmt.Errorf("retrieving Account %q for Table %q: %v", accountName, tableName, err)
-		}
+	storageTableId, err := tables.ParseTableID(storageTableIdRaw)
+	if err != nil {
+		return err
+	}
+	tableName = storageTableId.TableName
+	accountName = storageTableId.StorageAccountName
+	storageAccountId := commonids.NewStorageAccountID(storageTableId.SubscriptionId, storageTableId.ResourceGroupName, storageTableId.StorageAccountName)
+	account, err = storageClient.GetAccount(ctx, storageAccountId)
+	if err != nil {
+		return fmt.Errorf("retrieving Account %q for Table %q: %v", accountName, tableName, err)
 	}
 
 	if account == nil {
@@ -457,12 +367,12 @@ func resourceStorageTableEntityDelete(d *pluginsdk.ResourceData, meta interface{
 }
 
 // The api returns extra information that we already have. We'll remove it here before setting it in state.
-func flattenEntity(entity map[string]interface{}) map[string]interface{} {
+func flattenEntity(entity map[string]any) map[string]any {
 	delete(entity, "PartitionKey")
 	delete(entity, "RowKey")
 	delete(entity, "Timestamp")
 
-	result := map[string]interface{}{}
+	result := map[string]any{}
 	for k, v := range entity {
 		// skip ODATA annotation returned with fullmetadata
 		if strings.HasPrefix(k, "odata.") || strings.HasSuffix(k, "@odata.type") {
@@ -487,7 +397,7 @@ func flattenEntity(entity map[string]interface{}) map[string]interface{} {
 			result[k+"@odata.type"] = dtype
 		} else {
 			// special handling for property types that do not require the annotation to be present
-			// https://docs.microsoft.com/en-us/rest/api/storageservices/payload-format-for-table-service-operations#property-types-in-a-json-feed
+			// https://docs.microsoft.com/rest/api/storageservices/payload-format-for-table-service-operations#property-types-in-a-json-feed
 			switch c := v.(type) {
 			case bool:
 				result[k] = fmt.Sprint(v)
