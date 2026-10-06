@@ -47,7 +47,7 @@ var (
 
 type QuotaGroupResource struct{}
 
-func (r QuotaGroupResource) ModelObject() interface{} {
+func (r QuotaGroupResource) ModelObject() any {
 	return &QuotaGroupModel{}
 }
 
@@ -336,7 +336,7 @@ func (r QuotaGroupResource) Update() sdk.ResourceFunc {
 				type reqKey struct{ ResourceProvider, Location, ResourceName string }
 				newReqSet := make(map[reqKey]bool)
 				for _, raw := range newVal.(*pluginsdk.Set).List() {
-					item := raw.(map[string]interface{})
+					item := raw.(map[string]any)
 					newReqSet[reqKey{
 						ResourceProvider: item["resource_provider_name"].(string),
 						Location:         location.Normalize(item["location"].(string)),
@@ -348,7 +348,7 @@ func (r QuotaGroupResource) Update() sdk.ResourceFunc {
 				// new config, send a zero-limit PATCH so Azure returns that quota to the pool.
 				zeroRequests := make([]QuotaRequestModel, 0)
 				for _, raw := range old.(*pluginsdk.Set).List() {
-					item := raw.(map[string]interface{})
+					item := raw.(map[string]any)
 					rp := item["resource_provider_name"].(string)
 					loc := location.Normalize(item["location"].(string))
 					rn := item["resource_name"].(string)
@@ -471,7 +471,7 @@ func readQuotaRequests(ctx context.Context, client *groupquotalimits.GroupQuotaL
 	configScopes := make(map[scopeKey]map[string]QuotaRequestModel) // scope -> resourceName -> config
 	if v, ok := d.GetOk("quota_request"); ok {
 		for _, raw := range v.(*pluginsdk.Set).List() {
-			item := raw.(map[string]interface{})
+			item := raw.(map[string]any)
 			rn := item["resource_name"].(string)
 			loc := item["location"].(string)
 			rp := item["resource_provider_name"].(string)

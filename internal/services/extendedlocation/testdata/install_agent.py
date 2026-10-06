@@ -131,7 +131,7 @@ def install_helm_client():
 
     # Download compressed halm binary if not already present
     if not os.path.isfile(download_location):
-        # Creating the helm folder if it doesnt exist
+        # Creating the helm folder if it doesn't exist
         if not os.path.exists(download_dir):
             try:
                 os.makedirs(download_dir)
@@ -193,7 +193,7 @@ def helm_install_release(chart_path, subscription_id, kubernetes_distro, kuberne
                         "--set", "systemDefaultValues.customLocations.enabled=true",
                         # ccce55cc-eb6c-45ec-b9ca-562ababa6a44 is from: az ad sp show --id bc313c14-388c-4e7d-a58e-70017303ee3b --query id -o tsv
                         # As a user, you need to run the above command to get the object id of the service principal and replace it in the below command.
-                        # refs: https://learn.microsoft.com/en-us/azure/azure-arc/kubernetes/custom-locations#enable-custom-locations-on-your-cluster
+                        # refs: https://learn.microsoft.com/azure/azure-arc/kubernetes/custom-locations#enable-custom-locations-on-your-cluster
                         "--set", "systemDefaultValues.customLocations.oid={}".format("ccce55cc-eb6c-45ec-b9ca-562ababa6a44"),
                         "--namespace", "{}".format("azure-arc-release"),
                         "--create-namespace",

@@ -34,7 +34,7 @@ var (
 	_ sdk.ResourceWithUpdate         = AlertRuleThreatIntelligenceResource{}
 )
 
-func (a AlertRuleThreatIntelligenceResource) ModelObject() interface{} {
+func (a AlertRuleThreatIntelligenceResource) ModelObject() any {
 	return &AlertRuleThreatIntelligenceModel{}
 }
 
@@ -146,7 +146,7 @@ func (a AlertRuleThreatIntelligenceResource) Create() sdk.ResourceFunc {
 				Properties: &alertrules.ThreatIntelligenceAlertRuleProperties{
 					Enabled:               config.Enabled,
 					AlertRuleTemplateName: config.TemplateName,
-					Severity:              pointer.To(alertrules.AlertSeverity(props.Severity)),
+					Severity:              pointer.ToEnum[alertrules.AlertSeverity](string(props.Severity)),
 					DisplayName:           props.DisplayName,
 					Description:           props.Description,
 					Tactics:               &tactics,

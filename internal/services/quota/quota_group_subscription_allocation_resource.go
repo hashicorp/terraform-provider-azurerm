@@ -42,7 +42,7 @@ var (
 
 type QuotaGroupSubscriptionAllocationResource struct{}
 
-func (r QuotaGroupSubscriptionAllocationResource) ModelObject() interface{} {
+func (r QuotaGroupSubscriptionAllocationResource) ModelObject() any {
 	return &QuotaGroupSubscriptionAllocationModel{}
 }
 

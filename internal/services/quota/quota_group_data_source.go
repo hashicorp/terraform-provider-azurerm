@@ -35,7 +35,7 @@ var _ sdk.DataSource = QuotaGroupDataSource{}
 
 type QuotaGroupDataSource struct{}
 
-func (d QuotaGroupDataSource) ModelObject() interface{} {
+func (d QuotaGroupDataSource) ModelObject() any {
 	return &QuotaGroupDataSourceModel{}
 }
 
