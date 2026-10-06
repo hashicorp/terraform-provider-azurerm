@@ -32,18 +32,18 @@ var (
 )
 
 type DataCollectionRule struct {
-	DataCollectionEndpointId string                 `tfschema:"data_collection_endpoint_id"`
-	DataFlows                []DataFlow             `tfschema:"data_flow"`
-	DataSources              []DataSource           `tfschema:"data_sources"`
-	Description              string                 `tfschema:"description"`
-	Destinations             []Destination          `tfschema:"destinations"`
-	ImmutableId              string                 `tfschema:"immutable_id"`
-	Kind                     string                 `tfschema:"kind"`
-	Name                     string                 `tfschema:"name"`
-	Location                 string                 `tfschema:"location"`
-	ResourceGroupName        string                 `tfschema:"resource_group_name"`
-	StreamDeclaration        []StreamDeclaration    `tfschema:"stream_declaration"`
-	Tags                     map[string]interface{} `tfschema:"tags"`
+	DataCollectionEndpointId string              `tfschema:"data_collection_endpoint_id"`
+	DataFlows                []DataFlow          `tfschema:"data_flow"`
+	DataSources              []DataSource        `tfschema:"data_sources"`
+	Description              string              `tfschema:"description"`
+	Destinations             []Destination       `tfschema:"destinations"`
+	ImmutableId              string              `tfschema:"immutable_id"`
+	Kind                     string              `tfschema:"kind"`
+	Name                     string              `tfschema:"name"`
+	Location                 string              `tfschema:"location"`
+	ResourceGroupName        string              `tfschema:"resource_group_name"`
+	StreamDeclaration        []StreamDeclaration `tfschema:"stream_declaration"`
+	Tags                     map[string]any      `tfschema:"tags"`
 }
 
 type DataFlow struct {
@@ -926,7 +926,7 @@ func (r DataCollectionRuleResource) IDValidationFunc() pluginsdk.SchemaValidateF
 	return datacollectionrules.ValidateDataCollectionRuleID
 }
 
-func (r DataCollectionRuleResource) ModelObject() interface{} {
+func (r DataCollectionRuleResource) ModelObject() any {
 	return &DataCollectionRule{}
 }
 
@@ -958,7 +958,7 @@ func (r DataCollectionRuleResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			identityValue, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+			identityValue, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]any))
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
@@ -1011,7 +1011,7 @@ func (r DataCollectionRuleResource) Read() sdk.ResourceFunc {
 			}
 
 			var dataCollectionEndpointId, description, immutableId, kind, loc string
-			var tag map[string]interface{}
+			var tag map[string]any
 			var dataFlows []DataFlow
 			var dataSources []DataSource
 			var destinations []Destination
@@ -1124,7 +1124,7 @@ func (r DataCollectionRuleResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
-				identityValue, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+				identityValue, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]any))
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
@@ -1262,7 +1262,7 @@ func expandDataCollectionRuleDataSourceExtensions(input []Extension) (*[]datacol
 
 	result := make([]datacollectionrules.ExtensionDataSource, 0)
 	for _, v := range input {
-		var extensionSettings interface{}
+		var extensionSettings any
 		if v.ExtensionSettings != "" {
 			settings, err := pluginsdk.ExpandJsonFromString(v.ExtensionSettings)
 			if err != nil {
@@ -1777,7 +1777,7 @@ func flattenDataCollectionRuleDataSourceExtensions(input *[]datacollectionrules.
 	for _, v := range *input {
 		extensionSettings := ""
 		if v.ExtensionSettings != nil {
-			settingString, _ := pluginsdk.FlattenJsonToString((*v.ExtensionSettings).(map[string]interface{}))
+			settingString, _ := pluginsdk.FlattenJsonToString((*v.ExtensionSettings).(map[string]any))
 			extensionSettings = settingString
 		}
 		result = append(result, Extension{

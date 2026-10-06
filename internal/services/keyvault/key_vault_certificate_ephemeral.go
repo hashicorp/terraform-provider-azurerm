@@ -223,7 +223,7 @@ func (e *KeyVaultCertificateEphemeralResource) Open(ctx context.Context, req eph
 		}
 	}
 
-	var privateKey interface{}
+	var privateKey any
 
 	if *pfx.ContentType == "application/x-pkcs12" {
 		rsakey, err := x509.ParsePKCS1PrivateKey(pemKey)
