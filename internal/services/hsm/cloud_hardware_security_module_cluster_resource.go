@@ -48,7 +48,7 @@ func (CloudHardwareSecurityModuleClusterResource) ResourceType() string {
 	return "azurerm_cloud_hardware_security_module_cluster"
 }
 
-func (CloudHardwareSecurityModuleClusterResource) ModelObject() interface{} {
+func (CloudHardwareSecurityModuleClusterResource) ModelObject() any {
 	return &CloudHardwareSecurityModuleClusterModel{}
 }
 

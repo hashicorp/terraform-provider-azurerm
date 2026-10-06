@@ -8,16 +8,18 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/sdk/auth"
-	authWrapper "github.com/hashicorp/go-azure-sdk/sdk/auth/autorest"
+	"github.com/hashicorp/go-azure-sdk/sdk/auth/autorest"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/vcr"
 )
 
 type ClientBuilder struct {
@@ -33,6 +35,7 @@ type ClientBuilder struct {
 	StorageUseAzureAD           bool
 	SubscriptionID              string
 	TerraformVersion            string
+	TestName                    string
 }
 
 const azureStackEnvironmentError = `
@@ -137,11 +140,10 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		PartnerId:        builder.PartnerID,
 		TerraformVersion: builder.TerraformVersion,
 
-		BatchManagementAuthorizer: authWrapper.AutorestAuthorizer(batchManagementAuth),
-		KeyVaultAuthorizer:        authWrapper.AutorestAuthorizer(keyVaultAuth).BearerAuthorizerCallback(),
-		ManagedHSMAuthorizer:      authWrapper.AutorestAuthorizer(managedHSMAuth).BearerAuthorizerCallback(),
-		ResourceManagerAuthorizer: authWrapper.AutorestAuthorizer(resourceManagerAuth),
-		SynapseAuthorizer:         authWrapper.AutorestAuthorizer(synapseAuth),
+		KeyVaultAuthorizer:        autorest.AutorestAuthorizer(keyVaultAuth).BearerAuthorizerCallback(),
+		ManagedHSMAuthorizer:      autorest.AutorestAuthorizer(managedHSMAuth).BearerAuthorizerCallback(),
+		ResourceManagerAuthorizer: autorest.AutorestAuthorizer(resourceManagerAuth),
+		SynapseAuthorizer:         autorest.AutorestAuthorizer(synapseAuth),
 
 		CustomCorrelationRequestID:  builder.CustomCorrelationRequestID,
 		DisableCorrelationRequestID: builder.DisableCorrelationRequestID,
@@ -150,6 +152,18 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		StorageUseAzureAD:           builder.StorageUseAzureAD,
 
 		ResourceManagerEndpoint: *resourceManagerEndpoint,
+	}
+
+	// go-vcr integration
+	// TC_TEST_VIA_VCR can be set to `true` or `record` see the testing guides for more information
+	if os.Getenv("TC_TEST_VIA_VCR") != "" && builder.TestName != "" {
+		builder.Features.EnhancedValidation.ResourceProviders = false
+		builder.Features.EnhancedValidation.Locations = false
+		if r, err := vcr.GetRecorder(builder.TestName, account.SubscriptionId); err == nil {
+			o.Transport = r
+		} else {
+			return nil, fmt.Errorf("getting vcr recorder: %w", err)
+		}
 	}
 
 	if err := client.Build(ctx, o); err != nil {

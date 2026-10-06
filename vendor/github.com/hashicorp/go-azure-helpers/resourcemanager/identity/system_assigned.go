@@ -15,12 +15,12 @@ type SystemAssigned struct {
 	TenantId    string `json:"tenantId" tfschema:"tenant_id"`
 }
 
-func (s *SystemAssigned) MarshalJSON() ([]byte, error) {
+func (s SystemAssigned) MarshalJSON() ([]byte, error) {
 	// we use a custom marshal function here since we can only send the Type field
 	out := map[string]interface{}{
 		"type": string(TypeNone),
 	}
-	if s != nil && s.Type == TypeSystemAssigned {
+	if s.Type == TypeSystemAssigned {
 		out["type"] = string(TypeSystemAssigned)
 	}
 	return json.Marshal(out)

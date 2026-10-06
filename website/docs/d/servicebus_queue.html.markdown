@@ -59,6 +59,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `max_delivery_count` - Integer value which controls when a message is automatically dead lettered.
 
+* `maximum_message_size_in_kb` - Integer value which controls the maximum size of a message allowed on the queue for Premium SKU.
+
 * `max_size_in_megabytes` - Integer value which controls the size of memory allocated for the queue. For supported values see the "Queue or topic size" section of [Service Bus Quotas](https://docs.microsoft.com/azure/service-bus-messaging/service-bus-quotas).
 
 * `requires_duplicate_detection` - Boolean flag which controls whether the Queue requires duplicate detection.
@@ -77,4 +79,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.ServiceBus` - 2024-01-01
+* `Microsoft.ServiceBus` - 2026-01-01

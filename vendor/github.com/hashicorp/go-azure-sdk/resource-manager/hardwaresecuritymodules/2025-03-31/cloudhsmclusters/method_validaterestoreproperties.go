@@ -62,9 +62,20 @@ func (c CloudHsmClustersClient) ValidateRestoreProperties(ctx context.Context, i
 
 // ValidateRestorePropertiesThenPoll performs ValidateRestoreProperties then polls until it's completed
 func (c CloudHsmClustersClient) ValidateRestorePropertiesThenPoll(ctx context.Context, id CloudHsmClusterId, input RestoreRequestProperties) error {
+	return c.ValidateRestorePropertiesCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ValidateRestorePropertiesCallbackThenPoll performs ValidateRestoreProperties, runs the optional callback function, then polls until it's completed
+func (c CloudHsmClustersClient) ValidateRestorePropertiesCallbackThenPoll(ctx context.Context, id CloudHsmClusterId, input RestoreRequestProperties, callback func() error) error {
 	result, err := c.ValidateRestoreProperties(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ValidateRestoreProperties: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

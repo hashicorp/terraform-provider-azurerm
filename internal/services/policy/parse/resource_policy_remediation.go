@@ -6,33 +6,11 @@ package parse
 import (
 	"fmt"
 	"regexp"
-	"strings"
 )
 
 type ResourcePolicyRemediationId struct {
 	Name       string
 	ResourceId string
-}
-
-func (id ResourcePolicyRemediationId) String() string {
-	segments := []string{
-		fmt.Sprintf("Resource Policy Remediation Name %q", id.Name),
-		fmt.Sprintf("Resource ID %q", id.ResourceId),
-	}
-	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Resource Policy Remediation ID", segmentsStr)
-}
-
-func (id ResourcePolicyRemediationId) ID() string {
-	fmtString := "%s/providers/Microsoft.PolicyInsights/remediations/%s"
-	return fmt.Sprintf(fmtString, id.ResourceId, id.Name)
-}
-
-func NewResourcePolicyRemediationId(resourceID, name string) ResourcePolicyRemediationId {
-	return ResourcePolicyRemediationId{
-		Name:       name,
-		ResourceId: resourceID,
-	}
 }
 
 // TODO: This paring function is currently suppressing every case difference due to github issue: https://github.com/Azure/azure-rest-api-specs/issues/8353

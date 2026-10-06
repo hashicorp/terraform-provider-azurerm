@@ -62,9 +62,20 @@ func (c CloudHsmClustersClient) ValidateBackupProperties(ctx context.Context, id
 
 // ValidateBackupPropertiesThenPoll performs ValidateBackupProperties then polls until it's completed
 func (c CloudHsmClustersClient) ValidateBackupPropertiesThenPoll(ctx context.Context, id CloudHsmClusterId, input BackupRestoreRequestBaseProperties) error {
+	return c.ValidateBackupPropertiesCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ValidateBackupPropertiesCallbackThenPoll performs ValidateBackupProperties, runs the optional callback function, then polls until it's completed
+func (c CloudHsmClustersClient) ValidateBackupPropertiesCallbackThenPoll(ctx context.Context, id CloudHsmClusterId, input BackupRestoreRequestBaseProperties, callback func() error) error {
 	result, err := c.ValidateBackupProperties(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ValidateBackupProperties: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

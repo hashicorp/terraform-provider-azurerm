@@ -62,9 +62,20 @@ func (c CloudHsmClustersClient) Backup(ctx context.Context, id CloudHsmClusterId
 
 // BackupThenPoll performs Backup then polls until it's completed
 func (c CloudHsmClustersClient) BackupThenPoll(ctx context.Context, id CloudHsmClusterId, input BackupRestoreRequestBaseProperties) error {
+	return c.BackupCallbackThenPoll(ctx, id, input, nil)
+}
+
+// BackupCallbackThenPoll performs Backup, runs the optional callback function, then polls until it's completed
+func (c CloudHsmClustersClient) BackupCallbackThenPoll(ctx context.Context, id CloudHsmClusterId, input BackupRestoreRequestBaseProperties, callback func() error) error {
 	result, err := c.Backup(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Backup: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
