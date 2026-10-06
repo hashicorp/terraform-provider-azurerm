@@ -49,7 +49,7 @@ func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.HostPoolV0ToV1{},
 		}),
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, meta interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, meta any) error {
 			if d.Get("type").(string) == string(hostpool.HostPoolTypePooled) {
 				loadBalancerType := d.Get("load_balancer_type").(string)
 				if loadBalancerType == string(hostpool.LoadBalancerTypePersistent) || loadBalancerType == string(hostpool.LoadBalancerTypeMultiplePersistent) {
