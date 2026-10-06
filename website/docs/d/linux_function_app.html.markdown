@@ -427,6 +427,8 @@ A `docker` block exports the following:
 
 * `image_tag` - The image tag of the image used.
 
+* `image_digest` - The digest of the image used.
+
 * `registry_username` - The username used for connections to the registry.
 
 * `registry_password` - The password for the account to use to connect to the registry.

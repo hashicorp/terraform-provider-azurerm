@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `security` - (Required) A `security` block as defined below.
 
-* `source_control_type` - (Required) The source type of Source Control, possible vaules are `VsoGit`, `VsoTfvc` and `GitHub`, and the value is case sensitive.
+* `source_control_type` - (Required) The source type of Source Control, possible values are `VsoGit`, `VsoTfvc` and `GitHub`, and the value is case sensitive.
 
 ---
 
@@ -103,4 +103,4 @@ terraform import azurerm_automation_source_control.example /subscriptions/123456
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Automation` - 2023-11-01
+* `Microsoft.Automation` - 2024-10-23

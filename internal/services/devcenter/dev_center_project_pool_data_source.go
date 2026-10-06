@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package devcenter
@@ -80,7 +80,7 @@ func (DevCenterProjectPoolDataSource) Attributes() map[string]*pluginsdk.Schema 
 	}
 }
 
-func (DevCenterProjectPoolDataSource) ModelObject() interface{} {
+func (DevCenterProjectPoolDataSource) ModelObject() any {
 	return &DevCenterProjectPoolDataSourceModel{}
 }
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package data
@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/util"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -20,7 +20,7 @@ var (
 
 type API struct {
 	Name     string
-	URL      string // TODO: not currently used, Resource-manager apis: https://learn.microsoft.com/en-us/rest/api/<Name> -- pattern does not work for all
+	URL      string // TODO: not currently used, Resource-manager apis: https://learn.microsoft.com/rest/api/<Name> -- pattern does not work for all
 	Versions []string
 }
 
@@ -33,7 +33,7 @@ func methodsToAPIs(methods []sdkMethod) []API {
 	result := make([]API, 0)
 
 	debugLog := func(m sdkMethod, msg string) {
-		log.WithFields(log.Fields{
+		logrus.WithFields(logrus.Fields{
 			"api_path": m.APIPath,
 			"method":   m.MethodName,
 			"package":  m.Pkg,

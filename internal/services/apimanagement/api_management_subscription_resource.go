@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -51,7 +51,7 @@ func resourceApiManagementSubscription() *pluginsdk.Resource {
 			"subscription_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ForceNew:     true,
 				ValidateFunc: validation.Any(validate.ApiManagementChildName, validation.StringIsEmpty),
 			},
@@ -91,29 +91,24 @@ func resourceApiManagementSubscription() *pluginsdk.Resource {
 			},
 
 			"state": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(subscription.SubscriptionStateSubmitted),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(subscription.SubscriptionStateActive),
-					string(subscription.SubscriptionStateCancelled),
-					string(subscription.SubscriptionStateExpired),
-					string(subscription.SubscriptionStateRejected),
-					string(subscription.SubscriptionStateSubmitted),
-					string(subscription.SubscriptionStateSuspended),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(subscription.SubscriptionStateSubmitted),
+				ValidateFunc: validation.StringInSlice(subscription.PossibleValuesForSubscriptionState(), false),
 			},
 
 			"primary_key": {
-				Type:      pluginsdk.TypeString,
-				Optional:  true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// Note: O+C because the API generates a subscription key when not specified
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"secondary_key": {
-				Type:      pluginsdk.TypeString,
-				Optional:  true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// Note: O+C because the API generates a subscription key when not specified
 				Computed:  true,
 				Sensitive: true,
 			},
@@ -127,7 +122,7 @@ func resourceApiManagementSubscription() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.SubscriptionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -145,15 +140,17 @@ func resourceApiManagementSubscriptionCreateUpdate(d *pluginsdk.ResourceData, me
 	id := subscription.NewSubscriptions2ID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), subName)
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("checking for present of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			resp, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(resp.HttpResponse) {
+					return fmt.Errorf("checking for present of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(resp.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_subscription", id.ID())
+			if !response.WasNotFound(resp.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_api_management_subscription", id.ID())
+			}
 		}
 	}
 
@@ -177,7 +174,7 @@ func resourceApiManagementSubscriptionCreateUpdate(d *pluginsdk.ResourceData, me
 		Properties: &subscription.SubscriptionCreateParameterProperties{
 			DisplayName:  displayName,
 			Scope:        scope,
-			State:        pointer.To(subscription.SubscriptionState(state)),
+			State:        pointer.ToEnum[subscription.SubscriptionState](state),
 			AllowTracing: pointer.To(allowTracing),
 		},
 	}
@@ -193,7 +190,7 @@ func resourceApiManagementSubscriptionCreateUpdate(d *pluginsdk.ResourceData, me
 		params.Properties.SecondaryKey = pointer.To(v.(string))
 	}
 
-	err := pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
+	if err := pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 		if _, err := client.CreateOrUpdate(ctx, id, params, subscription.CreateOrUpdateOperationOptions{AppType: pointer.To(subscription.AppTypeDeveloperPortal), Notify: pointer.To(false)}); err != nil {
 			// APIM admins set limit on number of subscriptions to a product.  In order to be able to correctly enforce that limit service cannot let simultaneous creations
 			// to go through and first one wins/subsequent one gets 412 and that client/user can retry. This ensures that we have proper limits enforces as desired by APIM admin.
@@ -203,8 +200,7 @@ func resourceApiManagementSubscriptionCreateUpdate(d *pluginsdk.ResourceData, me
 			return pluginsdk.NonRetryableError(err)
 		}
 		return nil
-	})
-	if err != nil {
+	}); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -213,7 +209,7 @@ func resourceApiManagementSubscriptionCreateUpdate(d *pluginsdk.ResourceData, me
 	return resourceApiManagementSubscriptionRead(d, meta)
 }
 
-func resourceApiManagementSubscriptionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementSubscriptionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.SubscriptionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -278,7 +274,7 @@ func resourceApiManagementSubscriptionRead(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func resourceApiManagementSubscriptionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementSubscriptionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.SubscriptionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
