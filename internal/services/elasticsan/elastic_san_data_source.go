@@ -31,7 +31,7 @@ type ElasticSANDataSourceModel struct {
 	Name                 string                       `tfschema:"name"`
 	ResourceGroupName    string                       `tfschema:"resource_group_name"`
 	Sku                  []ElasticSANResourceSkuModel `tfschema:"sku"`
-	Tags                 map[string]interface{}       `tfschema:"tags"`
+	Tags                 map[string]any               `tfschema:"tags"`
 	TotalIops            int64                        `tfschema:"total_iops"`
 	TotalMBps            int64                        `tfschema:"total_mbps"`
 	TotalSizeInTiB       int64                        `tfschema:"total_size_in_tib"`
@@ -44,7 +44,7 @@ func (r ElasticSANDataSource) ResourceType() string {
 	return "azurerm_elastic_san"
 }
 
-func (r ElasticSANDataSource) ModelObject() interface{} {
+func (r ElasticSANDataSource) ModelObject() any {
 	return &ElasticSANDataSourceModel{}
 }
 

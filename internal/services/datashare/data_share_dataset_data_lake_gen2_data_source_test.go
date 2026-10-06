@@ -38,5 +38,5 @@ data "azurerm_data_share_dataset_data_lake_gen2" "test" {
   name     = azurerm_data_share_dataset_data_lake_gen2.test.name
   share_id = azurerm_data_share_dataset_data_lake_gen2.test.share_id
 }
-`, DataShareDataSetDataLakeGen2Resource{}.basicFile(data))
+`, DataShareDatasetDataLakeGen2Resource{}.basicFile(data))
 }

@@ -9,18 +9,18 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	webtests "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type AppInsightsWebTestsResource struct{}
+type ApplicationInsightsWebTestResource struct{}
 
 func TestAccApplicationInsightsWebTests_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_web_test", "test")
-	r := AppInsightsWebTestsResource{}
+	r := ApplicationInsightsWebTestResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccApplicationInsightsWebTests_basic(t *testing.T) {
 
 func TestAccApplicationInsightsWebTests_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_web_test", "test")
-	r := AppInsightsWebTestsResource{}
+	r := ApplicationInsightsWebTestResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccApplicationInsightsWebTests_complete(t *testing.T) {
 
 func TestAccApplicationInsightsWebTests_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_web_test", "test")
-	r := AppInsightsWebTestsResource{}
+	r := ApplicationInsightsWebTestResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -85,7 +85,7 @@ func TestAccApplicationInsightsWebTests_update(t *testing.T) {
 
 func TestAccApplicationInsightsWebTests_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_web_test", "test")
-	r := AppInsightsWebTestsResource{}
+	r := ApplicationInsightsWebTestResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -98,8 +98,8 @@ func TestAccApplicationInsightsWebTests_requiresImport(t *testing.T) {
 	})
 }
 
-func (t AppInsightsWebTestsResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := webtests.ParseWebTestID(state.ID)
+func (t ApplicationInsightsWebTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := webtestsapis.ParseWebTestID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +112,7 @@ func (t AppInsightsWebTestsResource) Exists(ctx context.Context, clients *client
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (AppInsightsWebTestsResource) basic(data acceptance.TestData) string {
+func (ApplicationInsightsWebTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -153,7 +153,7 @@ XML
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (AppInsightsWebTestsResource) complete(data acceptance.TestData) string {
+func (ApplicationInsightsWebTestResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -202,8 +202,8 @@ XML
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (AppInsightsWebTestsResource) requiresImport(data acceptance.TestData) string {
-	template := AppInsightsWebTestsResource{}.basic(data)
+func (ApplicationInsightsWebTestResource) requiresImport(data acceptance.TestData) string {
+	template := ApplicationInsightsWebTestResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 

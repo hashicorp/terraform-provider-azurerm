@@ -28,7 +28,7 @@ func (r StackHCIExtensionResource) ResourceType() string {
 	return "azurerm_stack_hci_extension"
 }
 
-func (r StackHCIExtensionResource) ModelObject() interface{} {
+func (r StackHCIExtensionResource) ModelObject() any {
 	return &StackHCIExtensionResourceModel{}
 }
 
@@ -157,12 +157,14 @@ func (r StackHCIExtensionResource) Create() sdk.ResourceFunc {
 
 			id := extensions.NewExtensionID(arcSettingId.SubscriptionId, arcSettingId.ResourceGroupName, arcSettingId.ClusterName, arcSettingId.ArcSettingName, config.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			input := extensions.Extension{
@@ -186,7 +188,7 @@ func (r StackHCIExtensionResource) Create() sdk.ResourceFunc {
 					return fmt.Errorf("expanding `setting`: %+v", err)
 				}
 
-				input.Properties.ExtensionParameters.Settings = pointer.To(interface{}(expandedSetting))
+				input.Properties.ExtensionParameters.Settings = pointer.To(any(expandedSetting))
 			}
 
 			if config.ProtectedSettings != "" {
@@ -195,10 +197,10 @@ func (r StackHCIExtensionResource) Create() sdk.ResourceFunc {
 					return fmt.Errorf("expanding `protected_settings`: %+v", err)
 				}
 
-				input.Properties.ExtensionParameters.ProtectedSettings = pointer.To(interface{}(expandedSetting))
+				input.Properties.ExtensionParameters.ProtectedSettings = pointer.To(any(expandedSetting))
 			}
 
-			if err := client.CreateThenPoll(ctx, id, input); err != nil {
+			if err := client.CreateCallbackThenPoll(ctx, id, input, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -227,7 +229,7 @@ func (r StackHCIExtensionResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			// protected_settingss is not returned in the response, so we read it from the state
+			// protected_settings is not returned in the response, so we read it from the state
 			var extension, config StackHCIExtensionResourceModel
 
 			if err := metadata.Decode(&config); err != nil {
@@ -249,9 +251,9 @@ func (r StackHCIExtensionResource) Read() sdk.ResourceFunc {
 
 					var setting string
 					if param.Settings != nil {
-						setting, err = pluginsdk.FlattenJsonToString((*param.Settings).(map[string]interface{}))
+						setting, err = pluginsdk.FlattenJsonToString((*param.Settings).(map[string]any))
 						if err != nil {
-							return fmt.Errorf("flatenning `settings`: %+v", err)
+							return fmt.Errorf("flattening `settings`: %+v", err)
 						}
 					}
 					extension.Settings = setting
@@ -329,9 +331,9 @@ func (r StackHCIExtensionResource) Update() sdk.ResourceFunc {
 						return fmt.Errorf("expanding `protected_settings`: %+v", err)
 					}
 
-					updateModel.Properties.ExtensionParameters.ProtectedSettings = pointer.To(interface{}(expandedSetting))
+					updateModel.Properties.ExtensionParameters.ProtectedSettings = pointer.To(any(expandedSetting))
 				} else {
-					var emptyInterface interface{}
+					var emptyInterface any
 					updateModel.Properties.ExtensionParameters.Settings = pointer.To(emptyInterface)
 				}
 			}
@@ -343,9 +345,9 @@ func (r StackHCIExtensionResource) Update() sdk.ResourceFunc {
 						return fmt.Errorf("expanding `setting`: %+v", err)
 					}
 
-					updateModel.Properties.ExtensionParameters.Settings = pointer.To(interface{}(expandedSetting))
+					updateModel.Properties.ExtensionParameters.Settings = pointer.To(any(expandedSetting))
 				} else {
-					var emptyInterface interface{}
+					var emptyInterface any
 					updateModel.Properties.ExtensionParameters.Settings = pointer.To(emptyInterface)
 				}
 			}

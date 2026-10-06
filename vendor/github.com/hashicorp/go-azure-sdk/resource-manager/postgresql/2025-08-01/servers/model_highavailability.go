@@ -4,7 +4,7 @@ package servers
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type HighAvailability struct {
-	Mode                    *HighAvailabilityMode  `json:"mode,omitempty"`
-	StandbyAvailabilityZone *string                `json:"standbyAvailabilityZone,omitempty"`
-	State                   *HighAvailabilityState `json:"state,omitempty"`
+	Mode                    *PostgreSqlFlexibleServerHighAvailabilityMode `json:"mode,omitempty"`
+	StandbyAvailabilityZone *string                                       `json:"standbyAvailabilityZone,omitempty"`
+	State                   *HighAvailabilityState                        `json:"state,omitempty"`
 }

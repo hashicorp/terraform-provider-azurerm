@@ -180,7 +180,7 @@ func TestAccWindowsVirtualMachineScaleSet_extensionsAutomaticUpgradeWithHealthEx
 		data.ImportStep(
 			"admin_password",
 			"extension.0.protected_settings",
-			"enable_automatic_updates",
+			"automatic_updates_enabled",
 		),
 	})
 }
@@ -287,7 +287,7 @@ func TestAccWindowsVirtualMachineScaleSet_extensionsAutomaticUpgradeWithServiceF
 		data.ImportStep(
 			"admin_password",
 			"extension.0.protected_settings",
-			"enable_automatic_updates",
+			"automatic_updates_enabled",
 		),
 	})
 }
@@ -296,21 +296,21 @@ func TestAccWindowsVirtualMachineScaleSet_extensionAutomaticUpgradeUpdate(t *tes
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.extensionsWithHealthExtension(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password", "extension.0.protected_settings", "enable_automatic_updates"),
+		data.ImportStep("admin_password", "extension.0.protected_settings", "automatic_updates_enabled"),
 		{
 			Config: r.extensionsAutomaticUpgradeWithHealthExtension(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password", "extension.0.protected_settings", "enable_automatic_updates"),
+		data.ImportStep("admin_password", "extension.0.protected_settings", "automatic_updates_enabled"),
 	})
 }
 
@@ -756,6 +756,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
       requestPath = "/"
     })
   }
+
 }
 `, r.template(data))
 }
@@ -765,15 +766,15 @@ func (r WindowsVirtualMachineScaleSetResource) extensionsWithHealthExtension(dat
 %s
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                     = local.vm_name
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  sku                      = "Standard_F2"
-  instances                = 1
-  admin_username           = "adminuser"
-  admin_password           = "P@ssword1234!"
-  upgrade_mode             = "Automatic"
-  enable_automatic_updates = false
+  name                      = local.vm_name
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = azurerm_resource_group.test.location
+  sku                       = "Standard_F2"
+  instances                 = 1
+  admin_username            = "adminuser"
+  admin_password            = "P@ssword1234!"
+  upgrade_mode              = "Automatic"
+  automatic_updates_enabled = false
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
@@ -818,19 +819,19 @@ func (r WindowsVirtualMachineScaleSetResource) extensionsAutomaticUpgradeWithHea
 %s
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                     = local.vm_name
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  sku                      = "Standard_F2"
-  instances                = 1
-  admin_username           = "adminuser"
-  admin_password           = "P@ssword1234!"
-  upgrade_mode             = "Automatic"
-  enable_automatic_updates = false
+  name                      = local.vm_name
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = azurerm_resource_group.test.location
+  sku                       = "Standard_F2"
+  instances                 = 1
+  admin_username            = "adminuser"
+  admin_password            = "P@ssword1234!"
+  upgrade_mode              = "Automatic"
+  automatic_updates_enabled = false
 
   automatic_os_upgrade_policy {
-    disable_automatic_rollback  = true
-    enable_automatic_os_upgrade = true
+    automatic_rollback_enabled   = true
+    automatic_os_upgrade_enabled = true
   }
 
   rolling_upgrade_policy {
@@ -985,12 +986,13 @@ func (r WindowsVirtualMachineScaleSetResource) extensionsAutomaticUpgradeWithSer
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                   = "acc%d"
-  location               = azurerm_resource_group.test.location
-  resource_group_name    = azurerm_resource_group.test.name
-  tenant_id              = data.azurerm_client_config.current.tenant_id
-  sku_name               = "premium"
-  enabled_for_deployment = true
+  name                       = "acc%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
+  enabled_for_deployment     = true
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
@@ -1121,20 +1123,20 @@ resource "azurerm_service_fabric_cluster" "test" {
 }
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                     = local.vm_name
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  sku                      = "Standard_F2"
-  instances                = 1
-  admin_username           = "adminuser"
-  admin_password           = "P@ssword1234!"
-  upgrade_mode             = "Automatic"
-  enable_automatic_updates = false
-  overprovision            = false
+  name                      = local.vm_name
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = azurerm_resource_group.test.location
+  sku                       = "Standard_F2"
+  instances                 = 1
+  admin_username            = "adminuser"
+  admin_password            = "P@ssword1234!"
+  upgrade_mode              = "Automatic"
+  automatic_updates_enabled = false
+  overprovision             = false
 
   automatic_os_upgrade_policy {
-    disable_automatic_rollback  = true
-    enable_automatic_os_upgrade = false
+    automatic_rollback_enabled   = true
+    automatic_os_upgrade_enabled = false
   }
 
   rolling_upgrade_policy {
@@ -1373,12 +1375,13 @@ data "azurerm_client_config" "current" {}
 resource "azurerm_key_vault" "test" {
   count = 2
 
-  name                   = "acctestkv${count.index}%[2]s"
-  location               = azurerm_resource_group.test.location
-  resource_group_name    = azurerm_resource_group.test.name
-  tenant_id              = data.azurerm_client_config.current.tenant_id
-  sku_name               = "standard"
-  enabled_for_deployment = true
+  name                       = "acctestkv${count.index}%[2]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  enabled_for_deployment     = true
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
