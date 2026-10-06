@@ -46,7 +46,7 @@ output "contributor_role_definition_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Optional) Specifies the Name of either a built-in or custom Role Definition.
 
@@ -67,6 +67,8 @@ output "contributor_role_definition_id" {
 * `type` - The Type of the Role.
 
 * `permissions` - A `permissions` block as documented below.
+
+* `role_definition_resource_id` - The Azure Resource Manager ID for the resource.
 
 * `assignable_scopes` - One or more assignable scopes for this Role Definition, such as `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333`, `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup`, or `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup/providers/Microsoft.Compute/virtualMachines/myVM`.
 

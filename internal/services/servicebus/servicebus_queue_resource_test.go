@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package servicebus_test
@@ -9,12 +9,12 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/queues"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/queues"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ServiceBusQueueResource struct{}
@@ -132,7 +132,7 @@ func TestAccServiceBusQueue_nonPartitionedPremiumNamespaceError(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.nonPartitionedPremiumNamespaceError(data),
-			ExpectError: regexp.MustCompile("the parent premium namespace is not partitioned and the partitioning for premium namespace is only available at the namepsace creation"),
+			ExpectError: regexp.MustCompile("the parent premium namespace is not partitioned and the partitioning for premium namespace is only available at the namespace creation"),
 		},
 	})
 }
@@ -364,7 +364,7 @@ func (t ServiceBusQueueResource) Exists(ctx context.Context, clients *clients.Cl
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (ServiceBusQueueResource) basic(data acceptance.TestData) string {

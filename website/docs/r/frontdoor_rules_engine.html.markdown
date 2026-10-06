@@ -107,7 +107,7 @@ resource "azurerm_frontdoor_rules_engine" "example_rules_engine" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -176,6 +176,14 @@ The `match_condition` block supports the following:
 * `negate_condition` - (Optional) can be set to `true` or `false` to negate the given condition. Defaults to `false`.
 
 * `value` - (Optional) (array) can contain one or more strings.
+
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Front Door Rules Engine.
+
+* `location` - The location in which the Front Door Rules Engine exists.
 
 ## Timeouts
 

@@ -28,7 +28,7 @@ data "azurerm_blueprint_definition" "example" {
 
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Required) The name of the Blueprint.
 

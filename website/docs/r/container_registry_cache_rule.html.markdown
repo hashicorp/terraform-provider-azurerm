@@ -38,7 +38,7 @@ resource "azurerm_container_registry_cache_rule" "cache_rule" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

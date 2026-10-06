@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package deliveryruleactions
@@ -6,24 +6,20 @@ package deliveryruleactions
 import (
 	"errors"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" //nolint:staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func CacheExpiration() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"behavior": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cdn.CacheBehaviorBypassCache),
-					string(cdn.CacheBehaviorOverride),
-					string(cdn.CacheBehaviorSetIfMissing),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInEnumSlice(cdn.PossibleCacheBehaviorValues(), false),
 			},
 
 			"duration": {
@@ -35,18 +31,18 @@ func CacheExpiration() *pluginsdk.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointActionCacheExpiration(input []interface{}) (*[]cdn.BasicDeliveryRuleAction, error) {
+func ExpandArmCdnEndpointActionCacheExpiration(input []any) (*[]cdn.BasicDeliveryRuleAction, error) {
 	output := make([]cdn.BasicDeliveryRuleAction, 0)
 
 	for _, v := range input {
-		item := v.(map[string]interface{})
+		item := v.(map[string]any)
 
 		cacheExpirationAction := cdn.DeliveryRuleCacheExpirationAction{
 			Name: cdn.NameBasicDeliveryRuleActionNameCacheExpiration,
 			Parameters: &cdn.CacheExpirationActionParameters{
-				OdataType:     utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleCacheExpirationActionParameters"),
+				OdataType:     pointer.To("Microsoft.Azure.Cdn.Models.DeliveryRuleCacheExpirationActionParameters"),
 				CacheBehavior: cdn.CacheBehavior(item["behavior"].(string)),
-				CacheType:     utils.String("All"),
+				CacheType:     pointer.To("All"),
 			},
 		}
 
@@ -55,7 +51,7 @@ func ExpandArmCdnEndpointActionCacheExpiration(input []interface{}) (*[]cdn.Basi
 				return nil, errors.New("cache expiration duration must not be set when using behavior `BypassCache`")
 			}
 
-			cacheExpirationAction.Parameters.CacheDuration = utils.String(duration)
+			cacheExpirationAction.Parameters.CacheDuration = pointer.To(duration)
 		}
 
 		output = append(output, cacheExpirationAction)
@@ -64,7 +60,7 @@ func ExpandArmCdnEndpointActionCacheExpiration(input []interface{}) (*[]cdn.Basi
 	return &output, nil
 }
 
-func FlattenArmCdnEndpointActionCacheExpiration(input cdn.BasicDeliveryRuleAction) (*map[string]interface{}, error) {
+func FlattenArmCdnEndpointActionCacheExpiration(input cdn.BasicDeliveryRuleAction) (*map[string]any, error) {
 	action, ok := input.AsDeliveryRuleCacheExpirationAction()
 	if !ok {
 		return nil, errors.New("expected a delivery rule cache expiration action")
@@ -80,7 +76,7 @@ func FlattenArmCdnEndpointActionCacheExpiration(input cdn.BasicDeliveryRuleActio
 		}
 	}
 
-	return &map[string]interface{}{
+	return &map[string]any{
 		"behavior": behaviour,
 		"duration": duration,
 	}, nil

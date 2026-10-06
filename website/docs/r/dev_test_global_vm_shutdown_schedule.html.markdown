@@ -87,7 +87,7 @@ resource "azurerm_dev_test_global_vm_shutdown_schedule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

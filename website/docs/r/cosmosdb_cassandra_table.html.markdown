@@ -67,7 +67,7 @@ resource "azurerm_cosmosdb_cassandra_table" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -145,3 +145,9 @@ Cosmos Cassandra Table can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_cosmosdb_cassandra_table.ks1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.DocumentDB/databaseAccounts/account1/cassandraKeyspaces/ks1/tables/table1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DocumentDB` - 2024-08-15

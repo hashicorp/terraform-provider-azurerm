@@ -24,7 +24,7 @@ output "lab_subnet_name" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Virtual Network.
 * `lab_name` - Specifies the name of the Dev Test Lab.
