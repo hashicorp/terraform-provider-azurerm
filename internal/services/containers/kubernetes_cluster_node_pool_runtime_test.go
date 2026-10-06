@@ -60,6 +60,21 @@ func TestKubernetesClusterNodePoolWorkloadRuntimePlan(t *testing.T) {
 					if diff.RequiresNew() {
 						t.Fatal("workload runtime planning unexpectedly requires replacement")
 					}
+					if test.wantChange {
+						runtimeDiff := diff.Attributes["workload_runtime"]
+						if runtimeDiff == nil {
+							t.Fatal("expected a workload_runtime diff")
+						}
+						if runtimeDiff.NewComputed != test.unknown {
+							t.Fatalf("workload runtime unknown = %t, want %t", runtimeDiff.NewComputed, test.unknown)
+						}
+						if runtimeDiff.NewRemoved {
+							t.Fatal("workload runtime planning unexpectedly removes the value")
+						}
+						if !test.unknown && runtimeDiff.New != test.config["workload_runtime"] {
+							t.Fatalf("workload runtime = %q, want %q", runtimeDiff.New, test.config["workload_runtime"])
+						}
+					}
 				})
 			}
 			for _, invalid := range []string{"", "invalid", "ocicontainer"} {
