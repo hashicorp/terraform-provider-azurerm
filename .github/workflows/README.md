@@ -5,7 +5,7 @@
 Workflow files are grouped by prefix:
 
 | Prefix | Purpose |
-|---|---|
+| --- | --- |
 | `pr-*` | Pull request automation (triage, labels, housekeeping) |
 | `pr-check-*` | Standalone PR checks that cannot live inside `pr-checks-combined.yaml` (special runners, OIDC auth, or their own path filters) |
 | `pr-waiting-response-*` | The `waiting-response` label machinery (see below) |
@@ -62,7 +62,7 @@ and (b) have its display name added to the `workflow_run` list in
 `pr-waiting-response-on-ci-fail.yaml`. One without the other does nothing.
 
 **Security note**: artifact contents come from the untrusted side. Never trust
-them for anything more dangerous than labeling — a malicious PR could upload an
+them for anything more dangerous than labelling — a malicious PR could upload an
 arbitrary PR number.
 
 ## Renaming caveats

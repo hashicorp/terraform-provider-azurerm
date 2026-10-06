@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/scopeconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/scopeconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -35,7 +35,7 @@ func (r ManagerScopeConnectionResource) ResourceType() string {
 	return "azurerm_network_manager_scope_connection"
 }
 
-func (r ManagerScopeConnectionResource) ModelObject() interface{} {
+func (r ManagerScopeConnectionResource) ModelObject() any {
 	return &ManagerScopeConnectionModel{}
 }
 

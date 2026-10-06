@@ -75,9 +75,10 @@ func resourcePrivateDnsZoneVirtualNetworkLink() *pluginsdk.Resource {
 			},
 
 			"resolution_policy": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true, // When the `name` of `azurerm_private_dns_zone` is a private link endpoint, the service will set default value for this.
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// Note: O+C because when the `name` of `azurerm_private_dns_zone` is a private link endpoint, the service will set default value for this.
+				Computed:     true,
 				ValidateFunc: validation.StringInSlice(virtualnetworklinks.PossibleValuesForResolutionPolicy(), false),
 			},
 
@@ -86,7 +87,7 @@ func resourcePrivateDnsZoneVirtualNetworkLink() *pluginsdk.Resource {
 	}
 }
 
-func resourcePrivateDnsZoneVirtualNetworkLinkCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePrivateDnsZoneVirtualNetworkLinkCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).PrivateDns.VirtualNetworkLinksClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -115,7 +116,7 @@ func resourcePrivateDnsZoneVirtualNetworkLinkCreateUpdate(d *pluginsdk.ResourceD
 
 	parameters := virtualnetworklinks.VirtualNetworkLink{
 		Location: pointer.To("global"),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 		Properties: &virtualnetworklinks.VirtualNetworkLinkProperties{
 			VirtualNetwork: &virtualnetworklinks.SubResource{
 				Id: pointer.To(d.Get("virtual_network_id").(string)),
@@ -150,7 +151,7 @@ func resourcePrivateDnsZoneVirtualNetworkLinkCreateUpdate(d *pluginsdk.ResourceD
 	return resourcePrivateDnsZoneVirtualNetworkLinkRead(d, meta)
 }
 
-func resourcePrivateDnsZoneVirtualNetworkLinkRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePrivateDnsZoneVirtualNetworkLinkRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).PrivateDns.VirtualNetworkLinksClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -192,7 +193,7 @@ func resourcePrivateDnsZoneVirtualNetworkLinkFlatten(d *pluginsdk.ResourceData, 
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourcePrivateDnsZoneVirtualNetworkLinkDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePrivateDnsZoneVirtualNetworkLinkDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).PrivateDns.VirtualNetworkLinksClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

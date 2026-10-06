@@ -69,7 +69,7 @@ func (r GeoCatalogResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r GeoCatalogResource) ModelObject() interface{} {
+func (r GeoCatalogResource) ModelObject() any {
 	return &GeoCatalogModel{}
 }
 
@@ -102,7 +102,7 @@ func (r GeoCatalogResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+			expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]any))
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}

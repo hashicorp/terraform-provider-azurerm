@@ -8,7 +8,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
@@ -85,13 +85,9 @@ func resourceSynapseWorkspaceSecurityAlertPolicy() *pluginsdk.Resource {
 			},
 
 			"policy_state": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(synapse.SecurityAlertPolicyStateDisabled),
-					string(synapse.SecurityAlertPolicyStateEnabled),
-					string(synapse.SecurityAlertPolicyStateNew),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInEnumSlice(synapse.PossibleSecurityAlertPolicyStateValues(), false),
 			},
 
 			"storage_account_access_key": {
@@ -110,7 +106,7 @@ func resourceSynapseWorkspaceSecurityAlertPolicy() *pluginsdk.Resource {
 	}
 }
 
-func resourceSynapseWorkspaceSecurityAlertPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseWorkspaceSecurityAlertPolicyCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceSecurityAlertPolicyClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -144,7 +140,7 @@ func resourceSynapseWorkspaceSecurityAlertPolicyCreateUpdate(d *pluginsdk.Resour
 	return resourceSynapseWorkspaceSecurityAlertPolicyRead(d, meta)
 }
 
-func resourceSynapseWorkspaceSecurityAlertPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseWorkspaceSecurityAlertPolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceSecurityAlertPolicyClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -172,7 +168,7 @@ func resourceSynapseWorkspaceSecurityAlertPolicyRead(d *pluginsdk.ResourceData, 
 		d.Set("policy_state", string(props.State))
 
 		if props.DisabledAlerts != nil {
-			disabledAlerts := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
+			disabledAlerts := pluginsdk.NewSet(pluginsdk.HashString, []any{})
 			for _, v := range *props.DisabledAlerts {
 				if v != "" {
 					disabledAlerts.Add(v)
@@ -187,7 +183,7 @@ func resourceSynapseWorkspaceSecurityAlertPolicyRead(d *pluginsdk.ResourceData, 
 		}
 
 		if props.EmailAddresses != nil {
-			emailAddresses := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
+			emailAddresses := pluginsdk.NewSet(pluginsdk.HashString, []any{})
 			for _, v := range *props.EmailAddresses {
 				if v != "" {
 					emailAddresses.Add(v)
@@ -213,7 +209,7 @@ func resourceSynapseWorkspaceSecurityAlertPolicyRead(d *pluginsdk.ResourceData, 
 	return nil
 }
 
-func resourceSynapseWorkspaceSecurityAlertPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseWorkspaceSecurityAlertPolicyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceSecurityAlertPolicyClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
