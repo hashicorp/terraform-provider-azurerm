@@ -120,12 +120,10 @@ func resourceKeyVaultSecret() *pluginsdk.Resource {
 	}
 }
 
-func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Print("[INFO] preparing arguments for AzureRM KeyVault Secret creation.")
 
 	name := d.Get("name").(string)
 	keyVaultId, err := commonids.ParseKeyVaultID(d.Get("key_vault_id").(string))
@@ -166,7 +164,7 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	contentType := d.Get("content_type").(string)
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
 	parameters := secrets.SecretSetParameters{
 		Value:       value,
@@ -203,7 +201,7 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) e
 					stateConf := &pluginsdk.StateChangeConf{
 						Pending:                   []string{"pending"},
 						Target:                    []string{"available"},
-						Refresh:                   keyVaultChildItemRefreshFunc(*secretIdStr),
+						Refresh:                   keyVaultChildItemRefreshFunc(ctx, *secretIdStr),
 						Delay:                     30 * time.Second,
 						PollInterval:              10 * time.Second,
 						ContinuousTargetOccurence: 10,
@@ -246,11 +244,10 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	return resourceKeyVaultSecretRead(d, meta)
 }
 
-func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Print("[INFO] preparing arguments for AzureRM KeyVault Secret update.")
 
 	id, err := keyvault.ParseNestedItemID(d.Id(), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret)
 	if err != nil {
@@ -280,7 +277,7 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	value := d.Get("value").(string)
 	contentType := d.Get("content_type").(string)
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
 	secretAttributes := &secrets.SecretAttributes{}
 
@@ -346,7 +343,7 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	return resourceKeyVaultSecretRead(d, meta)
 }
 
-func resourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -437,7 +434,7 @@ func resourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) err
 	return tags.FlattenAndSet(d, tags.FromTypedObject(pointer.From(resp.Model.Tags)))
 }
 
-func resourceKeyVaultSecretDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKeyVaultSecretDelete(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)

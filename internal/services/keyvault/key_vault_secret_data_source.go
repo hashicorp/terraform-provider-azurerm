@@ -84,7 +84,7 @@ func dataSourceKeyVaultSecret() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
