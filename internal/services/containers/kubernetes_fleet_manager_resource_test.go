@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package containers_test
 
 // NOTE: this file is generated - manual changes will be overwritten.
@@ -149,9 +152,6 @@ resource "azurerm_kubernetes_fleet_manager" "test" {
   tags = {
     environment = "terraform-acctests"
     some_key    = "some-value"
-  }
-  hub_profile {
-    dns_prefix = "val-${var.random_string}"
   }
 }
 `, r.template(data))

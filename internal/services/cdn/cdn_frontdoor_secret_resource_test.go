@@ -11,12 +11,11 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/secrets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // NOTE: This is currently not testable due to the cert requirements of the service
@@ -89,20 +88,17 @@ func TestAccCdnFrontDoorSecret_customKeyVaultID(t *testing.T) {
 }
 
 func (r CdnFrontdoorSecretResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FrontDoorSecretID(state.ID)
+	id, err := secrets.ParseSecretID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
 	client := clients.Cdn.FrontDoorSecretsClient
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.SecretName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return pointer.To(false), nil
-		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return pointer.To(true), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r CdnFrontdoorSecretResource) preCheck(t *testing.T) {
@@ -245,7 +241,7 @@ resource "azurerm_cdn_frontdoor_secret" "test" {
 
   secret {
     customer_certificate {
-	  key_vault_id             = azurerm_key_vault.test.id
+      key_vault_id             = azurerm_key_vault.test.id
       key_vault_certificate_id = azurerm_key_vault_certificate.test.versionless_id
     }
   }

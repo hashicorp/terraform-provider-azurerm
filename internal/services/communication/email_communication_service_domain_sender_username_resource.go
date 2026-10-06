@@ -3,7 +3,7 @@
 
 package communication
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name email_communication_service_domain_sender_username -service-package-name communication -properties "name" -compare-values "resource_group_name:email_service_domain_id,email_service_name:email_service_domain_id,domain_name:email_service_domain_id" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name email_communication_service_domain_sender_username -service-package-name communication -properties "name" -compare-values "subscription_id:email_service_domain_id,resource_group_name:email_service_domain_id,email_service_name:email_service_domain_id,domain_name:email_service_domain_id"
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/senderusernames"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2026-03-18/senderusernames"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -64,7 +64,7 @@ func (EmailCommunicationServiceDomainSenderUsernameResource) Attributes() map[st
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (EmailCommunicationServiceDomainSenderUsernameResource) ModelObject() interface{} {
+func (EmailCommunicationServiceDomainSenderUsernameResource) ModelObject() any {
 	return &EmailCommunicationServiceDomainSenderUsernameModel{}
 }
 
@@ -91,12 +91,14 @@ func (r EmailCommunicationServiceDomainSenderUsernameResource) Create() sdk.Reso
 
 			id := senderusernames.NewSenderUsernameID(subscriptionId, eMailServiceDomainID.ResourceGroupName, eMailServiceDomainID.EmailServiceName, eMailServiceDomainID.DomainName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := senderusernames.SenderUsernameResource{
