@@ -108,7 +108,7 @@ func (CosmosDbFleetspaceResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (CosmosDbFleetspaceResource) ModelObject() interface{} {
+func (CosmosDbFleetspaceResource) ModelObject() any {
 	return &CosmosDbFleetspaceModel{}
 }
 
@@ -275,7 +275,7 @@ func (r CosmosDbFleetspaceResource) flatten(metadata sdk.ResourceMetaData, id *f
 	if model != nil {
 		if props := model.Properties; props != nil {
 			state.DataRegions = pointer.From(props.DataRegions)
-			state.ServiceTier = string(pointer.From(props.ServiceTier))
+			state.ServiceTier = pointer.FromEnum(props.ServiceTier)
 			state.MinimumThroughput, state.MaximumThroughput = r.flattenFleetspaceThroughputPoolConfiguration(props.ThroughputPoolConfiguration)
 		}
 	}

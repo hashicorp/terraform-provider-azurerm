@@ -29,7 +29,7 @@ var (
 
 type VirtualMachineRunCommandResource struct{}
 
-func (r VirtualMachineRunCommandResource) ModelObject() interface{} {
+func (r VirtualMachineRunCommandResource) ModelObject() any {
 	return &VirtualMachineRunCommandResourceSchema{}
 }
 
@@ -46,7 +46,7 @@ type VirtualMachineRunCommandResourceSchema struct {
 	RunAsPassword             string                                          `tfschema:"run_as_password"`
 	RunAsUser                 string                                          `tfschema:"run_as_user"`
 	Source                    []VirtualMachineRunCommandScriptSourceSchema    `tfschema:"source"`
-	Tags                      map[string]interface{}                          `tfschema:"tags"`
+	Tags                      map[string]any                                  `tfschema:"tags"`
 	VirtualMachineId          string                                          `tfschema:"virtual_machine_id"`
 }
 
@@ -369,14 +369,16 @@ func (r VirtualMachineRunCommandResource) Create() sdk.ResourceFunc {
 
 			id := virtualmachineruncommands.NewVirtualMachineRunCommandID(subscriptionId, virtualMachineId.ResourceGroupName, virtualMachineId.VirtualMachineName, config.Name)
 
-			existing, err := client.GetByVirtualMachine(ctx, id, virtualmachineruncommands.DefaultGetByVirtualMachineOperationOptions())
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetByVirtualMachine(ctx, id, virtualmachineruncommands.DefaultGetByVirtualMachineOperationOptions())
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			payload := virtualmachineruncommands.VirtualMachineRunCommand{
@@ -401,18 +403,10 @@ func (r VirtualMachineRunCommandResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			result, err := client.CreateOrUpdate(ctx, id, payload)
-			if err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
-			// the resource still exists if polling fails
 			metadata.SetID(id)
-
-			if err := result.Poller.PollUntilDone(ctx); err != nil {
-				return fmt.Errorf("running the command: %+v", err)
-			}
-
 			return nil
 		},
 	}
@@ -687,7 +681,7 @@ func flattenVirtualMachineRunCommandInstanceView(input *virtualmachineruncommand
 	return []VirtualMachineRunCommandInstanceViewSchema{
 		{
 			ExitCode:         pointer.From(input.ExitCode),
-			executionState:   string(pointer.From(input.ExecutionState)),
+			executionState:   pointer.FromEnum(input.ExecutionState),
 			executionMessage: pointer.From(input.ExecutionMessage),
 			output:           pointer.From(input.Output),
 			errorMessage:     pointer.From(input.Error),

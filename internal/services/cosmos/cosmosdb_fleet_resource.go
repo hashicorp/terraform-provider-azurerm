@@ -64,7 +64,7 @@ func (CosmosDbFleetResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (CosmosDbFleetResource) ModelObject() interface{} {
+func (CosmosDbFleetResource) ModelObject() any {
 	return &CosmosDbFleetModel{}
 }
 
