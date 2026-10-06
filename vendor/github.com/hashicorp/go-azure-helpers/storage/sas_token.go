@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2018, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -93,7 +93,7 @@ func ComputeAccountSASConnectionString(env *azure.Environment, accountName strin
 // sas token and the storage type
 func ComputeAccountSASConnectionUrlForType(env *azure.Environment, accountName string, sasToken string, storageType string) (*string, error) {
 	if !strings.EqualFold(storageType, "blob") && !strings.EqualFold(storageType, "file") && !strings.EqualFold(storageType, "queue") && !strings.EqualFold(storageType, "table") {
-		return nil, fmt.Errorf("Unexpected storage type %s!", storageType)
+		return nil, fmt.Errorf("unexpected storage type `%s`", storageType)
 	}
 
 	url := fmt.Sprintf("https://%s.%s.%s%s", accountName, strings.ToLower(storageType), env.StorageEndpointSuffix, sasToken)

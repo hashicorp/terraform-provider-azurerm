@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package sdk
 
 import (
@@ -13,10 +16,16 @@ func TestSdkTypeServiceAndVersionRegex(t *testing.T) {
 		expectedVersion string
 	}{
 		{
-			regex:           GO_AZURE_SDK.ServiceAndVersionRegex,
+			regex:           GO_AZURE_SDK_RESOURCE_MANAGER.ServiceAndVersionRegex,
 			input:           "vendor/github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/tokens",
 			expectedService: "containerregistry",
 			expectedVersion: "2023-11-01-preview",
+		},
+		{
+			regex:           GO_AZURE_SDK_DATA_PLANE.ServiceAndVersionRegex,
+			input:           "vendor/github.com/hashicorp/go-azure-sdk/data-plane/synapse/2021-06-01-preview/managedprivateendpoints",
+			expectedService: "synapse",
+			expectedVersion: "2021-06-01-preview",
 		},
 		{
 			regex:           KERMIT_SDK.ServiceAndVersionRegex,

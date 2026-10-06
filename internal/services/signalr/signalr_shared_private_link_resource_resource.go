@@ -14,7 +14,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -58,7 +59,7 @@ func resourceSignalRSharedPrivateLinkResource() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.PrivateLinkSubResourceName,
+				ValidateFunc: validate.PrivateLinkSubResourceName,
 			},
 
 			"target_resource_id": {
@@ -82,7 +83,7 @@ func resourceSignalRSharedPrivateLinkResource() *pluginsdk.Resource {
 	}
 }
 
-func resourceSignalRSharedPrivateLinkCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSignalRSharedPrivateLinkCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SignalR.SignalRClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -94,15 +95,18 @@ func resourceSignalRSharedPrivateLinkCreateUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	id := signalr.NewSharedPrivateLinkResourceID(subscriptionId, signalrID.ResourceGroupName, signalrID.SignalRName, d.Get("name").(string))
+
 	if d.IsNewResource() {
-		existing, err := client.SharedPrivateLinkResourcesGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %q: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.SharedPrivateLinkResourcesGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %q: %+v", id, err)
+				}
 			}
-		}
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_signalr_shared_private_link_resource", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_signalr_shared_private_link_resource", id.ID())
+			}
 		}
 	}
 
@@ -118,15 +122,21 @@ func resourceSignalRSharedPrivateLinkCreateUpdate(d *pluginsdk.ResourceData, met
 		parameters.Properties.RequestMessage = pointer.To(requestMessage)
 	}
 
-	if err := client.SharedPrivateLinkResourcesCreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
-		return fmt.Errorf("creating the shared private link for signalr %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.SharedPrivateLinkResourcesCreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.SharedPrivateLinkResourcesCreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
-	d.SetId(id.ID())
 	return resourceSignalRSharedPrivateLinkRead(d, meta)
 }
 
-func resourceSignalRSharedPrivateLinkRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSignalRSharedPrivateLinkRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SignalR.SignalRClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -158,14 +168,13 @@ func resourceSignalRSharedPrivateLinkRead(d *pluginsdk.ResourceData, meta interf
 				d.Set("request_message", props.RequestMessage)
 			}
 
-			status := string(*props.Status)
-			d.Set("status", status)
+			d.Set("status", pointer.FromEnum(props.Status))
 		}
 	}
 	return nil
 }
 
-func resourceSignalrSharedPrivateLinkDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSignalrSharedPrivateLinkDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SignalR.SignalRClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

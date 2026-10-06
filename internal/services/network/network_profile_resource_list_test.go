@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package network_test
 
 import (
@@ -79,38 +82,10 @@ resource "azurerm_subnet" "test" {
   }
 }
 
-resource "azurerm_network_profile" "test1" {
-  name                = "acctestnetprofile-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+resource "azurerm_network_profile" "test" {
+  count = 3
 
-  container_network_interface {
-    name = "acctesteth-%[1]d"
-
-    ip_configuration {
-      name      = "acctestipconfig-%[1]d"
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-}
-
-resource "azurerm_network_profile" "test2" {
-  name                = "acctestnetprofile2-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  container_network_interface {
-    name = "acctesteth-%[1]d"
-
-    ip_configuration {
-      name      = "acctestipconfig-%[1]d"
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-}
-
-resource "azurerm_network_profile" "test3" {
-  name                = "acctestnetprofile3-%[1]d"
+  name                = "acctestnetprofile${count.index}-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 

@@ -57,9 +57,20 @@ func (c PrivateCloudsClient) RotateNsxtPassword(ctx context.Context, id PrivateC
 
 // RotateNsxtPasswordThenPoll performs RotateNsxtPassword then polls until it's completed
 func (c PrivateCloudsClient) RotateNsxtPasswordThenPoll(ctx context.Context, id PrivateCloudId) error {
+	return c.RotateNsxtPasswordCallbackThenPoll(ctx, id, nil)
+}
+
+// RotateNsxtPasswordCallbackThenPoll performs RotateNsxtPassword, runs the optional callback function, then polls until it's completed
+func (c PrivateCloudsClient) RotateNsxtPasswordCallbackThenPoll(ctx context.Context, id PrivateCloudId, callback func() error) error {
 	result, err := c.RotateNsxtPassword(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing RotateNsxtPassword: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

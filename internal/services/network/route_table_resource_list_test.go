@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package network_test
 
 import (
@@ -14,6 +17,7 @@ import (
 
 func TestAccRouteTable_list_basic(t *testing.T) {
 	r := RouteTableResource{}
+	listResourceAddress := "azurerm_route_table.list"
 
 	data := acceptance.BuildTestData(t, "azurerm_route_table", "test1")
 
@@ -27,14 +31,18 @@ func TestAccRouteTable_list_basic(t *testing.T) {
 				Config: r.basicList(data),
 			},
 			{
-				Query:             true,
-				Config:            r.basicQuery(),
-				QueryResultChecks: []querycheck.QueryResultCheck{}, // TODO
+				Query:  true,
+				Config: r.basicQuery(),
+				QueryResultChecks: []querycheck.QueryResultCheck{
+					querycheck.ExpectLengthAtLeast(listResourceAddress, 3),
+				},
 			},
 			{
-				Query:             true,
-				Config:            r.basicQueryByResourceGroupName(data),
-				QueryResultChecks: []querycheck.QueryResultCheck{}, // TODO
+				Query:  true,
+				Config: r.basicQueryByResourceGroupName(data),
+				QueryResultChecks: []querycheck.QueryResultCheck{
+					querycheck.ExpectLength(listResourceAddress, 3),
+				},
 			},
 		},
 	})
@@ -52,19 +60,9 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_route_table" "test1" {
-  name                = "acctestrt1-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
+  count = 3
 
-resource "azurerm_route_table" "test2" {
-  name                = "acctestrt2-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_route_table" "test3" {
-  name                = "acctestrt3-%[1]d"
+  name                = "acctestrt${count.index}-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
