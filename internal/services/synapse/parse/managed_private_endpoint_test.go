@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = ManagedPrivateEndpointId{}
 
-func TestManagedPrivateEndpointIDFormatter(t *testing.T) {
+func TestParseManagedPrivateEndpointIDFormatter(t *testing.T) {
 	actual := NewManagedPrivateEndpointID("12345678-1234-9876-4563-123456789012", "resGroup1", "workspace1", "default", "endpoint1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Synapse/workspaces/workspace1/managedVirtualNetworks/default/managedPrivateEndpoints/endpoint1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestManagedPrivateEndpointIDFormatter(t *testing.T) {
 	}
 }
 
-func TestManagedPrivateEndpointID(t *testing.T) {
+func TestParseManagedPrivateEndpointID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
