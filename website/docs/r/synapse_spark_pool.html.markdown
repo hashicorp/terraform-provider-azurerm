@@ -77,7 +77,7 @@ EOF
     filename = "config.txt"
   }
 
-  spark_version = 3.2
+  spark_version = 3.5
 
   tags = {
     ENV = "Production"
@@ -97,7 +97,7 @@ The following arguments are supported:
 
 * `node_size` - (Required) The level of node in the Spark Pool. Possible values are `Small`, `Medium`, `Large`, `None`, `XLarge`, `XXLarge` and `XXXLarge`.
 
-* `spark_version` - (Required) The Apache Spark version. Currently, the only possible value is `3.4`.
+* `spark_version` - (Required) The Apache Spark version. Possible values are `3.4` and `3.5`.
 
 * `node_count` - (Optional) The number of nodes in the Spark Pool. Exactly one of `node_count` or `auto_scale` must be specified.
 
@@ -167,7 +167,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Synapse Spark Pool.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Synapse Spark Pool.
@@ -181,3 +181,9 @@ Synapse Spark Pool can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_synapse_spark_pool.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Synapse/workspaces/workspace1/bigDataPools/sparkPool1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Synapse` - 2021-06-01

@@ -41,13 +41,22 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `attestation_uri` - The (Endpoint|URI) of the Attestation Service.
 
-* `trust_model` - Trust model used for the Attestation Service.
+* `open_enclave_policy_base64` - Specifies the base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.
+
+* `sev_snp_policy_base64` - Specifies the base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.
+
+* `sgx_enclave_policy_base64` - Specifies the base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.
 
 * `tags` - A mapping of tags assigned to the Attestation Provider.
 
+* `tpm_policy_base64` - Specifies the base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.
+
+* `trust_model` - Trust model used for the Attestation Service.
+
+
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Attestation Provider.
 

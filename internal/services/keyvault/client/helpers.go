@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package client
@@ -25,7 +25,7 @@ type keyVaultDetails struct {
 	resourceGroup    string
 }
 
-func getCachedKeyVaule(key string) (keyVaultDetails, bool) {
+func getCachedKeyValue(key string) (keyVaultDetails, bool) {
 	keysmith.RLock()
 	v, ok := keyVaultsCache[key]
 	keysmith.RUnlock()
@@ -44,8 +44,7 @@ func (c *Client) AddToCache(keyVaultId commonids.KeyVaultId, dataPlaneUri string
 }
 
 func (c *Client) BaseUriForKeyVault(ctx context.Context, keyVaultId commonids.KeyVaultId) (*string, error) {
-	cacheKey := c.cacheKeyForKeyVault(keyVaultId.VaultName)
-	if v, ok := getCachedKeyVaule(cacheKey); ok {
+	if v, ok := getCachedKeyValue(c.cacheKeyForKeyVault(keyVaultId.VaultName)); ok {
 		return &v.dataPlaneBaseUri, nil
 	}
 
@@ -72,9 +71,7 @@ func (c *Client) BaseUriForKeyVault(ctx context.Context, keyVaultId commonids.Ke
 }
 
 func (c *Client) Exists(ctx context.Context, keyVaultId commonids.KeyVaultId) (bool, error) {
-	cacheKey := c.cacheKeyForKeyVault(keyVaultId.VaultName)
-
-	if _, ok := getCachedKeyVaule(cacheKey); ok {
+	if _, ok := getCachedKeyValue(c.cacheKeyForKeyVault(keyVaultId.VaultName)); ok {
 		return true, nil
 	}
 
@@ -109,7 +106,7 @@ func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, subscriptionId commo
 	cacheKey := c.cacheKeyForKeyVault(*keyVaultName)
 
 	// Check the cache to determine if we have an entry for this key vault
-	if v, ok := getCachedKeyVaule(cacheKey); ok {
+	if v, ok := getCachedKeyValue(cacheKey); ok {
 		return &v.keyVaultId, nil
 	}
 
@@ -119,7 +116,7 @@ func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, subscriptionId commo
 	}
 
 	// Now that the cache has been repopulated, check if we have the key vault or not
-	if v, ok := getCachedKeyVaule(cacheKey); ok {
+	if v, ok := getCachedKeyValue(cacheKey); ok {
 		return &v.keyVaultId, nil
 	}
 

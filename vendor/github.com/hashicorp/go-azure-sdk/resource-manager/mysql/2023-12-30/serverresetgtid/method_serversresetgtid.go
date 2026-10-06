@@ -61,9 +61,20 @@ func (c ServerResetGtidClient) ServersResetGtid(ctx context.Context, id Flexible
 
 // ServersResetGtidThenPoll performs ServersResetGtid then polls until it's completed
 func (c ServerResetGtidClient) ServersResetGtidThenPoll(ctx context.Context, id FlexibleServerId, input ServerGtidSetParameter) error {
+	return c.ServersResetGtidCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ServersResetGtidCallbackThenPoll performs ServersResetGtid, runs the optional callback function, then polls until it's completed
+func (c ServerResetGtidClient) ServersResetGtidCallbackThenPoll(ctx context.Context, id FlexibleServerId, input ServerGtidSetParameter, callback func() error) error {
 	result, err := c.ServersResetGtid(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ServersResetGtid: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

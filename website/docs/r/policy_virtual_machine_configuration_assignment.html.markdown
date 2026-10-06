@@ -50,7 +50,7 @@ resource "azurerm_windows_virtual_machine" "example" {
   name                = "examplevm"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  size                = "Standard_F2"
+  size                = "Standard_D4_v5"
   admin_username      = "adminuser"
   admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
@@ -162,7 +162,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Policy Virtual Machine Configuration Assignment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Policy Virtual Machine Configuration Assignment.
@@ -181,4 +181,4 @@ terraform import azurerm_policy_virtual_machine_configuration_assignment.example
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Compute` - 2020-06-25
+* `Microsoft.Compute` - 2024-04-05

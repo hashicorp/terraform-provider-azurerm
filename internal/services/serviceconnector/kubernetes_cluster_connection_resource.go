@@ -94,7 +94,7 @@ func (r KubernetesClusterConnectorResource) Attributes() map[string]*schema.Sche
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r KubernetesClusterConnectorResource) ModelObject() interface{} {
+func (r KubernetesClusterConnectorResource) ModelObject() any {
 	return &KubernetesClusterConnectorResourceModel{}
 }
 
