@@ -73,22 +73,22 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 		Schema: resourceMsSqlDatabaseSchema(),
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			pluginsdk.ForceNewIfChange("sku_name", func(ctx context.Context, old, new, _ interface{}) bool {
+			pluginsdk.ForceNewIfChange("sku_name", func(ctx context.Context, old, new, _ any) bool {
 				// hyperscale can not be changed to another sku
 				return strings.HasPrefix(old.(string), "HS") && !strings.HasPrefix(new.(string), "HS")
 			}),
-			pluginsdk.ForceNewIfChange("enclave_type", func(ctx context.Context, old, new, _ interface{}) bool {
+			pluginsdk.ForceNewIfChange("enclave_type", func(ctx context.Context, old, new, _ any) bool {
 				// enclave_type cannot be removed once it has been set
 				// but can be changed between VBS and Default...
 				// this Diff will not work until 4.0 when we remove
-				// the computed property from the field scheam.
+				// the computed property from the field schema.
 				if old.(string) != "" && new.(string) == "" {
 					return true
 				}
 
 				return false
 			}),
-			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+			func(ctx context.Context, d *schema.ResourceDiff, meta any) error {
 				transparentDataEncryption := d.Get("transparent_data_encryption_enabled").(bool)
 				skuName := d.Get("sku_name").(string)
 
@@ -117,7 +117,7 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 
 				return nil
 			},
-			func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
+			func(ctx context.Context, d *pluginsdk.ResourceDiff, i any) error {
 				if !strings.HasPrefix(d.Get("sku_name").(string), "GP_S_") && !strings.HasPrefix(d.Get("sku_name").(string), "HS_S_") {
 					rawConfig := d.GetRawConfig().AsValueMap()
 					minCapacityVal := rawConfig["min_capacity"]
@@ -141,7 +141,7 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 	}
 }
 
-func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
 	replicationLinksClient := meta.(*clients.Client).MSSQL.ReplicationLinksClient
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
 	resourcesClient := meta.(*clients.Client).Resource.ResourcesClient
@@ -182,7 +182,7 @@ func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceDat
 	return []*pluginsdk.ResourceData{d}, nil
 }
 
-func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
 	serversClient := meta.(*clients.Client).MSSQL.ServersClient
 	elasticPoolClient := meta.(*clients.Client).MSSQL.ElasticPoolsClient
@@ -283,7 +283,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 				return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.Id, err)
 			}
 
-			// See: https://docs.microsoft.com/en-us/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
+			// See: https://docs.microsoft.com/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
 			if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != "" && helper.CompareDatabaseSkuServiceTiers(skuName, partnerDatabase.Sku.Name) {
 				if err := client.UpdateThenPoll(ctx, *partnerDatabaseId, databases.DatabaseUpdate{
 					Sku: &databases.Sku{
@@ -316,7 +316,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 		if elasticPool.Model != nil {
 			if elasticPool.Model.Properties != nil && elasticPool.Model.Properties.PreferredEnclaveType != nil {
-				elasticEnclaveType := string(pointer.From(elasticPool.Model.Properties.PreferredEnclaveType))
+				elasticEnclaveType := pointer.FromEnum(elasticPool.Model.Properties.PreferredEnclaveType)
 				databaseEnclaveType := string(enclaveType)
 
 				if !strings.EqualFold(elasticEnclaveType, databaseEnclaveType) {
@@ -346,7 +346,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			SecondaryType:                    pointer.ToEnum[databases.SecondaryType](d.Get("secondary_type").(string)),
 		},
 
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	// NOTE: The 'PreferredEnclaveType' field cannot be passed to the APIs Create if the 'sku_name' is a DW or DC-series SKU...
@@ -466,7 +466,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if v, ok := d.GetOk("identity"); ok {
-		expandedIdentity, err := identity.ExpandUserAssignedMap(v.([]interface{}))
+		expandedIdentity, err := identity.ExpandUserAssignedMap(v.([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -511,7 +511,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending: pendingStatuses,
 		Target:  []string{string(databases.DatabaseStatusOnline)},
-		Refresh: func() (interface{}, string, error) {
+		Refresh: func() (any, string, error) {
 			log.Printf("[DEBUG] Checking to see if %s is online...", id)
 
 			resp, err := client.Get(ctx, id, databases.DefaultGetOperationOptions())
@@ -520,7 +520,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			}
 
 			if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.Status != nil {
-				return resp, string(pointer.From(resp.Model.Properties.Status)), nil
+				return resp, pointer.FromEnum(resp.Model.Properties.Status), nil
 			}
 
 			return resp, "", nil
@@ -631,7 +631,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		return err
 	}
 
-	longTermRetentionPolicyProps := helper.ExpandLongTermRetentionPolicy(d.Get("long_term_retention_policy").([]interface{}))
+	longTermRetentionPolicyProps := helper.ExpandLongTermRetentionPolicy(d.Get("long_term_retention_policy").([]any))
 	if longTermRetentionPolicyProps != nil {
 		longTermRetentionPolicyPayload := longtermretentionpolicies.LongTermRetentionPolicy{}
 
@@ -645,7 +645,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 	}
 
-	shortTermRetentionPolicyProps := helper.ExpandShortTermRetentionPolicy(d.Get("short_term_retention_policy").([]interface{}))
+	shortTermRetentionPolicyProps := helper.ExpandShortTermRetentionPolicy(d.Get("short_term_retention_policy").([]any))
 	if shortTermRetentionPolicyProps != nil {
 		shortTermRetentionPolicyPayload := backupshorttermretentionpolicies.BackupShortTermRetentionPolicy{}
 
@@ -667,7 +667,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceMsSqlDatabaseRead(d, meta)
 }
 
-func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
 	serversClient := meta.(*clients.Client).MSSQL.ServersClient
 	securityAlertPoliciesClient := meta.(*clients.Client).MSSQL.DatabaseSecurityAlertPoliciesClient
@@ -886,7 +886,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 					return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.Id, err)
 				}
 
-				// See: https://docs.microsoft.com/en-us/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
+				// See: https://docs.microsoft.com/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
 				if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != "" && helper.CompareDatabaseSkuServiceTiers(skuName, partnerDatabase.Sku.Name) {
 					if err := client.UpdateThenPoll(ctx, *partnerDatabaseId, databases.DatabaseUpdate{
 						Sku: &databases.Sku{
@@ -921,11 +921,11 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if d.HasChange("identity") {
-		expanded, err := identity.ExpandUserAssignedMap(d.Get("identity").([]interface{}))
+		expanded, err := identity.ExpandUserAssignedMap(d.Get("identity").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -975,7 +975,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending: pendingStatuses,
 		Target:  []string{string(databases.DatabaseStatusOnline)},
-		Refresh: func() (interface{}, string, error) {
+		Refresh: func() (any, string, error) {
 			log.Printf("[DEBUG] Checking to see if %s is online...", id)
 
 			resp, err := client.Get(ctx, id, databases.DefaultGetOperationOptions())
@@ -985,7 +985,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					return resp, string(pointer.From(props.Status)), nil
+					return resp, pointer.FromEnum(props.Status), nil
 				}
 			}
 
@@ -1087,7 +1087,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	if d.HasChange("long_term_retention_policy") {
 		v := d.Get("long_term_retention_policy")
-		longTermRetentionProps := helper.ExpandLongTermRetentionPolicy(v.([]interface{}))
+		longTermRetentionProps := helper.ExpandLongTermRetentionPolicy(v.([]any))
 		if longTermRetentionProps != nil {
 			longTermRetentionPolicy := longtermretentionpolicies.LongTermRetentionPolicy{}
 
@@ -1104,7 +1104,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	if d.HasChange("short_term_retention_policy") {
 		v := d.Get("short_term_retention_policy")
-		backupShortTermPolicyProps := helper.ExpandShortTermRetentionPolicy(v.([]interface{}))
+		backupShortTermPolicyProps := helper.ExpandShortTermRetentionPolicy(v.([]any))
 		if backupShortTermPolicyProps != nil {
 			backupShortTermPolicy := backupshorttermretentionpolicies.BackupShortTermRetentionPolicy{}
 
@@ -1142,7 +1142,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceMsSqlDatabaseRead(d, meta)
 }
 
-func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -1188,8 +1188,6 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 		d.Set("name", id.DatabaseName)
 
 		if props := model.Properties; props != nil {
-			minCapacity := pointer.From(props.MinCapacity)
-
 			requestedBackupStorageRedundancy := ""
 			if props.RequestedBackupStorageRedundancy != nil {
 				requestedBackupStorageRedundancy = string(*props.RequestedBackupStorageRedundancy)
@@ -1214,7 +1212,7 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 			}
 
 			if props.LicenseType != nil {
-				d.Set("license_type", string(pointer.From(props.LicenseType)))
+				d.Set("license_type", pointer.FromEnum(props.LicenseType))
 			} else {
 				// value not returned, try to set from state
 				d.Set("license_type", d.Get("license_type").(string))
@@ -1242,7 +1240,7 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 			// NOTE: Always set the PreferredEnclaveType to an empty string
 			// if not in the properties that were returned from Azure...
 			if v := props.PreferredEnclaveType; v != nil {
-				enclaveType = string(pointer.From(v))
+				enclaveType = pointer.FromEnum(v)
 			}
 
 			configurationName := ""
@@ -1255,7 +1253,7 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 			}
 
 			d.Set("elastic_pool_id", elasticPoolId)
-			d.Set("min_capacity", minCapacity)
+			d.Set("min_capacity", pointer.From(props.MinCapacity))
 			d.Set("sku_name", skuName)
 			d.Set("maintenance_configuration_name", configurationName)
 			d.Set("ledger_enabled", ledgerEnabled)
@@ -1308,7 +1306,7 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 			}
 		} else {
 			// DW SKUs and SQL Database Free tier need the retention policies to be empty for state consistency
-			emptySlice := make([]interface{}, 0)
+			emptySlice := make([]any, 0)
 			d.Set("long_term_retention_policy", emptySlice)
 			d.Set("short_term_retention_policy", emptySlice)
 
@@ -1358,7 +1356,7 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceMsSqlDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlDatabaseDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1375,21 +1373,21 @@ func resourceMsSqlDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
-func flattenMsSqlServerSecurityAlertPolicy(d *pluginsdk.ResourceData, policy databasesecurityalertpolicies.DatabaseSecurityAlertPolicy) []interface{} {
+func flattenMsSqlServerSecurityAlertPolicy(d *pluginsdk.ResourceData, policy databasesecurityalertpolicies.DatabaseSecurityAlertPolicy) []any {
 	// The SQL database security alert API always returns the default value even if never set.
 	// If the values are on their default one, threat it as not set.
 	properties := policy.Properties
 	if properties == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	securityAlertPolicy := map[string]interface{}{
+	securityAlertPolicy := map[string]any{
 		"state":                        string(properties.State),
 		"email_account_admins_enabled": pointer.From(properties.EmailAccountAdmins),
 	}
 
 	if disabledAlerts := properties.DisabledAlerts; disabledAlerts != nil {
-		flattenedAlerts := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
+		flattenedAlerts := pluginsdk.NewSet(pluginsdk.HashString, []any{})
 		for _, a := range *disabledAlerts {
 			if a != "" {
 				flattenedAlerts.Add(a)
@@ -1398,7 +1396,7 @@ func flattenMsSqlServerSecurityAlertPolicy(d *pluginsdk.ResourceData, policy dat
 		securityAlertPolicy["disabled_alerts"] = flattenedAlerts
 	}
 	if emailAddresses := properties.EmailAddresses; emailAddresses != nil {
-		flattenedEmails := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
+		flattenedEmails := pluginsdk.NewSet(pluginsdk.HashString, []any{})
 		for _, e := range *emailAddresses {
 			if e != "" {
 				flattenedEmails.Add(e)
@@ -1418,7 +1416,7 @@ func flattenMsSqlServerSecurityAlertPolicy(d *pluginsdk.ResourceData, policy dat
 		securityAlertPolicy["storage_account_access_key"] = v.(string)
 	}
 
-	return []interface{}{securityAlertPolicy}
+	return []any{securityAlertPolicy}
 }
 
 func expandMsSqlDatabaseSecurityAlertPolicy(d *pluginsdk.ResourceData) databasesecurityalertpolicies.DatabaseSecurityAlertPolicy {
@@ -1434,8 +1432,8 @@ func expandMsSqlDatabaseSecurityAlertPolicy(d *pluginsdk.ResourceData) databases
 		return policy
 	}
 
-	if tdl := td.([]interface{}); len(tdl) > 0 {
-		securityAlert := tdl[0].(map[string]interface{})
+	if tdl := td.([]any); len(tdl) > 0 {
+		securityAlert := tdl[0].(map[string]any)
 
 		properties.State = databasesecurityalertpolicies.SecurityAlertsPolicyState(securityAlert["state"].(string))
 		properties.EmailAccountAdmins = pointer.To(securityAlert["email_account_admins_enabled"].(bool))
@@ -1474,8 +1472,8 @@ func expandMsSqlDatabaseSecurityAlertPolicy(d *pluginsdk.ResourceData) databases
 
 func expandMsSqlServerImport(d *pluginsdk.ResourceData) (out databases.ImportExistingDatabaseDefinition) {
 	v := d.Get("import")
-	dbImportRefs := v.([]interface{})
-	dbImportRef := dbImportRefs[0].(map[string]interface{})
+	dbImportRefs := v.([]any)
+	dbImportRef := dbImportRefs[0].(map[string]any)
 	out = databases.ImportExistingDatabaseDefinition{
 		StorageKeyType:             databases.StorageKeyType(dbImportRef["storage_key_type"].(string)),
 		StorageKey:                 dbImportRef["storage_key"].(string),
@@ -1522,13 +1520,13 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ServerID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseSqlServerIDInsensitively),
 		},
 
 		"auto_pause_delay_in_minutes": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validate.DatabaseAutoPauseDelay,
 		},
 
@@ -1595,7 +1593,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"collation": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validate.DatabaseCollation(),
 		},
@@ -1603,22 +1601,19 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"elastic_pool_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validate.ElasticPoolID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseSqlElasticPoolIDInsensitively),
 		},
 
 		"enclave_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(databases.AlwaysEncryptedEnclaveTypeVBS),
-				string(databases.AlwaysEncryptedEnclaveTypeDefault),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(databases.PossibleValuesForAlwaysEncryptedEnclaveType(), false),
 		},
 
 		"license_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringInSlice(databases.PossibleValuesForDatabaseLicenseType(),
 				false),
 		},
@@ -1630,21 +1625,21 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"max_size_gb": {
 			Type:         pluginsdk.TypeFloat,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.FloatBetween(0.1, 4096),
 		},
 
 		"min_capacity": {
 			Type:         pluginsdk.TypeFloat,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.FloatInSlice([]float64{0, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 3, 4, 5, 6, 8, 10, 12, 14, 16, 18, 20, 24, 32, 40}),
 		},
 
 		"restore_point_in_time": {
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
-			Computed:         true,
+			Computed:         true, // azignore:AZS007 - pre-existing violation
 			DiffSuppressFunc: suppress.RFC3339Time,
 			ValidateFunc:     validation.IsRFC3339Time,
 		},
@@ -1676,20 +1671,20 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"read_replica_count": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.IntBetween(0, 4),
 		},
 
 		"read_scale": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 		},
 
 		"sample_name": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringInSlice([]string{
 				string(databases.SampleNameAdventureWorksLT),
 			}, false),
@@ -1698,7 +1693,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"sku_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validate.DatabaseSkuName(),
 		},
 
@@ -1706,7 +1701,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: commonids.ValidateSqlDatabaseID,
 		},
 
@@ -1721,13 +1716,13 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"zone_redundant": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 		},
 
 		"threat_detection_policy": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -1804,7 +1799,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"maintenance_configuration_name": {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
-			Computed:      true,
+			Computed:      true, // azignore:AZS007 - pre-existing violation
 			ConflictsWith: []string{"elastic_pool_id"},
 			ValidateFunc:  validation.StringInSlice(resourceMsSqlDatabaseMaintenanceNames(), false),
 		},
@@ -1812,7 +1807,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"ledger_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ForceNew: true,
 		},
 
@@ -1840,7 +1835,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"secondary_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			// This must be Computed as it has defaulted to Geo for replicas but not all databases are replicas.
+			// Note: O+C because it has defaulted to Geo for replicas but not all databases are replicas.
 			Computed:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(databases.PossibleValuesForSecondaryType(), false),

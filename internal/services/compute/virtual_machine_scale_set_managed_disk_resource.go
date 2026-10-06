@@ -20,11 +20,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskaccesses"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-07-03/galleryimageversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesetvms"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -122,7 +122,7 @@ func (r VirtualMachineScaleSetManagedDiskResource) ResourceType() string {
 	return "azurerm_virtual_machine_scale_set_managed_disk"
 }
 
-func (r VirtualMachineScaleSetManagedDiskResource) ModelObject() interface{} {
+func (r VirtualMachineScaleSetManagedDiskResource) ModelObject() any {
 	return &VirtualMachineScaleSetManagedDiskResourceModel{}
 }
 
@@ -194,7 +194,7 @@ func (r VirtualMachineScaleSetManagedDiskResource) Arguments() map[string]*plugi
 						Type:          pluginsdk.TypeString,
 						Optional:      true,
 						ForceNew:      true,
-						ValidateFunc:  validate.SharedImageVersionID,
+						ValidateFunc:  validation.AsGeneratedID(galleryimageversions.ParseImageVersionIDInsensitively),
 						ConflictsWith: []string{"creation.0.image_reference_id"},
 					},
 
@@ -261,7 +261,7 @@ func (r VirtualMachineScaleSetManagedDiskResource) Arguments() map[string]*plugi
 			// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
 			//    https://github.com/Azure/azure-rest-api-specs/issues/8132
 			DiffSuppressFunc: suppress.CaseDifference,
-			ValidateFunc:     validate.DiskEncryptionSetID,
+			ValidateFunc:     validation.AsGeneratedID(commonids.ParseDiskEncryptionSetIDInsensitively),
 			ConflictsWith:    []string{"secure_vm_disk_encryption_set_id"},
 		},
 
@@ -357,7 +357,7 @@ func (r VirtualMachineScaleSetManagedDiskResource) Arguments() map[string]*plugi
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			ForceNew:      true,
-			ValidateFunc:  validate.DiskEncryptionSetID,
+			ValidateFunc:  validation.AsGeneratedID(commonids.ParseDiskEncryptionSetIDInsensitively),
 			ConflictsWith: []string{"disk_encryption_set_id"},
 		},
 
@@ -466,7 +466,7 @@ func (r VirtualMachineScaleSetManagedDiskResource) CustomizeDiff() sdk.ResourceF
 			}
 
 			// Azure Disk Encryption cannot be disabled once it has been enabled, so removing the block forces a new resource
-			if oldRaw, newRaw := rd.GetChange("encryption_settings"); len(oldRaw.([]interface{})) > 0 && len(newRaw.([]interface{})) == 0 {
+			if oldRaw, newRaw := rd.GetChange("encryption_settings"); len(oldRaw.([]any)) > 0 && len(newRaw.([]any)) == 0 {
 				if err := rd.ForceNew("encryption_settings"); err != nil {
 					return fmt.Errorf("setting `encryption_settings` to force a new resource: %+v", err)
 				}
@@ -732,7 +732,7 @@ func (r VirtualMachineScaleSetManagedDiskResource) flatten(metadata sdk.Resource
 		}
 
 		if sku := model.Sku; sku != nil {
-			state.StorageAccountType = string(pointer.From(sku.Name))
+			state.StorageAccountType = pointer.FromEnum(sku.Name)
 		}
 
 		if props := model.Properties; props != nil {
@@ -749,12 +749,12 @@ func (r VirtualMachineScaleSetManagedDiskResource) flatten(metadata sdk.Resource
 			}
 			state.OnDemandBurstingEnabled = pointer.From(props.BurstingEnabled)
 			state.OptimizedFrequentAttachEnabled = pointer.From(props.OptimizedForFrequentAttach)
-			state.OsType = string(pointer.From(props.OsType))
-			state.HyperVGeneration = string(pointer.From(props.HyperVGeneration))
+			state.OsType = pointer.FromEnum(props.OsType)
+			state.HyperVGeneration = pointer.FromEnum(props.HyperVGeneration)
 			if v := pointer.From(props.DataAccessAuthMode); v != "" && v != disks.DataAccessAuthModeNone {
 				state.DataAccessAuthMode = string(v)
 			}
-			state.NetworkAccessPolicy = string(pointer.From(props.NetworkAccessPolicy))
+			state.NetworkAccessPolicy = pointer.FromEnum(props.NetworkAccessPolicy)
 			state.DiskAccessId = pointer.From(props.DiskAccessId)
 			state.PublicNetworkAccessEnabled = pointer.From(props.PublicNetworkAccess) == disks.PublicNetworkAccessEnabled
 			state.UniqueId = pointer.From(props.UniqueId)
@@ -769,7 +769,7 @@ func (r VirtualMachineScaleSetManagedDiskResource) flatten(metadata sdk.Resource
 				if pointer.From(securityProfile.SecurityType) == disks.DiskSecurityTypesTrustedLaunch {
 					state.TrustedLaunchEnabled = true
 				} else {
-					state.SecurityType = string(pointer.From(securityProfile.SecurityType))
+					state.SecurityType = pointer.FromEnum(securityProfile.SecurityType)
 				}
 				state.SecureVMDiskEncryptionSetId = pointer.From(securityProfile.SecureVMDiskEncryptionSetId)
 			}
@@ -1144,7 +1144,7 @@ func (r VirtualMachineScaleSetManagedDiskResource) updateRequiresDetach(metadata
 	}
 
 	if metadata.ResourceData.HasChange("disk_size_gb") && existing != nil && existing.Sku != nil && existing.Properties != nil {
-		skuName := string(pointer.From(existing.Sku.Name))
+		skuName := pointer.FromEnum(existing.Sku.Name)
 		supportsOnlineExpandAbove4TiB := strings.EqualFold(skuName, string(disks.DiskStorageAccountTypesPremiumVTwoLRS)) || strings.EqualFold(skuName, string(disks.DiskStorageAccountTypesUltraSSDLRS))
 		if !supportsOnlineExpandAbove4TiB {
 			oldSizeGb := pointer.From(existing.Properties.DiskSizeGB)

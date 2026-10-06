@@ -14,19 +14,19 @@ func TestFlatten(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    map[string]*string
-		Expected map[string]interface{}
+		Expected map[string]any
 	}{
 		{
 			Name:     "Empty",
 			Input:    map[string]*string{},
-			Expected: map[string]interface{}{},
+			Expected: map[string]any{},
 		},
 		{
 			Name: "One Item",
 			Input: map[string]*string{
 				"hello": pointer.To("there"),
 			},
-			Expected: map[string]interface{}{
+			Expected: map[string]any{
 				"hello": "there",
 			},
 		},
@@ -37,7 +37,7 @@ func TestFlatten(t *testing.T) {
 				"hello": pointer.To("there"),
 				"panda": pointer.To("pops"),
 			},
-			Expected: map[string]interface{}{
+			Expected: map[string]any{
 				"euros": "3",
 				"hello": "there",
 				"panda": "pops",

@@ -13,6 +13,7 @@ import (
 	frsUUID "github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -53,7 +54,7 @@ func resourceSynapseRoleAssignment() *pluginsdk.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				ExactlyOneOf: []string{"synapse_workspace_id", "synapse_spark_pool_id"},
-				ValidateFunc: validate.WorkspaceID,
+				ValidateFunc: validation.AsGeneratedID(workspaces.ParseWorkspaceIDInsensitively),
 			},
 
 			"synapse_spark_pool_id": {
@@ -107,7 +108,7 @@ func resourceSynapseRoleAssignment() *pluginsdk.Resource {
 	}
 }
 
-func resourceSynapseRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseRoleAssignmentCreate(d *pluginsdk.ResourceData, meta any) error {
 	synapseClient := meta.(*clients.Client).Synapse
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -181,8 +182,7 @@ func resourceSynapseRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if v, ok := d.GetOk("principal_type"); ok {
-		principalType := v.(string)
-		roleAssignment.PrincipalType = &principalType
+		roleAssignment.PrincipalType = pointer.To(v.(string))
 	}
 
 	resp, err := client.CreateRoleAssignment(ctx, roleAssignment, uuid)
@@ -194,12 +194,11 @@ func resourceSynapseRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("empty or nil ID returned for Synapse RoleAssignment %q", roleName)
 	}
 
-	resourceId := parse.NewRoleAssignmentId(synapseScope, *resp.ID).ID()
-	d.SetId(resourceId)
+	d.SetId(parse.NewRoleAssignmentId(synapseScope, *resp.ID).ID())
 	return resourceSynapseRoleAssignmentRead(d, meta)
 }
 
-func resourceSynapseRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseRoleAssignmentRead(d *pluginsdk.ResourceData, meta any) error {
 	synapseClient := meta.(*clients.Client).Synapse
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -249,7 +248,7 @@ func resourceSynapseRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface
 
 	synapseWorkspaceId := ""
 	synapseSparkPoolId := ""
-	if _, err := parse.WorkspaceIDInsensitively(id.Scope); err == nil {
+	if _, err := workspaces.ParseWorkspaceIDInsensitively(id.Scope); err == nil {
 		synapseWorkspaceId = id.Scope
 	} else if _, err := parse.SparkPoolIDInsensitively(id.Scope); err == nil {
 		synapseSparkPoolId = id.Scope
@@ -268,7 +267,7 @@ func resourceSynapseRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func resourceSynapseRoleAssignmentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseRoleAssignmentDelete(d *pluginsdk.ResourceData, meta any) error {
 	synapseClient := meta.(*clients.Client).Synapse
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

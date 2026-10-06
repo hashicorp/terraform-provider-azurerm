@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestVirtualNetworkDnsServersID(t *testing.T) {
+func TestValidateVirtualNetworkDnsServersID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool

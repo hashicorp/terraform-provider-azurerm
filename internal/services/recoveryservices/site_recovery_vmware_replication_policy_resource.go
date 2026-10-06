@@ -31,7 +31,7 @@ type SiteRecoveryReplicationPolicyVmwareModel struct {
 	RecoveryPointRetentionInMinutes                 int64  `tfschema:"recovery_point_retention_in_minutes"`
 }
 
-func (r VMWareReplicationPolicyResource) ModelObject() interface{} {
+func (r VMWareReplicationPolicyResource) ModelObject() any {
 	return &SiteRecoveryReplicationPolicyVmwareModel{}
 }
 
@@ -62,14 +62,12 @@ func (r VMWareReplicationPolicyResource) Arguments() map[string]*pluginsdk.Schem
 		"recovery_point_retention_in_minutes": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
-			ForceNew:     false,
 			ValidateFunc: validation.IntBetween(0, 15*24*60),
 		},
 
 		"application_consistent_snapshot_frequency_in_minutes": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
-			ForceNew:     false,
 			ValidateFunc: validation.IntBetween(0, 12*60),
 		},
 	}
