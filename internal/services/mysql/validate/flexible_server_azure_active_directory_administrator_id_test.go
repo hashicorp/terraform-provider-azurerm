@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestFlexibleServerAzureActiveDirectoryAdministratorID(t *testing.T) {
+func TestValidateFlexibleServerAzureActiveDirectoryAdministratorID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
