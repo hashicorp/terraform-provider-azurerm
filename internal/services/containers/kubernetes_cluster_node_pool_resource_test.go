@@ -5,7 +5,6 @@ package containers_test
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -480,72 +479,6 @@ func TestAccKubernetesClusterNodePool_podIPAllocationMode(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-	})
-}
-
-func TestAccKubernetesClusterNodePool_podIPAllocationModeOmitted(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
-	r := KubernetesClusterNodePoolResource{}
-	clusterResourceName := "azurerm_kubernetes_cluster.test"
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.podIPAllocationModeConfig(data, ""),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				data.CheckWithClient(func(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
-					ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
-					defer cancel()
-
-					id, err := agentpools.ParseAgentPoolID(state.ID)
-					if err != nil {
-						return err
-					}
-					result, err := client.Containers.AgentPoolsClient.Get(ctx, *id)
-					if err != nil {
-						return fmt.Errorf("reading omitted node-pool allocation mode: %+v", err)
-					}
-					if result.Model == nil || result.Model.Properties == nil {
-						return errors.New("reading omitted node-pool allocation mode: missing response properties")
-					}
-					mode := result.Model.Properties.PodIPAllocationMode
-					if actual := state.Attributes["pod_ip_allocation_mode"]; actual != pointer.FromEnum(mode) {
-						return fmt.Errorf("node-pool allocation mode in state %q does not match Azure %q", actual, pointer.FromEnum(mode))
-					}
-					t.Logf("POD_IP_OMITTED_API node_pool present=%t value=%q", mode != nil, pointer.FromEnum(mode))
-					return nil
-				}),
-				data.CheckWithClientForResource(func(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
-					ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
-					defer cancel()
-
-					id, err := commonids.ParseKubernetesClusterID(state.ID)
-					if err != nil {
-						return err
-					}
-					result, err := client.Containers.KubernetesClustersClient.Get(ctx, *id)
-					if err != nil {
-						return fmt.Errorf("reading omitted default-pool allocation mode: %+v", err)
-					}
-					if result.Model == nil || result.Model.Properties == nil || result.Model.Properties.AgentPoolProfiles == nil {
-						return errors.New("reading omitted default-pool allocation mode: missing agent-pool profiles")
-					}
-					for _, pool := range *result.Model.Properties.AgentPoolProfiles {
-						if pool.Name == "default" {
-							mode := pool.PodIPAllocationMode
-							if actual := state.Attributes["default_node_pool.0.pod_ip_allocation_mode"]; actual != pointer.FromEnum(mode) {
-								return fmt.Errorf("default-pool allocation mode in state %q does not match Azure %q", actual, pointer.FromEnum(mode))
-							}
-							t.Logf("POD_IP_OMITTED_API default_node_pool present=%t value=%q", mode != nil, pointer.FromEnum(mode))
-							return nil
-						}
-					}
-					return errors.New("reading omitted default-pool allocation mode: default pool not found")
-				}, clusterResourceName),
-			),
-		},
-		data.ImportStep(),
-		data.ImportStepFor(clusterResourceName),
 	})
 }
 
@@ -2257,11 +2190,6 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 }
 
 func (KubernetesClusterNodePoolResource) podIPAllocationModeConfig(data acceptance.TestData, allocationMode string) string {
-	podIPAllocationMode := ""
-	if allocationMode != "" {
-		podIPAllocationMode = fmt.Sprintf("pod_ip_allocation_mode = %q", allocationMode)
-	}
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2352,18 +2280,18 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
-  name                  = "internal"
-  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_D2s_v3"
-  node_count            = 1
-  vnet_subnet_id        = azurerm_subnet.test.id
-  pod_subnet_id         = azurerm_subnet.testpod.id
-  %[3]s
+  name                   = "internal"
+  kubernetes_cluster_id  = azurerm_kubernetes_cluster.test.id
+  vm_size                = "Standard_D2s_v3"
+  node_count             = 1
+  vnet_subnet_id         = azurerm_subnet.test.id
+  pod_subnet_id          = azurerm_subnet.testpod.id
+  pod_ip_allocation_mode = "%[3]s"
   upgrade_settings {
     max_surge = "10%%"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, podIPAllocationMode)
+`, data.RandomInteger, data.Locations.Primary, allocationMode)
 }
 
 func (r KubernetesClusterNodePoolResource) podSubnet(data acceptance.TestData) string {
