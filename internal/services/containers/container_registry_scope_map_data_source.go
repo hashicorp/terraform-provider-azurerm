@@ -7,14 +7,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-04-01/scopemaps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/scopemaps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceContainerRegistryScopeMap() *pluginsdk.Resource {
@@ -51,7 +51,7 @@ func dataSourceContainerRegistryScopeMap() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceContainerRegistryScopeMapRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceContainerRegistryScopeMapRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Containers.ContainerRegistryClient.ScopeMaps
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -75,12 +75,8 @@ func dataSourceContainerRegistryScopeMapRead(d *pluginsdk.ResourceData, meta int
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			description := ""
-			if v := props.Description; v != nil {
-				description = *v
-			}
-			d.Set("description", description)
-			d.Set("actions", utils.FlattenStringSlice(&props.Actions))
+			d.Set("description", pointer.From(props.Description))
+			d.Set("actions", pluginsdk.FlattenSlice(&props.Actions))
 		}
 	}
 	return nil

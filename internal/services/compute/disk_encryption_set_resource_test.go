@@ -133,7 +133,7 @@ func TestAccDiskEncryptionSet_keyRotateInvalid(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.keyRotateInvalid(data),
-			ExpectError: regexp.MustCompile("'auto_key_rotation_enabled' field is set to 'true' expected a key vault key with a versionless ID but version information was found"),
+			ExpectError: regexp.MustCompile("`auto_key_rotation_enabled` field is set to `true` expected a key vault key with a versionless ID but version information was found"),
 		},
 	})
 }
@@ -146,7 +146,7 @@ func TestAccDiskEncryptionSet_keyRotateFalseInvalid(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.keyRotateFalseInvalid(data),
-			ExpectError: regexp.MustCompile("'auto_key_rotation_enabled' field is set to 'false' expected a key vault key with a versioned ID but no version information was found"),
+			ExpectError: regexp.MustCompile("`auto_key_rotation_enabled` field is set to `false` expected a key vault key with a versioned ID but no version information was found"),
 		},
 	})
 }
@@ -298,6 +298,7 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctestkv-%s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "standard"
   purge_protection_enabled    = %t

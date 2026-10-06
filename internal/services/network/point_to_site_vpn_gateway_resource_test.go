@@ -117,6 +117,35 @@ func TestAccPointToSiteVPNGateway_enableInternetSecurity(t *testing.T) {
 	})
 }
 
+func TestAccPointToSiteVPNGateway_updateInternetSecurity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_point_to_site_vpn_gateway", "test")
+	r := PointToSiteVPNGatewayResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.enableInternetSecurity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccPointToSiteVPNGateway_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_point_to_site_vpn_gateway", "test")
 	r := PointToSiteVPNGatewayResource{}

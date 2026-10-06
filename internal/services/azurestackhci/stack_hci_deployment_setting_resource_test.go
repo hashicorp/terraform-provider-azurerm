@@ -692,7 +692,7 @@ resource "azurerm_role_assignment" "connect2" {
   principal_id         = azuread_service_principal.test.object_id
 }
 
-// this is following https://learn.microsoft.com/en-us/azure-stack/hci/deploy/deployment-tool-active-directory
+// this is following https://learn.microsoft.com/azure-stack/hci/deploy/deployment-tool-active-directory
 resource "terraform_data" "ad_creation_provisioner" {
   depends_on = [azurerm_virtual_machine.test]
 
@@ -751,7 +751,7 @@ resource "azurerm_key_vault" "DeploymentKeyVault" {
   enabled_for_disk_encryption     = true
   tenant_id                       = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days      = 30
-  enable_rbac_authorization       = true
+  rbac_authorization_enabled      = true
   public_network_access_enabled   = true
   sku_name                        = "standard"
 }
