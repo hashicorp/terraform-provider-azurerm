@@ -248,10 +248,10 @@ func resourceEventGridTopicCreate(d *pluginsdk.ResourceData, meta any) error {
 			InputSchemaMapping:       expandTopicInputMapping(d),
 			InputSchema:              pointer.ToEnum[topics.InputSchema](d.Get("input_schema").(string)),
 			PublicNetworkAccess:      pointer.To(publicNetworkAccess),
-			MinimumTlsVersionAllowed: pointer.To(topics.TlsVersion(d.Get("minimum_tls_version").(string))),
+			MinimumTlsVersionAllowed: pointer.ToEnum[topics.TlsVersion](d.Get("minimum_tls_version").(string)),
 			InboundIPRules:           inboundIPRules,
 			DisableLocalAuth:         pointer.To(!d.Get("local_auth_enabled").(bool)),
-			DataResidencyBoundary:    pointer.To(topics.DataResidencyBoundary(d.Get("data_residency_boundary").(string))),
+			DataResidencyBoundary:    pointer.ToEnum[topics.DataResidencyBoundary](d.Get("data_residency_boundary").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
@@ -307,11 +307,11 @@ func resourceEventGridTopicUpdate(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	if d.HasChange("minimum_tls_version") {
-		payload.Properties.MinimumTlsVersionAllowed = pointer.To(topics.TlsVersion(d.Get("minimum_tls_version").(string)))
+		payload.Properties.MinimumTlsVersionAllowed = pointer.ToEnum[topics.TlsVersion](d.Get("minimum_tls_version").(string))
 	}
 
 	if d.HasChange("data_residency_boundary") {
-		payload.Properties.DataResidencyBoundary = pointer.To(topics.DataResidencyBoundary(d.Get("data_residency_boundary").(string)))
+		payload.Properties.DataResidencyBoundary = pointer.ToEnum[topics.DataResidencyBoundary](d.Get("data_residency_boundary").(string))
 	}
 
 	if d.HasChange("inbound_ip_rule") {

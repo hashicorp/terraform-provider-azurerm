@@ -261,8 +261,8 @@ func resourceEventGridDomainCreate(d *pluginsdk.ResourceData, meta any) error {
 			InputSchema:                          pointer.ToEnum[domains.InputSchema](d.Get("input_schema").(string)),
 			InputSchemaMapping:                   expandDomainInputMapping(d),
 			PublicNetworkAccess:                  pointer.To(publicNetworkAccess),
-			MinimumTlsVersionAllowed:             pointer.To(domains.TlsVersion(d.Get("minimum_tls_version").(string))),
-			DataResidencyBoundary:                pointer.To(domains.DataResidencyBoundary(d.Get("data_residency_boundary").(string))),
+			MinimumTlsVersionAllowed:             pointer.ToEnum[domains.TlsVersion](d.Get("minimum_tls_version").(string)),
+			DataResidencyBoundary:                pointer.ToEnum[domains.DataResidencyBoundary](d.Get("data_residency_boundary").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
@@ -325,19 +325,19 @@ func resourceEventGridDomainUpdate(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	if d.HasChange("data_residency_boundary") {
-		payload.Properties.DataResidencyBoundary = pointer.To(domains.DataResidencyBoundary(d.Get("data_residency_boundary").(string)))
+		payload.Properties.DataResidencyBoundary = pointer.ToEnum[domains.DataResidencyBoundary](d.Get("data_residency_boundary").(string))
 	}
 
 	if d.HasChange("minimum_tls_version") {
-		payload.Properties.MinimumTlsVersionAllowed = pointer.To(domains.TlsVersion(d.Get("minimum_tls_version").(string)))
+		payload.Properties.MinimumTlsVersionAllowed = pointer.ToEnum[domains.TlsVersion](d.Get("minimum_tls_version").(string))
 	}
 
 	if d.HasChange("data_residency_boundary") {
-		payload.Properties.DataResidencyBoundary = pointer.To(domains.DataResidencyBoundary(d.Get("data_residency_boundary").(string)))
+		payload.Properties.DataResidencyBoundary = pointer.ToEnum[domains.DataResidencyBoundary](d.Get("data_residency_boundary").(string))
 	}
 
 	if d.HasChange("minimum_tls_version") {
-		payload.Properties.MinimumTlsVersionAllowed = pointer.To(domains.TlsVersion(d.Get("minimum_tls_version").(string)))
+		payload.Properties.MinimumTlsVersionAllowed = pointer.ToEnum[domains.TlsVersion](d.Get("minimum_tls_version").(string))
 	}
 
 	if d.HasChange("inbound_ip_rule") {
