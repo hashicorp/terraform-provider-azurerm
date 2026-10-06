@@ -437,6 +437,11 @@ resource "azurerm_app_configuration_key" "test" {
   type                   = "vault"
   label                  = "acctest-ackeylabel-%d"
   vault_key_reference    = azurerm_key_vault_secret.example.id
+
+  tags = {
+    environment = "development"
+    hello       = "world"
+  }
 }
 `, t.base(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
