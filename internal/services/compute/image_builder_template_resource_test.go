@@ -165,7 +165,7 @@ func TestAccAzureRMImageBuilderTemplate_managedImageSource(t *testing.T) {
 			Config: rLinuxVMResource.imageFromExistingMachinePrep(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(linuxVMResourceName).ExistsInAzure(rLinuxVMResource),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_linux_virtual_machine.source"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.source"),
 			),
 		},
 		{
@@ -192,7 +192,7 @@ func TestAccAzureRMImageBuilderTemplate_sharedImageGallerySource(t *testing.T) {
 			Config: rLinuxVMResource.imageFromExistingMachinePrep(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(linuxVMResourceName).ExistsInAzure(rLinuxVMResource),
-				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_linux_virtual_machine.source"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.source"),
 			),
 		},
 		{

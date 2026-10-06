@@ -58,9 +58,20 @@ func (c VirtualMachineImageTemplateClient) Cancel(ctx context.Context, id ImageT
 
 // CancelThenPoll performs Cancel then polls until it's completed
 func (c VirtualMachineImageTemplateClient) CancelThenPoll(ctx context.Context, id ImageTemplateId) error {
+	return c.CancelCallbackThenPoll(ctx, id, nil)
+}
+
+// CancelCallbackThenPoll performs Cancel, runs the optional callback function, then polls until it's completed
+func (c VirtualMachineImageTemplateClient) CancelCallbackThenPoll(ctx context.Context, id ImageTemplateId, callback func() error) error {
 	result, err := c.Cancel(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Cancel: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

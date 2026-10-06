@@ -62,9 +62,20 @@ func (c RedisClient) LinkedServerCreate(ctx context.Context, id LinkedServerId, 
 
 // LinkedServerCreateThenPoll performs LinkedServerCreate then polls until it's completed
 func (c RedisClient) LinkedServerCreateThenPoll(ctx context.Context, id LinkedServerId, input RedisLinkedServerCreateParameters) error {
+	return c.LinkedServerCreateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// LinkedServerCreateCallbackThenPoll performs LinkedServerCreate, runs the optional callback function, then polls until it's completed
+func (c RedisClient) LinkedServerCreateCallbackThenPoll(ctx context.Context, id LinkedServerId, input RedisLinkedServerCreateParameters, callback func() error) error {
 	result, err := c.LinkedServerCreate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing LinkedServerCreate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

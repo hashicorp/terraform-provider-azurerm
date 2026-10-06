@@ -13,7 +13,7 @@ import (
 func ResourceAssignmentId() pluginsdk.SchemaValidateFunc {
 	return validation.All(
 		validation.None(
-			map[string]func(interface{}, string) ([]string, []error){
+			map[string]func(any, string) ([]string, []error){
 				"Management Group ID": commonids.ValidateManagementGroupID,
 				"Resource Group ID":   commonids.ValidateResourceGroupID,
 				"Subscription ID":     commonids.ValidateSubscriptionID,

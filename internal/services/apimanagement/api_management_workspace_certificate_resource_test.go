@@ -336,11 +336,12 @@ data "azurerm_client_config" "current" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acct%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acct%[1]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
@@ -411,11 +412,12 @@ resource "azurerm_key_vault_certificate" "test" {
 }
 
 resource "azurerm_key_vault" "test2" {
-  name                = "acct2%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acct2%[1]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
@@ -493,11 +495,12 @@ data "azurerm_client_config" "current" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acct%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acct%[1]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
@@ -565,11 +568,12 @@ resource "azurerm_key_vault_certificate" "test" {
 }
 
 resource "azurerm_key_vault" "test2" {
-  name                = "acct2%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acct2%[1]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id

@@ -15,11 +15,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-07-03/galleryimageversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/imagebuilder/2024-02-01/virtualmachineimagetemplate"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -32,7 +32,7 @@ var (
 
 type ImageBuilderTemplateResource struct{}
 
-func (ImageBuilderTemplateResource) ModelObject() interface{} {
+func (ImageBuilderTemplateResource) ModelObject() any {
 	return &ImageBuilderTemplateResourceModel{}
 }
 
@@ -366,7 +366,7 @@ func (ImageBuilderTemplateResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         schema.TypeInt,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.DiskSizeGB,
+			ValidateFunc: validation.IntBetween(0, 32767),
 		},
 
 		"distributions": {
@@ -598,7 +598,7 @@ func (ImageBuilderTemplateResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         schema.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.SharedImageVersionID,
+			ValidateFunc: galleryimageversions.ValidateImageVersionID,
 			ExactlyOneOf: []string{"source_managed_image_id", "source_platform_image", "source_shared_image_version_id"},
 		},
 

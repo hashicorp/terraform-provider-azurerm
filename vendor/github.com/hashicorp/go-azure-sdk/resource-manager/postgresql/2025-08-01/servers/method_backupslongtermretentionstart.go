@@ -62,9 +62,20 @@ func (c ServersClient) BackupsLongTermRetentionStart(ctx context.Context, id Fle
 
 // BackupsLongTermRetentionStartThenPoll performs BackupsLongTermRetentionStart then polls until it's completed
 func (c ServersClient) BackupsLongTermRetentionStartThenPoll(ctx context.Context, id FlexibleServerId, input BackupsLongTermRetentionRequest) error {
+	return c.BackupsLongTermRetentionStartCallbackThenPoll(ctx, id, input, nil)
+}
+
+// BackupsLongTermRetentionStartCallbackThenPoll performs BackupsLongTermRetentionStart, runs the optional callback function, then polls until it's completed
+func (c ServersClient) BackupsLongTermRetentionStartCallbackThenPoll(ctx context.Context, id FlexibleServerId, input BackupsLongTermRetentionRequest, callback func() error) error {
 	result, err := c.BackupsLongTermRetentionStart(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing BackupsLongTermRetentionStart: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

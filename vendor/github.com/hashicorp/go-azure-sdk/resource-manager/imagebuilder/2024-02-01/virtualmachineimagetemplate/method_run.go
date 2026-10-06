@@ -58,9 +58,20 @@ func (c VirtualMachineImageTemplateClient) Run(ctx context.Context, id ImageTemp
 
 // RunThenPoll performs Run then polls until it's completed
 func (c VirtualMachineImageTemplateClient) RunThenPoll(ctx context.Context, id ImageTemplateId) error {
+	return c.RunCallbackThenPoll(ctx, id, nil)
+}
+
+// RunCallbackThenPoll performs Run, runs the optional callback function, then polls until it's completed
+func (c VirtualMachineImageTemplateClient) RunCallbackThenPoll(ctx context.Context, id ImageTemplateId, callback func() error) error {
 	result, err := c.Run(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Run: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
