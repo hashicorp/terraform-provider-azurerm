@@ -78,7 +78,7 @@ func resourceActiveDirectoryDomainServiceReplicaSet() *pluginsdk.Resource {
 	}
 }
 
-func resourceActiveDirectoryDomainServiceReplicaSetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceActiveDirectoryDomainServiceReplicaSetCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DomainServices.DomainServicesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -116,6 +116,7 @@ func resourceActiveDirectoryDomainServiceReplicaSetCreate(d *pluginsdk.ResourceD
 	subnetId := d.Get("subnet_id").(string)
 	replicaSets := *model.Properties.ReplicaSets
 
+	exists := false
 	for _, r := range replicaSets {
 		if r.ReplicaSetId == nil {
 			return fmt.Errorf("reading %s: a replica set was returned with a missing ReplicaSetID", domainServiceId)
@@ -126,17 +127,22 @@ func resourceActiveDirectoryDomainServiceReplicaSetCreate(d *pluginsdk.ResourceD
 
 		// We assume that two replica sets cannot coexist in the same subnet
 		if strings.EqualFold(subnetId, *r.SubnetId) {
-			// Generate an ID here since we only know it once we know the ReplicaSetID
-			id := parse.NewDomainServiceReplicaSetID(domainServiceId.SubscriptionId, domainServiceId.ResourceGroup, domainServiceId.Name, *r.ReplicaSetId)
-			return tf.ImportAsExistsError("azurerm_active_directory_domain_service_replica_set", id.ID())
+			exists = true
+			if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				// Generate an ID here since we only know it once we know the ReplicaSetID
+				id := parse.NewDomainServiceReplicaSetID(domainServiceId.SubscriptionId, domainServiceId.ResourceGroup, domainServiceId.Name, *r.ReplicaSetId)
+				return tf.ImportAsExistsError("azurerm_active_directory_domain_service_replica_set", id.ID())
+			}
 		}
 	}
 
 	loc := location.Normalize(d.Get("location").(string))
-	replicaSets = append(replicaSets, domainservices.ReplicaSet{
-		Location: pointer.To(loc),
-		SubnetId: pointer.To(subnetId),
-	})
+	if !exists {
+		replicaSets = append(replicaSets, domainservices.ReplicaSet{
+			Location: pointer.To(loc),
+			SubnetId: pointer.To(subnetId),
+		})
+	}
 
 	model.Properties.ReplicaSets = &replicaSets
 
@@ -182,6 +188,8 @@ func resourceActiveDirectoryDomainServiceReplicaSetCreate(d *pluginsdk.ResourceD
 		return fmt.Errorf("reading %s: the new replica set was not returned", domainServiceId)
 	}
 
+	d.SetId(id.ID())
+
 	// Wait for all replica sets to become available with two domain controllers each before proceeding
 	timeout, _ := ctx.Deadline()
 	stateConf := &pluginsdk.StateChangeConf{
@@ -197,12 +205,10 @@ func resourceActiveDirectoryDomainServiceReplicaSetCreate(d *pluginsdk.ResourceD
 		return fmt.Errorf("waiting for both domain controllers to become available in all replica sets for %s: %+v", domainServiceId, err)
 	}
 
-	d.SetId(id.ID())
-
 	return resourceActiveDirectoryDomainServiceReplicaSetRead(d, meta)
 }
 
-func resourceActiveDirectoryDomainServiceReplicaSetRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceActiveDirectoryDomainServiceReplicaSetRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DomainServices.DomainServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -276,7 +282,7 @@ func resourceActiveDirectoryDomainServiceReplicaSetRead(d *pluginsdk.ResourceDat
 	return nil
 }
 
-func resourceActiveDirectoryDomainServiceReplicaSetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceActiveDirectoryDomainServiceReplicaSetDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DomainServices.DomainServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

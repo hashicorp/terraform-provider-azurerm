@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/bastionhosts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/bastionhosts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -70,6 +70,11 @@ func dataSourceBastionHost() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"private_only_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"scale_units": {
 				Type:     pluginsdk.TypeInt,
 				Computed: true,
@@ -111,7 +116,7 @@ func dataSourceBastionHost() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceBastionHostRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceBastionHostRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.BastionHostsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -146,6 +151,7 @@ func dataSourceBastionHostRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.Set("shareable_link_enabled", props.EnableShareableLink)
 			d.Set("tunneling_enabled", props.EnableTunneling)
 			d.Set("session_recording_enabled", props.EnableSessionRecording)
+			d.Set("private_only_enabled", props.EnablePrivateOnlyBastion)
 
 			copyPasteEnabled := true
 			if props.DisableCopyPaste != nil {

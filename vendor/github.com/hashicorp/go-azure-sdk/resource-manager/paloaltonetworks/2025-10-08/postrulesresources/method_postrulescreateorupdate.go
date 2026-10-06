@@ -62,9 +62,20 @@ func (c PostRulesResourcesClient) PostRulesCreateOrUpdate(ctx context.Context, i
 
 // PostRulesCreateOrUpdateThenPoll performs PostRulesCreateOrUpdate then polls until it's completed
 func (c PostRulesResourcesClient) PostRulesCreateOrUpdateThenPoll(ctx context.Context, id PostRuleId, input PostRulesResource) error {
+	return c.PostRulesCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// PostRulesCreateOrUpdateCallbackThenPoll performs PostRulesCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c PostRulesResourcesClient) PostRulesCreateOrUpdateCallbackThenPoll(ctx context.Context, id PostRuleId, input PostRulesResource, callback func() error) error {
 	result, err := c.PostRulesCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing PostRulesCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

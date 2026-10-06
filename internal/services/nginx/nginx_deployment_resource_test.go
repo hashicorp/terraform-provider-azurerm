@@ -164,6 +164,19 @@ func TestAccNginxDeployment_userAssignedIdentity(t *testing.T) {
 	})
 }
 
+func TestAccNginxDeployment_completePreflightPlan(t *testing.T) {
+	data := acceptance.BuildTestData(t, nginx.DeploymentResource{}.ResourceType(), "test")
+	r := DeploymentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:             r.completePreflightPlan(data),
+			PlanOnly:           true,
+			ExpectNonEmptyPlan: true,
+		},
+	})
+}
+
 func (a DeploymentResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
@@ -175,8 +188,11 @@ resource "azurerm_nginx_deployment" "test" {
   resource_group_name       = azurerm_resource_group.test.name
   sku                       = "standardv3_Monthly"
   location                  = azurerm_resource_group.test.location
-  diagnose_support_enabled  = false
   automatic_upgrade_channel = "stable"
+
+  identity {
+    type = "SystemAssigned"
+  }
 
   frontend_public {
     ip_address = [azurerm_public_ip.test.id]
@@ -208,8 +224,11 @@ resource "azurerm_nginx_deployment" "test" {
   resource_group_name       = azurerm_resource_group.test.name
   sku                       = "standardv3_Monthly"
   location                  = azurerm_resource_group.test.location
-  diagnose_support_enabled  = false
   automatic_upgrade_channel = "stable"
+
+  identity {
+    type = "SystemAssigned"
+  }
 
   frontend_private {
     allocation_method = "Static"
@@ -243,8 +262,11 @@ resource "azurerm_nginx_deployment" "test" {
   resource_group_name       = azurerm_resource_group.test.name
   sku                       = "standardv3_Monthly"
   location                  = azurerm_resource_group.test.location
-  diagnose_support_enabled  = false
   automatic_upgrade_channel = "stable"
+
+  identity {
+    type = "SystemAssigned"
+  }
 
   frontend_public {
     ip_address = [azurerm_public_ip.test.id]
@@ -286,8 +308,11 @@ resource "azurerm_nginx_deployment" "test" {
   resource_group_name       = azurerm_resource_group.test.name
   sku                       = "standardv3_Monthly"
   location                  = azurerm_resource_group.test.location
-  diagnose_support_enabled  = false
   automatic_upgrade_channel = "stable"
+
+  identity {
+    type = "SystemAssigned"
+  }
 
   frontend_public {
     ip_address = [azurerm_public_ip.test.id]
@@ -325,11 +350,14 @@ func (a DeploymentResource) update(data acceptance.TestData) string {
 %s
 
 resource "azurerm_nginx_deployment" "test" {
-  name                     = "acctest-%[2]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  sku                      = "standardv3_Monthly"
-  location                 = azurerm_resource_group.test.location
-  diagnose_support_enabled = false
+  name                = "acctest-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "standardv3_Monthly"
+  location            = azurerm_resource_group.test.location
+
+  identity {
+    type = "SystemAssigned"
+  }
 
   frontend_public {
     ip_address = [azurerm_public_ip.test.id]
@@ -361,8 +389,11 @@ resource "azurerm_nginx_deployment" "test" {
   resource_group_name       = azurerm_resource_group.test.name
   sku                       = "standardv3_Monthly"
   location                  = azurerm_resource_group.test.location
-  diagnose_support_enabled  = false
   automatic_upgrade_channel = "stable"
+
+  identity {
+    type = "SystemAssigned"
+  }
 
   frontend_private {
     allocation_method = "Static"
@@ -396,8 +427,11 @@ resource "azurerm_nginx_deployment" "test" {
   resource_group_name       = azurerm_resource_group.test.name
   sku                       = "standardv3_Monthly"
   location                  = azurerm_resource_group.test.location
-  diagnose_support_enabled  = false
   automatic_upgrade_channel = "stable"
+
+  identity {
+    type = "SystemAssigned"
+  }
 
   frontend_private {
     allocation_method = "Static"
@@ -431,8 +465,11 @@ resource "azurerm_nginx_deployment" "test" {
   resource_group_name       = azurerm_resource_group.test.name
   sku                       = "standardv3_Monthly"
   location                  = azurerm_resource_group.test.location
-  diagnose_support_enabled  = false
   automatic_upgrade_channel = "stable"
+
+  identity {
+    type = "SystemAssigned"
+  }
 
   frontend_public {
     ip_address = [azurerm_public_ip.test2.id]
@@ -503,7 +540,7 @@ resource "azurerm_nginx_deployment" "test" {
   location            = azurerm_resource_group.test.location
 
   identity {
-    type         = "UserAssigned"
+    type         = "SystemAssigned, UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
@@ -530,8 +567,11 @@ resource "azurerm_nginx_deployment" "test" {
   resource_group_name       = azurerm_resource_group.test.name
   sku                       = "standardv3_Monthly"
   location                  = azurerm_resource_group.test.location
-  diagnose_support_enabled  = false
   automatic_upgrade_channel = "stable"
+
+  identity {
+    type = "SystemAssigned"
+  }
 
   frontend_public {
     ip_address = [azurerm_public_ip.test.id]
@@ -666,4 +706,53 @@ func TestAccNginxDeployment_autoscaling(t *testing.T) {
 		},
 		data.ImportStep(),
 	})
+}
+
+func (a DeploymentResource) completePreflightPlan(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_nginx_deployment" "test" {
+  name                = "acctest-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "standardv3_Monthly"
+  location            = azurerm_resource_group.test.location
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  frontend_public {
+    ip_address = [azurerm_public_ip.test.id]
+  }
+
+  network_interface {
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  auto_scale_profile {
+    name         = "test"
+    min_capacity = 10
+    max_capacity = 30
+  }
+
+  web_application_firewall {
+    activation_state_enabled = true
+  }
+
+  email                     = "test@test.com"
+  automatic_upgrade_channel = "stable"
+
+  tags = {
+    foo = "bar"
+  }
+}
+`, a.template(data), data.RandomInteger)
 }
