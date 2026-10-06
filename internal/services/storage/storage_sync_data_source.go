@@ -48,7 +48,7 @@ func dataSourceStorageSync() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceStorageSyncRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceStorageSyncRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.SyncServiceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

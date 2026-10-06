@@ -40,7 +40,7 @@ var (
 
 type SystemCenterVirtualMachineManagerAvailabilitySetResource struct{}
 
-func (r SystemCenterVirtualMachineManagerAvailabilitySetResource) ModelObject() interface{} {
+func (r SystemCenterVirtualMachineManagerAvailabilitySetResource) ModelObject() any {
 	return &SystemCenterVirtualMachineManagerAvailabilitySetModel{}
 }
 

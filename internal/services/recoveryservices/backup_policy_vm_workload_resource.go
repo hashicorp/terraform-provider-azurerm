@@ -92,7 +92,7 @@ func (r BackupProtectionPolicyVMWorkloadResource) ResourceType() string {
 	return "azurerm_backup_policy_vm_workload"
 }
 
-func (r BackupProtectionPolicyVMWorkloadResource) ModelObject() interface{} {
+func (r BackupProtectionPolicyVMWorkloadResource) ModelObject() any {
 	return &BackupProtectionPolicyVMWorkloadModel{}
 }
 

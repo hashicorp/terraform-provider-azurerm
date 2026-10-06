@@ -44,7 +44,7 @@ func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPur
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending: []string{"InProgress"},
 		Target:  []string{"NotFound"},
-		Refresh: func() (interface{}, string, error) {
+		Refresh: func() (any, string, error) {
 			item, err := helper.NestedItemHasBeenDeleted(ctx)
 			if err != nil {
 				if response.WasNotFound(item.Response) {
@@ -88,7 +88,7 @@ func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPur
 	stateConf = &pluginsdk.StateChangeConf{
 		Pending: []string{"InProgress"},
 		Target:  []string{"NotFound"},
-		Refresh: func() (interface{}, string, error) {
+		Refresh: func() (any, string, error) {
 			item, err := helper.NestedItemHasBeenPurged(ctx)
 			if err != nil {
 				if response.WasNotFound(item.Response) {
@@ -113,7 +113,7 @@ func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPur
 }
 
 func keyVaultChildItemRefreshFunc(ctx context.Context, secretUri string) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		log.Printf("[DEBUG] Checking to see if KeyVault Secret %q is available..", secretUri)
 
 		PTransport := &http.Transport{Proxy: http.ProxyFromEnvironment}
@@ -140,7 +140,7 @@ func keyVaultChildItemRefreshFunc(ctx context.Context, secretUri string) plugins
 	}
 }
 
-func nestedItemResourceImporter(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+func nestedItemResourceImporter(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	id, err := keyvault.ParseNestedItemID(d.Id(), keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)

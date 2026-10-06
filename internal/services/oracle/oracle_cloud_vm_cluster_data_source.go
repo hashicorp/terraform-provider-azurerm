@@ -455,7 +455,7 @@ func (d CloudVmClusterDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (d CloudVmClusterDataSource) ModelObject() interface{} {
+func (d CloudVmClusterDataSource) ModelObject() any {
 	return &CloudVmClusterDataModel{}
 }
 

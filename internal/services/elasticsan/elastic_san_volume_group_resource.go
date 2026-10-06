@@ -37,7 +37,7 @@ func (r ElasticSANVolumeGroupResource) ResourceType() string {
 	return "azurerm_elastic_san_volume_group"
 }
 
-func (r ElasticSANVolumeGroupResource) ModelObject() interface{} {
+func (r ElasticSANVolumeGroupResource) ModelObject() any {
 	return &ElasticSANVolumeGroupResourceModel{}
 }
 
