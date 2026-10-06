@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sentinel
@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2023-12-01-preview/alertrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -21,7 +20,7 @@ import (
 const SentinelAlertRuleFusionName = "BuiltInFusion"
 
 func resourceSentinelAlertRuleFusion() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceSentinelAlertRuleFusionCreate,
 		Read:   resourceSentinelAlertRuleFusionRead,
 		Update: resourceSentinelAlertRuleFusionUpdate,
@@ -100,12 +99,7 @@ func resourceSentinelAlertRuleFusion() *pluginsdk.Resource {
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.StringInSlice(
-												[]string{
-													string(alertrules.AlertSeverityHigh),
-													string(alertrules.AlertSeverityMedium),
-													string(alertrules.AlertSeverityLow),
-													string(alertrules.AlertSeverityInformational),
-												},
+												alertrules.PossibleValuesForAlertSeverity(),
 												false,
 											),
 										},
@@ -118,29 +112,14 @@ func resourceSentinelAlertRuleFusion() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["name"] = &pluginsdk.Schema{
-			Deprecated:   "the `name` is deprecated and will be removed in v5.0 version of the provider.",
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			Default:      SentinelAlertRuleFusionName,
-			ValidateFunc: validation.StringIsNotEmpty,
-		}
-	}
-	return resource
 }
 
-func resourceSentinelAlertRuleFusionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleFusionCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := SentinelAlertRuleFusionName
-	if !features.FivePointOh() {
-		name = d.Get("name").(string)
-	}
 
 	workspaceID, err := alertrules.ParseWorkspaceID(d.Get("log_analytics_workspace_id").(string))
 	if err != nil {
@@ -148,13 +127,13 @@ func resourceSentinelAlertRuleFusionCreate(d *pluginsdk.ResourceData, meta inter
 	}
 	id := alertrules.NewAlertRuleID(workspaceID.SubscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, name)
 
-	// The only one fusion alert is enabled by default, so we do not do exisiting check here.
-	// https://learn.microsoft.com/en-us/azure/sentinel/configure-fusion-rules#configure-scheduled-analytics-rules-for-fusion-detections
+	// The only one fusion alert is enabled by default, so we do not do existing check here.
+	// https://learn.microsoft.com/azure/sentinel/configure-fusion-rules#configure-scheduled-analytics-rules-for-fusion-detections
 	params := alertrules.FusionAlertRule{
 		Properties: &alertrules.FusionAlertRuleProperties{
 			AlertRuleTemplateName: d.Get("alert_rule_template_guid").(string),
 			Enabled:               d.Get("enabled").(bool),
-			SourceSettings:        expandFusionSourceSettings(d.Get("source").([]interface{})),
+			SourceSettings:        expandFusionSourceSettings(d.Get("source").([]any)),
 		},
 	}
 
@@ -167,7 +146,7 @@ func resourceSentinelAlertRuleFusionCreate(d *pluginsdk.ResourceData, meta inter
 	return resourceSentinelAlertRuleFusionRead(d, meta)
 }
 
-func resourceSentinelAlertRuleFusionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleFusionUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -204,7 +183,7 @@ func resourceSentinelAlertRuleFusionUpdate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if d.HasChange("source") {
-		payload.Properties.SourceSettings = expandFusionSourceSettings(d.Get("source").([]interface{}))
+		payload.Properties.SourceSettings = expandFusionSourceSettings(d.Get("source").([]any))
 	}
 
 	// The `Description` is read-only but not specified on the Swagger, tracked on: https://github.com/Azure/azure-rest-api-specs/issues/31330
@@ -221,7 +200,7 @@ func resourceSentinelAlertRuleFusionUpdate(d *pluginsdk.ResourceData, meta inter
 	return resourceSentinelAlertRuleFusionRead(d, meta)
 }
 
-func resourceSentinelAlertRuleFusionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleFusionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -244,9 +223,6 @@ func resourceSentinelAlertRuleFusionRead(d *pluginsdk.ResourceData, meta interfa
 
 	workspaceId := alertrules.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
 
-	if !features.FivePointOh() {
-		d.Set("name", id.RuleId)
-	}
 	d.Set("log_analytics_workspace_id", workspaceId.ID())
 
 	if model := resp.Model; model != nil {
@@ -268,7 +244,7 @@ func resourceSentinelAlertRuleFusionRead(d *pluginsdk.ResourceData, meta interfa
 	return nil
 }
 
-func resourceSentinelAlertRuleFusionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleFusionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -285,7 +261,7 @@ func resourceSentinelAlertRuleFusionDelete(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func expandFusionSourceSettings(input []interface{}) *[]alertrules.FusionSourceSettings {
+func expandFusionSourceSettings(input []any) *[]alertrules.FusionSourceSettings {
 	if len(input) == 0 {
 		return nil
 	}
@@ -293,11 +269,11 @@ func expandFusionSourceSettings(input []interface{}) *[]alertrules.FusionSourceS
 	result := make([]alertrules.FusionSourceSettings, 0)
 
 	for _, e := range input {
-		e := e.(map[string]interface{})
+		e := e.(map[string]any)
 		setting := alertrules.FusionSourceSettings{
 			Enabled:        e["enabled"].(bool),
 			SourceName:     e["name"].(string),
-			SourceSubTypes: expandFusionSourceSubTypes(e["sub_type"].([]interface{})),
+			SourceSubTypes: expandFusionSourceSubTypes(e["sub_type"].([]any)),
 		}
 		result = append(result, setting)
 	}
@@ -305,7 +281,7 @@ func expandFusionSourceSettings(input []interface{}) *[]alertrules.FusionSourceS
 	return &result
 }
 
-func expandFusionSourceSubTypes(input []interface{}) *[]alertrules.FusionSourceSubTypeSetting {
+func expandFusionSourceSubTypes(input []any) *[]alertrules.FusionSourceSubTypeSetting {
 	if len(input) == 0 {
 		return nil
 	}
@@ -313,7 +289,7 @@ func expandFusionSourceSubTypes(input []interface{}) *[]alertrules.FusionSourceS
 	result := make([]alertrules.FusionSourceSubTypeSetting, 0)
 
 	for _, e := range input {
-		e := e.(map[string]interface{})
+		e := e.(map[string]any)
 		setting := alertrules.FusionSourceSubTypeSetting{
 			Enabled:           e["enabled"].(bool),
 			SourceSubTypeName: e["name"].(string),
@@ -327,7 +303,7 @@ func expandFusionSourceSubTypes(input []interface{}) *[]alertrules.FusionSourceS
 	return &result
 }
 
-func expandFusionSubTypeSeverityFiltersItems(input []interface{}) *[]alertrules.FusionSubTypeSeverityFiltersItem {
+func expandFusionSubTypeSeverityFiltersItems(input []any) *[]alertrules.FusionSubTypeSeverityFiltersItem {
 	if len(input) == 0 {
 		return nil
 	}
@@ -356,15 +332,15 @@ func expandFusionSubTypeSeverityFiltersItems(input []interface{}) *[]alertrules.
 	return &result
 }
 
-func flattenFusionSourceSettings(input *[]alertrules.FusionSourceSettings) []interface{} {
+func flattenFusionSourceSettings(input *[]alertrules.FusionSourceSettings) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 
 	for _, e := range *input {
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"name":     e.SourceName,
 			"enabled":  e.Enabled,
 			"sub_type": flattenFusionSourceSubTypes(e.SourceSubTypes),
@@ -374,15 +350,15 @@ func flattenFusionSourceSettings(input *[]alertrules.FusionSourceSettings) []int
 	return output
 }
 
-func flattenFusionSourceSubTypes(input *[]alertrules.FusionSourceSubTypeSetting) []interface{} {
+func flattenFusionSourceSubTypes(input *[]alertrules.FusionSourceSubTypeSetting) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 
 	for _, e := range *input {
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"name":               e.SourceSubTypeName,
 			"enabled":            e.Enabled,
 			"severities_allowed": flattenFusionSubTypeSeverityFiltersItems(e.SeverityFilters.Filters),
@@ -392,12 +368,12 @@ func flattenFusionSourceSubTypes(input *[]alertrules.FusionSourceSubTypeSetting)
 	return output
 }
 
-func flattenFusionSubTypeSeverityFiltersItems(input *[]alertrules.FusionSubTypeSeverityFiltersItem) []interface{} {
+func flattenFusionSubTypeSeverityFiltersItems(input *[]alertrules.FusionSubTypeSeverityFiltersItem) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 
 	for _, e := range *input {
 		if e.Enabled {

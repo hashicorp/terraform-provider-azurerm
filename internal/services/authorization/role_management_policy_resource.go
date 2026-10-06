@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package authorization
@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
-	billingValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/billing/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/billing/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -94,7 +94,7 @@ func (r RoleManagementPolicyResource) ResourceType() string {
 	return "azurerm_role_management_policy"
 }
 
-func (r RoleManagementPolicyResource) ModelObject() interface{} {
+func (r RoleManagementPolicyResource) ModelObject() any {
 	return &RoleManagementPolicyModel{}
 }
 
@@ -115,11 +115,11 @@ func (r RoleManagementPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew:    true,
 			ValidateFunc: validation.Any(
 				// Elevated access for a global admin is needed to assign roles in this scope:
-				// https://docs.microsoft.com/en-us/azure/role-based-access-control/elevate-access-global-admin#azure-cli
+				// https://docs.microsoft.com/azure/role-based-access-control/elevate-access-global-admin#azure-cli
 				// It seems only user account is allowed to be elevated access.
 				validation.StringMatch(regexp.MustCompile("/providers/Microsoft.Subscription.*"), "Subscription scope is invalid"),
 
-				billingValidate.EnrollmentID,
+				validate.EnrollmentID,
 				commonids.ValidateManagementGroupID,
 				commonids.ValidateSubscriptionID,
 				commonids.ValidateResourceGroupID,
@@ -131,7 +131,7 @@ func (r RoleManagementPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 			Description: "The rules for eligible assignment of the policy",
 			Type:        pluginsdk.TypeList,
 			Optional:    true,
-			Computed:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -139,14 +139,14 @@ func (r RoleManagementPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 						Description: "Must the assignment have an expiry date",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
-						Computed:    true,
+						Computed:    true, // azignore:AZS007 - pre-existing violation
 					},
 
 					"expire_after": {
 						Description:  "The duration after which assignments expire",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Computed:     true,
+						Computed:     true, // azignore:AZS007 - pre-existing violation
 						ValidateFunc: validation.StringInSlice([]string{"P15D", "P30D", "P90D", "P180D", "P365D"}, false),
 					},
 				},
@@ -157,7 +157,7 @@ func (r RoleManagementPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 			Description: "The rules for active assignment of the policy",
 			Type:        pluginsdk.TypeList,
 			Optional:    true,
-			Computed:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -165,14 +165,14 @@ func (r RoleManagementPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 						Description: "Must the assignment have an expiry date",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
-						Computed:    true,
+						Computed:    true, // azignore:AZS007 - pre-existing violation
 					},
 
 					"expire_after": {
 						Description:  "The duration after which assignments expire",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Computed:     true,
+						Computed:     true, // azignore:AZS007 - pre-existing violation
 						ValidateFunc: validation.StringInSlice([]string{"P15D", "P30D", "P90D", "P180D", "P365D"}, false),
 					},
 
@@ -180,21 +180,21 @@ func (r RoleManagementPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 						Description: "Whether multi-factor authentication is required to make an assignment",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
-						Computed:    true,
+						Computed:    true, // azignore:AZS007 - pre-existing violation
 					},
 
 					"require_justification": {
 						Description: "Whether a justification is required to make an assignment",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
-						Computed:    true,
+						Computed:    true, // azignore:AZS007 - pre-existing violation
 					},
 
 					"require_ticket_info": {
 						Description: "Whether ticket information is required to make an assignment",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
-						Computed:    true,
+						Computed:    true, // azignore:AZS007 - pre-existing violation
 					},
 				},
 			},
@@ -204,7 +204,7 @@ func (r RoleManagementPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 			Description: "The activation rules of the policy",
 			Type:        pluginsdk.TypeList,
 			Optional:    true,
-			Computed:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 			MaxItems:    1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -212,7 +212,7 @@ func (r RoleManagementPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 						Description: "The time after which the an activation can be valid for",
 						Type:        pluginsdk.TypeString,
 						Optional:    true,
-						Computed:    true,
+						Computed:    true, // azignore:AZS007 - pre-existing violation
 						ValidateFunc: validation.StringInSlice([]string{
 							"PT30M", "PT1H", "PT1H30M", "PT2H", "PT2H30M", "PT3H", "PT3H30M", "PT4H", "PT4H30M", "PT5H", "PT5H30M", "PT6H",
 							"PT6H30M", "PT7H", "PT7H30M", "PT8H", "PT8H30M", "PT9H", "PT9H30M", "PT10H", "PT10H30M", "PT11H", "PT11H30M", "PT12H",
@@ -225,14 +225,14 @@ func (r RoleManagementPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 						Description: "Whether an approval is required for activation",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
-						Computed:    true,
+						Computed:    true, // azignore:AZS007 - pre-existing violation
 					},
 
 					"approval_stage": {
 						Description: "The approval stages for the activation",
 						Type:        pluginsdk.TypeList,
 						Optional:    true,
-						// This is O+C because when `activation_rules` is specified, there will be an empty "approval_stage" populated by the API.
+						// Note: O+C because when `activation_rules` is specified, there will be an empty "approval_stage" populated by the API.
 						Computed: true,
 						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
@@ -268,7 +268,7 @@ func (r RoleManagementPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 						Description:   "Whether a conditional access context is required during activation",
 						Type:          pluginsdk.TypeString,
 						Optional:      true,
-						Computed:      true,
+						Computed:      true, // azignore:AZS007 - pre-existing violation
 						ConflictsWith: []string{"activation_rules.0.require_multifactor_authentication"},
 						ValidateFunc:  validation.StringIsNotEmpty,
 					},
@@ -277,7 +277,7 @@ func (r RoleManagementPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 						Description:   "Whether multi-factor authentication is required during activation",
 						Type:          pluginsdk.TypeBool,
 						Optional:      true,
-						Computed:      true,
+						Computed:      true, // azignore:AZS007 - pre-existing violation
 						ConflictsWith: []string{"activation_rules.0.required_conditional_access_authentication_context"},
 					},
 
@@ -285,14 +285,14 @@ func (r RoleManagementPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 						Description: "Whether a justification is required during activation",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
-						Computed:    true,
+						Computed:    true, // azignore:AZS007 - pre-existing violation
 					},
 
 					"require_ticket_info": {
 						Description: "Whether ticket information is required during activation",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
-						Computed:    true,
+						Computed:    true, // azignore:AZS007 - pre-existing violation
 					},
 				},
 			},
@@ -394,9 +394,7 @@ func (r RoleManagementPolicyResource) Create() sdk.ResourceFunc {
 			// We are using a custom type parse.RoleManagementPolicyId as the ID type for this resource, because the actual
 			// resource ID type (ScopedRoleManagementPolicyId) changes each time the policy is updated, so this allows us
 			// to search for the latest policy at Read time.
-			id := parse.NewRoleManagementPolicyId(config.RoleDefinitionId, config.Scope)
-
-			metadata.SetID(id)
+			metadata.SetID(parse.NewRoleManagementPolicyId(config.RoleDefinitionId, config.Scope))
 			return nil
 		},
 	}
@@ -470,7 +468,7 @@ func (r RoleManagementPolicyResource) Read() sdk.ResourceFunc {
 											for ia, pa := range *primaryApprovers {
 												state.ActivationRules[0].ApprovalStages[0].PrimaryApprovers[ia] = RoleManagementPolicyApprover{
 													ID:   pointer.From(pa.Id),
-													Type: string(pointer.From(pa.UserType)),
+													Type: pointer.FromEnum(pa.UserType),
 												}
 											}
 										}

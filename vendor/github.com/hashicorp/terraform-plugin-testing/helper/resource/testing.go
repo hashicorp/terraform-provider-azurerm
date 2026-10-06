@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package resource
@@ -14,6 +14,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-testing/querycheck"
 
 	"github.com/mitchellh/go-testing-interface"
 
@@ -640,6 +642,10 @@ type TestStep struct {
 	// Custom state checks can be created by implementing the [statecheck.StateCheck] interface, or by using a StateCheck implementation from the provided [statecheck] package.
 	ConfigStateChecks []statecheck.StateCheck
 
+	// QueryResultChecks allow assertions to be made against a collection of found resources that were returned by a query using a query check.
+	// Custom query checks can be created by implementing the [querycheck.QueryResultCheck] interface, or by using a QueryResultCheck implementation from the provided [querycheck] package.
+	QueryResultChecks []querycheck.QueryResultCheck
+
 	// PlanOnly can be set to only run `plan` with this configuration, and not
 	// actually apply it. This is useful for ensuring config changes result in
 	// no-op plans
@@ -664,6 +670,10 @@ type TestStep struct {
 	//
 	// SkipFunc is called after PreConfig but before applying the Config.
 	SkipFunc func() (bool, error)
+
+	// PostApplyFunc is called after the Config is applied and after all plan/apply checks are run.
+	// This can be used to perform assertions against API values that are not stored in Terraform state.
+	PostApplyFunc func()
 
 	//---------------------------------------------------------------
 	// ImportState testing
@@ -835,6 +845,38 @@ type TestStep struct {
 	// for performing import testing where the prior TestStep configuration
 	// contained a provider outside the one under test.
 	ExternalProviders map[string]ExternalProvider
+
+	// If true, the test step will run the query command
+	Query bool
+
+	// The StateStore mode is used for testing state store implementations in a provider. The StateStore mode runs
+	// various Terraform CLI commands to ensure the configured state store operates in a manner expected by Terraform core.
+	//
+	// The StateStore mode expects state_store configuration to be provided using one of the Config, ConfigFile,
+	// or ConfigDirectory fields.
+	//
+	// StateStore mode tests that the provided state store:
+	//   - Can be successfully initialized (validation and configuring)
+	//   - Can read and write state
+	//   - Supports workspaces (creating and deleting)
+	StateStore bool
+
+	// DefaultWorkspaceOnly is used only for StateStore tests to enable the use of only the provider's default workspace.
+	// This should only be used in rare cases where StateStore implementations don't support multiple workspaces.
+	DefaultWorkspaceOnly bool
+
+	// VerifyStateStoreLock is used in combination with the StateStore mode and runs various Terraform CLI commands that test
+	// that a state store implementation in a provider supports locking and unlocking.
+	//
+	// VerifyStateStoreLock asserts that the provided state store:
+	//   - Supports locking, acquired during `terraform apply`
+	//   - Prevents clients from acquiring a lock for an already locked state by returning an error message.
+	//   - Supports unlocking, by releasing a previously locked state after an operation is complete.
+	VerifyStateStoreLock bool
+
+	// GenerateConfig will generate resource blocks when set to true. This can
+	// only be used with the `ImportState` and `Query` testing modes.
+	GenerateConfig bool
 }
 
 // ConfigPlanChecks defines the different points in a Config TestStep when plan checks can be run.

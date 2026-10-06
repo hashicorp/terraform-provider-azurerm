@@ -6,7 +6,7 @@ description: |-
   Manages Azure PIM Role Management Policies.
 ---
 
-# Resource: azurerm_role_management_policy
+# azurerm_role_management_policy
 
 Manage a role policy for an Azure Management Group, Subscription, Resource Group or resource.
 
@@ -112,7 +112,7 @@ resource "azurerm_role_management_policy" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `activation_rules` - (Optional) An `activation_rules` block as defined below.
 
@@ -142,7 +142,7 @@ An `activation_rules` block supports the following:
 
 * `require_multifactor_authentication` - (Optional) Is multi-factor authentication required to activate the role. Conflicts with `required_conditional_access_authentication_context`.
 
-* `require_ticket_info` - (Optional) Is ticket information requrired during activation of the role.
+* `require_ticket_info` - (Optional) Is ticket information required during activation of the role.
 
 * `required_conditional_access_authentication_context` - (Optional) The Entra ID Conditional Access context that must be present for activation. Conflicts with `require_multifactor_authentication`.
 
@@ -166,7 +166,7 @@ One of `expiration_required` or `expire_after` must be provided.
 
 An `approval_stage` block supports the following:
 
-* One or more `primary_approver` - blocks as defined below.
+* `primary_approver` - (Required) One or more `primary_approver` blocks as defined below.
 
 ---
 
@@ -182,7 +182,7 @@ One of `expiration_required` or `expire_after` must be provided.
 
 A `notification_rules` block supports the following:
 
-* `active_assignments` - (Optional) A `notification_target` block as defined below to configure notfications on active role assignments.
+* `active_assignments` - (Optional) A `notification_target` block as defined below to configure notifications on active role assignments.
 
 * `eligible_activations` - (Optional) A `notification_target` block as defined below for configuring notifications on activation of eligible role.
 
@@ -244,7 +244,7 @@ terraform import azurerm_role_management_policy.example "/subscriptions/00000000
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Role Definition.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Role Definition.

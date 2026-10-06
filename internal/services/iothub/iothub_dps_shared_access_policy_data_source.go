@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package iothub
@@ -67,7 +67,7 @@ func dataSourceIotHubDPSSharedAccessPolicy() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceIotHubDPSSharedAccessPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceIotHubDPSSharedAccessPolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.DPSResourceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -78,7 +78,7 @@ func dataSourceIotHubDPSSharedAccessPolicyRead(d *pluginsdk.ResourceData, meta i
 	iothubDps, err := client.Get(ctx, id)
 	if err != nil {
 		if response.WasNotFound(iothubDps.HttpResponse) {
-			return fmt.Errorf("Error: IotHub DPS %q was not found", id)
+			return fmt.Errorf("IotHub DPS %q was not found", id)
 		}
 
 		return fmt.Errorf("retrieving IotHub DPS %q: %+v", id, err)

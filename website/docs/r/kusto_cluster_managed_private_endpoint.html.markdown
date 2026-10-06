@@ -68,9 +68,15 @@ The following arguments are supported:
 
 * `request_message` - (Optional) The user request message.
 
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Managed Private Endpoint for a Kusto Cluster.
+
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 1 hour) Used when creating the Kusto Cluster Customer Managed Key.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Kusto Cluster Customer Managed Key.

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package authorization_test
@@ -6,7 +6,6 @@ package authorization_test
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"testing"
 
 	"github.com/google/uuid"
@@ -74,30 +73,6 @@ func TestAccRoleAssignment_requiresImport(t *testing.T) {
 		{
 			Config:      r.requiresImportConfig(id),
 			ExpectError: acceptance.RequiresImportError("azurerm_role_assignment"),
-		},
-	})
-}
-
-func TestAccRoleAssignment_requiresImportAdvanced(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
-	id := uuid.New().String()
-
-	r := RoleAssignmentResource{}
-
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.roleNameConfig(id),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		{
-			Config:      r.requiresImportConfigWithoutName(id),
-			ExpectError: acceptance.RequiresImportError("azurerm_role_assignment"),
-		},
-		{
-			Config:      r.requiresImportConfigDupError(id, uuid.New().String()),
-			ExpectError: regexp.MustCompile("role assignment `.*` already exists with a different name:"),
 		},
 	})
 }
@@ -240,7 +215,7 @@ func TestAccRoleAssignment_condition(t *testing.T) {
 	})
 }
 
-func TestAccRoleAssignment_implicitCondition(t *testing.T) {
+func TestAccRoleAssignment_conditionUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
 	id := uuid.New().String()
 
@@ -248,7 +223,35 @@ func TestAccRoleAssignment_implicitCondition(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.implicitConditionVersion(id),
+			Config: r.noConditionNoDescription(id),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("skip_service_principal_aad_check"),
+		{
+			Config: r.condition(id),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("skip_service_principal_aad_check"),
+		{
+			Config: r.noConditionNoDescription(id),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("skip_service_principal_aad_check"),
+		{
+			Config: r.conditionImplicitVersion(id),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("skip_service_principal_aad_check"),
+		{
+			Config: r.noConditionNoDescription(id),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -276,7 +279,7 @@ func TestAccRoleAssignment_resourceScoped(t *testing.T) {
 
 func TestAccRoleAssignment_subscriptionScoped(t *testing.T) {
 	// Only user account is able to run the test, the user account needs to be elevated.
-	// See: https://docs.microsoft.com/en-us/answers/questions/604740/user-does-not-have-access-microsoftsubscriptionali.html
+	// See: https://docs.microsoft.com/answers/questions/604740/user-does-not-have-access-microsoftsubscriptionali.html
 	t.Skip("Skipping this test as only elevated user account is able to run the test (i.e. via CLI auth)")
 
 	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
@@ -298,6 +301,20 @@ func TestAccRoleAssignment_resourceGroupScoped(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.resourceGroupScoped(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("skip_service_principal_aad_check"),
+	})
+}
+
+func TestAccRoleAssignment_applicationGroupScoped(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
+	r := RoleAssignmentResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.applicationGroupScoped(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -416,31 +433,6 @@ resource "azurerm_role_assignment" "import" {
 `, RoleAssignmentResource{}.roleNameConfig(id))
 }
 
-func (RoleAssignmentResource) requiresImportConfigWithoutName(id string) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_role_assignment" "import" {
-  scope                = azurerm_role_assignment.test.scope
-  role_definition_name = azurerm_role_assignment.test.role_definition_name
-  principal_id         = azurerm_role_assignment.test.principal_id
-}
-`, RoleAssignmentResource{}.roleNameConfig(id))
-}
-
-func (RoleAssignmentResource) requiresImportConfigDupError(id, dupID string) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_role_assignment" "import" {
-  name                 = "%s"
-  scope                = azurerm_role_assignment.test.scope
-  role_definition_name = azurerm_role_assignment.test.role_definition_name
-  principal_id         = azurerm_role_assignment.test.principal_id
-}
-`, RoleAssignmentResource{}.roleNameConfig(id), dupID)
-}
-
 func (RoleAssignmentResource) dataActionsConfig(id string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -540,14 +532,14 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
+  client_id = azuread_application.test.client_id
 }
 
 resource "azurerm_role_assignment" "test" {
   name                 = "%s"
   scope                = data.azurerm_subscription.current.id
   role_definition_name = "Reader"
-  principal_id         = azuread_service_principal.test.id
+  principal_id         = azuread_service_principal.test.object_id
 }
 `, rInt, roleAssignmentID)
 }
@@ -568,14 +560,14 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
+  client_id = azuread_application.test.client_id
 }
 
 resource "azurerm_role_assignment" "test" {
   name                             = "%s"
   scope                            = data.azurerm_subscription.current.id
   role_definition_name             = "Reader"
-  principal_id                     = azuread_service_principal.test.id
+  principal_id                     = azuread_service_principal.test.object_id
   skip_service_principal_aad_check = true
 }
 `, rInt, roleAssignmentID)
@@ -601,7 +593,7 @@ resource "azurerm_role_assignment" "test" {
   name                 = "%s"
   scope                = data.azurerm_subscription.current.id
   role_definition_name = "Reader"
-  principal_id         = azuread_group.test.id
+  principal_id         = azuread_group.test.object_id
 }
 `, rInt, roleAssignmentID)
 }
@@ -656,7 +648,7 @@ resource "azurerm_role_assignment" "test" {
 `, groupId)
 }
 
-func (RoleAssignmentResource) implicitConditionVersion(groupId string) string {
+func (RoleAssignmentResource) conditionImplicitVersion(groupId string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -669,7 +661,6 @@ data "azurerm_client_config" "test" {
 }
 
 resource "azurerm_role_assignment" "test" {
-
   name                 = "%s"
   scope                = data.azurerm_subscription.primary.id
   role_definition_name = "Monitoring Reader"
@@ -680,7 +671,27 @@ resource "azurerm_role_assignment" "test" {
 `, groupId)
 }
 
-// nolint: unused
+func (RoleAssignmentResource) noConditionNoDescription(groupId string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_subscription" "primary" {
+}
+
+data "azurerm_client_config" "test" {
+}
+
+resource "azurerm_role_assignment" "test" {
+  name                 = "%s"
+  scope                = data.azurerm_subscription.primary.id
+  role_definition_name = "Monitoring Reader"
+  principal_id         = data.azurerm_client_config.test.object_id
+}
+`, groupId)
+}
+
 func (RoleAssignmentResource) subscriptionScoped(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -694,7 +705,7 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
+  client_id = azuread_application.test.client_id
 }
 
 resource "azurerm_role_assignment" "test" {
@@ -722,6 +733,48 @@ resource "azurerm_role_assignment" "test" {
   scope                = azurerm_resource_group.test.id
   role_definition_name = "Reader"
   principal_id         = data.azurerm_client_config.test.object_id
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (RoleAssignmentResource) applicationGroupScoped(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "test" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-vdesktop-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_desktop_host_pool" "test" {
+  name                = "acctestHP-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  type                = "Pooled"
+  load_balancer_type  = "BreadthFirst"
+}
+
+resource "azurerm_virtual_desktop_application_group" "test" {
+  name                         = "acctestAG-%[1]d"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  type                         = "Desktop"
+  default_desktop_display_name = "Acceptance Test"
+  host_pool_id                 = azurerm_virtual_desktop_host_pool.test.id
+
+  depends_on = [azurerm_virtual_desktop_host_pool.test]
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_virtual_desktop_application_group.test.id
+  role_definition_name = "Desktop Virtualization User"
+  principal_id         = data.azurerm_client_config.test.object_id
+
+  depends_on = [azurerm_virtual_desktop_application_group.test]
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

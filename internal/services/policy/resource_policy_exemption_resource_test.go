@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package policy_test
@@ -9,12 +9,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ResourcePolicyExemptionResource struct{}
@@ -88,12 +89,12 @@ func (r ResourcePolicyExemptionResource) Exists(ctx context.Context, client *cli
 
 	resp, err := client.Policy.ExemptionsClient.Get(ctx, id.ResourceId, id.Name)
 	if err != nil {
-		if !utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+		if !response.WasNotFound(resp.Response.Response) {
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id.ID(), err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r ResourcePolicyExemptionResource) basic(data acceptance.TestData) string {

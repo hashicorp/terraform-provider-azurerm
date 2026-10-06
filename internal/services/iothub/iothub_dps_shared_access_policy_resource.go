@@ -1,9 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package iothub
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -17,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -115,7 +117,7 @@ func resourceIotHubDPSSharedAccessPolicy() *pluginsdk.Resource {
 	}
 }
 
-func resourceIotHubDPSSharedAccessPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubDPSSharedAccessPolicyCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.DPSResourceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -168,7 +170,9 @@ func resourceIotHubDPSSharedAccessPolicyCreateUpdate(d *pluginsdk.ResourceData, 
 	for _, existingAccessPolicy := range existingAccessPolicies.Items {
 		if strings.EqualFold(existingAccessPolicy.KeyName, id.KeyName) {
 			if d.IsNewResource() {
-				return tf.ImportAsExistsError("azurerm_iothub_dps_shared_access_policy", id.ID())
+				if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+					return tf.ImportAsExistsError("azurerm_iothub_dps_shared_access_policy", id.ID())
+				}
 			}
 			accessPolicies = append(accessPolicies, expandedAccessPolicy)
 			alreadyExists = true
@@ -185,16 +189,21 @@ func resourceIotHubDPSSharedAccessPolicyCreateUpdate(d *pluginsdk.ResourceData, 
 
 	iothubDps.Model.Properties.AuthorizationPolicies = &accessPolicies
 
-	if err := client.CreateOrUpdateThenPoll(ctx, iothubDpsId, *iothubDps.Model); err != nil {
-		return fmt.Errorf("updating IotHub DPS %s with Shared Access Policy %s: %+v", iothubDpsId, id, err)
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, iothubDpsId, *iothubDps.Model, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("updating IotHub DPS %s with Shared Access Policy %s: %+v", iothubDpsId, id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, iothubDpsId, *iothubDps.Model); err != nil {
+			return fmt.Errorf("updating IotHub DPS %s with Shared Access Policy %s: %+v", iothubDpsId, id, err)
+		}
 	}
-
-	d.SetId(id.ID())
 
 	return resourceIotHubDPSSharedAccessPolicyRead(d, meta)
 }
 
-func resourceIotHubDPSSharedAccessPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubDPSSharedAccessPolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.DPSResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -256,7 +265,7 @@ func resourceIotHubDPSSharedAccessPolicyRead(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func resourceIotHubDPSSharedAccessPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubDPSSharedAccessPolicyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.DPSResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -312,19 +321,19 @@ func (r dpsAccessRights) validate() error {
 	var err error
 
 	if !r.enrollmentRead && !r.enrollmentWrite && !r.registrationRead && !r.registrationWrite && !r.serviceConfig {
-		err = multierror.Append(err, fmt.Errorf("At least one of `enrollment_read`, `enrollment_write`, `registration_read`, `registration_write` , or `service_config` properties must be set to true"))
+		err = multierror.Append(err, errors.New("at least one of `enrollment_read`, `enrollment_write`, `registration_read`, `registration_write` , or `service_config` properties must be set to true"))
 	}
 
 	if r.enrollmentRead && !r.registrationRead {
-		err = multierror.Append(err, fmt.Errorf("If `enrollment_read` is set to true, `registration_read` must also be set to true"))
+		err = multierror.Append(err, errors.New("if `enrollment_read` is set to true, `registration_read` must also be set to true"))
 	}
 
 	if r.registrationWrite && !r.registrationRead {
-		err = multierror.Append(err, fmt.Errorf("If `registration_write` is set to true, `registration_read` must also be set to true"))
+		err = multierror.Append(err, errors.New("if `registration_write` is set to true, `registration_read` must also be set to true"))
 	}
 
 	if r.enrollmentWrite && !r.enrollmentRead && !r.registrationRead && !r.registrationWrite {
-		err = multierror.Append(err, fmt.Errorf("If `enrollment_write` is set to true, `enrollment_read`, `registration_read`, and `registration_write` must also be set to true"))
+		err = multierror.Append(err, errors.New("if `enrollment_write` is set to true, `enrollment_read`, `registration_read`, and `registration_write` must also be set to true"))
 	}
 
 	return err
@@ -358,17 +367,11 @@ func expandDpsAccessRights(input dpsAccessRights) string {
 }
 
 func flattenDpsAccessRights(r iotdpsresource.AccessRightsDescription) dpsAccessRights {
-	rights := dpsAccessRights{
-		enrollmentRead:    false,
-		enrollmentWrite:   false,
-		registrationRead:  false,
-		registrationWrite: false,
-		serviceConfig:     false,
-	}
+	rights := dpsAccessRights{}
 
-	actualAccessRights := strings.Split(string(r), ",")
+	actualAccessRights := strings.SplitSeq(string(r), ",")
 
-	for _, right := range actualAccessRights {
+	for right := range actualAccessRights {
 		switch strings.ToLower(strings.Trim(right, " ")) {
 		case "enrollmentread":
 			rights.enrollmentRead = true

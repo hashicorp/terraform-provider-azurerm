@@ -10,7 +10,7 @@ description: |-
 
 Manages a Custom Location within an Extended Location.
 
--> **Note:** Installing and configuring the Azure Arc Agent on your Kubernetes Cluster to establish connectivity is outside the scope of this document. For more details refer to [Deploy agents to your cluster](https://learn.microsoft.com/en-us/azure/azure-arc/kubernetes/conceptual-agent-overview#deploy-agents-to-your-cluster) and [Connect an existing Kubernetes Cluster](https://learn.microsoft.com/en-us/azure/azure-arc/kubernetes/quickstart-connect-cluster?tabs=azure-cli#connect-an-existing-kubernetes-cluster). If you encounter issues connecting your Kubernetes Cluster to Azure Arc, we'd recommend opening a ticket with Microsoft Support.
+-> **Note:** Installing and configuring the Azure Arc Agent on your Kubernetes Cluster to establish connectivity is outside the scope of this document. For more details refer to [Deploy agents to your cluster](https://learn.microsoft.com/azure/azure-arc/kubernetes/conceptual-agent-overview#deploy-agents-to-your-cluster) and [Connect an existing Kubernetes Cluster](https://learn.microsoft.com/azure/azure-arc/kubernetes/quickstart-connect-cluster?tabs=azure-cli#connect-an-existing-kubernetes-cluster). If you encounter issues connecting your Kubernetes Cluster to Azure Arc, we'd recommend opening a ticket with Microsoft Support.
 
 ## Example Usage
 
@@ -99,13 +99,13 @@ The following arguments are supported:
 
 * `cluster_extension_ids` - (Required) Specifies the list of Cluster Extension IDs.
 
-* `host_resource_id` - (Required) Specifies the host resource ID.
+* `host_resource_id` - (Required) Specifies the host resource ID. Changing this forces a new resource to be created.
 
 * `authentication` - (Optional) An `authentication` block as defined below.
 
 * `display_name` - (Optional) Specifies the display name of the Custom Location.
 
-* `host_type` - (Optional) Specifies the host type of the Custom Location. The only possible values is `KubernetesCluster`.
+* `host_type` - (Optional) Specifies the host type of the Custom Location. The only possible values is `KubernetesCluster`. Changing this forces a new resource to be created.
 
 ---
 
@@ -121,7 +121,7 @@ An `authentication` block supports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Custom Location.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Custom Location.

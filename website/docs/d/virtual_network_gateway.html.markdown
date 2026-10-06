@@ -23,7 +23,7 @@ output "virtual_network_gateway_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Virtual Network Gateway.
 * `resource_group_name` - Specifies the name of the resource group the Virtual Network Gateway is located in.
@@ -38,12 +38,11 @@ output "virtual_network_gateway_id" {
 
 * `vpn_type` - The routing type of the Virtual Network Gateway.
 
-* `enable_bgp` - Will BGP (Border Gateway Protocol) will be enabled
-    for this Virtual Network Gateway.
+* `bgp_enabled` - Will BGP (Border Gateway Protocol) will be enabled for this Virtual Network Gateway.
 
 * `active_active` - Is this an Active-Active Gateway?
 
-* `private_ip_address_enabled` - Whether a private IP will be used for this  gateway for connections.
+* `private_ip_address_enabled` - Whether a private IP will be used for this gateway for connections.
 
 * `default_local_network_gateway_id` -  The ID of the local network gateway
     through which outbound Internet traffic from the virtual network in which the
@@ -90,7 +89,7 @@ The `vpn_client_configuration` block supports:
     `root_certificate` and `revoked_certificate`, `radius_server_address`, and `radius_server_secret`.
 
 * `aad_audience` - The client id of the Azure VPN application.
-    See [Create an Active Directory (AD) tenant for P2S OpenVPN protocol connections](https://docs.microsoft.com/en-gb/azure/vpn-gateway/openvpn-azure-ad-tenant-multi-app) for values
+    See [Create an Active Directory (AD) tenant for P2S OpenVPN protocol connections](https://docs.microsoft.com/azure/vpn-gateway/openvpn-azure-ad-tenant-multi-app) for values
     This setting is incompatible with the use of
     `root_certificate` and `revoked_certificate`, `radius_server_address`, and `radius_server_secret`.
 
@@ -145,7 +144,7 @@ The `root_certificate` block supports:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Network Gateway.
 
@@ -153,4 +152,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2024-05-01
+* `Microsoft.Network` - 2025-07-01
