@@ -28,7 +28,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/appconfiguration/1.0/appconfiguration"
 )
 
@@ -51,7 +50,7 @@ type FeatureResourceModel struct {
 	Name                 string                       `tfschema:"name"`
 	Label                string                       `tfschema:"label"`
 	Locked               bool                         `tfschema:"locked"`
-	Tags                 map[string]interface{}       `tfschema:"tags"`
+	Tags                 map[string]any               `tfschema:"tags"`
 	PercentageFilter     float64                      `tfschema:"percentage_filter_value"`
 	TimewindowFilters    []TimewindowFilterParameters `tfschema:"timewindow_filter"`
 	TargetingFilters     []TargetingFilterAudience    `tfschema:"targeting_filter"`
@@ -92,9 +91,9 @@ func (k FeatureResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.AppConfigurationFeatureName,
 		},
 		"etag": {
-			Type: pluginsdk.TypeString,
-			// NOTE: O+C The value of this is updated anytime the resource changes so this should remain Computed
+			Type:     pluginsdk.TypeString,
 			Computed: true,
+			// NOTE: O+C The value of this is updated anytime the resource changes
 			Optional: true,
 		},
 		"label": {
@@ -197,7 +196,7 @@ func (k FeatureResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (k FeatureResource) ModelObject() interface{} {
+func (k FeatureResource) ModelObject() any {
 	return &FeatureResourceModel{}
 }
 
@@ -245,9 +244,8 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 				return errors.New("internal-error: context had no deadline")
 			}
 
-			// from https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-enable-rbac#azure-built-in-roles-for-azure-app-configuration
+			// from https://learn.microsoft.com/azure/azure-app-configuration/concept-enable-rbac#azure-built-in-roles-for-azure-app-configuration
 			// allow some time for role permission to be propagated
-			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Feature %q read permission to be propagated", featureKey)
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending:                   []string{"Forbidden"},
 				Target:                    []string{"Error", "Exists", "NotFound"},
@@ -261,17 +259,19 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("waiting for App Configuration Feature %q read permission to be propagated: %+v", featureKey, err)
 			}
 
-			kv, err := client.GetKeyValue(ctx, featureKey, model.Label, "", "", "", []appconfiguration.KeyValueFields{})
-			if err != nil {
-				if v, ok := err.(autorest.DetailedError); ok {
-					if !utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
-						return fmt.Errorf("got http status code %d while checking for key's %q existence: %+v", v.Response.StatusCode, featureKey, v.Error())
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				kv, err := client.GetKeyValue(ctx, featureKey, model.Label, "", "", "", []appconfiguration.KeyValueFields{})
+				if err != nil {
+					if v, ok := err.(autorest.DetailedError); ok {
+						if !response.WasNotFound(v.Response) {
+							return fmt.Errorf("got http status code %d while checking for key's %q existence: %+v", v.Response.StatusCode, featureKey, v.Error())
+						}
+					} else {
+						return fmt.Errorf("while checking for key's %q existence: %+v", featureKey, err)
 					}
-				} else {
-					return fmt.Errorf("while checking for key's %q existence: %+v", featureKey, err)
+				} else if kv.StatusCode == 200 {
+					return tf.ImportAsExistsError(k.ResourceType(), nestedItemId.ID())
 				}
-			} else if kv.StatusCode == 200 {
-				return tf.ImportAsExistsError(k.ResourceType(), nestedItemId.ID())
 			}
 
 			entity := appconfiguration.KeyValue{
@@ -288,7 +288,7 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 				Enabled:     model.Enabled,
 			}
 
-			value.Conditions.ClientFilters.Filters = make([]interface{}, 0)
+			value.Conditions.ClientFilters.Filters = make([]any, 0)
 
 			if model.PercentageFilter > 0 {
 				value.Conditions.ClientFilters.Filters = append(value.Conditions.ClientFilters.Filters, PercentageFeatureFilter{
@@ -344,7 +344,6 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 			}
 
 			// https://github.com/Azure/AppConfiguration/issues/763
-			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Feature %q to be provisioned", model.Key)
 			stateConf = &pluginsdk.StateChangeConf{
 				Pending:                   []string{"NotFound", "Forbidden"},
 				Target:                    []string{"Exists"},
@@ -419,8 +418,7 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 			}
 
 			var fv FeatureValue
-			err = json.Unmarshal([]byte(pointer.From(kv.Value)), &fv)
-			if err != nil {
+			if err = json.Unmarshal([]byte(pointer.From(kv.Value)), &fv); err != nil {
 				return fmt.Errorf("while unmarshalling underlying key's value: %+v", err)
 			}
 
@@ -483,8 +481,7 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 			}
 
 			var fv FeatureValue
-			err = json.Unmarshal([]byte(pointer.From(kv.Value)), &fv)
-			if err != nil {
+			if err = json.Unmarshal([]byte(pointer.From(kv.Value)), &fv); err != nil {
 				return fmt.Errorf("while unmarshalling underlying key's value: %+v", err)
 			}
 
@@ -521,12 +518,12 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 				fv.Description = model.Description
 			}
 
-			filters := make([]interface{}, 0)
+			filters := make([]any, 0)
 			filterChanged := false
-			timewindowFilters := make([]interface{}, 0)
-			targetingFilters := make([]interface{}, 0)
+			timewindowFilters := make([]any, 0)
+			targetingFilters := make([]any, 0)
 			percentageFilter := PercentageFeatureFilter{}
-			customFilters := make([]interface{}, 0)
+			customFilters := make([]any, 0)
 			if len(fv.Conditions.ClientFilters.Filters) > 0 {
 				for _, f := range fv.Conditions.ClientFilters.Filters {
 					switch f := f.(type) {
@@ -537,8 +534,7 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 						tfp := f
 						targetingFilters = append(targetingFilters, tfp)
 					case PercentageFeatureFilter:
-						pfp := f
-						percentageFilter = pfp
+						percentageFilter = f
 					case CustomFilter:
 						cf := f
 						customFilters = append(customFilters, cf)

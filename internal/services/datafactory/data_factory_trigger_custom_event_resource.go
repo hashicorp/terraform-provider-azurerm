@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/topics"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -18,8 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 func resourceDataFactoryTriggerCustomEvent() *pluginsdk.Resource {
@@ -138,7 +138,7 @@ func resourceDataFactoryTriggerCustomEvent() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryTriggerCustomEventCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryTriggerCustomEventCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.TriggersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -151,14 +151,16 @@ func resourceDataFactoryTriggerCustomEventCreateUpdate(d *pluginsdk.ResourceData
 
 	id := parse.NewTriggerID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
+			if err != nil {
+				if !response.WasNotFound(existing.Response.Response) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_data_factory_trigger_custom_event", id.ID())
+			if !response.WasNotFound(existing.Response.Response) {
+				return tf.ImportAsExistsError("azurerm_data_factory_trigger_custom_event", id.ID())
+			}
 		}
 	} else {
 		future, err := client.Stop(ctx, id.ResourceGroup, id.FactoryName, id.Name)
@@ -182,8 +184,7 @@ func resourceDataFactoryTriggerCustomEventCreateUpdate(d *pluginsdk.ResourceData
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		trigger.Annotations = &annotations
+		trigger.Annotations = pointer.To(v.([]any))
 	}
 
 	if v, ok := d.GetOk("subject_begins_with"); ok {
@@ -195,7 +196,7 @@ func resourceDataFactoryTriggerCustomEventCreateUpdate(d *pluginsdk.ResourceData
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		trigger.AdditionalProperties = v.(map[string]interface{})
+		trigger.AdditionalProperties = v.(map[string]any)
 	}
 
 	resource := datafactory.TriggerResource{
@@ -225,7 +226,7 @@ func resourceDataFactoryTriggerCustomEventCreateUpdate(d *pluginsdk.ResourceData
 	return resourceDataFactoryTriggerCustomEventRead(d, meta)
 }
 
-func resourceDataFactoryTriggerCustomEventRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryTriggerCustomEventRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.TriggersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -238,7 +239,7 @@ func resourceDataFactoryTriggerCustomEventRead(d *pluginsdk.ResourceData, meta i
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -275,7 +276,7 @@ func resourceDataFactoryTriggerCustomEventRead(d *pluginsdk.ResourceData, meta i
 	return nil
 }
 
-func resourceDataFactoryTriggerCustomEventDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryTriggerCustomEventDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.TriggersClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -306,7 +307,7 @@ func waitForEventSubscriptionEnabled(ctx context.Context, d *pluginsdk.ResourceD
 		Target:     []string{string(datafactory.EventSubscriptionStatusEnabled)},
 		MinTimeout: 10 * time.Second,
 		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
-		Refresh: func() (interface{}, string, error) {
+		Refresh: func() (any, string, error) {
 			resp, err := client.GetEventSubscriptionStatus(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 			if err != nil {
 				return nil, "", fmt.Errorf("polling event subscription status for %s: %+v", id, err)

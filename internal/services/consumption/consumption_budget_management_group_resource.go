@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	validateManagementGroup "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -59,7 +59,7 @@ func (r ManagementGroupConsumptionBudget) Arguments() map[string]*pluginsdk.Sche
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validateManagementGroup.ManagementGroupID,
+			ValidateFunc: validate.ManagementGroupID,
 		},
 
 		// Consumption Budgets for Management Groups have a different notification schema,
@@ -90,13 +90,9 @@ func (r ManagementGroupConsumptionBudget) Arguments() map[string]*pluginsdk.Sche
 						}, false),
 					},
 					"operator": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(budgets.OperatorTypeEqualTo),
-							string(budgets.OperatorTypeGreaterThan),
-							string(budgets.OperatorTypeGreaterThanOrEqualTo),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(budgets.PossibleValuesForOperatorType(), false),
 					},
 
 					"contact_emails": {
@@ -119,7 +115,7 @@ func (r ManagementGroupConsumptionBudget) Attributes() map[string]*pluginsdk.Sch
 	return r.base.attributes()
 }
 
-func (r ManagementGroupConsumptionBudget) ModelObject() interface{} {
+func (r ManagementGroupConsumptionBudget) ModelObject() any {
 	return &ManagementGroupConsumptionBudgetModel{}
 }
 
@@ -144,15 +140,17 @@ func (r ManagementGroupConsumptionBudget) Create() sdk.ResourceFunc {
 
 			id := budgets.NewScopedBudgetID(config.ManagementGroupId, config.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				}
 			}
 
 			timePeriod, err := expandConsumptionBudgetTimePeriodFromModel(config.TimePeriod)
@@ -288,9 +286,8 @@ func expandConsumptionBudgetMgmtNotificationsFromModel(input []ConsumptionBudget
 	notifications := make(map[string]budgets.Notification)
 	for _, n := range input {
 		notification := budgets.Notification{
-			Enabled:  n.Enabled,
-			Operator: budgets.OperatorType(n.Operator),
-			// nolint: gosec
+			Enabled:   n.Enabled,
+			Operator:  budgets.OperatorType(n.Operator),
 			Threshold: float64(n.Threshold),
 		}
 
