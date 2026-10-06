@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -137,9 +138,7 @@ func (r KeyVaultSecretVersionsDataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			maxResults32 := int32(model.MaxResults)
-
-			resp, err := client.GetSecretVersions(ctx, *keyVaultUri, model.Name, &maxResults32)
+			resp, err := client.GetSecretVersions(ctx, *keyVaultUri, model.Name, pointer.To(int32(model.MaxResults)))
 			if err != nil {
 				return fmt.Errorf("making List Versions request on Azure KeyVault Secret %s: %+v", model.Name, err)
 			}
@@ -149,8 +148,7 @@ func (r KeyVaultSecretVersionsDataSource) Read() sdk.ResourceFunc {
 					for _, v := range resp.Values() {
 						model.Versions = append(model.Versions, expandSecretVersion(&v))
 					}
-					err = resp.NextWithContext(ctx)
-					if err != nil {
+					if err := resp.NextWithContext(ctx); err != nil {
 						return fmt.Errorf("iterating over Secret Versions: %+v", err)
 					}
 				}
