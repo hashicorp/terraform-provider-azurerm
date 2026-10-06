@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package quota
@@ -195,32 +195,36 @@ func (r QuotaGroupSubscriptionAllocationResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			groupID := groupquotas.NewGroupQuotaID(id.ManagementGroupId, id.GroupQuotaName)
-			subID := commonids.NewSubscriptionID(id.SubscriptionId)
-
-			state := QuotaGroupSubscriptionAllocationModel{
-				QuotaGroupId:         groupID.ID(),
-				SubscriptionId:       subID.ID(),
-				Location:             id.QuotaAllocationName,
-				ResourceProviderName: id.ResourceProviderName,
-			}
-
-			allocations := make([]AllocationModel, 0)
-			for _, item := range allocs {
-				if item.Properties == nil || item.Properties.ResourceName == nil {
-					continue
-				}
-				allocations = append(allocations, AllocationModel{
-					ResourceName:   pointer.From(item.Properties.ResourceName),
-					Limit:          pointer.From(item.Properties.Limit),
-					ShareableQuota: pointer.From(item.Properties.ShareableQuota),
-				})
-			}
-			state.Allocations = allocations
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, allocs)
 		},
 	}
+}
+
+func (r QuotaGroupSubscriptionAllocationResource) flatten(metadata sdk.ResourceMetaData, id *subscriptionquotaallocation.QuotaAllocationId, allocs []subscriptionquotaallocation.SubscriptionQuotaAllocations) error {
+	groupID := groupquotas.NewGroupQuotaID(id.ManagementGroupId, id.GroupQuotaName)
+	subID := commonids.NewSubscriptionID(id.SubscriptionId)
+
+	state := QuotaGroupSubscriptionAllocationModel{
+		QuotaGroupId:         groupID.ID(),
+		SubscriptionId:       subID.ID(),
+		Location:             id.QuotaAllocationName,
+		ResourceProviderName: id.ResourceProviderName,
+	}
+
+	allocations := make([]AllocationModel, 0)
+	for _, item := range allocs {
+		if item.Properties == nil || item.Properties.ResourceName == nil {
+			continue
+		}
+		allocations = append(allocations, AllocationModel{
+			ResourceName:   pointer.From(item.Properties.ResourceName),
+			Limit:          pointer.From(item.Properties.Limit),
+			ShareableQuota: pointer.From(item.Properties.ShareableQuota),
+		})
+	}
+	state.Allocations = allocations
+
+	return metadata.Encode(&state)
 }
 
 func (r QuotaGroupSubscriptionAllocationResource) Update() sdk.ResourceFunc {
