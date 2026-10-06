@@ -309,7 +309,6 @@ func resourceHDInsightHadoopClusterCreate(d *pluginsdk.ResourceData, meta any) e
 				// intentionally empty
 			}
 		}
-
 	}
 
 	if v, ok := d.GetOk("security_profile"); ok {
