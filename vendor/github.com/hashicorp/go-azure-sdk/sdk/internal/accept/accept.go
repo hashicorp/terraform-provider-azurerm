@@ -26,7 +26,7 @@ func (h Header) FirstChoice() *PreferredType {
 func (h Header) String() string {
 	out := make([]string, 0)
 	for _, typ := range h.types {
-		out = append(out, fmt.Sprintf("%s", typ))
+		out = append(out, typ.String())
 	}
 	return strings.Join(out, ", ")
 }

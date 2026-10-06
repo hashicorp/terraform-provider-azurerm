@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package eventgrid
@@ -18,10 +18,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/domains"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceEventGridDomain() *pluginsdk.Resource {
@@ -62,13 +62,10 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"data_residency_boundary": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(domains.DataResidencyBoundaryWithinGeopair),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(domains.DataResidencyBoundaryWithinGeopair),
-					string(domains.DataResidencyBoundaryWithinRegion),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(domains.DataResidencyBoundaryWithinGeopair),
+				ValidateFunc: validation.StringInSlice(domains.PossibleValuesForDataResidencyBoundary(), false),
 			},
 
 			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
@@ -195,12 +192,10 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 							Required: true,
 						},
 						"action": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(domains.IPActionTypeAllow),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(domains.IPActionTypeAllow),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(domains.IPActionTypeAllow),
+							ValidateFunc: validation.StringInSlice(domains.PossibleValuesForIPActionType(), false),
 						},
 					},
 				},
@@ -228,7 +223,7 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 	}
 }
 
-func resourceEventGridDomainCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventGridDomainCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).EventGrid.Domains
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -236,18 +231,20 @@ func resourceEventGridDomainCreate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	id := domains.NewDomainID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
+		}
+
 		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			return tf.ImportAsExistsError("azurerm_eventgrid_domain", id.ID())
 		}
 	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_eventgrid_domain", id.ID())
-	}
-
-	inboundIPRules := expandDomainInboundIPRules(d.Get("inbound_ip_rule").([]interface{}))
+	inboundIPRules := expandDomainInboundIPRules(d.Get("inbound_ip_rule").([]any))
 	publicNetworkAccess := domains.PublicNetworkAccessDisabled
 	if v, ok := d.GetOk("public_network_access_enabled"); ok && v.(bool) {
 		publicNetworkAccess = domains.PublicNetworkAccessEnabled
@@ -256,28 +253,28 @@ func resourceEventGridDomainCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	domain := domains.Domain{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &domains.DomainProperties{
-			AutoCreateTopicWithFirstSubscription: utils.Bool(d.Get("auto_create_topic_with_first_subscription").(bool)),
-			AutoDeleteTopicWithLastSubscription:  utils.Bool(d.Get("auto_delete_topic_with_last_subscription").(bool)),
-			DataResidencyBoundary:                pointer.To(domains.DataResidencyBoundary(d.Get("data_residency_boundary").(string))),
-			DisableLocalAuth:                     utils.Bool(!d.Get("local_auth_enabled").(bool)),
+			AutoCreateTopicWithFirstSubscription: pointer.To(d.Get("auto_create_topic_with_first_subscription").(bool)),
+			AutoDeleteTopicWithLastSubscription:  pointer.To(d.Get("auto_delete_topic_with_last_subscription").(bool)),
+			DataResidencyBoundary:                pointer.ToEnum[domains.DataResidencyBoundary](d.Get("data_residency_boundary").(string)),
+			DisableLocalAuth:                     pointer.To(!d.Get("local_auth_enabled").(bool)),
 			InboundIPRules:                       inboundIPRules,
-			InputSchema:                          pointer.To(domains.InputSchema(d.Get("input_schema").(string))),
+			InputSchema:                          pointer.ToEnum[domains.InputSchema](d.Get("input_schema").(string)),
 			InputSchemaMapping:                   expandDomainInputMapping(d),
-			MinimumTlsVersionAllowed:             pointer.To(domains.TlsVersion(d.Get("minimum_tls_version").(string))),
+			MinimumTlsVersionAllowed:             pointer.ToEnum[domains.TlsVersion](d.Get("minimum_tls_version").(string)),
 			PublicNetworkAccess:                  pointer.To(publicNetworkAccess),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v, ok := d.GetOk("identity"); ok {
-		identity, err := identity.ExpandSystemAndUserAssignedMap(v.([]interface{}))
+		identity, err := identity.ExpandSystemAndUserAssignedMap(v.([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
 		domain.Identity = identity
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, domain); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, domain, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %s", id, err)
 	}
 
@@ -285,7 +282,7 @@ func resourceEventGridDomainCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	return resourceEventGridDomainRead(d, meta)
 }
 
-func resourceEventGridDomainUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventGridDomainUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).EventGrid.Domains
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -298,7 +295,7 @@ func resourceEventGridDomainUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	payload := domains.DomainUpdateParameters{Properties: &domains.DomainUpdateParameterProperties{}}
 
 	if d.HasChange("identity") {
-		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -306,11 +303,11 @@ func resourceEventGridDomainUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	if d.HasChange("data_residency_boundary") {
-		payload.Properties.DataResidencyBoundary = pointer.To(domains.DataResidencyBoundary(d.Get("data_residency_boundary").(string)))
+		payload.Properties.DataResidencyBoundary = pointer.ToEnum[domains.DataResidencyBoundary](d.Get("data_residency_boundary").(string))
 	}
 
 	if d.HasChange("minimum_tls_version") {
-		payload.Properties.MinimumTlsVersionAllowed = pointer.To(domains.TlsVersion(d.Get("minimum_tls_version").(string)))
+		payload.Properties.MinimumTlsVersionAllowed = pointer.ToEnum[domains.TlsVersion](d.Get("minimum_tls_version").(string))
 	}
 
 	if d.HasChange("public_network_access_enabled") {
@@ -335,7 +332,7 @@ func resourceEventGridDomainUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	if d.HasChange("inbound_ip_rule") {
-		inboundIpRule := d.Get("inbound_ip_rule").([]interface{})
+		inboundIpRule := d.Get("inbound_ip_rule").([]any)
 
 		if len(inboundIpRule) == 0 {
 			payload.Properties.InboundIPRules = pointer.To([]domains.InboundIPRule{})
@@ -345,7 +342,7 @@ func resourceEventGridDomainUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
@@ -355,7 +352,7 @@ func resourceEventGridDomainUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	return resourceEventGridDomainRead(d, meta)
 }
 
-func resourceEventGridDomainRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventGridDomainRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).EventGrid.Domains
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -398,7 +395,7 @@ func resourceEventGridDomainRead(d *pluginsdk.ResourceData, meta interface{}) er
 		if props := model.Properties; props != nil {
 			d.Set("endpoint", props.Endpoint)
 
-			d.Set("data_residency_boundary", pointer.From(props.DataResidencyBoundary))
+			d.Set("data_residency_boundary", pointer.FromEnum(props.DataResidencyBoundary))
 
 			inputSchema := ""
 			if props.InputSchema != nil {
@@ -406,17 +403,15 @@ func resourceEventGridDomainRead(d *pluginsdk.ResourceData, meta interface{}) er
 			}
 			d.Set("input_schema", inputSchema)
 
-			inputMappingFields := flattenDomainInputMapping(props.InputSchemaMapping)
-			if err := d.Set("input_mapping_fields", inputMappingFields); err != nil {
+			if err := d.Set("input_mapping_fields", flattenDomainInputMapping(props.InputSchemaMapping)); err != nil {
 				return fmt.Errorf("setting `input_schema_mapping_fields`: %+v", err)
 			}
 
-			inputMappingDefaultValues := flattenDomainInputMappingDefaultValues(props.InputSchemaMapping)
-			if err := d.Set("input_mapping_default_values", inputMappingDefaultValues); err != nil {
+			if err := d.Set("input_mapping_default_values", flattenDomainInputMappingDefaultValues(props.InputSchemaMapping)); err != nil {
 				return fmt.Errorf("setting `input_schema_mapping_fields`: %+v", err)
 			}
 
-			d.Set("minimum_tls_version", pointer.From(props.MinimumTlsVersionAllowed))
+			d.Set("minimum_tls_version", pointer.FromEnum(props.MinimumTlsVersionAllowed))
 
 			publicNetworkAccessEnabled := true
 			if props.PublicNetworkAccess != nil && *props.PublicNetworkAccess == domains.PublicNetworkAccessDisabled {
@@ -424,8 +419,7 @@ func resourceEventGridDomainRead(d *pluginsdk.ResourceData, meta interface{}) er
 			}
 			d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
 
-			inboundIPRules := flattenDomainInboundIPRules(props.InboundIPRules)
-			if err := d.Set("inbound_ip_rule", inboundIPRules); err != nil {
+			if err := d.Set("inbound_ip_rule", flattenDomainInboundIPRules(props.InboundIPRules)); err != nil {
 				return fmt.Errorf("setting `inbound_ip_rule`: %+v", err)
 			}
 
@@ -461,7 +455,7 @@ func resourceEventGridDomainRead(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceEventGridDomainDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventGridDomainDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).EventGrid.Domains
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -490,9 +484,9 @@ func expandDomainInputMapping(d *pluginsdk.ResourceData) *domains.JsonInputSchem
 	jismp := domains.JsonInputSchemaMappingProperties{}
 
 	if imfok {
-		mappings := imf.([]interface{})
+		mappings := imf.([]any)
 		if len(mappings) > 0 && mappings[0] != nil {
-			mapping := mappings[0].(map[string]interface{})
+			mapping := mappings[0].(map[string]any)
 
 			if id := mapping["id"].(string); id != "" {
 				jismp.Id = &domains.JsonField{SourceField: &id}
@@ -531,9 +525,9 @@ func expandDomainInputMapping(d *pluginsdk.ResourceData) *domains.JsonInputSchem
 	}
 
 	if imdvok {
-		mappings := imdv.([]interface{})
+		mappings := imdv.([]any)
 		if len(mappings) > 0 && mappings[0] != nil {
-			mapping := mappings[0].(map[string]interface{})
+			mapping := mappings[0].(map[string]any)
 
 			if dataVersion := mapping["data_version"].(string); dataVersion != "" {
 				jismp.DataVersion = &domains.JsonFieldWithDefault{
@@ -560,8 +554,8 @@ func expandDomainInputMapping(d *pluginsdk.ResourceData) *domains.JsonInputSchem
 	}
 }
 
-func flattenDomainInputMapping(input domains.InputSchemaMapping) []interface{} {
-	output := make([]interface{}, 0)
+func flattenDomainInputMapping(input domains.InputSchemaMapping) []any {
+	output := make([]any, 0)
 	val, ok := input.(domains.JsonInputSchemaMapping)
 	if ok {
 		if props := val.Properties; props != nil {
@@ -595,7 +589,7 @@ func flattenDomainInputMapping(input domains.InputSchemaMapping) []interface{} {
 				subject = *props.Subject.SourceField
 			}
 
-			output = append(output, map[string]interface{}{
+			output = append(output, map[string]any{
 				"data_version": dataVersion,
 				"event_type":   eventType,
 				"event_time":   eventTime,
@@ -608,8 +602,8 @@ func flattenDomainInputMapping(input domains.InputSchemaMapping) []interface{} {
 	return output
 }
 
-func flattenDomainInputMappingDefaultValues(input domains.InputSchemaMapping) []interface{} {
-	output := make([]interface{}, 0)
+func flattenDomainInputMappingDefaultValues(input domains.InputSchemaMapping) []any {
+	output := make([]any, 0)
 	val, ok := input.(domains.JsonInputSchemaMapping)
 	if ok {
 		if props := val.Properties; props != nil {
@@ -628,7 +622,7 @@ func flattenDomainInputMappingDefaultValues(input domains.InputSchemaMapping) []
 				subject = *props.Subject.DefaultValue
 			}
 
-			output = append(output, map[string]interface{}{
+			output = append(output, map[string]any{
 				"data_version": dataVersion,
 				"event_type":   eventType,
 				"subject":      subject,
@@ -639,24 +633,24 @@ func flattenDomainInputMappingDefaultValues(input domains.InputSchemaMapping) []
 	return output
 }
 
-func expandDomainInboundIPRules(input []interface{}) *[]domains.InboundIPRule {
+func expandDomainInboundIPRules(input []any) *[]domains.InboundIPRule {
 	if len(input) == 0 {
 		return nil
 	}
 
 	rules := make([]domains.InboundIPRule, 0)
 	for _, item := range input {
-		rawRule := item.(map[string]interface{})
+		rawRule := item.(map[string]any)
 		rules = append(rules, domains.InboundIPRule{
-			Action: pointer.To(domains.IPActionType(rawRule["action"].(string))),
+			Action: pointer.ToEnum[domains.IPActionType](rawRule["action"].(string)),
 			IPMask: pointer.To(rawRule["ip_mask"].(string)),
 		})
 	}
 	return &rules
 }
 
-func flattenDomainInboundIPRules(input *[]domains.InboundIPRule) []interface{} {
-	rules := make([]interface{}, 0)
+func flattenDomainInboundIPRules(input *[]domains.InboundIPRule) []any {
+	rules := make([]any, 0)
 	if input == nil {
 		return rules
 	}
@@ -667,7 +661,7 @@ func flattenDomainInboundIPRules(input *[]domains.InboundIPRule) []interface{} {
 			action = string(*r.Action)
 		}
 
-		rules = append(rules, map[string]interface{}{
+		rules = append(rules, map[string]any{
 			"action":  action,
 			"ip_mask": pointer.From(r.IPMask),
 		})

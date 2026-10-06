@@ -30,7 +30,7 @@ resource "azurerm_eventgrid_domain" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -40,7 +40,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `data_residency_boundary` - (Optional) Data Residency Boundary of the resource. Possible values are `WithinGeopair` or `WithinRegion` Defaults to `WithinGeopair`.
+* `data_residency_boundary` - (Optional) The data residency boundary for the EventGrid Domain. Possible values are `WithinGeopair` and `WithinRegion`. Defaults to `WithinGeopair`.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `input_mapping_default_values` - (Optional) A `input_mapping_default_values` block as defined below. Changing this forces a new resource to be created.
 
-* `min_tls_version` - (Optional) The minimum supported TLS version for the EventGrid Domain. Possible value is `1.2`. Defaults to `1.2` for new Domains.
+* `minimum_tls_version` - (Optional) The minimum supported TLS version for the EventGrid Domain. The only possible value is `1.2`. Defaults to `1.2`.
 
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this server. Defaults to `true`.
 
@@ -72,9 +72,9 @@ A `identity` block supports the following:
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Event Grid Domain.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned`
+~> **Note:** This is required when `type` is set to `UserAssigned`
 
-~> **NOTE:** When `type` is set to `SystemAssigned`, The assigned `principal_id` and `tenant_id` can be retrieved after the Event Grid Domain has been created. More details are available below.
+~> **Note:** When `type` is set to `SystemAssigned`, The assigned `principal_id` and `tenant_id` can be retrieved after the Event Grid Domain has been created. More details are available below.
 
 ---
 
@@ -136,11 +136,11 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the EventGrid Domain.
-* `update` - (Defaults to 30 minutes) Used when updating the EventGrid Domain.
 * `read` - (Defaults to 5 minutes) Used when retrieving the EventGrid Domain.
+* `update` - (Defaults to 30 minutes) Used when updating the EventGrid Domain.
 * `delete` - (Defaults to 30 minutes) Used when deleting the EventGrid Domain.
 
 ## Import
@@ -150,3 +150,9 @@ EventGrid Domains can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_eventgrid_domain.domain1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventGrid/domains/domain1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.EventGrid` - 2025-02-15

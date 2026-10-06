@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package eventgrid
@@ -47,7 +47,7 @@ func dataSourceEventGridSystemTopic() *pluginsdk.Resource {
 
 			"location": commonschema.LocationComputed(),
 
-			"source_arm_resource_id": {
+			"source_resource_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -57,7 +57,7 @@ func dataSourceEventGridSystemTopic() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"metric_arm_resource_id": {
+			"metric_resource_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -67,7 +67,7 @@ func dataSourceEventGridSystemTopic() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceEventGridSystemTopicRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceEventGridSystemTopicRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).EventGrid.SystemTopics
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -91,8 +91,8 @@ func dataSourceEventGridSystemTopicRead(d *pluginsdk.ResourceData, meta interfac
 		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
-			d.Set("metric_arm_resource_id", props.MetricResourceId)
-			d.Set("source_arm_resource_id", props.Source)
+			d.Set("metric_resource_id", props.MetricResourceId)
+			d.Set("source_resource_id", props.Source)
 			d.Set("topic_type", props.TopicType)
 		}
 

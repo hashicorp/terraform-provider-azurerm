@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package echoprovider
@@ -405,4 +405,24 @@ func (e *echoProviderServer) CloseEphemeralResource(ctx context.Context, req *tf
 
 func (e *echoProviderServer) ValidateEphemeralResourceConfig(ctx context.Context, req *tfprotov6.ValidateEphemeralResourceConfigRequest) (*tfprotov6.ValidateEphemeralResourceConfigResponse, error) {
 	return &tfprotov6.ValidateEphemeralResourceConfigResponse{}, nil
+}
+
+func (e *echoProviderServer) GetResourceIdentitySchemas(context.Context, *tfprotov6.GetResourceIdentitySchemasRequest) (*tfprotov6.GetResourceIdentitySchemasResponse, error) {
+	return &tfprotov6.GetResourceIdentitySchemasResponse{}, nil
+}
+
+func (e *echoProviderServer) UpgradeResourceIdentity(context.Context, *tfprotov6.UpgradeResourceIdentityRequest) (*tfprotov6.UpgradeResourceIdentityResponse, error) {
+	return &tfprotov6.UpgradeResourceIdentityResponse{
+		Diagnostics: []*tfprotov6.Diagnostic{
+			{
+				Severity: tfprotov6.DiagnosticSeverityError,
+				Summary:  "Unsupported UpgradeResourceIdentity Operation",
+				Detail:   "Resource Identity is not supported by this provider.",
+			},
+		},
+	}, nil
+}
+
+func (e *echoProviderServer) GenerateResourceConfig(ctx context.Context, request *tfprotov6.GenerateResourceConfigRequest) (*tfprotov6.GenerateResourceConfigResponse, error) {
+	return &tfprotov6.GenerateResourceConfigResponse{}, nil
 }

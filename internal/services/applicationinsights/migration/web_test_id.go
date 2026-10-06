@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -9,7 +9,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -22,7 +21,7 @@ func (WebTestUpgradeV0ToV1) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (WebTestUpgradeV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		// old:
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/microsoft.insights/webtests/test1
 		// new:
@@ -101,7 +100,7 @@ func webTestSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 			Required: true,
 		},
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 
 		"synthetic_monitor_id": {
 			Type:     pluginsdk.TypeString,

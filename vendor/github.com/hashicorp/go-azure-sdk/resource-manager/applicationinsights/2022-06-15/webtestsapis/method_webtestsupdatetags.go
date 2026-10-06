@@ -18,7 +18,7 @@ type WebTestsUpdateTagsOperationResponse struct {
 }
 
 // WebTestsUpdateTags ...
-func (c WebTestsAPIsClient) WebTestsUpdateTags(ctx context.Context, id WebTestId, input TagsResource) (result WebTestsUpdateTagsOperationResponse, err error) {
+func (c WebTestsAPIsClient) WebTestsUpdateTags(ctx context.Context, id WebTestId, input ApplicationInsightsCommonTypesTagsResource) (result WebTestsUpdateTagsOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
