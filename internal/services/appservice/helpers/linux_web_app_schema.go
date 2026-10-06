@@ -957,7 +957,7 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 	}
 
 	switch {
-	case len(s.ApplicationStack) == 1:
+	case len(s.ApplicationStack) == 1 && len(s.MainSiteContainer) == 0:
 		linuxAppStack := s.ApplicationStack[0]
 
 		if linuxAppStack.NetFrameworkVersion != "" {

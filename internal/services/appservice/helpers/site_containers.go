@@ -9,6 +9,7 @@ import (
 	"regexp"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -244,19 +245,21 @@ func FlattenMainSiteContainer(input *webapps.SiteContainer) []MainSiteContainer 
 	}
 }
 
-// FindMainSiteContainer lists the Site Containers configured for the given Web App and returns the one marked as
-// the main Site Container, if any. Non-main Site Containers are managed by the standalone
-// `azurerm_linux_web_app_site_container` resource and are intentionally left untouched.
+// FindMainSiteContainer retrieves the main Site Container managed inline for the given Web App, if any.
+// Non-main Site Containers are managed by the standalone `azurerm_linux_web_app_site_container` resource and are
+// intentionally left untouched.
 func FindMainSiteContainer(ctx context.Context, client *webapps.WebAppsClient, id commonids.AppServiceId) (*webapps.SiteContainer, error) {
-	containers, err := client.ListSiteContainersComplete(ctx, id)
+	sitecontainerId := webapps.NewSitecontainerID(id.SubscriptionId, id.ResourceGroupName, id.SiteName, MainSiteContainerName)
+	existing, err := client.GetSiteContainer(ctx, sitecontainerId)
 	if err != nil {
-		return nil, fmt.Errorf("listing Site Containers for %s: %+v", id, err)
+		if response.WasNotFound(existing.HttpResponse) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("reading main Site Container for %s: %+v", id, err)
 	}
 
-	for _, container := range containers.Items {
-		if container.Properties != nil && container.Properties.IsMain {
-			return pointer.To(container), nil
-		}
+	if existing.Model != nil {
+		return existing.Model, nil
 	}
 
 	return nil, nil

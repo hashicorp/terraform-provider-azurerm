@@ -900,16 +900,12 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				}
 
 				if mainSiteContainerProps := helpers.ExpandMainSiteContainer(sc.MainSiteContainer); mainSiteContainerProps != nil {
-					sitecontainerName := helpers.MainSiteContainerName
-					if existingMainSiteContainer != nil && existingMainSiteContainer.Name != nil {
-						sitecontainerName = *existingMainSiteContainer.Name
-					}
-					sitecontainerId := webapps.NewSitecontainerID(id.SubscriptionId, id.ResourceGroupName, id.SiteName, sitecontainerName)
+					sitecontainerId := webapps.NewSitecontainerID(id.SubscriptionId, id.ResourceGroupName, id.SiteName, helpers.MainSiteContainerName)
 					if _, err := client.CreateOrUpdateSiteContainer(ctx, sitecontainerId, webapps.SiteContainer{Properties: mainSiteContainerProps}); err != nil {
 						return fmt.Errorf("updating main Site Container for Linux %s: %+v", id, err)
 					}
-				} else if existingMainSiteContainer != nil && existingMainSiteContainer.Name != nil {
-					sitecontainerId := webapps.NewSitecontainerID(id.SubscriptionId, id.ResourceGroupName, id.SiteName, *existingMainSiteContainer.Name)
+				} else if existingMainSiteContainer != nil {
+					sitecontainerId := webapps.NewSitecontainerID(id.SubscriptionId, id.ResourceGroupName, id.SiteName, helpers.MainSiteContainerName)
 					if _, err := client.DeleteSiteContainer(ctx, sitecontainerId); err != nil {
 						return fmt.Errorf("removing main Site Container for Linux %s: %+v", id, err)
 					}
