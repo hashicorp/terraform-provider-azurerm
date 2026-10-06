@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -29,7 +29,7 @@ type FunctionAppActiveSlotModel struct {
 
 var _ sdk.ResourceWithUpdate = FunctionAppActiveSlotResource{}
 
-func (r FunctionAppActiveSlotResource) ModelObject() interface{} {
+func (r FunctionAppActiveSlotResource) ModelObject() any {
 	return &FunctionAppActiveSlotModel{}
 }
 

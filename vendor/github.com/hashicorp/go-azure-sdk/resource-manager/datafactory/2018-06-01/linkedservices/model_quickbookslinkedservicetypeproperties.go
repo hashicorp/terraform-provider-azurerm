@@ -18,7 +18,7 @@ type QuickBooksLinkedServiceTypeProperties struct {
 	EncryptedCredential   *string      `json:"encryptedCredential,omitempty"`
 	Endpoint              *interface{} `json:"endpoint,omitempty"`
 	RefreshToken          SecretBase   `json:"refreshToken"`
-	UseEncryptedEndpoints *bool        `json:"useEncryptedEndpoints,omitempty"`
+	UseEncryptedEndpoints *interface{} `json:"useEncryptedEndpoints,omitempty"`
 }
 
 var _ json.Unmarshaler = &QuickBooksLinkedServiceTypeProperties{}
@@ -30,7 +30,7 @@ func (s *QuickBooksLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) erro
 		ConsumerKey           *interface{} `json:"consumerKey,omitempty"`
 		EncryptedCredential   *string      `json:"encryptedCredential,omitempty"`
 		Endpoint              *interface{} `json:"endpoint,omitempty"`
-		UseEncryptedEndpoints *bool        `json:"useEncryptedEndpoints,omitempty"`
+		UseEncryptedEndpoints *interface{} `json:"useEncryptedEndpoints,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

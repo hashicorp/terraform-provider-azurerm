@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = ManagedInstanceStartStopScheduleId{}
 
-func TestManagedInstanceStartStopScheduleIDFormatter(t *testing.T) {
+func TestParseManagedInstanceStartStopScheduleIDFormatter(t *testing.T) {
 	actual := NewManagedInstanceStartStopScheduleID("12345678-1234-9876-4563-123456789012", "resGroup1", "instance1", "default").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Sql/managedInstances/instance1/startStopSchedules/default"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestManagedInstanceStartStopScheduleIDFormatter(t *testing.T) {
 	}
 }
 
-func TestManagedInstanceStartStopScheduleID(t *testing.T) {
+func TestParseManagedInstanceStartStopScheduleID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

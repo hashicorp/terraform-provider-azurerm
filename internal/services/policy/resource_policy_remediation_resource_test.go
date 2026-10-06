@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package policy_test
@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	policyinsights "github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -50,7 +50,7 @@ func TestAccAzureRMResourcePolicyRemediation_complete(t *testing.T) {
 }
 
 func (r ResourcePolicyRemediationResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := policyinsights.ParseScopedRemediationID(state.ID)
+	id, err := remediations.ParseScopedRemediationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
