@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -50,7 +50,7 @@ func resourceVirtualHubRouteTable() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.HubRouteTableName,
+				ValidateFunc: validate.HubRouteTableName,
 			},
 
 			"virtual_hub_id": {
@@ -120,7 +120,7 @@ func resourceVirtualHubRouteTable() *pluginsdk.Resource {
 	}
 }
 
-func resourceVirtualHubRouteTableCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubRouteTableCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -168,7 +168,7 @@ func resourceVirtualHubRouteTableCreate(d *pluginsdk.ResourceData, meta interfac
 	return resourceVirtualHubRouteTableRead(d, meta)
 }
 
-func resourceVirtualHubRouteTableUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubRouteTableUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -219,7 +219,7 @@ func resourceVirtualHubRouteTableUpdate(d *pluginsdk.ResourceData, meta interfac
 	return resourceVirtualHubRouteTableRead(d, meta)
 }
 
-func resourceVirtualHubRouteTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubRouteTableRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -255,7 +255,7 @@ func resourceVirtualHubRouteTableRead(d *pluginsdk.ResourceData, meta interface{
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceVirtualHubRouteTableDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubRouteTableDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -275,11 +275,11 @@ func resourceVirtualHubRouteTableDelete(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func expandVirtualHubRouteTableHubRoutes(input []interface{}) *[]virtualwans.HubRoute {
+func expandVirtualHubRouteTableHubRoutes(input []any) *[]virtualwans.HubRoute {
 	results := make([]virtualwans.HubRoute, 0)
 
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 
 		result := virtualwans.HubRoute{
 			Name:            v["name"].(string),
@@ -295,14 +295,14 @@ func expandVirtualHubRouteTableHubRoutes(input []interface{}) *[]virtualwans.Hub
 	return &results
 }
 
-func flattenVirtualHubRouteTableHubRoutes(input *[]virtualwans.HubRoute) []interface{} {
-	results := make([]interface{}, 0)
+func flattenVirtualHubRouteTableHubRoutes(input *[]virtualwans.HubRoute) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		v := map[string]interface{}{
+		v := map[string]any{
 			"name":              item.Name,
 			"destinations":      pluginsdk.FlattenSlice(&item.Destinations),
 			"destinations_type": item.DestinationType,

@@ -87,7 +87,7 @@ func dataSourceVirtualNetwork() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceVnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceVnetRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualNetworks
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -141,8 +141,8 @@ func dataSourceVnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func flattenVnetSubnetsNames(input *[]virtualnetworks.Subnet) []interface{} {
-	subnets := make([]interface{}, 0)
+func flattenVnetSubnetsNames(input *[]virtualnetworks.Subnet) []any {
+	subnets := make([]any, 0)
 
 	if mysubnets := input; mysubnets != nil {
 		for _, subnet := range *mysubnets {
@@ -154,8 +154,8 @@ func flattenVnetSubnetsNames(input *[]virtualnetworks.Subnet) []interface{} {
 	return subnets
 }
 
-func flattenVnetPeerings(input *[]virtualnetworks.VirtualNetworkPeering) map[string]interface{} {
-	output := make(map[string]interface{})
+func flattenVnetPeerings(input *[]virtualnetworks.VirtualNetworkPeering) map[string]any {
+	output := make(map[string]any)
 
 	if peerings := input; peerings != nil {
 		for _, vnetPeering := range *peerings {
