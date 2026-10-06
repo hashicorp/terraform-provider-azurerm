@@ -25,9 +25,9 @@ func (s BaseUpdateReplicationProtectedItemProviderInputImpl) UpdateReplicationPr
 
 var _ UpdateReplicationProtectedItemProviderInput = RawUpdateReplicationProtectedItemProviderInputImpl{}
 
-// RawUpdateReplicationProtectedItemProviderInputImpl is returned when the Discriminated Value doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+// RawUpdateReplicationProtectedItemProviderInputImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawUpdateReplicationProtectedItemProviderInputImpl struct {
 	updateReplicationProtectedItemProviderInput BaseUpdateReplicationProtectedItemProviderInputImpl
 	Type                                        string
@@ -36,6 +36,10 @@ type RawUpdateReplicationProtectedItemProviderInputImpl struct {
 
 func (s RawUpdateReplicationProtectedItemProviderInputImpl) UpdateReplicationProtectedItemProviderInput() BaseUpdateReplicationProtectedItemProviderInputImpl {
 	return s.updateReplicationProtectedItemProviderInput
+}
+
+func (s RawUpdateReplicationProtectedItemProviderInputImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
 }
 
 func UnmarshalUpdateReplicationProtectedItemProviderInputImplementation(input []byte) (UpdateReplicationProtectedItemProviderInput, error) {

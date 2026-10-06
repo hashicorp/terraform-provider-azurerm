@@ -114,7 +114,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `minimal_tls_version` - (Optional) Specifies the minimal TLS version for the CosmosDB account. Possible values are: `Tls`, `Tls11`, and `Tls12`. Defaults to `Tls12`.
+* `minimal_tls_version` - (Optional) Specifies the minimal TLS version for the CosmosDB account. The only possible value is `Tls12`. Defaults to `Tls12`.
 
 ~> **Note:** Azure Services will require TLS 1.2+ by August 2025, please see this [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more details.
 
@@ -140,9 +140,9 @@ The following arguments are supported:
 
 * `ip_range_filter` - (Optional) A set of IP addresses or IP address ranges in CIDR form to be included as the allowed list of client IPs for a given database account. For example `["55.0.1.0/24", "55.0.2.0/24"]`.
 
-~> **Note:** To enable the "Allow access from the Azure portal" behavior, you should add the IP addresses provided by the [documentation](https://docs.microsoft.com/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-the-azure-portal) to this list.
+~> **Note:** To enable the "Allow access from the Azure portal" behaviour, you should add the IP addresses provided by the [documentation](https://docs.microsoft.com/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-the-azure-portal) to this list.
 
-~> **Note:** To enable the "Accept connections from within public Azure datacenters" behavior, you should add `0.0.0.0` to the list, see the [documentation](https://docs.microsoft.com/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-global-azure-datacenters-or-other-sources-within-azure) for more details.
+~> **Note:** To enable the "Accept connections from within public Azure datacenters" behaviour, you should add `0.0.0.0` to the list, see the [documentation](https://docs.microsoft.com/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-global-azure-datacenters-or-other-sources-within-azure) for more details.
 
 * `free_tier_enabled` - (Optional) Enable the Free Tier pricing option for this Cosmos DB account. Defaults to `false`. Changing this forces a new resource to be created.
 
@@ -176,7 +176,7 @@ The following arguments are supported:
 
 * `network_acl_bypass_ids` - (Optional) The list of resource Ids for Network Acl Bypass for this Cosmos DB account.
 
-* `local_authentication_disabled` - (Optional) Disable local authentication and ensure only MSI and AAD can be used exclusively for authentication. Defaults to `false`. Can be set only when using the SQL API.
+* `local_authentication_enabled` - (Optional) Whether local authentication is enabled, when disabled only MSI and AAD can be used exclusively for authentication. Defaults to `true`. Can be set only when using the SQL API.
 
 * `backup` - (Optional) A `backup` block as defined below.
 
@@ -209,6 +209,8 @@ The `geo_location` block Configures the geographic locations the data is replica
 * `failover_priority` - (Required) The failover priority of the region. A failover priority of `0` indicates a write region. The maximum value for a failover priority = (total number of regions - 1). Failover priority values must be unique for each of the regions in which the database account exists. Changing this causes the location to be re-provisioned and cannot be changed for the location with failover priority `0`.
 
 * `zone_redundant` - (Optional) Should zone redundancy be enabled for this region? Defaults to `false`.
+
+~> **Note:** You cannot change zone redundancy in a region that has already been added to a Cosmos DB account. If you wish to change this setting in a deployed region without recreating the account, you can [follow the steps outlined in the official documentation](https://learn.microsoft.com/azure/cosmos-db/enable-zone-redundancy?tabs=portal#enable-zone-redundancy-on-an-existing-account).
 
 ---
 

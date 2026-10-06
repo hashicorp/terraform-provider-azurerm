@@ -62,9 +62,20 @@ func (c WebAppsClient) CreateOrUpdateSlot(ctx context.Context, id SlotId, input 
 
 // CreateOrUpdateSlotThenPoll performs CreateOrUpdateSlot then polls until it's completed
 func (c WebAppsClient) CreateOrUpdateSlotThenPoll(ctx context.Context, id SlotId, input Site) error {
+	return c.CreateOrUpdateSlotCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CreateOrUpdateSlotCallbackThenPoll performs CreateOrUpdateSlot, runs the optional callback function, then polls until it's completed
+func (c WebAppsClient) CreateOrUpdateSlotCallbackThenPoll(ctx context.Context, id SlotId, input Site, callback func() error) error {
 	result, err := c.CreateOrUpdateSlot(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdateSlot: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -9,7 +9,6 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 func TestAccAzureRMDataSourceLoadBalancerRule_basic(t *testing.T) {
@@ -68,47 +67,6 @@ data "azurerm_lb_rule" "test" {
 }
 
 func (r LoadBalancerRule) completeDataSource(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-%s
-resource "azurerm_lb_backend_address_pool" "test" {
-  name            = "acctest-pool-%s"
-  loadbalancer_id = azurerm_lb.test.id
-}
-
-resource "azurerm_lb_probe" "test" {
-  name            = "acctest-probe-%s"
-  loadbalancer_id = azurerm_lb.test.id
-  protocol        = "Tcp"
-  port            = 443
-}
-
-resource "azurerm_lb_rule" "test" {
-  name            = "acctest-lb-rule-%s"
-  loadbalancer_id = azurerm_lb.test.id
-
-  protocol      = "Tcp"
-  frontend_port = 3389
-  backend_port  = 3389
-
-  disable_outbound_snat   = true
-  enable_floating_ip      = true
-  enable_tcp_reset        = true
-  idle_timeout_in_minutes = 10
-
-  backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
-  probe_id                 = azurerm_lb_probe.test.id
-
-  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
-}
-
-data "azurerm_lb_rule" "test" {
-  name            = azurerm_lb_rule.test.name
-  loadbalancer_id = azurerm_lb_rule.test.loadbalancer_id
-}
-`, r.template(data, "Standard"), data.RandomStringOfLength(8), data.RandomStringOfLength(8), data.RandomStringOfLength(8))
-	}
-
 	return fmt.Sprintf(`
 %s
 resource "azurerm_lb_backend_address_pool" "test" {
@@ -146,5 +104,5 @@ data "azurerm_lb_rule" "test" {
   name            = azurerm_lb_rule.test.name
   loadbalancer_id = azurerm_lb_rule.test.loadbalancer_id
 }
-`, r.template(data, "Standard"), data.RandomStringOfLength(8), data.RandomStringOfLength(8), data.RandomStringOfLength(8))
+`, r.template(data), data.RandomStringOfLength(8), data.RandomStringOfLength(8), data.RandomStringOfLength(8))
 }
