@@ -187,8 +187,7 @@ func (r WebAppSlotHybridConnectionResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			_, err = client.CreateOrUpdateHybridConnectionSlot(ctx, id, envelope)
-			if err != nil {
+			if _, err := client.CreateOrUpdateHybridConnectionSlot(ctx, id, envelope); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -334,8 +333,7 @@ func (r WebAppSlotHybridConnectionResource) Update() sdk.ResourceFunc {
 				model.Properties.SendKeyValue = sendKeyValue
 			}
 
-			_, err = client.CreateOrUpdateHybridConnectionSlot(ctx, *id, model)
-			if err != nil {
+			if _, err := client.CreateOrUpdateHybridConnectionSlot(ctx, *id, model); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
