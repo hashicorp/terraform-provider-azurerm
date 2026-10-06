@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -219,7 +219,7 @@ func dataSourceStorageManagementPolicy() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceStorageManagementPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceStorageManagementPolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.ResourceManager.ManagementPolicies
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

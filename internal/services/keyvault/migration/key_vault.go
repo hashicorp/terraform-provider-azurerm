@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -128,18 +128,18 @@ func (KeyVaultV0ToV1) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (KeyVaultV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-		inputAccessPolicies := rawState["access_policy"].([]interface{})
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
+		inputAccessPolicies := rawState["access_policy"].([]any)
 		if len(inputAccessPolicies) == 0 {
 			return rawState, nil
 		}
 
-		outputAccessPolicies := make([]interface{}, 0)
+		outputAccessPolicies := make([]any, 0)
 		for _, accessPolicy := range inputAccessPolicies {
-			policy := accessPolicy.(map[string]interface{})
+			policy := accessPolicy.(map[string]any)
 
 			if v, ok := policy["certificate_permissions"]; ok {
-				inputCertificatePermissions := v.([]interface{})
+				inputCertificatePermissions := v.([]any)
 				outputCertificatePermissions := make([]string, 0)
 				for _, p := range inputCertificatePermissions {
 					permission := p.(string)
@@ -166,7 +166,7 @@ func (KeyVaultV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 			}
 
 			if v, ok := policy["key_permissions"]; ok {
-				inputKeyPermissions := v.([]interface{})
+				inputKeyPermissions := v.([]any)
 				outputKeyPermissions := make([]string, 0)
 				for _, p := range inputKeyPermissions {
 					permission := p.(string)
@@ -201,7 +201,7 @@ func (KeyVaultV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 			}
 
 			if v, ok := policy["secret_permissions"]; ok {
-				inputSecretPermissions := v.([]interface{})
+				inputSecretPermissions := v.([]any)
 				outputSecretPermissions := make([]string, 0)
 				for _, p := range inputSecretPermissions {
 					permission := p.(string)
@@ -422,7 +422,7 @@ func (KeyVaultV1ToV2) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (KeyVaultV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		// @tombuildsstuff: this is an int in the schema but was previously set into the
 		// state as `*int32` - so using `.(int)` causes:
 		// panic: interface conversion: interface {} is float64, not int
@@ -450,7 +450,7 @@ func (KeyVaultV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 			// > Once a secret, key, certificate, or key vault is deleted, it will remain recoverable
 			// > for a configurable period of 7 to 90 calendar days. If no configuration is specified
 			// > the default recovery period will be set to 90 days
-			// https://docs.microsoft.com/en-us/azure/key-vault/general/soft-delete-overview
+			// https://docs.microsoft.com/azure/key-vault/general/soft-delete-overview
 			//
 			// Notably this value cannot be updated once it's initially been configured, meaning that we
 			// must not send this during creation if it's the default value, to allow users to change

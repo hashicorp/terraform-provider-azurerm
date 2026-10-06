@@ -121,7 +121,7 @@ func is[T any](x any) bool {
 
 // recvType returns the receiver type of method obj.
 func recvType(obj *types.Func) types.Type {
-	return obj.Type().(*types.Signature).Recv().Type()
+	return obj.Signature().Recv().Type()
 }
 
 // fieldOf returns the index'th field of the (core type of) a struct type;
@@ -181,26 +181,20 @@ func newVar(name string, typ types.Type) *types.Var {
 	return types.NewParam(token.NoPos, nil, name, typ)
 }
 
-// anonVar creates an anonymous 'var' for use in a types.Tuple.
-func anonVar(typ types.Type) *types.Var {
-	return newVar("", typ)
-}
-
-var lenResults = types.NewTuple(anonVar(tInt))
+var lenResults = typesinternal.TupleOf(tInt)
 
 // makeLen returns the len builtin specialized to type func(T)int.
 func makeLen(T types.Type) *Builtin {
-	lenParams := types.NewTuple(anonVar(T))
 	return &Builtin{
 		name: "len",
-		sig:  types.NewSignatureType(nil, nil, nil, lenParams, lenResults, false),
+		sig:  types.NewSignatureType(nil, nil, nil, typesinternal.TupleOf(T), lenResults, false),
 	}
 }
 
 // receiverTypeArgs returns the type arguments to a method's receiver.
 // Returns an empty list if the receiver does not have type arguments.
 func receiverTypeArgs(method *types.Func) []types.Type {
-	recv := method.Type().(*types.Signature).Recv()
+	recv := method.Signature().Recv()
 	_, named := typesinternal.ReceiverNamed(recv)
 	if named == nil {
 		return nil // recv is anonymous struct/interface
@@ -221,8 +215,8 @@ func receiverTypeArgs(method *types.Func) []types.Type {
 func recvAsFirstArg(sig *types.Signature) *types.Signature {
 	params := make([]*types.Var, 0, 1+sig.Params().Len())
 	params = append(params, sig.Recv())
-	for i := 0; i < sig.Params().Len(); i++ {
-		params = append(params, sig.Params().At(i))
+	for v := range sig.Params().Variables() {
+		params = append(params, v)
 	}
 	return types.NewSignatureType(nil, nil, nil, types.NewTuple(params...), sig.Results(), sig.Variadic())
 }

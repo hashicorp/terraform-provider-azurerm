@@ -114,6 +114,10 @@ A `template` block supports the following:
 
 * `min_replicas` - (Optional) The minimum number of replicas for this container.
 
+* `cooldown_period_in_seconds` - (Optional) The number of seconds to wait before scaling down the number of instances again. Defaults to `300`.
+
+* `polling_interval_in_seconds` - (Optional) The interval in seconds used for polling KEDA. Defaults to `30`.
+
 * `azure_queue_scale_rule` - (Optional) One or more `azure_queue_scale_rule` blocks as defined below.
 
 * `custom_scale_rule` - (Optional) One or more `custom_scale_rule` blocks as defined below.
@@ -151,6 +155,8 @@ A `custom_scale_rule` block supports the following:
 * `metadata` - (Required) - A map of string key-value pairs to configure the Custom Scale Rule.
 
 * `authentication` - (Optional) Zero or more `authentication` blocks as defined below.
+
+* `ìdentity_id`- (Optional) Resource ID for the System or User Assigned Managed identity to use when executing the scale rule.
 
 ---
 
@@ -258,7 +264,7 @@ A `container` block supports the following:
 
 A `liveness_probe` block supports the following:
 
-* `failure_count_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.
+* `failure_count_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.
 
 * `header` - (Optional) A `header` block as detailed below.
 
@@ -300,7 +306,7 @@ An `env` block supports the following:
 
 A `readiness_probe` block supports the following:
 
-* `failure_count_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.
+* `failure_count_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `48`. Defaults to `3`.
 
 * `header` - (Optional) A `header` block as detailed below.
 
@@ -332,7 +338,7 @@ A `header` block supports the following:
 
 A `startup_probe` block supports the following:
 
-* `failure_count_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.
+* `failure_count_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `240`. Defaults to `3`.
 
 * `header` - (Optional) A `header` block as detailed below.
 
@@ -466,7 +472,7 @@ A `dapr` block supports the following:
 
 A `registry` block supports the following:
 
-* `server` - (Required) The hostname for the Container Registry.
+* `server` - (Required) The FQDN for the Container Registry.
 
 The authentication details must also be supplied, `identity` and `username`/`password_secret_name` are mutually exclusive.
 

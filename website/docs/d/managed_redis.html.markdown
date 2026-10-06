@@ -93,6 +93,8 @@ A `default_database` block exports the following:
 
 * `geo_replication_linked_database_ids` - A list of linked database IDs for geo-replication.
 
+* `id` - The ID of the Managed Redis Database Instance.
+
 * `module` - A list of `module` blocks as defined below.
 
 * `persistence_append_only_file_backup_frequency` - The frequency of Append Only File (AOF) backups.
@@ -129,7 +131,7 @@ A `module` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Managed Redis instance.
 
