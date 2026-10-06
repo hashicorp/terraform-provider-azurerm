@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/linkedservices"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -41,7 +40,7 @@ type LinkedServiceAzurePostgreSQLResourceModel struct {
 	Description            string                   `tfschema:"description"`
 	IntegrationRuntimeName string                   `tfschema:"integration_runtime_name"`
 	KeyVaultPassword       []KeyVaultPasswordConfig `tfschema:"key_vault_password"`
-	Parameters             map[string]interface{}   `tfschema:"parameters"`
+	Parameters             map[string]any   `tfschema:"parameters"`
 	Port                   int64                    `tfschema:"port"`
 	SslMode                string                   `tfschema:"ssl_mode"`
 	Username               string                   `tfschema:"username"`
@@ -146,7 +145,7 @@ func (LinkedServiceAzurePostgreSQLResource) Arguments() map[string]*pluginsdk.Sc
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      5432,
-			ValidateFunc: azValidate.PortNumberOrZero,
+			ValidateFunc: validation.IsPortNumberOrZero,
 		},
 
 		"ssl_mode": {
@@ -202,7 +201,7 @@ func (LinkedServiceAzurePostgreSQLResource) Attributes() map[string]*pluginsdk.S
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (LinkedServiceAzurePostgreSQLResource) ModelObject() interface{} {
+func (LinkedServiceAzurePostgreSQLResource) ModelObject() any {
 	return &LinkedServiceAzurePostgreSQLResourceModel{}
 }
 
@@ -374,18 +373,18 @@ func expandLinkedServiceAzurePostgreSQLTypeProperties(config LinkedServiceAzureP
 	authType := linkedservices.AzurePostgreSqlAuthenticationType(config.AuthenticationType)
 
 	typeProperties := &linkedservices.AzurePostgreSqlLinkedServiceTypeProperties{
-		Database:           pointer.To(interface{}(config.Database)),
-		Server:             pointer.To(interface{}(config.Server)),
-		Port:               pointer.To(interface{}(config.Port)),
+		Database:           pointer.To(any(config.Database)),
+		Server:             pointer.To(any(config.Server)),
+		Port:               pointer.To(any(config.Port)),
 		AuthenticationType: pointer.To(authType),
 	}
 
 	if config.SslMode != "" {
-		typeProperties.SslMode = pointer.To(interface{}(config.SslMode))
+		typeProperties.SslMode = pointer.To(any(config.SslMode))
 	}
 	if authType == linkedservices.AzurePostgreSqlAuthenticationTypeBasic {
 		typeProperties.Password = expandTypedLinkedServiceKeyVaultPassword(config.KeyVaultPassword)
-		typeProperties.Username = pointer.To(interface{}(config.Username))
+		typeProperties.Username = pointer.To(any(config.Username))
 	}
 
 	if authType == linkedservices.AzurePostgreSqlAuthenticationTypeUserAssignedManagedIdentity {

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -110,7 +111,7 @@ func resourceDnsCaaRecord() *pluginsdk.Resource {
 	}
 }
 
-func resourceDnsCaaRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDnsCaaRecordCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -137,7 +138,7 @@ func resourceDnsCaaRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	ttl := int64(d.Get("ttl").(int))
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
 	parameters := recordsets.RecordSet{
 		Name: &name,
@@ -157,7 +158,7 @@ func resourceDnsCaaRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	return resourceDnsCaaRecordRead(d, meta)
 }
 
-func resourceDnsCaaRecordRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDnsCaaRecordRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -197,7 +198,7 @@ func resourceDnsCaaRecordRead(d *pluginsdk.ResourceData, meta interface{}) error
 	return nil
 }
 
-func resourceDnsCaaRecordDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDnsCaaRecordDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -214,30 +215,15 @@ func resourceDnsCaaRecordDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	return nil
 }
 
-func flattenAzureRmDnsCaaRecords(records *[]recordsets.CaaRecord) []map[string]interface{} {
-	results := make([]map[string]interface{}, 0)
+func flattenAzureRmDnsCaaRecords(records *[]recordsets.CaaRecord) []map[string]any {
+	results := make([]map[string]any, 0)
 
 	if records != nil {
 		for _, record := range *records {
-			flags := int64(0)
-			if record.Flags != nil {
-				flags = *record.Flags
-			}
-
-			tag := ""
-			if record.Tag != nil {
-				tag = *record.Tag
-			}
-
-			value := ""
-			if record.Value != nil {
-				value = *record.Value
-			}
-
-			results = append(results, map[string]interface{}{
-				"flags": flags,
-				"tag":   tag,
-				"value": value,
+			results = append(results, map[string]any{
+				"flags": pointer.From(record.Flags),
+				"tag":   pointer.From(record.Tag),
+				"value": pointer.From(record.Value),
 			})
 		}
 	}
@@ -250,29 +236,25 @@ func expandAzureRmDnsCaaRecords(d *pluginsdk.ResourceData) *[]recordsets.CaaReco
 	records := make([]recordsets.CaaRecord, 0)
 
 	for _, v := range recordStrings {
-		record := v.(map[string]interface{})
-
-		flags := int64(record["flags"].(int))
-		tag := record["tag"].(string)
-		value := record["value"].(string)
+		record := v.(map[string]any)
 
 		records = append(records, recordsets.CaaRecord{
-			Flags: &flags,
-			Tag:   &tag,
-			Value: &value,
+			Flags: pointer.To(int64(record["flags"].(int))),
+			Tag:   pointer.To(record["tag"].(string)),
+			Value: pointer.To(record["value"].(string)),
 		})
 	}
 
 	return &records
 }
 
-func resourceDnsCaaRecordHash(v interface{}) int {
+func resourceDnsCaaRecordHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%d-", m["flags"].(int)))
-		buf.WriteString(fmt.Sprintf("%s-", m["tag"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["value"].(string)))
+	if m, ok := v.(map[string]any); ok {
+		fmt.Fprintf(&buf, "%d-", m["flags"].(int))
+		fmt.Fprintf(&buf, "%s-", m["tag"].(string))
+		fmt.Fprintf(&buf, "%s-", m["value"].(string))
 	}
 
 	return pluginsdk.HashString(buf.String())

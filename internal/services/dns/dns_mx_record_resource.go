@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -101,7 +102,7 @@ func resourceDnsMxRecord() *pluginsdk.Resource {
 	}
 }
 
-func resourceDnsMxRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDnsMxRecordCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -128,7 +129,7 @@ func resourceDnsMxRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	ttl := int64(d.Get("ttl").(int))
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
 	parameters := recordsets.RecordSet{
 		Name: &name,
@@ -147,7 +148,7 @@ func resourceDnsMxRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	return resourceDnsMxRecordRead(d, meta)
 }
 
-func resourceDnsMxRecordRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDnsMxRecordRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -187,7 +188,7 @@ func resourceDnsMxRecordRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func resourceDnsMxRecordDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDnsMxRecordDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -207,8 +208,8 @@ func resourceDnsMxRecordDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 // flatten creates an array of map where preference is a string to suit
 // the expectations of the ResourceData schema, so that this data can be
 // managed by Terradata state.
-func flattenAzureRmDnsMxRecords(records *[]recordsets.MxRecord) []map[string]interface{} {
-	results := make([]map[string]interface{}, 0)
+func flattenAzureRmDnsMxRecords(records *[]recordsets.MxRecord) []map[string]any {
+	results := make([]map[string]any, 0)
 
 	if records != nil {
 		for _, record := range *records {
@@ -218,14 +219,9 @@ func flattenAzureRmDnsMxRecords(records *[]recordsets.MxRecord) []map[string]int
 				preference = strconv.Itoa(int(*record.Preference))
 			}
 
-			exchange := ""
-			if record.Exchange != nil {
-				exchange = *record.Exchange
-			}
-
-			results = append(results, map[string]interface{}{
+			results = append(results, map[string]any{
 				"preference": preference,
-				"exchange":   exchange,
+				"exchange":   pointer.From(record.Exchange),
 			})
 		}
 	}
@@ -241,26 +237,25 @@ func expandAzureRmDnsMxRecords(d *pluginsdk.ResourceData) *[]recordsets.MxRecord
 	records := make([]recordsets.MxRecord, len(recordStrings))
 
 	for i, v := range recordStrings {
-		mxrecord := v.(map[string]interface{})
+		mxrecord := v.(map[string]any)
 		preference := mxrecord["preference"].(string)
 		i64, _ := strconv.ParseInt(preference, 10, 32)
-		exchange := mxrecord["exchange"].(string)
 
 		records[i] = recordsets.MxRecord{
 			Preference: &i64,
-			Exchange:   &exchange,
+			Exchange:   pointer.To(mxrecord["exchange"].(string)),
 		}
 	}
 
 	return &records
 }
 
-func resourceDnsMxRecordHash(v interface{}) int {
+func resourceDnsMxRecordHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", m["preference"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["exchange"].(string)))
+	if m, ok := v.(map[string]any); ok {
+		fmt.Fprintf(&buf, "%s-", m["preference"].(string))
+		fmt.Fprintf(&buf, "%s-", m["exchange"].(string))
 	}
 
 	return pluginsdk.HashString(buf.String())

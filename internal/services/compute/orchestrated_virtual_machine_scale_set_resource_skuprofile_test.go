@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 func sequentialResourceTest(t *testing.T, data acceptance.TestData, testResource OrchestratedVirtualMachineScaleSetResource, steps []acceptance.TestStep) {
@@ -40,83 +39,6 @@ func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_basic(t *testing.T) {
 	sequentialResourceTest(t, data, r, []acceptance.TestStep{
 		{
 			Config: r.skuProfileBasic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("os_profile.0.windows_configuration.0.admin_password"),
-	})
-}
-
-// TODO: Remove in v5.0
-func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_vmSizesBackwardCompatibility(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skipf("Skipping since `vm_sizes` field is deprecated and has been removed in v5.0")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	r := OrchestratedVirtualMachineScaleSetResource{}
-
-	sequentialResourceTest(t, data, r, []acceptance.TestStep{
-		{
-			// The OVMSS is deployed with the deprecated `vm_sizes`...
-			Config: r.skuProfileDeprecatedSimple(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("os_profile.0.windows_configuration.0.admin_password"),
-		{
-			// Switching to the new `virtual_machine_size` format should not trigger any changes...
-			Config:   r.skuProfileUpdate(data),
-			PlanOnly: true,
-			ConfigPlanChecks: resource.ConfigPlanChecks{
-				PostApplyPreRefresh: []plancheck.PlanCheck{
-					plancheck.ExpectEmptyPlan(),
-				},
-			},
-		},
-		data.ImportStep("os_profile.0.windows_configuration.0.admin_password"),
-		{
-			// Switching back to the `vm_sizes` also should not trigger any changes...
-			Config:   r.skuProfileDeprecatedSimple(data),
-			PlanOnly: true,
-			ConfigPlanChecks: resource.ConfigPlanChecks{
-				PostApplyPreRefresh: []plancheck.PlanCheck{
-					plancheck.ExpectEmptyPlan(),
-				},
-			},
-		},
-		data.ImportStep("os_profile.0.windows_configuration.0.admin_password"),
-	})
-}
-
-// TODO: Remove in v5.0
-func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_vmSizesBackwardCompatibility_update(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skipf("Skipping since `vm_sizes` field is deprecated and has been removed in v5.0")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	r := OrchestratedVirtualMachineScaleSetResource{}
-
-	sequentialResourceTest(t, data, r, []acceptance.TestStep{
-		{
-			Config: r.skuProfileDeprecatedSimple(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("os_profile.0.windows_configuration.0.admin_password"),
-		{
-			Config: r.skuProfileDeprecatedUpdate(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("os_profile.0.windows_configuration.0.admin_password"),
-		{
-			Config: r.skuProfileDeprecatedSimple(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -189,7 +111,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_customizeDiffValidatio
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
-	testSteps := []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.skuProfileSkuNameIsNotMix(data),
 			ExpectError: regexp.MustCompile("`sku_profile` can only be configured when `sku_name` is set to `Mix`, got `Standard_D2s_v3`"),
@@ -202,20 +124,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_customizeDiffValidatio
 			Config:      r.skuProfileRankWithoutPrioritized(data),
 			ExpectError: regexp.MustCompile("`rank` can only be set when `allocation_strategy` is `Prioritized`, got `CapacityOptimized`"),
 		},
-	}
-
-	// TODO: Remove in v5.0 - These test steps are for deprecated vm_sizes functionality
-	if !features.FivePointOh() {
-		testSteps = append(
-			testSteps,
-			acceptance.TestStep{
-				Config:      r.skuProfileNeitherFieldProvided(data),
-				ExpectError: regexp.MustCompile("either `vm_sizes` or `virtual_machine_size` must be configured in `sku_profile`"),
-			},
-		)
-	}
-
-	data.ResourceTest(t, r, testSteps)
+	})
 }
 
 func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_forceNewOnRemovalWithSkuNameChange(t *testing.T) {
@@ -289,11 +198,11 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   os_profile {
     windows_configuration {
-      computer_name_prefix     = "testvm"
-      admin_username           = "myadmin"
-      admin_password           = "Passwword1234"
-      enable_automatic_updates = true
-      provision_vm_agent       = true
+      computer_name_prefix      = "testvm"
+      admin_username            = "myadmin"
+      admin_password            = "Passwword1234"
+      automatic_updates_enabled = true
+      provision_vm_agent        = true
     }
   }
 
@@ -454,30 +363,4 @@ func skuProfilePrioritizedWithFiveVMSizesOutOfOrderDuplicateRanks() string {
 
 func (r OrchestratedVirtualMachineScaleSetResource) skuProfileForceNewTransition(data acceptance.TestData) string {
 	return r.skuProfileTemplate(data) + "\n" + r.skuProfileConfig(data, "Standard_D2s_v3", "")
-}
-
-// TODO: Remove in v5.0
-func (r OrchestratedVirtualMachineScaleSetResource) skuProfileNeitherFieldProvided(data acceptance.TestData) string {
-	skuProfileBlock := `  sku_profile {
-    allocation_strategy = "CapacityOptimized"
-  }`
-	return r.skuProfileTemplate(data) + "\n" + r.skuProfileConfig(data, "Mix", skuProfileBlock)
-}
-
-// TODO: Remove in v5.0
-func (r OrchestratedVirtualMachineScaleSetResource) skuProfileDeprecatedSimple(data acceptance.TestData) string {
-	skuProfileBlock := `  sku_profile {
-    allocation_strategy = "LowestPrice"
-    vm_sizes = ["Standard_A2_v2", "Standard_D2s_v3"]
-  }`
-	return r.skuProfileTemplate(data) + "\n" + r.skuProfileConfig(data, "Mix", skuProfileBlock)
-}
-
-// TODO: Remove in v5.0
-func (r OrchestratedVirtualMachineScaleSetResource) skuProfileDeprecatedUpdate(data acceptance.TestData) string {
-	skuProfileBlock := `  sku_profile {
-    allocation_strategy = "LowestPrice"
-    vm_sizes = ["Standard_A2_v2", "Standard_D2s_v3", "Standard_F2s_v2"]
-  }`
-	return r.skuProfileTemplate(data) + "\n" + r.skuProfileConfig(data, "Mix", skuProfileBlock)
 }

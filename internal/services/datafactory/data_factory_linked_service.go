@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 func importDataFactoryLinkedService(expectType datafactory.TypeBasicLinkedService) pluginsdk.ImporterFunc {
-	return func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) (data []*pluginsdk.ResourceData, err error) {
+	return func(ctx context.Context, d *pluginsdk.ResourceData, meta any) (data []*pluginsdk.ResourceData, err error) {
 		id, err := parse.LinkedServiceID(d.Id())
 		if err != nil {
 			return nil, err
@@ -55,7 +55,7 @@ func importDataFactoryLinkedService(expectType datafactory.TypeBasicLinkedServic
 	}
 }
 
-func expandTypedLinkedServiceParameters(input map[string]interface{}) *map[string]linkedservices.ParameterSpecification {
+func expandTypedLinkedServiceParameters(input map[string]any) *map[string]linkedservices.ParameterSpecification {
 	if len(input) == 0 {
 		return nil
 	}
@@ -71,12 +71,12 @@ func expandTypedLinkedServiceParameters(input map[string]interface{}) *map[strin
 	return &parameterSpec
 }
 
-func expandTypedLinkedServiceAnnotations(input []string) *[]interface{} {
+func expandTypedLinkedServiceAnnotations(input []string) *[]any {
 	if len(input) == 0 {
 		return nil
 	}
 
-	annotations := make([]interface{}, len(input))
+	annotations := make([]any, len(input))
 	for i, v := range input {
 		annotations[i] = v
 	}
@@ -110,8 +110,8 @@ func expandTypedLinkedServiceKeyVaultPassword(input []KeyVaultPasswordConfig) *l
 	}
 }
 
-func flattenTypedLinkedServiceParameters(input *map[string]linkedservices.ParameterSpecification) map[string]interface{} {
-	output := make(map[string]interface{})
+func flattenTypedLinkedServiceParameters(input *map[string]linkedservices.ParameterSpecification) map[string]any {
+	output := make(map[string]any)
 	if input == nil {
 		return output
 	}
@@ -127,7 +127,7 @@ func flattenTypedLinkedServiceParameters(input *map[string]linkedservices.Parame
 	return output
 }
 
-func flattenTypedLinkedServiceAnnotations(input *[]interface{}) []string {
+func flattenTypedLinkedServiceAnnotations(input *[]any) []string {
 	annotations := make([]string, 0)
 	if input == nil {
 		return annotations
