@@ -6,6 +6,7 @@ package costmanagement
 import (
 	"context"
 	"fmt"
+	"maps"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -116,9 +117,7 @@ func (br costManagementExportBaseResource) arguments(fields map[string]*pluginsd
 		},
 	}
 
-	for k, v := range fields {
-		output[k] = v
-	}
+	maps.Copy(output, fields)
 
 	return output
 }

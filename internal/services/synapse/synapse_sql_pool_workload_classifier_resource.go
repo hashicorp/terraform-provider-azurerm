@@ -9,7 +9,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -105,7 +105,7 @@ func resourceSynapseSQLPoolWorkloadClassifier() *pluginsdk.Resource {
 	}
 }
 
-func resourceSynapseSQLPoolWorkloadClassifierCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseSQLPoolWorkloadClassifierCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.SQLPoolWorkloadClassifierClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -157,7 +157,7 @@ func resourceSynapseSQLPoolWorkloadClassifierCreateUpdate(d *pluginsdk.ResourceD
 	return resourceSynapseSQLPoolWorkloadClassifierRead(d, meta)
 }
 
-func resourceSynapseSQLPoolWorkloadClassifierRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseSQLPoolWorkloadClassifierRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.SQLPoolWorkloadClassifierClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -189,7 +189,7 @@ func resourceSynapseSQLPoolWorkloadClassifierRead(d *pluginsdk.ResourceData, met
 	return nil
 }
 
-func resourceSynapseSQLPoolWorkloadClassifierDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseSQLPoolWorkloadClassifierDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.SQLPoolWorkloadClassifierClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

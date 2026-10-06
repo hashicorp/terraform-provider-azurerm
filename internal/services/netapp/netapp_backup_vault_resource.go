@@ -20,8 +20,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
-	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -29,8 +29,8 @@ type NetAppBackupVaultResource struct{}
 
 var _ sdk.Resource = NetAppBackupVaultResource{}
 
-func (r NetAppBackupVaultResource) ModelObject() interface{} {
-	return &netAppModels.NetAppBackupVaultModel{}
+func (r NetAppBackupVaultResource) ModelObject() any {
+	return &models.NetAppBackupVaultModel{}
 }
 
 func (r NetAppBackupVaultResource) ResourceType() string {
@@ -47,7 +47,7 @@ func (r NetAppBackupVaultResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: netAppValidate.VolumeQuotaRuleName,
+			ValidateFunc: validate.VolumeQuotaRuleName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -58,7 +58,7 @@ func (r NetAppBackupVaultResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: netAppValidate.AccountName,
+			ValidateFunc: validate.AccountName,
 		},
 
 		"tags": commonschema.Tags(),
@@ -76,7 +76,7 @@ func (r NetAppBackupVaultResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.NetApp.BackupVaultsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var model netAppModels.NetAppBackupVaultModel
+			var model models.NetAppBackupVaultModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -123,7 +123,7 @@ func (r NetAppBackupVaultResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var state netAppModels.NetAppBackupVaultModel
+			var state models.NetAppBackupVaultModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -154,7 +154,7 @@ func (r NetAppBackupVaultResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			var state netAppModels.NetAppBackupVaultModel
+			var state models.NetAppBackupVaultModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -210,7 +210,7 @@ func (r NetAppBackupVaultResource) Delete() sdk.ResourceFunc {
 			}
 
 			// Attempt to delete backup vault with retries
-			for retries := 0; retries < 5; retries++ {
+			for range 5 {
 				// Delete backups
 				if err := deleteBackupsFromVault(ctx, id, backupClient, metadata.Client.Features.NetApp.DeleteBackupsOnBackupVaultDestroy); err != nil {
 					return err
@@ -265,7 +265,7 @@ func waitForBackupVaultDeletion(ctx context.Context, vaultClient *backupvaults.B
 }
 
 func netappBackupVaultStateRefreshFunc(ctx context.Context, vaultClient *backupvaults.BackupVaultsClient, backupClient *backups.BackupsClient, id backupvaults.BackupVaultId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		res, err := vaultClient.Get(ctx, id)
 		if err != nil {
 			if response.WasNotFound(res.HttpResponse) {
@@ -329,7 +329,7 @@ func deleteBackupsFromVault(ctx context.Context, id *backupvaults.BackupVaultId,
 
 func retryBackupDelete(ctx context.Context, client *backups.BackupsClient, id backups.BackupId, retryAttempts, retryIntervalSec int) error {
 	var lastErr error
-	for attempt := 0; attempt < retryAttempts; attempt++ {
+	for range retryAttempts {
 		if err := client.DeleteThenPoll(ctx, id); err == nil {
 			if err := waitForBackupDeletion(ctx, client, id); err != nil {
 				return fmt.Errorf("waiting for deletion of %s: %w", id.ID(), err)

@@ -70,7 +70,7 @@ func dataSourceApiManagementProduct() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceApiManagementProductRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceApiManagementProductRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ProductsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

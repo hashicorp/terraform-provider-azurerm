@@ -89,7 +89,7 @@ func dataSourceKeyVaultCertificateData() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceArmKeyVaultCertificateDataRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceArmKeyVaultCertificateDataRead(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -206,7 +206,7 @@ func dataSourceArmKeyVaultCertificateDataRead(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
-	var privateKey interface{}
+	var privateKey any
 
 	if *pfx.ContentType == "application/x-pkcs12" {
 		rsakey, err := x509.ParsePKCS1PrivateKey(pemKey)
@@ -257,7 +257,7 @@ func dataSourceArmKeyVaultCertificateDataRead(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("encoding Key Vault Certificate Key: %+v", err)
 	}
 
-	certs := ""
+	var certs strings.Builder
 
 	for _, pemCert := range pemCerts {
 		certBlock := &pem.Block{
@@ -269,10 +269,10 @@ func dataSourceArmKeyVaultCertificateDataRead(d *pluginsdk.ResourceData, meta in
 		if err = pem.Encode(&certPEM, certBlock); err != nil {
 			return fmt.Errorf("encoding Key Vault Certificate PEM: %+v", err)
 		}
-		certs += certPEM.String()
+		certs.WriteString(certPEM.String())
 	}
 
-	d.Set("pem", certs)
+	d.Set("pem", certs.String())
 	d.Set("key", keyPEM.String())
 	d.Set("certificates_count", len(pemCerts))
 

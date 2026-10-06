@@ -393,7 +393,7 @@ func (d ExadataInfraDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (d ExadataInfraDataSource) ModelObject() interface{} {
+func (d ExadataInfraDataSource) ModelObject() any {
 	return &ExadataInfraDataModel{}
 }
 
@@ -507,8 +507,8 @@ func FlattenMaintenanceWindow(maintenanceWindow *cloudexadatainfrastructures.Mai
 			HoursOfDay:      pointer.From(maintenanceWindow.HoursOfDay),
 			LeadTimeInWeeks: pointer.From(maintenanceWindow.LeadTimeInWeeks),
 			Months:          FlattenMonths(maintenanceWindow.Months),
-			PatchingMode:    string(pointer.From(maintenanceWindow.PatchingMode)),
-			Preference:      string(pointer.From(maintenanceWindow.Preference)),
+			PatchingMode:    pointer.FromEnum(maintenanceWindow.PatchingMode),
+			Preference:      pointer.FromEnum(maintenanceWindow.Preference),
 			WeeksOfMonth:    pointer.From(maintenanceWindow.WeeksOfMonth),
 		})
 	}
