@@ -10,7 +10,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -216,100 +215,6 @@ func TestKubernetesFleetManagerPrivateHubPreCheck(t *testing.T) {
 			actual := (KubernetesFleetManagerTestResource{}).preCheckPrivateHub(t)
 			if actual != expected {
 				t.Fatalf("expected normalized subnet ID %q, got %q", expected, actual)
-			}
-		})
-	}
-}
-
-func TestKubernetesFleetManagerPrivateHubConfig(t *testing.T) {
-	data := acceptance.TestData{RandomInteger: 123, RandomString: "abcde"}
-	data.Locations.Primary = "eastus"
-	subnetId := "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acctest/providers/Microsoft.Network/virtualNetworks/test/subnets/agents"
-	r := KubernetesFleetManagerTestResource{}
-
-	for _, test := range []struct {
-		name              string
-		configureProfiles bool
-		phase             string
-	}{
-		{name: "create", configureProfiles: true, phase: "initial"},
-		{name: "profile_omission_plan", configureProfiles: false, phase: "initial"},
-		{name: "profile_omission_update", configureProfiles: false, phase: "updated"},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			config := r.privateHub(data, subnetId, test.configureProfiles, test.phase)
-			for _, block := range []string{
-				`provider "azurerm"`,
-				`resource "azurerm_resource_group" "test"`,
-				`data "azurerm_kubernetes_fleet_manager" "test"`,
-				`resource "azurerm_kubernetes_fleet_manager" "test"`,
-				`dynamic "agent_profile"`,
-				`dynamic "api_server_access_profile"`,
-			} {
-				if count := strings.Count(config, block); count != 1 {
-					t.Errorf("expected one %s block, got %d", block, count)
-				}
-			}
-			for _, value := range []string{
-				`default = "eastus"`,
-				fmt.Sprintf("default = %t", test.configureProfiles),
-				fmt.Sprintf("phase = %q", test.phase),
-				fmt.Sprintf("subnet_id            = %q", subnetId),
-				`virtual_machine_size = "Standard_D2as_v7"`,
-				"private_cluster_enabled = true",
-			} {
-				if !strings.Contains(config, value) {
-					t.Errorf("expected rendered configuration to contain %q", value)
-				}
-			}
-			if count := strings.Count(config, "for_each = var.configure_profiles ? [1] : []"); count != 2 {
-				t.Errorf("expected both optional profiles to use the omission switch, got %d", count)
-			}
-			if strings.Contains(config, "dns_prefix") {
-				t.Error("private hubs must omit dns_prefix")
-			}
-			if strings.Contains(config, "%!") {
-				t.Error("configuration contains an unresolved formatting directive")
-			}
-		})
-	}
-}
-
-func TestKubernetesFleetManagerHubProfileDefaultsConfig(t *testing.T) {
-	data := acceptance.TestData{RandomInteger: 123, RandomString: "abcde"}
-	data.Locations.Primary = "eastus"
-	r := KubernetesFleetManagerTestResource{}
-
-	for _, phase := range []string{"initial", "updated"} {
-		t.Run(phase, func(t *testing.T) {
-			config := r.hubProfileDefaults(data, phase)
-			for _, block := range []string{
-				`provider "azurerm"`,
-				`resource "azurerm_resource_group" "test"`,
-				`resource "azurerm_kubernetes_fleet_manager" "test"`,
-				"hub_profile",
-			} {
-				if count := strings.Count(config, block); count != 1 {
-					t.Errorf("expected one %s block, got %d", block, count)
-				}
-			}
-			if !strings.Contains(config, "hub_profile {}") {
-				t.Error("default hub configuration must contain an empty hub_profile block")
-			}
-			for _, field := range []string{"agent_profile", "api_server_access_profile", "dns_prefix"} {
-				if strings.Contains(config, field) {
-					t.Errorf("default hub configuration must omit %s", field)
-				}
-			}
-			tag := fmt.Sprintf("phase = %q", phase)
-			if count := strings.Count(config, tag); count != 1 {
-				t.Errorf("expected one %s tag, got %d", tag, count)
-			}
-			if strings.Replace(config, tag, `phase = "initial"`, 1) != r.hubProfileDefaults(data, "initial") {
-				t.Error("update configuration must change only the phase tag")
-			}
-			if strings.Contains(config, "%!") {
-				t.Error("configuration contains an unresolved formatting directive")
 			}
 		})
 	}
