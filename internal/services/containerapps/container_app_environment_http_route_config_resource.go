@@ -99,14 +99,10 @@ func (r ContainerAppEnvironmentHttpRouteConfigResource) Arguments() map[string]*
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"binding_type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(httprouteconfig.BindingTypeAuto),
-							string(httprouteconfig.BindingTypeDisabled),
-							string(httprouteconfig.BindingTypeSniEnabled),
-						}, false),
-						Description: "The Binding type. Possible values include `Auto`, `Disabled` and `SniEnabled`.",
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice(httprouteconfig.PossibleValuesForBindingType(), false),
+						Description:  "The Binding type. Possible values include `Auto`, `Disabled` and `SniEnabled`.",
 					},
 
 					"certificate_id": {
@@ -397,8 +393,7 @@ func expandHttpRouteCustomDomains(input []HttpRouteCustomDomainModel) *[]httprou
 			Name: v.Name,
 		}
 		if v.BindingType != "" {
-			bindingType := httprouteconfig.BindingType(v.BindingType)
-			cd.BindingType = &bindingType
+			cd.BindingType = pointer.ToEnum[httprouteconfig.BindingType](v.BindingType)
 		}
 		if v.CertificateId != "" {
 			cd.CertificateId = pointer.To(v.CertificateId)
