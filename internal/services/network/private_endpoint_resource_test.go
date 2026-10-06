@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -6,14 +6,15 @@ package network_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/privateendpoints"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/privateendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type PrivateEndpointResource struct{}
@@ -69,16 +70,16 @@ func TestAccPrivateEndpoint_updateTag(t *testing.T) {
 	})
 }
 
-func TestAccPrivateEndpoint_customNicName(t *testing.T) {
+func TestAccPrivateEndpoint_withCustomNicName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
 	r := PrivateEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withCustomNicName(data, "acctest-privatelink-custom-nic"),
+			Config: r.withCustomNicName(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("custom_network_interface_name").HasValue("acctest-privatelink-custom-nic"),
+				check.That(data.ResourceName).Key("custom_network_interface_name").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -112,6 +113,22 @@ func TestAccPrivateEndpoint_requestMessage(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccPrivateEndpoint_invalidRequestMessage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
+	r := PrivateEndpointResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.invalidAtuoWithRequestMessage(data),
+			ExpectError: regexp.MustCompile(`the "request_message" attribute cannot be set if the "is_manual_connection" attribute is "false"`),
+		},
+		{
+			Config:      r.invalidManualWithoutRequestMessage(data),
+			ExpectError: regexp.MustCompile(`the "request_message" attribute must not be empty`),
+		},
 	})
 }
 
@@ -186,6 +203,34 @@ func TestAccPrivateEndpoint_privateDnsZoneUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("private_dns_zone_group.0.private_dns_zone_ids.#").HasValue("2"),
 				check.That(data.ResourceName).Key("private_dns_zone_configs.#").HasValue("2"),
+				check.That(data.ResourceName).Key("private_dns_zone_group.#").HasValue("1"),
+			),
+		},
+		data.ImportStep("private_dns_zone_configs", "private_dns_zone_group"),
+	})
+}
+
+func TestAccPrivateEndpoint_privateDnsZoneIdsUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
+	r := PrivateEndpointResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.privateDnsZoneGroup(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_dns_zone_group.0.private_dns_zone_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("private_dns_zone_configs.#").HasValue("1"),
+				check.That(data.ResourceName).Key("private_dns_zone_group.#").HasValue("1"),
+			),
+		},
+		data.ImportStep("private_dns_zone_configs", "private_dns_zone_group"),
+		{
+			Config: r.privateDnsZoneGroupIdsUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_dns_zone_group.0.private_dns_zone_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("private_dns_zone_configs.#").HasValue("1"),
 				check.That(data.ResourceName).Key("private_dns_zone_group.#").HasValue("1"),
 			),
 		},
@@ -294,7 +339,7 @@ func (t PrivateEndpointResource) Exists(ctx context.Context, clients *clients.Cl
 		return nil, fmt.Errorf("reading Private Endpoint (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func TestAccPrivateEndpoint_multipleInstances(t *testing.T) {
@@ -303,7 +348,7 @@ func TestAccPrivateEndpoint_multipleInstances(t *testing.T) {
 
 	instanceCount := 5
 	var checks []pluginsdk.TestCheckFunc
-	for i := 0; i < instanceCount; i++ {
+	for i := range instanceCount {
 		checks = append(checks, check.That(fmt.Sprintf("%s.%d", data.ResourceName, i)).ExistsInAzure(r))
 	}
 
@@ -322,7 +367,7 @@ func TestAccPrivateEndpoint_multipleInstancesWithLinkAlias(t *testing.T) {
 
 	instanceCount := 5
 	var checks []pluginsdk.TestCheckFunc
-	for i := 0; i < instanceCount; i++ {
+	for i := range instanceCount {
 		checks = append(checks, check.That(fmt.Sprintf("%s.%d", data.ResourceName, i)).ExistsInAzure(r))
 	}
 
@@ -350,13 +395,27 @@ func TestAccPrivateEndpoint_multipleIpConfigurations(t *testing.T) {
 	})
 }
 
+func TestAccPrivateEndpoint_edgeZone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
+	r := PrivateEndpointResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.edgeZone(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccPrivateEndpoint_subnetCaseInsensitivity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
 	r := PrivateEndpointResource{}
 
 	subnetId := fmt.Sprintf("/subscriptions/%s/resourceGroups/acctestRG-privatelink-%d/providers/Microsoft.Network/virtualNetworks/acctestvnet-%d/subnets/acctestsnetendpoint-%d", data.Subscriptions.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 
-	fmt.Println(subnetId)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -379,7 +438,117 @@ func TestAccPrivateEndpoint_subnetCaseInsensitivity(t *testing.T) {
 	})
 }
 
-func (PrivateEndpointResource) template(data acceptance.TestData, seviceCfg string) string {
+func (r PrivateEndpointResource) edgeZone(data acceptance.TestData) string {
+	// WestUS has an edge zone available - so hard-code to that for now
+	data.Locations.Primary = "westus"
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_subscription" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-privatelink-%d"
+  location = "%s"
+}
+
+data "azurerm_extended_locations" "test" {
+  location = azurerm_resource_group.test.location
+}
+
+# Standard VNet for the Private Link Service side (edge_zone not supported on PLS)
+resource "azurerm_virtual_network" "service" {
+  name                = "acctestvnet-svc-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  address_space       = ["10.5.0.0/16"]
+}
+
+resource "azurerm_subnet" "service" {
+  name                 = "acctestsnetservice-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.service.name
+  address_prefixes     = ["10.5.1.0/24"]
+
+  private_link_service_network_policies_enabled = false
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpip-%d"
+  sku                 = "Standard"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+}
+
+resource "azurerm_lb" "test" {
+  name                = "acctestlb-%d"
+  sku                 = "Standard"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  frontend_ip_configuration {
+    name                 = azurerm_public_ip.test.name
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
+}
+
+resource "azurerm_private_link_service" "test" {
+  name                           = "acctestPLS-%d"
+  location                       = azurerm_resource_group.test.location
+  resource_group_name            = azurerm_resource_group.test.name
+  auto_approval_subscription_ids = [data.azurerm_subscription.current.subscription_id]
+  visibility_subscription_ids    = [data.azurerm_subscription.current.subscription_id]
+
+  nat_ip_configuration {
+    name      = "primaryIpConfiguration-%d"
+    primary   = true
+    subnet_id = azurerm_subnet.service.id
+  }
+
+  load_balancer_frontend_ip_configuration_ids = [
+    azurerm_lb.test.frontend_ip_configuration.0.id
+  ]
+}
+
+# Edge zone VNet for the Private Endpoint side
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvnet-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  address_space       = ["10.6.0.0/16"]
+  edge_zone           = data.azurerm_extended_locations.test.extended_locations[0]
+}
+
+resource "azurerm_subnet" "endpoint" {
+  name                 = "acctestsnetendpoint-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.6.1.0/24"]
+
+  default_outbound_access_enabled   = false
+  private_endpoint_network_policies = "Disabled"
+}
+
+resource "azurerm_private_endpoint" "test" {
+  name                = "acctest-privatelink-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  subnet_id           = azurerm_subnet.endpoint.id
+  edge_zone           = data.azurerm_extended_locations.test.extended_locations[0]
+
+  private_service_connection {
+    name                           = azurerm_private_link_service.test.name
+    is_manual_connection           = false
+    private_connection_resource_id = azurerm_private_link_service.test.id
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (PrivateEndpointResource) template(data acceptance.TestData, serviceCfg string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -437,7 +606,7 @@ resource "azurerm_lb" "test" {
 }
 
 %s
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, seviceCfg)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, serviceCfg)
 }
 
 func (PrivateEndpointResource) serviceAutoApprove(data acceptance.TestData) string {
@@ -526,7 +695,7 @@ resource "azurerm_private_endpoint" "test" {
 `, r.template(data, r.serviceAutoApprove(data)), data.RandomInteger)
 }
 
-func (r PrivateEndpointResource) withCustomNicName(data acceptance.TestData, customNicName string) string {
+func (r PrivateEndpointResource) withCustomNicName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -535,7 +704,7 @@ resource "azurerm_private_endpoint" "test" {
   resource_group_name           = azurerm_resource_group.test.name
   location                      = azurerm_resource_group.test.location
   subnet_id                     = azurerm_subnet.endpoint.id
-  custom_network_interface_name = "%s"
+  custom_network_interface_name = "acctest-privatelink-%d-nic"
 
   private_service_connection {
     name                           = azurerm_private_link_service.test.name
@@ -543,7 +712,7 @@ resource "azurerm_private_endpoint" "test" {
     private_connection_resource_id = azurerm_private_link_service.test.id
   }
 }
-`, r.template(data, r.serviceAutoApprove(data)), data.RandomInteger, customNicName)
+`, r.template(data, r.serviceAutoApprove(data)), data.RandomInteger, data.RandomInteger)
 }
 
 func (r PrivateEndpointResource) requestMessage(data acceptance.TestData, msg string) string {
@@ -564,6 +733,45 @@ resource "azurerm_private_endpoint" "test" {
   }
 }
 `, r.template(data, r.serviceManualApprove(data)), data.RandomInteger, msg)
+}
+
+func (r PrivateEndpointResource) invalidAtuoWithRequestMessage(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_private_endpoint" "test" {
+  name                = "acctest-privatelink-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  subnet_id           = azurerm_subnet.endpoint.id
+
+  private_service_connection {
+    name                           = azurerm_private_link_service.test.name
+    is_manual_connection           = false
+    request_message                = "foo"
+    private_connection_resource_id = azurerm_private_link_service.test.id
+  }
+}
+`, r.template(data, r.serviceAutoApprove(data)), data.RandomInteger)
+}
+
+func (r PrivateEndpointResource) invalidManualWithoutRequestMessage(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_private_endpoint" "test" {
+  name                = "acctest-privatelink-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  subnet_id           = azurerm_subnet.endpoint.id
+
+  private_service_connection {
+    name                           = azurerm_private_link_service.test.name
+    is_manual_connection           = true
+    private_connection_resource_id = azurerm_private_link_service.test.id
+  }
+}
+`, r.template(data, r.serviceAutoApprove(data)), data.RandomInteger)
 }
 
 func (PrivateEndpointResource) privateDnsZoneGroup(data acceptance.TestData) string {
@@ -602,22 +810,15 @@ resource "azurerm_subnet" "endpoint" {
   private_endpoint_network_policies = "Disabled"
 }
 
-resource "azurerm_postgresql_server" "test" {
-  name                = "acctest-pe-server-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku_name = "GP_Gen5_4"
-
-  storage_mb                   = 5120
-  backup_retention_days        = 7
-  geo_redundant_backup_enabled = false
-  auto_grow_enabled            = true
-
-  administrator_login          = "psqladmin"
-  administrator_login_password = "H@Sh1CoR3!"
-  version                      = "9.5"
-  ssl_enforcement_enabled      = true
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  version                = "12"
+  sku_name               = "GP_Standard_D2s_v3"
+  zone                   = "2"
 }
 
 resource "azurerm_private_dns_zone" "finance" {
@@ -638,7 +839,7 @@ resource "azurerm_private_endpoint" "test" {
 
   private_service_connection {
     name                           = "acctest-privatelink-psc-%d"
-    private_connection_resource_id = azurerm_postgresql_server.test.id
+    private_connection_resource_id = azurerm_postgresql_flexible_server.test.id
     subresource_names              = ["postgresqlServer"]
     is_manual_connection           = false
   }
@@ -682,22 +883,15 @@ resource "azurerm_subnet" "endpoint" {
   private_endpoint_network_policies = "Disabled"
 }
 
-resource "azurerm_postgresql_server" "test" {
-  name                = "acctest-pe-server-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku_name = "GP_Gen5_4"
-
-  storage_mb                   = 5120
-  backup_retention_days        = 7
-  geo_redundant_backup_enabled = false
-  auto_grow_enabled            = true
-
-  administrator_login          = "psqladmin"
-  administrator_login_password = "H@Sh1CoR3!"
-  version                      = "9.5"
-  ssl_enforcement_enabled      = true
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  version                = "12"
+  sku_name               = "GP_Standard_D2s_v3"
+  zone                   = "2"
 }
 
 resource "azurerm_private_dns_zone" "finance" {
@@ -713,7 +907,7 @@ resource "azurerm_private_endpoint" "test" {
 
   private_service_connection {
     name                           = "acctest-privatelink-psc-%d"
-    private_connection_resource_id = azurerm_postgresql_server.test.id
+    private_connection_resource_id = azurerm_postgresql_flexible_server.test.id
     subresource_names              = ["postgresqlServer"]
     is_manual_connection           = false
   }
@@ -757,22 +951,15 @@ resource "azurerm_subnet" "endpoint" {
   private_endpoint_network_policies = "Disabled"
 }
 
-resource "azurerm_postgresql_server" "test" {
-  name                = "acctest-pe-server-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku_name = "GP_Gen5_4"
-
-  storage_mb                   = 5120
-  backup_retention_days        = 7
-  geo_redundant_backup_enabled = false
-  auto_grow_enabled            = true
-
-  administrator_login          = "psqladmin"
-  administrator_login_password = "H@Sh1CoR3!"
-  version                      = "9.5"
-  ssl_enforcement_enabled      = true
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  version                = "12"
+  sku_name               = "GP_Standard_D2s_v3"
+  zone                   = "2"
 }
 
 resource "azurerm_private_dns_zone" "finance" {
@@ -798,7 +985,85 @@ resource "azurerm_private_endpoint" "test" {
 
   private_service_connection {
     name                           = "acctest-privatelink-psc-%d"
-    private_connection_resource_id = azurerm_postgresql_server.test.id
+    private_connection_resource_id = azurerm_postgresql_flexible_server.test.id
+    subresource_names              = ["postgresqlServer"]
+    is_manual_connection           = false
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (PrivateEndpointResource) privateDnsZoneGroupIdsUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-privatelink-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvnet-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  address_space       = ["10.5.0.0/16"]
+}
+
+resource "azurerm_subnet" "service" {
+  name                 = "acctestsnetservice-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.5.1.0/24"]
+
+  private_link_service_network_policies_enabled = false
+}
+
+resource "azurerm_subnet" "endpoint" {
+  name                 = "acctestsnetendpoint-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.5.2.0/24"]
+
+  private_endpoint_network_policies = "Disabled"
+}
+
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  version                = "12"
+  sku_name               = "GP_Standard_D2s_v3"
+  zone                   = "2"
+}
+
+resource "azurerm_resource_group" "test2" {
+  name     = "acctestRG-privatelink2-%d"
+  location = azurerm_resource_group.test.location
+}
+
+resource "azurerm_private_dns_zone" "finance2" {
+  name                = "privatelink.postgres.database.azure.com"
+  resource_group_name = azurerm_resource_group.test2.name
+}
+
+resource "azurerm_private_endpoint" "test" {
+  name                = "acctest-privatelink-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  subnet_id           = azurerm_subnet.endpoint.id
+
+  private_dns_zone_group {
+    name                 = "acctest-dzg-%d"
+    private_dns_zone_ids = [azurerm_private_dns_zone.finance2.id]
+  }
+
+  private_service_connection {
+    name                           = "acctest-privatelink-psc-%d"
+    private_connection_resource_id = azurerm_postgresql_flexible_server.test.id
     subresource_names              = ["postgresqlServer"]
     is_manual_connection           = false
   }
@@ -866,22 +1131,15 @@ resource "azurerm_subnet" "endpoint" {
   private_endpoint_network_policies = "Disabled"
 }
 
-resource "azurerm_postgresql_server" "test" {
-  name                = "acctest-pe-server-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku_name = "GP_Gen5_4"
-
-  storage_mb                   = 5120
-  backup_retention_days        = 7
-  geo_redundant_backup_enabled = false
-  auto_grow_enabled            = true
-
-  administrator_login          = "psqladmin"
-  administrator_login_password = "H@Sh1CoR3!"
-  version                      = "9.5"
-  ssl_enforcement_enabled      = true
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  version                = "12"
+  sku_name               = "GP_Standard_D2s_v3"
+  zone                   = "2"
 }
 
 resource "azurerm_private_dns_zone" "finance" {
@@ -902,7 +1160,7 @@ resource "azurerm_private_endpoint" "test" {
 
   private_service_connection {
     name                           = "acctest-privatelink-psc-%d"
-    private_connection_resource_id = azurerm_postgresql_server.test.id
+    private_connection_resource_id = azurerm_postgresql_flexible_server.test.id
     subresource_names              = ["postgresqlServer"]
     is_manual_connection           = false
   }
@@ -984,8 +1242,6 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
-
-  soft_delete_enabled = false
 
   identity {
     type = "SystemAssigned"

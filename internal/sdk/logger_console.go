@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sdk
@@ -21,7 +21,7 @@ func (ConsoleLogger) Info(message string) {
 
 // Infof prints out a message prefixed with `[INFO]` formatted
 // with the specified arguments
-func (l ConsoleLogger) Infof(format string, args ...interface{}) {
+func (l ConsoleLogger) Infof(format string, args ...any) {
 	l.Info(fmt.Sprintf(format, args...))
 }
 
@@ -32,6 +32,6 @@ func (l ConsoleLogger) Warn(message string) {
 
 // Warnf prints out a message prefixed with `[WARN]` formatted
 // with the specified arguments
-func (l ConsoleLogger) Warnf(format string, args ...interface{}) {
+func (l ConsoleLogger) Warnf(format string, args ...any) {
 	l.Warn(fmt.Sprintf(format, args...))
 }

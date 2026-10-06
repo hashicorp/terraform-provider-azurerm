@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package loganalytics
@@ -14,13 +14,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/storageinsights"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceLogAnalyticsStorageInsights() *pluginsdk.Resource {
@@ -40,7 +38,7 @@ func resourceLogAnalyticsStorageInsights() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := storageinsights.ParseStorageInsightConfigID(id)
 			return err
-		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
 			if v, ok := d.GetOk("storage_account_key"); ok && v.(string) != "" {
 				d.Set("storage_account_key", v)
 			}
@@ -52,9 +50,8 @@ func resourceLogAnalyticsStorageInsights() *pluginsdk.Resource {
 	}
 }
 
-func resourceLogAnalyticsStorageInsightsCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsStorageInsightsCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.StorageInsightsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -67,17 +64,19 @@ func resourceLogAnalyticsStorageInsightsCreateUpdate(d *pluginsdk.ResourceData, 
 	if err != nil {
 		return err
 	}
-	id := storageinsights.NewStorageInsightConfigID(subscriptionId, resourceGroup, workspace.WorkspaceName, name)
+	id := storageinsights.NewStorageInsightConfigID(workspace.SubscriptionId, resourceGroup, workspace.WorkspaceName, name)
 
 	if d.IsNewResource() {
-		existing, err := client.StorageInsightConfigsGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for present of existing Log Analytics Storage Insights %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, id.WorkspaceName, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.StorageInsightConfigsGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for present of existing Log Analytics Storage Insights %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, id.WorkspaceName, err)
+				}
 			}
-		}
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_log_analytics_storage_insights", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_log_analytics_storage_insights", id.ID())
+			}
 		}
 	}
 
@@ -88,11 +87,11 @@ func resourceLogAnalyticsStorageInsightsCreateUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	if _, ok := d.GetOk("table_names"); ok {
-		parameters.Properties.Tables = utils.ExpandStringSlice(d.Get("table_names").(*pluginsdk.Set).List())
+		parameters.Properties.Tables = pluginsdk.ExpandStringSlice(d.Get("table_names").(*pluginsdk.Set).List())
 	}
 
 	if _, ok := d.GetOk("blob_container_names"); ok {
-		parameters.Properties.Containers = utils.ExpandStringSlice(d.Get("blob_container_names").(*pluginsdk.Set).List())
+		parameters.Properties.Containers = pluginsdk.ExpandStringSlice(d.Get("blob_container_names").(*pluginsdk.Set).List())
 	}
 
 	if _, err := client.StorageInsightConfigsCreateOrUpdate(ctx, id, parameters); err != nil {
@@ -103,7 +102,7 @@ func resourceLogAnalyticsStorageInsightsCreateUpdate(d *pluginsdk.ResourceData, 
 	return resourceLogAnalyticsStorageInsightsRead(d, meta)
 }
 
-func resourceLogAnalyticsStorageInsightsRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsStorageInsightsRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.StorageInsightsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -129,7 +128,7 @@ func resourceLogAnalyticsStorageInsightsRead(d *pluginsdk.ResourceData, meta int
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("blob_container_names", utils.FlattenStringSlice(props.Containers))
+			d.Set("blob_container_names", pluginsdk.FlattenSlice(props.Containers))
 
 			storageAccountIdStr := ""
 			if props.StorageAccount.Id != "" {
@@ -141,14 +140,14 @@ func resourceLogAnalyticsStorageInsightsRead(d *pluginsdk.ResourceData, meta int
 			}
 			d.Set("storage_account_id", storageAccountIdStr)
 
-			d.Set("table_names", utils.FlattenStringSlice(props.Tables))
+			d.Set("table_names", pluginsdk.FlattenSlice(props.Tables))
 		}
 	}
 
 	return nil
 }
 
-func resourceLogAnalyticsStorageInsightsDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsStorageInsightsDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.StorageInsightsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -192,6 +191,7 @@ func resourceLogAnalyticsStorageInsightsSchema() map[string]*pluginsdk.Schema {
 		"storage_account_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: commonids.ValidateStorageAccountID,
 		},
 
@@ -199,7 +199,7 @@ func resourceLogAnalyticsStorageInsightsSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,
-			ValidateFunc: azValidate.Base64EncodedString,
+			ValidateFunc: validation.StringIsBase64,
 		},
 
 		"blob_container_names": {

@@ -47,7 +47,7 @@ resource "azurerm_api_management_logger" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -75,7 +75,11 @@ An `application_insights` block supports the following:
 
 * `instrumentation_key` - (Optional) The instrumentation key used to push data to Application Insights.
 
+* `identity_client_id` - (Optional) The Client Id of the User Assigned Identity, or `SystemAssigned` to use the System Assigned Identity, that has the "Monitoring Metrics Publisher" role on the target Application Insights resource. Requires `connection_string` to be set. Cannot be used with `instrumentation_key`.
+
 ~> **Note:** Either `connection_string` or `instrumentation_key` have to be specified.
+
+~> **Note:** `identity_client_id` enables AAD-based ingestion to Application Insights using a Managed Identity on the API Management Service and is required when local authentication is disabled on the Application Insights resource. Set it to the Client Id of a User Assigned Identity, or to `SystemAssigned` to use the System Assigned Identity.
 
 ---
 
@@ -99,11 +103,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management Logger.
-* `update` - (Defaults to 30 minutes) Used when updating the API Management Logger.
 * `read` - (Defaults to 5 minutes) Used when retrieving the API Management Logger.
+* `update` - (Defaults to 30 minutes) Used when updating the API Management Logger.
 * `delete` - (Defaults to 30 minutes) Used when deleting the API Management Logger.
 
 ## Import
@@ -113,3 +117,9 @@ API Management Loggers can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_api_management_logger.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.ApiManagement/service/example-apim/loggers/example-logger
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ApiManagement` - 2022-08-01
