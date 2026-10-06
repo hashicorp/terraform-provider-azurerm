@@ -93,7 +93,7 @@ func expandEventGridEventSubscriptionAzureAlertMonitor(input []any) eventsubscri
 	item := input[0].(map[string]any)
 	props := eventsubscriptions.MonitorAlertEventSubscriptionDestinationProperties{
 		Description: pointer.To(item["description"].(string)),
-		Severity:    pointer.To(eventsubscriptions.MonitorAlertSeverity(item["severity"].(string))),
+		Severity:    pointer.ToEnum[eventsubscriptions.MonitorAlertSeverity](item["severity"].(string)),
 	}
 
 	if v, ok := item["action_groups"]; ok && v != nil {
