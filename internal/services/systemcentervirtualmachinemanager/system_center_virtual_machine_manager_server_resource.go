@@ -44,7 +44,7 @@ var (
 
 type SystemCenterVirtualMachineManagerServerResource struct{}
 
-func (r SystemCenterVirtualMachineManagerServerResource) ModelObject() interface{} {
+func (r SystemCenterVirtualMachineManagerServerResource) ModelObject() any {
 	return &SystemCenterVirtualMachineManagerServerModel{}
 }
 
@@ -294,13 +294,13 @@ func (r SystemCenterVirtualMachineManagerServerResource) Delete() sdk.ResourceFu
 }
 
 func systemCenterVirtualMachineManagerServerStateRefreshFunc(ctx context.Context, metadata sdk.ResourceMetaData, id vmmservers.VMmServerId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		client := metadata.Client.SystemCenterVirtualMachineManager.InventoryItems
 		scvmmServerId := inventoryitems.NewVMmServerID(id.SubscriptionId, id.ResourceGroupName, id.VmmServerName)
 		checkTimes := 10
 		lastInventoryItemCount := 0
 
-		for i := 0; i < checkTimes; i++ {
+		for i := range checkTimes {
 			resp, err := client.ListByVMmServer(ctx, scvmmServerId)
 			if err != nil {
 				return nil, "", fmt.Errorf("polling for %s: %+v", id, err)

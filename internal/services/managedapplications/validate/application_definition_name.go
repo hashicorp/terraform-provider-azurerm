@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func ApplicationDefinitionName(v interface{}, k string) ([]string, []error) {
+func ApplicationDefinitionName(v any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile(`^[^\W_]{3,64}$`), "must be between 3 and 64 characters in length and contains only letters or numbers")(v, k)
 }

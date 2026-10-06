@@ -110,4 +110,4 @@ terraform import azurerm_nat_gateway_public_ip_association.example "/subscriptio
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2025-01-01
+* `Microsoft.Network` - 2025-07-01

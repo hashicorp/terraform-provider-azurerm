@@ -60,7 +60,6 @@ func resourceSshPublicKey() *pluginsdk.Resource {
 			"public_key": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ForceNew:     false,
 				ValidateFunc: validate.SSHKey,
 			},
 
@@ -69,7 +68,7 @@ func resourceSshPublicKey() *pluginsdk.Resource {
 	}
 }
 
-func resourceSshPublicKeyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSshPublicKeyCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.SSHPublicKeysClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -95,7 +94,7 @@ func resourceSshPublicKeyCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		Properties: &sshpublickeys.SshPublicKeyResourceProperties{
 			PublicKey: pointer.To(d.Get("public_key").(string)),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if _, err := client.Create(ctx, id, payload); err != nil {
@@ -106,7 +105,7 @@ func resourceSshPublicKeyCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	return resourceSshPublicKeyRead(d, meta)
 }
 
-func resourceSshPublicKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSshPublicKeyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.SSHPublicKeysClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -146,7 +145,7 @@ func resourceSshPublicKeyRead(d *pluginsdk.ResourceData, meta interface{}) error
 	return nil
 }
 
-func resourceSshPublicKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSshPublicKeyUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.SSHPublicKeysClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -167,7 +166,7 @@ func resourceSshPublicKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 	if d.HasChange("tags") {
-		tagsRaw := d.Get("tags").(map[string]interface{})
+		tagsRaw := d.Get("tags").(map[string]any)
 		payload.Tags = tags.Expand(tagsRaw)
 	}
 
@@ -178,7 +177,7 @@ func resourceSshPublicKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	return resourceSshPublicKeyRead(d, meta)
 }
 
-func resourceSshPublicKeyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSshPublicKeyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.SSHPublicKeysClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
