@@ -590,7 +590,7 @@ resource "azurerm_vpn_server_configuration" "test" {
   azure_active_directory_authentication {
     tenant   = "https://login.microsoftonline.com/${data.azurerm_client_config.test.tenant_id}"
     issuer   = "https://sts.windows.net/${data.azurerm_client_config.test.tenant_id}/"
-    audience = "c632b3df-fb67-4d84-bdcf-b95ad541b5c8" # constant GUID, see https://learn.microsoft.com/en-us/azure/vpn-gateway/point-to-site-entra-gateway.
+    audience = "c632b3df-fb67-4d84-bdcf-b95ad541b5c8" # constant GUID, see https://learn.microsoft.com/azure/vpn-gateway/point-to-site-entra-gateway.
   }
 }
 
