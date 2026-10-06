@@ -10,12 +10,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	certificateobjectlocalrulestack "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/certificateobjectlocalrulestackresources"
-	localrulestacks "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulestackresources"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/certificateobjectlocalrulestackresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulestackresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	keyvaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -34,7 +34,7 @@ type LocalRuleStackCertificateModel struct {
 }
 
 func (r LocalRuleStackCertificate) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return certificateobjectlocalrulestack.ValidateLocalRulestackCertificateID
+	return certificateobjectlocalrulestackresources.ValidateLocalRulestackCertificateID
 }
 
 func (r LocalRuleStackCertificate) ResourceType() string {
@@ -53,7 +53,7 @@ func (r LocalRuleStackCertificate) Arguments() map[string]*schema.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: certificateobjectlocalrulestack.ValidateLocalRulestackID,
+			ValidateFunc: certificateobjectlocalrulestackresources.ValidateLocalRulestackID,
 		},
 
 		"audit_comment": {
@@ -70,7 +70,7 @@ func (r LocalRuleStackCertificate) Arguments() map[string]*schema.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: keyvaultValidate.VersionlessNestedItemId,
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeCertificate),
 			ExactlyOneOf: []string{"self_signed", "key_vault_certificate_id"},
 		},
 
@@ -88,7 +88,7 @@ func (r LocalRuleStackCertificate) Attributes() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r LocalRuleStackCertificate) ModelObject() interface{} {
+func (r LocalRuleStackCertificate) ModelObject() any {
 	return &LocalRuleStackCertificateModel{}
 }
 
@@ -104,7 +104,7 @@ func (r LocalRuleStackCertificate) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			rulestackId, err := localrulestacks.ParseLocalRulestackID(model.RuleStackID)
+			rulestackId, err := localrulestackresources.ParseLocalRulestackID(model.RuleStackID)
 			if err != nil {
 				return err
 			}
@@ -112,18 +112,21 @@ func (r LocalRuleStackCertificate) Create() sdk.ResourceFunc {
 			locks.ByID(rulestackId.ID())
 			defer locks.UnlockByID(rulestackId.ID())
 
-			id := certificateobjectlocalrulestack.NewLocalRulestackCertificateID(rulestackId.SubscriptionId, rulestackId.ResourceGroupName, rulestackId.LocalRulestackName, model.Name)
-			existing, err := client.CertificateObjectLocalRulestackGet(ctx, id)
-			if err != nil {
+			id := certificateobjectlocalrulestackresources.NewLocalRulestackCertificateID(rulestackId.SubscriptionId, rulestackId.ResourceGroupName, rulestackId.LocalRulestackName, model.Name)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.CertificateObjectLocalRulestackGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
+				}
 				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
 				}
 			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
-			}
 
-			props := certificateobjectlocalrulestack.CertificateObject{
+			props := certificateobjectlocalrulestackresources.CertificateObject{
 				CertificateSelfSigned: boolAsBooleanEnumCert(model.SelfSigned),
 			}
 
@@ -139,7 +142,7 @@ func (r LocalRuleStackCertificate) Create() sdk.ResourceFunc {
 				props.Description = pointer.To(model.Description)
 			}
 
-			cert := certificateobjectlocalrulestack.CertificateObjectLocalRulestackResource{
+			cert := certificateobjectlocalrulestackresources.CertificateObjectLocalRulestackResource{
 				Properties: props,
 			}
 
@@ -164,7 +167,7 @@ func (r LocalRuleStackCertificate) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.CertificateObjectLocalRulestackResources
 
-			id, err := certificateobjectlocalrulestack.ParseLocalRulestackCertificateID(metadata.ResourceData.Id())
+			id, err := certificateobjectlocalrulestackresources.ParseLocalRulestackCertificateID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -180,7 +183,7 @@ func (r LocalRuleStackCertificate) Read() sdk.ResourceFunc {
 			}
 
 			state.Name = id.CertificateName
-			state.RuleStackID = certificateobjectlocalrulestack.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName).ID()
+			state.RuleStackID = certificateobjectlocalrulestackresources.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName).ID()
 
 			if model := existing.Model; model != nil {
 				props := model.Properties
@@ -202,7 +205,7 @@ func (r LocalRuleStackCertificate) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.CertificateObjectLocalRulestackResources
 
-			id, err := certificateobjectlocalrulestack.ParseLocalRulestackCertificateID(metadata.ResourceData.Id())
+			id, err := certificateobjectlocalrulestackresources.ParseLocalRulestackCertificateID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -210,7 +213,7 @@ func (r LocalRuleStackCertificate) Delete() sdk.ResourceFunc {
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
 
-			rulestackId := localrulestacks.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName)
+			rulestackId := localrulestackresources.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName)
 			locks.ByID(rulestackId.ID())
 			defer locks.UnlockByID(rulestackId.ID())
 
@@ -235,17 +238,17 @@ func (r LocalRuleStackCertificate) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			id, err := certificateobjectlocalrulestack.ParseLocalRulestackCertificateID(metadata.ResourceData.Id())
+			id, err := certificateobjectlocalrulestackresources.ParseLocalRulestackCertificateID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
-			rulestackId := localrulestacks.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName)
+			rulestackId := localrulestackresources.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName)
 			locks.ByID(rulestackId.ID())
 			defer locks.UnlockByID(rulestackId.ID())
 
 			existing, err := client.CertificateObjectLocalRulestackGet(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("retreiving %s: %+v", *id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			cert := *existing.Model
@@ -276,14 +279,14 @@ func (r LocalRuleStackCertificate) Update() sdk.ResourceFunc {
 	}
 }
 
-func boolAsBooleanEnumCert(input bool) certificateobjectlocalrulestack.BooleanEnum {
+func boolAsBooleanEnumCert(input bool) certificateobjectlocalrulestackresources.BooleanEnum {
 	if input {
-		return certificateobjectlocalrulestack.BooleanEnumTRUE
+		return certificateobjectlocalrulestackresources.BooleanEnumTRUE
 	}
 
-	return certificateobjectlocalrulestack.BooleanEnumFALSE
+	return certificateobjectlocalrulestackresources.BooleanEnumFALSE
 }
 
-func boolEnumAsBoolCert(input certificateobjectlocalrulestack.BooleanEnum) bool {
-	return input == certificateobjectlocalrulestack.BooleanEnumTRUE
+func boolEnumAsBoolCert(input certificateobjectlocalrulestackresources.BooleanEnum) bool {
+	return input == certificateobjectlocalrulestackresources.BooleanEnumTRUE
 }
