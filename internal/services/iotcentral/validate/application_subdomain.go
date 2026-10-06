@@ -4,6 +4,6 @@
 package validate
 
 // ApplicationSubdomain has the same format requirements as ApplicationName
-func ApplicationSubdomain(v interface{}, k string) ([]string, []error) {
+func ApplicationSubdomain(v any, k string) ([]string, []error) {
 	return ApplicationName(v, k)
 }

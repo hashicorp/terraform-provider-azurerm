@@ -31,7 +31,7 @@ func (r ManagerStaticMemberResource) ResourceType() string {
 	return "azurerm_network_manager_static_member"
 }
 
-func (r ManagerStaticMemberResource) ModelObject() interface{} {
+func (r ManagerStaticMemberResource) ModelObject() any {
 	return &ManagerStaticMemberModel{}
 }
 

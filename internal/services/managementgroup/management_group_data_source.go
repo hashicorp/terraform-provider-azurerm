@@ -80,7 +80,7 @@ func dataSourceManagementGroup() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceManagementGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceManagementGroupRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ManagementGroups.GroupsClient
 	accountClient := meta.(*clients.Client)
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -126,8 +126,8 @@ func dataSourceManagementGroupRead(d *pluginsdk.ResourceData, meta interface{}) 
 		if props := model.Properties; props != nil {
 			d.Set("display_name", props.DisplayName)
 
-			subscriptionIds := []interface{}{}
-			mgmtgroupIds := []interface{}{}
+			subscriptionIds := []any{}
+			mgmtgroupIds := []any{}
 			if err := flattenManagementGroupDataSourceChildren(&subscriptionIds, &mgmtgroupIds, props.Children, false); err != nil {
 				return fmt.Errorf("flattening direct children resources: %+v", err)
 			}
@@ -138,8 +138,8 @@ func dataSourceManagementGroupRead(d *pluginsdk.ResourceData, meta interface{}) 
 				return fmt.Errorf("setting `management_group_ids`: %v", err)
 			}
 
-			subscriptionIds = []interface{}{}
-			mgmtgroupIds = []interface{}{}
+			subscriptionIds = []any{}
+			mgmtgroupIds = []any{}
 			if err := flattenManagementGroupDataSourceChildren(&subscriptionIds, &mgmtgroupIds, props.Children, true); err != nil {
 				return fmt.Errorf("flattening all children resources: %+v", err)
 			}
@@ -197,7 +197,7 @@ func getManagementGroupNameByDisplayName(ctx context.Context, client *management
 	return results[0], nil
 }
 
-func flattenManagementGroupDataSourceChildren(subscriptionIds, mgmtgroupIds *[]interface{}, input *[]managementgroups.ManagementGroupChildInfo, recursive bool) error {
+func flattenManagementGroupDataSourceChildren(subscriptionIds, mgmtgroupIds *[]any, input *[]managementgroups.ManagementGroupChildInfo, recursive bool) error {
 	if input == nil {
 		return nil
 	}

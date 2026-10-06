@@ -33,7 +33,7 @@ var (
 
 type LoadTestResource struct{}
 
-func (r LoadTestResource) ModelObject() interface{} {
+func (r LoadTestResource) ModelObject() any {
 	return &LoadTestResourceSchema{}
 }
 
@@ -45,7 +45,7 @@ type LoadTestResourceSchema struct {
 	Location          string                                     `tfschema:"location"`
 	Name              string                                     `tfschema:"name"`
 	ResourceGroupName string                                     `tfschema:"resource_group_name"`
-	Tags              map[string]interface{}                     `tfschema:"tags"`
+	Tags              map[string]any                             `tfschema:"tags"`
 }
 
 type LoadTestEncryption struct {
@@ -294,7 +294,7 @@ func (r LoadTestResource) EnsureEncryptionIdentityIDExistsInIdentity(model LoadT
 	return nil
 }
 
-// nolint unparam
+//nolint:unparam
 func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestProperties(input LoadTestResourceSchema, output *loadtests.LoadTestProperties) error {
 	output.Description = &input.Description
 	output.Encryption = r.mapLoadTestResourceSchemaToLoadTestEncryption(input.Encryption)
@@ -321,18 +321,16 @@ func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestEncryption(input []
 	}
 }
 
-// nolint unparam
+//nolint:unparam
 func (r LoadTestResource) mapLoadTestPropertiesToLoadTestResourceSchema(input loadtests.LoadTestProperties, output *LoadTestResourceSchema) error {
 	output.DataPlaneURI = pointer.From(input.DataPlaneURI)
 	output.Description = pointer.From(input.Description)
 
 	if encryption := input.Encryption; encryption != nil {
-		outputEncryption := make([]LoadTestEncryption, 0)
-		outputEncryptionIdentity := make([]LoadTestEncryptionIdentity, 0)
-		output.Encryption = append(outputEncryption, LoadTestEncryption{
+		output.Encryption = []LoadTestEncryption{{
 			KeyURL:   pointer.From(encryption.KeyURL),
-			Identity: outputEncryptionIdentity,
-		})
+			Identity: make([]LoadTestEncryptionIdentity, 0),
+		}}
 		if encryptionIdentity := encryption.Identity; encryptionIdentity != nil {
 			output.Encryption[0].Identity = append(output.Encryption[0].Identity, LoadTestEncryptionIdentity{
 				IdentityID: pointer.From(encryptionIdentity.ResourceId),

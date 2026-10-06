@@ -385,7 +385,7 @@ func (ManagedDevOpsPoolResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (ManagedDevOpsPoolResource) ModelObject() interface{} {
+func (ManagedDevOpsPoolResource) ModelObject() any {
 	return &ManagedDevOpsPoolModel{}
 }
 

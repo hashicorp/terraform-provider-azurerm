@@ -44,11 +44,11 @@ type ScaleModel struct {
 }
 
 type ScaleRule struct {
-	Auth       []ScaleRuleAuth        `tfschema:"authentication"`
-	IdentityID string                 `tfschema:"identity_id"`
-	Metadata   map[string]interface{} `tfschema:"metadata"`
-	Name       string                 `tfschema:"name"`
-	Type       string                 `tfschema:"custom_rule_type"`
+	Auth       []ScaleRuleAuth `tfschema:"authentication"`
+	IdentityID string          `tfschema:"identity_id"`
+	Metadata   map[string]any  `tfschema:"metadata"`
+	Name       string          `tfschema:"name"`
+	Type       string          `tfschema:"custom_rule_type"`
 }
 
 type ScaleRuleAuth struct {
@@ -969,7 +969,7 @@ func flattenContainerAppJobScaleRules(input *[]jobs.JobScaleRule) []ScaleRule {
 		if v.Metadata != nil {
 			metadata := pointer.From(v.Metadata)
 			if reflect.TypeOf(metadata).Kind() == reflect.Map {
-				rule.Metadata = metadata.(map[string]interface{})
+				rule.Metadata = metadata.(map[string]any)
 			}
 		}
 
