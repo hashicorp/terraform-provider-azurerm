@@ -22,6 +22,7 @@ import (
 var resourceTypeSupportSubResType = map[string][]string{
 	"Microsoft.KeyVault":                {"vault"},
 	"Microsoft.Cache":                   {"redisCache"},
+	"Microsoft.CognitiveServices":       {"account"},
 	"Microsoft.MachineLearningServices": {"amlworkspace"},
 	"Microsoft.Storage":                 {"blob", "table", "queue", "file", "web", "dfs"},
 }
@@ -78,6 +79,7 @@ func (r WorkspaceNetworkOutboundRulePrivateEndpoint) Arguments() map[string]*plu
 			Required: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
+				"account",
 				"vault",
 				"amlworkspace",
 				"blob",
