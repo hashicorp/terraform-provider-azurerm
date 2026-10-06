@@ -80,7 +80,7 @@ func dataSourceDataShare() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceDataShareRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceDataShareRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataShare.SharesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	syncClient := meta.(*clients.Client).DataShare.SynchronizationClient
@@ -110,7 +110,7 @@ func dataSourceDataShareRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("kind", string(pointer.From(props.ShareKind)))
+			d.Set("kind", pointer.FromEnum(props.ShareKind))
 			d.Set("description", props.Description)
 			d.Set("terms", props.Terms)
 		}
@@ -134,18 +134,13 @@ func dataSourceDataShareRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func flattenDataShareDataSourceSnapshotSchedule(input []synchronizationsetting.ScheduledSynchronizationSetting) []interface{} {
-	output := make([]interface{}, 0)
+func flattenDataShareDataSourceSnapshotSchedule(input []synchronizationsetting.ScheduledSynchronizationSetting) []any {
+	output := make([]any, 0)
 
 	for _, setting := range input {
 		props := setting.Properties
-		name := ""
-		if props.UserName != nil {
-			name = *props.UserName
-		}
-
-		output = append(output, map[string]interface{}{
-			"name":       name,
+		output = append(output, map[string]any{
+			"name":       pointer.From(props.UserName),
 			"recurrence": string(props.RecurrenceInterval),
 			"start_time": props.SynchronizationTime,
 		})

@@ -173,7 +173,7 @@ provider "azurerm" {
 provider "azuread" {}
 
 data "azuread_service_principal" "test" {
-  # https://docs.microsoft.com/en-us/azure/key-vault/secrets/overview-storage-keys-powershell#service-principal-application-id
+  # https://docs.microsoft.com/azure/key-vault/secrets/overview-storage-keys-powershell#service-principal-application-id
   # application_id = "cfa8b339-82a2-471a-a3c9-0fc0be7a4093"
   display_name = "Azure Key Vault"
 }

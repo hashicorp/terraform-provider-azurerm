@@ -12,8 +12,8 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var _ pluginsdk.StateUpgrade = LegacyVMSSV0ToV1{}
@@ -693,7 +693,7 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (LegacyVMSSV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		// @tombuildsstuff: NOTE, this state migration is essentially pointless
 		// however it existed in the legacy migration so even though this is
 		//  essentially a noop there's no reason this shouldn't be the same I guess
@@ -718,10 +718,10 @@ func (LegacyVMSSV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	}
 }
 
-func userDataStateFunc(v interface{}) string {
+func userDataStateFunc(v any) string {
 	switch s := v.(type) {
 	case string:
-		s = utils.Base64EncodeIfNot(s)
+		s = base64.EncodeIfNot(s)
 		hash := sha1.Sum([]byte(s))
 		return hex.EncodeToString(hash[:])
 	default:
@@ -729,10 +729,10 @@ func userDataStateFunc(v interface{}) string {
 	}
 }
 
-func resourceArmVirtualMachineScaleSetOsProfileWindowsConfigHash(v interface{}) int {
+func resourceArmVirtualMachineScaleSetOsProfileWindowsConfigHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
+	if m, ok := v.(map[string]any); ok {
 		if v, ok := m["provision_vm_agent"]; ok {
 			fmt.Fprintf(&buf, "%t-", v.(bool))
 		}
@@ -744,20 +744,20 @@ func resourceArmVirtualMachineScaleSetOsProfileWindowsConfigHash(v interface{}) 
 	return pluginsdk.HashString(buf.String())
 }
 
-func resourceArmVirtualMachineScaleSetOsProfileLinuxConfigHash(v interface{}) int {
+func resourceArmVirtualMachineScaleSetOsProfileLinuxConfigHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
+	if m, ok := v.(map[string]any); ok {
 		fmt.Fprintf(&buf, "%t-", m["disable_password_authentication"].(bool))
 	}
 
 	return pluginsdk.HashString(buf.String())
 }
 
-func resourceArmVirtualMachineScaleSetNetworkConfigurationHash(v interface{}) int {
+func resourceArmVirtualMachineScaleSetNetworkConfigurationHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
+	if m, ok := v.(map[string]any); ok {
 		fmt.Fprintf(&buf, "%s-", m["name"].(string))
 		fmt.Fprintf(&buf, "%t-", m["primary"].(bool))
 	}
@@ -765,10 +765,10 @@ func resourceArmVirtualMachineScaleSetNetworkConfigurationHash(v interface{}) in
 	return pluginsdk.HashString(buf.String())
 }
 
-func resourceArmVirtualMachineScaleSetStorageProfileOsDiskHash(v interface{}) int {
+func resourceArmVirtualMachineScaleSetStorageProfileOsDiskHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
+	if m, ok := v.(map[string]any); ok {
 		fmt.Fprintf(&buf, "%s-", m["name"].(string))
 
 		if v, ok := m["vhd_containers"]; ok {
@@ -779,10 +779,10 @@ func resourceArmVirtualMachineScaleSetStorageProfileOsDiskHash(v interface{}) in
 	return pluginsdk.HashString(buf.String())
 }
 
-func resourceArmVirtualMachineScaleSetStorageProfileImageReferenceHash(v interface{}) int {
+func resourceArmVirtualMachineScaleSetStorageProfileImageReferenceHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
+	if m, ok := v.(map[string]any); ok {
 		if v, ok := m["publisher"]; ok {
 			fmt.Fprintf(&buf, "%s-", v.(string))
 		}
@@ -803,10 +803,10 @@ func resourceArmVirtualMachineScaleSetStorageProfileImageReferenceHash(v interfa
 	return pluginsdk.HashString(buf.String())
 }
 
-func resourceArmVirtualMachineScaleSetExtensionHash(v interface{}) int {
+func resourceArmVirtualMachineScaleSetExtensionHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
+	if m, ok := v.(map[string]any); ok {
 		fmt.Fprintf(&buf, "%s-", m["name"].(string))
 		fmt.Fprintf(&buf, "%s-", m["publisher"].(string))
 		fmt.Fprintf(&buf, "%s-", m["type"].(string))
