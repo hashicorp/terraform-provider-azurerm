@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
@@ -75,7 +74,7 @@ func resourceSpringCloudApp() *pluginsdk.Resource {
 			"addon_json": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Computed:         true,
+				Computed:         true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 			},
@@ -139,7 +138,7 @@ func resourceSpringCloudApp() *pluginsdk.Resource {
 			"ingress_settings": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -183,7 +182,7 @@ func resourceSpringCloudApp() *pluginsdk.Resource {
 			"persistent_disk": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -227,7 +226,7 @@ func resourceSpringCloudApp() *pluginsdk.Resource {
 	}
 }
 
-func resourceSpringCloudAppCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudAppCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.AppsClient
 	servicesClient := meta.(*clients.Client).AppPlatform.ServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -252,7 +251,7 @@ func resourceSpringCloudAppCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	identity, err := expandSpringCloudAppIdentity(d.Get("identity").([]interface{}))
+	identity, err := expandSpringCloudAppIdentity(d.Get("identity").([]any))
 	if err != nil {
 		return err
 	}
@@ -269,7 +268,7 @@ func resourceSpringCloudAppCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			AddonConfigs:          addonConfig,
 			EnableEndToEndTLS:     pointer.To(d.Get("tls_enabled").(bool)),
 			Public:                pointer.To(d.Get("is_public").(bool)),
-			CustomPersistentDisks: expandAppCustomPersistentDiskResourceArray(d.Get("custom_persistent_disk").([]interface{}), id),
+			CustomPersistentDisks: expandAppCustomPersistentDiskResourceArray(d.Get("custom_persistent_disk").([]any), id),
 		},
 	}
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.SpringName, id.AppName, app)
@@ -285,7 +284,7 @@ func resourceSpringCloudAppCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	// HTTPSOnly and PersistentDisk could only be set by update
 	app.Properties.HTTPSOnly = pointer.To(d.Get("https_only").(bool))
-	app.Properties.PersistentDisk = expandSpringCloudAppPersistentDisk(d.Get("persistent_disk").([]interface{}))
+	app.Properties.PersistentDisk = expandSpringCloudAppPersistentDisk(d.Get("persistent_disk").([]any))
 	// VNetAddons.PublicEndpoint could only be set by update
 	if enabled := d.Get("public_endpoint_enabled").(bool); enabled {
 		app.Properties.VnetAddons = &appplatform.AppVNetAddons{
@@ -294,7 +293,7 @@ func resourceSpringCloudAppCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 	// IngressSettings could only be set by update
 	// Issue: https://github.com/Azure/azure-rest-api-specs/issues/21536
-	app.Properties.IngressSettings = expandSpringCloudAppIngressSetting(d.Get("ingress_settings").([]interface{}))
+	app.Properties.IngressSettings = expandSpringCloudAppIngressSetting(d.Get("ingress_settings").([]any))
 	future, err = client.CreateOrUpdate(ctx, id.ResourceGroupName, id.SpringName, id.AppName, app)
 	if err != nil {
 		return fmt.Errorf("update %q: %+v", id, err)
@@ -306,7 +305,7 @@ func resourceSpringCloudAppCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	return resourceSpringCloudAppRead(d, meta)
 }
 
-func resourceSpringCloudAppUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudAppUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.AppsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -318,7 +317,7 @@ func resourceSpringCloudAppUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	identity, err := expandSpringCloudAppIdentity(d.Get("identity").([]interface{}))
+	identity, err := expandSpringCloudAppIdentity(d.Get("identity").([]any))
 	if err != nil {
 		return err
 	}
@@ -335,9 +334,9 @@ func resourceSpringCloudAppUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			EnableEndToEndTLS:     pointer.To(d.Get("tls_enabled").(bool)),
 			Public:                pointer.To(d.Get("is_public").(bool)),
 			HTTPSOnly:             pointer.To(d.Get("https_only").(bool)),
-			IngressSettings:       expandSpringCloudAppIngressSetting(d.Get("ingress_settings").([]interface{})),
-			PersistentDisk:        expandSpringCloudAppPersistentDisk(d.Get("persistent_disk").([]interface{})),
-			CustomPersistentDisks: expandAppCustomPersistentDiskResourceArray(d.Get("custom_persistent_disk").([]interface{}), *id),
+			IngressSettings:       expandSpringCloudAppIngressSetting(d.Get("ingress_settings").([]any)),
+			PersistentDisk:        expandSpringCloudAppPersistentDisk(d.Get("persistent_disk").([]any)),
+			CustomPersistentDisks: expandAppCustomPersistentDiskResourceArray(d.Get("custom_persistent_disk").([]any), *id),
 		},
 	}
 	if enabled := d.Get("public_endpoint_enabled").(bool); enabled {
@@ -356,7 +355,7 @@ func resourceSpringCloudAppUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	return resourceSpringCloudAppRead(d, meta)
 }
 
-func resourceSpringCloudAppRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudAppRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.AppsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -416,7 +415,7 @@ func resourceSpringCloudAppRead(d *pluginsdk.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceSpringCloudAppDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudAppDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.AppsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -439,7 +438,7 @@ func resourceSpringCloudAppDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func expandSpringCloudAppIdentity(input []interface{}) (*appplatform.ManagedIdentityProperties, error) {
+func expandSpringCloudAppIdentity(input []any) (*appplatform.ManagedIdentityProperties, error) {
 	config, err := identity.ExpandSystemAndUserAssignedMap(input)
 	if err != nil {
 		return nil, err
@@ -460,36 +459,36 @@ func expandSpringCloudAppIdentity(input []interface{}) (*appplatform.ManagedIden
 	return &out, nil
 }
 
-func expandSpringCloudAppPersistentDisk(input []interface{}) *appplatform.PersistentDisk {
+func expandSpringCloudAppPersistentDisk(input []any) *appplatform.PersistentDisk {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 	return &appplatform.PersistentDisk{
 		SizeInGB:  pointer.To(int32(raw["size_in_gb"].(int))),
 		MountPath: pointer.To(raw["mount_path"].(string)),
 	}
 }
 
-func expandAppCustomPersistentDiskResourceArray(input []interface{}, id appplatform_rm.AppId) *[]appplatform.CustomPersistentDiskResource {
+func expandAppCustomPersistentDiskResourceArray(input []any, id appplatform_rm.AppId) *[]appplatform.CustomPersistentDiskResource {
 	results := make([]appplatform.CustomPersistentDiskResource, 0)
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 		results = append(results, appplatform.CustomPersistentDiskResource{
 			StorageID: pointer.To(appplatform_rm.NewStorageID(id.SubscriptionId, id.ResourceGroupName, id.SpringName, v["storage_name"].(string)).ID()),
 			CustomPersistentDiskProperties: &appplatform.AzureFileVolume{
 				ShareName:    pointer.To(v["share_name"].(string)),
 				MountPath:    pointer.To(v["mount_path"].(string)),
 				ReadOnly:     pointer.To(v["read_only_enabled"].(bool)),
-				MountOptions: helpers.ExpandStringSlice(v["mount_options"].(*pluginsdk.Set).List()),
+				MountOptions: pluginsdk.ExpandStringSlice(v["mount_options"].(*pluginsdk.Set).List()),
 			},
 		})
 	}
 	return &results
 }
 
-func expandSpringCloudAppAddon(input string) (map[string]interface{}, error) {
-	var addonConfig map[string]interface{}
+func expandSpringCloudAppAddon(input string) (map[string]any, error) {
+	var addonConfig map[string]any
 	if len(input) != 0 {
 		if err := json.Unmarshal([]byte(input), &addonConfig); err != nil {
 			return nil, fmt.Errorf("unable to unmarshal `addon_json`: %+v", err)
@@ -498,11 +497,11 @@ func expandSpringCloudAppAddon(input string) (map[string]interface{}, error) {
 	return addonConfig, nil
 }
 
-func expandSpringCloudAppIngressSetting(input []interface{}) *appplatform.IngressSettings {
+func expandSpringCloudAppIngressSetting(input []any) *appplatform.IngressSettings {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 
 	return &appplatform.IngressSettings{
 		ReadTimeoutInSeconds: pointer.To(int32(raw["read_timeout_in_seconds"].(int))),
@@ -513,7 +512,7 @@ func expandSpringCloudAppIngressSetting(input []interface{}) *appplatform.Ingres
 	}
 }
 
-func flattenSpringCloudAppIdentity(input *appplatform.ManagedIdentityProperties) (*[]interface{}, error) {
+func flattenSpringCloudAppIdentity(input *appplatform.ManagedIdentityProperties) (*[]any, error) {
 	var transform *identity.SystemAndUserAssignedMap
 	if input != nil {
 		transform = &identity.SystemAndUserAssignedMap{
@@ -537,9 +536,9 @@ func flattenSpringCloudAppIdentity(input *appplatform.ManagedIdentityProperties)
 	return identity.FlattenSystemAndUserAssignedMap(transform)
 }
 
-func flattenSpringCloudAppPersistentDisk(input *appplatform.PersistentDisk) []interface{} {
+func flattenSpringCloudAppPersistentDisk(input *appplatform.PersistentDisk) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
 	sizeInGB := 0
@@ -547,16 +546,16 @@ func flattenSpringCloudAppPersistentDisk(input *appplatform.PersistentDisk) []in
 		sizeInGB = int(*input.SizeInGB)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"size_in_gb": sizeInGB,
 			"mount_path": pointer.From(input.MountPath),
 		},
 	}
 }
 
-func flattenAppCustomPersistentDiskResourceArray(input *[]appplatform.CustomPersistentDiskResource) []interface{} {
-	results := make([]interface{}, 0)
+func flattenAppCustomPersistentDiskResourceArray(input *[]appplatform.CustomPersistentDiskResource) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
@@ -590,7 +589,7 @@ func flattenAppCustomPersistentDiskResourceArray(input *[]appplatform.CustomPers
 			}
 		}
 
-		results = append(results, map[string]interface{}{
+		results = append(results, map[string]any{
 			"storage_name":      storageName,
 			"mount_path":        mountPath,
 			"share_name":        shareName,
@@ -601,7 +600,7 @@ func flattenAppCustomPersistentDiskResourceArray(input *[]appplatform.CustomPers
 	return results
 }
 
-func flattenSpringCloudAppAddon(configs map[string]interface{}) *string {
+func flattenSpringCloudAppAddon(configs map[string]any) *string {
 	if len(configs) == 0 {
 		return nil
 	}
@@ -609,7 +608,7 @@ func flattenSpringCloudAppAddon(configs map[string]interface{}) *string {
 	// TODO: Remove the normalization codes once the following issue is fixed.
 	// Issue: https://github.com/Azure/azure-rest-api-specs/issues/22481
 	if raw, ok := configs["applicationConfigurationService"]; ok && raw != nil {
-		if applicationConfigurationService, ok := raw.(map[string]interface{}); ok && len(applicationConfigurationService) != 0 {
+		if applicationConfigurationService, ok := raw.(map[string]any); ok && len(applicationConfigurationService) != 0 {
 			if resourceId, ok := applicationConfigurationService["resourceId"]; ok && resourceId != nil {
 				applicationConfigurationServiceId, err := appplatform_rm.ParseConfigurationServiceIDInsensitively(resourceId.(string))
 				if err == nil {
@@ -620,7 +619,7 @@ func flattenSpringCloudAppAddon(configs map[string]interface{}) *string {
 		}
 	}
 	if raw, ok := configs["serviceRegistry"]; ok && raw != nil {
-		if serviceRegistry, ok := raw.(map[string]interface{}); ok && len(serviceRegistry) != 0 {
+		if serviceRegistry, ok := raw.(map[string]any); ok && len(serviceRegistry) != 0 {
 			if resourceId, ok := serviceRegistry["resourceId"]; ok && resourceId != nil {
 				serviceRegistryId, err := appplatform_rm.ParseServiceRegistryIDInsensitively(resourceId.(string))
 				if err == nil {
@@ -634,9 +633,9 @@ func flattenSpringCloudAppAddon(configs map[string]interface{}) *string {
 	return pointer.To(string(addonConfig))
 }
 
-func flattenSpringCloudAppIngressSettings(input *appplatform.IngressSettings) interface{} {
+func flattenSpringCloudAppIngressSettings(input *appplatform.IngressSettings) any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 	var readTimeout, sendTimeout, maxAge int32
 	backendProtocol := string(input.BackendProtocol)
@@ -650,7 +649,7 @@ func flattenSpringCloudAppIngressSettings(input *appplatform.IngressSettings) in
 	if input.SessionCookieMaxAge != nil {
 		maxAge = *input.SessionCookieMaxAge
 	}
-	return []interface{}{map[string]interface{}{
+	return []any{map[string]any{
 		"backend_protocol":        backendProtocol,
 		"read_timeout_in_seconds": readTimeout,
 		"send_timeout_in_seconds": sendTimeout,

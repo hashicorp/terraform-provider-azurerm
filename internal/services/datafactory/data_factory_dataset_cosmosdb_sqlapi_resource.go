@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -17,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 func resourceDataFactoryDatasetCosmosDbSQLAPI() *pluginsdk.Resource {
@@ -146,7 +147,7 @@ func resourceDataFactoryDatasetCosmosDbSQLAPI() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryDatasetCosmosDbSQLAPICreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetCosmosDbSQLAPICreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	subscriptionId := meta.(*clients.Client).DataFactory.DatasetClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -179,10 +180,9 @@ func resourceDataFactoryDatasetCosmosDbSQLAPICreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	linkedServiceName := d.Get("linked_service_name").(string)
-	linkedServiceType := "LinkedServiceReference"
 	linkedService := &datafactory.LinkedServiceReference{
 		ReferenceName: &linkedServiceName,
-		Type:          &linkedServiceType,
+		Type:          pointer.To("LinkedServiceReference"),
 	}
 
 	description := d.Get("description").(string)
@@ -193,33 +193,30 @@ func resourceDataFactoryDatasetCosmosDbSQLAPICreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	if v, ok := d.GetOk("folder"); ok {
-		name := v.(string)
 		cosmosDbTableset.Folder = &datafactory.DatasetFolder{
-			Name: &name,
+			Name: pointer.To(v.(string)),
 		}
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		cosmosDbTableset.Parameters = expandDataSetParameters(v.(map[string]interface{}))
+		cosmosDbTableset.Parameters = expandDataSetParameters(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		cosmosDbTableset.Annotations = &annotations
+		cosmosDbTableset.Annotations = pointer.To(v.([]any))
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		cosmosDbTableset.AdditionalProperties = v.(map[string]interface{})
+		cosmosDbTableset.AdditionalProperties = v.(map[string]any)
 	}
 
 	if v, ok := d.GetOk("schema_column"); ok {
-		cosmosDbTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
+		cosmosDbTableset.Structure = expandDataFactoryDatasetStructure(v.([]any))
 	}
 
-	datasetType := string(datafactory.TypeBasicDatasetTypeRelationalTable)
 	dataset := datafactory.DatasetResource{
 		Properties: &cosmosDbTableset,
-		Type:       &datasetType,
+		Type:       pointer.To(string(datafactory.TypeBasicDatasetTypeRelationalTable)),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, id.Name, dataset, ""); err != nil {
@@ -233,7 +230,7 @@ func resourceDataFactoryDatasetCosmosDbSQLAPICreateUpdate(d *pluginsdk.ResourceD
 	return resourceDataFactoryDatasetCosmosDbSQLAPIRead(d, meta)
 }
 
-func resourceDataFactoryDatasetCosmosDbSQLAPIRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetCosmosDbSQLAPIRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -269,13 +266,11 @@ func resourceDataFactoryDatasetCosmosDbSQLAPIRead(d *pluginsdk.ResourceData, met
 		d.Set("description", cosmosDbTable.Description)
 	}
 
-	parameters := flattenDataSetParameters(cosmosDbTable.Parameters)
-	if err := d.Set("parameters", parameters); err != nil {
+	if err := d.Set("parameters", flattenDataSetParameters(cosmosDbTable.Parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 
-	annotations := flattenDataFactoryAnnotations(cosmosDbTable.Annotations)
-	if err := d.Set("annotations", annotations); err != nil {
+	if err := d.Set("annotations", flattenDataFactoryAnnotations(cosmosDbTable.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
@@ -300,15 +295,14 @@ func resourceDataFactoryDatasetCosmosDbSQLAPIRead(d *pluginsdk.ResourceData, met
 		}
 	}
 
-	structureColumns := flattenDataFactoryStructureColumns(cosmosDbTable.Structure)
-	if err := d.Set("schema_column", structureColumns); err != nil {
+	if err := d.Set("schema_column", flattenDataFactoryStructureColumns(cosmosDbTable.Structure)); err != nil {
 		return fmt.Errorf("setting `schema_column`: %+v", err)
 	}
 
 	return nil
 }
 
-func resourceDataFactoryDatasetCosmosDbSQLAPIDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetCosmosDbSQLAPIDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

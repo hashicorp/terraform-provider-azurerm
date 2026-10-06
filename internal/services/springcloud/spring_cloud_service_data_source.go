@@ -160,7 +160,7 @@ func dataSourceSpringCloudService() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.ServicesClient
 	configServersClient := meta.(*clients.Client).AppPlatform.ConfigServersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -194,8 +194,7 @@ func dataSourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if props := resp.Properties; props != nil {
-		outboundPublicIPAddresses := flattenOutboundPublicIPAddresses(props.NetworkProfile)
-		if err := d.Set("outbound_public_ip_addresses", outboundPublicIPAddresses); err != nil {
+		if err := d.Set("outbound_public_ip_addresses", flattenOutboundPublicIPAddresses(props.NetworkProfile)); err != nil {
 			return fmt.Errorf("setting `outbound_public_ip_addresses`: %+v", err)
 		}
 

@@ -83,7 +83,7 @@ func resourceSpringCloudBuildDeployment() *pluginsdk.Resource {
 			"addon_json": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Computed:         true,
+				Computed:         true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 			},
@@ -107,14 +107,14 @@ func resourceSpringCloudBuildDeployment() *pluginsdk.Resource {
 			"quota": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"cpu": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							// NOTE: we're intentionally not validating this field since additional values are possible when enabled by the service team
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -122,7 +122,7 @@ func resourceSpringCloudBuildDeployment() *pluginsdk.Resource {
 						"memory": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							// NOTE: we're intentionally not validating this field since additional values are possible when enabled by the service team
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -133,7 +133,7 @@ func resourceSpringCloudBuildDeployment() *pluginsdk.Resource {
 	}
 }
 
-func resourceSpringCloudBuildDeploymentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudBuildDeploymentCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.DeploymentsClient
 	servicesClient := meta.(*clients.Client).AppPlatform.ServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -188,9 +188,9 @@ func resourceSpringCloudBuildDeploymentCreateUpdate(d *pluginsdk.ResourceData, m
 			},
 			DeploymentSettings: &appplatform.DeploymentSettings{
 				AddonConfigs:         addonConfig,
-				Apms:                 expandSpringCloudDeploymentApms(d.Get("application_performance_monitoring_ids").([]interface{})),
-				EnvironmentVariables: expandSpringCloudDeploymentEnvironmentVariables(d.Get("environment_variables").(map[string]interface{})),
-				ResourceRequests:     expandSpringCloudBuildDeploymentResourceRequests(d.Get("quota").([]interface{})),
+				Apms:                 expandSpringCloudDeploymentApms(d.Get("application_performance_monitoring_ids").([]any)),
+				EnvironmentVariables: expandSpringCloudDeploymentEnvironmentVariables(d.Get("environment_variables").(map[string]any)),
+				ResourceRequests:     expandSpringCloudBuildDeploymentResourceRequests(d.Get("quota").([]any)),
 			},
 		},
 	}
@@ -209,7 +209,7 @@ func resourceSpringCloudBuildDeploymentCreateUpdate(d *pluginsdk.ResourceData, m
 	return resourceSpringCloudBuildDeploymentRead(d, meta)
 }
 
-func resourceSpringCloudBuildDeploymentRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudBuildDeploymentRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.DeploymentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -259,7 +259,7 @@ func resourceSpringCloudBuildDeploymentRead(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func resourceSpringCloudBuildDeploymentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudBuildDeploymentDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.DeploymentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -282,14 +282,14 @@ func resourceSpringCloudBuildDeploymentDelete(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func expandSpringCloudBuildDeploymentResourceRequests(input []interface{}) *appplatform.ResourceRequests {
+func expandSpringCloudBuildDeploymentResourceRequests(input []any) *appplatform.ResourceRequests {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 	cpuResult := "1"
 	memResult := "1Gi"
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	if cpuNew := v["cpu"].(string); cpuNew != "" {
 		cpuResult = cpuNew
 	}

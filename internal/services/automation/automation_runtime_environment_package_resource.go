@@ -105,7 +105,7 @@ func (r AutomationRuntimeEnvironmentPackageResource) Attributes() map[string]*pl
 	}
 }
 
-func (r AutomationRuntimeEnvironmentPackageResource) ModelObject() interface{} {
+func (r AutomationRuntimeEnvironmentPackageResource) ModelObject() any {
 	return &AutomationRuntimeEnvironmentPackageModel{}
 }
 

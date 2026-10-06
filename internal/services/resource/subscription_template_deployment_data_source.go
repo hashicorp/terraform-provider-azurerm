@@ -40,7 +40,7 @@ func dataSourceSubscriptionTemplateDeployment() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceSubscriptionTemplateDeploymentRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceSubscriptionTemplateDeploymentRead(d *schema.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Resource.LegacyDeploymentsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
