@@ -6,7 +6,7 @@ package network
 import (
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworkgatewayconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworkgatewayconnections"
 )
 
 func TestConnectionTypeUsesSharedKey(t *testing.T) {

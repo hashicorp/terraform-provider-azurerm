@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2019-09-01/querypackqueries"
 	"github.com/hashicorp/go-uuid"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -42,7 +41,7 @@ func (r LogAnalyticsQueryPackQueryResource) ResourceType() string {
 	return "azurerm_log_analytics_query_pack_query"
 }
 
-func (r LogAnalyticsQueryPackQueryResource) ModelObject() interface{} {
+func (r LogAnalyticsQueryPackQueryResource) ModelObject() any {
 	return &LogAnalyticsQueryPackQueryModel{}
 }
 
@@ -111,7 +110,7 @@ func (r LogAnalyticsQueryPackQueryResource) Arguments() map[string]*pluginsdk.Sc
 		"additional_settings_json": {
 			Type:      pluginsdk.TypeString,
 			Optional:  true,
-			StateFunc: helpers.NormalizeJson,
+			StateFunc: pluginsdk.NormalizeJson,
 		},
 
 		"resource_types": {
@@ -385,7 +384,7 @@ func (r LogAnalyticsQueryPackQueryResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.AdditionalSettingsJson != "" {
-				var additionalSettingsJson interface{}
+				var additionalSettingsJson any
 				if err := json.Unmarshal([]byte(model.AdditionalSettingsJson), &additionalSettingsJson); err != nil {
 					return fmt.Errorf("parsing JSON: %+v", err)
 				}
@@ -447,7 +446,7 @@ func (r LogAnalyticsQueryPackQueryResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("additional_settings_json") {
-				var additionalSettingsJson interface{}
+				var additionalSettingsJson any
 				if err := json.Unmarshal([]byte(model.AdditionalSettingsJson), &additionalSettingsJson); err != nil {
 					return fmt.Errorf("parsing JSON: %+v", err)
 				}

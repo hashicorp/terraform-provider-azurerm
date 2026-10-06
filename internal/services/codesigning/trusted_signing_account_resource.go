@@ -73,7 +73,7 @@ func (m TrustedSigningAccountResource) Attributes() map[string]*pluginsdk.Schema
 	}
 }
 
-func (m TrustedSigningAccountResource) ModelObject() interface{} {
+func (m TrustedSigningAccountResource) ModelObject() any {
 	return &TrustedSigningAccountModel{}
 }
 

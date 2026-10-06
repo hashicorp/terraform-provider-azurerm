@@ -46,7 +46,7 @@ func (r VirtualMachineScaleSetStandbyPoolResource) ResourceType() string {
 	return "azurerm_virtual_machine_scale_set_standby_pool"
 }
 
-func (r VirtualMachineScaleSetStandbyPoolResource) ModelObject() interface{} {
+func (r VirtualMachineScaleSetStandbyPoolResource) ModelObject() any {
 	return &VirtualMachineScaleSetStandbyPoolModel{}
 }
 
