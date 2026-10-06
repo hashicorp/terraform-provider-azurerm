@@ -5,7 +5,6 @@ package automation
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -82,13 +81,11 @@ func resourceAutomationConnectionClassicCertificate() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationConnectionClassicCertificateCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionClassicCertificateCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Connection
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for AzureRM Automation Connection creation.")
 
 	id := connection.NewConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
@@ -127,12 +124,10 @@ func resourceAutomationConnectionClassicCertificateCreate(d *pluginsdk.ResourceD
 	return resourceAutomationConnectionClassicCertificateRead(d, meta)
 }
 
-func resourceAutomationConnectionClassicCertificateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionClassicCertificateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Connection
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for AzureRM Automation Connection update.")
 
 	id, err := connection.ParseConnectionID(d.Id())
 	if err != nil {
@@ -189,7 +184,7 @@ func resourceAutomationConnectionClassicCertificateUpdate(d *pluginsdk.ResourceD
 	return resourceAutomationConnectionClassicCertificateRead(d, meta)
 }
 
-func resourceAutomationConnectionClassicCertificateRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionClassicCertificateRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Connection
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -234,7 +229,7 @@ func resourceAutomationConnectionClassicCertificateRead(d *pluginsdk.ResourceDat
 	return nil
 }
 
-func resourceAutomationConnectionClassicCertificateDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionClassicCertificateDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Connection
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

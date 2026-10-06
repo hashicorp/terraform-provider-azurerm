@@ -330,20 +330,20 @@ resource "azurerm_express_route_circuit_peering" "test" {
   express_route_circuit_name    = azurerm_express_route_circuit.test.name
   resource_group_name           = azurerm_resource_group.test.name
   peer_asn                      = 100
-  primary_peer_address_prefix   = "192.168.7.0/30"
-  secondary_peer_address_prefix = "192.168.8.0/30"
+  primary_peer_address_prefix   = "192.168.13.0/30"
+  secondary_peer_address_prefix = "192.168.14.0/30"
   vlan_id                       = 300
 
   microsoft_peering_config {
-    advertised_public_prefixes = ["123.4.0.0/24"]
+    advertised_public_prefixes = ["123.6.0.0/24"]
   }
 
   ipv6 {
-    primary_peer_address_prefix   = "2002:db03::/126"
-    secondary_peer_address_prefix = "2003:db03::/126"
+    primary_peer_address_prefix   = "2002:db06::/126"
+    secondary_peer_address_prefix = "2003:db06::/126"
 
     microsoft_peering {
-      advertised_public_prefixes = ["2002:db01::/126"]
+      advertised_public_prefixes = ["2002:db06::/126"]
       advertised_communities     = ["regionalCommunity"]
     }
   }
