@@ -5,7 +5,6 @@ package automation
 
 import (
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -81,30 +80,30 @@ func resourceAutomationConnection() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationConnectionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Connection
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	connectionTypeClient := meta.(*clients.Client).Automation.ConnectionType
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Automation Connection creation.")
-
 	id := connection.NewConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
+		}
+
 		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			return tf.ImportAsExistsError("azurerm_automation_connection", id.ID())
 		}
 	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_automation_connection", id.ID())
-	}
-
 	connectionTypeName := d.Get("type").(string)
-	values := expandStringInterfaceMap(d.Get("values").(map[string]interface{}))
+	values := expandStringInterfaceMap(d.Get("values").(map[string]any))
 
 	connectionTypeId := connectiontype.NewConnectionTypeID(subscriptionId, id.ResourceGroupName, id.AutomationAccountName, connectionTypeName)
 	// check `type` exists and required fields are passed by users
@@ -144,12 +143,10 @@ func resourceAutomationConnectionCreate(d *pluginsdk.ResourceData, meta interfac
 	return resourceAutomationConnectionRead(d, meta)
 }
 
-func resourceAutomationConnectionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Connection
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for AzureRM Automation Connection update.")
 
 	id, err := connection.ParseConnectionID(d.Id())
 	if err != nil {
@@ -166,7 +163,7 @@ func resourceAutomationConnectionUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if d.HasChange("values") {
-		values := expandStringInterfaceMap(d.Get("values").(map[string]interface{}))
+		values := expandStringInterfaceMap(d.Get("values").(map[string]any))
 		parameters.Properties.FieldDefinitionValues = &values
 	}
 
@@ -177,7 +174,7 @@ func resourceAutomationConnectionUpdate(d *pluginsdk.ResourceData, meta interfac
 	return resourceAutomationConnectionRead(d, meta)
 }
 
-func resourceAutomationConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Connection
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -219,7 +216,7 @@ func resourceAutomationConnectionRead(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func resourceAutomationConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Connection
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

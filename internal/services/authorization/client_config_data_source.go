@@ -50,7 +50,7 @@ func dataSourceArmClientConfig() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceArmClientConfigRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceArmClientConfigRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client)
 	_, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

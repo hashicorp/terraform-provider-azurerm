@@ -59,9 +59,20 @@ func (c OracleSubscriptionsClient) ListActivationLinks(ctx context.Context, id c
 
 // ListActivationLinksThenPoll performs ListActivationLinks then polls until it's completed
 func (c OracleSubscriptionsClient) ListActivationLinksThenPoll(ctx context.Context, id commonids.SubscriptionId) error {
+	return c.ListActivationLinksCallbackThenPoll(ctx, id, nil)
+}
+
+// ListActivationLinksCallbackThenPoll performs ListActivationLinks, runs the optional callback function, then polls until it's completed
+func (c OracleSubscriptionsClient) ListActivationLinksCallbackThenPoll(ctx context.Context, id commonids.SubscriptionId, callback func() error) error {
 	result, err := c.ListActivationLinks(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ListActivationLinks: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
