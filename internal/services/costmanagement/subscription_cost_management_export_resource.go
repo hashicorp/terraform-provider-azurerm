@@ -59,7 +59,7 @@ func (r SubscriptionCostManagementExportResource) Attributes() map[string]*plugi
 	return r.base.attributes()
 }
 
-func (r SubscriptionCostManagementExportResource) ModelObject() interface{} {
+func (r SubscriptionCostManagementExportResource) ModelObject() any {
 	return &SubscriptionCostManagementExportModel{}
 }
 
@@ -84,16 +84,17 @@ func (r SubscriptionCostManagementExportResource) Create() sdk.ResourceFunc {
 
 			id := exports.NewScopedExportID(config.SubscriptionId, config.Name)
 
-			var opts exports.GetOperationOptions
-			existing, err := client.Get(ctx, id, opts)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id, exports.DefaultGetOperationOptions())
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				}
 			}
 
 			deliveryInfo, err := expandExportDataStorageLocationFromModel(config.ExportDataStorageLocation)
@@ -175,7 +176,7 @@ func (r SubscriptionCostManagementExportResource) Read() sdk.ResourceFunc {
 						if schedule.Status != nil {
 							state.Active = *schedule.Status == exports.StatusTypeActive
 						}
-						state.RecurrenceType = string(pointer.From(schedule.Recurrence))
+						state.RecurrenceType = pointer.FromEnum(schedule.Recurrence)
 					}
 
 					storageLocation, err := flattenExportDataStorageLocationToModel(props.DeliveryInfo)
@@ -184,7 +185,7 @@ func (r SubscriptionCostManagementExportResource) Read() sdk.ResourceFunc {
 					}
 					state.ExportDataStorageLocation = storageLocation
 					state.ExportDataOptions = flattenExportDataOptionsToModel(props.Definition)
-					state.FileFormat = string(pointer.From(props.Format))
+					state.FileFormat = pointer.FromEnum(props.Format)
 				}
 			}
 

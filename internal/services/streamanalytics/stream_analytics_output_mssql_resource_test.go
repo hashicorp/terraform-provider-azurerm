@@ -138,7 +138,6 @@ func (r StreamAnalyticsOutputSqlResource) Exists(ctx context.Context, client *cl
 }
 
 func (r StreamAnalyticsOutputSqlResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -153,11 +152,10 @@ resource "azurerm_stream_analytics_output_mssql" "test" {
   database = azurerm_mssql_database.test.name
   table    = "AccTestTable"
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputSqlResource) updated(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -174,11 +172,10 @@ resource "azurerm_stream_analytics_output_mssql" "test" {
 
   max_batch_count = 1000
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputSqlResource) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -193,11 +190,10 @@ resource "azurerm_stream_analytics_output_mssql" "import" {
   database = azurerm_mssql_database.test.name
   table    = "AccTestTable"
 }
-`, template)
+`, r.basic(data))
 }
 
 func (r StreamAnalyticsOutputSqlResource) maxBatchCountAndMaxWriterCount(data acceptance.TestData, maxBatchCount, maxWriterCount float64) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -215,11 +211,10 @@ resource "azurerm_stream_analytics_output_mssql" "test" {
   max_batch_count  = %f
   max_writer_count = %f
 }
-`, template, data.RandomInteger, maxBatchCount, maxWriterCount)
+`, r.template(data), data.RandomInteger, maxBatchCount, maxWriterCount)
 }
 
 func (r StreamAnalyticsOutputSqlResource) authenticationModeMsi(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -233,7 +228,7 @@ resource "azurerm_stream_analytics_output_mssql" "test" {
   database = azurerm_mssql_database.test.name
   table    = "AccTestTable"
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputSqlResource) template(data acceptance.TestData) string {

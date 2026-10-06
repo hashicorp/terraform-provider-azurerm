@@ -48,7 +48,7 @@ func (DevCenterAttachedNetworkDataSource) Attributes() map[string]*pluginsdk.Sch
 	}
 }
 
-func (DevCenterAttachedNetworkDataSource) ModelObject() interface{} {
+func (DevCenterAttachedNetworkDataSource) ModelObject() any {
 	return &DevCenterAttachedNetworkDataSourceModel{}
 }
 

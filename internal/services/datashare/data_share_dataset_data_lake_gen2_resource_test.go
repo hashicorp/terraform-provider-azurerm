@@ -50,7 +50,7 @@ func TestAccDataShareDataSetDataLakeGen2_basicFolder(t *testing.T) {
 	})
 }
 
-func TestAccDataShareDataSetDataLakeGen2File_basicSystem(t *testing.T) {
+func TestAccDataShareDataSetDataLakeGen2_fileBasicSystem(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_data_lake_gen2", "test")
 	r := DataShareDatasetDataLakeGen2Resource{}
 
@@ -66,7 +66,7 @@ func TestAccDataShareDataSetDataLakeGen2File_basicSystem(t *testing.T) {
 	})
 }
 
-func TestAccDataShareDataLakeGen2DataSet_requiresImport(t *testing.T) {
+func TestAccDataShareDataSetDataLakeGen2_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_data_lake_gen2", "test")
 	r := DataShareDatasetDataLakeGen2Resource{}
 

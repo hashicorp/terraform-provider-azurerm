@@ -91,7 +91,7 @@ func resourceAutomationModule() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationModuleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationModuleCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Module
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -99,17 +99,19 @@ func resourceAutomationModuleCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	id := module.NewModuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
 		}
-	}
 
-	// for existing global module do update instead of raising ImportAsExistsError
-	isGlobal := existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.IsGlobal != nil && *existing.Model.Properties.IsGlobal
-	if !response.WasNotFound(existing.HttpResponse) && !isGlobal {
-		return tf.ImportAsExistsError("azurerm_automation_module", id.ID())
+		// for existing global module do update instead of raising ImportAsExistsError
+		isGlobal := existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.IsGlobal != nil && *existing.Model.Properties.IsGlobal
+		if !response.WasNotFound(existing.HttpResponse) && !isGlobal {
+			return tf.ImportAsExistsError("azurerm_automation_module", id.ID())
+		}
 	}
 
 	parameters := module.ModuleCreateOrUpdateParameters{
@@ -122,16 +124,16 @@ func resourceAutomationModuleCreate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	if err := waitForModuleProvisioningCompletion(ctx, client, id, d.Timeout(pluginsdk.TimeoutCreate)); err != nil {
 		return err
 	}
 
-	d.SetId(id.ID())
-
 	return resourceAutomationModuleRead(d, meta)
 }
 
-func resourceAutomationModuleUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationModuleUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Module
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -176,7 +178,7 @@ func resourceAutomationModuleUpdate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceAutomationModuleRead(d, meta)
 }
 
-func resourceAutomationModuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationModuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Module
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -203,7 +205,7 @@ func resourceAutomationModuleRead(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceAutomationModuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationModuleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Module
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -226,14 +228,14 @@ func resourceAutomationModuleDelete(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func expandModuleLink(d *pluginsdk.ResourceData) module.ContentLink {
-	inputs := d.Get("module_link").([]interface{})
-	input := inputs[0].(map[string]interface{})
+	inputs := d.Get("module_link").([]any)
+	input := inputs[0].(map[string]any)
 	uri := input["uri"].(string)
 
-	hashes := input["hash"].([]interface{})
+	hashes := input["hash"].([]any)
 
 	if len(hashes) > 0 {
-		hash := hashes[0].(map[string]interface{})
+		hash := hashes[0].(map[string]any)
 		return module.ContentLink{
 			Uri: &uri,
 			ContentHash: &module.ContentHash{
@@ -273,7 +275,7 @@ func waitForModuleProvisioningCompletion(ctx context.Context, client *module.Mod
 		},
 		MinTimeout: 30 * time.Second,
 		Timeout:    timeout,
-		Refresh: func() (interface{}, string, error) {
+		Refresh: func() (any, string, error) {
 			resp, err := client.Get(ctx, id)
 			if err != nil {
 				return resp, "Error", fmt.Errorf("retrieving %s: %+v", id, err)

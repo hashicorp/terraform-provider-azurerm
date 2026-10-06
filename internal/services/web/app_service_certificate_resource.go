@@ -7,18 +7,17 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/certificates"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	keyVaultSuppress "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/suppress"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -82,7 +81,7 @@ func resourceAppServiceCertificate() *pluginsdk.Resource {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				ForceNew:         true,
-				DiffSuppressFunc: keyVaultSuppress.DiffSuppressIgnoreKeyVaultKeyVersion,
+				DiffSuppressFunc: suppress.DiffSuppressIgnoreKeyVaultKeyVersion,
 				ValidateFunc:     keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny),
 				ConflictsWith:    []string{"pfx_blob", "password"},
 				ExactlyOneOf:     []string{"key_vault_secret_id", "pfx_blob"},
@@ -142,7 +141,7 @@ func resourceAppServiceCertificate() *pluginsdk.Resource {
 	}
 }
 
-func resourceAppServiceCertificateCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceCertificateCreate(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).Web.CertificatesClient
 
@@ -151,12 +150,14 @@ func resourceAppServiceCertificateCreate(d *pluginsdk.ResourceData, meta interfa
 
 	id := certificates.NewCertificateID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if !response.WasNotFound(existing.HttpResponse) {
-		if err != nil {
-			return fmt.Errorf("checking for presence of existing %s: %w", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if !response.WasNotFound(existing.HttpResponse) {
+			if err != nil {
+				return fmt.Errorf("checking for presence of existing %s: %w", id, err)
+			}
+			return tf.ImportAsExistsError("azurerm_app_service_certificate", id.ID())
 		}
-		return tf.ImportAsExistsError("azurerm_app_service_certificate", id.ID())
 	}
 
 	certificate := certificates.Certificate{
@@ -164,7 +165,7 @@ func resourceAppServiceCertificateCreate(d *pluginsdk.ResourceData, meta interfa
 			Password: pointer.To(d.Get("password").(string)),
 		},
 		Location: location.Normalize(d.Get("location").(string)),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v := d.Get("app_service_plan_id").(string); v != "" {
@@ -210,7 +211,7 @@ func resourceAppServiceCertificateCreate(d *pluginsdk.ResourceData, meta interfa
 	return resourceAppServiceCertificateRead(d, meta)
 }
 
-func resourceAppServiceCertificateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceCertificateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.CertificatesClient
 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -227,7 +228,7 @@ func resourceAppServiceCertificateUpdate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("retrieving %s: `model` was nil", id)
 	}
 
-	existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]any))
 
 	if _, err := client.CreateOrUpdate(ctx, id, *existing.Model); err != nil {
 		return fmt.Errorf("updating %s: %s", id, err)
@@ -236,7 +237,7 @@ func resourceAppServiceCertificateUpdate(d *pluginsdk.ResourceData, meta interfa
 	return resourceAppServiceCertificateRead(d, meta)
 }
 
-func resourceAppServiceCertificateRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceCertificateRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.CertificatesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -292,7 +293,7 @@ func resourceAppServiceCertificateRead(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func resourceAppServiceCertificateDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceCertificateDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.CertificatesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

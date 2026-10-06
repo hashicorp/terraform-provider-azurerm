@@ -42,7 +42,7 @@ func (r StorageMoverProjectResource) ResourceType() string {
 	return "azurerm_storage_mover_project"
 }
 
-func (r StorageMoverProjectResource) ModelObject() interface{} {
+func (r StorageMoverProjectResource) ModelObject() any {
 	return &StorageMoverProjectResourceModel{}
 }
 
@@ -97,13 +97,16 @@ func (r StorageMoverProjectResource) Create() sdk.ResourceFunc {
 			}
 
 			id := projects.NewProjectID(storageMoverId.SubscriptionId, storageMoverId.ResourceGroupName, storageMoverId.StorageMoverName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			properties := &projects.Project{
