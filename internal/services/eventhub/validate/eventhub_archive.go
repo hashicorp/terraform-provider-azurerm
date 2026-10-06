@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func ValidateEventHubArchiveNameFormat(v interface{}, k string) (warnings []string, errors []error) {
+func ValidateEventHubArchiveNameFormat(v any, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	requiredComponents := []string{

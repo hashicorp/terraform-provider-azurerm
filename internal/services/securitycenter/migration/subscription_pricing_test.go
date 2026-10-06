@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -9,7 +9,7 @@ import (
 )
 
 func TestSecurityCenterSubscriptionPricingMigrateState(t *testing.T) {
-	inputAttributes := map[string]interface{}{
+	inputAttributes := map[string]any{
 		"id": "/subscriptions/00000000-0000-0000-0000-000000000000/pricings/default",
 	}
 	expectedId := "/subscriptions/00000000-0000-0000-0000-000000000000/pricings/VirtualMachines"

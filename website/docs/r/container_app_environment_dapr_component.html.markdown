@@ -63,7 +63,7 @@ The following arguments are supported:
 
 * `scopes` - (Optional) A list of scopes to which this component applies.
 
-~> **Note:** See the official docs for more information at https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview?tabs=bicep1%2Cyaml#component-scopes
+~> **Note:** See the official docs for more information at https://learn.microsoft.com/azure/container-apps/dapr-overview?tabs=bicep1%2Cyaml#component-scopes
 
 * `secret` - (Optional) A `secret` block as detailed below.
 
@@ -83,7 +83,11 @@ A `secret` block supports the following:
 
 * `name` - (Required) The Secret name.
 
-* `value` - (Required) The value for this secret.
+* `value` - (Optional) The value for this secret.
+
+* `identity` - (Optional) The identity to use for accessing key vault reference. Possible values are the Resource ID of a User Assigned Managed Identity, or `System` to use the System Assigned Managed Identity.
+
+* `key_vault_secret_id` - (Optional) The Key Vault Secret ID.
 
 ## Attributes Reference
 

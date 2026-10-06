@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2020, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package tf5server
@@ -52,7 +52,7 @@ const (
 	//
 	// In the future, it may be possible to include this information directly
 	// in the protocol buffers rather than recreating a constant here.
-	protocolVersionMinor uint = 10
+	protocolVersionMinor uint = 11
 )
 
 // protocolVersion represents the combined major and minor version numbers of
@@ -456,7 +456,7 @@ func (s *server) stoppableContext(ctx context.Context) context.Context {
 // terraform-plugin-log loggers injected.
 func (s *server) loggingContext(ctx context.Context) context.Context {
 	if s.useTFLogSink {
-		ctx = tfsdklog.RegisterTestSink(ctx, s.testHandle)
+		ctx = tfsdklog.ContextWithTestLogging(ctx, s.testHandle.Name())
 	}
 
 	ctx = logging.InitContext(ctx, s.tflogSDKOpts, s.tflogOpts)
@@ -1482,6 +1482,36 @@ func (s *server) InvokeAction(protoReq *tfplugin5.InvokeAction_Request, protoStr
 	}
 
 	return nil
+}
+
+func (s *server) GenerateResourceConfig(ctx context.Context, protoReq *tfplugin5.GenerateResourceConfig_Request) (protoResp *tfplugin5.GenerateResourceConfig_Response, err error) {
+	rpc := "GenerateResourceConfig"
+	ctx = s.loggingContext(ctx)
+	ctx = logging.RpcContext(ctx, rpc)
+	ctx = logging.ResourceContext(ctx, protoReq.TypeName)
+	ctx = s.stoppableContext(ctx)
+	logging.ProtocolTrace(ctx, "Received request")
+	defer logging.ProtocolTrace(ctx, "Served request")
+
+	req := fromproto.GenerateResourceConfigRequest(protoReq)
+
+	logging.ProtocolData(ctx, s.protocolDataDir, rpc, "Request", "State", req.State)
+
+	ctx = tf5serverlogging.DownstreamRequest(ctx)
+
+	resp, err := s.downstream.GenerateResourceConfig(ctx, req)
+	if err != nil {
+		logging.ProtocolError(ctx, "Error from downstream", map[string]any{logging.KeyError: err})
+		return nil, err
+	}
+
+	tf5serverlogging.DownstreamResponse(ctx, resp.Diagnostics)
+
+	logging.ProtocolData(ctx, s.protocolDataDir, rpc, "Response", "Config", resp.Config)
+
+	protoResp = toproto.GenerateResourceConfig_Response(resp)
+
+	return protoResp, nil
 }
 
 func invalidDeferredResponseDiag(reason tfprotov5.DeferredReason) *tfprotov5.Diagnostic {

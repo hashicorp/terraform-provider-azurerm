@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sdk
@@ -11,9 +11,9 @@ import (
 )
 
 type decodeTestData struct {
-	State       map[string]interface{}
-	Input       interface{}
-	Expected    interface{}
+	State       map[string]any
+	Input       any
+	Expected    any
 	ExpectError bool
 }
 
@@ -74,39 +74,39 @@ type OneOfEverything struct {
 
 func TestDecode_TopLevelFieldsRequired(t *testing.T) {
 	decodeTestData{
-		State: map[string]interface{}{
+		State: map[string]any{
 			"int64":   42,
 			"float":   129.99,
 			"string":  "world",
 			"enabled": true,
-			"list_of_float": []interface{}{
+			"list_of_float": []any{
 				1.0,
 				2.0,
 				3.0,
 				1.234567890,
 			},
-			"list_of_int64": []interface{}{1, 2, 3},
-			"list_of_strings": []interface{}{
+			"list_of_int64": []any{1, 2, 3},
+			"list_of_strings": []any{
 				"have",
 				"you",
 				"heard",
 			},
-			"map_of_booleans": map[string]interface{}{
+			"map_of_booleans": map[string]any{
 				"awesome_feature": true,
 			},
-			"map_of_int": map[string]interface{}{
+			"map_of_int": map[string]any{
 				"hello": 1,
 				"there": 3,
 			},
-			"map_of_int64": map[string]interface{}{
+			"map_of_int64": map[string]any{
 				"ten":    10,
 				"eleven": 11,
 			},
-			"map_of_float": map[string]interface{}{
+			"map_of_float": map[string]any{
 				"pi":    3.12,
 				"fifth": 0.2,
 			},
-			"map_of_strings": map[string]interface{}{
+			"map_of_strings": map[string]any{
 				"hello":   "there",
 				"salut":   "tous les monde",
 				"guten":   "tag",
@@ -162,11 +162,11 @@ func TestDecode_TopLevelFieldsComputedNoValues(t *testing.T) {
 		ComputedMapOfStrings map[string]string  `tfschema:"computed_map_of_strings"`
 	}
 	decodeTestData{
-		State: map[string]interface{}{
-			"computed_map_of_bools":   map[string]interface{}{},
-			"computed_map_of_floats":  map[string]interface{}{},
-			"computed_map_of_ints":    map[string]interface{}{},
-			"computed_map_of_strings": map[string]interface{}{},
+		State: map[string]any{
+			"computed_map_of_bools":   map[string]any{},
+			"computed_map_of_floats":  map[string]any{},
+			"computed_map_of_ints":    map[string]any{},
+			"computed_map_of_strings": map[string]any{},
 		},
 		Input: &SimpleType{},
 		Expected: &SimpleType{
@@ -188,20 +188,20 @@ func TestDecode_TopLevelFieldsComputedWithValues(t *testing.T) {
 		ComputedMapOfStrings map[string]string  `tfschema:"computed_map_of_strings"`
 	}
 	decodeTestData{
-		State: map[string]interface{}{
-			"computed_map_of_bools": map[string]interface{}{
+		State: map[string]any{
+			"computed_map_of_bools": map[string]any{
 				"bingo": true,
 				"bango": false,
 			},
-			"computed_map_of_floats": map[string]interface{}{
+			"computed_map_of_floats": map[string]any{
 				"bingo": -2.197234,
 				"bango": 3.123456789,
 			},
-			"computed_map_of_ints": map[string]interface{}{
+			"computed_map_of_ints": map[string]any{
 				"bingo": 2197234,
 				"bango": 3123456789,
 			},
-			"computed_map_of_strings": map[string]interface{}{
+			"computed_map_of_strings": map[string]any{
 				"matthew": "brisket",
 				"tom":     "coffee",
 			},
@@ -243,7 +243,7 @@ func TestDecode_TopLevelFieldsOptional(t *testing.T) {
 		MapOfStrings  map[string]string `tfschema:"map_of_strings"`
 	}
 	decodeTestData{
-		State: map[string]interface{}{
+		State: map[string]any{
 			"number":          int64(0),
 			"price":           float64(0),
 			"string":          "",
@@ -251,9 +251,9 @@ func TestDecode_TopLevelFieldsOptional(t *testing.T) {
 			"list_of_floats":  []float64{},
 			"list_of_numbers": []int64{},
 			"list_of_strings": []string{},
-			"map_of_bools":    map[string]interface{}{},
-			"map_of_numbers":  map[string]interface{}{},
-			"map_of_strings":  map[string]interface{}{},
+			"map_of_bools":    map[string]any{},
+			"map_of_numbers":  map[string]any{},
+			"map_of_strings":  map[string]any{},
 		},
 		Input: &SimpleType{},
 		Expected: &SimpleType{
@@ -267,7 +267,7 @@ func TestDecode_TopLevelFieldsOptional(t *testing.T) {
 
 func TestDecode_TopLevelFieldsOptionalNullValues(t *testing.T) {
 	decodeTestData{
-		State: map[string]interface{}{
+		State: map[string]any{
 			"required": "name",
 		},
 		Input: &OneRequiredRestOptional{},
@@ -281,16 +281,16 @@ func TestDecode_TopLevelFieldsOptionalNullValues(t *testing.T) {
 
 func TestDecode_TopLevelFieldsOptionalMixedValues(t *testing.T) {
 	decodeTestData{
-		State: map[string]interface{}{
+		State: map[string]any{
 			"required": "name",
 			"float":    3.5,
 			"enabled":  false,
-			"list_of_strings": []interface{}{
+			"list_of_strings": []any{
 				"have",
 				"you",
 				"heard",
 			},
-			"map_of_int64": &map[string]interface{}{
+			"map_of_int64": &map[string]any{
 				"ten":       10, // TODO - Should this be needed?
 				"twentyone": 21,
 			},
@@ -316,39 +316,39 @@ func TestDecode_TopLevelFieldsOptionalMixedValues(t *testing.T) {
 
 func TestDecode_TopLevelFieldsOptionalComplete(t *testing.T) {
 	decodeTestData{
-		State: map[string]interface{}{
+		State: map[string]any{
 			"required":   "name",
 			"int64":      1984,
 			"float":      3.5,
 			"string":     "do you know where your towel is",
 			"enabled":    true,
 			"empty_bool": nil,
-			"list_of_float": []interface{}{
+			"list_of_float": []any{
 				1.2,
 				3.142,
 			},
-			"list_of_int64": []interface{}{
+			"list_of_int64": []any{
 				100,
 				200,
 			},
-			"list_of_strings": []interface{}{
+			"list_of_strings": []any{
 				"have",
 				"you",
 				"heard",
 			},
-			"map_of_booleans": map[string]interface{}{
+			"map_of_booleans": map[string]any{
 				"first":  true,
 				"second": false,
 			},
-			"map_of_int64": map[string]interface{}{
+			"map_of_int64": map[string]any{
 				"Orwell":     1984,
 				"fahrenheit": 451,
 			},
-			"map_of_strings": map[string]interface{}{
+			"map_of_strings": map[string]any{
 				"foo":  "bar",
 				"ford": "prefect",
 			},
-			"map_of_float": map[string]interface{}{
+			"map_of_float": map[string]any{
 				"pi":    3.12,
 				"fifth": 0.2,
 			},
@@ -404,12 +404,12 @@ func TestDecode_TopLevelFieldsComputed(t *testing.T) {
 		ComputedListOfStrings []string `tfschema:"computed_list_of_strings"`
 	}
 	decodeTestData{
-		State: map[string]interface{}{
+		State: map[string]any{
 			"computed_string":          "je suis computed",
 			"computed_number":          732,
 			"computed_bool":            true,
-			"computed_list_of_numbers": []interface{}{1, 2, 3},
-			"computed_list_of_strings": []interface{}{
+			"computed_list_of_numbers": []any{1, 2, 3},
+			"computed_list_of_strings": []any{
 				"have",
 				"you",
 				"heard",
@@ -439,8 +439,8 @@ func TestResourceDecode_NestedOneLevelDeepEmpty(t *testing.T) {
 		NestedObject []Inner `tfschema:"inner"`
 	}
 	decodeTestData{
-		State: map[string]interface{}{
-			"inner": []interface{}{},
+		State: map[string]any{
+			"inner": []any{},
 		},
 		Input: &Type{},
 		Expected: &Type{
@@ -466,33 +466,33 @@ func TestResourceDecode_NestedOneLevelDeepSingle(t *testing.T) {
 		NestedObject []Inner `tfschema:"inner"`
 	}
 	decodeTestData{
-		State: map[string]interface{}{
-			"inner": []interface{}{
-				map[string]interface{}{
+		State: map[string]any{
+			"inner": []any{
+				map[string]any{
 					"number":  42,
 					"price":   129.99,
 					"string":  "world",
 					"enabled": true,
-					"list_of_floats": []interface{}{
+					"list_of_floats": []any{
 						1.0,
 						2.0,
 						3.0,
 						1.234567890,
 					},
-					"list_of_int64": []interface{}{2, 4, 6},
-					"list_of_strings": []interface{}{
+					"list_of_int64": []any{2, 4, 6},
+					"list_of_strings": []any{
 						"have",
 						"you",
 						"heard",
 					},
-					"map_of_bools": map[string]interface{}{
+					"map_of_bools": map[string]any{
 						"awesome_feature": true,
 					},
-					"map_of_int64": map[string]interface{}{
+					"map_of_int64": map[string]any{
 						"hello": 2,
 						"there": 6,
 					},
-					"map_of_strings": map[string]interface{}{
+					"map_of_strings": map[string]any{
 						"hello":   "there",
 						"salut":   "tout les monde",
 						"guten":   "tag",
@@ -557,9 +557,9 @@ func TestResourceDecode_NestedOneLevelDeepSingleOmittedValues(t *testing.T) {
 		NestedObject []Inner `tfschema:"inner"`
 	}
 	decodeTestData{
-		State: map[string]interface{}{
-			"inner": []interface{}{
-				map[string]interface{}{
+		State: map[string]any{
+			"inner": []any{
+				map[string]any{
 					"number":          0,
 					"price":           float64(0),
 					"string":          "",
@@ -567,10 +567,10 @@ func TestResourceDecode_NestedOneLevelDeepSingleOmittedValues(t *testing.T) {
 					"list_of_floats":  []float64{},
 					"list_of_int64":   []int64{},
 					"list_of_strings": []string{},
-					"map_of_bools":    map[string]interface{}{},
-					"map_of_numbers":  map[string]interface{}{},
-					"map_of_int64":    map[string]interface{}{},
-					"map_of_strings":  map[string]interface{}{},
+					"map_of_bools":    map[string]any{},
+					"map_of_numbers":  map[string]any{},
+					"map_of_int64":    map[string]any{},
+					"map_of_strings":  map[string]any{},
 				},
 			},
 		},
@@ -595,15 +595,15 @@ func TestResourceDecode_NestedOneLevelDeepSingleMultiple(t *testing.T) {
 		NestedObject []Inner `tfschema:"inner"`
 	}
 	decodeTestData{
-		State: map[string]interface{}{
-			"inner": []interface{}{
-				map[string]interface{}{
+		State: map[string]any{
+			"inner": []any{
+				map[string]any{
 					"value": "first",
 				},
-				map[string]interface{}{
+				map[string]any{
 					"value": "second",
 				},
-				map[string]interface{}{
+				map[string]any{
 					"value": "third",
 				},
 			},
@@ -641,8 +641,8 @@ func TestResourceDecode_NestedThreeLevelsDeepEmpty(t *testing.T) {
 
 	t.Log("Top Level Empty")
 	decodeTestData{
-		State: map[string]interface{}{
-			"first": []interface{}{},
+		State: map[string]any{
+			"first": []any{},
 		},
 		Input: &Type{},
 		Expected: &Type{
@@ -652,10 +652,10 @@ func TestResourceDecode_NestedThreeLevelsDeepEmpty(t *testing.T) {
 
 	t.Log("Second Level Empty")
 	decodeTestData{
-		State: map[string]interface{}{
-			"first": []interface{}{
-				map[string]interface{}{
-					"second": []interface{}{},
+		State: map[string]any{
+			"first": []any{
+				map[string]any{
+					"second": []any{},
 				},
 			},
 		},
@@ -671,12 +671,12 @@ func TestResourceDecode_NestedThreeLevelsDeepEmpty(t *testing.T) {
 
 	t.Log("Third Level Empty")
 	decodeTestData{
-		State: map[string]interface{}{
-			"first": []interface{}{
-				map[string]interface{}{
-					"second": []interface{}{
-						map[string]interface{}{
-							"third": []interface{}{},
+		State: map[string]any{
+			"first": []any{
+				map[string]any{
+					"second": []any{
+						map[string]any{
+							"third": []any{},
 						},
 					},
 				},
@@ -712,13 +712,13 @@ func TestResourceDecode_NestedThreeLevelsDeepSingleItem(t *testing.T) {
 	}
 
 	decodeTestData{
-		State: map[string]interface{}{
-			"first": []interface{}{
-				map[string]interface{}{
-					"second": []interface{}{
-						map[string]interface{}{
-							"third": []interface{}{
-								map[string]interface{}{
+		State: map[string]any{
+			"first": []any{
+				map[string]any{
+					"second": []any{
+						map[string]any{
+							"third": []any{
+								map[string]any{
 									"value": "salut",
 								},
 							},
@@ -763,59 +763,59 @@ func TestResourceDecode_NestedThreeLevelsDeepMultipleItems(t *testing.T) {
 	}
 
 	decodeTestData{
-		State: map[string]interface{}{
-			"first": []interface{}{
-				map[string]interface{}{
+		State: map[string]any{
+			"first": []any{
+				map[string]any{
 					"value": "first - 1",
-					"second": []interface{}{
-						map[string]interface{}{
+					"second": []any{
+						map[string]any{
 							"value": "second - 1",
-							"third": []interface{}{
-								map[string]interface{}{
+							"third": []any{
+								map[string]any{
 									"value": "third - 1",
 								},
-								map[string]interface{}{
+								map[string]any{
 									"value": "third - 2",
 								},
-								map[string]interface{}{
+								map[string]any{
 									"value": "third - 3",
 								},
 							},
 						},
-						map[string]interface{}{
+						map[string]any{
 							"value": "second - 2",
-							"third": []interface{}{
-								map[string]interface{}{
+							"third": []any{
+								map[string]any{
 									"value": "third - 4",
 								},
-								map[string]interface{}{
+								map[string]any{
 									"value": "third - 5",
 								},
-								map[string]interface{}{
+								map[string]any{
 									"value": "third - 6",
 								},
 							},
 						},
 					},
 				},
-				map[string]interface{}{
+				map[string]any{
 					"value": "first - 2",
-					"second": []interface{}{
-						map[string]interface{}{
+					"second": []any{
+						map[string]any{
 							"value": "second - 3",
-							"third": []interface{}{
-								map[string]interface{}{
+							"third": []any{
+								map[string]any{
 									"value": "third - 7",
 								},
-								map[string]interface{}{
+								map[string]any{
 									"value": "third - 8",
 								},
 							},
 						},
-						map[string]interface{}{
+						map[string]any{
 							"value": "second - 4",
-							"third": []interface{}{
-								map[string]interface{}{
+							"third": []any{
+								map[string]any{
 									"value": "third - 9",
 								},
 							},
@@ -907,60 +907,60 @@ func TestResourceDecode_NestedThreeLevelsDeepMultipleOptionalItems(t *testing.T)
 	}
 
 	decodeTestData{
-		State: map[string]interface{}{
-			"first": []interface{}{
-				map[string]interface{}{
+		State: map[string]any{
+			"first": []any{
+				map[string]any{
 					"value": "first - 1",
-					"second": []interface{}{
-						map[string]interface{}{
+					"second": []any{
+						map[string]any{
 							"value":  "second - 1",
 							"number": 2,
-							"third": []interface{}{
-								map[string]interface{}{
+							"third": []any{
+								map[string]any{
 									"value": "third - 1",
 								},
-								map[string]interface{}{
+								map[string]any{
 									"value": "third - 2",
 								},
-								map[string]interface{}{
+								map[string]any{
 									"value": "third - 3",
 								},
 							},
 						},
-						map[string]interface{}{
+						map[string]any{
 							"value": "second - 2",
-							"third": []interface{}{
-								map[string]interface{}{
+							"third": []any{
+								map[string]any{
 									"value": "third - 4",
 								},
-								map[string]interface{}{
+								map[string]any{
 									"value": "third - 5",
 								},
-								map[string]interface{}{
+								map[string]any{
 									"value": "third - 6",
 								},
 							},
 						},
 					},
 				},
-				map[string]interface{}{
+				map[string]any{
 					"value": "first - 2",
-					"second": []interface{}{
-						map[string]interface{}{
+					"second": []any{
+						map[string]any{
 							"value": "second - 3",
-							"third": []interface{}{
-								map[string]interface{}{
+							"third": []any{
+								map[string]any{
 									"value": "third - 7",
 								},
-								map[string]interface{}{
+								map[string]any{
 									"value": "third - 8",
 								},
 							},
 						},
-						map[string]interface{}{
+						map[string]any{
 							"value": "second - 4",
-							"third": []interface{}{
-								map[string]interface{}{
+							"third": []any{
+								map[string]any{
 									"value": "third - 9",
 								},
 							},
@@ -1062,19 +1062,19 @@ func (testData decodeTestData) stateWrapper() testDataGetter {
 }
 
 type testDataGetter struct {
-	values map[string]interface{}
+	values map[string]any
 }
 
-func (td testDataGetter) Get(key string) interface{} {
+func (td testDataGetter) Get(key string) any {
 	return td.values[key]
 }
 
-func (td testDataGetter) GetOk(key string) (interface{}, bool) {
+func (td testDataGetter) GetOk(key string) (any, bool) {
 	val, ok := td.values[key]
 	return val, ok
 }
 
-func (td testDataGetter) GetOkExists(key string) (interface{}, bool) {
+func (td testDataGetter) GetOkExists(key string) (any, bool) {
 	// for the purposes of this test this should be sufficient, maybe?
 	val, ok := td.values[key]
 	return val, ok
