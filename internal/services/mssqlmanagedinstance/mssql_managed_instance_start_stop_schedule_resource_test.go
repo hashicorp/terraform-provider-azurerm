@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -60,6 +61,31 @@ func TestAccMsSqlManagedInstanceStartStopSchedule_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMsSqlManagedInstanceStartStopSchedule_multipleSchedules(t *testing.T) {
+	if !features.SixPointOh() {
+		t.Skip("This test requires the schedule set introduced in 6.0")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance_start_stop_schedule", "test")
+	r := sqlManagedInstanceStartStopScheduleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multipleSchedules(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.multipleSchedulesUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -126,6 +152,46 @@ resource "azurerm_mssql_managed_instance_start_stop_schedule" "test" {
   description         = "test description"
   timezone_id         = "Central European Standard Time"
   schedule {
+    start_day  = "Wednesday"
+    start_time = "11:00"
+    stop_day   = "Wednesday"
+    stop_time  = "23:00"
+  }
+}
+`, r.template(data))
+}
+
+func (r sqlManagedInstanceStartStopScheduleResource) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_mssql_managed_instance_start_stop_schedule" "test" {
+  managed_instance_id = azurerm_mssql_managed_instance.test.id
+  description         = "updated test description"
+  timezone_id         = "Central European Standard Time"
+  schedule {
+    start_day  = "Wednesday"
+    start_time = "10:00"
+    stop_day   = "Wednesday"
+    stop_time  = "22:00"
+  }
+  schedule {
+    start_day  = "Thursday"
+    start_time = "11:00"
+    stop_day   = "Thursday"
+    stop_time  = "23:00"
+  }
+}
+`, r.template(data))
+}
+
+func (r sqlManagedInstanceStartStopScheduleResource) multipleSchedules(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_mssql_managed_instance_start_stop_schedule" "test" {
+  managed_instance_id = azurerm_mssql_managed_instance.test.id
+  description         = "test description"
+  timezone_id         = "Central European Standard Time"
+  schedule {
     start_day  = "Monday"
     start_time = "08:00"
     stop_day   = "Monday"
@@ -149,7 +215,7 @@ resource "azurerm_mssql_managed_instance_start_stop_schedule" "test" {
 `, r.template(data))
 }
 
-func (r sqlManagedInstanceStartStopScheduleResource) update(data acceptance.TestData) string {
+func (r sqlManagedInstanceStartStopScheduleResource) multipleSchedulesUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_mssql_managed_instance_start_stop_schedule" "test" {

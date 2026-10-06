@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/startstopmanagedinstanceschedules"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
@@ -56,6 +57,10 @@ func (r MsSqlManagedInstanceStartStopScheduleResource) IDValidationFunc() plugin
 }
 
 func (r MsSqlManagedInstanceStartStopScheduleResource) StateUpgraders() sdk.StateUpgradeData {
+	if !features.SixPointOh() {
+		return sdk.StateUpgradeData{}
+	}
+
 	return sdk.StateUpgradeData{
 		SchemaVersion: 1,
 		Upgraders: map[int]pluginsdk.StateUpgrade{
@@ -65,7 +70,7 @@ func (r MsSqlManagedInstanceStartStopScheduleResource) StateUpgraders() sdk.Stat
 }
 
 func (r MsSqlManagedInstanceStartStopScheduleResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	arguments := map[string]*pluginsdk.Schema{
 		"managed_instance_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -118,6 +123,43 @@ func (r MsSqlManagedInstanceStartStopScheduleResource) Arguments() map[string]*p
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
+
+	if !features.SixPointOh() {
+		arguments["schedule"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MinItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"start_day": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(startstopmanagedinstanceschedules.PossibleValuesForDayOfWeek(), false),
+					},
+
+					"start_time": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"stop_day": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(startstopmanagedinstanceschedules.PossibleValuesForDayOfWeek(), false),
+					},
+
+					"stop_time": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+		}
+	}
+
+	return arguments
 }
 
 func (r MsSqlManagedInstanceStartStopScheduleResource) Attributes() map[string]*pluginsdk.Schema {

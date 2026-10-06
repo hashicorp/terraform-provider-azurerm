@@ -10,10 +10,10 @@ import (
 )
 
 func TestMsSqlManagedInstanceStartStopScheduleV0ToV1(t *testing.T) {
-	input := map[string]interface{}{
+	input := map[string]any{
 		"managed_instance_id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Sql/managedInstances/instance1",
-		"schedule": []interface{}{
-			map[string]interface{}{
+		"schedule": []any{
+			map[string]any{
 				"start_day":  "Wednesday",
 				"start_time": "11:00",
 				"stop_day":   "Wednesday",
@@ -28,7 +28,7 @@ func TestMsSqlManagedInstanceStartStopScheduleV0ToV1(t *testing.T) {
 		t.Fatalf("expected no error but got: %+v", err)
 	}
 
-	if _, ok := actual["schedule"].([]interface{}); !ok {
+	if _, ok := actual["schedule"].([]any); !ok {
 		t.Fatalf("expected schedule to remain a JSON-serializable slice, got %T", actual["schedule"])
 	}
 
