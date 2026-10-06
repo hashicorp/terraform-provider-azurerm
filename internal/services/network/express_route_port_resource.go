@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -6,6 +6,7 @@ package network
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -14,11 +15,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/expressrouteports"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressrouteports"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -26,10 +27,10 @@ import (
 )
 
 var expressRoutePortSchema = &pluginsdk.Schema{
-	Type: pluginsdk.TypeList,
-	// Service will always create a pair of links automatically. Users can't add or remove link, but only manipulate existing ones.
-	// This is because the link is actually a map to the physical pair of ports on the MS edge device.
+	Type:     pluginsdk.TypeList,
 	Optional: true,
+	// Note: O+C because the service will always create a pair of links automatically. Users can't add or remove link, but only manipulate existing ones.
+	// This is because the link is actually a map to the physical pair of ports on the MS edge device.
 	Computed: true,
 	MinItems: 1,
 	MaxItems: 1,
@@ -41,22 +42,10 @@ var expressRoutePortSchema = &pluginsdk.Schema{
 				Default:  false,
 			},
 			"macsec_cipher": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-
-				// TODO: The following hardcode can be replaced by SDK types once following is merged:
-				// 	https://github.com/Azure/azure-rest-api-specs/pull/12329
-				Default: "GcmAes128",
-				// Default: string(expressrouteports.GcmAes128),
-
-				// TODO: The following hardcode can be replaced by SDK types once following is merged:
-				// 	https://github.com/Azure/azure-rest-api-specs/pull/12329
-				ValidateFunc: validation.StringInSlice([]string{
-					"GcmAes128",
-					"GcmAes256",
-					// string(expressrouteports.GcmAes128),
-					// string(expressrouteports.GcmAes256),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(expressrouteports.ExpressRouteLinkMacSecCipherGcmAesOneTwoEight),
+				ValidateFunc: validation.StringInSlice(expressrouteports.PossibleValuesForExpressRouteLinkMacSecCipher(), false),
 			},
 			"macsec_ckn_keyvault_secret_id": {
 				Type:         pluginsdk.TypeString,
@@ -102,7 +91,7 @@ var expressRoutePortSchema = &pluginsdk.Schema{
 }
 
 func resourceArmExpressRoutePort() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceArmExpressRoutePortCreate,
 		Read:   resourceArmExpressRoutePortRead,
 		Update: resourceArmExpressRoutePortUpdate,
@@ -114,10 +103,10 @@ func resourceArmExpressRoutePort() *pluginsdk.Resource {
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(120 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(120 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(120 * time.Minute),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -147,25 +136,19 @@ func resourceArmExpressRoutePort() *pluginsdk.Resource {
 			},
 
 			"encapsulation": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(expressrouteports.ExpressRoutePortsEncapsulationDotOneQ),
-					string(expressrouteports.ExpressRoutePortsEncapsulationQinQ),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(expressrouteports.PossibleValuesForExpressRoutePortsEncapsulation(), false),
 			},
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"billing_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(expressrouteports.ExpressRoutePortsBillingTypeMeteredData),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(expressrouteports.ExpressRoutePortsBillingTypeMeteredData),
-					string(expressrouteports.ExpressRoutePortsBillingTypeUnlimitedData),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(expressrouteports.ExpressRoutePortsBillingTypeMeteredData),
+				ValidateFunc: validation.StringInSlice(expressrouteports.PossibleValuesForExpressRoutePortsBillingType(), false),
 			},
 
 			"link1": expressRoutePortSchema,
@@ -190,23 +173,9 @@ func resourceArmExpressRoutePort() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		resource.Schema["billing_type"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(expressrouteports.ExpressRoutePortsBillingTypeMeteredData),
-				string(expressrouteports.ExpressRoutePortsBillingTypeUnlimitedData),
-			}, false),
-		}
-	}
-
-	return resource
 }
 
-func resourceArmExpressRoutePortCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmExpressRoutePortCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRoutePorts
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -214,18 +183,20 @@ func resourceArmExpressRoutePortCreate(d *pluginsdk.ResourceData, meta interface
 
 	id := expressrouteports.NewExpressRoutePortID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id)
-	if err != nil {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		resp, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
+		}
+
 		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
+			return tf.ImportAsExistsError("azurerm_express_route_port", id.ID())
 		}
 	}
 
-	if !response.WasNotFound(resp.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_express_route_port", id.ID())
-	}
-
-	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -235,37 +206,36 @@ func resourceArmExpressRoutePortCreate(d *pluginsdk.ResourceData, meta interface
 		Properties: &expressrouteports.ExpressRoutePortPropertiesFormat{
 			PeeringLocation: pointer.To(d.Get("peering_location").(string)),
 			BandwidthInGbps: pointer.To(int64(d.Get("bandwidth_in_gbps").(int))),
-			Encapsulation:   pointer.To(expressrouteports.ExpressRoutePortsEncapsulation(d.Get("encapsulation").(string))),
+			Encapsulation:   pointer.ToEnum[expressrouteports.ExpressRoutePortsEncapsulation](d.Get("encapsulation").(string)),
 		},
 		Identity: expandedIdentity,
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v, ok := d.GetOk("billing_type"); ok {
-		param.Properties.BillingType = pointer.To(expressrouteports.ExpressRoutePortsBillingType(v.(string)))
+		param.Properties.BillingType = pointer.ToEnum[expressrouteports.ExpressRoutePortsBillingType](v.(string))
 	}
 
 	// a lock is needed here for subresource express_route_port_authorization needs a lock.
 	locks.ByID(id.ID())
 	defer locks.UnlockByID(id.ID())
 
-	// The link properties can't be specified in first creation. It will result into either error (e.g. setting `adminState`) or being ignored (e.g. setting MACSec)
-	if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-
-	param.Properties.Links = expandExpressRoutePortLinks(d.Get("link1").([]interface{}), d.Get("link2").([]interface{}))
-
-	if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
 	d.SetId(id.ID())
+
+	// The link properties can't be specified in first creation. It will result into either error (e.g. setting `adminState`) or being ignored (e.g. setting MACSec)
+	param.Properties.Links = expandExpressRoutePortLinks(d.Get("link1").([]any), d.Get("link2").([]any))
+
+	if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
 
 	return resourceArmExpressRoutePortRead(d, meta)
 }
 
-func resourceArmExpressRoutePortUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmExpressRoutePortUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRoutePorts
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -289,8 +259,26 @@ func resourceArmExpressRoutePortUpdate(d *pluginsdk.ResourceData, meta interface
 
 	payload := existing.Model
 
+	// Normalize the identity type - Azure API returns lowercase (e.g. "userAssigned")
+	// but the SDK MarshalJSON expects exact case match (e.g. "UserAssigned")
+	// Without normalization, MarshalJSON defaults to "None" and removes the identity
+	if payload.Identity != nil {
+		// Use string comparison to normalize the type
+		switch strings.ToLower(string(payload.Identity.Type)) {
+		case "systemassigned":
+			payload.Identity.Type = identity.TypeSystemAssigned
+		case "userassigned":
+			payload.Identity.Type = identity.TypeUserAssigned
+		case "systemassigned, userassigned", "systemassigned,userassigned":
+			payload.Identity.Type = identity.TypeSystemAssignedUserAssigned
+		case "none":
+			payload.Identity.Type = identity.TypeNone
+		}
+		log.Printf("[DEBUG] Normalized identity type from %q to %q", existing.Model.Identity.Type, payload.Identity.Type)
+	}
+
 	if d.HasChange("identity") {
-		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -299,23 +287,21 @@ func resourceArmExpressRoutePortUpdate(d *pluginsdk.ResourceData, meta interface
 
 	if d.HasChange("billing_type") {
 		if v, ok := d.GetOk("billing_type"); ok {
-			payload.Properties.BillingType = pointer.To(expressrouteports.ExpressRoutePortsBillingType(v.(string)))
+			payload.Properties.BillingType = pointer.ToEnum[expressrouteports.ExpressRoutePortsBillingType](v.(string))
 		}
 	}
 
 	if d.HasChanges("link1", "link2") {
-		payload.Properties.Links = expandExpressRoutePortLinks(d.Get("link1").([]interface{}), d.Get("link2").([]interface{}))
+		payload.Properties.Links = expandExpressRoutePortLinks(d.Get("link1").([]any), d.Get("link2").([]any))
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	// a lock is needed here for subresource express_route_port_authorization needs a lock.
 	locks.ByID(id.ID())
 	defer locks.UnlockByID(id.ID())
-
-	payload.Properties.Links = expandExpressRoutePortLinks(d.Get("link1").([]interface{}), d.Get("link2").([]interface{}))
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
@@ -326,7 +312,7 @@ func resourceArmExpressRoutePortUpdate(d *pluginsdk.ResourceData, meta interface
 	return resourceArmExpressRoutePortRead(d, meta)
 }
 
-func resourceArmExpressRoutePortRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmExpressRoutePortRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRoutePorts
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -362,8 +348,8 @@ func resourceArmExpressRoutePortRead(d *pluginsdk.ResourceData, meta interface{}
 		if props := model.Properties; props != nil {
 			d.Set("peering_location", props.PeeringLocation)
 			d.Set("bandwidth_in_gbps", props.BandwidthInGbps)
-			d.Set("encapsulation", string(pointer.From(props.Encapsulation)))
-			d.Set("billing_type", string(pointer.From(props.BillingType)))
+			d.Set("encapsulation", pointer.FromEnum(props.Encapsulation))
+			d.Set("billing_type", pointer.FromEnum(props.BillingType))
 			link1, link2, err := flattenExpressRoutePortLinks(props.Links)
 			if err != nil {
 				return fmt.Errorf("flattening links: %v", err)
@@ -378,12 +364,14 @@ func resourceArmExpressRoutePortRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("guid", props.ResourceGuid)
 			d.Set("mtu", props.Mtu)
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
-func resourceArmExpressRoutePortDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmExpressRoutePortDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRoutePorts
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -404,7 +392,7 @@ func resourceArmExpressRoutePortDelete(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func expandExpressRoutePortLinks(link1, link2 []interface{}) *[]expressrouteports.ExpressRouteLink {
+func expandExpressRoutePortLinks(link1, link2 []any) *[]expressrouteports.ExpressRouteLink {
 	var out []expressrouteports.ExpressRouteLink
 	if link := expandExpressRoutePortLink(1, link1); link != nil {
 		out = append(out, *link)
@@ -418,12 +406,12 @@ func expandExpressRoutePortLinks(link1, link2 []interface{}) *[]expressrouteport
 	return &out
 }
 
-func expandExpressRoutePortLink(idx int, input []interface{}) *expressrouteports.ExpressRouteLink {
+func expandExpressRoutePortLink(idx int, input []any) *expressrouteports.ExpressRouteLink {
 	if len(input) == 0 {
 		return nil
 	}
 
-	b := input[0].(map[string]interface{})
+	b := input[0].(map[string]any)
 	adminState := expressrouteports.ExpressRouteLinkAdminStateDisabled
 	if b["admin_enabled"].(bool) {
 		adminState = expressrouteports.ExpressRouteLinkAdminStateEnabled
@@ -440,7 +428,7 @@ func expandExpressRoutePortLink(idx int, input []interface{}) *expressrouteports
 		Properties: &expressrouteports.ExpressRouteLinkPropertiesFormat{
 			AdminState: pointer.To(adminState),
 			MacSecConfig: &expressrouteports.ExpressRouteLinkMacSecConfig{
-				Cipher:   pointer.To(expressrouteports.ExpressRouteLinkMacSecCipher(b["macsec_cipher"].(string))),
+				Cipher:   pointer.ToEnum[expressrouteports.ExpressRouteLinkMacSecCipher](b["macsec_cipher"].(string)),
 				SciState: pointer.To(sciState),
 			},
 		},
@@ -455,9 +443,9 @@ func expandExpressRoutePortLink(idx int, input []interface{}) *expressrouteports
 	return &link
 }
 
-func flattenExpressRoutePortLinks(links *[]expressrouteports.ExpressRouteLink) ([]interface{}, []interface{}, error) {
+func flattenExpressRoutePortLinks(links *[]expressrouteports.ExpressRouteLink) ([]any, []any, error) {
 	if links == nil {
-		return nil, nil, nil
+		return []any{}, []any{}, nil
 	}
 	length := len(*links)
 	if length != 2 {
@@ -467,12 +455,7 @@ func flattenExpressRoutePortLinks(links *[]expressrouteports.ExpressRouteLink) (
 	return flattenExpressRoutePortLink((*links)[0]), flattenExpressRoutePortLink((*links)[1]), nil
 }
 
-func flattenExpressRoutePortLink(link expressrouteports.ExpressRouteLink) []interface{} {
-	var id string
-	if link.Id != nil {
-		id = *link.Id
-	}
-
+func flattenExpressRoutePortLink(link expressrouteports.ExpressRouteLink) []any {
 	var (
 		routerName    string
 		interfaceName string
@@ -499,7 +482,7 @@ func flattenExpressRoutePortLink(link expressrouteports.ExpressRouteLink) []inte
 		if props.RackId != nil {
 			rackId = *props.RackId
 		}
-		connectorType = string(pointer.From(props.ConnectorType))
+		connectorType = pointer.FromEnum(props.ConnectorType)
 		adminState = pointer.From(props.AdminState) == expressrouteports.ExpressRouteLinkAdminStateEnabled
 		sciState = pointer.From(props.MacSecConfig.SciState) == expressrouteports.ExpressRouteLinkMacSecSciStateEnabled
 		if cfg := props.MacSecConfig; cfg != nil {
@@ -509,13 +492,13 @@ func flattenExpressRoutePortLink(link expressrouteports.ExpressRouteLink) []inte
 			if cfg.CakSecretIdentifier != nil {
 				cakSecretId = *cfg.CakSecretIdentifier
 			}
-			cipher = string(pointer.From(cfg.Cipher))
+			cipher = pointer.FromEnum(cfg.Cipher)
 		}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"id":                            id,
+	return []any{
+		map[string]any{
+			"id":                            pointer.From(link.Id),
 			"router_name":                   routerName,
 			"interface_name":                interfaceName,
 			"patch_panel_id":                patchPanelId,

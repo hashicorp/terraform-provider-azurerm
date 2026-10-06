@@ -1,10 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -14,23 +15,32 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/appserviceplans"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
-	webValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 type ServicePlanResource struct{}
 
-var _ sdk.ResourceWithUpdate = ServicePlanResource{}
+var (
+	_ sdk.ResourceWithUpdate         = ServicePlanResource{}
+	_ sdk.ResourceWithStateMigration = ServicePlanResource{}
+	_ sdk.ResourceWithCustomizeDiff  = ServicePlanResource{}
+	_ sdk.ResourceWithIdentity       = ServicePlanResource{}
+)
 
-var _ sdk.ResourceWithStateMigration = ServicePlanResource{}
+func (r ServicePlanResource) Identity() resourceids.ResourceId {
+	return &commonids.AppServicePlanId{}
+}
 
 type OSType string
 
@@ -41,19 +51,20 @@ const (
 )
 
 type ServicePlanModel struct {
-	Name                      string            `tfschema:"name"`
-	ResourceGroup             string            `tfschema:"resource_group_name"`
-	Location                  string            `tfschema:"location"`
-	Kind                      string            `tfschema:"kind"`
-	OSType                    OSType            `tfschema:"os_type"`
-	Sku                       string            `tfschema:"sku_name"`
-	AppServiceEnvironmentId   string            `tfschema:"app_service_environment_id"`
-	PerSiteScaling            bool              `tfschema:"per_site_scaling_enabled"`
-	Reserved                  bool              `tfschema:"reserved"`
-	WorkerCount               int64             `tfschema:"worker_count"`
-	MaximumElasticWorkerCount int64             `tfschema:"maximum_elastic_worker_count"`
-	ZoneBalancing             bool              `tfschema:"zone_balancing_enabled"`
-	Tags                      map[string]string `tfschema:"tags"`
+	Name                        string            `tfschema:"name"`
+	ResourceGroup               string            `tfschema:"resource_group_name"`
+	Location                    string            `tfschema:"location"`
+	Kind                        string            `tfschema:"kind"`
+	OSType                      OSType            `tfschema:"os_type"`
+	Sku                         string            `tfschema:"sku_name"`
+	AppServiceEnvironmentId     string            `tfschema:"app_service_environment_id"`
+	PerSiteScaling              bool              `tfschema:"per_site_scaling_enabled"`
+	Reserved                    bool              `tfschema:"reserved"`
+	WorkerCount                 int64             `tfschema:"worker_count"`
+	PremiumPlanAutoScaleEnabled bool              `tfschema:"premium_plan_auto_scale_enabled"`
+	MaximumElasticWorkerCount   int64             `tfschema:"maximum_elastic_worker_count"`
+	ZoneBalancing               bool              `tfschema:"zone_balancing_enabled"`
+	Tags                        map[string]string `tfschema:"tags"`
 }
 
 func (r ServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
@@ -74,7 +85,9 @@ func (r ServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
 			Required: true,
 			ValidateFunc: validation.StringInSlice(
 				helpers.AllKnownServicePlanSkus(),
-				false),
+				false,
+			),
+			DiffSuppressFunc: suppress.CaseDifference,
 		},
 
 		"os_type": {
@@ -91,7 +104,7 @@ func (r ServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
 		"app_service_environment_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: webValidate.AppServiceEnvironmentID,
+			ValidateFunc: commonids.ValidateAppServiceEnvironmentID,
 		},
 
 		"per_site_scaling_enabled": {
@@ -103,24 +116,29 @@ func (r ServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
 		"worker_count": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.IntAtLeast(1),
+		},
+
+		"premium_plan_auto_scale_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 
 		"maximum_elastic_worker_count": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.IntAtLeast(0),
 		},
 
 		"zone_balancing_enabled": {
 			Type:     pluginsdk.TypeBool,
-			ForceNew: true,
 			Optional: true,
 		},
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -138,7 +156,7 @@ func (r ServicePlanResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r ServicePlanResource) ModelObject() interface{} {
+func (r ServicePlanResource) ModelObject() any {
 	return &ServicePlanModel{}
 }
 
@@ -160,57 +178,68 @@ func (r ServicePlanResource) Create() sdk.ResourceFunc {
 
 			id := commonids.NewAppServicePlanID(subscriptionId, servicePlan.ResourceGroup, servicePlan.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("retreiving %s: %v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
-			}
-
-			appServicePlan := appserviceplans.AppServicePlan{
-				Properties: &appserviceplans.AppServicePlanProperties{
-					PerSiteScaling: pointer.To(servicePlan.PerSiteScaling),
-					Reserved:       pointer.To(servicePlan.OSType == OSTypeLinux),
-					HyperV:         pointer.To(servicePlan.OSType == OSTypeWindowsContainer),
-					ZoneRedundant:  pointer.To(servicePlan.ZoneBalancing),
-				},
-				Sku: &appserviceplans.SkuDescription{
-					Name: pointer.To(servicePlan.Sku),
-				},
-				Location: location.Normalize(servicePlan.Location),
-				Tags:     pointer.To(servicePlan.Tags),
-			}
-
-			if servicePlan.AppServiceEnvironmentId != "" {
-				if !strings.HasPrefix(servicePlan.Sku, "I") {
-					return fmt.Errorf("App Service Environment based Service Plans can only be used with Isolated SKUs")
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("retrieving %s: %v", id, err)
 				}
-				appServicePlan.Properties.HostingEnvironmentProfile = &appserviceplans.HostingEnvironmentProfile{
-					Id: utils.String(servicePlan.AppServiceEnvironmentId),
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
 				}
 			}
 
-			if servicePlan.MaximumElasticWorkerCount > 0 {
-				if !isServicePlanSupportScaleOut(servicePlan.Sku) {
-					return fmt.Errorf("`maximum_elastic_worker_count` can only be specified with Elastic Premium Skus")
-				}
-				appServicePlan.Properties.MaximumElasticWorkerCount = pointer.To(servicePlan.MaximumElasticWorkerCount)
+			appServicePlan, err := expandCreateForServicePlan(servicePlan)
+			if err != nil {
+				return err
 			}
 
-			if servicePlan.WorkerCount != 0 {
-				appServicePlan.Sku.Capacity = pointer.To(servicePlan.WorkerCount)
-			}
-
-			if err := client.CreateOrUpdateThenPoll(ctx, id, appServicePlan); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, appServicePlan, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 
 			return nil
 		},
 	}
+}
+
+func expandCreateForServicePlan(servicePlan ServicePlanModel) (appserviceplans.AppServicePlan, error) {
+	appServicePlan := appserviceplans.AppServicePlan{
+		Properties: &appserviceplans.AppServicePlanProperties{
+			PerSiteScaling:      pointer.To(servicePlan.PerSiteScaling),
+			Reserved:            pointer.To(servicePlan.OSType == OSTypeLinux),
+			HyperV:              pointer.To(servicePlan.OSType == OSTypeWindowsContainer),
+			ElasticScaleEnabled: pointer.To(servicePlan.PremiumPlanAutoScaleEnabled),
+			ZoneRedundant:       pointer.To(servicePlan.ZoneBalancing),
+		},
+		Sku: &appserviceplans.SkuDescription{
+			Name: pointer.To(servicePlan.Sku),
+		},
+		Location: location.Normalize(servicePlan.Location),
+		Tags:     pointer.To(servicePlan.Tags),
+	}
+
+	if servicePlan.AppServiceEnvironmentId != "" {
+		if !strings.HasPrefix(servicePlan.Sku, "I") {
+			return appServicePlan, errors.New("'App Service Environment' based Service Plans can only be used with Isolated SKUs")
+		}
+		appServicePlan.Properties.HostingEnvironmentProfile = &appserviceplans.HostingEnvironmentProfile{
+			Id: pointer.To(servicePlan.AppServiceEnvironmentId),
+		}
+	}
+
+	if servicePlan.MaximumElasticWorkerCount > 0 {
+		appServicePlan.Properties.MaximumElasticWorkerCount = pointer.To(servicePlan.MaximumElasticWorkerCount)
+	}
+
+	if servicePlan.WorkerCount != 0 {
+		appServicePlan.Sku.Capacity = pointer.To(servicePlan.WorkerCount)
+	}
+	return appServicePlan, nil
 }
 
 func (r ServicePlanResource) Read() sdk.ResourceFunc {
@@ -228,54 +257,10 @@ func (r ServicePlanResource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(servicePlan.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("reading %s: %+v", id, err)
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			state := ServicePlanModel{
-				Name:          id.ServerFarmName,
-				ResourceGroup: id.ResourceGroupName,
-			}
-
-			if model := servicePlan.Model; model != nil {
-				state.Location = location.Normalize(model.Location)
-				state.Kind = pointer.From(model.Kind)
-
-				// sku read
-				if sku := model.Sku; sku != nil {
-					if sku.Name != nil {
-						state.Sku = *sku.Name
-						if sku.Capacity != nil {
-							state.WorkerCount = *sku.Capacity
-						}
-					}
-				}
-
-				// props read
-				if props := model.Properties; props != nil {
-					state.OSType = OSTypeWindows
-					if props.HyperV != nil && *props.HyperV {
-						state.OSType = OSTypeWindowsContainer
-					}
-					if props.Reserved != nil && *props.Reserved {
-						state.OSType = OSTypeLinux
-					}
-
-					if ase := props.HostingEnvironmentProfile; ase != nil && ase.Id != nil {
-						state.AppServiceEnvironmentId = *ase.Id
-					}
-
-					state.PerSiteScaling = utils.NormaliseNilableBool(props.PerSiteScaling)
-
-					state.Reserved = utils.NormaliseNilableBool(props.Reserved)
-
-					state.ZoneBalancing = utils.NormaliseNilableBool(props.ZoneRedundant)
-
-					state.MaximumElasticWorkerCount = pointer.From(props.MaximumElasticWorkerCount)
-				}
-				state.Tags = pointer.From(model.Tags)
-			}
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, servicePlan.Model)
 		},
 	}
 }
@@ -290,7 +275,6 @@ func (r ServicePlanResource) Delete() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.AppService.ServicePlanClient
-			metadata.Logger.Infof("deleting %s", id)
 
 			if _, err := client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", id, err)
@@ -323,7 +307,7 @@ func (r ServicePlanResource) Update() sdk.ResourceFunc {
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("reading %s: %+v", id, err)
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
 			model := *existing.Model
@@ -333,7 +317,7 @@ func (r ServicePlanResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("sku_name") {
-				model.Sku.Name = utils.String(state.Sku)
+				model.Sku.Name = pointer.To(state.Sku)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -344,11 +328,16 @@ func (r ServicePlanResource) Update() sdk.ResourceFunc {
 				model.Sku.Capacity = pointer.To(state.WorkerCount)
 			}
 
+			if metadata.ResourceData.HasChange("premium_plan_auto_scale_enabled") {
+				model.Properties.ElasticScaleEnabled = pointer.To(state.PremiumPlanAutoScaleEnabled)
+			}
+
 			if metadata.ResourceData.HasChange("maximum_elastic_worker_count") {
-				if metadata.ResourceData.HasChange("maximum_elastic_worker_count") && !isServicePlanSupportScaleOut(state.Sku) {
-					return fmt.Errorf("`maximum_elastic_worker_count` can only be specified with Elastic Premium Skus")
-				}
 				model.Properties.MaximumElasticWorkerCount = pointer.To(state.MaximumElasticWorkerCount)
+			}
+
+			if metadata.ResourceData.HasChange("zone_balancing_enabled") {
+				model.Properties.ZoneRedundant = pointer.To(state.ZoneBalancing)
 			}
 
 			if err = client.CreateOrUpdateThenPoll(ctx, *id, model); err != nil {
@@ -360,14 +349,6 @@ func (r ServicePlanResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func isServicePlanSupportScaleOut(plan string) bool {
-	support := false
-	support = support || strings.HasPrefix(plan, "EP")
-	support = support || strings.HasPrefix(plan, "PC")
-	support = support || strings.HasPrefix(plan, "WS")
-	return support
-}
-
 func (r ServicePlanResource) StateUpgraders() sdk.StateUpgradeData {
 	return sdk.StateUpgradeData{
 		SchemaVersion: 1,
@@ -375,4 +356,123 @@ func (r ServicePlanResource) StateUpgraders() sdk.StateUpgradeData {
 			0: migration.ServicePlanV0toV1{},
 		},
 	}
+}
+
+func (r ServicePlanResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			rd := metadata.ResourceDiff
+
+			if metadata.Client.Features.EnhancedValidation.PreflightEnabled {
+				// Only perform preflight validation if there are changes. This avoids validation failures and
+				// additional API calls for resources that are unchanged between plan invocations
+				if len(rd.GetChangedKeysPrefix("")) > 0 || rd.Id() == "" {
+					var model ServicePlanModel
+					if err := metadata.DecodeDiff(&model); err != nil {
+						return err
+					}
+
+					req, err := expandCreateForServicePlan(model)
+					if err != nil {
+						return err
+					}
+
+					id := commonids.NewAppServicePlanID(metadata.Client.Account.SubscriptionId, model.ResourceGroup, model.Name)
+
+					preflightValidate, err := preflight.NewValidationRequest(pointer.To(model.Location), pointer.To(id), "2023-12-01", req)
+					if err != nil {
+						return fmt.Errorf("constructing preflight validation request: %w", err)
+					}
+
+					if err = preflightValidate.ValidateResource(ctx, metadata); err != nil {
+						return err
+					}
+				}
+			}
+
+			servicePlanSku := rd.Get("sku_name").(string)
+			_, newAutoScaleEnabled := rd.GetChange("premium_plan_auto_scale_enabled")
+			_, newEcValue := rd.GetChange("maximum_elastic_worker_count")
+			if rd.HasChange("premium_plan_auto_scale_enabled") {
+				if !helpers.PlanIsPremium(servicePlanSku) && newAutoScaleEnabled.(bool) {
+					return fmt.Errorf("`premium_plan_auto_scale_enabled` can only be set for premium app service plans")
+				}
+			}
+
+			if rd.HasChange("maximum_elastic_worker_count") && newEcValue.(int) > 1 {
+				if !helpers.PlanSupportsScaleOut(servicePlanSku) && helpers.PlanIsPremium(servicePlanSku) && !newAutoScaleEnabled.(bool) {
+					return fmt.Errorf("`maximum_elastic_worker_count` can only be specified with Elastic Premium Skus, or with Premium Skus when `premium_plan_auto_scale_enabled` is set to `true`")
+				}
+			}
+
+			// Only specific SKUs support zone balancing/redundancy
+			if rd.Get("zone_balancing_enabled").(bool) {
+				if !helpers.PlanSupportsZoneBalancing(servicePlanSku) {
+					return fmt.Errorf("`zone_balancing_enabled` cannot be set to `true` when sku tier is `%s`", servicePlanSku)
+				}
+			}
+
+			o, n := rd.GetChange("zone_balancing_enabled")
+			if o.(bool) != n.(bool) {
+				// Changing `zone_balancing_enabled` from `false` to `true` requires the capacity of the sku to be greater than `1`.
+				if !o.(bool) && n.(bool) && rd.Get("worker_count").(int) < 2 {
+					if err := metadata.ResourceDiff.ForceNew("zone_balancing_enabled"); err != nil {
+						return err
+					}
+				}
+			}
+
+			return nil
+		},
+	}
+}
+
+func (ServicePlanResource) flatten(metadata sdk.ResourceMetaData, id *commonids.AppServicePlanId, model *appserviceplans.AppServicePlan) error {
+	state := ServicePlanModel{
+		Name:          id.ServerFarmName,
+		ResourceGroup: id.ResourceGroupName,
+	}
+
+	if model != nil {
+		state.Location = location.Normalize(model.Location)
+		state.Kind = pointer.From(model.Kind)
+
+		// sku read
+		if sku := model.Sku; sku != nil {
+			state.Sku = pointer.From(sku.Name)
+			state.WorkerCount = pointer.From(sku.Capacity)
+		}
+
+		// props read
+		if props := model.Properties; props != nil {
+			state.OSType = OSTypeWindows
+			if props.HyperV != nil && *props.HyperV {
+				state.OSType = OSTypeWindowsContainer
+			}
+			if props.Reserved != nil && *props.Reserved {
+				state.OSType = OSTypeLinux
+			}
+
+			if ase := props.HostingEnvironmentProfile; ase != nil && ase.Id != nil {
+				state.AppServiceEnvironmentId = *ase.Id
+			}
+
+			if pointer.From(props.ElasticScaleEnabled) && state.Sku != "" && helpers.PlanIsPremium(state.Sku) {
+				state.PremiumPlanAutoScaleEnabled = pointer.From(props.ElasticScaleEnabled)
+			}
+
+			state.PerSiteScaling = pointer.From(props.PerSiteScaling)
+			state.Reserved = pointer.From(props.Reserved)
+			state.ZoneBalancing = pointer.From(props.ZoneRedundant)
+			state.MaximumElasticWorkerCount = pointer.From(props.MaximumElasticWorkerCount)
+		}
+		state.Tags = pointer.From(model.Tags)
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }

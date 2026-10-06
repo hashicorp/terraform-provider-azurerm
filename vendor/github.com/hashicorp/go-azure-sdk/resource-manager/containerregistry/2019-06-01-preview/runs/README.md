@@ -48,13 +48,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `RunsClient.GetLogSasUrl`
+### Example Usage: `RunsClient.GetLogSasURL`
 
 ```go
 ctx := context.TODO()
 id := runs.NewRunID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryName", "runId")
 
-read, err := client.GetLogSasUrl(ctx, id)
+read, err := client.GetLogSasURL(ctx, id)
 if err != nil {
 	// handle the error
 }

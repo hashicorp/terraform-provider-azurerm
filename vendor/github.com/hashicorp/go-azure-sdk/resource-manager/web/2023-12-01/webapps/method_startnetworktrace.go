@@ -25,7 +25,7 @@ type StartNetworkTraceOperationResponse struct {
 type StartNetworkTraceOperationOptions struct {
 	DurationInSeconds *int64
 	MaxFrameLength    *int64
-	SasUrl            *string
+	SasURL            *string
 }
 
 func DefaultStartNetworkTraceOperationOptions() StartNetworkTraceOperationOptions {
@@ -52,8 +52,8 @@ func (o StartNetworkTraceOperationOptions) ToQuery() *client.QueryParams {
 	if o.MaxFrameLength != nil {
 		out.Append("maxFrameLength", fmt.Sprintf("%v", *o.MaxFrameLength))
 	}
-	if o.SasUrl != nil {
-		out.Append("sasUrl", fmt.Sprintf("%v", *o.SasUrl))
+	if o.SasURL != nil {
+		out.Append("sasUrl", fmt.Sprintf("%v", *o.SasURL))
 	}
 	return &out
 }
@@ -96,9 +96,20 @@ func (c WebAppsClient) StartNetworkTrace(ctx context.Context, id commonids.AppSe
 
 // StartNetworkTraceThenPoll performs StartNetworkTrace then polls until it's completed
 func (c WebAppsClient) StartNetworkTraceThenPoll(ctx context.Context, id commonids.AppServiceId, options StartNetworkTraceOperationOptions) error {
+	return c.StartNetworkTraceCallbackThenPoll(ctx, id, options, nil)
+}
+
+// StartNetworkTraceCallbackThenPoll performs StartNetworkTrace, runs the optional callback function, then polls until it's completed
+func (c WebAppsClient) StartNetworkTraceCallbackThenPoll(ctx context.Context, id commonids.AppServiceId, options StartNetworkTraceOperationOptions, callback func() error) error {
 	result, err := c.StartNetworkTrace(ctx, id, options)
 	if err != nil {
 		return fmt.Errorf("performing StartNetworkTrace: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

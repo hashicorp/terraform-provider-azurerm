@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := projectresource.NewProjectID("12345678-1234-9876-4563-123456789012", "groupName", "serviceName", "projectName")
+id := projectresource.NewProjectID("12345678-1234-9876-4563-123456789012", "resourceGroupName", "serviceName", "projectName")
 
 payload := projectresource.Project{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := projectresource.NewProjectID("12345678-1234-9876-4563-123456789012", "groupName", "serviceName", "projectName")
+id := projectresource.NewProjectID("12345678-1234-9876-4563-123456789012", "resourceGroupName", "serviceName", "projectName")
 
 read, err := client.ProjectsDelete(ctx, id, projectresource.DefaultProjectsDeleteOperationOptions())
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := projectresource.NewProjectID("12345678-1234-9876-4563-123456789012", "groupName", "serviceName", "projectName")
+id := projectresource.NewProjectID("12345678-1234-9876-4563-123456789012", "resourceGroupName", "serviceName", "projectName")
 
 read, err := client.ProjectsGet(ctx, id)
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := projectresource.NewServiceID("12345678-1234-9876-4563-123456789012", "groupName", "serviceName")
+id := projectresource.NewServiceID("12345678-1234-9876-4563-123456789012", "resourceGroupName", "serviceName")
 
 // alternatively `client.ProjectsList(ctx, id)` can be used to do batched pagination
 items, err := client.ProjectsListComplete(ctx, id)
@@ -94,7 +94,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := projectresource.NewProjectID("12345678-1234-9876-4563-123456789012", "groupName", "serviceName", "projectName")
+id := projectresource.NewProjectID("12345678-1234-9876-4563-123456789012", "resourceGroupName", "serviceName", "projectName")
 
 payload := projectresource.Project{
 	// ...

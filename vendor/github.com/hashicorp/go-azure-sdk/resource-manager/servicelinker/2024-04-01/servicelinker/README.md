@@ -16,16 +16,16 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2024-04
 ### Client Initialization
 
 ```go
-client := servicelinker.NewServiceLinkerClientWithBaseURI("https://management.azure.com")
+client := servicelinker.NewServicelinkerClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
 ```
 
 
-### Example Usage: `ServiceLinkerClient.ConnectorCreateOrUpdate`
+### Example Usage: `ServicelinkerClient.ConnectorCreateOrUpdate`
 
 ```go
 ctx := context.TODO()
-id := servicelinker.NewConnectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "location", "connectorName")
+id := servicelinker.NewConnectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "locationName", "connectorName")
 
 payload := servicelinker.LinkerResource{
 	// ...
@@ -38,11 +38,11 @@ if err := client.ConnectorCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 ```
 
 
-### Example Usage: `ServiceLinkerClient.ConnectorGet`
+### Example Usage: `ServicelinkerClient.ConnectorGet`
 
 ```go
 ctx := context.TODO()
-id := servicelinker.NewConnectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "location", "connectorName")
+id := servicelinker.NewConnectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "locationName", "connectorName")
 
 read, err := client.ConnectorGet(ctx, id)
 if err != nil {
@@ -54,11 +54,11 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `ServiceLinkerClient.ConnectorList`
+### Example Usage: `ServicelinkerClient.ConnectorList`
 
 ```go
 ctx := context.TODO()
-id := servicelinker.NewLocationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "location")
+id := servicelinker.NewLocationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "locationName")
 
 // alternatively `client.ConnectorList(ctx, id)` can be used to do batched pagination
 items, err := client.ConnectorListComplete(ctx, id)
@@ -71,7 +71,7 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `ServiceLinkerClient.LinkerCreateOrUpdate`
+### Example Usage: `ServicelinkerClient.LinkerCreateOrUpdate`
 
 ```go
 ctx := context.TODO()
@@ -88,7 +88,7 @@ if err := client.LinkerCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 ```
 
 
-### Example Usage: `ServiceLinkerClient.LinkerGet`
+### Example Usage: `ServicelinkerClient.LinkerGet`
 
 ```go
 ctx := context.TODO()
@@ -104,7 +104,7 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `ServiceLinkerClient.LinkerList`
+### Example Usage: `ServicelinkerClient.LinkerList`
 
 ```go
 ctx := context.TODO()

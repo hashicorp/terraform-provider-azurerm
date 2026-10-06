@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2019, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package logging
@@ -27,6 +27,9 @@ const (
 
 	// The type of resource being operated on, such as "random_pet"
 	KeyResourceType = "tf_resource_type"
+
+	// The Deferred reason for an RPC response
+	KeyDeferredReason = "tf_deferred_reason"
 
 	// The name of the test being executed.
 	KeyTestName = "test_name"

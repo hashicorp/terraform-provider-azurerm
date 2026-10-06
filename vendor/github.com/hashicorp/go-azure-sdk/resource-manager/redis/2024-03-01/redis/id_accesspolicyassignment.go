@@ -121,7 +121,7 @@ func (id AccessPolicyAssignmentId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftCache", "Microsoft.Cache", "Microsoft.Cache"),
 		resourceids.StaticSegment("staticRedis", "redis", "redis"),
-		resourceids.UserSpecifiedSegment("redisName", "cacheName"),
+		resourceids.UserSpecifiedSegment("redisName", "redisName"),
 		resourceids.StaticSegment("staticAccessPolicyAssignments", "accessPolicyAssignments", "accessPolicyAssignments"),
 		resourceids.UserSpecifiedSegment("accessPolicyAssignmentName", "accessPolicyAssignmentName"),
 	}

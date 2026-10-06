@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package networkfunction
@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"regexp"
 	"time"
 
@@ -18,18 +19,19 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/networkfunction/2022-11-01/azuretrafficcollectors"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/networkfunction/2022-11-01/collectorpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type NetworkFunctionCollectorPolicyModel struct {
-	Name                                   string                 `tfschema:"name"`
-	NetworkFunctionAzureTrafficCollectorId string                 `tfschema:"traffic_collector_id"`
-	IpfxEmission                           []IpfxEmissionModel    `tfschema:"ipfx_emission"`
-	IpfxIngestion                          []IpfxIngestionModel   `tfschema:"ipfx_ingestion"`
-	Location                               string                 `tfschema:"location"`
-	Tags                                   map[string]interface{} `tfschema:"tags"`
+	Name                                   string               `tfschema:"name"`
+	NetworkFunctionAzureTrafficCollectorId string               `tfschema:"traffic_collector_id"`
+	IpfxEmission                           []IpfxEmissionModel  `tfschema:"ipfx_emission"`
+	IpfxIngestion                          []IpfxIngestionModel `tfschema:"ipfx_ingestion"`
+	Location                               string               `tfschema:"location"`
+	Tags                                   map[string]any       `tfschema:"tags"`
 }
 
 type IpfxEmissionModel struct {
@@ -48,7 +50,7 @@ func (r NetworkFunctionCollectorPolicyResource) ResourceType() string {
 	return "azurerm_network_function_collector_policy"
 }
 
-func (r NetworkFunctionCollectorPolicyResource) ModelObject() interface{} {
+func (r NetworkFunctionCollectorPolicyResource) ModelObject() any {
 	return &NetworkFunctionCollectorPolicyModel{}
 }
 
@@ -106,7 +108,7 @@ func (r NetworkFunctionCollectorPolicyResource) Arguments() map[string]*pluginsd
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"source_resource_ids": {
-						Type:     pluginsdk.TypeList,
+						Type:     pluginsdk.TypeSet,
 						Required: true,
 						ForceNew: true,
 						MinItems: 1,
@@ -143,13 +145,16 @@ func (r NetworkFunctionCollectorPolicyResource) Create() sdk.ResourceFunc {
 			}
 
 			id := collectorpolicies.NewCollectorPolicyID(azureTrafficCollectorId.SubscriptionId, azureTrafficCollectorId.ResourceGroupName, azureTrafficCollectorId.AzureTrafficCollectorName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			properties := &collectorpolicies.CollectorPolicy{
@@ -165,11 +170,11 @@ func (r NetworkFunctionCollectorPolicyResource) Create() sdk.ResourceFunc {
 				Tags: tags.Expand(model.Tags),
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, *properties, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}
@@ -246,7 +251,6 @@ func (r NetworkFunctionCollectorPolicyResource) Read() sdk.ResourceFunc {
 					if properties.IngestionPolicy != nil {
 						state.IpfxIngestion = flattenIngestionSourcesPropertiesFormatModelArray(properties.IngestionPolicy.IngestionSources)
 					}
-
 				}
 
 				state.Tags = tags.Flatten(model.Tags)
@@ -274,21 +278,11 @@ func (r NetworkFunctionCollectorPolicyResource) Delete() sdk.ResourceFunc {
 
 			// API has bug, which appears to be eventually consistent. Tracked by this issue: https://github.com/Azure/azure-rest-api-specs/issues/25152
 			log.Printf("[DEBUG] Waiting for %s to be fully deleted..", *id)
-			deadline, ok := ctx.Deadline()
-			if !ok {
-				return fmt.Errorf("internal-error: context had no deadline")
-			}
-
-			stateConf := &pluginsdk.StateChangeConf{
-				Pending:                   []string{"Exists"},
-				Target:                    []string{"NotFound"},
-				Refresh:                   collectorPolicyDeletedRefreshFunc(ctx, client, *id),
-				MinTimeout:                10 * time.Second,
-				ContinuousTargetOccurence: 20,
-				Timeout:                   time.Until(deadline),
-			}
-
-			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+			poller := custompollers.NewEventualConsistencyPoller(20, func(pollerCtx context.Context) (*http.Response, error) {
+				resp, err := client.Get(pollerCtx, *id)
+				return resp.HttpResponse, err
+			}, custompollers.DefaultDeletionEventualConsistencyPollerOptions())
+			if err := poller.PollUntilDone(ctx); err != nil {
 				return fmt.Errorf("waiting for %s to be fully deleted: %+v", *id, err)
 			}
 
@@ -297,23 +291,8 @@ func (r NetworkFunctionCollectorPolicyResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func collectorPolicyDeletedRefreshFunc(ctx context.Context, client *collectorpolicies.CollectorPoliciesClient, id collectorpolicies.CollectorPolicyId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id)
-		if err != nil {
-			if response.WasNotFound(res.HttpResponse) {
-				return "NotFound", "NotFound", nil
-			}
-
-			return nil, "", fmt.Errorf("checking if %s has been deleted: %+v", id, err)
-		}
-
-		return res, "Exists", nil
-	}
-}
-
 func expandEmissionPoliciesPropertiesFormatModelArray(inputList []IpfxEmissionModel) *[]collectorpolicies.EmissionPoliciesPropertiesFormat {
-	var outputList []collectorpolicies.EmissionPoliciesPropertiesFormat
+	outputList := make([]collectorpolicies.EmissionPoliciesPropertiesFormat, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
 		output := collectorpolicies.EmissionPoliciesPropertiesFormat{
@@ -328,10 +307,10 @@ func expandEmissionPoliciesPropertiesFormatModelArray(inputList []IpfxEmissionMo
 }
 
 func expandEmissionPolicyDestinationModelArray(inputList []string) *[]collectorpolicies.EmissionPolicyDestination {
-	var outputList []collectorpolicies.EmissionPolicyDestination
+	outputList := make([]collectorpolicies.EmissionPolicyDestination, 0, len(inputList))
 	for _, v := range inputList {
 		output := collectorpolicies.EmissionPolicyDestination{
-			DestinationType: pointer.To(collectorpolicies.DestinationType(v)),
+			DestinationType: pointer.ToEnum[collectorpolicies.DestinationType](v),
 		}
 
 		outputList = append(outputList, output)
@@ -345,7 +324,7 @@ func expandIngestionSourcesPropertiesFormatModelArray(inputList []IpfxIngestionM
 		return nil
 	}
 
-	var outputList []collectorpolicies.IngestionSourcesPropertiesFormat
+	outputList := make([]collectorpolicies.IngestionSourcesPropertiesFormat, 0, len(inputList))
 	for _, v := range inputList[0].SourceResourceIds {
 		output := collectorpolicies.IngestionSourcesPropertiesFormat{
 			SourceType: pointer.To(collectorpolicies.SourceTypeResource),

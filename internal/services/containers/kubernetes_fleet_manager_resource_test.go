@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package containers_test
 
 // NOTE: this file is generated - manual changes will be overwritten.
@@ -8,12 +11,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/fleets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type KubernetesFleetManagerTestResource struct{}
@@ -91,19 +94,21 @@ func TestAccKubernetesFleetManager_update(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func (r KubernetesFleetManagerTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := fleets.ParseFleetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.ContainerService.V20231015.Fleets.Get(ctx, *id)
+	resp, err := clients.ContainerService.V20240401.Fleets.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
+
 func (r KubernetesFleetManagerTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -147,9 +152,6 @@ resource "azurerm_kubernetes_fleet_manager" "test" {
   tags = {
     environment = "terraform-acctests"
     some_key    = "some-value"
-  }
-  hub_profile {
-    dns_prefix = "val-${var.random_string}"
   }
 }
 `, r.template(data))

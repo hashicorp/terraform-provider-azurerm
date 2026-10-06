@@ -839,9 +839,9 @@ const (
 	TransformLowercase   Transform = "Lowercase"
 	TransformRemoveNulls Transform = "RemoveNulls"
 	TransformTrim        Transform = "Trim"
+	TransformURLDecode   Transform = "UrlDecode"
+	TransformURLEncode   Transform = "UrlEncode"
 	TransformUppercase   Transform = "Uppercase"
-	TransformUrlDecode   Transform = "UrlDecode"
-	TransformUrlEncode   Transform = "UrlEncode"
 )
 
 func PossibleValuesForTransform() []string {
@@ -849,9 +849,9 @@ func PossibleValuesForTransform() []string {
 		string(TransformLowercase),
 		string(TransformRemoveNulls),
 		string(TransformTrim),
+		string(TransformURLDecode),
+		string(TransformURLEncode),
 		string(TransformUppercase),
-		string(TransformUrlDecode),
-		string(TransformUrlEncode),
 	}
 }
 
@@ -860,9 +860,9 @@ func parseTransform(input string) (*Transform, error) {
 		"lowercase":   TransformLowercase,
 		"removenulls": TransformRemoveNulls,
 		"trim":        TransformTrim,
+		"urldecode":   TransformURLDecode,
+		"urlencode":   TransformURLEncode,
 		"uppercase":   TransformUppercase,
-		"urldecode":   TransformUrlDecode,
-		"urlencode":   TransformUrlEncode,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil

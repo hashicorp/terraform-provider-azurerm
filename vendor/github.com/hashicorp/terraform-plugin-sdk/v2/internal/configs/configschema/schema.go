@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2019, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package configschema
@@ -44,6 +44,10 @@ type Block struct {
 	// Deprecated indicates whether the block has been marked as deprecated in the
 	// provider and usage should be discouraged.
 	Deprecated bool
+
+	// DeprecationMessage is a human-readable message explaining why the block
+	// is deprecated and what users should do instead.
+	DeprecationMessage string
 }
 
 // Attribute represents a configuration attribute, within a block.
@@ -83,6 +87,32 @@ type Attribute struct {
 	// Deprecated indicates whether the attribute has been marked as deprecated in the
 	// provider and usage should be discouraged.
 	Deprecated bool
+
+	// DeprecationMessage is a human-readable message explaining why the attribute
+	// is deprecated and what users should do instead.
+	DeprecationMessage string
+
+	// WriteOnly indicates that the practitioner can choose a value for this
+	// attribute, but Terraform will not store this attribute in plan or state.
+	// WriteOnly can only be set for managed resource schemas. If WriteOnly is true,
+	// either Optional or Required must also be true. WriteOnly cannot be set with ForceNew.
+	//
+	// WriteOnly cannot be set to true for TypeList, TypeMap, or TypeSet.
+	//
+	// This functionality is only supported in Terraform 1.11 and later.
+	// Practitioners that choose a value for this attribute with older
+	// versions of Terraform will receive an error.
+	WriteOnly bool
+
+	// RequiredForImport, if set to true, specifies that an omitted or null value is
+	// not permitted when importing by the identity. This field conflicts with OptionalForImport.
+	// Only valid for identity schemas.
+	RequiredForImport bool
+
+	// OptionalForImport, if set to true, specifies that an omitted or null value is
+	// permitted when importing by the identity. This field conflicts with RequiredForImport.
+	// Only valid for identity schemas.
+	OptionalForImport bool
 }
 
 // NestedBlock represents the embedding of one block within another.
@@ -125,7 +155,7 @@ const (
 	NestingSingle
 
 	// NestingGroup is similar to NestingSingle in that it calls for only a
-	// single instance of a given block type with no labels, but it additonally
+	// single instance of a given block type with no labels, but it additionally
 	// guarantees that its result will never be null, even if the block is
 	// absent, and instead the nested attributes and blocks will be treated
 	// as absent in that case. (Any required attributes or blocks within the

@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := privatelinkscopesapis.NewPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "scopeName")
+id := privatelinkscopesapis.NewPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateLinkScopeName")
 
 payload := privatelinkscopesapis.AzureMonitorPrivateLinkScope{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := privatelinkscopesapis.NewPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "scopeName")
+id := privatelinkscopesapis.NewPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateLinkScopeName")
 
 if err := client.PrivateLinkScopesDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -58,7 +58,7 @@ if err := client.PrivateLinkScopesDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := privatelinkscopesapis.NewPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "scopeName")
+id := privatelinkscopesapis.NewPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateLinkScopeName")
 
 read, err := client.PrivateLinkScopesGet(ctx, id)
 if err != nil {
@@ -108,7 +108,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := privatelinkscopesapis.NewPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "scopeName")
+id := privatelinkscopesapis.NewPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateLinkScopeName")
 
 payload := privatelinkscopesapis.TagsResource{
 	// ...

@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := connectedclusters.NewConnectedClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName")
+id := connectedclusters.NewConnectedClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectedClusterName")
 
 payload := connectedclusters.ConnectedCluster{
 	// ...
@@ -42,7 +42,7 @@ if err := client.ConnectedClusterCreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := connectedclusters.NewConnectedClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName")
+id := connectedclusters.NewConnectedClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectedClusterName")
 
 if err := client.ConnectedClusterDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.ConnectedClusterDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := connectedclusters.NewConnectedClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName")
+id := connectedclusters.NewConnectedClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectedClusterName")
 
 read, err := client.ConnectedClusterGet(ctx, id)
 if err != nil {
@@ -104,7 +104,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := connectedclusters.NewConnectedClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName")
+id := connectedclusters.NewConnectedClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectedClusterName")
 
 payload := connectedclusters.ListClusterUserCredentialProperties{
 	// ...
@@ -125,7 +125,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := connectedclusters.NewConnectedClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName")
+id := connectedclusters.NewConnectedClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectedClusterName")
 
 payload := connectedclusters.ConnectedClusterPatch{
 	// ...

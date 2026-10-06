@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssqlmanagedinstance
@@ -11,14 +11,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedbackupshorttermretentionpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/manageddatabases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstancelongtermretentionpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstances"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedbackupshorttermretentionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/manageddatabases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstancelongtermretentionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstances"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
-	miParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -31,6 +31,7 @@ type MsSqlManagedDatabaseModel struct {
 	LongTermRetentionPolicy []LongTermRetentionPolicy `tfschema:"long_term_retention_policy"`
 	ShortTermRetentionDays  int64                     `tfschema:"short_term_retention_days"`
 	PointInTimeRestore      []PointInTimeRestore      `tfschema:"point_in_time_restore"`
+	Tags                    map[string]string         `tfschema:"tags"`
 }
 
 type LongTermRetentionPolicy struct {
@@ -45,8 +46,10 @@ type PointInTimeRestore struct {
 	SourceDatabaseId   string `tfschema:"source_database_id"`
 }
 
-var _ sdk.Resource = MsSqlManagedDatabaseResource{}
-var _ sdk.ResourceWithUpdate = MsSqlManagedDatabaseResource{}
+var (
+	_ sdk.Resource           = MsSqlManagedDatabaseResource{}
+	_ sdk.ResourceWithUpdate = MsSqlManagedDatabaseResource{}
+)
 
 type MsSqlManagedDatabaseResource struct{}
 
@@ -54,15 +57,20 @@ func (r MsSqlManagedDatabaseResource) ResourceType() string {
 	return "azurerm_mssql_managed_database"
 }
 
-func (r MsSqlManagedDatabaseResource) ModelObject() interface{} {
+func (r MsSqlManagedDatabaseResource) ModelObject() any {
 	return &MsSqlManagedDatabaseModel{}
 }
 
 func (r MsSqlManagedDatabaseResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ManagedDatabaseID
+	return commonids.ValidateSqlManagedInstanceDatabaseID
 }
 
 func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
+	atLeastOneOf := []string{
+		"long_term_retention_policy.0.weekly_retention", "long_term_retention_policy.0.monthly_retention",
+		"long_term_retention_policy.0.yearly_retention", "long_term_retention_policy.0.week_of_year",
+	}
+
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -75,10 +83,54 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ManagedInstanceID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseSqlManagedInstanceIDInsensitively),
 		},
 
-		"long_term_retention_policy": helper.LongTermRetentionPolicySchema(),
+		"long_term_retention_policy": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					// WeeklyRetention - The weekly retention policy for an LTR backup in an ISO 8601 format.
+					"weekly_retention": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      "PT0S",
+						ValidateFunc: validation.ISO8601Duration,
+						AtLeastOneOf: atLeastOneOf,
+					},
+
+					// MonthlyRetention - The monthly retention policy for an LTR backup in an ISO 8601 format.
+					"monthly_retention": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      "PT0S",
+						ValidateFunc: validation.ISO8601Duration,
+						AtLeastOneOf: atLeastOneOf,
+					},
+
+					// YearlyRetention - The yearly retention policy for an LTR backup in an ISO 8601 format.
+					"yearly_retention": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      "PT0S",
+						ValidateFunc: validation.ISO8601Duration,
+						AtLeastOneOf: atLeastOneOf,
+					},
+
+					// WeekOfYear - The week of year to take the yearly backup.
+					"week_of_year": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Computed:     true, // azignore:AZS007 - pre-existing violation
+						ValidateFunc: validation.IntBetween(0, 52),
+						AtLeastOneOf: atLeastOneOf,
+					},
+				},
+			},
+		},
 
 		"short_term_retention_days": {
 			Type:         pluginsdk.TypeInt,
@@ -105,11 +157,13 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         schema.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: validation.Any(validate.ManagedDatabaseID, validate.RestorableDatabaseID),
+						ValidateFunc: validation.Any(validation.AsGeneratedID(commonids.ParseSqlManagedInstanceDatabaseIDInsensitively), validate.RestorableDatabaseID),
 					},
 				},
 			},
 		},
+
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -144,19 +198,21 @@ func (r MsSqlManagedDatabaseResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("checking for existence and region of Managed Instance for %s: %+v", id, err)
 			}
 
-			metadata.Logger.Infof("Import check for %s", id)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := manageddatabases.ManagedDatabase{
 				Location:   managedInstance.Model.Location,
-				Properties: &manageddatabases.ManagedDatabaseProperties{},
+				Properties: pointer.To(manageddatabases.ManagedDatabaseProperties{}),
+				Tags:       pointer.To(model.Tags),
 			}
 
 			if len(model.PointInTimeRestore) > 0 {
@@ -164,36 +220,29 @@ func (r MsSqlManagedDatabaseResource) Create() sdk.ResourceFunc {
 				parameters.Properties.CreateMode = pointer.To(manageddatabases.ManagedDatabaseCreateModePointInTimeRestore)
 				parameters.Properties.RestorePointInTime = &restorePointInTime.RestorePointInTime
 
-				_, err := miParse.RestorableDroppedDatabaseID(restorePointInTime.SourceDatabaseId)
-				if err == nil {
+				if _, err := parse.RestorableDroppedDatabaseID(restorePointInTime.SourceDatabaseId); err == nil {
 					parameters.Properties.RestorableDroppedDatabaseId = pointer.To(restorePointInTime.SourceDatabaseId)
 				} else {
 					parameters.Properties.SourceDatabaseId = pointer.To(restorePointInTime.SourceDatabaseId)
 				}
 			}
 
-			metadata.Logger.Infof("Creating %s", id)
-
-			err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
-			if err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
+			metadata.SetID(id)
 
 			if len(model.LongTermRetentionPolicy) > 0 {
-				longTermRetentionProps := expandLongTermRetentionPolicy(model.LongTermRetentionPolicy)
-
 				longTermRetentionPolicy := managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicy{
-					Properties: &longTermRetentionProps,
+					Properties: expandLongTermRetentionPolicy(model.LongTermRetentionPolicy),
 				}
 
-				err := longTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, longTermRetentionPolicy)
-				if err != nil {
+				if err := longTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, longTermRetentionPolicy); err != nil {
 					return fmt.Errorf("setting Long Term Retention Policies for %s: %+v", id, err)
 				}
 			}
 
 			if model.ShortTermRetentionDays > 0 {
-
 				shortTermRetentionPolicy := managedbackupshorttermretentionpolicies.ManagedBackupShortTermRetentionPolicy{
 					Properties: &managedbackupshorttermretentionpolicies.ManagedBackupShortTermRetentionPolicyProperties{
 						RetentionDays: pointer.To(model.ShortTermRetentionDays),
@@ -204,8 +253,6 @@ func (r MsSqlManagedDatabaseResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			metadata.SetID(id)
-
 			return nil
 		},
 	}
@@ -215,6 +262,8 @@ func (r MsSqlManagedDatabaseResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.MSSQLManagedInstance.ManagedDatabasesClient
+			instancesClient := metadata.Client.MSSQLManagedInstance.ManagedInstancesClient
 			longTermRetentionClient := metadata.Client.MSSQLManagedInstance.ManagedInstancesLongTermRetentionPoliciesClient
 			shortTermRetentionClient := metadata.Client.MSSQLManagedInstance.ManagedInstancesShortTermRetentionPoliciesClient
 
@@ -233,21 +282,33 @@ func (r MsSqlManagedDatabaseResource) Update() sdk.ResourceFunc {
 
 			d := metadata.ResourceData
 
-			if d.HasChange("long_term_retention_policy") {
-				longTermRetentionProps := expandLongTermRetentionPolicy(model.LongTermRetentionPolicy)
-
-				longTermRetentionPolicy := managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicy{
-					Properties: &longTermRetentionProps,
+			if d.HasChange("tags") {
+				managedInstance, err := instancesClient.Get(ctx, *managedInstanceId, managedinstances.GetOperationOptions{})
+				if err != nil || managedInstance.Model == nil || managedInstance.Model.Location == "" {
+					return fmt.Errorf("checking for existence and region of Managed Instance for %s: %+v", id, err)
 				}
 
-				err := longTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, longTermRetentionPolicy)
-				if err != nil {
+				parameters := manageddatabases.ManagedDatabase{
+					Location: managedInstance.Model.Location,
+					Tags:     pointer.To(model.Tags),
+				}
+
+				if err = client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+					return fmt.Errorf("updating %s: %+v", id, err)
+				}
+			}
+
+			if d.HasChange("long_term_retention_policy") {
+				longTermRetentionPolicy := managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicy{
+					Properties: expandLongTermRetentionPolicy(model.LongTermRetentionPolicy),
+				}
+
+				if err := longTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, longTermRetentionPolicy); err != nil {
 					return fmt.Errorf("updating Long Term Retention Policies for %s: %+v", id, err)
 				}
 			}
 
 			if d.HasChange("short_term_retention_days") {
-
 				shortTermRetentionPolicy := managedbackupshorttermretentionpolicies.ManagedBackupShortTermRetentionPolicy{
 					Properties: &managedbackupshorttermretentionpolicies.ManagedBackupShortTermRetentionPolicyProperties{
 						RetentionDays: pointer.To(model.ShortTermRetentionDays),
@@ -275,7 +336,6 @@ func (r MsSqlManagedDatabaseResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", id)
 			var state MsSqlManagedDatabaseModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
@@ -296,13 +356,19 @@ func (r MsSqlManagedDatabaseResource) Read() sdk.ResourceFunc {
 				ManagedInstanceId: managedInstanceId.ID(),
 			}
 
-			ltrResp, err := longTermRetentionClient.Get(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("retrieving Long Term Retention Policy for  %s: %v", *id, err)
-			}
+			// If the database is in a `Stopped` state, attempting to retrieve the long term retention policy results in a 400.
+			if result.Model != nil && result.Model.Properties != nil && pointer.From(result.Model.Properties.Status) != manageddatabases.ManagedDatabaseStatusStopped {
+				ltrResp, err := longTermRetentionClient.Get(ctx, *id)
+				if err != nil {
+					return fmt.Errorf("retrieving Long Term Retention Policy for %s: %v", *id, err)
+				}
 
-			if ltrResp.Model != nil && ltrResp.Model.Properties != nil {
-				model.LongTermRetentionPolicy = flattenLongTermRetentionPolicy(*ltrResp.Model.Properties)
+				if ltrResp.Model != nil && ltrResp.Model.Properties != nil {
+					model.LongTermRetentionPolicy = flattenLongTermRetentionPolicy(*ltrResp.Model.Properties)
+				}
+			} else {
+				// Preserve state while database is `Stopped`
+				model.LongTermRetentionPolicy = state.LongTermRetentionPolicy
 			}
 
 			shortTermRetentionResp, err := shortTermRetentionClient.Get(ctx, *id)
@@ -318,6 +384,8 @@ func (r MsSqlManagedDatabaseResource) Read() sdk.ResourceFunc {
 			if v, ok := d.GetOk("point_in_time_restore"); ok {
 				model.PointInTimeRestore = flattenManagedDatabasePointInTimeRestore(v)
 			}
+
+			model.Tags = pointer.From(result.Model.Tags)
 
 			return metadata.Encode(&model)
 		},
@@ -335,8 +403,7 @@ func (r MsSqlManagedDatabaseResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			err = client.DeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -345,21 +412,26 @@ func (r MsSqlManagedDatabaseResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandLongTermRetentionPolicy(ltrPolicy []LongTermRetentionPolicy) managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicyProperties {
+func expandLongTermRetentionPolicy(ltrPolicy []LongTermRetentionPolicy) *managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicyProperties {
 	if len(ltrPolicy) == 0 {
-		return managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicyProperties{}
+		return &managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicyProperties{}
 	}
 
-	return managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicyProperties{
+	// The API errors if `weekOfYear` is not at least 1 when `yearlyRetention` is provided.
+	weekOfYear := int64(1)
+	if ltrPolicy[0].WeekOfYear != 0 {
+		weekOfYear = ltrPolicy[0].WeekOfYear
+	}
+
+	return &managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicyProperties{
 		WeeklyRetention:  &ltrPolicy[0].WeeklyRetention,
 		MonthlyRetention: &ltrPolicy[0].MonthlyRetention,
 		YearlyRetention:  &ltrPolicy[0].YearlyRetention,
-		WeekOfYear:       pointer.To(ltrPolicy[0].WeekOfYear),
+		WeekOfYear:       &weekOfYear,
 	}
 }
 
 func flattenLongTermRetentionPolicy(ltrPolicy managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicyProperties) []LongTermRetentionPolicy {
-
 	ltrModel := LongTermRetentionPolicy{
 		WeeklyRetention:  pointer.From(ltrPolicy.WeeklyRetention),
 		MonthlyRetention: pointer.From(ltrPolicy.MonthlyRetention),
@@ -370,21 +442,21 @@ func flattenLongTermRetentionPolicy(ltrPolicy managedinstancelongtermretentionpo
 	return []LongTermRetentionPolicy{ltrModel}
 }
 
-func flattenManagedDatabasePointInTimeRestore(input interface{}) []PointInTimeRestore {
+func flattenManagedDatabasePointInTimeRestore(input any) []PointInTimeRestore {
 	output := make([]PointInTimeRestore, 0)
 
 	if input == nil {
 		return output
 	}
 
-	attrs := input.([]interface{})
+	attrs := input.([]any)
 
 	for _, attr := range attrs {
 		if attr == nil {
 			return output
 		}
 
-		v := attr.(map[string]interface{})
+		v := attr.(map[string]any)
 
 		output = append(output, PointInTimeRestore{
 			RestorePointInTime: v["restore_point_in_time"].(string),

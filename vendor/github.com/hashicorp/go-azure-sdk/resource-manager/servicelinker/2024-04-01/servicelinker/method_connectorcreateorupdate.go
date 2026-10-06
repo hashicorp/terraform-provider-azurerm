@@ -22,7 +22,7 @@ type ConnectorCreateOrUpdateOperationResponse struct {
 }
 
 // ConnectorCreateOrUpdate ...
-func (c ServiceLinkerClient) ConnectorCreateOrUpdate(ctx context.Context, id ConnectorId, input LinkerResource) (result ConnectorCreateOrUpdateOperationResponse, err error) {
+func (c ServicelinkerClient) ConnectorCreateOrUpdate(ctx context.Context, id ConnectorId, input LinkerResource) (result ConnectorCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -61,10 +61,21 @@ func (c ServiceLinkerClient) ConnectorCreateOrUpdate(ctx context.Context, id Con
 }
 
 // ConnectorCreateOrUpdateThenPoll performs ConnectorCreateOrUpdate then polls until it's completed
-func (c ServiceLinkerClient) ConnectorCreateOrUpdateThenPoll(ctx context.Context, id ConnectorId, input LinkerResource) error {
+func (c ServicelinkerClient) ConnectorCreateOrUpdateThenPoll(ctx context.Context, id ConnectorId, input LinkerResource) error {
+	return c.ConnectorCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ConnectorCreateOrUpdateCallbackThenPoll performs ConnectorCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c ServicelinkerClient) ConnectorCreateOrUpdateCallbackThenPoll(ctx context.Context, id ConnectorId, input LinkerResource, callback func() error) error {
 	result, err := c.ConnectorCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ConnectorCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

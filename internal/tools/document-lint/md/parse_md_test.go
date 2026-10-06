@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package md
@@ -22,7 +22,7 @@ func Test_unmarshalFile(t *testing.T) {
 		itemNum int
 		argsNum int
 	}{
-		{"key_vault.html.markdown", 64, 16},
+		{"key_vault.html.markdown", 65, 16},
 		{"media_transform.html.markdown", 270, 5},
 	}
 	for _, arg := range args {
@@ -35,6 +35,5 @@ func Test_unmarshalFile(t *testing.T) {
 		if gotArgs := len(doc.Args); gotArgs != arg.argsNum {
 			t.Fatalf("`%s` expect arg num: %d, got: %d", arg.file, gotArgs, arg.argsNum)
 		}
-
 	}
 }

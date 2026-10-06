@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package toproto5
@@ -19,6 +19,7 @@ func ServerCapabilities(ctx context.Context, fw *fwserver.ServerCapabilities) *t
 
 	return &tfprotov5.ServerCapabilities{
 		GetProviderSchemaOptional: fw.GetProviderSchemaOptional,
+		MoveResourceState:         fw.MoveResourceState,
 		PlanDestroy:               fw.PlanDestroy,
 	}
 }

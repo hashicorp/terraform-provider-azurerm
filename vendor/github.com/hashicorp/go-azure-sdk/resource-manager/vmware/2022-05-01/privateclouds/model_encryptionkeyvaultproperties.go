@@ -7,7 +7,7 @@ type EncryptionKeyVaultProperties struct {
 	AutoDetectedKeyVersion *string                `json:"autoDetectedKeyVersion,omitempty"`
 	KeyName                *string                `json:"keyName,omitempty"`
 	KeyState               *EncryptionKeyStatus   `json:"keyState,omitempty"`
-	KeyVaultUrl            *string                `json:"keyVaultUrl,omitempty"`
+	KeyVaultURL            *string                `json:"keyVaultUrl,omitempty"`
 	KeyVersion             *string                `json:"keyVersion,omitempty"`
 	VersionType            *EncryptionVersionType `json:"versionType,omitempty"`
 }

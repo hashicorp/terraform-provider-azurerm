@@ -131,7 +131,7 @@ func (id DataStoreId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticClusters", "clusters", "clusters"),
 		resourceids.UserSpecifiedSegment("clusterName", "clusterName"),
 		resourceids.StaticSegment("staticDataStores", "dataStores", "dataStores"),
-		resourceids.UserSpecifiedSegment("dataStoreName", "datastoreName"),
+		resourceids.UserSpecifiedSegment("dataStoreName", "dataStoreName"),
 	}
 }
 

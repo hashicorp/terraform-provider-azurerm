@@ -112,7 +112,7 @@ A `notification` block supports the following:
 
 * `contact_emails` - (Required) Specifies a list of email addresses to send the budget notification to when the threshold is exceeded.
 
-* `threshold_type` - (Optional) The type of threshold for the notification. This determines whether the notification is triggered by forecasted costs or actual costs. The allowed values are `Actual` and `Forecasted`. Default is `Actual`. Changing this forces a new resource to be created.
+* `threshold_type` - (Optional) The type of threshold for the notification. This determines whether the notification is triggered by forecasted costs or actual costs. The allowed values are `Actual` and `Forecasted`. Default is `Actual`.
 
 * `enabled` - (Optional) Should the notification be enabled? Defaults to `true`.
 
@@ -154,7 +154,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Management Group Consumption Budget.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Management Group Consumption Budget.
@@ -168,3 +168,9 @@ Management Group Consumption Budgets can be imported using the `resource id`, e.
 ```shell
 terraform import azurerm_consumption_budget_management_group.example /providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000/providers/Microsoft.Consumption/budgets/budget1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Consumption` - 2019-10-01

@@ -7,28 +7,28 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/helpers/validatordiag"
+	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+
+	"github.com/hashicorp/terraform-plugin-framework-validators/helpers/validatordiag"
+	"github.com/hashicorp/terraform-plugin-framework-validators/helpers/validatorfuncerr"
 )
 
 var _ validator.List = sizeAtLeastValidator{}
+var _ function.ListParameterValidator = sizeAtLeastValidator{}
 
-// sizeAtLeastValidator validates that list contains at least min elements.
 type sizeAtLeastValidator struct {
 	min int
 }
 
-// Description describes the validation in plain text formatting.
 func (v sizeAtLeastValidator) Description(_ context.Context) string {
 	return fmt.Sprintf("list must contain at least %d elements", v.min)
 }
 
-// MarkdownDescription describes the validation in Markdown formatting.
 func (v sizeAtLeastValidator) MarkdownDescription(ctx context.Context) string {
 	return v.Description(ctx)
 }
 
-// Validate performs the validation.
 func (v sizeAtLeastValidator) ValidateList(ctx context.Context, req validator.ListRequest, resp *validator.ListResponse) {
 	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		return
@@ -45,15 +45,31 @@ func (v sizeAtLeastValidator) ValidateList(ctx context.Context, req validator.Li
 	}
 }
 
+func (v sizeAtLeastValidator) ValidateParameterList(ctx context.Context, req function.ListParameterValidatorRequest, resp *function.ListParameterValidatorResponse) {
+	if req.Value.IsNull() || req.Value.IsUnknown() {
+		return
+	}
+
+	elems := req.Value.Elements()
+
+	if len(elems) < v.min {
+		resp.Error = validatorfuncerr.InvalidParameterValueFuncError(
+			req.ArgumentPosition,
+			v.Description(ctx),
+			fmt.Sprintf("%d", len(elems)),
+		)
+	}
+}
+
 // SizeAtLeast returns an AttributeValidator which ensures that any configured
-// attribute value:
+// attribute or function parameter value:
 //
 //   - Is a List.
 //   - Contains at least min elements.
 //
 // Null (unconfigured) and unknown (known after apply) values are skipped.
-func SizeAtLeast(min int) validator.List {
+func SizeAtLeast(minVal int) sizeAtLeastValidator {
 	return sizeAtLeastValidator{
-		min: min,
+		min: minVal,
 	}
 }

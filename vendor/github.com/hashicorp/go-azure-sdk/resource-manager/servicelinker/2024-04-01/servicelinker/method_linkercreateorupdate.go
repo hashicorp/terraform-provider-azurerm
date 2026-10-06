@@ -22,7 +22,7 @@ type LinkerCreateOrUpdateOperationResponse struct {
 }
 
 // LinkerCreateOrUpdate ...
-func (c ServiceLinkerClient) LinkerCreateOrUpdate(ctx context.Context, id ScopedLinkerId, input LinkerResource) (result LinkerCreateOrUpdateOperationResponse, err error) {
+func (c ServicelinkerClient) LinkerCreateOrUpdate(ctx context.Context, id ScopedLinkerId, input LinkerResource) (result LinkerCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -61,10 +61,21 @@ func (c ServiceLinkerClient) LinkerCreateOrUpdate(ctx context.Context, id Scoped
 }
 
 // LinkerCreateOrUpdateThenPoll performs LinkerCreateOrUpdate then polls until it's completed
-func (c ServiceLinkerClient) LinkerCreateOrUpdateThenPoll(ctx context.Context, id ScopedLinkerId, input LinkerResource) error {
+func (c ServicelinkerClient) LinkerCreateOrUpdateThenPoll(ctx context.Context, id ScopedLinkerId, input LinkerResource) error {
+	return c.LinkerCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// LinkerCreateOrUpdateCallbackThenPoll performs LinkerCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c ServicelinkerClient) LinkerCreateOrUpdateCallbackThenPoll(ctx context.Context, id ScopedLinkerId, input LinkerResource, callback func() error) error {
 	result, err := c.LinkerCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing LinkerCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

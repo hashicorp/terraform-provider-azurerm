@@ -121,7 +121,7 @@ func (id FunctionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftStreamAnalytics", "Microsoft.StreamAnalytics", "Microsoft.StreamAnalytics"),
 		resourceids.StaticSegment("staticStreamingJobs", "streamingJobs", "streamingJobs"),
-		resourceids.UserSpecifiedSegment("streamingJobName", "jobName"),
+		resourceids.UserSpecifiedSegment("streamingJobName", "streamingJobName"),
 		resourceids.StaticSegment("staticFunctions", "functions", "functions"),
 		resourceids.UserSpecifiedSegment("functionName", "functionName"),
 	}

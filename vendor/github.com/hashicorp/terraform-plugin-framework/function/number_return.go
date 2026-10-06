@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package function
@@ -20,6 +20,8 @@ var _ Return = NumberReturn{}
 //
 // - If CustomType is set, use its associated value type.
 // - Otherwise, use [types.Number] or *big.Float.
+//
+// Return documentation is expected in the function [Definition] documentation.
 type NumberReturn struct {
 	// CustomType enables the use of a custom data type in place of the
 	// default [basetypes.NumberType]. When setting data, the

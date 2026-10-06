@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewStaticSitePrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "privateEndpointConnectionName")
+id := staticsites.NewStaticSitePrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "privateEndpointConnectionName")
 
 payload := staticsites.RemotePrivateEndpointConnectionARMResource{
 	// ...
@@ -42,7 +42,7 @@ if err := client.ApproveOrRejectPrivateEndpointConnectionThenPoll(ctx, id, paylo
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName")
 
 payload := staticsites.StaticSiteBasicAuthPropertiesARMResource{
 	// ...
@@ -63,7 +63,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewBuildDatabaseConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "environmentName", "databaseConnectionName")
+id := staticsites.NewBuildDatabaseConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "buildName", "databaseConnectionName")
 
 payload := staticsites.DatabaseConnection{
 	// ...
@@ -84,7 +84,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewDatabaseConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "databaseConnectionName")
+id := staticsites.NewDatabaseConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "databaseConnectionName")
 
 payload := staticsites.DatabaseConnection{
 	// ...
@@ -105,7 +105,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName")
 
 payload := staticsites.StaticSiteARMResource{
 	// ...
@@ -122,7 +122,7 @@ if err := client.CreateOrUpdateStaticSiteThenPoll(ctx, id, payload); err != nil 
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName")
 
 payload := staticsites.StringDictionary{
 	// ...
@@ -143,7 +143,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewBuildID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "environmentName")
+id := staticsites.NewBuildID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "buildName")
 
 payload := staticsites.StringDictionary{
 	// ...
@@ -164,7 +164,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewBuildID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "environmentName")
+id := staticsites.NewBuildID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "buildName")
 
 payload := staticsites.StringDictionary{
 	// ...
@@ -185,7 +185,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewCustomDomainID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "domainName")
+id := staticsites.NewCustomDomainID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "customDomainName")
 
 payload := staticsites.StaticSiteCustomDomainRequestPropertiesARMResource{
 	// ...
@@ -202,7 +202,7 @@ if err := client.CreateOrUpdateStaticSiteCustomDomainThenPoll(ctx, id, payload);
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName")
 
 payload := staticsites.StringDictionary{
 	// ...
@@ -223,7 +223,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName")
 
 payload := staticsites.StaticSiteUserInvitationRequestResource{
 	// ...
@@ -244,7 +244,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName")
 
 payload := staticsites.StaticSiteZipDeploymentARMResource{
 	// ...
@@ -261,7 +261,7 @@ if err := client.CreateZipDeploymentForStaticSiteThenPoll(ctx, id, payload); err
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewBuildID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "environmentName")
+id := staticsites.NewBuildID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "buildName")
 
 payload := staticsites.StaticSiteZipDeploymentARMResource{
 	// ...
@@ -278,7 +278,7 @@ if err := client.CreateZipDeploymentForStaticSiteBuildThenPoll(ctx, id, payload)
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewBuildDatabaseConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "environmentName", "databaseConnectionName")
+id := staticsites.NewBuildDatabaseConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "buildName", "databaseConnectionName")
 
 read, err := client.DeleteBuildDatabaseConnection(ctx, id)
 if err != nil {
@@ -294,7 +294,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewDatabaseConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "databaseConnectionName")
+id := staticsites.NewDatabaseConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "databaseConnectionName")
 
 read, err := client.DeleteDatabaseConnection(ctx, id)
 if err != nil {
@@ -310,7 +310,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewStaticSitePrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "privateEndpointConnectionName")
+id := staticsites.NewStaticSitePrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "privateEndpointConnectionName")
 
 if err := client.DeletePrivateEndpointConnectionThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -322,7 +322,7 @@ if err := client.DeletePrivateEndpointConnectionThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName")
 
 if err := client.DeleteStaticSiteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -334,7 +334,7 @@ if err := client.DeleteStaticSiteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewBuildID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "environmentName")
+id := staticsites.NewBuildID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "buildName")
 
 if err := client.DeleteStaticSiteBuildThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -346,7 +346,7 @@ if err := client.DeleteStaticSiteBuildThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewCustomDomainID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "domainName")
+id := staticsites.NewCustomDomainID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "customDomainName")
 
 if err := client.DeleteStaticSiteCustomDomainThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -358,7 +358,7 @@ if err := client.DeleteStaticSiteCustomDomainThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "authprovider", "userid")
+id := staticsites.NewUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "authProviderName", "userName")
 
 read, err := client.DeleteStaticSiteUser(ctx, id)
 if err != nil {
@@ -374,7 +374,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName")
 
 if err := client.DetachStaticSiteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -386,7 +386,7 @@ if err := client.DetachStaticSiteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewUserProvidedFunctionAppID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "functionAppName")
+id := staticsites.NewUserProvidedFunctionAppID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "userProvidedFunctionAppName")
 
 read, err := client.DetachUserProvidedFunctionAppFromStaticSite(ctx, id)
 if err != nil {
@@ -402,7 +402,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewBuildUserProvidedFunctionAppID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "environmentName", "functionAppName")
+id := staticsites.NewBuildUserProvidedFunctionAppID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "buildName", "userProvidedFunctionAppName")
 
 read, err := client.DetachUserProvidedFunctionAppFromStaticSiteBuild(ctx, id)
 if err != nil {
@@ -418,7 +418,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName")
 
 read, err := client.GetBasicAuth(ctx, id)
 if err != nil {
@@ -434,7 +434,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewBuildDatabaseConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "environmentName", "databaseConnectionName")
+id := staticsites.NewBuildDatabaseConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "buildName", "databaseConnectionName")
 
 read, err := client.GetBuildDatabaseConnection(ctx, id)
 if err != nil {
@@ -450,7 +450,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewBuildDatabaseConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "environmentName", "databaseConnectionName")
+id := staticsites.NewBuildDatabaseConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "buildName", "databaseConnectionName")
 
 read, err := client.GetBuildDatabaseConnectionWithDetails(ctx, id)
 if err != nil {
@@ -466,7 +466,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewBuildID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "environmentName")
+id := staticsites.NewBuildID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "buildName")
 
 // alternatively `client.GetBuildDatabaseConnections(ctx, id)` can be used to do batched pagination
 items, err := client.GetBuildDatabaseConnectionsComplete(ctx, id)
@@ -483,7 +483,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewBuildID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "environmentName")
+id := staticsites.NewBuildID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "buildName")
 
 // alternatively `client.GetBuildDatabaseConnectionsWithDetails(ctx, id)` can be used to do batched pagination
 items, err := client.GetBuildDatabaseConnectionsWithDetailsComplete(ctx, id)
@@ -500,7 +500,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewDatabaseConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "databaseConnectionName")
+id := staticsites.NewDatabaseConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "databaseConnectionName")
 
 read, err := client.GetDatabaseConnection(ctx, id)
 if err != nil {
@@ -516,7 +516,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewDatabaseConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "databaseConnectionName")
+id := staticsites.NewDatabaseConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "databaseConnectionName")
 
 read, err := client.GetDatabaseConnectionWithDetails(ctx, id)
 if err != nil {
@@ -532,7 +532,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName")
 
 // alternatively `client.GetDatabaseConnections(ctx, id)` can be used to do batched pagination
 items, err := client.GetDatabaseConnectionsComplete(ctx, id)
@@ -549,7 +549,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName")
 
 // alternatively `client.GetDatabaseConnectionsWithDetails(ctx, id)` can be used to do batched pagination
 items, err := client.GetDatabaseConnectionsWithDetailsComplete(ctx, id)
@@ -566,7 +566,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewLinkedBackendID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "linkedBackendName")
+id := staticsites.NewLinkedBackendID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "linkedBackendName")
 
 read, err := client.GetLinkedBackend(ctx, id)
 if err != nil {
@@ -582,7 +582,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewBuildLinkedBackendID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "environmentName", "linkedBackendName")
+id := staticsites.NewBuildLinkedBackendID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "buildName", "linkedBackendName")
 
 read, err := client.GetLinkedBackendForBuild(ctx, id)
 if err != nil {
@@ -598,7 +598,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName")
 
 // alternatively `client.GetLinkedBackends(ctx, id)` can be used to do batched pagination
 items, err := client.GetLinkedBackendsComplete(ctx, id)
@@ -615,7 +615,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewBuildID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "environmentName")
+id := staticsites.NewBuildID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "buildName")
 
 // alternatively `client.GetLinkedBackendsForBuild(ctx, id)` can be used to do batched pagination
 items, err := client.GetLinkedBackendsForBuildComplete(ctx, id)
@@ -632,7 +632,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewStaticSitePrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "privateEndpointConnectionName")
+id := staticsites.NewStaticSitePrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "privateEndpointConnectionName")
 
 read, err := client.GetPrivateEndpointConnection(ctx, id)
 if err != nil {
@@ -648,7 +648,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName")
 
 // alternatively `client.GetPrivateEndpointConnectionList(ctx, id)` can be used to do batched pagination
 items, err := client.GetPrivateEndpointConnectionListComplete(ctx, id)
@@ -665,7 +665,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName")
 
 read, err := client.GetPrivateLinkResources(ctx, id)
 if err != nil {
@@ -681,7 +681,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName")
 
 read, err := client.GetStaticSite(ctx, id)
 if err != nil {
@@ -697,7 +697,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewBuildID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "environmentName")
+id := staticsites.NewBuildID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "buildName")
 
 read, err := client.GetStaticSiteBuild(ctx, id)
 if err != nil {
@@ -713,7 +713,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName")
 
 // alternatively `client.GetStaticSiteBuilds(ctx, id)` can be used to do batched pagination
 items, err := client.GetStaticSiteBuildsComplete(ctx, id)
@@ -730,7 +730,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewCustomDomainID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "domainName")
+id := staticsites.NewCustomDomainID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "customDomainName")
 
 read, err := client.GetStaticSiteCustomDomain(ctx, id)
 if err != nil {
@@ -763,7 +763,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewUserProvidedFunctionAppID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "functionAppName")
+id := staticsites.NewUserProvidedFunctionAppID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "userProvidedFunctionAppName")
 
 read, err := client.GetUserProvidedFunctionAppForStaticSite(ctx, id)
 if err != nil {
@@ -779,7 +779,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewBuildUserProvidedFunctionAppID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "environmentName", "functionAppName")
+id := staticsites.NewBuildUserProvidedFunctionAppID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "buildName", "userProvidedFunctionAppName")
 
 read, err := client.GetUserProvidedFunctionAppForStaticSiteBuild(ctx, id)
 if err != nil {
@@ -795,7 +795,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName")
 
 // alternatively `client.GetUserProvidedFunctionAppsForStaticSite(ctx, id)` can be used to do batched pagination
 items, err := client.GetUserProvidedFunctionAppsForStaticSiteComplete(ctx, id)
@@ -812,7 +812,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewBuildID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "environmentName")
+id := staticsites.NewBuildID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "buildName")
 
 // alternatively `client.GetUserProvidedFunctionAppsForStaticSiteBuild(ctx, id)` can be used to do batched pagination
 items, err := client.GetUserProvidedFunctionAppsForStaticSiteBuildComplete(ctx, id)
@@ -829,7 +829,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewLinkedBackendID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "linkedBackendName")
+id := staticsites.NewLinkedBackendID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "linkedBackendName")
 
 payload := staticsites.StaticSiteLinkedBackendARMResource{
 	// ...
@@ -846,7 +846,7 @@ if err := client.LinkBackendThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewBuildLinkedBackendID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "environmentName", "linkedBackendName")
+id := staticsites.NewBuildLinkedBackendID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "buildName", "linkedBackendName")
 
 payload := staticsites.StaticSiteLinkedBackendARMResource{
 	// ...
@@ -880,7 +880,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName")
 
 // alternatively `client.ListBasicAuth(ctx, id)` can be used to do batched pagination
 items, err := client.ListBasicAuthComplete(ctx, id)
@@ -897,7 +897,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName")
 
 read, err := client.ListStaticSiteAppSettings(ctx, id)
 if err != nil {
@@ -913,7 +913,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewBuildID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "environmentName")
+id := staticsites.NewBuildID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "buildName")
 
 read, err := client.ListStaticSiteBuildAppSettings(ctx, id)
 if err != nil {
@@ -929,7 +929,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewBuildID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "environmentName")
+id := staticsites.NewBuildID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "buildName")
 
 read, err := client.ListStaticSiteBuildFunctionAppSettings(ctx, id)
 if err != nil {
@@ -945,7 +945,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewBuildID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "environmentName")
+id := staticsites.NewBuildID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "buildName")
 
 // alternatively `client.ListStaticSiteBuildFunctions(ctx, id)` can be used to do batched pagination
 items, err := client.ListStaticSiteBuildFunctionsComplete(ctx, id)
@@ -962,7 +962,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName")
 
 read, err := client.ListStaticSiteConfiguredRoles(ctx, id)
 if err != nil {
@@ -978,7 +978,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName")
 
 // alternatively `client.ListStaticSiteCustomDomains(ctx, id)` can be used to do batched pagination
 items, err := client.ListStaticSiteCustomDomainsComplete(ctx, id)
@@ -995,7 +995,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName")
 
 read, err := client.ListStaticSiteFunctionAppSettings(ctx, id)
 if err != nil {
@@ -1011,7 +1011,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName")
 
 // alternatively `client.ListStaticSiteFunctions(ctx, id)` can be used to do batched pagination
 items, err := client.ListStaticSiteFunctionsComplete(ctx, id)
@@ -1028,7 +1028,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName")
 
 read, err := client.ListStaticSiteSecrets(ctx, id)
 if err != nil {
@@ -1044,7 +1044,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewAuthProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "authprovider")
+id := staticsites.NewAuthProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "authProviderName")
 
 // alternatively `client.ListStaticSiteUsers(ctx, id)` can be used to do batched pagination
 items, err := client.ListStaticSiteUsersComplete(ctx, id)
@@ -1061,7 +1061,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewProviderLocationID("12345678-1234-9876-4563-123456789012", "location")
+id := staticsites.NewProviderLocationID("12345678-1234-9876-4563-123456789012", "locationName")
 
 payload := staticsites.StaticSitesWorkflowPreviewRequest{
 	// ...
@@ -1082,7 +1082,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewUserProvidedFunctionAppID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "functionAppName")
+id := staticsites.NewUserProvidedFunctionAppID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "userProvidedFunctionAppName")
 
 payload := staticsites.StaticSiteUserProvidedFunctionAppARMResource{
 	// ...
@@ -1099,7 +1099,7 @@ if err := client.RegisterUserProvidedFunctionAppWithStaticSiteThenPoll(ctx, id, 
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewBuildUserProvidedFunctionAppID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "environmentName", "functionAppName")
+id := staticsites.NewBuildUserProvidedFunctionAppID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "buildName", "userProvidedFunctionAppName")
 
 payload := staticsites.StaticSiteUserProvidedFunctionAppARMResource{
 	// ...
@@ -1116,7 +1116,7 @@ if err := client.RegisterUserProvidedFunctionAppWithStaticSiteBuildThenPoll(ctx,
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName")
 
 payload := staticsites.StaticSiteResetPropertiesARMResource{
 	// ...
@@ -1137,7 +1137,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewLinkedBackendID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "linkedBackendName")
+id := staticsites.NewLinkedBackendID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "linkedBackendName")
 
 read, err := client.UnlinkBackend(ctx, id, staticsites.DefaultUnlinkBackendOperationOptions())
 if err != nil {
@@ -1153,7 +1153,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewBuildLinkedBackendID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "environmentName", "linkedBackendName")
+id := staticsites.NewBuildLinkedBackendID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "buildName", "linkedBackendName")
 
 read, err := client.UnlinkBackendFromBuild(ctx, id, staticsites.DefaultUnlinkBackendFromBuildOperationOptions())
 if err != nil {
@@ -1169,7 +1169,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewBuildDatabaseConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "environmentName", "databaseConnectionName")
+id := staticsites.NewBuildDatabaseConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "buildName", "databaseConnectionName")
 
 payload := staticsites.DatabaseConnectionPatchRequest{
 	// ...
@@ -1190,7 +1190,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewDatabaseConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "databaseConnectionName")
+id := staticsites.NewDatabaseConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "databaseConnectionName")
 
 payload := staticsites.DatabaseConnectionPatchRequest{
 	// ...
@@ -1211,7 +1211,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := staticsites.NewStaticSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName")
 
 payload := staticsites.StaticSitePatchResource{
 	// ...
@@ -1232,7 +1232,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "authprovider", "userid")
+id := staticsites.NewUserID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "authProviderName", "userName")
 
 payload := staticsites.StaticSiteUserARMResource{
 	// ...
@@ -1253,7 +1253,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewLinkedBackendID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "linkedBackendName")
+id := staticsites.NewLinkedBackendID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "linkedBackendName")
 
 payload := staticsites.StaticSiteLinkedBackendARMResource{
 	// ...
@@ -1270,7 +1270,7 @@ if err := client.ValidateBackendThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewBuildLinkedBackendID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "environmentName", "linkedBackendName")
+id := staticsites.NewBuildLinkedBackendID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "buildName", "linkedBackendName")
 
 payload := staticsites.StaticSiteLinkedBackendARMResource{
 	// ...
@@ -1287,7 +1287,7 @@ if err := client.ValidateBackendForBuildThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := staticsites.NewCustomDomainID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "domainName")
+id := staticsites.NewCustomDomainID("12345678-1234-9876-4563-123456789012", "example-resource-group", "staticSiteName", "customDomainName")
 
 payload := staticsites.StaticSiteCustomDomainRequestPropertiesARMResource{
 	// ...

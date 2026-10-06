@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package hdinsight
@@ -12,17 +12,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/clusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/extensions"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVault "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func SchemaHDInsightName() *pluginsdk.Schema {
@@ -36,25 +34,23 @@ func SchemaHDInsightName() *pluginsdk.Schema {
 
 func SchemaHDInsightTier() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeString,
-		Required: true,
-		ForceNew: true,
-		ValidateFunc: validation.StringInSlice([]string{
-			string(clusters.TierStandard),
-			string(clusters.TierPremium),
-		}, false),
+		Type:         pluginsdk.TypeString,
+		Required:     true,
+		ForceNew:     true,
+		ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForTier(), false),
 	}
 }
 
 func SchemaHDInsightTls() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeString,
-		Optional: true,
+		Required: true,
 		ForceNew: true,
 		ValidateFunc: validation.StringInSlice([]string{
 			"1.0",
 			"1.1",
 			"1.2",
+			"1.3",
 		}, false),
 	}
 }
@@ -251,14 +247,11 @@ func SchemaHDInsightsNetwork() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"connection_direction": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ForceNew: true,
-					Default:  string(clusters.ResourceProviderConnectionInbound),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(clusters.ResourceProviderConnectionInbound),
-						string(clusters.ResourceProviderConnectionOutbound),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					Default:      string(clusters.ResourceProviderConnectionInbound),
+					ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForResourceProviderConnection(), false),
 				},
 
 				"private_link_enabled": {
@@ -344,6 +337,7 @@ func SchemaHDInsightsScriptActions() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
+		ForceNew: true,
 		MinItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -387,7 +381,7 @@ func SchemaHDInsightsHttpsEndpoints() *pluginsdk.Schema {
 				"destination_port": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					ValidateFunc: azValidate.PortNumber,
+					ValidateFunc: validation.IsPortNumber,
 				},
 
 				"disable_gateway_auth": {
@@ -411,15 +405,7 @@ func SchemaHDInsightsHttpsEndpoints() *pluginsdk.Schema {
 	}
 }
 
-type HttpEndpointModel struct {
-	AccessModes        []string `tfschema:"access_modes"`
-	DestinationPort    int32    `tfschema:"destination_port"`
-	DisableGatewayAuth bool     `tfschema:"disable_gateway_auth"`
-	PrivateIpAddress   string   `tfschema:"private_ip_address"`
-	SubDomainSuffix    string   `tfschema:"sub_domain_suffix"`
-}
-
-func ExpandHDInsightsRolesScriptActions(input []interface{}) *[]clusters.ScriptAction {
+func ExpandHDInsightsRolesScriptActions(input []any) *[]clusters.ScriptAction {
 	if len(input) == 0 {
 		return nil
 	}
@@ -427,7 +413,7 @@ func ExpandHDInsightsRolesScriptActions(input []interface{}) *[]clusters.ScriptA
 	scriptActions := make([]clusters.ScriptAction, 0)
 
 	for _, vs := range input {
-		v := vs.(map[string]interface{})
+		v := vs.(map[string]any)
 
 		scriptActions = append(scriptActions, clusters.ScriptAction{
 			Name:       v["name"].(string),
@@ -439,31 +425,29 @@ func ExpandHDInsightsRolesScriptActions(input []interface{}) *[]clusters.ScriptA
 	return &scriptActions
 }
 
-func ExpandHDInsightComputeIsolationProperties(input []interface{}) *clusters.ComputeIsolationProperties {
+func ExpandHDInsightComputeIsolationProperties(input []any) *clusters.ComputeIsolationProperties {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
-	enableComputeIsolation := v["compute_isolation_enabled"].(bool)
-	hostSku := v["host_sku"].(string)
+	v := input[0].(map[string]any)
 
 	return &clusters.ComputeIsolationProperties{
-		EnableComputeIsolation: &enableComputeIsolation,
-		HostSku:                &hostSku,
+		EnableComputeIsolation: pointer.To(v["compute_isolation_enabled"].(bool)),
+		HostSku:                pointer.To(v["host_sku"].(string)),
 	}
 }
 
-func ExpandHDInsightsConfigurations(input []interface{}) map[string]interface{} {
-	vs := input[0].(map[string]interface{})
+func ExpandHDInsightsConfigurations(input []any) map[string]any {
+	vs := input[0].(map[string]any)
 
 	// NOTE: Admin username must be different from SSH Username
 	enabled := true
 	username := vs["username"].(string)
 	password := vs["password"].(string)
 
-	return map[string]interface{}{
-		"gateway": map[string]interface{}{
+	return map[string]any{
+		"gateway": map[string]any{
 			"restAuthCredential.isEnabled": enabled,
 			"restAuthCredential.username":  username,
 			"restAuthCredential.password":  password,
@@ -471,25 +455,25 @@ func ExpandHDInsightsConfigurations(input []interface{}) map[string]interface{} 
 	}
 }
 
-func ExpandHDInsightsHiveMetastore(input []interface{}) map[string]interface{} {
+func ExpandHDInsightsHiveMetastore(input []any) map[string]any {
 	if len(input) == 0 {
 		return nil
 	}
-	vs := input[0].(map[string]interface{})
+	vs := input[0].(map[string]any)
 
 	server := vs["server"].(string)
 	database := vs["database_name"].(string)
 	username := vs["username"].(string)
 	password := vs["password"].(string)
 
-	return map[string]interface{}{
-		"hive-site": map[string]interface{}{
+	return map[string]any{
+		"hive-site": map[string]any{
 			"javax.jdo.option.ConnectionDriverName": "com.microsoft.sqlserver.jdbc.SQLServerDriver",
 			"javax.jdo.option.ConnectionURL":        fmt.Sprintf("jdbc:sqlserver://%s;database=%s;encrypt=true;trustServerCertificate=true;create=false;loginTimeout=300", server, database),
 			"javax.jdo.option.ConnectionUserName":   username,
 			"javax.jdo.option.ConnectionPassword":   password,
 		},
-		"hive-env": map[string]interface{}{
+		"hive-env": map[string]any{
 			"hive_database":                       "Existing MSSQL Server database with SQL authentication",
 			"hive_database_name":                  database,
 			"hive_database_type":                  "mssql",
@@ -500,19 +484,19 @@ func ExpandHDInsightsHiveMetastore(input []interface{}) map[string]interface{} {
 	}
 }
 
-func ExpandHDInsightsOozieMetastore(input []interface{}) map[string]interface{} {
+func ExpandHDInsightsOozieMetastore(input []any) map[string]any {
 	if len(input) == 0 {
 		return nil
 	}
-	vs := input[0].(map[string]interface{})
+	vs := input[0].(map[string]any)
 
 	server := vs["server"].(string)
 	database := vs["database_name"].(string)
 	username := vs["username"].(string)
 	password := vs["password"].(string)
 
-	return map[string]interface{}{
-		"oozie-site": map[string]interface{}{
+	return map[string]any{
+		"oozie-site": map[string]any{
 			"oozie.service.JPAService.jdbc.driver":   "com.microsoft.sqlserver.jdbc.SQLServerDriver",
 			"oozie.service.JPAService.jdbc.url":      fmt.Sprintf("jdbc:sqlserver://%s;database=%s;encrypt=true;trustServerCertificate=true;create=false;loginTimeout=300", server, database),
 			"oozie.service.JPAService.jdbc.username": username,
@@ -520,7 +504,7 @@ func ExpandHDInsightsOozieMetastore(input []interface{}) map[string]interface{} 
 			"oozie.db.pluginsdk.name":                "oozie",
 			"oozie.db.schema.name":                   "oozie",
 		},
-		"oozie-env": map[string]interface{}{
+		"oozie-env": map[string]any{
 			"oozie_database":                       "Existing MSSQL Server database with SQL authentication",
 			"oozie_database_name":                  database,
 			"oozie_database_type":                  "mssql",
@@ -531,19 +515,19 @@ func ExpandHDInsightsOozieMetastore(input []interface{}) map[string]interface{} 
 	}
 }
 
-func ExpandHDInsightsAmbariMetastore(input []interface{}) map[string]interface{} {
+func ExpandHDInsightsAmbariMetastore(input []any) map[string]any {
 	if len(input) == 0 {
 		return nil
 	}
-	vs := input[0].(map[string]interface{})
+	vs := input[0].(map[string]any)
 
 	server := vs["server"].(string)
 	database := vs["database_name"].(string)
 	username := vs["username"].(string)
 	password := vs["password"].(string)
 
-	return map[string]interface{}{
-		"ambari-conf": map[string]interface{}{
+	return map[string]any{
+		"ambari-conf": map[string]any{
 			"database-server":        server,
 			"database-name":          database,
 			"database-user-name":     username,
@@ -552,8 +536,8 @@ func ExpandHDInsightsAmbariMetastore(input []interface{}) map[string]interface{}
 	}
 }
 
-func ExpandHDInsightsMonitor(input []interface{}) extensions.ClusterMonitoringRequest {
-	vs := input[0].(map[string]interface{})
+func ExpandHDInsightsMonitor(input []any) extensions.ClusterMonitoringRequest {
+	vs := input[0].(map[string]any)
 
 	return extensions.ClusterMonitoringRequest{
 		WorkspaceId: pointer.To(vs["log_analytics_workspace_id"].(string)),
@@ -561,12 +545,12 @@ func ExpandHDInsightsMonitor(input []interface{}) extensions.ClusterMonitoringRe
 	}
 }
 
-func ExpandHDInsightsNetwork(input []interface{}) *clusters.NetworkProperties {
+func ExpandHDInsightsNetwork(input []any) *clusters.NetworkProperties {
 	if len(input) == 0 {
 		return nil
 	}
 
-	vs := input[0].(map[string]interface{})
+	vs := input[0].(map[string]any)
 
 	connDir := clusters.ResourceProviderConnectionOutbound
 	if v, exists := vs["connection_direction"]; exists && v != string(clusters.ResourceProviderConnectionOutbound) {
@@ -584,7 +568,7 @@ func ExpandHDInsightsNetwork(input []interface{}) *clusters.NetworkProperties {
 	}
 }
 
-func ExpandHDInsightPrivateLinkConfigurations(input []interface{}) *[]clusters.PrivateLinkConfiguration {
+func ExpandHDInsightPrivateLinkConfigurations(input []any) *[]clusters.PrivateLinkConfiguration {
 	if len(input) == 0 {
 		return nil
 	}
@@ -592,7 +576,7 @@ func ExpandHDInsightPrivateLinkConfigurations(input []interface{}) *[]clusters.P
 	configs := make([]clusters.PrivateLinkConfiguration, 0)
 
 	for _, vs := range input {
-		v := vs.(map[string]interface{})
+		v := vs.(map[string]any)
 
 		configs = append(configs, clusters.PrivateLinkConfiguration{
 			Name:       v["name"].(string),
@@ -603,20 +587,20 @@ func ExpandHDInsightPrivateLinkConfigurations(input []interface{}) *[]clusters.P
 	return pointer.To(configs)
 }
 
-func ExpandHDInsightPrivateLinkConfigurationProperties(input []interface{}) clusters.PrivateLinkConfigurationProperties {
-	v := input[0].(map[string]interface{})
+func ExpandHDInsightPrivateLinkConfigurationProperties(input []any) clusters.PrivateLinkConfigurationProperties {
+	v := input[0].(map[string]any)
 
 	return clusters.PrivateLinkConfigurationProperties{
 		GroupId:          v["group_id"].(string),
-		IPConfigurations: ExpandHDInsightPrivateLinkConfigurationIpConfiguration(v["ip_configuration"].([]interface{})),
+		IPConfigurations: ExpandHDInsightPrivateLinkConfigurationIpConfiguration(v["ip_configuration"].([]any)),
 	}
 }
 
-func ExpandHDInsightPrivateLinkConfigurationIpConfiguration(input []interface{}) []clusters.IPConfiguration {
+func ExpandHDInsightPrivateLinkConfigurationIpConfiguration(input []any) []clusters.IPConfiguration {
 	ipConfigs := make([]clusters.IPConfiguration, 0)
 
 	for _, vs := range input {
-		v := vs.(map[string]interface{})
+		v := vs.(map[string]any)
 
 		ipConfigs = append(ipConfigs, clusters.IPConfiguration{
 			Name:       v["name"].(string),
@@ -627,12 +611,12 @@ func ExpandHDInsightPrivateLinkConfigurationIpConfiguration(input []interface{})
 	return ipConfigs
 }
 
-func ExpandHDInsightPrivateLinkConfigurationIpConfigurationProperties(input []interface{}) *clusters.IPConfigurationProperties {
-	v := input[0].(map[string]interface{})
+func ExpandHDInsightPrivateLinkConfigurationIpConfigurationProperties(input []any) *clusters.IPConfigurationProperties {
+	v := input[0].(map[string]any)
 
 	props := clusters.IPConfigurationProperties{
 		Primary:                   pointer.To(v["primary"].(bool)),
-		PrivateIPAllocationMethod: pointer.To(clusters.PrivateIPAllocationMethod(v["private_ip_allocation_method"].(string))),
+		PrivateIPAllocationMethod: pointer.ToEnum[clusters.PrivateIPAllocationMethod](v["private_ip_allocation_method"].(string)),
 	}
 	if v["private_ip_address"] != nil && v["private_ip_address"].(string) != "" {
 		props.PrivateIPAddress = pointer.To(v["private_ip_address"].(string))
@@ -644,7 +628,7 @@ func ExpandHDInsightPrivateLinkConfigurationIpConfigurationProperties(input []in
 	return pointer.To(props)
 }
 
-func flattenHDInsightComputeIsolationProperties(input *clusters.ComputeIsolationProperties) []interface{} {
+func flattenHDInsightComputeIsolationProperties(input *clusters.ComputeIsolationProperties) []any {
 	hostSku := ""
 	enableComputeIsolation := false
 	if input != nil {
@@ -653,20 +637,20 @@ func flattenHDInsightComputeIsolationProperties(input *clusters.ComputeIsolation
 	}
 
 	if !enableComputeIsolation {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"compute_isolation_enabled": enableComputeIsolation,
 			"host_sku":                  hostSku,
 		},
 	}
 }
 
-func flattenHDInsightsNetwork(input *clusters.NetworkProperties) []interface{} {
+func flattenHDInsightsNetwork(input *clusters.NetworkProperties) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
 	connDir := string(clusters.ResourceProviderConnectionOutbound)
@@ -679,37 +663,37 @@ func flattenHDInsightsNetwork(input *clusters.NetworkProperties) []interface{} {
 		privateLink = *v == clusters.PrivateLinkEnabled
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"connection_direction": connDir,
 			"private_link_enabled": privateLink,
 		},
 	}
 }
 
-func flattenHDInsightPrivateLinkConfigurations(input *[]clusters.PrivateLinkConfiguration) []interface{} {
+func flattenHDInsightPrivateLinkConfigurations(input *[]clusters.PrivateLinkConfiguration) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
 	v := pointer.From(input)[0]
-	ipConfig := v.Properties.IPConfigurations[0]
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"name":             v.Name,
 			"group_id":         v.Properties.GroupId,
-			"ip_configuration": flattenHDInsightPrivateLinkConfigurationIpConfigurationProperties(&ipConfig),
+			"ip_configuration": flattenHDInsightPrivateLinkConfigurationIpConfigurationProperties(pointer.To(v.Properties.IPConfigurations[0])),
 		},
 	}
 }
-func flattenHDInsightPrivateLinkConfigurationIpConfigurationProperties(input *clusters.IPConfiguration) []interface{} {
+
+func flattenHDInsightPrivateLinkConfigurationIpConfigurationProperties(input *clusters.IPConfiguration) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
 	if input.Properties != nil {
-		return []interface{}{
-			map[string]interface{}{
+		return []any{
+			map[string]any{
 				"name":                         input.Name,
 				"primary":                      pointer.From(input.Properties.Primary),
 				"private_ip_allocation_method": pointer.From(input.Properties.PrivateIPAllocationMethod),
@@ -719,35 +703,33 @@ func flattenHDInsightPrivateLinkConfigurationIpConfigurationProperties(input *cl
 		}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"name": input.Name,
 		},
 	}
 }
 
-func FlattenHDInsightsConfigurations(input map[string]string, d *pluginsdk.ResourceData) []interface{} {
+func FlattenHDInsightsConfigurations(input map[string]string, d *pluginsdk.ResourceData) []any {
 	username := ""
 	if v, exists := input["restAuthCredential.username"]; exists {
 		username = v
 	}
 
-	password := ""
+	password := d.Get("gateway.0.password").(string)
 	if v, exists := input["restAuthCredential.password"]; exists {
 		password = v
-	} else {
-		password = d.Get("gateway.0.password").(string)
 	}
 
-	out := map[string]interface{}{
+	out := map[string]any{
 		"username": username,
 		"password": password,
 	}
 
-	return []interface{}{out}
+	return []any{out}
 }
 
-func FlattenHDInsightsHiveMetastore(env map[string]string, site map[string]string) []interface{} {
+func FlattenHDInsightsHiveMetastore(env map[string]string, site map[string]string) []any {
 	server := ""
 	if v, exists := env["hive_hostname"]; exists {
 		server = v
@@ -769,8 +751,8 @@ func FlattenHDInsightsHiveMetastore(env map[string]string, site map[string]strin
 	}
 
 	if server != "" && database != "" {
-		return []interface{}{
-			map[string]interface{}{
+		return []any{
+			map[string]any{
 				"server":        server,
 				"database_name": database,
 				"username":      username,
@@ -779,10 +761,10 @@ func FlattenHDInsightsHiveMetastore(env map[string]string, site map[string]strin
 		}
 	}
 
-	return []interface{}{}
+	return []any{}
 }
 
-func FlattenHDInsightsOozieMetastore(env map[string]string, site map[string]string) []interface{} {
+func FlattenHDInsightsOozieMetastore(env map[string]string, site map[string]string) []any {
 	server := ""
 	if v, exists := env["oozie_hostname"]; exists {
 		server = v
@@ -804,8 +786,8 @@ func FlattenHDInsightsOozieMetastore(env map[string]string, site map[string]stri
 	}
 
 	if server != "" && database != "" {
-		return []interface{}{
-			map[string]interface{}{
+		return []any{
+			map[string]any{
 				"server":        server,
 				"database_name": database,
 				"username":      username,
@@ -814,10 +796,10 @@ func FlattenHDInsightsOozieMetastore(env map[string]string, site map[string]stri
 		}
 	}
 
-	return []interface{}{}
+	return []any{}
 }
 
-func FlattenHDInsightsAmbariMetastore(conf map[string]string) []interface{} {
+func FlattenHDInsightsAmbariMetastore(conf map[string]string) []any {
 	server := ""
 	if v, exists := conf["database-server"]; exists {
 		server = v
@@ -839,8 +821,8 @@ func FlattenHDInsightsAmbariMetastore(conf map[string]string) []interface{} {
 	}
 
 	if server != "" && database != "" {
-		return []interface{}{
-			map[string]interface{}{
+		return []any{
+			map[string]any{
 				"server":        server,
 				"database_name": database,
 				"username":      username,
@@ -849,7 +831,7 @@ func FlattenHDInsightsAmbariMetastore(conf map[string]string) []interface{} {
 		}
 	}
 
-	return []interface{}{}
+	return []any{}
 }
 
 func SchemaHDInsightsStorageAccounts() *pluginsdk.Schema {
@@ -865,14 +847,13 @@ func SchemaHDInsightsStorageAccounts() *pluginsdk.Schema {
 					Sensitive:    true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
-				"storage_container_id": {
+				"storage_container_url": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
+					ValidateFunc: storageValidate.StorageContainerDataPlaneID,
 				},
-				// TODO: this should become `storage_account_id` in 4.0
-				"storage_resource_id": {
+				"storage_account_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ForceNew:     true,
@@ -896,8 +877,7 @@ func SchemaHDInsightsGen2StorageAccounts() *pluginsdk.Schema {
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				// TODO: this should become `storage_account_id` in 4.0
-				"storage_resource_id": {
+				"storage_account_id": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
@@ -909,8 +889,7 @@ func SchemaHDInsightsGen2StorageAccounts() *pluginsdk.Schema {
 					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
-				// TODO: this should become `user_assigned_identity_id` in 4.0
-				"managed_identity_resource_id": {
+				"user_assigned_identity_id": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
@@ -952,7 +931,7 @@ func SchemaHDInsightsDiskEncryptionProperties() *pluginsdk.Schema {
 				"key_vault_key_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: keyVault.NestedItemId,
+					ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 				},
 			},
 		},
@@ -1006,12 +985,9 @@ func SchemaHDInsightPrivateLinkConfigurationIpConfiguration() *pluginsdk.Schema 
 				},
 
 				"private_ip_allocation_method": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(clusters.PrivateIPAllocationMethodDynamic),
-						string(clusters.PrivateIPAllocationMethodStatic),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForPrivateIPAllocationMethod(), false),
 				},
 
 				"subnet_id": {
@@ -1024,35 +1000,33 @@ func SchemaHDInsightPrivateLinkConfigurationIpConfiguration() *pluginsdk.Schema 
 	}
 }
 
-func ExpandHDInsightsDiskEncryptionProperties(input []interface{}) (*clusters.DiskEncryptionProperties, error) {
-	v := input[0].(map[string]interface{})
+func ExpandHDInsightsDiskEncryptionProperties(input []any) (*clusters.DiskEncryptionProperties, error) {
+	v := input[0].(map[string]any)
 
 	encryptionAlgorithm := v["encryption_algorithm"].(string)
-	encryptionAtHost := v["encryption_at_host_enabled"].(bool)
-	keyVaultManagedIdentityId := v["key_vault_managed_identity_id"].(string)
 
 	diskEncryptionProps := &clusters.DiskEncryptionProperties{
-		EncryptionAlgorithm: pointer.To(clusters.JsonWebKeyEncryptionAlgorithm(encryptionAlgorithm)),
-		EncryptionAtHost:    &encryptionAtHost,
-		MsiResourceId:       &keyVaultManagedIdentityId,
+		EncryptionAlgorithm: pointer.ToEnum[clusters.JsonWebKeyEncryptionAlgorithm](encryptionAlgorithm),
+		EncryptionAtHost:    pointer.To(v["encryption_at_host_enabled"].(bool)),
+		MsiResourceId:       pointer.To(v["key_vault_managed_identity_id"].(string)),
 	}
 
 	if id, ok := v["key_vault_key_id"]; ok && id.(string) != "" {
-		keyVaultKeyId, err := parse.ParseNestedItemID(id.(string))
+		keyVaultKeyId, err := keyvault.ParseNestedItemID(id.(string), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 		if err != nil {
 			return nil, err
 		}
 		diskEncryptionProps.KeyName = &keyVaultKeyId.Name
 		diskEncryptionProps.KeyVersion = &keyVaultKeyId.Version
-		diskEncryptionProps.VaultUri = &keyVaultKeyId.KeyVaultBaseUrl
+		diskEncryptionProps.VaultUri = &keyVaultKeyId.KeyVaultBaseURL
 	}
 
 	return diskEncryptionProps, nil
 }
 
-func flattenHDInsightsDiskEncryptionProperties(input *clusters.DiskEncryptionProperties) (*[]interface{}, error) {
+func flattenHDInsightsDiskEncryptionProperties(input *clusters.DiskEncryptionProperties) (*[]any, error) {
 	if input == nil {
-		return pointer.To(make([]interface{}, 0)), nil
+		return pointer.To(make([]any, 0)), nil
 	}
 	encryptionAlgorithm := ""
 	if input.EncryptionAlgorithm != nil {
@@ -1063,15 +1037,15 @@ func flattenHDInsightsDiskEncryptionProperties(input *clusters.DiskEncryptionPro
 	keyVersion := pointer.From(input.KeyVersion)
 	keyVaultKeyId := ""
 	if (keyName != "" || keyVersion != "") && input.VaultUri != nil {
-		keyVaultKeyIdRaw, err := parse.NewNestedItemID(*input.VaultUri, parse.NestedItemTypeKey, keyName, keyVersion)
+		keyVaultKeyIdRaw, err := keyvault.NewNestedItemID(*input.VaultUri, keyvault.NestedItemTypeKey, keyName, keyVersion)
 		if err != nil {
 			return nil, err
 		}
 		keyVaultKeyId = keyVaultKeyIdRaw.ID()
 	}
 
-	return &[]interface{}{
-		map[string]interface{}{
+	return &[]any{
+		map[string]any{
 			"encryption_algorithm":          encryptionAlgorithm,
 			"encryption_at_host_enabled":    pointer.From(input.EncryptionAtHost),
 			"key_vault_key_id":              keyVaultKeyId,
@@ -1082,40 +1056,40 @@ func flattenHDInsightsDiskEncryptionProperties(input *clusters.DiskEncryptionPro
 
 // ExpandHDInsightsStorageAccounts returns an array of StorageAccount structs, as well as a ClusterIdentity
 // populated with any managed identities required for accessing Data Lake Gen2 storage.
-func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageAccounts []interface{}) (*[]clusters.StorageAccount, *identity.SystemAndUserAssignedMap, error) {
+func ExpandHDInsightsStorageAccounts(storageAccounts []any, gen2storageAccounts []any) (*[]clusters.StorageAccount, *identity.SystemAndUserAssignedMap, error) {
 	results := make([]clusters.StorageAccount, 0)
 
 	var clusterIdentity *identity.SystemAndUserAssignedMap
 
 	for _, vs := range storageAccounts {
-		v := vs.(map[string]interface{})
+		v := vs.(map[string]any)
 
 		storageAccountKey := v["storage_account_key"].(string)
-		storageContainerID := v["storage_container_id"].(string)
-		storageResourceID := v["storage_resource_id"].(string)
+		storageContainerURL := v["storage_container_url"].(string)
+		storageResourceID := v["storage_account_id"].(string)
 		isDefault := v["is_default"].(bool)
 
-		uri, err := url.Parse(storageContainerID)
+		uri, err := url.Parse(storageContainerURL)
 		if err != nil {
-			return nil, nil, fmt.Errorf("parsing %q: %s", storageContainerID, err)
+			return nil, nil, fmt.Errorf("parsing %q: %s", storageContainerURL, err)
 		}
 
 		result := clusters.StorageAccount{
-			Name:       utils.String(uri.Host),
-			ResourceId: utils.String(storageResourceID),
-			Container:  utils.String(strings.TrimPrefix(uri.Path, "/")),
-			Key:        utils.String(storageAccountKey),
-			IsDefault:  utils.Bool(isDefault),
+			Name:       pointer.To(uri.Host),
+			ResourceId: pointer.To(storageResourceID),
+			Container:  pointer.To(strings.TrimPrefix(uri.Path, "/")),
+			Key:        pointer.To(storageAccountKey),
+			IsDefault:  pointer.To(isDefault),
 		}
 		results = append(results, result)
 	}
 
 	for _, vs := range gen2storageAccounts {
-		v := vs.(map[string]interface{})
+		v := vs.(map[string]any)
 
 		fileSystemID := v["filesystem_id"].(string)
-		storageResourceID := v["storage_resource_id"].(string)
-		managedIdentityResourceID := v["managed_identity_resource_id"].(string)
+		storageResourceID := v["storage_account_id"].(string)
+		managedIdentityResourceID := v["user_assigned_identity_id"].(string)
 
 		isDefault := v["is_default"].(bool)
 
@@ -1136,11 +1110,11 @@ func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageA
 		}
 
 		result := clusters.StorageAccount{
-			Name:          utils.String(uri.Host), // https://storageaccountname.dfs.core.windows.net/filesystemname -> storageaccountname.dfs.core.windows.net
-			ResourceId:    utils.String(storageResourceID),
-			FileSystem:    utils.String(uri.Path[1:]), // https://storageaccountname.dfs.core.windows.net/filesystemname -> filesystemname
-			MsiResourceId: utils.String(managedIdentityResourceID),
-			IsDefault:     utils.Bool(isDefault),
+			Name:          pointer.To(uri.Host), // https://storageaccountname.dfs.core.windows.net/filesystemname -> storageaccountname.dfs.core.windows.net
+			ResourceId:    pointer.To(storageResourceID),
+			FileSystem:    pointer.To(uri.Path[1:]), // https://storageaccountname.dfs.core.windows.net/filesystemname -> filesystemname
+			MsiResourceId: pointer.To(managedIdentityResourceID),
+			IsDefault:     pointer.To(isDefault),
 		}
 		results = append(results, result)
 	}
@@ -1158,8 +1132,6 @@ type HDInsightNodeDefinition struct {
 	FixedTargetInstanceCount *int64
 	CanAutoScaleByCapacity   bool
 	CanAutoScaleOnSchedule   bool
-	// todo remove in 4.0
-	CanAutoScaleByCapacityDeprecated4PointOh bool
 }
 
 func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNodeDefinition, required bool) *pluginsdk.Schema {
@@ -1256,37 +1228,7 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 					}
 				}
 			}
-			// managing `azurerm_hdinsight_interactive_query_cluster` autoscaling through `capacity` doesn't work so we'll deprecate this portion of the schema for 4.0
-			if definition.CanAutoScaleByCapacityDeprecated4PointOh {
-				autoScales["capacity"] = &pluginsdk.Schema{
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					MaxItems: 1,
-					ConflictsWith: []string{
-						fmt.Sprintf("%s.0.autoscale.0.recurrence", schemaLocation),
-					},
-					Deprecated: "HDInsight interactive query clusters can no longer be configured through `autoscale.0.capacity`. Use `autoscale.0.recurrence` instead.",
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"min_instance_count": {
-								Type:         pluginsdk.TypeInt,
-								Required:     true,
-								ValidateFunc: countValidation,
-							},
-							"max_instance_count": {
-								Type:         pluginsdk.TypeInt,
-								Required:     true,
-								ValidateFunc: countValidation,
-							},
-						},
-					},
-				}
-				if definition.CanAutoScaleOnSchedule {
-					autoScales["capacity"].ConflictsWith = []string{
-						fmt.Sprintf("%s.0.autoscale.0.recurrence", schemaLocation),
-					}
-				}
-			}
+
 			if definition.CanAutoScaleOnSchedule {
 				autoScales["recurrence"] = &pluginsdk.Schema{
 					Type:     pluginsdk.TypeList,
@@ -1316,16 +1258,8 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 											Type:     pluginsdk.TypeList,
 											Required: true,
 											Elem: &pluginsdk.Schema{
-												Type: pluginsdk.TypeString,
-												ValidateFunc: validation.StringInSlice([]string{
-													string(clusters.DaysOfWeekMonday),
-													string(clusters.DaysOfWeekTuesday),
-													string(clusters.DaysOfWeekWednesday),
-													string(clusters.DaysOfWeekThursday),
-													string(clusters.DaysOfWeekFriday),
-													string(clusters.DaysOfWeekSaturday),
-													string(clusters.DaysOfWeekSunday),
-												}, false),
+												Type:         pluginsdk.TypeString,
+												ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForDaysOfWeek(), false),
 											},
 										},
 
@@ -1367,7 +1301,7 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 		}
 	}
 
-	s := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		MaxItems: 1,
 		Required: required,
@@ -1376,8 +1310,6 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 			Schema: result,
 		},
 	}
-
-	return s
 }
 
 func SchemaHDInsightNodeDefinitionKafka(schemaLocation string, definition HDInsightNodeDefinition, required bool) *pluginsdk.Schema {
@@ -1473,37 +1405,7 @@ func SchemaHDInsightNodeDefinitionKafka(schemaLocation string, definition HDInsi
 					}
 				}
 			}
-			// managing `azurerm_hdinsight_interactive_query_cluster` autoscaling through `capacity` doesn't work so we'll deprecate this portion of the schema for 4.0
-			if definition.CanAutoScaleByCapacityDeprecated4PointOh {
-				autoScales["capacity"] = &pluginsdk.Schema{
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					MaxItems: 1,
-					ConflictsWith: []string{
-						fmt.Sprintf("%s.0.autoscale.0.recurrence", schemaLocation),
-					},
-					Deprecated: "HDInsight interactive query clusters can no longer be configured through `autoscale.0.capacity`. Use `autoscale.0.recurrence` instead.",
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"min_instance_count": {
-								Type:         pluginsdk.TypeInt,
-								Required:     true,
-								ValidateFunc: countValidation,
-							},
-							"max_instance_count": {
-								Type:         pluginsdk.TypeInt,
-								Required:     true,
-								ValidateFunc: countValidation,
-							},
-						},
-					},
-				}
-				if definition.CanAutoScaleOnSchedule {
-					autoScales["capacity"].ConflictsWith = []string{
-						fmt.Sprintf("%s.0.autoscale.0.recurrence", schemaLocation),
-					}
-				}
-			}
+
 			if definition.CanAutoScaleOnSchedule {
 				autoScales["recurrence"] = &pluginsdk.Schema{
 					Type:     pluginsdk.TypeList,
@@ -1533,16 +1435,8 @@ func SchemaHDInsightNodeDefinitionKafka(schemaLocation string, definition HDInsi
 											Type:     pluginsdk.TypeList,
 											Required: true,
 											Elem: &pluginsdk.Schema{
-												Type: pluginsdk.TypeString,
-												ValidateFunc: validation.StringInSlice([]string{
-													string(clusters.DaysOfWeekMonday),
-													string(clusters.DaysOfWeekTuesday),
-													string(clusters.DaysOfWeekWednesday),
-													string(clusters.DaysOfWeekThursday),
-													string(clusters.DaysOfWeekFriday),
-													string(clusters.DaysOfWeekSaturday),
-													string(clusters.DaysOfWeekSunday),
-												}, false),
+												Type:         pluginsdk.TypeString,
+												ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForDaysOfWeek(), false),
 											},
 										},
 
@@ -1584,7 +1478,7 @@ func SchemaHDInsightNodeDefinitionKafka(schemaLocation string, definition HDInsi
 		}
 	}
 
-	s := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		MaxItems: 1,
 		Required: required,
@@ -1593,23 +1487,21 @@ func SchemaHDInsightNodeDefinitionKafka(schemaLocation string, definition HDInsi
 			Schema: result,
 		},
 	}
-
-	return s
 }
 
-func ExpandHDInsightNodeDefinition(name string, input []interface{}, definition HDInsightNodeDefinition) (*clusters.Role, error) {
-	v := input[0].(map[string]interface{})
+func ExpandHDInsightNodeDefinition(name string, input []any, definition HDInsightNodeDefinition) (*clusters.Role, error) {
+	v := input[0].(map[string]any)
 	vmSize := v["vm_size"].(string)
 	username := v["username"].(string)
 	password := v["password"].(string)
 	virtualNetworkId := v["virtual_network_id"].(string)
 	subnetId := v["subnet_id"].(string)
-	scriptActions := v["script_actions"].([]interface{})
+	scriptActions := v["script_actions"].([]any)
 
 	role := clusters.Role{
-		Name: utils.String(name),
+		Name: pointer.To(name),
 		HardwareProfile: &clusters.HardwareProfile{
-			VMSize: utils.String(vmSize),
+			VMSize: pointer.To(vmSize),
 		},
 		OsProfile: &clusters.OsProfile{
 			LinuxOperatingSystemProfile: &clusters.LinuxOperatingSystemProfile{},
@@ -1618,32 +1510,32 @@ func ExpandHDInsightNodeDefinition(name string, input []interface{}, definition 
 	}
 
 	if name != "kafkamanagementnode" {
-		role.OsProfile.LinuxOperatingSystemProfile.Username = utils.String(username)
+		role.OsProfile.LinuxOperatingSystemProfile.Username = pointer.To(username)
 	} else {
 		// kafkamanagementnode generates a username and discards the value sent, however, the API has `Username` marked
 		// as required non-empty, so we'll send a dummy one avoiding the Portal's default value, which is reserved/invalid.
-		role.OsProfile.LinuxOperatingSystemProfile.Username = utils.String("sshadmin")
+		role.OsProfile.LinuxOperatingSystemProfile.Username = pointer.To("sshadmin")
 	}
 
 	virtualNetworkSpecified := virtualNetworkId != ""
 	subnetSpecified := subnetId != ""
 	if virtualNetworkSpecified && subnetSpecified {
 		role.VirtualNetworkProfile = &clusters.VirtualNetworkProfile{
-			Id:     utils.String(virtualNetworkId),
-			Subnet: utils.String(subnetId),
+			Id:     pointer.To(virtualNetworkId),
+			Subnet: pointer.To(subnetId),
 		}
 	} else if (virtualNetworkSpecified && !subnetSpecified) || (subnetSpecified && !virtualNetworkSpecified) {
 		return nil, fmt.Errorf("`virtual_network_id` and `subnet_id` must both either be set or empty")
 	}
 
 	if password != "" {
-		role.OsProfile.LinuxOperatingSystemProfile.Password = utils.String(password)
+		role.OsProfile.LinuxOperatingSystemProfile.Password = pointer.To(password)
 	} else {
 		sshKeysRaw := v["ssh_keys"].(*pluginsdk.Set).List()
 		sshKeys := make([]clusters.SshPublicKey, 0)
 		for _, v := range sshKeysRaw {
 			sshKeys = append(sshKeys, clusters.SshPublicKey{
-				CertificateData: utils.String(v.(string)),
+				CertificateData: pointer.To(v.(string)),
 			})
 		}
 
@@ -1661,7 +1553,7 @@ func ExpandHDInsightNodeDefinition(name string, input []interface{}, definition 
 		role.TargetInstanceCount = pointer.To(int64(targetInstanceCount))
 
 		if definition.CanAutoScaleByCapacity || definition.CanAutoScaleOnSchedule {
-			autoscaleRaw := v["autoscale"].([]interface{})
+			autoscaleRaw := v["autoscale"].([]any)
 			autoscale := ExpandHDInsightNodeAutoScaleDefinition(autoscaleRaw)
 			if autoscale != nil {
 				role.Autoscale = autoscale
@@ -1686,15 +1578,15 @@ func ExpandHDInsightNodeDefinition(name string, input []interface{}, definition 
 	return &role, nil
 }
 
-func ExpandHDInsightNodeAutoScaleDefinition(input []interface{}) *clusters.Autoscale {
+func ExpandHDInsightNodeAutoScaleDefinition(input []any) *clusters.Autoscale {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	vs := input[0].(map[string]interface{})
+	vs := input[0].(map[string]any)
 
 	if vs["capacity"] != nil {
-		capacityRaw := vs["capacity"].([]interface{})
+		capacityRaw := vs["capacity"].([]any)
 
 		capacity := ExpandHDInsightAutoscaleCapacityDefinition(capacityRaw)
 		if capacity != nil {
@@ -1705,7 +1597,7 @@ func ExpandHDInsightNodeAutoScaleDefinition(input []interface{}) *clusters.Autos
 	}
 
 	if vs["recurrence"] != nil {
-		recurrenceRaw := vs["recurrence"].([]interface{})
+		recurrenceRaw := vs["recurrence"].([]any)
 		recurrence := ExpandHDInsightAutoscaleRecurrenceDefinition(recurrenceRaw)
 		if recurrence != nil {
 			return &clusters.Autoscale{
@@ -1717,12 +1609,12 @@ func ExpandHDInsightNodeAutoScaleDefinition(input []interface{}) *clusters.Autos
 	return nil
 }
 
-func ExpandHDInsightAutoscaleCapacityDefinition(input []interface{}) *clusters.AutoscaleCapacity {
+func ExpandHDInsightAutoscaleCapacityDefinition(input []any) *clusters.AutoscaleCapacity {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	vs := input[0].(map[string]interface{})
+	vs := input[0].(map[string]any)
 
 	return &clusters.AutoscaleCapacity{
 		MinInstanceCount: pointer.To(int64(vs["min_instance_count"].(int))),
@@ -1730,19 +1622,19 @@ func ExpandHDInsightAutoscaleCapacityDefinition(input []interface{}) *clusters.A
 	}
 }
 
-func ExpandHDInsightAutoscaleRecurrenceDefinition(input []interface{}) *clusters.AutoscaleRecurrence {
+func ExpandHDInsightAutoscaleRecurrenceDefinition(input []any) *clusters.AutoscaleRecurrence {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	vs := input[0].(map[string]interface{})
+	vs := input[0].(map[string]any)
 
 	schedules := make([]clusters.AutoscaleSchedule, 0)
 
-	for _, v := range vs["schedule"].([]interface{}) {
-		val := v.(map[string]interface{})
+	for _, v := range vs["schedule"].([]any) {
+		val := v.(map[string]any)
 
-		weekDays := val["days"].([]interface{})
+		weekDays := val["days"].([]any)
 		expandedWeekDays := make([]clusters.DaysOfWeek, len(weekDays))
 		for i := range weekDays {
 			expandedWeekDays[i] = clusters.DaysOfWeek(weekDays[i].(string))
@@ -1751,7 +1643,7 @@ func ExpandHDInsightAutoscaleRecurrenceDefinition(input []interface{}) *clusters
 		schedules = append(schedules, clusters.AutoscaleSchedule{
 			Days: &expandedWeekDays,
 			TimeAndCapacity: &clusters.AutoscaleTimeAndCapacity{
-				Time: utils.String(val["time"].(string)),
+				Time: pointer.To(val["time"].(string)),
 				// SDK supports min and max, but server side always overrides max to be equal to min
 				MinInstanceCount: pointer.To(int64(val["target_instance_count"].(int))),
 				MaxInstanceCount: pointer.To(int64(val["target_instance_count"].(int))),
@@ -1759,51 +1651,49 @@ func ExpandHDInsightAutoscaleRecurrenceDefinition(input []interface{}) *clusters
 		})
 	}
 
-	result := &clusters.AutoscaleRecurrence{
-		TimeZone: utils.String(vs["timezone"].(string)),
+	return &clusters.AutoscaleRecurrence{
+		TimeZone: pointer.To(vs["timezone"].(string)),
 		Schedule: &schedules,
 	}
-
-	return result
 }
 
-func ExpandHDInsightSecurityProfile(input []interface{}) *clusters.SecurityProfile {
+func ExpandHDInsightSecurityProfile(input []any) *clusters.SecurityProfile {
 	if len(input) == 0 {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	result := clusters.SecurityProfile{
 		DirectoryType:      pointer.To(clusters.DirectoryTypeActiveDirectory),
-		Domain:             utils.String(v["domain_name"].(string)),
-		LdapsUrls:          utils.ExpandStringSlice(v["ldaps_urls"].(*pluginsdk.Set).List()),
-		DomainUsername:     utils.String(v["domain_username"].(string)),
-		DomainUserPassword: utils.String(v["domain_user_password"].(string)),
-		AaddsResourceId:    utils.String(v["aadds_resource_id"].(string)),
-		MsiResourceId:      utils.String(v["msi_resource_id"].(string)),
+		Domain:             pointer.To(v["domain_name"].(string)),
+		LdapsURLs:          pluginsdk.ExpandStringSlice(v["ldaps_urls"].(*pluginsdk.Set).List()),
+		DomainUsername:     pointer.To(v["domain_username"].(string)),
+		DomainUserPassword: pointer.To(v["domain_user_password"].(string)),
+		AaddsResourceId:    pointer.To(v["aadds_resource_id"].(string)),
+		MsiResourceId:      pointer.To(v["msi_resource_id"].(string)),
 	}
 
 	if clusterUsersGroupDNS := v["cluster_users_group_dns"].(*pluginsdk.Set).List(); len(clusterUsersGroupDNS) != 0 {
-		result.ClusterUsersGroupDNs = utils.ExpandStringSlice(clusterUsersGroupDNS)
+		result.ClusterUsersGroupDNs = pluginsdk.ExpandStringSlice(clusterUsersGroupDNS)
 	}
 
 	return &result
 }
 
-func FlattenHDInsightNodeDefinition(input *clusters.Role, existing []interface{}, definition HDInsightNodeDefinition) []interface{} {
+func FlattenHDInsightNodeDefinition(input *clusters.Role, existing []any, definition HDInsightNodeDefinition) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := map[string]interface{}{
+	output := map[string]any{
 		"vm_size":            "",
 		"username":           "",
 		"password":           "",
-		"ssh_keys":           pluginsdk.NewSet(pluginsdk.HashString, []interface{}{}),
+		"ssh_keys":           pluginsdk.NewSet(pluginsdk.HashString, []any{}),
 		"subnet_id":          "",
 		"virtual_network_id": "",
-		"script_actions":     make([]interface{}, 0),
+		"script_actions":     make([]any, 0),
 	}
 
 	if profile := input.OsProfile; profile != nil {
@@ -1816,7 +1706,7 @@ func FlattenHDInsightNodeDefinition(input *clusters.Role, existing []interface{}
 
 	// neither Password / SSH Keys are returned from the API, so we need to look them up to not force a diff
 	if len(existing) > 0 {
-		existingV := existing[0].(map[string]interface{})
+		existingV := existing[0].(map[string]any)
 		output["password"] = existingV["password"].(string)
 
 		sshKeys := existingV["ssh_keys"].(*pluginsdk.Set).List()
@@ -1827,11 +1717,9 @@ func FlattenHDInsightNodeDefinition(input *clusters.Role, existing []interface{}
 		// after extensive experimentation it appears multiple instance sizes fit `extralarge`, as such
 		// unfortunately we can't transform these; since it can't be changed
 		// we should be "safe" to try and pull it from the state instead, but clearly this isn't ideal
-		vmSize := existingV["vm_size"].(string)
-		output["vm_size"] = vmSize
+		output["vm_size"] = existingV["vm_size"].(string)
 
-		scriptActions := existingV["script_actions"].([]interface{})
-		output["script_actions"] = scriptActions
+		output["script_actions"] = existingV["script_actions"].([]any)
 	}
 
 	if profile := input.VirtualNetworkProfile; profile != nil {
@@ -1868,7 +1756,7 @@ func FlattenHDInsightNodeDefinition(input *clusters.Role, existing []interface{}
 		}
 	}
 
-	return []interface{}{output}
+	return []any{output}
 }
 
 func FindHDInsightRole(input *[]clusters.Role, name string) *clusters.Role {
@@ -1908,12 +1796,12 @@ func findHDInsightConnectivityEndpoint(name string, input *[]clusters.Connectivi
 	return ""
 }
 
-func FlattenHDInsightNodeAutoscaleDefinition(input *clusters.Autoscale) []interface{} {
+func FlattenHDInsightNodeAutoscaleDefinition(input *clusters.Autoscale) []any {
 	if input == nil {
-		return nil
+		return []any{}
 	}
 
-	result := map[string]interface{}{}
+	result := map[string]any{}
 
 	if input.Capacity != nil {
 		result["capacity"] = FlattenHDInsightAutoscaleCapacityDefinition(input.Capacity)
@@ -1924,26 +1812,26 @@ func FlattenHDInsightNodeAutoscaleDefinition(input *clusters.Autoscale) []interf
 	}
 
 	if len(result) > 0 {
-		return []interface{}{result}
+		return []any{result}
 	}
-	return nil
+	return []any{}
 }
 
-func FlattenHDInsightAutoscaleCapacityDefinition(input *clusters.AutoscaleCapacity) []interface{} {
-	return []interface{}{
-		map[string]interface{}{
+func FlattenHDInsightAutoscaleCapacityDefinition(input *clusters.AutoscaleCapacity) []any {
+	return []any{
+		map[string]any{
 			"min_instance_count": input.MinInstanceCount,
 			"max_instance_count": input.MaxInstanceCount,
 		},
 	}
 }
 
-func FlattenHDInsightAutoscaleRecurrenceDefinition(input *clusters.AutoscaleRecurrence) []interface{} {
+func FlattenHDInsightAutoscaleRecurrenceDefinition(input *clusters.AutoscaleRecurrence) []any {
 	if input.Schedule == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	schedules := make([]interface{}, 0)
+	schedules := make([]any, 0)
 
 	for _, schedule := range *input.Schedule {
 		days := make([]clusters.DaysOfWeek, 0)
@@ -1962,55 +1850,35 @@ func FlattenHDInsightAutoscaleRecurrenceDefinition(input *clusters.AutoscaleRecu
 				time = *schedule.TimeAndCapacity.Time
 			}
 		}
-		schedules = append(schedules, map[string]interface{}{
+		schedules = append(schedules, map[string]any{
 			"days":                  days,
 			"target_instance_count": targetInstanceCount,
 			"time":                  time,
 		})
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"timezone": input.TimeZone,
 			"schedule": &schedules,
 		},
 	}
 }
 
-func flattenHDInsightSecurityProfile(input *clusters.SecurityProfile, d *pluginsdk.ResourceData) []interface{} {
+func flattenHDInsightSecurityProfile(input *clusters.SecurityProfile, d *pluginsdk.ResourceData) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	var aaddsResourceId string
-	if input.AaddsResourceId != nil {
-		aaddsResourceId = *input.AaddsResourceId
-	}
-
-	var domain string
-	if input.Domain != nil {
-		domain = *input.Domain
-	}
-
-	var domainUsername string
-	if input.DomainUsername != nil {
-		domainUsername = *input.DomainUsername
-	}
-
-	var msiResourceId string
-	if input.MsiResourceId != nil {
-		msiResourceId = *input.MsiResourceId
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"aadds_resource_id":       aaddsResourceId,
-			"cluster_users_group_dns": utils.FlattenStringSlice(input.ClusterUsersGroupDNs),
-			"domain_name":             domain,
-			"domain_username":         domainUsername,
+	return []any{
+		map[string]any{
+			"aadds_resource_id":       pointer.From(input.AaddsResourceId),
+			"cluster_users_group_dns": pluginsdk.FlattenSlice(input.ClusterUsersGroupDNs),
+			"domain_name":             pointer.From(input.Domain),
+			"domain_username":         pointer.From(input.DomainUsername),
 			"domain_user_password":    d.Get("security_profile.0.domain_user_password"),
-			"ldaps_urls":              utils.FlattenStringSlice(input.LdapsUrls),
-			"msi_resource_id":         msiResourceId,
+			"ldaps_urls":              pluginsdk.FlattenSlice(input.LdapsURLs),
+			"msi_resource_id":         pointer.From(input.MsiResourceId),
 		},
 	}
 }

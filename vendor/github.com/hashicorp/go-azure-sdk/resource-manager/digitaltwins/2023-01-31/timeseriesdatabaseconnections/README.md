@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := timeseriesdatabaseconnections.NewTimeSeriesDatabaseConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "timeSeriesDatabaseConnectionName")
+id := timeseriesdatabaseconnections.NewTimeSeriesDatabaseConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "digitalTwinsInstanceName", "timeSeriesDatabaseConnectionName")
 
 payload := timeseriesdatabaseconnections.TimeSeriesDatabaseConnection{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := timeseriesdatabaseconnections.NewTimeSeriesDatabaseConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "timeSeriesDatabaseConnectionName")
+id := timeseriesdatabaseconnections.NewTimeSeriesDatabaseConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "digitalTwinsInstanceName", "timeSeriesDatabaseConnectionName")
 
 if err := client.DeleteThenPoll(ctx, id, timeseriesdatabaseconnections.DefaultDeleteOperationOptions()); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DeleteThenPoll(ctx, id, timeseriesdatabaseconnections.DefaultDe
 
 ```go
 ctx := context.TODO()
-id := timeseriesdatabaseconnections.NewTimeSeriesDatabaseConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "timeSeriesDatabaseConnectionName")
+id := timeseriesdatabaseconnections.NewTimeSeriesDatabaseConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "digitalTwinsInstanceName", "timeSeriesDatabaseConnectionName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -69,7 +69,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := timeseriesdatabaseconnections.NewDigitalTwinsInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := timeseriesdatabaseconnections.NewDigitalTwinsInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "digitalTwinsInstanceName")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)

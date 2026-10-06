@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
 )
 
 type AuthV2Settings struct {
@@ -50,6 +49,35 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
+		DiffSuppressFunc: func(k, o, n string, d *pluginsdk.ResourceData) bool {
+			// when `auth_settings_v2` block has been removed in the config, suppress any diff from the parent
+			// AND all child blocks/properties
+			if strings.HasPrefix(k, "auth_settings_v2.") {
+				oldAuthParentVal, _ := d.GetChange("auth_settings_v2")
+				if oldAuthParentVal == nil {
+					return false
+				}
+				oldAuthParent := oldAuthParentVal.([]any)
+
+				if len(oldAuthParent) > 0 {
+					if oldAuthParentMap, ok := oldAuthParent[0].(map[string]any); ok {
+						// due to the "new" count of auth_settings_v2 being incorrectly reported when child
+						// blocks report a diff, we will instead rely on raw config to determine if block is still removed
+						configAuthExists := false
+						if configAuthParent, ok := d.GetRawConfig().AsValueMap()["auth_settings_v2"]; ok {
+							configAuthExists = configAuthParent.LengthInt() > 0
+						}
+						// Suppress removal of `auth_settings_v2` and child blocks if `auth_settings_v2` was disabled (either explicitly or by omitting `auth_settings_v2` block)
+						if !oldAuthParentMap["auth_enabled"].(bool) && !configAuthExists {
+							return true
+						}
+					}
+				}
+			}
+
+			return false
+		},
+		DiffSuppressOnRefresh: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"auth_enabled": {
@@ -80,16 +108,11 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 				},
 
 				"unauthenticated_action": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(web.UnauthenticatedClientActionV2RedirectToLoginPage),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(web.UnauthenticatedClientActionV2RedirectToLoginPage),
-						string(web.UnauthenticatedClientActionV2AllowAnonymous),
-						string(web.UnauthenticatedClientActionV2Return401),
-						string(web.UnauthenticatedClientActionV2Return403),
-					}, false),
-					Description: "The action to take for requests made without authentication. Possible values include `RedirectToLoginPage`, `AllowAnonymous`, `Return401`, and `Return403`. Defaults to `RedirectToLoginPage`.",
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(webapps.UnauthenticatedClientActionV2RedirectToLoginPage),
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForUnauthenticatedClientActionV2(), false),
+					Description:  "The action to take for requests made without authentication. Possible values include `RedirectToLoginPage`, `AllowAnonymous`, `Return401`, and `Return403`. Defaults to `RedirectToLoginPage`.",
 				},
 
 				"default_provider": {
@@ -144,15 +167,11 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 				},
 
 				"forward_proxy_convention": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(web.ForwardProxyConventionNoProxy),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(web.ForwardProxyConventionNoProxy),
-						string(web.ForwardProxyConventionCustom),
-						string(web.ForwardProxyConventionStandard),
-					}, false),
-					Description: "The convention used to determine the url of the request made. Possible values include `ForwardProxyConventionNoProxy`, `ForwardProxyConventionStandard`, `ForwardProxyConventionCustom`. Defaults to `ForwardProxyConventionNoProxy`",
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(webapps.ForwardProxyConventionNoProxy),
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForForwardProxyConvention(), false),
+					Description:  "The convention used to determine the url of the request made. Possible values include `ForwardProxyConventionNoProxy`, `ForwardProxyConventionStandard`, `ForwardProxyConventionCustom`. Defaults to `ForwardProxyConventionNoProxy`",
 				},
 
 				"forward_proxy_custom_host_header_name": {
@@ -172,6 +191,7 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 		},
 	}
 }
+
 func AuthV2SettingsComputedSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -356,14 +376,11 @@ func authV2LoginSchema() *pluginsdk.Schema {
 				},
 
 				"cookie_expiration_convention": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(web.CookieExpirationConventionFixedTime),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(web.CookieExpirationConventionIdentityProviderDerived),
-						string(web.CookieExpirationConventionFixedTime),
-					}, false),
-					Description: "The method by which cookies expire. Possible values include: `FixedTime`, and `IdentityProviderDerived`. Defaults to `FixedTime`.",
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(webapps.CookieExpirationConventionFixedTime),
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForCookieExpirationConvention(), false),
+					Description:  "The method by which cookies expire. Possible values include: `FixedTime`, and `IdentityProviderDerived`. Defaults to `FixedTime`.",
 				},
 
 				"cookie_expiration_time": {
@@ -483,13 +500,13 @@ func expandAuthV2LoginSettings(input []AuthV2Login) *webapps.Login {
 			FileSystem:       &webapps.FileSystemTokenStore{},
 			AzureBlobStorage: &webapps.BlobStorageTokenStore{},
 		},
-		PreserveUrlFragmentsForLogins: pointer.To(login.PreserveURLFragmentsForLogins),
+		PreserveURLFragmentsForLogins: pointer.To(login.PreserveURLFragmentsForLogins),
 		Nonce: &webapps.Nonce{
 			ValidateNonce:           pointer.To(login.ValidateNonce),
 			NonceExpirationInterval: pointer.To(login.NonceExpirationTime),
 		},
 		CookieExpiration: &webapps.CookieExpiration{
-			Convention:       pointer.To(webapps.CookieExpirationConvention(login.CookieExpirationConvention)),
+			Convention:       pointer.ToEnum[webapps.CookieExpirationConvention](login.CookieExpirationConvention),
 			TimeToExpiration: pointer.To(login.CookieExpirationTime),
 		},
 	}
@@ -503,7 +520,7 @@ func expandAuthV2LoginSettings(input []AuthV2Login) *webapps.Login {
 		}
 		if login.TokenBlobStorageSAS != "" {
 			result.TokenStore.AzureBlobStorage = &webapps.BlobStorageTokenStore{
-				SasUrlSettingName: pointer.To(login.TokenBlobStorageSAS),
+				SasURLSettingName: pointer.To(login.TokenBlobStorageSAS),
 			}
 		}
 	}
@@ -521,10 +538,10 @@ func expandAuthV2LoginSettings(input []AuthV2Login) *webapps.Login {
 	}
 	if login.TokenBlobStorageSAS != "" {
 		result.TokenStore.AzureBlobStorage = &webapps.BlobStorageTokenStore{
-			SasUrlSettingName: pointer.To(login.TokenBlobStorageSAS),
+			SasURLSettingName: pointer.To(login.TokenBlobStorageSAS),
 		}
 	}
-	result.AllowedExternalRedirectUrls = pointer.To(login.AllowedExternalRedirectURLs)
+	result.AllowedExternalRedirectURLs = pointer.To(login.AllowedExternalRedirectURLs)
 
 	return result
 }
@@ -534,8 +551,8 @@ func flattenAuthV2LoginSettings(input *webapps.Login) []AuthV2Login {
 		return []AuthV2Login{}
 	}
 	result := AuthV2Login{
-		PreserveURLFragmentsForLogins: pointer.From(input.PreserveUrlFragmentsForLogins),
-		AllowedExternalRedirectURLs:   pointer.From(input.AllowedExternalRedirectUrls),
+		PreserveURLFragmentsForLogins: pointer.From(input.PreserveURLFragmentsForLogins),
+		AllowedExternalRedirectURLs:   pointer.From(input.AllowedExternalRedirectURLs),
 	}
 	if routes := input.Routes; routes != nil {
 		result.LogoutEndpoint = pointer.From(routes.LogoutEndpoint)
@@ -547,7 +564,7 @@ func flattenAuthV2LoginSettings(input *webapps.Login) []AuthV2Login {
 			result.TokenFilesystemPath = pointer.From(fs.Directory)
 		}
 		if bs := token.AzureBlobStorage; bs != nil {
-			result.TokenBlobStorageSAS = pointer.From(bs.SasUrlSettingName)
+			result.TokenBlobStorageSAS = pointer.From(bs.SasURLSettingName)
 		}
 	}
 
@@ -557,7 +574,7 @@ func flattenAuthV2LoginSettings(input *webapps.Login) []AuthV2Login {
 	}
 
 	if cookie := input.CookieExpiration; cookie != nil {
-		result.CookieExpirationConvention = string(pointer.From(cookie.Convention))
+		result.CookieExpirationConvention = pointer.FromEnum(cookie.Convention)
 		result.CookieExpirationTime = pointer.From(cookie.TimeToExpiration)
 	}
 
@@ -1035,7 +1052,6 @@ func flattenAadAuthV2Settings(input *webapps.AzureActiveDirectory) []AadAuthV2Se
 			}
 			result.LoginParameters = loginParams
 		}
-
 	}
 
 	if validation := input.Validation; validation != nil {
@@ -1130,9 +1146,9 @@ func flattenStaticWebAppAuthV2Settings(input *webapps.AzureStaticWebApps) []Stat
 
 	result := StaticWebAppAuthV2Settings{}
 
-	if props := input; props != nil && pointer.From(props.Enabled) {
-		if props.Registration != nil {
-			result.ClientId = pointer.From(props.Registration.ClientId)
+	if pointer.From(input.Enabled) {
+		if input.Registration != nil {
+			result.ClientId = pointer.From(input.Registration.ClientId)
 		}
 	}
 
@@ -1379,7 +1395,7 @@ func flattenCustomOIDCAuthV2Settings(input *map[string]webapps.CustomOpenIdConne
 				provider.ClientId = pointer.From(reg.ClientId)
 				if reg.ClientCredential != nil {
 					provider.ClientSecretSettingName = pointer.From(reg.ClientCredential.ClientSecretSettingName)
-					provider.ClientCredentialMethod = string(pointer.From(reg.ClientCredential.Method))
+					provider.ClientCredentialMethod = pointer.FromEnum(reg.ClientCredential.Method)
 				}
 				if config := reg.OpenIdConnectConfiguration; config != nil {
 					provider.OpenIDConfigurationEndpoint = pointer.From(config.WellKnownOpenIdConfiguration)
@@ -1444,7 +1460,7 @@ func FacebookAuthV2SettingsSchema() *pluginsdk.Schema {
 				"graph_api_version": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringIsNotEmpty,
 					Description:  "The version of the Facebook API to be used while logging in.",
 				},
@@ -1626,7 +1642,7 @@ func GithubAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 func expandGitHubAuthV2Settings(input []GithubAuthV2Settings) *webapps.GitHub {
 	if len(input) == 1 {
 		github := input[0]
-		result := &webapps.GitHub{
+		return &webapps.GitHub{
 			Enabled: pointer.To(true),
 			Registration: &webapps.ClientRegistration{
 				ClientId:                pointer.To(github.ClientId),
@@ -1636,8 +1652,6 @@ func expandGitHubAuthV2Settings(input []GithubAuthV2Settings) *webapps.GitHub {
 				Scopes: pointer.To(github.LoginScopes),
 			},
 		}
-
-		return result
 	}
 
 	return &webapps.GitHub{
@@ -1782,7 +1796,6 @@ func expandGoogleAuthV2Settings(input []GoogleAuthV2Settings) *webapps.Google {
 				Scopes: pointer.To(google.LoginScopes),
 			},
 		}
-
 	}
 
 	return &webapps.Google{
@@ -2021,15 +2034,13 @@ func TwitterAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 func expandTwitterAuthV2Settings(input []TwitterAuthV2Settings) *webapps.Twitter {
 	if len(input) == 1 {
 		twitter := input[0]
-		result := &webapps.Twitter{
+		return &webapps.Twitter{
 			Enabled: pointer.To(true),
 			Registration: &webapps.TwitterRegistration{
 				ConsumerKey:               pointer.To(twitter.ConsumerKey),
 				ConsumerSecretSettingName: pointer.To(twitter.ConsumerSecretSettingName),
 			},
 		}
-
-		return result
 	}
 
 	return &webapps.Twitter{
@@ -2051,7 +2062,7 @@ func flattenTwitterAuthV2Settings(input *webapps.Twitter) []TwitterAuthV2Setting
 		return []TwitterAuthV2Settings{result}
 	}
 
-	return nil
+	return []TwitterAuthV2Settings{}
 }
 
 func ExpandAuthV2Settings(input []AuthV2Settings) *webapps.SiteAuthSettingsV2 {
@@ -2069,7 +2080,7 @@ func ExpandAuthV2Settings(input []AuthV2Settings) *webapps.SiteAuthSettingsV2 {
 		},
 		GlobalValidation: &webapps.GlobalValidation{
 			RequireAuthentication:       pointer.To(settings.RequireAuth),
-			UnauthenticatedClientAction: pointer.To(webapps.UnauthenticatedClientActionV2(settings.UnauthenticatedAction)),
+			UnauthenticatedClientAction: pointer.ToEnum[webapps.UnauthenticatedClientActionV2](settings.UnauthenticatedAction),
 			ExcludedPaths:               pointer.To(settings.ExcludedPaths),
 		},
 		IdentityProviders: &webapps.IdentityProviders{
@@ -2090,7 +2101,7 @@ func ExpandAuthV2Settings(input []AuthV2Settings) *webapps.SiteAuthSettingsV2 {
 				ApiPrefix: pointer.To(settings.HttpRoutesAPIPrefix),
 			},
 			ForwardProxy: &webapps.ForwardProxy{
-				Convention: pointer.To(webapps.ForwardProxyConvention(settings.ForwardProxyConvention)),
+				Convention: pointer.ToEnum[webapps.ForwardProxyConvention](settings.ForwardProxyConvention),
 			},
 		},
 	}
@@ -2135,7 +2146,7 @@ func FlattenAuthV2Settings(input webapps.SiteAuthSettingsV2) []AuthV2Settings {
 
 	if global := settings.GlobalValidation; global != nil {
 		result.RequireAuth = pointer.From(global.RequireAuthentication)
-		result.UnauthenticatedAction = string(pointer.From(global.UnauthenticatedClientAction))
+		result.UnauthenticatedAction = pointer.FromEnum(global.UnauthenticatedClientAction)
 		result.DefaultAuthProvider = pointer.From(global.RedirectToProvider)
 		result.ExcludedPaths = pointer.From(global.ExcludedPaths)
 	}
@@ -2146,7 +2157,7 @@ func FlattenAuthV2Settings(input webapps.SiteAuthSettingsV2) []AuthV2Settings {
 			result.HttpRoutesAPIPrefix = pointer.From(http.Routes.ApiPrefix)
 		}
 		if fp := http.ForwardProxy; fp != nil {
-			result.ForwardProxyConvention = string(pointer.From(fp.Convention))
+			result.ForwardProxyConvention = pointer.FromEnum(fp.Convention)
 			result.ForwardProxyCustomHostHeaderName = pointer.From(fp.CustomHostHeaderName)
 			result.ForwardProxyCustomSchemeHeaderName = pointer.From(fp.CustomProtoHeaderName)
 		}
@@ -2169,4 +2180,101 @@ func FlattenAuthV2Settings(input webapps.SiteAuthSettingsV2) []AuthV2Settings {
 	}
 
 	return []AuthV2Settings{result}
+}
+
+// DefaultAuthV2SettingsProperties returns a `SiteAuthSettingsV2Properties` struct populated with "empty" and default values to clear previous configuration.
+func DefaultAuthV2SettingsProperties() *webapps.SiteAuthSettingsV2Properties {
+	return &webapps.SiteAuthSettingsV2Properties{
+		Platform: &webapps.AuthPlatform{
+			Enabled:        pointer.To(false),
+			RuntimeVersion: pointer.To("~1"),
+			ConfigFilePath: pointer.To(""),
+		},
+		GlobalValidation: &webapps.GlobalValidation{
+			RequireAuthentication:       pointer.To(false),
+			UnauthenticatedClientAction: pointer.To(webapps.UnauthenticatedClientActionV2RedirectToLoginPage),
+			ExcludedPaths:               pointer.To([]string{}),
+			RedirectToProvider:          pointer.To(""),
+		},
+		Login: &webapps.Login{
+			Routes: &webapps.LoginRoutes{},
+			TokenStore: &webapps.TokenStore{
+				Enabled:                    pointer.To(false),
+				TokenRefreshExtensionHours: pointer.To(72.0),
+				FileSystem:                 &webapps.FileSystemTokenStore{},
+				AzureBlobStorage:           &webapps.BlobStorageTokenStore{},
+			},
+			PreserveURLFragmentsForLogins: pointer.To(false),
+			Nonce: &webapps.Nonce{
+				ValidateNonce:           pointer.To(true),
+				NonceExpirationInterval: pointer.To("00:05:00"),
+			},
+			CookieExpiration: &webapps.CookieExpiration{
+				Convention:       pointer.To(webapps.CookieExpirationConventionFixedTime),
+				TimeToExpiration: pointer.To("08:00:00"),
+			},
+			AllowedExternalRedirectURLs: pointer.To([]string{}),
+		},
+		HTTPSettings: &webapps.HTTPSettings{
+			RequireHTTPS: pointer.To(true),
+			Routes: &webapps.HTTPSettingsRoutes{
+				ApiPrefix: pointer.To("/.auth"),
+			},
+			ForwardProxy: &webapps.ForwardProxy{
+				Convention: pointer.To(webapps.ForwardProxyConventionNoProxy),
+			},
+		},
+		IdentityProviders: &webapps.IdentityProviders{
+			AzureActiveDirectory: &webapps.AzureActiveDirectory{
+				Enabled:      pointer.To(false),
+				Registration: &webapps.AzureActiveDirectoryRegistration{},
+				Login: &webapps.AzureActiveDirectoryLogin{
+					DisableWWWAuthenticate: pointer.To(false),
+				},
+				Validation: &webapps.AzureActiveDirectoryValidation{
+					JwtClaimChecks: &webapps.JwtClaimChecks{},
+					DefaultAuthorizationPolicy: &webapps.DefaultAuthorizationPolicy{
+						AllowedPrincipals:   &webapps.AllowedPrincipals{},
+						AllowedApplications: pointer.To([]string{}),
+					},
+				},
+			},
+			Facebook: &webapps.Facebook{
+				Enabled:      pointer.To(false),
+				Registration: &webapps.AppRegistration{},
+				Login:        &webapps.LoginScopes{},
+			},
+			GitHub: &webapps.GitHub{
+				Enabled:      pointer.To(false),
+				Registration: &webapps.ClientRegistration{},
+				Login:        &webapps.LoginScopes{},
+			},
+			Google: &webapps.Google{
+				Enabled:      pointer.To(false),
+				Registration: &webapps.ClientRegistration{},
+				Login:        &webapps.LoginScopes{},
+				Validation:   &webapps.AllowedAudiencesValidation{},
+			},
+			Twitter: &webapps.Twitter{
+				Enabled:      pointer.To(false),
+				Registration: &webapps.TwitterRegistration{},
+			},
+			CustomOpenIdConnectProviders: pointer.To(map[string]webapps.CustomOpenIdConnectProvider{}),
+			LegacyMicrosoftAccount: &webapps.LegacyMicrosoftAccount{
+				Enabled:      pointer.To(false),
+				Registration: &webapps.ClientRegistration{},
+				Login:        &webapps.LoginScopes{},
+				Validation:   &webapps.AllowedAudiencesValidation{},
+			},
+			Apple: &webapps.Apple{
+				Enabled:      pointer.To(false),
+				Registration: &webapps.AppleRegistration{},
+				Login:        &webapps.LoginScopes{},
+			},
+			AzureStaticWebApps: &webapps.AzureStaticWebApps{
+				Enabled:      pointer.To(false),
+				Registration: &webapps.AzureStaticWebAppsRegistration{},
+			},
+		},
+	}
 }

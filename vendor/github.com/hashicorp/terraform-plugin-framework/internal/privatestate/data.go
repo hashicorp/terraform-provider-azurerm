@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package privatestate
@@ -16,6 +16,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 )
+
+// ImportBeforeReadKey is an internal private field used to indicate that the current resource state and identity
+// were provided most recently by the ImportResourceState RPC. This indicates that the state is an import stub and identity
+// has not been stored in state yet.
+//
+// When detected, this key should be cleared before returning from the ReadResource RPC.
+var ImportBeforeReadKey = ".import_before_read"
 
 // Data contains private state data for the framework and providers.
 type Data struct {
@@ -72,9 +79,9 @@ func (d *Data) Bytes(ctx context.Context) ([]byte, diag.Diagnostics) {
 			if !json.Valid(v) {
 				diags.AddError(
 					"Error Encoding Private State",
-					fmt.Sprintf("An error was encountered when validating private state value."+
+					"An error was encountered when validating private state value."+
 						fmt.Sprintf("The value associated with key %q is is not valid JSON.\n\n", k)+
-						"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer."),
+						"This is always a problem with Terraform or terraform-plugin-framework. Please report this to the provider developer.",
 				)
 
 				tflog.Error(ctx, "error encoding private state: invalid JSON value", map[string]interface{}{"key": k, "value": v})

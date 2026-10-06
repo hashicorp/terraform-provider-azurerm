@@ -121,9 +121,9 @@ func (id UserProvidedFunctionAppId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticStaticSites", "staticSites", "staticSites"),
-		resourceids.UserSpecifiedSegment("staticSiteName", "name"),
+		resourceids.UserSpecifiedSegment("staticSiteName", "staticSiteName"),
 		resourceids.StaticSegment("staticUserProvidedFunctionApps", "userProvidedFunctionApps", "userProvidedFunctionApps"),
-		resourceids.UserSpecifiedSegment("userProvidedFunctionAppName", "functionAppName"),
+		resourceids.UserSpecifiedSegment("userProvidedFunctionAppName", "userProvidedFunctionAppName"),
 	}
 }
 

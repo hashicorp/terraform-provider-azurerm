@@ -123,7 +123,7 @@ func (id AssemblyId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticIntegrationAccounts", "integrationAccounts", "integrationAccounts"),
 		resourceids.UserSpecifiedSegment("integrationAccountName", "integrationAccountName"),
 		resourceids.StaticSegment("staticAssemblies", "assemblies", "assemblies"),
-		resourceids.UserSpecifiedSegment("assemblyName", "assemblyArtifactName"),
+		resourceids.UserSpecifiedSegment("assemblyName", "assemblyName"),
 	}
 }
 

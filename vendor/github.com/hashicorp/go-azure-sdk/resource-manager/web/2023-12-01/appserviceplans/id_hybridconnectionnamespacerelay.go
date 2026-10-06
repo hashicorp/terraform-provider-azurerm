@@ -127,9 +127,9 @@ func (id HybridConnectionNamespaceRelayId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticServerFarms", "serverFarms", "serverFarms"),
-		resourceids.UserSpecifiedSegment("serverFarmName", "name"),
+		resourceids.UserSpecifiedSegment("serverFarmName", "serverFarmName"),
 		resourceids.StaticSegment("staticHybridConnectionNamespaces", "hybridConnectionNamespaces", "hybridConnectionNamespaces"),
-		resourceids.UserSpecifiedSegment("hybridConnectionNamespaceName", "namespaceName"),
+		resourceids.UserSpecifiedSegment("hybridConnectionNamespaceName", "hybridConnectionNamespaceName"),
 		resourceids.StaticSegment("staticRelays", "relays", "relays"),
 		resourceids.UserSpecifiedSegment("relayName", "relayName"),
 	}

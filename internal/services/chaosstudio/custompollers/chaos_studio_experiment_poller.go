@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package custompollers
@@ -63,7 +63,6 @@ func (p chaosStudioExperimentPoller) Poll(ctx context.Context) (*pollers.PollRes
 	var op operationResult
 	contentType := resp.HttpResponse.Header.Get("Content-Type")
 	if strings.Contains(strings.ToLower(contentType), "application/json") {
-
 		if err = json.Unmarshal(respBody, &op); err != nil {
 			return nil, fmt.Errorf("unmarshalling response body: %+v", err)
 		}

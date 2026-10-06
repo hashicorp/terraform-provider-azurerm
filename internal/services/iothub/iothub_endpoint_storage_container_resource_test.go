@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package iothub_test
@@ -9,12 +9,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type IotHubEndpointStorageContainerResource struct{}
@@ -173,7 +173,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctestcont"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -204,7 +204,7 @@ resource "azurerm_iothub_endpoint_storage_container" "test" {
   container_name    = "acctestcont"
   connection_string = azurerm_storage_account.test.primary_blob_connection_string
 }
-`, data.RandomInteger, data.Locations.Primary)
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (IotHubEndpointStorageContainerResource) complete(data acceptance.TestData) string {
@@ -212,6 +212,8 @@ func (IotHubEndpointStorageContainerResource) complete(data acceptance.TestData)
 provider "azurerm" {
   features {}
 }
+
+data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-iothub-%[1]d"
@@ -228,7 +230,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctestcont"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -263,8 +265,9 @@ resource "azurerm_iothub_endpoint_storage_container" "test" {
   batch_frequency_in_seconds = 60
   max_chunk_size_in_bytes    = 10485760
   encoding                   = "JSON"
+  subscription_id            = data.azurerm_client_config.current.subscription_id
 }
-`, data.RandomInteger, data.Locations.Primary)
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r IotHubEndpointStorageContainerResource) requiresImport(data acceptance.TestData) string {
@@ -313,7 +316,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctestcont"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -344,7 +347,7 @@ resource "azurerm_iothub_endpoint_storage_container" "test" {
   container_name    = "acctestcont"
   connection_string = azurerm_storage_account.test.primary_blob_connection_string
 }
-`, data.RandomInteger, data.Locations.Primary)
+	`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (t IotHubEndpointStorageContainerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -362,13 +365,13 @@ func (t IotHubEndpointStorageContainerResource) Exists(ctx context.Context, clie
 		for _, endpoint := range *endpoints {
 			if existingEndpointName := endpoint.Name; existingEndpointName != nil {
 				if strings.EqualFold(*existingEndpointName, id.EndpointName) {
-					return utils.Bool(true), nil
+					return pointer.To(true), nil
 				}
 			}
 		}
 	}
 
-	return utils.Bool(false), nil
+	return pointer.To(false), nil
 }
 
 func (r IotHubEndpointStorageContainerResource) authenticationTypeDefault(data acceptance.TestData) string {
@@ -444,7 +447,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctestcont"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -495,5 +498,5 @@ resource "azurerm_role_assignment" "test_storage_blob_data_contrib_system" {
   scope                = azurerm_storage_account.test.id
   principal_id         = azurerm_iothub.test.identity[0].principal_id
 }
-`, data.RandomInteger, data.Locations.Primary)
+	`, data.RandomInteger, data.Locations.Primary)
 }

@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := schedules.NewLabScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "name")
+id := schedules.NewLabScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "scheduleName")
 
 payload := schedules.Schedule{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := schedules.NewLabScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "name")
+id := schedules.NewLabScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "scheduleName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := schedules.NewLabScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "name")
+id := schedules.NewLabScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "scheduleName")
 
 if err := client.ExecuteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -73,7 +73,7 @@ if err := client.ExecuteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := schedules.NewLabScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "name")
+id := schedules.NewLabScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "scheduleName")
 
 read, err := client.Get(ctx, id, schedules.DefaultGetOperationOptions())
 if err != nil {
@@ -89,7 +89,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := schedules.NewLabID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := schedules.NewLabID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName")
 
 // alternatively `client.List(ctx, id, schedules.DefaultListOperationOptions())` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id, schedules.DefaultListOperationOptions())
@@ -106,7 +106,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := schedules.NewLabScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "name")
+id := schedules.NewLabScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "scheduleName")
 
 // alternatively `client.ListApplicable(ctx, id)` can be used to do batched pagination
 items, err := client.ListApplicableComplete(ctx, id)
@@ -123,7 +123,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := schedules.NewLabScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "name")
+id := schedules.NewLabScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "scheduleName")
 
 payload := schedules.UpdateResource{
 	// ...

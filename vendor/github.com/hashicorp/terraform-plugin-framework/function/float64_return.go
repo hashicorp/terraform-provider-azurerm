@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package function
@@ -20,6 +20,8 @@ var _ Return = Float64Return{}
 //
 // - If CustomType is set, use its associated value type.
 // - Otherwise, use [types.Float64], *float64, or float64.
+//
+// Return documentation is expected in the function [Definition] documentation.
 type Float64Return struct {
 	// CustomType enables the use of a custom data type in place of the
 	// default [basetypes.Float64Type]. When setting data, the

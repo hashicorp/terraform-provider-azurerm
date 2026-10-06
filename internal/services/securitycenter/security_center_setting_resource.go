@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package securitycenter
@@ -8,14 +8,10 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2022-05-01/settings"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -25,12 +21,6 @@ import (
 func resourceSecurityCenterSetting() *pluginsdk.Resource {
 	validSettingName := settings.PossibleValuesForSettingName()
 
-	if !features.FourPointOhBeta() {
-		// This is for backward compatibility.. The swagger defines the valid enum to be "Sensinel" (see below), so this ("SENTINEL") shall be removed since 4.0.
-		// https://github.com/Azure/azure-rest-api-specs/blob/b52464f520b77222ac8b0bdeb80a030c0fdf5b1b/specification/security/resource-manager/Microsoft.Security/stable/2021-06-01/settings.json#L285
-		validSettingName = append(validSettingName, "SENTINEL")
-	}
-
 	return &pluginsdk.Resource{
 		Create: resourceSecurityCenterSettingUpdate,
 		Read:   resourceSecurityCenterSettingRead,
@@ -38,7 +28,7 @@ func resourceSecurityCenterSetting() *pluginsdk.Resource {
 		Delete: resourceSecurityCenterSettingDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.SettingID(id)
+			_, err := settings.ParseSettingID(id)
 			return err
 		}),
 
@@ -56,16 +46,9 @@ func resourceSecurityCenterSetting() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"setting_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				DiffSuppressFunc: func() func(string, string, string, *schema.ResourceData) bool {
-					// This is a workaround for `SENTINEL` value.
-					if !features.FourPointOhBeta() {
-						return suppress.CaseDifference
-					}
-					return nil
-				}(),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice(validSettingName, false),
 			},
 			"enabled": {
@@ -76,32 +59,29 @@ func resourceSecurityCenterSetting() *pluginsdk.Resource {
 	}
 }
 
-func resourceSecurityCenterSettingUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSecurityCenterSettingUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.SettingClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	settingName := d.Get("setting_name").(string)
-
-	if !features.FourPointOhBeta() && settingName == "SENTINEL" {
-		settingName = "Sentinel"
-	}
-
 	id := settings.NewSettingID(subscriptionId, settings.SettingName(settingName))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			return fmt.Errorf("checking for presence of existing %s: %v", id, err)
-		}
-
-		if existing.Model != nil {
-			if alertSyncSettings, ok := existing.Model.(settings.AlertSyncSettings); ok && alertSyncSettings.Properties != nil && alertSyncSettings.Properties.Enabled {
-				return tf.ImportAsExistsError("azurerm_security_center_setting", id.ID())
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				return fmt.Errorf("checking for presence of existing %s: %v", id, err)
 			}
-			if dataExportSettings, ok := existing.Model.(settings.DataExportSettings); ok && dataExportSettings.Properties != nil && dataExportSettings.Properties.Enabled {
-				return tf.ImportAsExistsError("azurerm_security_center_setting", id.ID())
+
+			if existing.Model != nil {
+				if alertSyncSettings, ok := existing.Model.(settings.AlertSyncSettings); ok && alertSyncSettings.Properties != nil && alertSyncSettings.Properties.Enabled {
+					return tf.ImportAsExistsError("azurerm_security_center_setting", id.ID())
+				}
+				if dataExportSettings, ok := existing.Model.(settings.DataExportSettings); ok && dataExportSettings.Properties != nil && dataExportSettings.Properties.Enabled {
+					return tf.ImportAsExistsError("azurerm_security_center_setting", id.ID())
+				}
 			}
 		}
 	}
@@ -119,7 +99,7 @@ func resourceSecurityCenterSettingUpdate(d *pluginsdk.ResourceData, meta interfa
 	return resourceSecurityCenterSettingRead(d, meta)
 }
 
-func resourceSecurityCenterSettingRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSecurityCenterSettingRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.SettingClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -148,7 +128,7 @@ func resourceSecurityCenterSettingRead(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func resourceSecurityCenterSettingDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSecurityCenterSettingDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.SettingClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

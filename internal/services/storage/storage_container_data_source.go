@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -7,13 +7,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/containers"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/containers"
 )
 
 func dataSourceStorageContainer() *pluginsdk.Resource {
@@ -30,9 +31,10 @@ func dataSourceStorageContainer() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			"storage_account_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+			"storage_account_id": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: commonids.ValidateStorageAccountID,
 			},
 
 			"container_access_type": {
@@ -52,7 +54,6 @@ func dataSourceStorageContainer() *pluginsdk.Resource {
 
 			"metadata": MetaDataComputedSchema(),
 
-			// TODO: support for ACL's, Legal Holds and Immutability Policies
 			"has_immutability_policy": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
@@ -63,7 +64,7 @@ func dataSourceStorageContainer() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"resource_manager_id": {
+			"url": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -71,26 +72,45 @@ func dataSourceStorageContainer() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	storageClient := meta.(*clients.Client).Storage
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+func dataSourceStorageContainerRead(d *pluginsdk.ResourceData, meta any) error {
+	containerClient := meta.(*clients.Client).Storage.ResourceManager.BlobContainers
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	containerName := d.Get("name").(string)
-	accountName := d.Get("storage_account_name").(string)
 
-	account, err := storageClient.FindAccount(ctx, subscriptionId, accountName)
+	accountId, err := commonids.ParseStorageAccountID(d.Get("storage_account_id").(string))
 	if err != nil {
-		return fmt.Errorf("retrieving Storage Account %q for Container %q: %v", accountName, containerName, err)
-	}
-	if account == nil {
-		return fmt.Errorf("locating Storage Account %q for Container %q", accountName, containerName)
+		return err
 	}
 
-	containersDataPlaneClient, err := storageClient.ContainersDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+	id := commonids.NewStorageContainerID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName, containerName)
+
+	container, err := containerClient.Get(ctx, id)
 	if err != nil {
-		return fmt.Errorf("building Containers Client: %v", err)
+		return fmt.Errorf("retrieving %s: %v", id, err)
+	}
+
+	if model := container.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("name", containerName)
+			d.Set("container_access_type", containerAccessTypeConversionMap[pointer.FromEnum(props.PublicAccess)])
+
+			d.Set("default_encryption_scope", props.DefaultEncryptionScope)
+			d.Set("encryption_scope_override_enabled", !pointer.From(props.DenyEncryptionScopeOverride))
+
+			if err = d.Set("metadata", FlattenMetaData(pointer.From(props.Metadata))); err != nil {
+				return fmt.Errorf("setting `metadata`: %v", err)
+			}
+
+			d.Set("has_immutability_policy", props.HasImmutabilityPolicy)
+			d.Set("has_legal_hold", props.HasLegalHold)
+		}
+	}
+
+	account, err := meta.(*clients.Client).Storage.GetAccount(ctx, commonids.NewStorageAccountID(id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName))
+	if err != nil {
+		return fmt.Errorf("retrieving Account for Container %q: %v", id, err)
 	}
 
 	// Determine the blob endpoint, so we can build a data plane ID
@@ -100,39 +120,14 @@ func dataSourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	// Parse the blob endpoint as a data plane account ID
-	accountId, err := accounts.ParseAccountID(*endpoint, storageClient.StorageDomainSuffix)
+	accountDpId, err := accounts.ParseAccountID(*endpoint, meta.(*clients.Client).Storage.StorageDomainSuffix)
 	if err != nil {
 		return fmt.Errorf("parsing Account ID: %v", err)
 	}
 
-	id := containers.NewContainerID(*accountId, containerName)
-
-	props, err := containersDataPlaneClient.Get(ctx, containerName)
-	if err != nil {
-		return fmt.Errorf("retrieving %s: %v", id, err)
-	}
-	if props == nil {
-		return fmt.Errorf("retrieving %s: result was nil", id)
-	}
+	d.Set("url", containers.NewContainerID(*accountDpId, id.ContainerName).ID())
 
 	d.SetId(id.ID())
-
-	d.Set("name", containerName)
-	d.Set("storage_account_name", accountName)
-	d.Set("container_access_type", flattenStorageContainerAccessLevel(props.AccessLevel))
-
-	d.Set("default_encryption_scope", props.DefaultEncryptionScope)
-	d.Set("encryption_scope_override_enabled", !props.EncryptionScopeOverrideDisabled)
-
-	if err = d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
-		return fmt.Errorf("setting `metadata`: %v", err)
-	}
-
-	d.Set("has_immutability_policy", props.HasImmutabilityPolicy)
-	d.Set("has_legal_hold", props.HasLegalHold)
-
-	resourceManagerId := commonids.NewStorageContainerID(account.StorageAccountId.SubscriptionId, account.StorageAccountId.ResourceGroupName, account.StorageAccountId.StorageAccountName, containerName)
-	d.Set("resource_manager_id", resourceManagerId.ID())
 
 	return nil
 }
