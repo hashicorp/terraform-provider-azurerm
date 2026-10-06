@@ -2825,7 +2825,7 @@ func SecretsSchema() *pluginsdk.Schema {
 				"value": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					// O+C because otherwise, it will error when a dynamic value comes from a data source
+					// Note: O+C because otherwise, it will error when a dynamic value comes from a data source
 					Computed:    true,
 					Sensitive:   true,
 					Description: "The value for this secret.",
