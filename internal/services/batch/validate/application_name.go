@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func ApplicationName(v interface{}, k string) ([]string, []error) {
+func ApplicationName(v any, k string) ([]string, []error) {
 	return validation.All(
 		validation.StringMatch(regexp.MustCompile(`^[-_\da-zA-Z]+$`), "can contain any combination of alphanumeric characters, hyphens, and underscores"),
 		validation.StringLenBetween(1, 64),

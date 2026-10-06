@@ -124,7 +124,7 @@ func FirewallDataSourcePolicy() *pluginsdk.Resource {
 	}
 }
 
-func FirewallDataSourcePolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func FirewallDataSourcePolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.FirewallPolicies
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -167,7 +167,7 @@ func FirewallDataSourcePolicyRead(d *pluginsdk.ResourceData, meta interface{}) e
 			if err := d.Set("rule_collection_groups", flattenNetworkSubResourceID(props.RuleCollectionGroups)); err != nil {
 				return fmt.Errorf(`setting "rule_collection_groups": %+v`, err)
 			}
-			d.Set("threat_intelligence_mode", string(pointer.From(props.ThreatIntelMode)))
+			d.Set("threat_intelligence_mode", pointer.FromEnum(props.ThreatIntelMode))
 			if err := d.Set("threat_intelligence_allowlist", flattenFirewallPolicyThreatIntelWhitelist(props.ThreatIntelWhitelist)); err != nil {
 				return fmt.Errorf(`setting "threat_intelligence_allowlist": %+v`, err)
 			}

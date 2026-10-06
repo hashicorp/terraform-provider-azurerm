@@ -59,7 +59,7 @@ func resourceNetworkWatcher() *pluginsdk.Resource {
 	}
 }
 
-func resourceNetworkWatcherCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkWatcherCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkWatchers
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -82,7 +82,7 @@ func resourceNetworkWatcherCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	watcher := networkwatchers.NetworkWatcher{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, watcher); err != nil {
@@ -97,7 +97,7 @@ func resourceNetworkWatcherCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	return resourceNetworkWatcherRead(d, meta)
 }
 
-func resourceNetworkWatcherUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkWatcherUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkWatchers
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -119,7 +119,7 @@ func resourceNetworkWatcherUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	payload := existing.Model
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, *id, *payload); err != nil {
@@ -129,7 +129,7 @@ func resourceNetworkWatcherUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	return resourceNetworkWatcherRead(d, meta)
 }
 
-func resourceNetworkWatcherRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkWatcherRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkWatchers
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -167,7 +167,7 @@ func resourceNetworkWatcherFlatten(d *pluginsdk.ResourceData, id *networkwatcher
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceNetworkWatcherDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkWatcherDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkWatchers
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -115,7 +115,7 @@ func loadBalancerSubResourceImporter(parser func(input string) (*loadbalancers.L
 	return pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 		_, err := parser(id)
 		return err
-	}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+	}, func(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
 		lbId, err := parser(d.Id())
 		if err != nil {
 			return nil, err

@@ -63,7 +63,7 @@ func resourceNetworkInterfaceNatRuleAssociation() *pluginsdk.Resource {
 	}
 }
 
-func resourceNetworkInterfaceNatRuleAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceNatRuleAssociationCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -153,7 +153,7 @@ func resourceNetworkInterfaceNatRuleAssociationCreate(d *pluginsdk.ResourceData,
 	return resourceNetworkInterfaceNatRuleAssociationRead(d, meta)
 }
 
-func resourceNetworkInterfaceNatRuleAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceNatRuleAssociationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -220,7 +220,7 @@ func resourceNetworkInterfaceNatRuleAssociationRead(d *pluginsdk.ResourceData, m
 	return nil
 }
 
-func resourceNetworkInterfaceNatRuleAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceNatRuleAssociationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

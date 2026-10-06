@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub"
+	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub" // azignore:AZG010 - package name does not match its path
 )
 
 func resourceIotHubFallbackRoute() *pluginsdk.Resource {
@@ -97,7 +97,7 @@ func resourceIotHubFallbackRoute() *pluginsdk.Resource {
 	}
 }
 
-func resourceIotHubFallbackRouteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubFallbackRouteCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -129,7 +129,7 @@ func resourceIotHubFallbackRouteCreateUpdate(d *pluginsdk.ResourceData, meta int
 	routing.FallbackRoute = &devices.FallbackRouteProperties{
 		Source:        pointer.To(d.Get("source").(string)),
 		Condition:     pointer.To(d.Get("condition").(string)),
-		EndpointNames: pluginsdk.ExpandStringSlice(d.Get("endpoint_names").([]interface{})),
+		EndpointNames: pluginsdk.ExpandStringSlice(d.Get("endpoint_names").([]any)),
 		IsEnabled:     pointer.To(d.Get("enabled").(bool)),
 	}
 
@@ -147,7 +147,7 @@ func resourceIotHubFallbackRouteCreateUpdate(d *pluginsdk.ResourceData, meta int
 	return resourceIotHubFallbackRouteRead(d, meta)
 }
 
-func resourceIotHubFallbackRouteRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubFallbackRouteRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -183,7 +183,7 @@ func resourceIotHubFallbackRouteRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceIotHubFallbackRouteDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubFallbackRouteDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
