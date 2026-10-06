@@ -48,7 +48,7 @@ action "azurerm_virtual_machine_power" "example" {
 }
 ```
 
-## Arguments Reference
+## Argument Reference
 
 This action supports the following arguments:
 

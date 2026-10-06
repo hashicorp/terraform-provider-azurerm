@@ -94,7 +94,7 @@ If you have configuration questions, or general questions about using the provid
 * [Terraform's community resources](https://www.terraform.io/docs/extend/community/index.html)
 * [HashiCorp support](https://support.hashicorp.com) for Terraform Enterprise customers
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
