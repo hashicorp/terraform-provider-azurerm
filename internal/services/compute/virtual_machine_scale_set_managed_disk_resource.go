@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -503,7 +504,6 @@ func (r VirtualMachineScaleSetManagedDiskResource) Create() sdk.ResourceFunc {
 
 			creation := config.Creation[0]
 			createOption := disks.DiskCreateOption(creation.Option)
-			encryptionTypePlatformKey := disks.EncryptionTypeEncryptionAtRestWithPlatformKey
 
 			props := &disks.DiskProperties{
 				CreationData: disks.CreationData{
@@ -512,7 +512,7 @@ func (r VirtualMachineScaleSetManagedDiskResource) Create() sdk.ResourceFunc {
 				},
 				OptimizedForFrequentAttach: pointer.To(config.OptimizedFrequentAttachEnabled),
 				Encryption: &disks.Encryption{
-					Type: &encryptionTypePlatformKey,
+					Type: pointer.To(disks.EncryptionTypeEncryptionAtRestWithPlatformKey),
 				},
 			}
 
@@ -664,13 +664,12 @@ func (r VirtualMachineScaleSetManagedDiskResource) Create() sdk.ResourceFunc {
 				props.SecurityProfile.SecureVMDiskEncryptionSetId = pointer.To(config.SecureVMDiskEncryptionSetId)
 			}
 
-			storageAccountType := disks.DiskStorageAccountTypes(config.StorageAccountType)
 			payload := disks.Disk{
 				Location:         location.Normalize(config.Location),
 				ExtendedLocation: expandManagedDiskEdgeZone(config.EdgeZone),
 				Properties:       props,
 				Sku: &disks.DiskSku{
-					Name: &storageAccountType,
+					Name: pointer.ToEnum[disks.DiskStorageAccountTypes](config.StorageAccountType),
 				},
 				Tags: pointer.To(config.Tags),
 			}
@@ -839,9 +838,8 @@ func (r VirtualMachineScaleSetManagedDiskResource) Update() sdk.ResourceFunc {
 			payload.Properties = &props
 
 			if metadata.ResourceData.HasChange("storage_account_type") {
-				storageAccountType := disks.DiskStorageAccountTypes(config.StorageAccountType)
 				payload.Sku = &disks.DiskSku{
-					Name: &storageAccountType,
+					Name: pointer.ToEnum[disks.DiskStorageAccountTypes](config.StorageAccountType),
 				}
 			}
 
@@ -995,8 +993,8 @@ func (r VirtualMachineScaleSetManagedDiskResource) updateWithDetach(ctx context.
 		locks.ByName(name, VirtualMachineScaleSetResourceName)
 	}
 	defer func() {
-		for i := len(lockNamesList) - 1; i >= 0; i-- {
-			locks.UnlockByName(lockNamesList[i], VirtualMachineScaleSetResourceName)
+		for _, name := range slices.Backward(lockNamesList) {
+			locks.UnlockByName(name, VirtualMachineScaleSetResourceName)
 		}
 	}()
 
@@ -1159,9 +1157,7 @@ func (r VirtualMachineScaleSetManagedDiskResource) updateRequiresDetach(metadata
 
 func expandVirtualMachineScaleSetManagedDiskEncryptionSettings(input []DiskEncryptionSettingModel) *disks.EncryptionSettingsCollection {
 	if len(input) == 0 {
-		return &disks.EncryptionSettingsCollection{
-			Enabled: false,
-		}
+		return &disks.EncryptionSettingsCollection{}
 	}
 
 	setting := input[0]

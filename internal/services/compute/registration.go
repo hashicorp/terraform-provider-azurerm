@@ -129,7 +129,7 @@ func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 		CapacityReservationGroupListResource{},
 		DedicatedHostGroupListResource{},
 		LinuxVirtualMachineListResource{},
-		WindowsVirtualMachineListResource{},
 		VirtualMachineScaleSetManagedDiskResourceList{},
+		WindowsVirtualMachineListResource{},
 	}
 }
