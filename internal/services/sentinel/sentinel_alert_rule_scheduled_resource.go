@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sentinel
@@ -11,21 +11,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/alertrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2023-12-01-preview/alertrules"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/rickb777/date/period"
+	"github.com/rickb777/period"
 )
 
 func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceSentinelAlertRuleScheduledCreateUpdate,
 		Read:   resourceSentinelAlertRuleScheduledRead,
 		Update: resourceSentinelAlertRuleScheduledCreateUpdate,
@@ -122,12 +119,6 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 				Computed: true,
 				MaxItems: 1,
 				MinItems: 1,
-				ConflictsWith: func() []string {
-					if !features.FourPointOhBeta() {
-						return []string{"incident_configuration"}
-					}
-					return []string{}
-				}(),
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"create_incident_enabled": {
@@ -149,7 +140,7 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 									"lookback_duration": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
-										ValidateFunc: validate.ISO8601Duration,
+										ValidateFunc: validation.ISO8601Duration,
 										Default:      "PT5M",
 									},
 									"reopen_closed_incidents": {
@@ -216,14 +207,14 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Default:      "PT5H",
-				ValidateFunc: validate.ISO8601DurationBetween("PT5M", "P14D"),
+				ValidateFunc: validation.ISO8601DurationBetween("PT5M", "P14D"),
 			},
 
 			"query_period": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Default:      "PT5H",
-				ValidateFunc: validate.ISO8601DurationBetween("PT5M", "P14D"),
+				ValidateFunc: validation.ISO8601DurationBetween("PT5M", "P14D"),
 			},
 
 			"trigger_operator": {
@@ -249,7 +240,7 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Default:      "PT5H",
-				ValidateFunc: validate.ISO8601DurationBetween("PT5M", "PT24H"),
+				ValidateFunc: validation.ISO8601DurationBetween("PT5M", "PT24H"),
 			},
 			"alert_details_override": {
 				Type:     pluginsdk.TypeList,
@@ -308,7 +299,7 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 			"entity_mapping": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				MaxItems: 5,
+				MaxItems: 10,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"entity_type": {
@@ -341,7 +332,7 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 			"sentinel_entity_mapping": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				MaxItems: 5,
+				MaxItems: 10,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"column_name": {
@@ -354,91 +345,9 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		resource.Schema["incident_configuration"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeList,
-			Optional:      true,
-			Computed:      true,
-			MaxItems:      1,
-			MinItems:      1,
-			ConflictsWith: []string{"incident"},
-			Deprecated:    "The `incident_configuration` block has been superseded by the `incident` block and will be removed in v4.0 of the AzureRM Provider",
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"create_incident": {
-						Required:   true,
-						Type:       pluginsdk.TypeBool,
-						Deprecated: "The `create_incident` property has been superseded by the `create_incident_enabled` property and will be removed in v4.0 of the AzureRM Provider",
-					},
-					"grouping": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
-						MaxItems: 1,
-						MinItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"enabled": {
-									Type:     pluginsdk.TypeBool,
-									Optional: true,
-									Default:  true,
-								},
-								"lookback_duration": {
-									Type:         pluginsdk.TypeString,
-									Optional:     true,
-									ValidateFunc: validate.ISO8601Duration,
-									Default:      "PT5M",
-								},
-								"reopen_closed_incidents": {
-									Type:     pluginsdk.TypeBool,
-									Optional: true,
-									Default:  false,
-								},
-								"entity_matching_method": {
-									Type:         pluginsdk.TypeString,
-									Optional:     true,
-									Default:      alertrules.MatchingMethodAnyAlert,
-									ValidateFunc: validation.StringInSlice(alertrules.PossibleValuesForMatchingMethod(), false),
-								},
-								"group_by_entities": {
-									Type:       pluginsdk.TypeList,
-									Optional:   true,
-									Deprecated: "The `group_by_entities` property has been superseded by the `by_entities` property and will be removed in v4.0 of the AzureRM Provider",
-									Elem: &pluginsdk.Schema{
-										Type:         pluginsdk.TypeString,
-										ValidateFunc: validation.StringInSlice(alertrules.PossibleValuesForEntityMappingType(), false),
-									},
-								},
-								"group_by_alert_details": {
-									Type:       pluginsdk.TypeList,
-									Optional:   true,
-									Deprecated: "The `group_by_alert_details` property has been superseded by the `by_alert_details` property and will be removed in v4.0 of the AzureRM Provider",
-									Elem: &pluginsdk.Schema{
-										Type:         pluginsdk.TypeString,
-										ValidateFunc: validation.StringInSlice(alertrules.PossibleValuesForAlertDetail(), false),
-									},
-								},
-								"group_by_custom_details": {
-									Type:       pluginsdk.TypeList,
-									Optional:   true,
-									Deprecated: "The `group_by_custom_details` property has been superseded by the `by_custom_details` property and will be removed in v4.0 of the AzureRM Provider",
-									Elem: &pluginsdk.Schema{
-										Type:         pluginsdk.TypeString,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		}
-	}
-
-	return resource
 }
 
-func resourceSentinelAlertRuleScheduledCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleScheduledCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -451,15 +360,17 @@ func resourceSentinelAlertRuleScheduledCreateUpdate(d *pluginsdk.ResourceData, m
 	id := alertrules.NewAlertRuleID(workspaceID.SubscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, name)
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("checking for existing Sentinel Alert Rule Scheduled %q: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			resp, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(resp.HttpResponse) {
+					return fmt.Errorf("checking for existing Sentinel Alert Rule Scheduled %q: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(resp.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_sentinel_alert_rule_scheduled", id.ID())
+			if !response.WasNotFound(resp.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_sentinel_alert_rule_scheduled", id.ID())
+			}
 		}
 	}
 
@@ -485,61 +396,57 @@ func resourceSentinelAlertRuleScheduledCreateUpdate(d *pluginsdk.ResourceData, m
 		}
 	}
 
-	incident := expandAlertRuleIncidentConfiguration(d.Get("incident").([]interface{}), "create_incident_enabled", false)
-
-	if v, ok := d.GetOk("incident_configuration"); ok && !features.FourPointOhBeta() {
-		incident = expandAlertRuleIncidentConfiguration(v.([]interface{}), "create_incident", true)
-	}
+	incident := expandAlertRuleIncidentConfiguration(d.Get("incident").([]any), "create_incident_enabled", false)
 
 	param := alertrules.ScheduledAlertRule{
 		Properties: &alertrules.ScheduledAlertRuleProperties{
-			Description:           utils.String(d.Get("description").(string)),
+			Description:           pointer.To(d.Get("description").(string)),
 			DisplayName:           d.Get("display_name").(string),
 			Tactics:               expandAlertRuleTactics(d.Get("tactics").(*pluginsdk.Set).List()),
 			Techniques:            expandAlertRuleTechnicals(d.Get("techniques").(*pluginsdk.Set).List()),
 			IncidentConfiguration: incident,
-			Severity:              pointer.To(alertrules.AlertSeverity(d.Get("severity").(string))),
+			Severity:              pointer.ToEnum[alertrules.AlertSeverity](d.Get("severity").(string)),
 			Enabled:               d.Get("enabled").(bool),
 			Query:                 pointer.To(d.Get("query").(string)),
 			QueryFrequency:        pointer.To(queryFreq),
 			QueryPeriod:           pointer.To(queryPeriod),
 			SuppressionEnabled:    suppressionEnabled,
 			SuppressionDuration:   suppressionDuration,
-			TriggerOperator:       pointer.To(alertrules.TriggerOperator(d.Get("trigger_operator").(string))),
+			TriggerOperator:       pointer.ToEnum[alertrules.TriggerOperator](d.Get("trigger_operator").(string)),
 			TriggerThreshold:      pointer.To(int64(d.Get("trigger_threshold").(int))),
 		},
 	}
 
 	if v, ok := d.GetOk("alert_rule_template_guid"); ok {
-		param.Properties.AlertRuleTemplateName = utils.String(v.(string))
+		param.Properties.AlertRuleTemplateName = pointer.To(v.(string))
 	}
 	if v, ok := d.GetOk("alert_rule_template_version"); ok {
-		param.Properties.TemplateVersion = utils.String(v.(string))
+		param.Properties.TemplateVersion = pointer.To(v.(string))
 	}
 	if v, ok := d.GetOk("event_grouping"); ok {
-		param.Properties.EventGroupingSettings = expandAlertRuleScheduledEventGroupingSetting(v.([]interface{}))
+		param.Properties.EventGroupingSettings = expandAlertRuleEventGroupingSetting(v.([]any))
 	}
 	if v, ok := d.GetOk("alert_details_override"); ok {
-		param.Properties.AlertDetailsOverride = expandAlertRuleAlertDetailsOverride(v.([]interface{}))
+		param.Properties.AlertDetailsOverride = expandAlertRuleAlertDetailsOverride(v.([]any))
 	}
 	if v, ok := d.GetOk("custom_details"); ok {
-		param.Properties.CustomDetails = utils.ExpandPtrMapStringString(v.(map[string]interface{}))
+		param.Properties.CustomDetails = pluginsdk.ExpandPtrMapStringString(v.(map[string]any))
 	}
 
 	entityMappingCount := 0
 	sentinelEntityMappingCount := 0
 	if v, ok := d.GetOk("entity_mapping"); ok {
-		param.Properties.EntityMappings = expandAlertRuleEntityMapping(v.([]interface{}))
+		param.Properties.EntityMappings = expandAlertRuleEntityMapping(v.([]any))
 		entityMappingCount = len(*param.Properties.EntityMappings)
 	}
 	if v, ok := d.GetOk("sentinel_entity_mapping"); ok {
-		param.Properties.SentinelEntitiesMappings = expandAlertRuleSentinelEntityMapping(v.([]interface{}))
+		param.Properties.SentinelEntitiesMappings = expandAlertRuleSentinelEntityMapping(v.([]any))
 		sentinelEntityMappingCount = len(*param.Properties.SentinelEntitiesMappings)
 	}
 
-	// the max number of `sentinel_entity_mapping` and `entity_mapping` together is 5
-	if entityMappingCount+sentinelEntityMappingCount > 5 {
-		return fmt.Errorf("`entity_mapping` and `sentinel_entity_mapping` together can't exceed 5")
+	// the max number of `sentinel_entity_mapping` and `entity_mapping` together is 10
+	if entityMappingCount+sentinelEntityMappingCount > 10 {
+		return fmt.Errorf("`entity_mapping` and `sentinel_entity_mapping` together can't exceed 10")
 	}
 
 	if !d.IsNewResource() {
@@ -562,7 +469,7 @@ func resourceSentinelAlertRuleScheduledCreateUpdate(d *pluginsdk.ResourceData, m
 	return resourceSentinelAlertRuleScheduledRead(d, meta)
 }
 
-func resourceSentinelAlertRuleScheduledRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleScheduledRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -588,59 +495,53 @@ func resourceSentinelAlertRuleScheduledRead(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if model := resp.Model; model != nil {
-		modelPtr := *model
-		rule := modelPtr.(alertrules.ScheduledAlertRule)
+		if rule, ok := model.(alertrules.ScheduledAlertRule); ok {
+			d.Set("name", id.RuleId)
 
-		d.Set("name", id.RuleId)
+			workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
+			d.Set("log_analytics_workspace_id", workspaceId.ID())
 
-		workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
-		d.Set("log_analytics_workspace_id", workspaceId.ID())
-
-		if prop := rule.Properties; prop != nil {
-			d.Set("description", prop.Description)
-			d.Set("display_name", prop.DisplayName)
-			if err := d.Set("tactics", flattenAlertRuleTactics(prop.Tactics)); err != nil {
-				return fmt.Errorf("setting `tactics`: %+v", err)
-			}
-			if err := d.Set("techniques", prop.Techniques); err != nil {
-				return fmt.Errorf("setting `techniques`: %+v", err)
-			}
-			if !features.FourPointOhBeta() {
-				if err := d.Set("incident_configuration", flattenAlertRuleIncidentConfiguration(prop.IncidentConfiguration, "create_incident", true)); err != nil {
-					return fmt.Errorf("setting `incident_configuration`: %+v", err)
+			if prop := rule.Properties; prop != nil {
+				d.Set("description", prop.Description)
+				d.Set("display_name", prop.DisplayName)
+				if err := d.Set("tactics", flattenAlertRuleTactics(prop.Tactics)); err != nil {
+					return fmt.Errorf("setting `tactics`: %+v", err)
 				}
-			}
+				if err := d.Set("techniques", prop.Techniques); err != nil {
+					return fmt.Errorf("setting `techniques`: %+v", err)
+				}
 
-			if err := d.Set("incident", flattenAlertRuleIncidentConfiguration(prop.IncidentConfiguration, "create_incident_enabled", false)); err != nil {
-				return fmt.Errorf("setting `incident`: %+v", err)
-			}
+				if err := d.Set("incident", flattenAlertRuleIncidentConfiguration(prop.IncidentConfiguration, "create_incident_enabled", false)); err != nil {
+					return fmt.Errorf("setting `incident`: %+v", err)
+				}
 
-			d.Set("severity", string(pointer.From(prop.Severity)))
-			d.Set("enabled", prop.Enabled)
-			d.Set("query", prop.Query)
-			d.Set("query_frequency", prop.QueryFrequency)
-			d.Set("query_period", prop.QueryPeriod)
-			d.Set("trigger_operator", string(pointer.From(prop.TriggerOperator)))
-			d.Set("trigger_threshold", int(pointer.From(prop.TriggerThreshold)))
-			d.Set("suppression_enabled", prop.SuppressionEnabled)
-			d.Set("suppression_duration", prop.SuppressionDuration)
-			d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
-			d.Set("alert_rule_template_version", prop.TemplateVersion)
+				d.Set("severity", pointer.FromEnum(prop.Severity))
+				d.Set("enabled", prop.Enabled)
+				d.Set("query", prop.Query)
+				d.Set("query_frequency", prop.QueryFrequency)
+				d.Set("query_period", prop.QueryPeriod)
+				d.Set("trigger_operator", pointer.FromEnum(prop.TriggerOperator))
+				d.Set("trigger_threshold", int(pointer.From(prop.TriggerThreshold)))
+				d.Set("suppression_enabled", prop.SuppressionEnabled)
+				d.Set("suppression_duration", prop.SuppressionDuration)
+				d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
+				d.Set("alert_rule_template_version", prop.TemplateVersion)
 
-			if err := d.Set("event_grouping", flattenAlertRuleScheduledEventGroupingSetting(prop.EventGroupingSettings)); err != nil {
-				return fmt.Errorf("setting `event_grouping`: %+v", err)
-			}
-			if err := d.Set("alert_details_override", flattenAlertRuleAlertDetailsOverride(prop.AlertDetailsOverride)); err != nil {
-				return fmt.Errorf("setting `alert_details_override`: %+v", err)
-			}
-			if err := d.Set("custom_details", utils.FlattenPtrMapStringString(prop.CustomDetails)); err != nil {
-				return fmt.Errorf("setting `custom_details`: %+v", err)
-			}
-			if err := d.Set("entity_mapping", flattenAlertRuleEntityMapping(prop.EntityMappings)); err != nil {
-				return fmt.Errorf("setting `entity_mapping`: %+v", err)
-			}
-			if err := d.Set("sentinel_entity_mapping", flattenAlertRuleSentinelEntityMapping(prop.SentinelEntitiesMappings)); err != nil {
-				return fmt.Errorf("setting `sentinel_entity_mapping`: %+v", err)
+				if err := d.Set("event_grouping", flattenAlertRuleEventGroupingSetting(prop.EventGroupingSettings)); err != nil {
+					return fmt.Errorf("setting `event_grouping`: %+v", err)
+				}
+				if err := d.Set("alert_details_override", flattenAlertRuleAlertDetailsOverride(prop.AlertDetailsOverride)); err != nil {
+					return fmt.Errorf("setting `alert_details_override`: %+v", err)
+				}
+				if err := d.Set("custom_details", pluginsdk.FlattenPtrMapStringString(prop.CustomDetails)); err != nil {
+					return fmt.Errorf("setting `custom_details`: %+v", err)
+				}
+				if err := d.Set("entity_mapping", flattenAlertRuleEntityMapping(prop.EntityMappings)); err != nil {
+					return fmt.Errorf("setting `entity_mapping`: %+v", err)
+				}
+				if err := d.Set("sentinel_entity_mapping", flattenAlertRuleSentinelEntityMapping(prop.SentinelEntitiesMappings)); err != nil {
+					return fmt.Errorf("setting `sentinel_entity_mapping`: %+v", err)
+				}
 			}
 		}
 	}
@@ -648,7 +549,7 @@ func resourceSentinelAlertRuleScheduledRead(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func resourceSentinelAlertRuleScheduledDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleScheduledDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -663,37 +564,4 @@ func resourceSentinelAlertRuleScheduledDelete(d *pluginsdk.ResourceData, meta in
 	}
 
 	return nil
-}
-
-func expandAlertRuleScheduledEventGroupingSetting(input []interface{}) *alertrules.EventGroupingSettings {
-	if len(input) == 0 || input[0] == nil {
-		return nil
-	}
-
-	v := input[0].(map[string]interface{})
-	result := alertrules.EventGroupingSettings{}
-
-	if aggregationKind := v["aggregation_method"].(string); aggregationKind != "" {
-		kind := alertrules.EventGroupingAggregationKind(aggregationKind)
-		result.AggregationKind = &kind
-	}
-
-	return &result
-}
-
-func flattenAlertRuleScheduledEventGroupingSetting(input *alertrules.EventGroupingSettings) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	var aggregationKind string
-	if input.AggregationKind != nil {
-		aggregationKind = string(*input.AggregationKind)
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"aggregation_method": aggregationKind,
-		},
-	}
 }

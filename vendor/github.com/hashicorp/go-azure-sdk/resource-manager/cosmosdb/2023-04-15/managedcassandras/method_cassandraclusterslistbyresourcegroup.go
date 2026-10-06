@@ -47,7 +47,6 @@ func (c ManagedCassandrasClient) CassandraClustersListByResourceGroup(ctx contex
 
 	var model ListClusters
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

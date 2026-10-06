@@ -74,7 +74,7 @@ func (c SettingsClient) List(ctx context.Context, id commonids.SubscriptionId) (
 	temp := make([]Setting, 0)
 	if values.Values != nil {
 		for i, v := range *values.Values {
-			val, err := unmarshalSettingImplementation(v)
+			val, err := UnmarshalSettingImplementation(v)
 			if err != nil {
 				err = fmt.Errorf("unmarshalling item %d for Setting (%q): %+v", i, v, err)
 				return result, err

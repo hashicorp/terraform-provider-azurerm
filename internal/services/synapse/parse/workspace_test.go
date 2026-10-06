@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -27,7 +27,6 @@ func TestWorkspaceID(t *testing.T) {
 		Error    bool
 		Expected *WorkspaceId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -120,7 +119,6 @@ func TestWorkspaceIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *WorkspaceId
 	}{
-
 		{
 			// empty
 			Input: "",

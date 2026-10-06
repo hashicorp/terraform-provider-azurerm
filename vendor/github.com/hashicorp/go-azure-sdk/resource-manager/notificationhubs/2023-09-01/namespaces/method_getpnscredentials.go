@@ -46,7 +46,6 @@ func (c NamespacesClient) GetPnsCredentials(ctx context.Context, id NamespaceId)
 
 	var model PnsCredentialsResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

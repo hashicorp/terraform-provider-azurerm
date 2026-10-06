@@ -14,6 +14,14 @@ type BlobOutputDataSource struct {
 	Properties *BlobOutputDataSourceProperties `json:"properties,omitempty"`
 
 	// Fields inherited from OutputDataSource
+
+	Type string `json:"type"`
+}
+
+func (s BlobOutputDataSource) OutputDataSource() BaseOutputDataSourceImpl {
+	return BaseOutputDataSourceImpl{
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = BlobOutputDataSource{}
@@ -27,9 +35,10 @@ func (s BlobOutputDataSource) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling BlobOutputDataSource: %+v", err)
 	}
+
 	decoded["type"] = "Microsoft.Storage/Blob"
 
 	encoded, err = json.Marshal(decoded)

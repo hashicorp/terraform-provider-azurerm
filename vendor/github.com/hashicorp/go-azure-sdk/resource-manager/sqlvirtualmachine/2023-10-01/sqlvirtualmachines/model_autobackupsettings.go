@@ -16,6 +16,6 @@ type AutoBackupSettings struct {
 	Password              *string                  `json:"password,omitempty"`
 	RetentionPeriod       *int64                   `json:"retentionPeriod,omitempty"`
 	StorageAccessKey      *string                  `json:"storageAccessKey,omitempty"`
-	StorageAccountUrl     *string                  `json:"storageAccountUrl,omitempty"`
+	StorageAccountURL     *string                  `json:"storageAccountUrl,omitempty"`
 	StorageContainerName  *string                  `json:"storageContainerName,omitempty"`
 }

@@ -29,13 +29,14 @@ func DefaultCreateOrUpdateOperationOptions() CreateOrUpdateOperationOptions {
 func (o CreateOrUpdateOperationOptions) ToHeaders() *client.Headers {
 	out := client.Headers{}
 	if o.IfMatch != nil {
-		out.Append("If-Match", fmt.Sprintf("%v", *o.IfMatch))
+		out.Append("if-match", fmt.Sprintf("%v", *o.IfMatch))
 	}
 	return &out
 }
 
 func (o CreateOrUpdateOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -78,7 +79,6 @@ func (c ManagedVirtualNetworksClient) CreateOrUpdate(ctx context.Context, id Man
 
 	var model ManagedVirtualNetworkResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

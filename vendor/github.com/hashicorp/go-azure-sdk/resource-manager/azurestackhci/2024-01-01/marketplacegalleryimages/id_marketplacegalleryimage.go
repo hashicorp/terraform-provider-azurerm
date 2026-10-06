@@ -42,7 +42,7 @@ func ParseMarketplaceGalleryImageID(input string) (*MarketplaceGalleryImageId, e
 	}
 
 	id := MarketplaceGalleryImageId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseMarketplaceGalleryImageIDInsensitively(input string) (*MarketplaceGall
 	}
 
 	id := MarketplaceGalleryImageId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id MarketplaceGalleryImageId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAzureStackHCI", "Microsoft.AzureStackHCI", "Microsoft.AzureStackHCI"),
 		resourceids.StaticSegment("staticMarketplaceGalleryImages", "marketplaceGalleryImages", "marketplaceGalleryImages"),
-		resourceids.UserSpecifiedSegment("marketplaceGalleryImageName", "marketplaceGalleryImageValue"),
+		resourceids.UserSpecifiedSegment("marketplaceGalleryImageName", "marketplaceGalleryImageName"),
 	}
 }
 

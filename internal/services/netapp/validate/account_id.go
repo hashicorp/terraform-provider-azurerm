@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -6,10 +6,11 @@ package validate
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/netappaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/netappaccounts"
 )
 
-func ValidateNetAppAccountID(input interface{}, key string) (warnings []string, errors []error) {
+// ValidateNetAppAccountID validates the NetApp Account ID
+func ValidateNetAppAccountID(input any, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))

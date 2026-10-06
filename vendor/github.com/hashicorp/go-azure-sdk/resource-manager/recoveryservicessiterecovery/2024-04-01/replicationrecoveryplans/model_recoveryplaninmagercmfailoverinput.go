@@ -15,6 +15,14 @@ type RecoveryPlanInMageRcmFailoverInput struct {
 	UseMultiVMSyncPoint *string               `json:"useMultiVmSyncPoint,omitempty"`
 
 	// Fields inherited from RecoveryPlanProviderSpecificFailoverInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s RecoveryPlanInMageRcmFailoverInput) RecoveryPlanProviderSpecificFailoverInput() BaseRecoveryPlanProviderSpecificFailoverInputImpl {
+	return BaseRecoveryPlanProviderSpecificFailoverInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = RecoveryPlanInMageRcmFailoverInput{}
@@ -28,9 +36,10 @@ func (s RecoveryPlanInMageRcmFailoverInput) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling RecoveryPlanInMageRcmFailoverInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "InMageRcm"
 
 	encoded, err = json.Marshal(decoded)

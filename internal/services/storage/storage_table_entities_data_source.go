@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -10,18 +10,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01/tables"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
+	storageAccountHelper "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/table/entities"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/table/tables"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/table/entities"
 )
 
 type storageTableEntitiesDataSource struct{}
@@ -29,26 +25,24 @@ type storageTableEntitiesDataSource struct{}
 var _ sdk.DataSource = storageTableEntitiesDataSource{}
 
 type TableEntitiesDataSourceModel struct {
-	StorageTableId     string                       `tfschema:"storage_table_id"`
-	TableName          string                       `tfschema:"table_name,removedInNextMajorVersion"`
-	StorageAccountName string                       `tfschema:"storage_account_name,removedInNextMajorVersion"`
-	Filter             string                       `tfschema:"filter"`
-	Select             []string                     `tfschema:"select"`
-	Items              []TableEntityDataSourceModel `tfschema:"items"`
+	StorageTableId string                       `tfschema:"storage_table_id"`
+	Filter         string                       `tfschema:"filter"`
+	Select         []string                     `tfschema:"select"`
+	Items          []TableEntityDataSourceModel `tfschema:"items"`
 }
 
 type TableEntityDataSourceModel struct {
-	PartitionKey string                 `tfschema:"partition_key"`
-	RowKey       string                 `tfschema:"row_key"`
-	Properties   map[string]interface{} `tfschema:"properties"`
+	PartitionKey string         `tfschema:"partition_key"`
+	RowKey       string         `tfschema:"row_key"`
+	Properties   map[string]any `tfschema:"properties"`
 }
 
 func (k storageTableEntitiesDataSource) Arguments() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"storage_table_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: storageValidate.StorageTableDataPlaneID,
+			ValidateFunc: tables.ValidateTableID,
 		},
 
 		"filter": {
@@ -65,35 +59,6 @@ func (k storageTableEntitiesDataSource) Arguments() map[string]*pluginsdk.Schema
 			},
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		s["storage_table_id"].Required = false
-		s["storage_table_id"].Optional = true
-		s["storage_table_id"].Computed = true
-		s["storage_table_id"].ConflictsWith = []string{"table_name", "storage_account_name"}
-
-		s["table_name"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Computed:      true,
-			Deprecated:    "the `table_name` and `storage_account_name` properties have been superseded by the `storage_table_id` property and will be removed in version 4.0 of the AzureRM provider",
-			ConflictsWith: []string{"storage_table_id"},
-			RequiredWith:  []string{"storage_account_name"},
-			ValidateFunc:  validate.StorageTableName,
-		}
-
-		s["storage_account_name"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Computed:      true,
-			Deprecated:    "the `table_name` and `storage_account_name` properties have been superseded by the `storage_table_id` property and will be removed in version 4.0 of the AzureRM provider",
-			ConflictsWith: []string{"storage_table_id"},
-			RequiredWith:  []string{"table_name"},
-			ValidateFunc:  validate.StorageAccountName,
-		}
-	}
-
-	return s
 }
 
 func (k storageTableEntitiesDataSource) Attributes() map[string]*pluginsdk.Schema {
@@ -126,7 +91,7 @@ func (k storageTableEntitiesDataSource) Attributes() map[string]*pluginsdk.Schem
 	}
 }
 
-func (k storageTableEntitiesDataSource) ModelObject() interface{} {
+func (k storageTableEntitiesDataSource) ModelObject() any {
 	return &TableEntitiesDataSourceModel{}
 }
 
@@ -144,53 +109,26 @@ func (k storageTableEntitiesDataSource) Read() sdk.ResourceFunc {
 			}
 
 			storageClient := metadata.Client.Storage
-			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var storageTableId *tables.TableId
+			var tableName string
+			var accountName string
+			var account *storageAccountHelper.AccountDetails
 			var err error
-			if model.StorageTableId != "" {
-				storageTableId, err = tables.ParseTableID(model.StorageTableId, storageClient.StorageDomainSuffix)
-				if err != nil {
-					return err
-				}
-			} else if !features.FourPointOhBeta() {
-				// TODO: this is needed until `table_name` / `storage_account_name` are removed in favor of `storage_table_id` in v4.0
-				// we will retrieve the storage account twice but this will make it easier to refactor later
-				storageAccountName := model.StorageAccountName
 
-				account, err := storageClient.FindAccount(ctx, subscriptionId, storageAccountName)
-				if err != nil {
-					return fmt.Errorf("retrieving Account %q: %v", storageAccountName, err)
-				}
-				if account == nil {
-					return fmt.Errorf("locating Storage Account %q", storageAccountName)
-				}
-
-				// Determine the table endpoint, so we can build a data plane ID
-				endpoint, err := account.DataPlaneEndpoint(client.EndpointTypeTable)
-				if err != nil {
-					return fmt.Errorf("determining Table endpoint: %v", err)
-				}
-
-				// Parse the table endpoint as a data plane account ID
-				accountId, err := accounts.ParseAccountID(*endpoint, storageClient.StorageDomainSuffix)
-				if err != nil {
-					return fmt.Errorf("parsing Account ID: %v", err)
-				}
-
-				storageTableId = pointer.To(tables.NewTableID(*accountId, model.TableName))
-			}
-
-			if storageTableId == nil {
-				return fmt.Errorf("determining storage table ID")
-			}
-
-			account, err := storageClient.FindAccount(ctx, subscriptionId, storageTableId.AccountId.AccountName)
+			storageTableId, err := tables.ParseTableID(model.StorageTableId)
 			if err != nil {
-				return fmt.Errorf("retrieving Account %q for Table %q: %v", storageTableId.AccountId.AccountName, storageTableId.TableName, err)
+				return err
 			}
+			tableName = storageTableId.TableName
+			accountName = storageTableId.StorageAccountName
+			storageAccountId := commonids.NewStorageAccountID(storageTableId.SubscriptionId, storageTableId.ResourceGroupName, storageTableId.StorageAccountName)
+			account, err = storageClient.GetAccount(ctx, storageAccountId)
+			if err != nil {
+				return fmt.Errorf("retrieving Account %q for Table %q: %v", accountName, tableName, err)
+			}
+
 			if account == nil {
-				return fmt.Errorf("the parent Storage Account %s was not found", storageTableId.AccountId.AccountName)
+				return fmt.Errorf("the parent Storage Account %s was not found", accountName)
 			}
 
 			client, err := storageClient.TableEntityDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
@@ -208,11 +146,9 @@ func (k storageTableEntitiesDataSource) Read() sdk.ResourceFunc {
 				input.PropertyNamesToSelect = &model.Select
 			}
 
-			id := parse.NewStorageTableEntitiesId(storageTableId.AccountId.AccountName, storageClient.StorageDomainSuffix, storageTableId.TableName, model.Filter)
-
-			result, err := client.Query(ctx, storageTableId.TableName, input)
+			result, err := client.Query(ctx, tableName, input)
 			if err != nil {
-				return fmt.Errorf("retrieving Entities (Filter %q) (Table %q in %s): %+v", model.Filter, storageTableId.TableName, account.StorageAccountId, err)
+				return fmt.Errorf("retrieving Entities (Filter %q) (Table %q in %s): %+v", model.Filter, tableName, account.StorageAccountId, err)
 			}
 
 			var flattenedEntities []TableEntityDataSourceModel
@@ -225,7 +161,7 @@ func (k storageTableEntitiesDataSource) Read() sdk.ResourceFunc {
 				flattenedEntities = append(flattenedEntities, flattenedEntity)
 			}
 			model.Items = flattenedEntities
-			metadata.SetID(id)
+			metadata.SetID(parse.NewStorageTableEntitiesId(accountName, storageClient.StorageDomainSuffix, tableName, model.Filter))
 
 			return metadata.Encode(&model)
 		},
@@ -233,12 +169,12 @@ func (k storageTableEntitiesDataSource) Read() sdk.ResourceFunc {
 }
 
 // The api returns extra information that we already have. We'll remove it here before setting it in state.
-func flattenEntityWithMetadata(entity map[string]interface{}) TableEntityDataSourceModel {
+func flattenEntityWithMetadata(entity map[string]any) TableEntityDataSourceModel {
 	delete(entity, "Timestamp")
 
 	result := TableEntityDataSourceModel{}
 
-	properties := map[string]interface{}{}
+	properties := map[string]any{}
 	for k, v := range entity {
 		if k == "PartitionKey" {
 			result.PartitionKey = v.(string)
@@ -272,7 +208,7 @@ func flattenEntityWithMetadata(entity map[string]interface{}) TableEntityDataSou
 			properties[k+"@odata.type"] = dtype
 		} else {
 			// special handling for property types that do not require the annotation to be present
-			// https://docs.microsoft.com/en-us/rest/api/storageservices/payload-format-for-table-service-operations#property-types-in-a-json-feed
+			// https://docs.microsoft.com/rest/api/storageservices/payload-format-for-table-service-operations#property-types-in-a-json-feed
 			switch c := v.(type) {
 			case bool:
 				properties[k] = fmt.Sprint(v)

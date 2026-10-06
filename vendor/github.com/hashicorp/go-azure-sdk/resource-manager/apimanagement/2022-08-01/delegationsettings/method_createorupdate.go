@@ -36,6 +36,7 @@ func (o CreateOrUpdateOperationOptions) ToHeaders() *client.Headers {
 
 func (o CreateOrUpdateOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -78,7 +79,6 @@ func (c DelegationSettingsClient) CreateOrUpdate(ctx context.Context, id Service
 
 	var model PortalDelegationSettings
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -34,6 +34,7 @@ func (o AppsGetOperationOptions) ToHeaders() *client.Headers {
 
 func (o AppsGetOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -74,7 +75,6 @@ func (c AppPlatformClient) AppsGet(ctx context.Context, id AppId, options AppsGe
 
 	var model AppResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

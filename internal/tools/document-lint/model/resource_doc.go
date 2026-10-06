@@ -1,10 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package model
 
 import (
 	"log"
+	"maps"
 	"strconv"
 	"strings"
 
@@ -220,13 +221,13 @@ func (p Properties) FindAllSubBlock(name string) (res []*Field) {
 }
 
 type PossibleValue struct {
-	Valeus []string
+	Values []string
 	Field  *Field
 }
 
 func NewPossibleValue(values []string, f *Field) PossibleValue {
 	return PossibleValue{
-		Valeus: values,
+		Values: values,
 		Field:  f,
 	}
 }
@@ -290,9 +291,7 @@ func (r *ResourceDoc) SetTimeout(lineNum int, line string) {
 
 func (r *ResourceDoc) AllProp() Properties {
 	res := Properties{}
-	for k, v := range r.Args {
-		res[k] = v
-	}
+	maps.Copy(res, r.Args)
 	for k, v := range r.Attr {
 		// merge back to args if exists in both arg and attr
 		if arg, ok := res[k]; ok {
@@ -311,9 +310,10 @@ func (r *ResourceDoc) AllProp() Properties {
 }
 
 func (r *ResourceDoc) CurProp(pos PosType) Properties {
-	if pos == PosArgs {
+	switch pos {
+	case PosArgs:
 		return r.Args
-	} else if pos == PosAttr {
+	case PosAttr:
 		return r.Attr
 	}
 	return nil

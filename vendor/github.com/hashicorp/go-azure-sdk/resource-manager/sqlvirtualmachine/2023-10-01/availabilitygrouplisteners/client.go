@@ -15,7 +15,7 @@ type AvailabilityGroupListenersClient struct {
 }
 
 func NewAvailabilityGroupListenersClientWithBaseURI(sdkApi sdkEnv.Api) (*AvailabilityGroupListenersClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "availabilitygrouplisteners", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "availabilitygrouplisteners", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating AvailabilityGroupListenersClient: %+v", err)
 	}

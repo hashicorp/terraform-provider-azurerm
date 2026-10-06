@@ -15,7 +15,7 @@ type MonitoredResourcesClient struct {
 }
 
 func NewMonitoredResourcesClientWithBaseURI(sdkApi sdkEnv.Api) (*MonitoredResourcesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "monitoredresources", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "monitoredresources", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating MonitoredResourcesClient: %+v", err)
 	}

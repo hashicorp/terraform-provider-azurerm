@@ -17,10 +17,12 @@ type CreateProtectionContainerMappingInputProperties struct {
 var _ json.Unmarshaler = &CreateProtectionContainerMappingInputProperties{}
 
 func (s *CreateProtectionContainerMappingInputProperties) UnmarshalJSON(bytes []byte) error {
-	type alias CreateProtectionContainerMappingInputProperties
-	var decoded alias
+	var decoded struct {
+		PolicyId                    *string `json:"policyId,omitempty"`
+		TargetProtectionContainerId *string `json:"targetProtectionContainerId,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into CreateProtectionContainerMappingInputProperties: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.PolicyId = decoded.PolicyId
@@ -32,11 +34,12 @@ func (s *CreateProtectionContainerMappingInputProperties) UnmarshalJSON(bytes []
 	}
 
 	if v, ok := temp["providerSpecificInput"]; ok {
-		impl, err := unmarshalReplicationProviderSpecificContainerMappingInputImplementation(v)
+		impl, err := UnmarshalReplicationProviderSpecificContainerMappingInputImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'ProviderSpecificInput' for 'CreateProtectionContainerMappingInputProperties': %+v", err)
 		}
 		s.ProviderSpecificInput = impl
 	}
+
 	return nil
 }

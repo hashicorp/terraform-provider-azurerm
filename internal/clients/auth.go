@@ -1,10 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package clients
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -14,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/claims"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/graph"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 )
 
@@ -47,10 +47,7 @@ func NewResourceManagerAccount(ctx context.Context, config auth.Credentials, sub
 		return nil, fmt.Errorf("parsing claims from access token: %+v", err)
 	}
 
-	authenticatedAsServicePrincipal := true
-	if strings.Contains(strings.ToLower(tokenClaims.Scopes), "openid") {
-		authenticatedAsServicePrincipal = false
-	}
+	authenticatedAsServicePrincipal := !strings.Contains(strings.ToLower(tokenClaims.Scopes), "openid")
 
 	clientId := tokenClaims.AppId
 	if clientId == "" {
@@ -85,7 +82,7 @@ func NewResourceManagerAccount(ctx context.Context, config auth.Credentials, sub
 		tenantId = config.TenantID
 	}
 
-	// Finally, defer to Azure CLI to obtain tenant ID and client ID when not specified and missing from claims
+	// Finally, defer to Azure CLI to obtain tenant ID, subscription ID and client ID when not specified and missing from claims
 	realAuthorizer := authorizer
 	if cache, ok := authorizer.(*auth.CachedAuthorizer); ok {
 		realAuthorizer = cache.Source
@@ -94,23 +91,10 @@ func NewResourceManagerAccount(ctx context.Context, config auth.Credentials, sub
 		// Use the tenant ID from Azure CLI when otherwise unknown
 		if tenantId == "" {
 			if cli.TenantID == "" {
-				return nil, fmt.Errorf("azure-cli could not determine tenant ID to use")
+				return nil, errors.New("azure-cli could not determine tenant ID to use")
 			}
 			tenantId = cli.TenantID
 			log.Printf("[DEBUG] Using tenant ID from Azure CLI: %q", tenantId)
-		}
-
-		// TODO: remove this in v4.0
-		if !features.FourPointOhBeta() {
-			// Use the subscription ID from Azure CLI when otherwise unknown
-			if subscriptionId == "" {
-				if cli.DefaultSubscriptionID == "" {
-					return nil, fmt.Errorf("azure-cli could not determine subscription ID to use and no subscription was specified")
-				}
-
-				subscriptionId = cli.DefaultSubscriptionID
-				log.Printf("[DEBUG] Using default subscription ID from Azure CLI: %q", subscriptionId)
-			}
 		}
 
 		// Use the Azure CLI client ID
@@ -118,14 +102,20 @@ func NewResourceManagerAccount(ctx context.Context, config auth.Credentials, sub
 			clientId = *id
 			log.Printf("[DEBUG] Using client ID from Azure CLI: %q", clientId)
 		}
+
+		// Use the Azure CLI default subscription ID
+		if subscriptionId == "" {
+			subscriptionId = cli.DefaultSubscriptionID
+			log.Printf("[DEBUG] Using the default subscription ID from Azure CLI: %q", subscriptionId)
+		}
 	}
 
 	// We'll permit the provider to proceed with an unknown client ID since it only affects a small number of use cases when authenticating as a user
 	if tenantId == "" {
-		return nil, fmt.Errorf("unable to configure ResourceManagerAccount: tenant ID could not be determined and was not specified")
+		return nil, errors.New("unable to configure ResourceManagerAccount: tenant ID could not be determined and was not specified")
 	}
 	if subscriptionId == "" {
-		return nil, fmt.Errorf("unable to configure ResourceManagerAccount: subscription ID could not be determined and was not specified")
+		return nil, errors.New("unable to configure ResourceManagerAccount: subscription ID could not be determined and was not specified")
 	}
 
 	account := ResourceManagerAccount{

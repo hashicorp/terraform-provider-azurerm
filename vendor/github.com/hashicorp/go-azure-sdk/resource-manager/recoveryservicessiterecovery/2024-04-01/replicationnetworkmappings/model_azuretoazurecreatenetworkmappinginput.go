@@ -14,6 +14,14 @@ type AzureToAzureCreateNetworkMappingInput struct {
 	PrimaryNetworkId string `json:"primaryNetworkId"`
 
 	// Fields inherited from FabricSpecificCreateNetworkMappingInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s AzureToAzureCreateNetworkMappingInput) FabricSpecificCreateNetworkMappingInput() BaseFabricSpecificCreateNetworkMappingInputImpl {
+	return BaseFabricSpecificCreateNetworkMappingInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = AzureToAzureCreateNetworkMappingInput{}
@@ -27,9 +35,10 @@ func (s AzureToAzureCreateNetworkMappingInput) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AzureToAzureCreateNetworkMappingInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "AzureToAzure"
 
 	encoded, err = json.Marshal(decoded)

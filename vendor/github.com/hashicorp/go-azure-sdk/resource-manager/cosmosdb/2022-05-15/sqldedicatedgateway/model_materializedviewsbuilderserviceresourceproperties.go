@@ -17,10 +17,22 @@ type MaterializedViewsBuilderServiceResourceProperties struct {
 	Locations *[]RegionalServiceResource `json:"locations,omitempty"`
 
 	// Fields inherited from ServiceResourceProperties
+
 	CreationTime  *string        `json:"creationTime,omitempty"`
 	InstanceCount *int64         `json:"instanceCount,omitempty"`
 	InstanceSize  *ServiceSize   `json:"instanceSize,omitempty"`
+	ServiceType   ServiceType    `json:"serviceType"`
 	Status        *ServiceStatus `json:"status,omitempty"`
+}
+
+func (s MaterializedViewsBuilderServiceResourceProperties) ServiceResourceProperties() BaseServiceResourcePropertiesImpl {
+	return BaseServiceResourcePropertiesImpl{
+		CreationTime:  s.CreationTime,
+		InstanceCount: s.InstanceCount,
+		InstanceSize:  s.InstanceSize,
+		ServiceType:   s.ServiceType,
+		Status:        s.Status,
+	}
 }
 
 func (o *MaterializedViewsBuilderServiceResourceProperties) GetCreationTimeAsTime() (*time.Time, error) {
@@ -46,9 +58,10 @@ func (s MaterializedViewsBuilderServiceResourceProperties) MarshalJSON() ([]byte
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling MaterializedViewsBuilderServiceResourceProperties: %+v", err)
 	}
+
 	decoded["serviceType"] = "MaterializedViewsBuilder"
 
 	encoded, err = json.Marshal(decoded)

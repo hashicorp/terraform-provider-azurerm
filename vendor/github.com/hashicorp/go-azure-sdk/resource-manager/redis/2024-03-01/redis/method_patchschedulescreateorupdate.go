@@ -51,7 +51,6 @@ func (c RedisClient) PatchSchedulesCreateOrUpdate(ctx context.Context, id RediId
 
 	var model RedisPatchSchedule
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -71,10 +71,39 @@ func (o *ReplicationProtectedItemProperties) SetLastSuccessfulTestFailoverTimeAs
 var _ json.Unmarshaler = &ReplicationProtectedItemProperties{}
 
 func (s *ReplicationProtectedItemProperties) UnmarshalJSON(bytes []byte) error {
-	type alias ReplicationProtectedItemProperties
-	var decoded alias
+	var decoded struct {
+		ActiveLocation                          *string                 `json:"activeLocation,omitempty"`
+		AllowedOperations                       *[]string               `json:"allowedOperations,omitempty"`
+		CurrentScenario                         *CurrentScenarioDetails `json:"currentScenario,omitempty"`
+		EventCorrelationId                      *string                 `json:"eventCorrelationId,omitempty"`
+		FailoverHealth                          *string                 `json:"failoverHealth,omitempty"`
+		FailoverRecoveryPointId                 *string                 `json:"failoverRecoveryPointId,omitempty"`
+		FriendlyName                            *string                 `json:"friendlyName,omitempty"`
+		HealthErrors                            *[]HealthError          `json:"healthErrors,omitempty"`
+		LastSuccessfulFailoverTime              *string                 `json:"lastSuccessfulFailoverTime,omitempty"`
+		LastSuccessfulTestFailoverTime          *string                 `json:"lastSuccessfulTestFailoverTime,omitempty"`
+		PolicyFriendlyName                      *string                 `json:"policyFriendlyName,omitempty"`
+		PolicyId                                *string                 `json:"policyId,omitempty"`
+		PrimaryFabricFriendlyName               *string                 `json:"primaryFabricFriendlyName,omitempty"`
+		PrimaryFabricProvider                   *string                 `json:"primaryFabricProvider,omitempty"`
+		PrimaryProtectionContainerFriendlyName  *string                 `json:"primaryProtectionContainerFriendlyName,omitempty"`
+		ProtectableItemId                       *string                 `json:"protectableItemId,omitempty"`
+		ProtectedItemType                       *string                 `json:"protectedItemType,omitempty"`
+		ProtectionState                         *string                 `json:"protectionState,omitempty"`
+		ProtectionStateDescription              *string                 `json:"protectionStateDescription,omitempty"`
+		RecoveryContainerId                     *string                 `json:"recoveryContainerId,omitempty"`
+		RecoveryFabricFriendlyName              *string                 `json:"recoveryFabricFriendlyName,omitempty"`
+		RecoveryFabricId                        *string                 `json:"recoveryFabricId,omitempty"`
+		RecoveryProtectionContainerFriendlyName *string                 `json:"recoveryProtectionContainerFriendlyName,omitempty"`
+		RecoveryServicesProviderId              *string                 `json:"recoveryServicesProviderId,omitempty"`
+		ReplicationHealth                       *string                 `json:"replicationHealth,omitempty"`
+		SwitchProviderState                     *string                 `json:"switchProviderState,omitempty"`
+		SwitchProviderStateDescription          *string                 `json:"switchProviderStateDescription,omitempty"`
+		TestFailoverState                       *string                 `json:"testFailoverState,omitempty"`
+		TestFailoverStateDescription            *string                 `json:"testFailoverStateDescription,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into ReplicationProtectedItemProperties: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.ActiveLocation = decoded.ActiveLocation
@@ -113,11 +142,12 @@ func (s *ReplicationProtectedItemProperties) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["providerSpecificDetails"]; ok {
-		impl, err := unmarshalReplicationProviderSpecificSettingsImplementation(v)
+		impl, err := UnmarshalReplicationProviderSpecificSettingsImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'ProviderSpecificDetails' for 'ReplicationProtectedItemProperties': %+v", err)
 		}
 		s.ProviderSpecificDetails = impl
 	}
+
 	return nil
 }

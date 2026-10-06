@@ -15,6 +15,14 @@ type A2ATestFailoverInput struct {
 	RecoveryPointId            *string `json:"recoveryPointId,omitempty"`
 
 	// Fields inherited from TestFailoverProviderSpecificInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s A2ATestFailoverInput) TestFailoverProviderSpecificInput() BaseTestFailoverProviderSpecificInputImpl {
+	return BaseTestFailoverProviderSpecificInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = A2ATestFailoverInput{}
@@ -28,9 +36,10 @@ func (s A2ATestFailoverInput) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling A2ATestFailoverInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "A2A"
 
 	encoded, err = json.Marshal(decoded)

@@ -10,18 +10,39 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type PolicyProviderSpecificInput interface {
+	PolicyProviderSpecificInput() BasePolicyProviderSpecificInputImpl
 }
 
-// RawPolicyProviderSpecificInputImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+var _ PolicyProviderSpecificInput = BasePolicyProviderSpecificInputImpl{}
+
+type BasePolicyProviderSpecificInputImpl struct {
+	InstanceType string `json:"instanceType"`
+}
+
+func (s BasePolicyProviderSpecificInputImpl) PolicyProviderSpecificInput() BasePolicyProviderSpecificInputImpl {
+	return s
+}
+
+var _ PolicyProviderSpecificInput = RawPolicyProviderSpecificInputImpl{}
+
+// RawPolicyProviderSpecificInputImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawPolicyProviderSpecificInputImpl struct {
-	Type   string
-	Values map[string]interface{}
+	policyProviderSpecificInput BasePolicyProviderSpecificInputImpl
+	Type                        string
+	Values                      map[string]interface{}
 }
 
-func unmarshalPolicyProviderSpecificInputImplementation(input []byte) (PolicyProviderSpecificInput, error) {
+func (s RawPolicyProviderSpecificInputImpl) PolicyProviderSpecificInput() BasePolicyProviderSpecificInputImpl {
+	return s.policyProviderSpecificInput
+}
+
+func (s RawPolicyProviderSpecificInputImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
+}
+
+func UnmarshalPolicyProviderSpecificInputImplementation(input []byte) (PolicyProviderSpecificInput, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +52,9 @@ func unmarshalPolicyProviderSpecificInputImplementation(input []byte) (PolicyPro
 		return nil, fmt.Errorf("unmarshaling PolicyProviderSpecificInput into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["instanceType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["instanceType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "A2ACrossClusterMigration") {
@@ -108,10 +129,15 @@ func unmarshalPolicyProviderSpecificInputImplementation(input []byte) (PolicyPro
 		return out, nil
 	}
 
-	out := RawPolicyProviderSpecificInputImpl{
-		Type:   value,
-		Values: temp,
+	var parent BasePolicyProviderSpecificInputImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BasePolicyProviderSpecificInputImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawPolicyProviderSpecificInputImpl{
+		policyProviderSpecificInput: parent,
+		Type:                        value,
+		Values:                      temp,
+	}, nil
 
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sdk
@@ -13,8 +13,8 @@ import (
 // Encode will encode the specified object into the Terraform State
 // NOTE: this requires that the object passed in is a pointer and
 // all fields contain `tfschema` struct tags
-func (rmd ResourceMetaData) Encode(input interface{}) error {
-	if reflect.TypeOf(input).Kind() != reflect.Ptr {
+func (rmd ResourceMetaData) Encode(input any) error {
+	if reflect.TypeOf(input).Kind() != reflect.Pointer {
 		return fmt.Errorf("need a pointer")
 	}
 
@@ -27,7 +27,7 @@ func (rmd ResourceMetaData) Encode(input interface{}) error {
 	}
 
 	for k, v := range serialized {
-		//lintignore:R001
+		// lintignore:R001
 		if err := rmd.ResourceData.Set(k, v); err != nil {
 			return fmt.Errorf("setting %q: %+v", k, err)
 		}
@@ -35,7 +35,7 @@ func (rmd ResourceMetaData) Encode(input interface{}) error {
 	return nil
 }
 
-func recurse(objType reflect.Type, objVal reflect.Value, debugLogger Logger) (output map[string]interface{}, errOut error) {
+func recurse(objType reflect.Type, objVal reflect.Value, debugLogger Logger) (output map[string]any, errOut error) {
 	var fieldName string
 	defer func() {
 		if r := recover(); r != nil {
@@ -49,7 +49,7 @@ func recurse(objType reflect.Type, objVal reflect.Value, debugLogger Logger) (ou
 		}
 	}()
 
-	output = make(map[string]interface{})
+	output = make(map[string]any)
 	for i := 0; i < objType.NumField(); i++ {
 		field := objType.Field(i)
 		fieldName = field.Name
@@ -60,12 +60,12 @@ func recurse(objType reflect.Type, objVal reflect.Value, debugLogger Logger) (ou
 		}
 
 		if structTags != nil {
-			if structTags.removedInNextMajorVersion && features.FourPointOhBeta() {
+			if structTags.removedInNextMajorVersion && features.SixPointOh() {
 				debugLogger.Infof("The HCL Path %q is marked as removed - skipping", structTags.hclPath)
 				continue
 			}
 
-			if structTags.addedInNextMajorVersion && !features.FourPointOhBeta() {
+			if structTags.addedInNextMajorVersion && !features.SixPointOh() {
 				debugLogger.Infof("The HCL Path %q is marked as not yet present - skipping", structTags.hclPath)
 				continue
 			}
@@ -93,7 +93,7 @@ func recurse(objType reflect.Type, objVal reflect.Value, debugLogger Logger) (ou
 
 			case reflect.Map:
 				iter := fieldVal.MapRange()
-				attr := make(map[string]interface{})
+				attr := make(map[string]any)
 				for iter.Next() {
 					attr[iter.Key().String()] = iter.Value().Interface()
 				}
@@ -101,7 +101,7 @@ func recurse(objType reflect.Type, objVal reflect.Value, debugLogger Logger) (ou
 
 			case reflect.Slice:
 				sv := fieldVal.Slice(0, fieldVal.Len())
-				attr := make([]interface{}, sv.Len())
+				attr := make([]any, sv.Len())
 				switch sv.Type().Elem().Kind() {
 				case reflect.String:
 					debugLogger.Infof("Setting %q to []string", structTags.hclPath)
@@ -178,7 +178,7 @@ func recurse(objType reflect.Type, objVal reflect.Value, debugLogger Logger) (ou
 
 					case reflect.Map:
 						iter := pv.MapRange()
-						attr := make(map[string]interface{})
+						attr := make(map[string]any)
 						for iter.Next() {
 							attr[iter.Key().String()] = iter.Value().Interface()
 						}
@@ -186,7 +186,7 @@ func recurse(objType reflect.Type, objVal reflect.Value, debugLogger Logger) (ou
 
 					case reflect.Slice:
 						sv := pv.Slice(0, pv.Len())
-						attr := make([]interface{}, sv.Len())
+						attr := make([]any, sv.Len())
 						switch sv.Type().Elem().Kind() {
 						case reflect.String:
 							debugLogger.Infof("Setting %q to []string", structTags.hclPath)
@@ -236,7 +236,6 @@ func recurse(objType reflect.Type, objVal reflect.Value, debugLogger Logger) (ou
 							debugLogger.Infof("[SLICE] Setting %q to %+v", structTags.hclPath, attr)
 							output[structTags.hclPath] = attr
 						}
-
 					}
 				} else {
 					debugLogger.Infof("Setting %q to nil", structTags.hclPath)

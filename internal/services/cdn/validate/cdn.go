@@ -1,10 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
 
 import (
-	"fmt"
+	"errors"
 	"regexp"
 	"strings"
 
@@ -34,19 +34,20 @@ func RuleActionUrlRedirectPath() pluginsdk.SchemaValidateFunc {
 }
 
 func RuleActionUrlRedirectQueryString() pluginsdk.SchemaValidateFunc {
-	return func(i interface{}, s string) ([]string, []error) {
+	// lintignore:V011,V001 // false positive - this validates each key=value segment of a query string with two tailored errors; the len() check skips empty segments, there is no length rule
+	return func(i any, s string) ([]string, []error) {
 		querystring := i.(string)
 
 		re := regexp.MustCompile("^[?&]")
 		if re.MatchString(querystring) {
-			return nil, []error{fmt.Errorf("the Url Query String must not start with a question mark or ampersand")}
+			return nil, []error{errors.New("the Url Query String must not start with a question mark or ampersand")}
 		}
 
 		kvre := regexp.MustCompile("^[^?&]+=[^?&]+$")
-		kvs := strings.Split(querystring, "&")
-		for _, kv := range kvs {
+		kvs := strings.SplitSeq(querystring, "&")
+		for kv := range kvs {
 			if len(kv) > 0 && !kvre.MatchString(kv) {
-				return nil, []error{fmt.Errorf("the Url Query String must be in <key>=<value> format and separated by an ampersand")}
+				return nil, []error{errors.New("the Url Query String must be in <key>=<value> format and separated by an ampersand")}
 			}
 		}
 

@@ -37,6 +37,7 @@ func (o RegisterUserProvidedFunctionAppWithStaticSiteOperationOptions) ToHeaders
 
 func (o RegisterUserProvidedFunctionAppWithStaticSiteOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -90,9 +91,20 @@ func (c StaticSitesClient) RegisterUserProvidedFunctionAppWithStaticSite(ctx con
 
 // RegisterUserProvidedFunctionAppWithStaticSiteThenPoll performs RegisterUserProvidedFunctionAppWithStaticSite then polls until it's completed
 func (c StaticSitesClient) RegisterUserProvidedFunctionAppWithStaticSiteThenPoll(ctx context.Context, id UserProvidedFunctionAppId, input StaticSiteUserProvidedFunctionAppARMResource, options RegisterUserProvidedFunctionAppWithStaticSiteOperationOptions) error {
+	return c.RegisterUserProvidedFunctionAppWithStaticSiteCallbackThenPoll(ctx, id, input, options, nil)
+}
+
+// RegisterUserProvidedFunctionAppWithStaticSiteCallbackThenPoll performs RegisterUserProvidedFunctionAppWithStaticSite, runs the optional callback function, then polls until it's completed
+func (c StaticSitesClient) RegisterUserProvidedFunctionAppWithStaticSiteCallbackThenPoll(ctx context.Context, id UserProvidedFunctionAppId, input StaticSiteUserProvidedFunctionAppARMResource, options RegisterUserProvidedFunctionAppWithStaticSiteOperationOptions, callback func() error) error {
 	result, err := c.RegisterUserProvidedFunctionAppWithStaticSite(ctx, id, input, options)
 	if err != nil {
 		return fmt.Errorf("performing RegisterUserProvidedFunctionAppWithStaticSite: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

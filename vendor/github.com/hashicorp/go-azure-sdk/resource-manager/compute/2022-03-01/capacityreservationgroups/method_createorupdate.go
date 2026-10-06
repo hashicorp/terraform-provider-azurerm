@@ -50,7 +50,6 @@ func (c CapacityReservationGroupsClient) CreateOrUpdate(ctx context.Context, id 
 
 	var model CapacityReservationGroup
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -14,8 +14,18 @@ type ManagedIdentityCredential struct {
 	TypeProperties *ManagedIdentityTypeProperties `json:"typeProperties,omitempty"`
 
 	// Fields inherited from Credential
+
 	Annotations *[]interface{} `json:"annotations,omitempty"`
 	Description *string        `json:"description,omitempty"`
+	Type        string         `json:"type"`
+}
+
+func (s ManagedIdentityCredential) Credential() BaseCredentialImpl {
+	return BaseCredentialImpl{
+		Annotations: s.Annotations,
+		Description: s.Description,
+		Type:        s.Type,
+	}
 }
 
 var _ json.Marshaler = ManagedIdentityCredential{}
@@ -29,9 +39,10 @@ func (s ManagedIdentityCredential) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling ManagedIdentityCredential: %+v", err)
 	}
+
 	decoded["type"] = "ManagedIdentity"
 
 	encoded, err = json.Marshal(decoded)

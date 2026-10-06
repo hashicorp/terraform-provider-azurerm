@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute_test
@@ -688,6 +688,10 @@ func (WindowsVirtualMachineResource) templateBaseForOchestratedVMSS(data accepta
 	return fmt.Sprintf(`
 locals {
   vm_name = "acctestvm%s"
+}
+
+provider "azurerm" {
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {

@@ -15,7 +15,7 @@ type OrdersClient struct {
 }
 
 func NewOrdersClientWithBaseURI(sdkApi sdkEnv.Api) (*OrdersClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "orders", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "orders", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating OrdersClient: %+v", err)
 	}

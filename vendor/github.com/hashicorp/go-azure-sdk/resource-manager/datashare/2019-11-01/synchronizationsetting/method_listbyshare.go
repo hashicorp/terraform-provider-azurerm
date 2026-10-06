@@ -73,7 +73,7 @@ func (c SynchronizationSettingClient) ListByShare(ctx context.Context, id ShareI
 	temp := make([]SynchronizationSetting, 0)
 	if values.Values != nil {
 		for i, v := range *values.Values {
-			val, err := unmarshalSynchronizationSettingImplementation(v)
+			val, err := UnmarshalSynchronizationSettingImplementation(v)
 			if err != nil {
 				err = fmt.Errorf("unmarshalling item %d for SynchronizationSetting (%q): %+v", i, v, err)
 				return result, err

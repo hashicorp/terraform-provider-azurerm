@@ -40,6 +40,7 @@ func (o CreateOrReplaceOperationOptions) ToHeaders() *client.Headers {
 
 func (o CreateOrReplaceOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -83,7 +84,6 @@ func (c InputsClient) CreateOrReplace(ctx context.Context, id InputId, input Inp
 
 	var model Input
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

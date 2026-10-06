@@ -38,18 +38,17 @@ func initOptions() {
 		{Name: "dcpop", Feature: &ARM64.HasDCPOP},
 		{Name: "asimddp", Feature: &ARM64.HasASIMDDP},
 		{Name: "asimdfhm", Feature: &ARM64.HasASIMDFHM},
+		{Name: "dit", Feature: &ARM64.HasDIT},
+		{Name: "i8mm", Feature: &ARM64.HasI8MM},
 	}
 }
 
 func archInit() {
-	switch runtime.GOOS {
-	case "freebsd":
+	if runtime.GOOS == "freebsd" {
 		readARM64Registers()
-	case "linux", "netbsd", "openbsd":
+	} else {
+		// Most platforms don't seem to allow directly reading these registers.
 		doinit()
-	default:
-		// Many platforms don't seem to allow reading these registers.
-		setMinimalFeatures()
 	}
 }
 
@@ -145,6 +144,11 @@ func parseARM64SystemRegisters(isar0, isar1, pfr0 uint64) {
 		ARM64.HasLRCPC = true
 	}
 
+	switch extractBits(isar1, 52, 55) {
+	case 1:
+		ARM64.HasI8MM = true
+	}
+
 	// ID_AA64PFR0_EL1
 	switch extractBits(pfr0, 16, 19) {
 	case 0:
@@ -167,6 +171,11 @@ func parseARM64SystemRegisters(isar0, isar1, pfr0 uint64) {
 		ARM64.HasSVE = true
 
 		parseARM64SVERegister(getzfr0())
+	}
+
+	switch extractBits(pfr0, 48, 51) {
+	case 1:
+		ARM64.HasDIT = true
 	}
 }
 

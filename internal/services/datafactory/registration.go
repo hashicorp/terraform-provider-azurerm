@@ -1,18 +1,22 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory
 
 import (
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-plugin-framework/action"
+	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
 
-var _ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
-var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+var (
+	_ sdk.FrameworkServiceRegistration               = Registration{}
+	_ sdk.TypedServiceRegistrationWithAGitHubLabel   = Registration{}
+	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+)
 
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/data-factory"
@@ -39,9 +43,11 @@ func (Registration) DataSources() []sdk.DataSource {
 
 func (Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		DataFactoryDatasetAzureSQLTableResource{},
 		DataFactoryCredentialServicePrincipalResource{},
 		DataFactoryCredentialUserAssignedManagedIdentityResource{},
+		DataFactoryCustomerManagedKeyResource{},
+		DataFactoryDatasetAzureSQLTableResource{},
+		LinkedServiceSqlManagedInstanceResource{},
 	}
 }
 
@@ -54,10 +60,10 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-	resources := map[string]*pluginsdk.Resource{
+	return map[string]*pluginsdk.Resource{
 		"azurerm_data_factory":                                       resourceDataFactory(),
+		"azurerm_data_factory_custom_dataset":                        resourceDataFactoryCustomDataset(),
 		"azurerm_data_factory_data_flow":                             resourceDataFactoryDataFlow(),
-		"azurerm_data_factory_flowlet_data_flow":                     resourceDataFactoryFlowletDataFlow(),
 		"azurerm_data_factory_dataset_azure_blob":                    resourceDataFactoryDatasetAzureBlob(),
 		"azurerm_data_factory_dataset_binary":                        resourceDataFactoryDatasetBinary(),
 		"azurerm_data_factory_dataset_cosmosdb_sqlapi":               resourceDataFactoryDatasetCosmosDbSQLAPI(),
@@ -69,7 +75,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_data_factory_dataset_postgresql":                    resourceDataFactoryDatasetPostgreSQL(),
 		"azurerm_data_factory_dataset_snowflake":                     resourceDataFactoryDatasetSnowflake(),
 		"azurerm_data_factory_dataset_sql_server_table":              resourceDataFactoryDatasetSQLServerTable(),
-		"azurerm_data_factory_custom_dataset":                        resourceDataFactoryCustomDataset(),
+		"azurerm_data_factory_flowlet_data_flow":                     resourceDataFactoryFlowletDataFlow(),
 		"azurerm_data_factory_integration_runtime_azure":             resourceDataFactoryIntegrationRuntimeAzure(),
 		"azurerm_data_factory_integration_runtime_azure_ssis":        resourceDataFactoryIntegrationRuntimeAzureSsis(),
 		"azurerm_data_factory_integration_runtime_self_hosted":       resourceDataFactoryIntegrationRuntimeSelfHosted(),
@@ -102,10 +108,24 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_data_factory_trigger_schedule":                      resourceDataFactoryTriggerSchedule(),
 		"azurerm_data_factory_trigger_tumbling_window":               resourceDataFactoryTriggerTumblingWindow(),
 	}
+}
 
-	if !features.FourPointOhBeta() {
-		resources["azurerm_data_factory_integration_runtime_managed"] = resourceDataFactoryIntegrationRuntimeManaged()
-	}
+func (r Registration) Actions() []func() action.Action {
+	return []func() action.Action{}
+}
 
-	return resources
+func (r Registration) FrameworkResources() []sdk.FrameworkWrappedResource {
+	return []sdk.FrameworkWrappedResource{}
+}
+
+func (r Registration) FrameworkDataSources() []sdk.FrameworkWrappedDataSource {
+	return []sdk.FrameworkWrappedDataSource{}
+}
+
+func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource {
+	return []func() ephemeral.EphemeralResource{}
+}
+
+func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
+	return []sdk.FrameworkListWrappedResource{}
 }

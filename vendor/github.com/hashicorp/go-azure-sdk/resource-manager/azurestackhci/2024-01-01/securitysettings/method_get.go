@@ -45,7 +45,6 @@ func (c SecuritySettingsClient) Get(ctx context.Context, id SecuritySettingId) (
 
 	var model SecuritySetting
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

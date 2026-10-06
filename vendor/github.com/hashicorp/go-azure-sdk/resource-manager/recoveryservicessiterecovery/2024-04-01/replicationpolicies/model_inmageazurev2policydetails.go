@@ -18,6 +18,14 @@ type InMageAzureV2PolicyDetails struct {
 	RecoveryPointThresholdInMinutes   *int64  `json:"recoveryPointThresholdInMinutes,omitempty"`
 
 	// Fields inherited from PolicyProviderSpecificDetails
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s InMageAzureV2PolicyDetails) PolicyProviderSpecificDetails() BasePolicyProviderSpecificDetailsImpl {
+	return BasePolicyProviderSpecificDetailsImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = InMageAzureV2PolicyDetails{}
@@ -31,9 +39,10 @@ func (s InMageAzureV2PolicyDetails) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling InMageAzureV2PolicyDetails: %+v", err)
 	}
+
 	decoded["instanceType"] = "InMageAzureV2"
 
 	encoded, err = json.Marshal(decoded)

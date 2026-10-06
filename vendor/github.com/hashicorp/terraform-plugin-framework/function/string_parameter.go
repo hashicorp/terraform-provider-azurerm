@@ -1,16 +1,20 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package function
 
 import (
+	"context"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwfunction"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // Ensure the implementation satisifies the desired interfaces.
 var _ Parameter = StringParameter{}
 var _ ParameterWithStringValidators = StringParameter{}
+var _ fwfunction.ParameterWithValidateImplementation = StringParameter{}
 
 // StringParameter represents a function parameter that is a string.
 //
@@ -110,4 +114,10 @@ func (p StringParameter) GetType() attr.Type {
 	}
 
 	return basetypes.StringType{}
+}
+
+func (p StringParameter) ValidateImplementation(ctx context.Context, req fwfunction.ValidateParameterImplementationRequest, resp *fwfunction.ValidateParameterImplementationResponse) {
+	if p.GetName() == "" {
+		resp.Diagnostics.Append(fwfunction.MissingParameterNameDiag(req.FunctionName, req.ParameterPosition))
+	}
 }

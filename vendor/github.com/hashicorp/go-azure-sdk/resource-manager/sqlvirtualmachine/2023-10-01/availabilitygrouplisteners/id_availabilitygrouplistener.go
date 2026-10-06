@@ -44,7 +44,7 @@ func ParseAvailabilityGroupListenerID(input string) (*AvailabilityGroupListenerI
 	}
 
 	id := AvailabilityGroupListenerId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseAvailabilityGroupListenerIDInsensitively(input string) (*AvailabilityG
 	}
 
 	id := AvailabilityGroupListenerId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id AvailabilityGroupListenerId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftSqlVirtualMachine", "Microsoft.SqlVirtualMachine", "Microsoft.SqlVirtualMachine"),
 		resourceids.StaticSegment("staticSqlVirtualMachineGroups", "sqlVirtualMachineGroups", "sqlVirtualMachineGroups"),
-		resourceids.UserSpecifiedSegment("sqlVirtualMachineGroupName", "sqlVirtualMachineGroupValue"),
+		resourceids.UserSpecifiedSegment("sqlVirtualMachineGroupName", "sqlVirtualMachineGroupName"),
 		resourceids.StaticSegment("staticAvailabilityGroupListeners", "availabilityGroupListeners", "availabilityGroupListeners"),
-		resourceids.UserSpecifiedSegment("availabilityGroupListenerName", "availabilityGroupListenerValue"),
+		resourceids.UserSpecifiedSegment("availabilityGroupListenerName", "availabilityGroupListenerName"),
 	}
 }
 

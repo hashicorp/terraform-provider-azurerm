@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package keyvault_test
@@ -9,13 +9,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type KeyVaultManagedStorageAccountSasTokenDefinitionResource struct{}
@@ -290,11 +290,12 @@ data "azurerm_storage_account_sas" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestkv-%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctestkv-%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
@@ -348,5 +349,5 @@ func (KeyVaultManagedStorageAccountSasTokenDefinitionResource) Exists(ctx contex
 		return nil, fmt.Errorf("retrieving Key Vault Managed Storage Account Sas Definition %q: %+v", state.ID, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.ID != nil), nil
 }

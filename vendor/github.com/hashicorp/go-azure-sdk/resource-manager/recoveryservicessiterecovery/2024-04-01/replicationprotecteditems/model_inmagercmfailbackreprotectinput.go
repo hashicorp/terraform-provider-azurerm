@@ -16,6 +16,14 @@ type InMageRcmFailbackReprotectInput struct {
 	RunAsAccountId  *string `json:"runAsAccountId,omitempty"`
 
 	// Fields inherited from ReverseReplicationProviderSpecificInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s InMageRcmFailbackReprotectInput) ReverseReplicationProviderSpecificInput() BaseReverseReplicationProviderSpecificInputImpl {
+	return BaseReverseReplicationProviderSpecificInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = InMageRcmFailbackReprotectInput{}
@@ -29,9 +37,10 @@ func (s InMageRcmFailbackReprotectInput) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling InMageRcmFailbackReprotectInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "InMageRcmFailback"
 
 	encoded, err = json.Marshal(decoded)

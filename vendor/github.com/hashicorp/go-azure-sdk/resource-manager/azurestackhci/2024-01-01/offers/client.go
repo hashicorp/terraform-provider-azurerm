@@ -15,7 +15,7 @@ type OffersClient struct {
 }
 
 func NewOffersClientWithBaseURI(sdkApi sdkEnv.Api) (*OffersClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "offers", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "offers", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating OffersClient: %+v", err)
 	}

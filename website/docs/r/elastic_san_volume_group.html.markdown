@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_elastic_san" "example" {
-  name                = "examplees-es"
+  name                = "examples-es"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   base_size_in_tib    = 1
@@ -48,7 +48,9 @@ resource "azurerm_subnet" "example" {
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
   address_prefixes     = ["10.0.1.0/24"]
-  service_endpoints    = ["Microsoft.Storage.Global"]
+  service_endpoint {
+    service = "Microsoft.Storage.Global"
+  }
 
 }
 
@@ -56,6 +58,7 @@ resource "azurerm_key_vault" "example" {
   name                        = "examplekv"
   location                    = azurerm_resource_group.example.location
   resource_group_name         = azurerm_resource_group.example.name
+  rbac_authorization_enabled  = false
   enabled_for_disk_encryption = true
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days  = 7
@@ -133,7 +136,7 @@ The following arguments are supported:
 
 * `encryption` - (Optional) An `encryption` block as defined below.
 
--> **NOTE:** The `encryption` block can only be set when `encryption_type` is set to `EncryptionAtRestWithCustomerManagedKey`.
+-> **Note:** The `encryption` block can only be set when `encryption_type` is set to `EncryptionAtRestWithCustomerManagedKey`.
 
 * `identity` - (Optional) An `identity` block as defined below. Specifies the Managed Identity which should be assigned to this Elastic SAN Volume Group.
 
@@ -195,12 +198,12 @@ An `identity` block exports the following arguments:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating this Elastic SAN Volume Group.
-* `delete` - (Defaults to 30 minutes) Used when deleting this Elastic SAN Volume Group.
-* `read` - (Defaults to 5 minutes) Used when retrieving this Elastic SAN Volume Group.
-* `update` - (Defaults to 30 minutes) Used when updating this Elastic SAN Volume Group.
+* `create` - (Defaults to 30 minutes) Used when creating the Elastic SAN Volume Group.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Elastic SAN Volume Group.
+* `update` - (Defaults to 30 minutes) Used when updating the Elastic SAN Volume Group.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Elastic SAN Volume Group.
 
 ## Import
 
@@ -209,3 +212,9 @@ An existing Elastic SAN Volume Group can be imported into Terraform using the `r
 ```shell
 terraform import azurerm_elastic_san_volume_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.ElasticSan/elasticSans/esan1/volumeGroups/vg1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ElasticSan` - 2023-01-01

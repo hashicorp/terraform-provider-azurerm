@@ -13,6 +13,14 @@ var _ NetworkMappingFabricSpecificSettings = VMmToVMmNetworkMappingSettings{}
 type VMmToVMmNetworkMappingSettings struct {
 
 	// Fields inherited from NetworkMappingFabricSpecificSettings
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s VMmToVMmNetworkMappingSettings) NetworkMappingFabricSpecificSettings() BaseNetworkMappingFabricSpecificSettingsImpl {
+	return BaseNetworkMappingFabricSpecificSettingsImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = VMmToVMmNetworkMappingSettings{}
@@ -26,9 +34,10 @@ func (s VMmToVMmNetworkMappingSettings) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling VMmToVMmNetworkMappingSettings: %+v", err)
 	}
+
 	decoded["instanceType"] = "VmmToVmm"
 
 	encoded, err = json.Marshal(decoded)

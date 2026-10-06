@@ -15,6 +15,14 @@ type HyperVReplicaAzureApplyRecoveryPointInput struct {
 	SecondaryKekCertificatePfx *string `json:"secondaryKekCertificatePfx,omitempty"`
 
 	// Fields inherited from ApplyRecoveryPointProviderSpecificInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s HyperVReplicaAzureApplyRecoveryPointInput) ApplyRecoveryPointProviderSpecificInput() BaseApplyRecoveryPointProviderSpecificInputImpl {
+	return BaseApplyRecoveryPointProviderSpecificInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = HyperVReplicaAzureApplyRecoveryPointInput{}
@@ -28,9 +36,10 @@ func (s HyperVReplicaAzureApplyRecoveryPointInput) MarshalJSON() ([]byte, error)
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling HyperVReplicaAzureApplyRecoveryPointInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "HyperVReplicaAzure"
 
 	encoded, err = json.Marshal(decoded)

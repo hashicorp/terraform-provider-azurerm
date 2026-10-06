@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package common
@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-05-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 )
 
 var (

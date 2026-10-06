@@ -15,7 +15,7 @@ type InboundEndpointsClient struct {
 }
 
 func NewInboundEndpointsClientWithBaseURI(sdkApi sdkEnv.Api) (*InboundEndpointsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "inboundendpoints", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "inboundendpoints", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating InboundEndpointsClient: %+v", err)
 	}

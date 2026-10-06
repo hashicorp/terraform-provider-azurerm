@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package keyvault
@@ -11,10 +11,10 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	"github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
+	kv "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 var _ sdk.DataSource = KeyVaultSecretVersionsDataSource{}
@@ -43,7 +43,7 @@ func (r KeyVaultSecretVersionsDataSource) Arguments() map[string]*schema.Schema 
 		"name": {
 			Type:         schema.TypeString,
 			Required:     true,
-			ValidateFunc: keyVaultValidate.NestedItemName,
+			ValidateFunc: keyvault.ValidateNestedItemName,
 		},
 
 		"key_vault_id": {
@@ -110,7 +110,7 @@ func (r KeyVaultSecretVersionsDataSource) ResourceType() string {
 	return "azurerm_key_vault_secret_versions"
 }
 
-func (r KeyVaultSecretVersionsDataSource) ModelObject() interface{} {
+func (r KeyVaultSecretVersionsDataSource) ModelObject() any {
 	return &KeyVaultSecretVersionsDataSourceModel{}
 }
 
@@ -169,7 +169,7 @@ func (r KeyVaultSecretVersionsDataSource) Read() sdk.ResourceFunc {
 	}
 }
 
-func expandSecretVersion(v *keyvault.SecretItem) secretVersionModel {
+func expandSecretVersion(v *kv.SecretItem) secretVersionModel {
 	var item secretVersionModel
 	item.Uri = *v.ID
 	item.ID = (*v.ID)[strings.LastIndex(*v.ID, "/")+1:]

@@ -1,9 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -52,7 +53,7 @@ func (id ScopeAtManagementGroup) ScopeId() string {
 
 func PolicyScopeID(input string) (PolicyScopeId, error) {
 	if input == "" {
-		return nil, fmt.Errorf("unable to parse Remediation Scope ID: ID is empty")
+		return nil, errors.New("unable to parse Remediation Scope ID: ID is empty")
 	}
 
 	if isManagementGroupId(input) {

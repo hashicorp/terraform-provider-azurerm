@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
@@ -7,9 +7,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-06-01-preview/tokens"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/tokens"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -52,8 +53,8 @@ func dataSourceContainerRegistryToken() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceContainerRegistryTokenRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2023_06_01_preview.Tokens
+func dataSourceContainerRegistryTokenRead(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Containers.ContainerRegistryClient.Tokens
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -83,11 +84,7 @@ func dataSourceContainerRegistryTokenRead(d *pluginsdk.ResourceData, meta interf
 			}
 			d.Set("enabled", status)
 
-			scopeMapId := ""
-			if v := props.ScopeMapId; v != nil {
-				scopeMapId = *v
-			}
-			d.Set("scope_map_id", scopeMapId)
+			d.Set("scope_map_id", pointer.From(props.ScopeMapId))
 		}
 	}
 

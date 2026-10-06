@@ -10,18 +10,39 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type RecoveryPlanProviderSpecificInput interface {
+	RecoveryPlanProviderSpecificInput() BaseRecoveryPlanProviderSpecificInputImpl
 }
 
-// RawRecoveryPlanProviderSpecificInputImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+var _ RecoveryPlanProviderSpecificInput = BaseRecoveryPlanProviderSpecificInputImpl{}
+
+type BaseRecoveryPlanProviderSpecificInputImpl struct {
+	InstanceType string `json:"instanceType"`
+}
+
+func (s BaseRecoveryPlanProviderSpecificInputImpl) RecoveryPlanProviderSpecificInput() BaseRecoveryPlanProviderSpecificInputImpl {
+	return s
+}
+
+var _ RecoveryPlanProviderSpecificInput = RawRecoveryPlanProviderSpecificInputImpl{}
+
+// RawRecoveryPlanProviderSpecificInputImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawRecoveryPlanProviderSpecificInputImpl struct {
-	Type   string
-	Values map[string]interface{}
+	recoveryPlanProviderSpecificInput BaseRecoveryPlanProviderSpecificInputImpl
+	Type                              string
+	Values                            map[string]interface{}
 }
 
-func unmarshalRecoveryPlanProviderSpecificInputImplementation(input []byte) (RecoveryPlanProviderSpecificInput, error) {
+func (s RawRecoveryPlanProviderSpecificInputImpl) RecoveryPlanProviderSpecificInput() BaseRecoveryPlanProviderSpecificInputImpl {
+	return s.recoveryPlanProviderSpecificInput
+}
+
+func (s RawRecoveryPlanProviderSpecificInputImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
+}
+
+func UnmarshalRecoveryPlanProviderSpecificInputImplementation(input []byte) (RecoveryPlanProviderSpecificInput, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +52,9 @@ func unmarshalRecoveryPlanProviderSpecificInputImplementation(input []byte) (Rec
 		return nil, fmt.Errorf("unmarshaling RecoveryPlanProviderSpecificInput into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["instanceType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["instanceType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "A2A") {
@@ -44,10 +65,15 @@ func unmarshalRecoveryPlanProviderSpecificInputImplementation(input []byte) (Rec
 		return out, nil
 	}
 
-	out := RawRecoveryPlanProviderSpecificInputImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseRecoveryPlanProviderSpecificInputImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseRecoveryPlanProviderSpecificInputImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawRecoveryPlanProviderSpecificInputImpl{
+		recoveryPlanProviderSpecificInput: parent,
+		Type:                              value,
+		Values:                            temp,
+	}, nil
 
 }

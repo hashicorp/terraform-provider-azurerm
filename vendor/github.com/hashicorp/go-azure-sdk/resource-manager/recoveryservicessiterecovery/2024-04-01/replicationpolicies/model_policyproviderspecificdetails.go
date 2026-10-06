@@ -10,18 +10,39 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type PolicyProviderSpecificDetails interface {
+	PolicyProviderSpecificDetails() BasePolicyProviderSpecificDetailsImpl
 }
 
-// RawPolicyProviderSpecificDetailsImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+var _ PolicyProviderSpecificDetails = BasePolicyProviderSpecificDetailsImpl{}
+
+type BasePolicyProviderSpecificDetailsImpl struct {
+	InstanceType string `json:"instanceType"`
+}
+
+func (s BasePolicyProviderSpecificDetailsImpl) PolicyProviderSpecificDetails() BasePolicyProviderSpecificDetailsImpl {
+	return s
+}
+
+var _ PolicyProviderSpecificDetails = RawPolicyProviderSpecificDetailsImpl{}
+
+// RawPolicyProviderSpecificDetailsImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawPolicyProviderSpecificDetailsImpl struct {
-	Type   string
-	Values map[string]interface{}
+	policyProviderSpecificDetails BasePolicyProviderSpecificDetailsImpl
+	Type                          string
+	Values                        map[string]interface{}
 }
 
-func unmarshalPolicyProviderSpecificDetailsImplementation(input []byte) (PolicyProviderSpecificDetails, error) {
+func (s RawPolicyProviderSpecificDetailsImpl) PolicyProviderSpecificDetails() BasePolicyProviderSpecificDetailsImpl {
+	return s.policyProviderSpecificDetails
+}
+
+func (s RawPolicyProviderSpecificDetailsImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
+}
+
+func UnmarshalPolicyProviderSpecificDetailsImplementation(input []byte) (PolicyProviderSpecificDetails, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +52,9 @@ func unmarshalPolicyProviderSpecificDetailsImplementation(input []byte) (PolicyP
 		return nil, fmt.Errorf("unmarshaling PolicyProviderSpecificDetails into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["instanceType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["instanceType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "A2A") {
@@ -124,10 +145,15 @@ func unmarshalPolicyProviderSpecificDetailsImplementation(input []byte) (PolicyP
 		return out, nil
 	}
 
-	out := RawPolicyProviderSpecificDetailsImpl{
-		Type:   value,
-		Values: temp,
+	var parent BasePolicyProviderSpecificDetailsImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BasePolicyProviderSpecificDetailsImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawPolicyProviderSpecificDetailsImpl{
+		policyProviderSpecificDetails: parent,
+		Type:                          value,
+		Values:                        temp,
+	}, nil
 
 }

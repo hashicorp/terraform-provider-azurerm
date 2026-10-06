@@ -16,7 +16,16 @@ type JarUploadedUserSourceInfo struct {
 	RuntimeVersion *string `json:"runtimeVersion,omitempty"`
 
 	// Fields inherited from UserSourceInfo
+
+	Type    string  `json:"type"`
 	Version *string `json:"version,omitempty"`
+}
+
+func (s JarUploadedUserSourceInfo) UserSourceInfo() BaseUserSourceInfoImpl {
+	return BaseUserSourceInfoImpl{
+		Type:    s.Type,
+		Version: s.Version,
+	}
 }
 
 var _ json.Marshaler = JarUploadedUserSourceInfo{}
@@ -30,9 +39,10 @@ func (s JarUploadedUserSourceInfo) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling JarUploadedUserSourceInfo: %+v", err)
 	}
+
 	decoded["type"] = "Jar"
 
 	encoded, err = json.Marshal(decoded)

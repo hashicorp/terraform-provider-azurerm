@@ -10,18 +10,39 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type NetworkMappingFabricSpecificSettings interface {
+	NetworkMappingFabricSpecificSettings() BaseNetworkMappingFabricSpecificSettingsImpl
 }
 
-// RawNetworkMappingFabricSpecificSettingsImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+var _ NetworkMappingFabricSpecificSettings = BaseNetworkMappingFabricSpecificSettingsImpl{}
+
+type BaseNetworkMappingFabricSpecificSettingsImpl struct {
+	InstanceType string `json:"instanceType"`
+}
+
+func (s BaseNetworkMappingFabricSpecificSettingsImpl) NetworkMappingFabricSpecificSettings() BaseNetworkMappingFabricSpecificSettingsImpl {
+	return s
+}
+
+var _ NetworkMappingFabricSpecificSettings = RawNetworkMappingFabricSpecificSettingsImpl{}
+
+// RawNetworkMappingFabricSpecificSettingsImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawNetworkMappingFabricSpecificSettingsImpl struct {
-	Type   string
-	Values map[string]interface{}
+	networkMappingFabricSpecificSettings BaseNetworkMappingFabricSpecificSettingsImpl
+	Type                                 string
+	Values                               map[string]interface{}
 }
 
-func unmarshalNetworkMappingFabricSpecificSettingsImplementation(input []byte) (NetworkMappingFabricSpecificSettings, error) {
+func (s RawNetworkMappingFabricSpecificSettingsImpl) NetworkMappingFabricSpecificSettings() BaseNetworkMappingFabricSpecificSettingsImpl {
+	return s.networkMappingFabricSpecificSettings
+}
+
+func (s RawNetworkMappingFabricSpecificSettingsImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
+}
+
+func UnmarshalNetworkMappingFabricSpecificSettingsImplementation(input []byte) (NetworkMappingFabricSpecificSettings, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +52,9 @@ func unmarshalNetworkMappingFabricSpecificSettingsImplementation(input []byte) (
 		return nil, fmt.Errorf("unmarshaling NetworkMappingFabricSpecificSettings into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["instanceType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["instanceType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "AzureToAzure") {
@@ -60,10 +81,15 @@ func unmarshalNetworkMappingFabricSpecificSettingsImplementation(input []byte) (
 		return out, nil
 	}
 
-	out := RawNetworkMappingFabricSpecificSettingsImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseNetworkMappingFabricSpecificSettingsImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseNetworkMappingFabricSpecificSettingsImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawNetworkMappingFabricSpecificSettingsImpl{
+		networkMappingFabricSpecificSettings: parent,
+		Type:                                 value,
+		Values:                               temp,
+	}, nil
 
 }

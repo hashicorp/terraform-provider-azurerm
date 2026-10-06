@@ -42,7 +42,7 @@ func ParseDiskAccessID(input string) (*DiskAccessId, error) {
 	}
 
 	id := DiskAccessId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseDiskAccessIDInsensitively(input string) (*DiskAccessId, error) {
 	}
 
 	id := DiskAccessId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id DiskAccessId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftCompute", "Microsoft.Compute", "Microsoft.Compute"),
 		resourceids.StaticSegment("staticDiskAccesses", "diskAccesses", "diskAccesses"),
-		resourceids.UserSpecifiedSegment("diskAccessName", "diskAccessValue"),
+		resourceids.UserSpecifiedSegment("diskAccessName", "diskAccessName"),
 	}
 }
 

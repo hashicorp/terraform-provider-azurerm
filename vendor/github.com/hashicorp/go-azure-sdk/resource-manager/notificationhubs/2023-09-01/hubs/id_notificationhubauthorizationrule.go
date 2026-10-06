@@ -46,7 +46,7 @@ func ParseNotificationHubAuthorizationRuleID(input string) (*NotificationHubAuth
 	}
 
 	id := NotificationHubAuthorizationRuleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -63,7 +63,7 @@ func ParseNotificationHubAuthorizationRuleIDInsensitively(input string) (*Notifi
 	}
 
 	id := NotificationHubAuthorizationRuleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -127,11 +127,11 @@ func (id NotificationHubAuthorizationRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNotificationHubs", "Microsoft.NotificationHubs", "Microsoft.NotificationHubs"),
 		resourceids.StaticSegment("staticNamespaces", "namespaces", "namespaces"),
-		resourceids.UserSpecifiedSegment("namespaceName", "namespaceValue"),
+		resourceids.UserSpecifiedSegment("namespaceName", "namespaceName"),
 		resourceids.StaticSegment("staticNotificationHubs", "notificationHubs", "notificationHubs"),
-		resourceids.UserSpecifiedSegment("notificationHubName", "notificationHubValue"),
+		resourceids.UserSpecifiedSegment("notificationHubName", "notificationHubName"),
 		resourceids.StaticSegment("staticAuthorizationRules", "authorizationRules", "authorizationRules"),
-		resourceids.UserSpecifiedSegment("authorizationRuleName", "authorizationRuleValue"),
+		resourceids.UserSpecifiedSegment("authorizationRuleName", "authorizationRuleName"),
 	}
 }
 

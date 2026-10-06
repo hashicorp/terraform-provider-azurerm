@@ -47,7 +47,6 @@ func (c ChannelClient) ListWithKeys(ctx context.Context, id commonids.BotService
 
 	var model ListChannelWithKeysResponse
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

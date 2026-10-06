@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationfabrics"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationpolicies"
@@ -17,13 +18,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 const TargetContainerIdAzure = "Microsoft Azure"
 
 // we only support replicate to Azure as backup to customer-managed sites is being deprecated.
-// https://learn.microsoft.com/en-us/azure/site-recovery/site-to-site-deprecation
+// https://learn.microsoft.com/azure/site-recovery/site-to-site-deprecation
 
 type HyperVReplicationPolicyAssociationModel struct {
 	Name     string `tfschema:"name"`
@@ -64,7 +64,7 @@ func (h HyperVReplicationPolicyAssociationResource) Attributes() map[string]*sch
 	return map[string]*schema.Schema{}
 }
 
-func (h HyperVReplicationPolicyAssociationResource) ModelObject() interface{} {
+func (h HyperVReplicationPolicyAssociationResource) ModelObject() any {
 	return &HyperVReplicationPolicyAssociationModel{}
 }
 
@@ -105,18 +105,14 @@ func (h HyperVReplicationPolicyAssociationResource) Create() sdk.ResourceFunc {
 
 			id := replicationprotectioncontainermappings.NewReplicationProtectionContainerMappingID(subscriptionId, parsedContainerId.ResourceGroupName, parsedContainerId.VaultName, parsedContainerId.ReplicationFabricName, parsedContainerId.ReplicationProtectionContainerName, plan.Name)
 
-			type hyperVMappingSpecificInput struct { // a workaround for https://github.com/Azure/azure-rest-api-specs/issues/22769
-				InstanceType string `json:"instanceType"`
-			}
-
 			param := replicationprotectioncontainermappings.CreateProtectionContainerMappingInput{
 				Properties: &replicationprotectioncontainermappings.CreateProtectionContainerMappingInputProperties{
 					PolicyId:                    &plan.PolicyId,
-					TargetProtectionContainerId: utils.String(TargetContainerIdAzure),
-					ProviderSpecificInput:       hyperVMappingSpecificInput{},
+					TargetProtectionContainerId: pointer.To(TargetContainerIdAzure),
+					ProviderSpecificInput:       replicationprotectioncontainermappings.BaseReplicationProviderSpecificContainerMappingInputImpl{},
 				},
 			}
-			if err := client.CreateThenPoll(ctx, id, param); err != nil {
+			if err := client.CreateCallbackThenPoll(ctx, id, param, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

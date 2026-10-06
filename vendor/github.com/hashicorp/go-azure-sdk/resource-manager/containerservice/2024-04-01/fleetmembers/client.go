@@ -15,7 +15,7 @@ type FleetMembersClient struct {
 }
 
 func NewFleetMembersClientWithBaseURI(sdkApi sdkEnv.Api) (*FleetMembersClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "fleetmembers", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "fleetmembers", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating FleetMembersClient: %+v", err)
 	}

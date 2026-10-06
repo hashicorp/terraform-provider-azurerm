@@ -39,6 +39,7 @@ func (o NotificationHubsListOperationOptions) ToHeaders() *client.Headers {
 
 func (o NotificationHubsListOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

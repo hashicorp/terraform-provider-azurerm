@@ -43,6 +43,7 @@ func (o CreateOrUpdateOperationOptions) ToHeaders() *client.Headers {
 
 func (o CreateOrUpdateOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -94,9 +95,20 @@ func (c FleetsClient) CreateOrUpdate(ctx context.Context, id FleetId, input Flee
 
 // CreateOrUpdateThenPoll performs CreateOrUpdate then polls until it's completed
 func (c FleetsClient) CreateOrUpdateThenPoll(ctx context.Context, id FleetId, input Fleet, options CreateOrUpdateOperationOptions) error {
+	return c.CreateOrUpdateCallbackThenPoll(ctx, id, input, options, nil)
+}
+
+// CreateOrUpdateCallbackThenPoll performs CreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c FleetsClient) CreateOrUpdateCallbackThenPoll(ctx context.Context, id FleetId, input Fleet, options CreateOrUpdateOperationOptions, callback func() error) error {
 	result, err := c.CreateOrUpdate(ctx, id, input, options)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -36,6 +36,7 @@ func (o CreateOrUpdateOperationOptions) ToHeaders() *client.Headers {
 
 func (o CreateOrUpdateOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -79,7 +80,6 @@ func (c LoggerClient) CreateOrUpdate(ctx context.Context, id LoggerId, input Log
 
 	var model LoggerContract
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

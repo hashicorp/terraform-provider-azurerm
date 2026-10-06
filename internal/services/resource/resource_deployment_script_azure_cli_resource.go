@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package resource
@@ -27,7 +27,7 @@ func (r ResourceDeploymentScriptAzureCliResource) ResourceType() string {
 	return "azurerm_resource_deployment_script_azure_cli"
 }
 
-func (r ResourceDeploymentScriptAzureCliResource) ModelObject() interface{} {
+func (r ResourceDeploymentScriptAzureCliResource) ModelObject() any {
 	return &ResourceDeploymentScriptAzureCliModel{}
 }
 
@@ -55,13 +55,16 @@ func (r ResourceDeploymentScriptAzureCliResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.Resource.DeploymentScriptsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := deploymentscripts.NewDeploymentScriptID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			properties := &deploymentscripts.AzureCliScript{
@@ -77,7 +80,7 @@ func (r ResourceDeploymentScriptAzureCliResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			identityValue, err := identity.ExpandUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+			identityValue, err := identity.ExpandUserAssignedMap(metadata.ResourceData.Get("identity").([]any))
 			if err != nil {
 				return err
 			}
@@ -110,11 +113,11 @@ func (r ResourceDeploymentScriptAzureCliResource) Create() sdk.ResourceFunc {
 				properties.Tags = &model.Tags
 			}
 
-			if err := client.CreateThenPoll(ctx, id, *properties); err != nil {
+			if err := client.CreateCallbackThenPoll(ctx, id, *properties, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}
@@ -144,7 +147,7 @@ func (r ResourceDeploymentScriptAzureCliResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			model, ok := (*resp.Model).(deploymentscripts.AzureCliScript)
+			model, ok := resp.Model.(deploymentscripts.AzureCliScript)
 			if !ok {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}

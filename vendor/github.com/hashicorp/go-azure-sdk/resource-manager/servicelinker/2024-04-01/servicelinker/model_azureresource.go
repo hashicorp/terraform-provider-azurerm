@@ -15,6 +15,14 @@ type AzureResource struct {
 	ResourceProperties AzureResourcePropertiesBase `json:"resourceProperties"`
 
 	// Fields inherited from TargetServiceBase
+
+	Type TargetServiceType `json:"type"`
+}
+
+func (s AzureResource) TargetServiceBase() BaseTargetServiceBaseImpl {
+	return BaseTargetServiceBaseImpl{
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = AzureResource{}
@@ -28,9 +36,10 @@ func (s AzureResource) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AzureResource: %+v", err)
 	}
+
 	decoded["type"] = "AzureResource"
 
 	encoded, err = json.Marshal(decoded)
@@ -44,13 +53,16 @@ func (s AzureResource) MarshalJSON() ([]byte, error) {
 var _ json.Unmarshaler = &AzureResource{}
 
 func (s *AzureResource) UnmarshalJSON(bytes []byte) error {
-	type alias AzureResource
-	var decoded alias
+	var decoded struct {
+		Id   *string           `json:"id,omitempty"`
+		Type TargetServiceType `json:"type"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into AzureResource: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.Id = decoded.Id
+	s.Type = decoded.Type
 
 	var temp map[string]json.RawMessage
 	if err := json.Unmarshal(bytes, &temp); err != nil {
@@ -58,11 +70,12 @@ func (s *AzureResource) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["resourceProperties"]; ok {
-		impl, err := unmarshalAzureResourcePropertiesBaseImplementation(v)
+		impl, err := UnmarshalAzureResourcePropertiesBaseImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'ResourceProperties' for 'AzureResource': %+v", err)
 		}
 		s.ResourceProperties = impl
 	}
+
 	return nil
 }

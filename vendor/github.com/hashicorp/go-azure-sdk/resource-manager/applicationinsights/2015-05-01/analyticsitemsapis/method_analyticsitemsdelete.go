@@ -34,6 +34,7 @@ func (o AnalyticsItemsDeleteOperationOptions) ToHeaders() *client.Headers {
 
 func (o AnalyticsItemsDeleteOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

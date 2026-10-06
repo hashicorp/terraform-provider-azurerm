@@ -15,7 +15,7 @@ type ManagementLocksClient struct {
 }
 
 func NewManagementLocksClientWithBaseURI(sdkApi sdkEnv.Api) (*ManagementLocksClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "managementlocks", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "managementlocks", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ManagementLocksClient: %+v", err)
 	}

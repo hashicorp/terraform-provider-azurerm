@@ -45,7 +45,6 @@ func (c WorkbookTemplatesAPIsClient) WorkbookTemplatesGet(ctx context.Context, i
 
 	var model WorkbookTemplate
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

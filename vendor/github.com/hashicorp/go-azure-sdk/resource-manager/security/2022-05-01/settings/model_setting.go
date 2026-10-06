@@ -4,24 +4,51 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/systemdata"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type Setting interface {
+	Setting() BaseSettingImpl
 }
 
-// RawSettingImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+var _ Setting = BaseSettingImpl{}
+
+type BaseSettingImpl struct {
+	Id         *string                `json:"id,omitempty"`
+	Kind       SettingKind            `json:"kind"`
+	Name       *string                `json:"name,omitempty"`
+	SystemData *systemdata.SystemData `json:"systemData,omitempty"`
+	Type       *string                `json:"type,omitempty"`
+}
+
+func (s BaseSettingImpl) Setting() BaseSettingImpl {
+	return s
+}
+
+var _ Setting = RawSettingImpl{}
+
+// RawSettingImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawSettingImpl struct {
-	Type   string
-	Values map[string]interface{}
+	setting BaseSettingImpl
+	Type    string
+	Values  map[string]interface{}
 }
 
-func unmarshalSettingImplementation(input []byte) (Setting, error) {
+func (s RawSettingImpl) Setting() BaseSettingImpl {
+	return s.setting
+}
+
+func (s RawSettingImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
+}
+
+func UnmarshalSettingImplementation(input []byte) (Setting, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +58,9 @@ func unmarshalSettingImplementation(input []byte) (Setting, error) {
 		return nil, fmt.Errorf("unmarshaling Setting into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["kind"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["kind"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "AlertSyncSettings") {
@@ -52,10 +79,15 @@ func unmarshalSettingImplementation(input []byte) (Setting, error) {
 		return out, nil
 	}
 
-	out := RawSettingImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseSettingImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseSettingImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawSettingImpl{
+		setting: parent,
+		Type:    value,
+		Values:  temp,
+	}, nil
 
 }

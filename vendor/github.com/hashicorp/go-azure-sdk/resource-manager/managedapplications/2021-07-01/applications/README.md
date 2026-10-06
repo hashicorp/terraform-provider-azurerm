@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/managedapplications/2021-07-01/applications` Documentation
 
-The `applications` SDK allows for interaction with the Azure Resource Manager Service `managedapplications` (API Version `2021-07-01`).
+The `applications` SDK allows for interaction with Azure Resource Manager `managedapplications` (API Version `2021-07-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := applications.NewApplicationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationValue")
+id := applications.NewApplicationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationName")
 
 payload := applications.Application{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := applications.NewApplicationIdID("applicationIdValue")
+id := applications.NewApplicationIdID("applicationId")
 
 payload := applications.Application{
 	// ...
@@ -59,7 +59,7 @@ if err := client.CreateOrUpdateByIdThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := applications.NewApplicationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationValue")
+id := applications.NewApplicationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -71,7 +71,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := applications.NewApplicationIdID("applicationIdValue")
+id := applications.NewApplicationIdID("applicationId")
 
 if err := client.DeleteByIdThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -83,7 +83,7 @@ if err := client.DeleteByIdThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := applications.NewApplicationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationValue")
+id := applications.NewApplicationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -99,7 +99,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := applications.NewApplicationIdID("applicationIdValue")
+id := applications.NewApplicationIdID("applicationId")
 
 read, err := client.GetById(ctx, id)
 if err != nil {
@@ -115,7 +115,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := applications.NewApplicationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationValue")
+id := applications.NewApplicationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationName")
 
 read, err := client.ListAllowedUpgradePlans(ctx, id)
 if err != nil {
@@ -165,7 +165,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := applications.NewApplicationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationValue")
+id := applications.NewApplicationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationName")
 
 payload := applications.ListTokenRequest{
 	// ...
@@ -186,7 +186,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := applications.NewApplicationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationValue")
+id := applications.NewApplicationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationName")
 
 if err := client.RefreshPermissionsThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -198,7 +198,7 @@ if err := client.RefreshPermissionsThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := applications.NewApplicationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationValue")
+id := applications.NewApplicationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationName")
 
 payload := applications.ApplicationPatchable{
 	// ...
@@ -215,7 +215,7 @@ if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := applications.NewApplicationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationValue")
+id := applications.NewApplicationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applicationName")
 
 payload := applications.UpdateAccessDefinition{
 	// ...
@@ -232,7 +232,7 @@ if err := client.UpdateAccessThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := applications.NewApplicationIdID("applicationIdValue")
+id := applications.NewApplicationIdID("applicationId")
 
 payload := applications.ApplicationPatchable{
 	// ...

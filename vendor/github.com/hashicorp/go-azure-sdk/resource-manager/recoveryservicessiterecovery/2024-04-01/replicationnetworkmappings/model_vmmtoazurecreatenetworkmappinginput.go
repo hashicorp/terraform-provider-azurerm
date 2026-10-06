@@ -13,6 +13,14 @@ var _ FabricSpecificCreateNetworkMappingInput = VMmToAzureCreateNetworkMappingIn
 type VMmToAzureCreateNetworkMappingInput struct {
 
 	// Fields inherited from FabricSpecificCreateNetworkMappingInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s VMmToAzureCreateNetworkMappingInput) FabricSpecificCreateNetworkMappingInput() BaseFabricSpecificCreateNetworkMappingInputImpl {
+	return BaseFabricSpecificCreateNetworkMappingInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = VMmToAzureCreateNetworkMappingInput{}
@@ -26,9 +34,10 @@ func (s VMmToAzureCreateNetworkMappingInput) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling VMmToAzureCreateNetworkMappingInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "VmmToAzure"
 
 	encoded, err = json.Marshal(decoded)

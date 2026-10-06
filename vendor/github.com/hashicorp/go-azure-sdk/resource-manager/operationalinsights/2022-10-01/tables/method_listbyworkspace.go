@@ -46,7 +46,6 @@ func (c TablesClient) ListByWorkspace(ctx context.Context, id WorkspaceId) (resu
 
 	var model TablesListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

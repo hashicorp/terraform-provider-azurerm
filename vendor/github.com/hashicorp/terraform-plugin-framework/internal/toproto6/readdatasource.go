@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package toproto6
@@ -6,8 +6,9 @@ package toproto6
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 )
 
 // ReadDataSourceResponse returns the *tfprotov6.ReadDataSourceResponse
@@ -18,6 +19,7 @@ func ReadDataSourceResponse(ctx context.Context, fw *fwserver.ReadDataSourceResp
 	}
 
 	proto6 := &tfprotov6.ReadDataSourceResponse{
+		Deferred:    DataSourceDeferred(fw.Deferred),
 		Diagnostics: Diagnostics(ctx, fw.Diagnostics),
 	}
 

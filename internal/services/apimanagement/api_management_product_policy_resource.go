@@ -1,9 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
 
 import (
+	"errors"
 	"fmt"
 	"html"
 	"log"
@@ -53,8 +54,9 @@ func resourceApiManagementProductPolicy() *pluginsdk.Resource {
 			"product_id": schemaz.SchemaApiManagementChildName(),
 
 			"xml_content": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// Note: O+C because when `xml_link` is provided the API downloads it into `xml_content`
 				Computed:         true,
 				ConflictsWith:    []string{"xml_link"},
 				DiffSuppressFunc: XmlWithDotNetInterpolationsDiffSuppress,
@@ -69,7 +71,7 @@ func resourceApiManagementProductPolicy() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementProductPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementProductPolicyCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ProductPoliciesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -78,15 +80,17 @@ func resourceApiManagementProductPolicyCreateUpdate(d *pluginsdk.ResourceData, m
 	id := productpolicy.NewProductID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("product_id").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, productpolicy.GetOperationOptions{Format: pointer.To(productpolicy.PolicyExportFormatXml)})
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id, productpolicy.GetOperationOptions{Format: pointer.To(productpolicy.PolicyExportFormatXml)})
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_product_policy", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_api_management_product_policy", id.ID())
+			}
 		}
 	}
 
@@ -110,7 +114,7 @@ func resourceApiManagementProductPolicyCreateUpdate(d *pluginsdk.ResourceData, m
 	}
 
 	if parameters.Properties == nil {
-		return fmt.Errorf("Either `xml_content` or `xml_link` must be set")
+		return errors.New("either `xml_content` or `xml_link` must be set")
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters, productpolicy.CreateOrUpdateOperationOptions{}); err != nil {
@@ -121,7 +125,7 @@ func resourceApiManagementProductPolicyCreateUpdate(d *pluginsdk.ResourceData, m
 	return resourceApiManagementProductPolicyRead(d, meta)
 }
 
-func resourceApiManagementProductPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementProductPolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ProductPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -157,7 +161,7 @@ func resourceApiManagementProductPolicyRead(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func resourceApiManagementProductPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementProductPolicyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ProductPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

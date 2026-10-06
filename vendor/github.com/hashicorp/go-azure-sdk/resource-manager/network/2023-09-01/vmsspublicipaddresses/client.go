@@ -15,7 +15,7 @@ type VMSSPublicIPAddressesClient struct {
 }
 
 func NewVMSSPublicIPAddressesClientWithBaseURI(sdkApi sdkEnv.Api) (*VMSSPublicIPAddressesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "vmsspublicipaddresses", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "vmsspublicipaddresses", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating VMSSPublicIPAddressesClient: %+v", err)
 	}

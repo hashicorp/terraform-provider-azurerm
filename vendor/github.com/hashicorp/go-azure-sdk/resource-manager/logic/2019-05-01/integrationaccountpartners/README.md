@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountpartners` Documentation
 
-The `integrationaccountpartners` SDK allows for interaction with the Azure Resource Manager Service `logic` (API Version `2019-05-01`).
+The `integrationaccountpartners` SDK allows for interaction with Azure Resource Manager `logic` (API Version `2019-05-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := integrationaccountpartners.NewPartnerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "integrationAccountValue", "partnerValue")
+id := integrationaccountpartners.NewPartnerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "integrationAccountName", "partnerName")
 
 payload := integrationaccountpartners.IntegrationAccountPartner{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := integrationaccountpartners.NewPartnerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "integrationAccountValue", "partnerValue")
+id := integrationaccountpartners.NewPartnerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "integrationAccountName", "partnerName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := integrationaccountpartners.NewPartnerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "integrationAccountValue", "partnerValue")
+id := integrationaccountpartners.NewPartnerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "integrationAccountName", "partnerName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := integrationaccountpartners.NewIntegrationAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "integrationAccountValue")
+id := integrationaccountpartners.NewIntegrationAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "integrationAccountName")
 
 // alternatively `client.List(ctx, id, integrationaccountpartners.DefaultListOperationOptions())` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id, integrationaccountpartners.DefaultListOperationOptions())
@@ -90,18 +90,18 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `IntegrationAccountPartnersClient.ListContentCallbackUrl`
+### Example Usage: `IntegrationAccountPartnersClient.ListContentCallbackURL`
 
 ```go
 ctx := context.TODO()
-id := integrationaccountpartners.NewPartnerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "integrationAccountValue", "partnerValue")
+id := integrationaccountpartners.NewPartnerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "integrationAccountName", "partnerName")
 
-payload := integrationaccountpartners.GetCallbackUrlParameters{
+payload := integrationaccountpartners.GetCallbackURLParameters{
 	// ...
 }
 
 
-read, err := client.ListContentCallbackUrl(ctx, id, payload)
+read, err := client.ListContentCallbackURL(ctx, id, payload)
 if err != nil {
 	// handle the error
 }

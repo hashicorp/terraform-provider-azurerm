@@ -15,7 +15,7 @@ type ConfigurationProfileHCIAssignmentsClient struct {
 }
 
 func NewConfigurationProfileHCIAssignmentsClientWithBaseURI(sdkApi sdkEnv.Api) (*ConfigurationProfileHCIAssignmentsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "configurationprofilehciassignments", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "configurationprofilehciassignments", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ConfigurationProfileHCIAssignmentsClient: %+v", err)
 	}

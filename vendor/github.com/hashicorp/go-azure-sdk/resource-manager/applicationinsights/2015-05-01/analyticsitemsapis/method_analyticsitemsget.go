@@ -35,6 +35,7 @@ func (o AnalyticsItemsGetOperationOptions) ToHeaders() *client.Headers {
 
 func (o AnalyticsItemsGetOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -78,7 +79,6 @@ func (c AnalyticsItemsAPIsClient) AnalyticsItemsGet(ctx context.Context, id Prov
 
 	var model ApplicationInsightsComponentAnalyticsItem
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

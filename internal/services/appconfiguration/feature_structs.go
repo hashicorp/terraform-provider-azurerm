@@ -1,13 +1,15 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appconfiguration
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -18,25 +20,25 @@ const (
 )
 
 type ClientFilter struct {
-	Filters []interface{}
+	Filters []any
 }
 
 func (p *ClientFilter) UnmarshalJSON(b []byte) error {
-	var tempIntf []interface{}
+	var tempIntf []any
 
 	if err := json.Unmarshal(b, &tempIntf); err != nil {
 		return err
 	}
 
-	filtersOut := make([]interface{}, 0)
+	filtersOut := make([]any, 0)
 	for _, filterRawIntf := range tempIntf {
-		filterRaw, ok := filterRawIntf.(map[string]interface{})
+		filterRaw, ok := filterRawIntf.(map[string]any)
 		if !ok {
 			return fmt.Errorf("wtf")
 		}
 		nameRaw, ok := filterRaw["name"]
 		if !ok {
-			return fmt.Errorf("missing name ...")
+			return errors.New("missing name")
 		}
 
 		name := nameRaw.(string)
@@ -44,13 +46,11 @@ func (p *ClientFilter) UnmarshalJSON(b []byte) error {
 		case "microsoft.targeting":
 			{
 				var out TargetingFeatureFilter
-				mpc := mapstructure.DecoderConfig{TagName: "json", Result: &out}
-				mpd, err := mapstructure.NewDecoder(&mpc)
+				mpd, err := mapstructure.NewDecoder(pointer.To(mapstructure.DecoderConfig{TagName: "json", Result: &out}))
 				if err != nil {
 					return err
 				}
-				err = mpd.Decode(filterRaw)
-				if err != nil {
+				if err = mpd.Decode(filterRaw); err != nil {
 					return err
 				}
 				filtersOut = append(filtersOut, out)
@@ -58,13 +58,11 @@ func (p *ClientFilter) UnmarshalJSON(b []byte) error {
 		case "microsoft.timewindow":
 			{
 				var out TimewindowFeatureFilter
-				mpc := mapstructure.DecoderConfig{TagName: "json", Result: &out}
-				mpd, err := mapstructure.NewDecoder(&mpc)
+				mpd, err := mapstructure.NewDecoder(pointer.To(mapstructure.DecoderConfig{TagName: "json", Result: &out}))
 				if err != nil {
 					return err
 				}
-				err = mpd.Decode(filterRaw)
-				if err != nil {
+				if err = mpd.Decode(filterRaw); err != nil {
 					return err
 				}
 				filtersOut = append(filtersOut, out)
@@ -72,20 +70,28 @@ func (p *ClientFilter) UnmarshalJSON(b []byte) error {
 		case "microsoft.percentage":
 			{
 				var out PercentageFeatureFilter
-				mpc := mapstructure.DecoderConfig{TagName: "json", Result: &out}
-				mpd, err := mapstructure.NewDecoder(&mpc)
+				mpd, err := mapstructure.NewDecoder(pointer.To(mapstructure.DecoderConfig{TagName: "json", Result: &out}))
 				if err != nil {
 					return err
 				}
-				err = mpd.Decode(filterRaw)
-				if err != nil {
+				if err = mpd.Decode(filterRaw); err != nil {
 					return err
 				}
 				filtersOut = append(filtersOut, out)
 			}
 
 		default:
-			return fmt.Errorf("unknown type %q", name)
+			{
+				var out CustomFilter
+				mpd, err := mapstructure.NewDecoder(pointer.To(mapstructure.DecoderConfig{TagName: "json", Result: &out}))
+				if err != nil {
+					return err
+				}
+				if err = mpd.Decode(filterRaw); err != nil {
+					return err
+				}
+				filtersOut = append(filtersOut, out)
+			}
 		}
 	}
 
@@ -107,7 +113,7 @@ type PercentageFeatureFilter struct {
 }
 
 type TargetingGroupParameter struct {
-	Name              string `json:"Name" tfschema:"name"`
+	Name              string `json:"Name"              tfschema:"name"`
 	RolloutPercentage int64  `json:"RolloutPercentage" tfschema:"rollout_percentage"`
 }
 
@@ -117,8 +123,13 @@ type TargetingFilterParameters struct {
 
 type TargetingFilterAudience struct {
 	DefaultRolloutPercentage int64                     `json:"DefaultRolloutPercentage" tfschema:"default_rollout_percentage"`
-	Users                    []string                  `json:"Users" tfschema:"users"`
-	Groups                   []TargetingGroupParameter `json:"Groups" tfschema:"groups"`
+	Users                    []string                  `json:"Users"                    tfschema:"users"`
+	Groups                   []TargetingGroupParameter `json:"Groups"                   tfschema:"groups"`
+}
+
+type CustomFilter struct {
+	Name       string            `json:"name"       tfschema:"name"`
+	Parameters map[string]string `json:"parameters" tfschema:"parameters"`
 }
 
 type TargetingFeatureFilter struct {
@@ -128,7 +139,7 @@ type TargetingFeatureFilter struct {
 
 type TimewindowFilterParameters struct {
 	Start string `json:"Start" tfschema:"start"`
-	End   string `json:"End" tfschema:"end"`
+	End   string `json:"End"   tfschema:"end"`
 }
 
 type TimewindowFeatureFilter struct {

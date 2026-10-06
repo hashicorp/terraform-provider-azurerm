@@ -47,7 +47,6 @@ func (c ConfigurationProfileAssignmentsClient) List(ctx context.Context, id comm
 
 	var model ConfigurationProfileAssignmentList
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute_test
@@ -240,6 +240,28 @@ func TestAccLinuxVirtualMachineScaleSet_scalingZonesMultiple(t *testing.T) {
 	r := LinuxVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.scalingZonesMultiple(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
+func TestAccLinuxVirtualMachineScaleSet_scalingZonesUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.scalingZonesSingle(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
 		{
 			Config: r.scalingZonesMultiple(data),
 			Check: acceptance.ComposeTestCheckFunc(

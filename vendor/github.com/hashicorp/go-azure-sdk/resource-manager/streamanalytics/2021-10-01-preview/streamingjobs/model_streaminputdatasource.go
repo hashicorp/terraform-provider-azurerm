@@ -10,18 +10,39 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type StreamInputDataSource interface {
+	StreamInputDataSource() BaseStreamInputDataSourceImpl
 }
 
-// RawStreamInputDataSourceImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+var _ StreamInputDataSource = BaseStreamInputDataSourceImpl{}
+
+type BaseStreamInputDataSourceImpl struct {
+	Type string `json:"type"`
+}
+
+func (s BaseStreamInputDataSourceImpl) StreamInputDataSource() BaseStreamInputDataSourceImpl {
+	return s
+}
+
+var _ StreamInputDataSource = RawStreamInputDataSourceImpl{}
+
+// RawStreamInputDataSourceImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawStreamInputDataSourceImpl struct {
-	Type   string
-	Values map[string]interface{}
+	streamInputDataSource BaseStreamInputDataSourceImpl
+	Type                  string
+	Values                map[string]interface{}
 }
 
-func unmarshalStreamInputDataSourceImplementation(input []byte) (StreamInputDataSource, error) {
+func (s RawStreamInputDataSourceImpl) StreamInputDataSource() BaseStreamInputDataSourceImpl {
+	return s.streamInputDataSource
+}
+
+func (s RawStreamInputDataSourceImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
+}
+
+func UnmarshalStreamInputDataSourceImplementation(input []byte) (StreamInputDataSource, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +52,9 @@ func unmarshalStreamInputDataSourceImplementation(input []byte) (StreamInputData
 		return nil, fmt.Errorf("unmarshaling StreamInputDataSource into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["type"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["type"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "Microsoft.Storage/Blob") {
@@ -92,10 +113,15 @@ func unmarshalStreamInputDataSourceImplementation(input []byte) (StreamInputData
 		return out, nil
 	}
 
-	out := RawStreamInputDataSourceImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseStreamInputDataSourceImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseStreamInputDataSourceImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawStreamInputDataSourceImpl{
+		streamInputDataSource: parent,
+		Type:                  value,
+		Values:                temp,
+	}, nil
 
 }

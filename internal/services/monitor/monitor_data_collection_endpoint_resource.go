@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -8,31 +8,37 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionendpoints"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DataCollectionEndpoint struct {
-	ConfigurationAccessEndpoint string                 `tfschema:"configuration_access_endpoint"`
-	Description                 string                 `tfschema:"description"`
-	ImmutableId                 string                 `tfschema:"immutable_id"`
-	Kind                        string                 `tfschema:"kind"`
-	Name                        string                 `tfschema:"name"`
-	Location                    string                 `tfschema:"location"`
-	LogsIngestionEndpoint       string                 `tfschema:"logs_ingestion_endpoint"`
-	EnablePublicNetworkAccess   bool                   `tfschema:"public_network_access_enabled"`
-	ResourceGroupName           string                 `tfschema:"resource_group_name"`
-	Tags                        map[string]interface{} `tfschema:"tags"`
-}
+var (
+	_ sdk.Resource           = DataCollectionEndpointResource{}
+	_ sdk.ResourceWithUpdate = DataCollectionEndpointResource{}
+)
 
 type DataCollectionEndpointResource struct{}
+
+type DataCollectionEndpoint struct {
+	ConfigurationAccessEndpoint string         `tfschema:"configuration_access_endpoint"`
+	Description                 string         `tfschema:"description"`
+	ImmutableId                 string         `tfschema:"immutable_id"`
+	Kind                        string         `tfschema:"kind"`
+	Name                        string         `tfschema:"name"`
+	Location                    string         `tfschema:"location"`
+	LogsIngestionEndpoint       string         `tfschema:"logs_ingestion_endpoint"`
+	MetricsIngestionEndpoint    string         `tfschema:"metrics_ingestion_endpoint"`
+	PublicNetworkAccessEnabled  bool           `tfschema:"public_network_access_enabled"`
+	ResourceGroupName           string         `tfschema:"resource_group_name"`
+	Tags                        map[string]any `tfschema:"tags"`
+}
 
 func (r DataCollectionEndpointResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -62,7 +68,8 @@ func (r DataCollectionEndpointResource) Arguments() map[string]*pluginsdk.Schema
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ValidateFunc: validation.StringInSlice(
-				datacollectionendpoints.PossibleValuesForKnownDataCollectionEndpointResourceKind(), false),
+				datacollectionendpoints.PossibleValuesForKnownDataCollectionEndpointResourceKind(), false,
+			),
 		},
 
 		"tags": commonschema.Tags(),
@@ -85,6 +92,11 @@ func (r DataCollectionEndpointResource) Attributes() map[string]*pluginsdk.Schem
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
+		"metrics_ingestion_endpoint": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 	}
 }
 
@@ -96,14 +108,13 @@ func (r DataCollectionEndpointResource) IDValidationFunc() pluginsdk.SchemaValid
 	return datacollectionendpoints.ValidateDataCollectionEndpointID
 }
 
-func (r DataCollectionEndpointResource) ModelObject() interface{} {
+func (r DataCollectionEndpointResource) ModelObject() any {
 	return &DataCollectionEndpoint{}
 }
 
 func (r DataCollectionEndpointResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			metadata.Logger.Info("Decoding state..")
 			var state DataCollectionEndpoint
 			if err := metadata.Decode(&state); err != nil {
 				return err
@@ -113,24 +124,25 @@ func (r DataCollectionEndpointResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := datacollectionendpoints.NewDataCollectionEndpointID(subscriptionId, state.ResourceGroupName, state.Name)
-			metadata.Logger.Infof("creating %s", id)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			input := datacollectionendpoints.DataCollectionEndpointResource{
 				Kind:     expandDataCollectionEndpointKind(state.Kind),
-				Location: azure.NormalizeLocation(state.Location),
-				Name:     utils.String(state.Name),
+				Location: location.Normalize(state.Location),
+				Name:     pointer.To(state.Name),
 				Properties: &datacollectionendpoints.DataCollectionEndpoint{
-					Description: utils.String(state.Description),
+					Description: pointer.To(state.Description),
 					NetworkAcls: &datacollectionendpoints.NetworkRuleSet{
-						PublicNetworkAccess: expandDataCollectionEndpointPublicNetworkAccess(state.EnablePublicNetworkAccess),
+						PublicNetworkAccess: expandDataCollectionEndpointPublicNetworkAccess(state.PublicNetworkAccessEnabled),
 					},
 				},
 				Tags: tags.Expand(state.Tags),
@@ -156,7 +168,6 @@ func (r DataCollectionEndpointResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("retrieving %s", *id)
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
@@ -165,17 +176,17 @@ func (r DataCollectionEndpointResource) Read() sdk.ResourceFunc {
 				}
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
-			var enablePublicNetWorkAccess bool
-			var description, kind, location, configurationAccessEndpoint, logsIngestionEndpoint, immutableId string
-			var tag map[string]interface{}
+			var publicNetWorkAccessEnabled bool
+			var description, kind, loc, configurationAccessEndpoint, logsIngestionEndpoint, metricsIngestionEndpoint, immutableId string
+			var tag map[string]any
 			if model := resp.Model; model != nil {
 				kind = flattenDataCollectionEndpointKind(model.Kind)
-				location = azure.NormalizeLocation(model.Location)
+				loc = location.Normalize(model.Location)
 				tag = tags.Flatten(model.Tags)
 				if prop := model.Properties; prop != nil {
 					description = flattenDataCollectionEndpointDescription(prop.Description)
 					if networkAcls := prop.NetworkAcls; networkAcls != nil {
-						enablePublicNetWorkAccess = flattenDataCollectionEndpointPublicNetworkAccess(networkAcls.PublicNetworkAccess)
+						publicNetWorkAccessEnabled = flattenDataCollectionEndpointPublicNetworkAccess(networkAcls.PublicNetworkAccess)
 					}
 
 					if prop.ConfigurationAccess != nil && prop.ConfigurationAccess.Endpoint != nil {
@@ -184,6 +195,10 @@ func (r DataCollectionEndpointResource) Read() sdk.ResourceFunc {
 
 					if prop.LogsIngestion != nil && prop.LogsIngestion.Endpoint != nil {
 						logsIngestionEndpoint = *prop.LogsIngestion.Endpoint
+					}
+
+					if prop.MetricsIngestion != nil && prop.MetricsIngestion.Endpoint != nil {
+						metricsIngestionEndpoint = *prop.MetricsIngestion.Endpoint
 					}
 
 					if prop.ImmutableId != nil {
@@ -197,10 +212,11 @@ func (r DataCollectionEndpointResource) Read() sdk.ResourceFunc {
 				Description:                 description,
 				Kind:                        kind,
 				ImmutableId:                 immutableId,
-				Location:                    location,
+				Location:                    loc,
 				LogsIngestionEndpoint:       logsIngestionEndpoint,
+				MetricsIngestionEndpoint:    metricsIngestionEndpoint,
 				Name:                        id.DataCollectionEndpointName,
-				EnablePublicNetworkAccess:   enablePublicNetWorkAccess,
+				PublicNetworkAccessEnabled:  publicNetWorkAccessEnabled,
 				ResourceGroupName:           id.ResourceGroupName,
 				Tags:                        tag,
 			})
@@ -217,7 +233,6 @@ func (r DataCollectionEndpointResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("updating %s..", *id)
 			client := metadata.Client.Monitor.DataCollectionEndpointsClient
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
@@ -237,16 +252,16 @@ func (r DataCollectionEndpointResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("description") {
-				existing.Properties.Description = utils.String(state.Description)
+				existing.Properties.Description = pointer.To(state.Description)
 			}
 
 			if metadata.ResourceData.HasChange("kind") {
 				existing.Kind = expandDataCollectionEndpointKind(state.Kind)
 			}
 
-			if metadata.ResourceData.HasChange("public_network_access") {
+			if metadata.ResourceData.HasChange("public_network_access_enabled") {
 				existing.Properties.NetworkAcls = &datacollectionendpoints.NetworkRuleSet{
-					PublicNetworkAccess: expandDataCollectionEndpointPublicNetworkAccess(state.EnablePublicNetworkAccess),
+					PublicNetworkAccess: expandDataCollectionEndpointPublicNetworkAccess(state.PublicNetworkAccessEnabled),
 				}
 			}
 
@@ -272,7 +287,6 @@ func (r DataCollectionEndpointResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("deleting %s..", *id)
 			resp, err := client.Delete(ctx, *id)
 			if err != nil && !response.WasNotFound(resp.HttpResponse) {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
@@ -288,8 +302,7 @@ func expandDataCollectionEndpointKind(input string) *datacollectionendpoints.Kno
 		return nil
 	}
 
-	result := datacollectionendpoints.KnownDataCollectionEndpointResourceKind(input)
-	return &result
+	return pointer.ToEnum[datacollectionendpoints.KnownDataCollectionEndpointResourceKind](input)
 }
 
 func expandDataCollectionEndpointPublicNetworkAccess(input bool) *datacollectionendpoints.KnownPublicNetworkAccessOptions {
@@ -323,9 +336,10 @@ func flattenDataCollectionEndpointPublicNetworkAccess(input *datacollectionendpo
 		return false
 	}
 	var result bool
-	if *input == datacollectionendpoints.KnownPublicNetworkAccessOptionsEnabled {
+	switch *input {
+	case datacollectionendpoints.KnownPublicNetworkAccessOptionsEnabled:
 		result = true
-	} else if *input == datacollectionendpoints.KnownPublicNetworkAccessOptionsDisabled {
+	case datacollectionendpoints.KnownPublicNetworkAccessOptionsDisabled:
 		result = false
 	}
 	return result

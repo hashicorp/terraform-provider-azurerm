@@ -15,6 +15,14 @@ type InMageTestFailoverInput struct {
 	RecoveryPointType *RecoveryPointType `json:"recoveryPointType,omitempty"`
 
 	// Fields inherited from TestFailoverProviderSpecificInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s InMageTestFailoverInput) TestFailoverProviderSpecificInput() BaseTestFailoverProviderSpecificInputImpl {
+	return BaseTestFailoverProviderSpecificInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = InMageTestFailoverInput{}
@@ -28,9 +36,10 @@ func (s InMageTestFailoverInput) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling InMageTestFailoverInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "InMage"
 
 	encoded, err = json.Marshal(decoded)

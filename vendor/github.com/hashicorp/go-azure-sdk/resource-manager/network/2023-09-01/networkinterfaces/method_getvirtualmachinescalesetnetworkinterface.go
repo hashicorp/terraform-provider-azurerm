@@ -35,6 +35,7 @@ func (o GetVirtualMachineScaleSetNetworkInterfaceOperationOptions) ToHeaders() *
 
 func (o GetVirtualMachineScaleSetNetworkInterfaceOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -75,7 +76,6 @@ func (c NetworkInterfacesClient) GetVirtualMachineScaleSetNetworkInterface(ctx c
 
 	var model NetworkInterface
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

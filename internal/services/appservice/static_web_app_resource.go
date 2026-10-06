@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/sdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -40,12 +39,17 @@ type StaticWebAppResourceModel struct {
 	ConfigFileChanges   bool                                       `tfschema:"configuration_file_changes_enabled"`
 	Identity            []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	PreviewEnvironments bool                                       `tfschema:"preview_environments_enabled"`
+	PublicNetworkAccess bool                                       `tfschema:"public_network_access_enabled"`
 	SkuTier             string                                     `tfschema:"sku_tier"`
 	SkuSize             string                                     `tfschema:"sku_size"`
 	Tags                map[string]string                          `tfschema:"tags"`
 
 	ApiKey          string `tfschema:"api_key"`
 	DefaultHostName string `tfschema:"default_host_name"`
+
+	RepositoryUrl    string `tfschema:"repository_url"`
+	RepositoryToken  string `tfschema:"repository_token"`
+	RepositoryBranch string `tfschema:"repository_branch"`
 }
 
 func (r StaticWebAppResource) Arguments() map[string]*pluginsdk.Schema {
@@ -68,6 +72,12 @@ func (r StaticWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"preview_environments_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"public_network_access_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  true,
@@ -103,9 +113,31 @@ func (r StaticWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"basic_auth": helpers.BasicAuthSchema(),
 
-		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
-		"tags": tags.Schema(),
+		"repository_url": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+			RequiredWith: []string{"repository_token", "repository_branch"},
+		},
+
+		"repository_token": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Sensitive:    true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			RequiredWith: []string{"repository_url", "repository_branch"},
+		},
+
+		"repository_branch": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			RequiredWith: []string{"repository_url", "repository_token"},
+		},
+
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -124,7 +156,7 @@ func (r StaticWebAppResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r StaticWebAppResource) ModelObject() interface{} {
+func (r StaticWebAppResource) ModelObject() any {
 	return &StaticWebAppResourceModel{}
 }
 
@@ -151,19 +183,20 @@ func (r StaticWebAppResource) Create() sdk.ResourceFunc {
 
 			id := staticsites.NewStaticSiteID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := client.GetStaticSite(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetStaticSite(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			envelope := staticsites.StaticSiteARMResource{
-				Location:   location.Normalize(model.Location),
-				Properties: nil,
+				Location: location.Normalize(model.Location),
 				Sku: &staticsites.SkuDescription{
 					Name: pointer.To(model.SkuSize),
 					Tier: pointer.To(model.SkuTier),
@@ -182,15 +215,27 @@ func (r StaticWebAppResource) Create() sdk.ResourceFunc {
 			props := &staticsites.StaticSite{
 				AllowConfigFileUpdates:   pointer.To(model.ConfigFileChanges),
 				StagingEnvironmentPolicy: pointer.To(staticsites.StagingEnvironmentPolicyEnabled),
+				PublicNetworkAccess:      pointer.To(helpers.PublicNetworkAccessEnabled),
 			}
 
 			if !model.PreviewEnvironments {
 				props.StagingEnvironmentPolicy = pointer.To(staticsites.StagingEnvironmentPolicyDisabled)
 			}
 
+			// Check if repository URL, branch, or token are set
+			if model.RepositoryUrl != "" || model.RepositoryBranch != "" || model.RepositoryToken != "" {
+				props.Branch = pointer.To(model.RepositoryBranch)
+				props.RepositoryURL = pointer.To(model.RepositoryUrl)
+				props.RepositoryToken = pointer.To(model.RepositoryToken)
+			}
+
+			if !model.PublicNetworkAccess {
+				props.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessDisabled)
+			}
+
 			envelope.Properties = props
 
-			if err := client.CreateOrUpdateStaticSiteThenPoll(ctx, id, envelope); err != nil {
+			if err := client.CreateOrUpdateStaticSiteCallbackThenPoll(ctx, id, envelope, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -267,6 +312,16 @@ func (r StaticWebAppResource) Read() sdk.ResourceFunc {
 					state.ConfigFileChanges = pointer.From(props.AllowConfigFileUpdates)
 					state.DefaultHostName = pointer.From(props.DefaultHostname)
 					state.PreviewEnvironments = pointer.From(props.StagingEnvironmentPolicy) == staticsites.StagingEnvironmentPolicyEnabled
+
+					state.RepositoryUrl = pointer.From(props.RepositoryURL)
+					state.RepositoryBranch = pointer.From(props.Branch)
+
+					// Token isn't returned in the response, so we need to grab it from the config
+					if repositoryToken, ok := metadata.ResourceData.GetOk("repository_token"); ok {
+						state.RepositoryToken = repositoryToken.(string)
+					}
+
+					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 				}
 
 				if sku := model.Sku; sku != nil {
@@ -280,10 +335,7 @@ func (r StaticWebAppResource) Read() sdk.ResourceFunc {
 				}
 
 				if secProps := sec.Model.Properties; secProps != nil {
-					propsMap := pointer.From(secProps)
-					apiKey := ""
-					apiKey = propsMap["apiKey"]
-					state.ApiKey = apiKey
+					state.ApiKey = pointer.From(secProps)["apiKey"]
 				}
 			}
 
@@ -395,6 +447,14 @@ func (r StaticWebAppResource) Update() sdk.ResourceFunc {
 				}
 			}
 
+			if metadata.ResourceData.HasChange("public_network_access_enabled") {
+				if !config.PublicNetworkAccess {
+					model.Properties.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessDisabled)
+				} else {
+					model.Properties.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessEnabled)
+				}
+			}
+
 			if metadata.ResourceData.HasChange("tags") {
 				model.Tags = pointer.To(config.Tags)
 			}
@@ -426,14 +486,19 @@ func (r StaticWebAppResource) Update() sdk.ResourceFunc {
 				} else {
 					authProps.Properties = &staticsites.StaticSiteBasicAuthPropertiesARMResourceProperties{
 						ApplicableEnvironmentsMode: "SpecifiedEnvironments",
-						Password:                   nil,
-						SecretState:                nil,
+						SecretState:                pointer.To(""),
 					}
 				}
 
 				if _, err := sdkHackClient.CreateOrUpdateBasicAuth(ctx, *id, authProps); err != nil {
 					return fmt.Errorf("setting basic auth on %s: %+v", *id, err)
 				}
+			}
+
+			if metadata.ResourceData.HasChanges("repository_url", "repository_branch", "repository_token") {
+				model.Properties.RepositoryURL = pointer.To(config.RepositoryUrl)
+				model.Properties.Branch = pointer.To(config.RepositoryBranch)
+				model.Properties.RepositoryToken = pointer.To(config.RepositoryToken)
 			}
 
 			return nil
@@ -452,11 +517,11 @@ func (r StaticWebAppResource) CustomizeDiff() sdk.ResourceFunc {
 
 			if strings.EqualFold(skuTier, string(resourceproviders.SkuNameFree)) && strings.EqualFold(skuSize, string(resourceproviders.SkuNameFree)) {
 				basicAuth, authOk := rd.GetOk("basic_auth")
-				if authOk && len(basicAuth.([]interface{})) > 0 {
+				if authOk && len(basicAuth.([]any)) > 0 {
 					return fmt.Errorf("basic_auth cannot be used with the Free tier of Static Web Apps")
 				}
 				ident, identOk := rd.GetOk("identity")
-				if identOk && len(ident.([]interface{})) > 0 {
+				if identOk && len(ident.([]any)) > 0 {
 					return fmt.Errorf("identities cannot be used with the Free tier of Static Web Apps")
 				}
 			}

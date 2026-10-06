@@ -15,7 +15,7 @@ type SqlVirtualMachineGroupsClient struct {
 }
 
 func NewSqlVirtualMachineGroupsClientWithBaseURI(sdkApi sdkEnv.Api) (*SqlVirtualMachineGroupsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "sqlvirtualmachinegroups", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "sqlvirtualmachinegroups", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SqlVirtualMachineGroupsClient: %+v", err)
 	}

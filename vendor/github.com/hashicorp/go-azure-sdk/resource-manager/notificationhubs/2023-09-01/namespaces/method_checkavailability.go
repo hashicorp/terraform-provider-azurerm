@@ -51,7 +51,6 @@ func (c NamespacesClient) CheckAvailability(ctx context.Context, id commonids.Su
 
 	var model CheckAvailabilityResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

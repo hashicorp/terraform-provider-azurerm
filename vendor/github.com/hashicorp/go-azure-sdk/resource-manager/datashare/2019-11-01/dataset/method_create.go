@@ -15,7 +15,7 @@ import (
 type CreateOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *DataSet
+	Model        DataSet
 }
 
 // Create ...
@@ -53,11 +53,11 @@ func (c DataSetClient) Create(ctx context.Context, id DataSetId, input DataSet) 
 	if err = resp.Unmarshal(&respObj); err != nil {
 		return
 	}
-	model, err := unmarshalDataSetImplementation(respObj)
+	model, err := UnmarshalDataSetImplementation(respObj)
 	if err != nil {
 		return
 	}
-	result.Model = &model
+	result.Model = model
 
 	return
 }

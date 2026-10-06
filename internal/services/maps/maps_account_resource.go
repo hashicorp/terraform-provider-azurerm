@@ -1,11 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package maps
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -17,20 +16,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maps/2023-06-01/accounts"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maps/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maps/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMapsAccount() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceMapsAccountCreate,
 		Read:   resourceMapsAccountRead,
 		Update: resourceMapsAccountUpdate,
@@ -61,14 +57,10 @@ func resourceMapsAccount() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(accounts.NameSZero),
-					string(accounts.NameSOne),
-					string(accounts.NameGTwo),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(accounts.PossibleValuesForName(), false),
 			},
 
 			"cors": {
@@ -132,69 +124,50 @@ func resourceMapsAccount() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		resource.Schema["location"] = &pluginsdk.Schema{
-			Type:             schema.TypeString,
-			Optional:         true,
-			Computed:         true,
-			ForceNew:         true,
-			StateFunc:        location.StateFunc,
-			DiffSuppressFunc: location.DiffSuppressFunc,
-		}
-	}
-	return resource
 }
 
-func resourceMapsAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMapsAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Maps.AccountsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Maps Account creation.")
-
 	id := accounts.NewAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+		}
+
 		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			return tf.ImportAsExistsError("azurerm_maps_account", id.ID())
 		}
 	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_maps_account", id.ID())
-	}
-
-	dataStores, err := expandDataStore(d.Get("data_store").([]interface{}))
+	dataStores, err := expandDataStore(d.Get("data_store").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `data_store`: %+v", err)
 	}
 
-	loc := "global"
-	if v, ok := d.GetOk("location"); ok {
-		loc = location.Normalize(v.(string))
-	}
-
 	parameters := accounts.MapsAccount{
-		Location: loc,
+		Location: location.Normalize(d.Get("location").(string)),
 		Sku: accounts.Sku{
 			Name: accounts.Name(d.Get("sku_name").(string)),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 		Properties: &accounts.MapsAccountProperties{
 			DisableLocalAuth: pointer.To(!d.Get("local_authentication_enabled").(bool)),
-			Cors:             expandCors(d.Get("cors").([]interface{})),
+			Cors:             expandCors(d.Get("cors").([]any)),
 			LinkedResources:  dataStores,
 		},
 	}
 
-	// setting anything into identity returns a 400 Bad Request error if the location of the maps account is `global` which is
-	// what we were defaulting to previously - when `location` becomes Required in 4.0 we can remove this check and set
-	// identity in the payload like we do elsewhere
+	// setting anything into identity returns a 400 Bad Request error if the location of the maps account is `global`
 	if v, ok := d.GetOk("identity"); ok {
-		identityExpanded, err := identity.ExpandSystemAndUserAssignedMap(v.([]interface{}))
+		identityExpanded, err := identity.ExpandSystemAndUserAssignedMap(v.([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -205,6 +178,9 @@ func resourceMapsAccountCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
+	// TODO: add a Pandora workaround for this
 	// These should actually be LROs, but they're not, custom poller is required until https://github.com/Azure/azure-rest-api-specs/issues/29501 is resolved
 	pollerType := custompollers.NewMapsAccountPoller(client, id)
 	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
@@ -212,17 +188,13 @@ func resourceMapsAccountCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	d.SetId(id.ID())
-
 	return resourceMapsAccountRead(d, meta)
 }
 
-func resourceMapsAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMapsAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Maps.AccountsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for AzureRM Maps Account creation.")
 
 	id, err := accounts.ParseAccountID(d.Id())
 	if err != nil {
@@ -248,11 +220,11 @@ func resourceMapsAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("cors") {
-		payload.Properties.Cors = expandCors(d.Get("cors").([]interface{}))
+		payload.Properties.Cors = expandCors(d.Get("cors").([]any))
 	}
 
 	if d.HasChange("data_store") {
-		dataStores, err := expandDataStore(d.Get("data_store").([]interface{}))
+		dataStores, err := expandDataStore(d.Get("data_store").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `data_store`: %+v", err)
 		}
@@ -260,7 +232,7 @@ func resourceMapsAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, *id, *payload); err != nil {
@@ -277,7 +249,7 @@ func resourceMapsAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	return resourceMapsAccountRead(d, meta)
 }
 
-func resourceMapsAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMapsAccountRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Maps.AccountsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -345,7 +317,7 @@ func resourceMapsAccountRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func resourceMapsAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMapsAccountDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Maps.AccountsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -362,17 +334,17 @@ func resourceMapsAccountDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func expandCors(input []interface{}) *accounts.CorsRules {
+func expandCors(input []any) *accounts.CorsRules {
 	if len(input) == 0 {
 		return nil
 	}
 
-	cors := input[0].(map[string]interface{})
+	cors := input[0].(map[string]any)
 
 	corsRule := make([]accounts.CorsRule, 0)
 
 	corsRule = append(corsRule, accounts.CorsRule{
-		AllowedOrigins: pointer.From(utils.ExpandStringSlice(cors["allowed_origins"].([]interface{}))),
+		AllowedOrigins: pointer.From(pluginsdk.ExpandStringSlice(cors["allowed_origins"].([]any))),
 	})
 
 	return &accounts.CorsRules{
@@ -380,7 +352,7 @@ func expandCors(input []interface{}) *accounts.CorsRules {
 	}
 }
 
-func expandDataStore(input []interface{}) (*[]accounts.LinkedResource, error) {
+func expandDataStore(input []any) (*[]accounts.LinkedResource, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -388,7 +360,7 @@ func expandDataStore(input []interface{}) (*[]accounts.LinkedResource, error) {
 	linkedResources := make([]accounts.LinkedResource, 0)
 
 	for _, i := range input {
-		dataStore := i.(map[string]interface{})
+		dataStore := i.(map[string]any)
 
 		storageAccountId, err := commonids.ParseStorageAccountID(dataStore["storage_account_id"].(string))
 		if err != nil {
@@ -404,8 +376,8 @@ func expandDataStore(input []interface{}) (*[]accounts.LinkedResource, error) {
 	return &linkedResources, nil
 }
 
-func flattenCors(input *accounts.CorsRules) []interface{} {
-	output := make([]interface{}, 0)
+func flattenCors(input *accounts.CorsRules) []any {
+	output := make([]any, 0)
 
 	if input == nil || input.CorsRules == nil || len(*input.CorsRules) == 0 {
 		return output
@@ -414,15 +386,15 @@ func flattenCors(input *accounts.CorsRules) []interface{} {
 	// although this is a slice, only one element can be supplied/is present
 	allowedOrigins := (*input.CorsRules)[0].AllowedOrigins
 
-	output = append(output, map[string]interface{}{
+	output = append(output, map[string]any{
 		"allowed_origins": allowedOrigins,
 	})
 
 	return output
 }
 
-func flattenDataStore(input *[]accounts.LinkedResource) ([]interface{}, error) {
-	output := make([]interface{}, 0)
+func flattenDataStore(input *[]accounts.LinkedResource) ([]any, error) {
+	output := make([]any, 0)
 
 	if input == nil || len(*input) == 0 {
 		return output, nil
@@ -434,7 +406,7 @@ func flattenDataStore(input *[]accounts.LinkedResource) ([]interface{}, error) {
 			return nil, err
 		}
 
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"storage_account_id": storageAccountId.ID(),
 			"unique_name":        resource.UniqueName,
 		})

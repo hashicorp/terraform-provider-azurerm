@@ -15,6 +15,14 @@ type InMageAzureV2TestFailoverInput struct {
 	RecoveryPointId  *string `json:"recoveryPointId,omitempty"`
 
 	// Fields inherited from TestFailoverProviderSpecificInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s InMageAzureV2TestFailoverInput) TestFailoverProviderSpecificInput() BaseTestFailoverProviderSpecificInputImpl {
+	return BaseTestFailoverProviderSpecificInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = InMageAzureV2TestFailoverInput{}
@@ -28,9 +36,10 @@ func (s InMageAzureV2TestFailoverInput) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling InMageAzureV2TestFailoverInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "InMageAzureV2"
 
 	encoded, err = json.Marshal(decoded)
