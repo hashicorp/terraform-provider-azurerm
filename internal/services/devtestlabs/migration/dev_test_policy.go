@@ -22,7 +22,7 @@ func (DevTestLabPolicyUpgradeV0ToV1) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (DevTestLabPolicyUpgradeV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		// old:
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/microsoft.devtestlab/labs/{labName}/policysets/{policySetName}/policies/{policyName}
 		// new:

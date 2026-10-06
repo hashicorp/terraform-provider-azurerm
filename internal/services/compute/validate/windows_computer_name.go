@@ -9,17 +9,17 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func WindowsComputerNameFull(i interface{}, k string) (warnings []string, errors []error) {
+func WindowsComputerNameFull(i any, k string) (warnings []string, errors []error) {
 	// Windows computer name cannot be more than 15 characters long
 	return windowsComputerName(i, k, 15, false)
 }
 
-func WindowsComputerNamePrefix(i interface{}, k string) (warnings []string, errors []error) {
+func WindowsComputerNamePrefix(i any, k string) (warnings []string, errors []error) {
 	// Windows computer name prefix cannot be more than 9 characters long
 	return windowsComputerName(i, k, 9, true)
 }
 
-func windowsComputerName(i interface{}, k string, maxLength int, allowDashSuffix bool) (warnings []string, errors []error) {
+func windowsComputerName(i any, k string, maxLength int, allowDashSuffix bool) (warnings []string, errors []error) {
 	validator := validation.All(
 		validation.StringIsNotWhiteSpace,
 		validation.StringLenBetween(1, maxLength),

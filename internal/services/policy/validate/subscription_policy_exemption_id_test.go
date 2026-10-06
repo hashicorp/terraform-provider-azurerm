@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestSubscriptionPolicyExemptionID(t *testing.T) {
+func TestValidateSubscriptionPolicyExemptionID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool

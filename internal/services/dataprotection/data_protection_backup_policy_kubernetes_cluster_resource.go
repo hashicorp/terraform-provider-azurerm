@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/basebackuppolicyresources"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -72,7 +71,7 @@ func (r DataProtectionBackupPolicyKubernatesClusterResource) ResourceType() stri
 	return "azurerm_data_protection_backup_policy_kubernetes_cluster"
 }
 
-func (r DataProtectionBackupPolicyKubernatesClusterResource) ModelObject() interface{} {
+func (r DataProtectionBackupPolicyKubernatesClusterResource) ModelObject() any {
 	return &BackupPolicyKubernatesClusterModel{}
 }
 
@@ -128,9 +127,8 @@ func (r DataProtectionBackupPolicyKubernatesClusterResource) Arguments() map[str
 									Required: true,
 									ForceNew: true,
 									ValidateFunc: validation.StringInSlice([]string{
-										// confirmed with the service team that current possible value only support `OperationalStore`.
-										// However, considering that `VaultStore` might be supported in the future, it would be exposed for user specification.
 										string(basebackuppolicyresources.DataStoreTypesOperationalStore),
+										string(basebackuppolicyresources.DataStoreTypesVaultStore),
 									}, false),
 								},
 
@@ -138,7 +136,7 @@ func (r DataProtectionBackupPolicyKubernatesClusterResource) Arguments() map[str
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
-									ValidateFunc: validate.ISO8601Duration,
+									ValidateFunc: validation.ISO8601Duration,
 								},
 							},
 						},
@@ -233,9 +231,8 @@ func (r DataProtectionBackupPolicyKubernatesClusterResource) Arguments() map[str
 									Required: true,
 									ForceNew: true,
 									ValidateFunc: validation.StringInSlice([]string{
-										// confirmed with the service team that currently only `OperationalStore` is supported.
-										// However, since `VaultStore` is in public preview and will be supported in the future, it is open to user specification.
 										string(basebackuppolicyresources.DataStoreTypesOperationalStore),
+										string(basebackuppolicyresources.DataStoreTypesVaultStore),
 									}, false),
 								},
 
@@ -243,7 +240,7 @@ func (r DataProtectionBackupPolicyKubernatesClusterResource) Arguments() map[str
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
-									ValidateFunc: validate.ISO8601Duration,
+									ValidateFunc: validation.ISO8601Duration,
 								},
 							},
 						},
