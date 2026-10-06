@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managedredis_test
@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/redisenterprise"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
@@ -51,6 +51,20 @@ func TestAccManagedRedisDataSource_basic(t *testing.T) {
 	})
 }
 
+func TestAccManagedRedisDataSource_dbPersistence(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_managed_redis", "test")
+	r := ManagedRedisDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.dataSourceDbPersistence(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("default_database.0.persistence_redis_database_backup_frequency").HasValue("1h"),
+			),
+		},
+	})
+}
+
 func (ManagedRedisDataSource) dataSource(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -71,11 +85,12 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestAmr%[3]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctestAmr%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 
   purge_protection_enabled   = true
   soft_delete_retention_days = 7
@@ -149,6 +164,36 @@ resource "azurerm_managed_redis" "test" {
 
   tags = {
     env = "testing"
+  }
+}
+
+data "azurerm_managed_redis" "test" {
+  name                = azurerm_managed_redis.test.name
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (ManagedRedisDataSource) dataSourceDbPersistence(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-managedRedis-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_managed_redis" "test" {
+  name                = "acctest-amr-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location = "%[2]s"
+  sku_name = "Balanced_B0"
+
+  default_database {
+    persistence_redis_database_backup_frequency = "1h"
   }
 }
 

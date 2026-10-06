@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package paloalto
@@ -10,8 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrulestacks"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/prefixlistlocalrulestack"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulestackresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/prefixlistresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -33,14 +33,14 @@ type LocalRuleStackPrefixListModel struct {
 }
 
 func (r LocalRuleStackPrefixList) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return prefixlistlocalrulestack.ValidateLocalRulestackPrefixListID
+	return prefixlistresources.ValidateLocalRulestackPrefixListID
 }
 
 func (r LocalRuleStackPrefixList) ResourceType() string {
 	return "azurerm_palo_alto_local_rulestack_prefix_list"
 }
 
-func (r LocalRuleStackPrefixList) ModelObject() interface{} {
+func (r LocalRuleStackPrefixList) ModelObject() any {
 	return &LocalRuleStackPrefixListModel{}
 }
 
@@ -56,7 +56,7 @@ func (r LocalRuleStackPrefixList) Arguments() map[string]*schema.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: prefixlistlocalrulestack.ValidateLocalRulestackID,
+			ValidateFunc: prefixlistresources.ValidateLocalRulestackID,
 		},
 
 		"prefix_list": {
@@ -89,35 +89,37 @@ func (r LocalRuleStackPrefixList) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.PrefixListLocalRulestack
-			rulestackClient := metadata.Client.PaloAlto.LocalRulestacks
+			client := metadata.Client.PaloAlto.PrefixListResources
+			rulestackClient := metadata.Client.PaloAlto.LocalRulestackResources
 			model := LocalRuleStackPrefixListModel{}
 
 			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
 
-			rulestackId, err := localrulestacks.ParseLocalRulestackID(model.RuleStackID)
+			rulestackId, err := localrulestackresources.ParseLocalRulestackID(model.RuleStackID)
 			if err != nil {
 				return err
 			}
 			locks.ByID(rulestackId.ID())
 			defer locks.UnlockByID(rulestackId.ID())
 
-			id := prefixlistlocalrulestack.NewLocalRulestackPrefixListID(rulestackId.SubscriptionId, rulestackId.ResourceGroupName, rulestackId.LocalRulestackName, model.Name)
+			id := prefixlistresources.NewLocalRulestackPrefixListID(rulestackId.SubscriptionId, rulestackId.ResourceGroupName, rulestackId.LocalRulestackName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.PrefixListLocalRulestackGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
+				}
+
 				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
 				}
 			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
-			}
-
-			props := prefixlistlocalrulestack.PrefixObject{
+			props := prefixlistresources.PrefixObject{
 				PrefixList: model.PrefixList,
 			}
 
@@ -129,17 +131,17 @@ func (r LocalRuleStackPrefixList) Create() sdk.ResourceFunc {
 				props.Description = pointer.To(model.Description)
 			}
 
-			prefixList := prefixlistlocalrulestack.PrefixListResource{
+			prefixList := prefixlistresources.PrefixListResource{
 				Properties: props,
 			}
 
-			if err = client.CreateOrUpdateThenPoll(ctx, id, prefixList); err != nil {
+			if err = client.PrefixListLocalRulestackCreateOrUpdateCallbackThenPoll(ctx, id, prefixList, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
 
-			if err = rulestackClient.CommitThenPoll(ctx, *rulestackId); err != nil {
+			if err = rulestackClient.LocalRulestackscommitThenPoll(ctx, *rulestackId); err != nil {
 				return fmt.Errorf("committing Local RuleStack config for %s: %+v", id, err)
 			}
 
@@ -152,16 +154,16 @@ func (r LocalRuleStackPrefixList) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.PrefixListLocalRulestack
+			client := metadata.Client.PaloAlto.PrefixListResources
 
-			id, err := prefixlistlocalrulestack.ParseLocalRulestackPrefixListID(metadata.ResourceData.Id())
+			id, err := prefixlistresources.ParseLocalRulestackPrefixListID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
 			var state LocalRuleStackPrefixListModel
 
-			existing, err := client.Get(ctx, *id)
+			existing, err := client.PrefixListLocalRulestackGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -170,7 +172,7 @@ func (r LocalRuleStackPrefixList) Read() sdk.ResourceFunc {
 			}
 
 			state.Name = id.PrefixListName
-			state.RuleStackID = prefixlistlocalrulestack.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName).ID()
+			state.RuleStackID = prefixlistresources.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName).ID()
 			if model := existing.Model; model != nil {
 				props := model.Properties
 
@@ -188,23 +190,23 @@ func (r LocalRuleStackPrefixList) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.PrefixListLocalRulestack
-			rulestackClient := metadata.Client.PaloAlto.LocalRulestacks
+			client := metadata.Client.PaloAlto.PrefixListResources
+			rulestackClient := metadata.Client.PaloAlto.LocalRulestackResources
 
-			id, err := prefixlistlocalrulestack.ParseLocalRulestackPrefixListID(metadata.ResourceData.Id())
+			id, err := prefixlistresources.ParseLocalRulestackPrefixListID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			rulestackId := localrulestacks.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName)
+			rulestackId := localrulestackresources.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName)
 			locks.ByID(rulestackId.ID())
 			defer locks.UnlockByID(rulestackId.ID())
 
-			if err = client.DeleteThenPoll(ctx, *id); err != nil {
+			if err = client.PrefixListLocalRulestackDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
-			if err = rulestackClient.CommitThenPoll(ctx, rulestackId); err != nil {
+			if err = rulestackClient.LocalRulestackscommitThenPoll(ctx, rulestackId); err != nil {
 				return fmt.Errorf("committing Local Rulestack config for %s: %+v", id, err)
 			}
 
@@ -217,10 +219,10 @@ func (r LocalRuleStackPrefixList) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.PrefixListLocalRulestack
-			rulestackClient := metadata.Client.PaloAlto.LocalRulestacks
+			client := metadata.Client.PaloAlto.PrefixListResources
+			rulestackClient := metadata.Client.PaloAlto.LocalRulestackResources
 
-			id, err := prefixlistlocalrulestack.ParseLocalRulestackPrefixListID(metadata.ResourceData.Id())
+			id, err := prefixlistresources.ParseLocalRulestackPrefixListID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -231,11 +233,11 @@ func (r LocalRuleStackPrefixList) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			rulestackId := localrulestacks.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName)
+			rulestackId := localrulestackresources.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName)
 			locks.ByID(rulestackId.ID())
 			defer locks.UnlockByID(rulestackId.ID())
 
-			existing, err := client.Get(ctx, *id)
+			existing, err := client.PrefixListLocalRulestackGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -257,11 +259,11 @@ func (r LocalRuleStackPrefixList) Update() sdk.ResourceFunc {
 				prefixList.Properties.Description = pointer.To(model.Description)
 			}
 
-			if _, err = client.CreateOrUpdate(ctx, *id, prefixList); err != nil {
+			if _, err = client.PrefixListLocalRulestackCreateOrUpdate(ctx, *id, prefixList); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
-			if err = rulestackClient.CommitThenPoll(ctx, rulestackId); err != nil {
+			if err = rulestackClient.LocalRulestackscommitThenPoll(ctx, rulestackId); err != nil {
 				return fmt.Errorf("committing Local Rulestack config for %s: %+v", id, err)
 			}
 

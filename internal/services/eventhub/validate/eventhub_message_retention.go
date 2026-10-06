@@ -1,11 +1,12 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
 
 import "errors"
 
-func ValidateEventHubMessageRetentionCount(v interface{}, _ string) (warnings []string, errs []error) {
+// lintignore:V012 // error message intentionally documents the standard vs dedicated cluster limits
+func ValidateEventHubMessageRetentionCount(v any, _ string) (warnings []string, errs []error) {
 	value := v.(int)
 
 	if 90 < value || value < 1 {

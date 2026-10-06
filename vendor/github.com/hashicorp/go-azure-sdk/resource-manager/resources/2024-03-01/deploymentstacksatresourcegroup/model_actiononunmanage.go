@@ -4,7 +4,7 @@ package deploymentstacksatresourcegroup
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ActionOnUnmanage struct {
-	ManagementGroups *DeploymentStacksDeleteDetachEnum `json:"managementGroups,omitempty"`
-	ResourceGroups   *DeploymentStacksDeleteDetachEnum `json:"resourceGroups,omitempty"`
-	Resources        DeploymentStacksDeleteDetachEnum  `json:"resources"`
+	ManagementGroups *UnmanageActionManagementGroupMode `json:"managementGroups,omitempty"`
+	ResourceGroups   *UnmanageActionResourceGroupMode   `json:"resourceGroups,omitempty"`
+	Resources        UnmanageActionResourceMode         `json:"resources"`
 }

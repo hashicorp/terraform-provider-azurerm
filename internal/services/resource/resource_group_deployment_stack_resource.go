@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ResourceGroupDeploymentStackResource struct{}
@@ -58,21 +57,21 @@ func (r ResourceGroupDeploymentStackResource) Arguments() map[string]*pluginsdk.
 					"management_groups": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Default:      string(deploymentstacksatresourcegroup.DeploymentStacksDeleteDetachEnumDetach),
-						ValidateFunc: validation.StringInSlice(deploymentstacksatresourcegroup.PossibleValuesForDeploymentStacksDeleteDetachEnum(), false),
+						Default:      string(deploymentstacksatresourcegroup.UnmanageActionManagementGroupModeDetach),
+						ValidateFunc: validation.StringInSlice(deploymentstacksatresourcegroup.PossibleValuesForUnmanageActionManagementGroupMode(), false),
 					},
 
 					"resource_groups": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Default:      string(deploymentstacksatresourcegroup.DeploymentStacksDeleteDetachEnumDetach),
-						ValidateFunc: validation.StringInSlice(deploymentstacksatresourcegroup.PossibleValuesForDeploymentStacksDeleteDetachEnum(), false),
+						Default:      string(deploymentstacksatresourcegroup.UnmanageActionResourceGroupModeDetach),
+						ValidateFunc: validation.StringInSlice(deploymentstacksatresourcegroup.PossibleValuesForUnmanageActionResourceGroupMode(), false),
 					},
 
 					"resources": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validation.StringInSlice(deploymentstacksatresourcegroup.PossibleValuesForDeploymentStacksDeleteDetachEnum(), false),
+						ValidateFunc: validation.StringInSlice(deploymentstacksatresourcegroup.PossibleValuesForUnmanageActionResourceMode(), false),
 					},
 				},
 			},
@@ -129,7 +128,7 @@ func (r ResourceGroupDeploymentStackResource) Arguments() map[string]*pluginsdk.
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
-			StateFunc:        utils.NormalizeJson,
+			StateFunc:        pluginsdk.NormalizeJson,
 			ValidateFunc:     validation.StringIsJSON,
 		},
 
@@ -142,7 +141,7 @@ func (r ResourceGroupDeploymentStackResource) Arguments() map[string]*pluginsdk.
 				"template_content",
 				"template_spec_version_id",
 			},
-			StateFunc:        utils.NormalizeJson,
+			StateFunc:        pluginsdk.NormalizeJson,
 			ValidateFunc:     validation.StringIsJSON,
 			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 		},
@@ -178,7 +177,7 @@ func (r ResourceGroupDeploymentStackResource) Attributes() map[string]*pluginsdk
 	}
 }
 
-func (r ResourceGroupDeploymentStackResource) ModelObject() interface{} {
+func (r ResourceGroupDeploymentStackResource) ModelObject() any {
 	return &ResourceGroupDeploymentStackModel{}
 }
 
@@ -245,7 +244,7 @@ func (r ResourceGroupDeploymentStackResource) Create() sdk.ResourceFunc {
 					// ARM parameter files have format: {"paramName": {"value": "actualValue"}}
 					// Extract the "value" field if it exists
 					paramValue := v
-					if paramMap, ok := v.(map[string]interface{}); ok {
+					if paramMap, ok := v.(map[string]any); ok {
 						if val, exists := paramMap["value"]; exists {
 							paramValue = val
 						}
@@ -325,10 +324,10 @@ func (r ResourceGroupDeploymentStackResource) Read() sdk.ResourceFunc {
 					// If `parameters` is empty in API, preserve the config value
 					if props.Parameters != nil && len(*props.Parameters) > 0 {
 						// Preserve the ARM parameter format: {"paramName": {"value": "..."}}
-						params := make(map[string]interface{})
+						params := make(map[string]any)
 						for k, v := range *props.Parameters {
 							if v.Value != nil {
-								params[k] = map[string]interface{}{
+								params[k] = map[string]any{
 									"value": *v.Value,
 								}
 							}
@@ -418,7 +417,7 @@ func (r ResourceGroupDeploymentStackResource) Update() sdk.ResourceFunc {
 					// ARM parameter files have format: {"paramName": {"value": "actualValue"}}
 					// Extract the "value" field if it exists
 					paramValue := v
-					if paramMap, ok := v.(map[string]interface{}); ok {
+					if paramMap, ok := v.(map[string]any); ok {
 						if val, exists := paramMap["value"]; exists {
 							paramValue = val
 						}
@@ -460,15 +459,15 @@ func (r ResourceGroupDeploymentStackResource) Delete() sdk.ResourceFunc {
 			}
 
 			options := deploymentstacksatresourcegroup.DeploymentStacksDeleteAtResourceGroupOperationOptions{
-				UnmanageActionResources: pointer.To(deploymentstacksatresourcegroup.DeploymentStacksDeleteDetachEnum(model.ActionOnUnmanage[0].Resources)),
+				UnmanageActionResources: pointer.To(deploymentstacksatresourcegroup.UnmanageActionResourceMode(model.ActionOnUnmanage[0].Resources)),
 			}
 
 			if model.ActionOnUnmanage[0].ResourceGroups != "" {
-				options.UnmanageActionResourceGroups = pointer.To(deploymentstacksatresourcegroup.DeploymentStacksDeleteDetachEnum(model.ActionOnUnmanage[0].ResourceGroups))
+				options.UnmanageActionResourceGroups = pointer.To(deploymentstacksatresourcegroup.UnmanageActionResourceGroupMode(model.ActionOnUnmanage[0].ResourceGroups))
 			}
 
 			if model.ActionOnUnmanage[0].ManagementGroups != "" {
-				options.UnmanageActionManagementGroups = pointer.To(deploymentstacksatresourcegroup.DeploymentStacksDeleteDetachEnum(model.ActionOnUnmanage[0].ManagementGroups))
+				options.UnmanageActionManagementGroups = pointer.To(deploymentstacksatresourcegroup.UnmanageActionManagementGroupMode(model.ActionOnUnmanage[0].ManagementGroups))
 			}
 
 			if err := client.DeploymentStacksDeleteAtResourceGroupThenPoll(ctx, *id, options); err != nil {
@@ -491,15 +490,15 @@ func expandActionOnUnmanage(input []ActionOnUnmanageModel) deploymentstacksatres
 
 	v := input[0]
 	result := deploymentstacksatresourcegroup.ActionOnUnmanage{
-		Resources: deploymentstacksatresourcegroup.DeploymentStacksDeleteDetachEnum(v.Resources),
+		Resources: deploymentstacksatresourcegroup.UnmanageActionResourceMode(v.Resources),
 	}
 
 	if v.ResourceGroups != "" {
-		result.ResourceGroups = pointer.To(deploymentstacksatresourcegroup.DeploymentStacksDeleteDetachEnum(v.ResourceGroups))
+		result.ResourceGroups = pointer.To(deploymentstacksatresourcegroup.UnmanageActionResourceGroupMode(v.ResourceGroups))
 	}
 
 	if v.ManagementGroups != "" {
-		result.ManagementGroups = pointer.To(deploymentstacksatresourcegroup.DeploymentStacksDeleteDetachEnum(v.ManagementGroups))
+		result.ManagementGroups = pointer.To(deploymentstacksatresourcegroup.UnmanageActionManagementGroupMode(v.ManagementGroups))
 	}
 
 	return result

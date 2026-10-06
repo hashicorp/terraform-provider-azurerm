@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package servicebus_test
@@ -63,7 +63,7 @@ data "azurerm_servicebus_namespace" "test" {
   name                = azurerm_servicebus_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, ServiceBusNamespaceResource{}.basic(data))
+`, ServicebusNamespaceResource{}.basic(data))
 }
 
 func (ServiceBusNamespaceDataSource) premium(data acceptance.TestData) string {
@@ -74,5 +74,5 @@ data "azurerm_servicebus_namespace" "test" {
   name                = azurerm_servicebus_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, ServiceBusNamespaceResource{}.premium(data))
+`, ServicebusNamespaceResource{}.premium(data))
 }

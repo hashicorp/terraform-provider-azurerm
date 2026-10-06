@@ -174,47 +174,6 @@ func parseDeploymentStackProvisioningState(input string) (*DeploymentStackProvis
 	return &out, nil
 }
 
-type DeploymentStacksDeleteDetachEnum string
-
-const (
-	DeploymentStacksDeleteDetachEnumDelete DeploymentStacksDeleteDetachEnum = "delete"
-	DeploymentStacksDeleteDetachEnumDetach DeploymentStacksDeleteDetachEnum = "detach"
-)
-
-func PossibleValuesForDeploymentStacksDeleteDetachEnum() []string {
-	return []string{
-		string(DeploymentStacksDeleteDetachEnumDelete),
-		string(DeploymentStacksDeleteDetachEnumDetach),
-	}
-}
-
-func (s *DeploymentStacksDeleteDetachEnum) UnmarshalJSON(bytes []byte) error {
-	var decoded string
-	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling: %+v", err)
-	}
-	out, err := parseDeploymentStacksDeleteDetachEnum(decoded)
-	if err != nil {
-		return fmt.Errorf("parsing %q: %+v", decoded, err)
-	}
-	*s = *out
-	return nil
-}
-
-func parseDeploymentStacksDeleteDetachEnum(input string) (*DeploymentStacksDeleteDetachEnum, error) {
-	vals := map[string]DeploymentStacksDeleteDetachEnum{
-		"delete": DeploymentStacksDeleteDetachEnumDelete,
-		"detach": DeploymentStacksDeleteDetachEnumDetach,
-	}
-	if v, ok := vals[strings.ToLower(input)]; ok {
-		return &v, nil
-	}
-
-	// otherwise presume it's an undefined value and best-effort it
-	out := DeploymentStacksDeleteDetachEnum(input)
-	return &out, nil
-}
-
 type ResourceStatusMode string
 
 const (
@@ -256,5 +215,128 @@ func parseResourceStatusMode(input string) (*ResourceStatusMode, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := ResourceStatusMode(input)
+	return &out, nil
+}
+
+type UnmanageActionManagementGroupMode string
+
+const (
+	UnmanageActionManagementGroupModeDelete UnmanageActionManagementGroupMode = "delete"
+	UnmanageActionManagementGroupModeDetach UnmanageActionManagementGroupMode = "detach"
+)
+
+func PossibleValuesForUnmanageActionManagementGroupMode() []string {
+	return []string{
+		string(UnmanageActionManagementGroupModeDelete),
+		string(UnmanageActionManagementGroupModeDetach),
+	}
+}
+
+func (s *UnmanageActionManagementGroupMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseUnmanageActionManagementGroupMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseUnmanageActionManagementGroupMode(input string) (*UnmanageActionManagementGroupMode, error) {
+	vals := map[string]UnmanageActionManagementGroupMode{
+		"delete": UnmanageActionManagementGroupModeDelete,
+		"detach": UnmanageActionManagementGroupModeDetach,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := UnmanageActionManagementGroupMode(input)
+	return &out, nil
+}
+
+type UnmanageActionResourceGroupMode string
+
+const (
+	UnmanageActionResourceGroupModeDelete UnmanageActionResourceGroupMode = "delete"
+	UnmanageActionResourceGroupModeDetach UnmanageActionResourceGroupMode = "detach"
+)
+
+func PossibleValuesForUnmanageActionResourceGroupMode() []string {
+	return []string{
+		string(UnmanageActionResourceGroupModeDelete),
+		string(UnmanageActionResourceGroupModeDetach),
+	}
+}
+
+func (s *UnmanageActionResourceGroupMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseUnmanageActionResourceGroupMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseUnmanageActionResourceGroupMode(input string) (*UnmanageActionResourceGroupMode, error) {
+	vals := map[string]UnmanageActionResourceGroupMode{
+		"delete": UnmanageActionResourceGroupModeDelete,
+		"detach": UnmanageActionResourceGroupModeDetach,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := UnmanageActionResourceGroupMode(input)
+	return &out, nil
+}
+
+type UnmanageActionResourceMode string
+
+const (
+	UnmanageActionResourceModeDelete UnmanageActionResourceMode = "delete"
+	UnmanageActionResourceModeDetach UnmanageActionResourceMode = "detach"
+)
+
+func PossibleValuesForUnmanageActionResourceMode() []string {
+	return []string{
+		string(UnmanageActionResourceModeDelete),
+		string(UnmanageActionResourceModeDetach),
+	}
+}
+
+func (s *UnmanageActionResourceMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseUnmanageActionResourceMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseUnmanageActionResourceMode(input string) (*UnmanageActionResourceMode, error) {
+	vals := map[string]UnmanageActionResourceMode{
+		"delete": UnmanageActionResourceModeDelete,
+		"detach": UnmanageActionResourceModeDetach,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := UnmanageActionResourceMode(input)
 	return &out, nil
 }

@@ -62,9 +62,20 @@ func (c DeploymentStacksAtSubscriptionClient) DeploymentStacksValidateStackAtSub
 
 // DeploymentStacksValidateStackAtSubscriptionThenPoll performs DeploymentStacksValidateStackAtSubscription then polls until it's completed
 func (c DeploymentStacksAtSubscriptionClient) DeploymentStacksValidateStackAtSubscriptionThenPoll(ctx context.Context, id DeploymentStackId, input DeploymentStack) error {
+	return c.DeploymentStacksValidateStackAtSubscriptionCallbackThenPoll(ctx, id, input, nil)
+}
+
+// DeploymentStacksValidateStackAtSubscriptionCallbackThenPoll performs DeploymentStacksValidateStackAtSubscription, runs the optional callback function, then polls until it's completed
+func (c DeploymentStacksAtSubscriptionClient) DeploymentStacksValidateStackAtSubscriptionCallbackThenPoll(ctx context.Context, id DeploymentStackId, input DeploymentStack, callback func() error) error {
 	result, err := c.DeploymentStacksValidateStackAtSubscription(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing DeploymentStacksValidateStackAtSubscription: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
