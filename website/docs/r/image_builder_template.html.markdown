@@ -70,7 +70,7 @@ resource "azurerm_image_builder_template" "example" {
       name                = "accTestImg1"
       resource_group_name = azurerm_resource_group.example.name
       location            = azurerm_resource_group.example.location
-      run_output_name     = "ouputName"
+      run_output_name     = "outputName"
     }
   }
 
