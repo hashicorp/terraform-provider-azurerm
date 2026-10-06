@@ -62,9 +62,20 @@ func (c NginxCertificateClient) CertificatesCreateOrUpdate(ctx context.Context, 
 
 // CertificatesCreateOrUpdateThenPoll performs CertificatesCreateOrUpdate then polls until it's completed
 func (c NginxCertificateClient) CertificatesCreateOrUpdateThenPoll(ctx context.Context, id CertificateId, input NginxCertificate) error {
+	return c.CertificatesCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CertificatesCreateOrUpdateCallbackThenPoll performs CertificatesCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c NginxCertificateClient) CertificatesCreateOrUpdateCallbackThenPoll(ctx context.Context, id CertificateId, input NginxCertificate, callback func() error) error {
 	result, err := c.CertificatesCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CertificatesCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

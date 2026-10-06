@@ -25,9 +25,9 @@ func (s BaseTriggerContextImpl) TriggerContext() BaseTriggerContextImpl {
 
 var _ TriggerContext = RawTriggerContextImpl{}
 
-// RawTriggerContextImpl is returned when the Discriminated Value doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+// RawTriggerContextImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawTriggerContextImpl struct {
 	triggerContext BaseTriggerContextImpl
 	Type           string
@@ -36,6 +36,10 @@ type RawTriggerContextImpl struct {
 
 func (s RawTriggerContextImpl) TriggerContext() BaseTriggerContextImpl {
 	return s.triggerContext
+}
+
+func (s RawTriggerContextImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
 }
 
 func UnmarshalTriggerContextImplementation(input []byte) (TriggerContext, error) {
