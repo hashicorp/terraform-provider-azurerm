@@ -20,7 +20,7 @@ import (
 
 type WorkloadsSapDiscoveryVirtualInstanceResource struct{}
 
-func TestAccWorkloadsSAPDiscoveryVirtualInstanceSequential(t *testing.T) {
+func TestAccWorkloadsSAPDiscoveryVirtualInstance_sequential(t *testing.T) {
 	// The dependent central server VM requires many complicated manual configurations. So it has to test based on the resource provided by service team.
 	if os.Getenv("ARM_TEST_SAP_VIRTUAL_INSTANCE_NAME") == "" || os.Getenv("ARM_TEST_CENTRAL_SERVER_VM_ID") == "" || os.Getenv("ARM_TEST_IDENTITY_ID") == "" {
 		t.Skip("Skipping as `ARM_TEST_SAP_VIRTUAL_INSTANCE_NAME`, `ARM_TEST_CENTRAL_SERVER_VM_ID` and `ARM_TEST_IDENTITY_ID` are not specified")

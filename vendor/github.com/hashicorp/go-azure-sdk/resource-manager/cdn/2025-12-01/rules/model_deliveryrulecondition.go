@@ -25,9 +25,9 @@ func (s BaseDeliveryRuleConditionImpl) DeliveryRuleCondition() BaseDeliveryRuleC
 
 var _ DeliveryRuleCondition = RawDeliveryRuleConditionImpl{}
 
-// RawDeliveryRuleConditionImpl is returned when the Discriminated Value doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+// RawDeliveryRuleConditionImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawDeliveryRuleConditionImpl struct {
 	deliveryRuleCondition BaseDeliveryRuleConditionImpl
 	Type                  string
@@ -36,6 +36,10 @@ type RawDeliveryRuleConditionImpl struct {
 
 func (s RawDeliveryRuleConditionImpl) DeliveryRuleCondition() BaseDeliveryRuleConditionImpl {
 	return s.deliveryRuleCondition
+}
+
+func (s RawDeliveryRuleConditionImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
 }
 
 func UnmarshalDeliveryRuleConditionImplementation(input []byte) (DeliveryRuleCondition, error) {
