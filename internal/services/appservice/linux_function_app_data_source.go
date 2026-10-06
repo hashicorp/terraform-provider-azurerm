@@ -354,8 +354,8 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 					Tags:                       pointer.From(site.Tags),
 					DefaultHostname:            pointer.From(site.Properties.DefaultHostName),
 					CustomDomainVerificationId: pointer.From(site.Properties.CustomDomainVerificationId),
-					Availability:               string(pointer.From(site.Properties.AvailabilityState)),
-					Usage:                      string(pointer.From(site.Properties.UsageState)),
+					Availability:               pointer.FromEnum(site.Properties.AvailabilityState),
+					Usage:                      pointer.FromEnum(site.Properties.UsageState),
 					SiteConfig:                 []helpers.SiteConfigLinuxFunctionApp{*siteConfig},
 				}
 				state.unpackLinuxFunctionAppSettings(containerAppSettingsResp.Model, metadata)
