@@ -398,7 +398,7 @@ func flattenWebpubsubIPRules(input *[]webpubsub.IPRule) []any {
 
 	for _, item := range *input {
 		results = append(results, map[string]any{
-			"action":   string(pointer.From(item.Action)),
+			"action":   pointer.FromEnum(item.Action),
 			"ip_range": pointer.From(item.Value),
 		})
 	}
