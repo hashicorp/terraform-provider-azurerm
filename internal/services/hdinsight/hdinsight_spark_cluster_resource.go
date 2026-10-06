@@ -6,6 +6,7 @@ package hdinsight
 import (
 	"fmt"
 	"log"
+	"maps"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -27,27 +28,22 @@ import (
 // NOTE: this isn't a recommended way of building resources in Terraform
 // this pattern is used to work around a generic but pedantic API endpoint
 var hdInsightSparkClusterHeadNodeDefinition = HDInsightNodeDefinition{
-	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         2,
 	MaxInstanceCount:         pointer.To(2),
-	CanSpecifyDisks:          false,
 	FixedTargetInstanceCount: pointer.To(int64(2)),
 }
 
 var hdInsightSparkClusterWorkerNodeDefinition = HDInsightNodeDefinition{
 	CanSpecifyInstanceCount: true,
 	MinInstanceCount:        1,
-	CanSpecifyDisks:         false,
 	CanAutoScaleByCapacity:  true,
 	CanAutoScaleOnSchedule:  true,
 }
 
 var hdInsightSparkClusterZookeeperNodeDefinition = HDInsightNodeDefinition{
-	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         3,
 	MaxInstanceCount:         pointer.To(3),
 	FixedTargetInstanceCount: pointer.To(int64(3)),
-	CanSpecifyDisks:          false,
 }
 
 func resourceHDInsightSparkCluster() *pluginsdk.Resource {
@@ -157,7 +153,7 @@ func resourceHDInsightSparkCluster() *pluginsdk.Resource {
 	}
 }
 
-func resourceHDInsightSparkClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceHDInsightSparkClusterCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).HDInsight.Clusters
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	extensionsClient := meta.(*clients.Client).HDInsight.Extensions
@@ -168,33 +164,31 @@ func resourceHDInsightSparkClusterCreate(d *pluginsdk.ResourceData, meta interfa
 	id := commonids.NewHDInsightClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	location := location.Normalize(d.Get("location").(string))
 	clusterVersion := d.Get("cluster_version").(string)
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 	tier := clusters.Tier(d.Get("tier").(string))
 	tls := d.Get("tls_min_version").(string)
 
-	componentVersionsRaw := d.Get("component_version").([]interface{})
+	componentVersionsRaw := d.Get("component_version").([]any)
 	componentVersions := expandHDInsightSparkComponentVersion(componentVersionsRaw)
 
-	gatewayRaw := d.Get("gateway").([]interface{})
+	gatewayRaw := d.Get("gateway").([]any)
 	configurations := ExpandHDInsightsConfigurations(gatewayRaw)
 
-	metastoresRaw := d.Get("metastores").([]interface{})
+	metastoresRaw := d.Get("metastores").([]any)
 	metastores := expandHDInsightsMetastore(metastoresRaw)
-	for k, v := range metastores {
-		configurations[k] = v
-	}
+	maps.Copy(configurations, metastores)
 
-	storageAccountsRaw := d.Get("storage_account").([]interface{})
-	storageAccountsGen2Raw := d.Get("storage_account_gen2").([]interface{})
+	storageAccountsRaw := d.Get("storage_account").([]any)
+	storageAccountsGen2Raw := d.Get("storage_account_gen2").([]any)
 	storageAccounts, expandedIdentity, err := ExpandHDInsightsStorageAccounts(storageAccountsRaw, storageAccountsGen2Raw)
 	if err != nil {
 		return fmt.Errorf("expanding `storage_account`: %s", err)
 	}
 
-	networkPropertiesRaw := d.Get("network").([]interface{})
+	networkPropertiesRaw := d.Get("network").([]any)
 	networkProperties := ExpandHDInsightsNetwork(networkPropertiesRaw)
 
-	privateLinkConfigurationsRaw := d.Get("private_link_configuration").([]interface{})
+	privateLinkConfigurationsRaw := d.Get("private_link_configuration").([]any)
 	privateLinkConfigurations := ExpandHDInsightPrivateLinkConfigurations(privateLinkConfigurationsRaw)
 
 	sparkRoles := hdInsightRoleDefinition{
@@ -202,13 +196,13 @@ func resourceHDInsightSparkClusterCreate(d *pluginsdk.ResourceData, meta interfa
 		WorkerNodeDef:    hdInsightSparkClusterWorkerNodeDefinition,
 		ZookeeperNodeDef: hdInsightSparkClusterZookeeperNodeDefinition,
 	}
-	rolesRaw := d.Get("roles").([]interface{})
+	rolesRaw := d.Get("roles").([]any)
 	roles, err := expandHDInsightRoles(rolesRaw, sparkRoles)
 	if err != nil {
 		return fmt.Errorf("expanding `roles`: %+v", err)
 	}
 
-	computeIsolationProperties := ExpandHDInsightComputeIsolationProperties(d.Get("compute_isolation").([]interface{}))
+	computeIsolationProperties := ExpandHDInsightComputeIsolationProperties(d.Get("compute_isolation").([]any))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
@@ -225,7 +219,7 @@ func resourceHDInsightSparkClusterCreate(d *pluginsdk.ResourceData, meta interfa
 
 	encryptionInTransit := d.Get("encryption_in_transit_enabled").(bool)
 
-	var configurationsRaw interface{} = configurations
+	var configurationsRaw any = configurations
 	payload := clusters.ClusterCreateParametersExtended{
 		Location: pointer.To(location),
 		Properties: &clusters.ClusterCreateProperties{
@@ -256,7 +250,7 @@ func resourceHDInsightSparkClusterCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if diskEncryptionPropertiesRaw, ok := d.GetOk("disk_encryption"); ok {
-		diskEncryptionProperties, diskEncryptionIdentity, err := ExpandHDInsightsDiskEncryptionProperties(diskEncryptionPropertiesRaw.([]interface{}))
+		diskEncryptionProperties, diskEncryptionIdentity, err := ExpandHDInsightsDiskEncryptionProperties(diskEncryptionPropertiesRaw.([]any))
 		if err != nil {
 			return err
 		}
@@ -269,7 +263,7 @@ func resourceHDInsightSparkClusterCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if v, ok := d.GetOk("security_profile"); ok {
-		payload.Properties.SecurityProfile = ExpandHDInsightSecurityProfile(v.([]interface{}))
+		payload.Properties.SecurityProfile = ExpandHDInsightSecurityProfile(v.([]any))
 		if payload.Properties.SecurityProfile != nil && payload.Properties.SecurityProfile.MsiResourceId != nil {
 			payload.Identity = addHDInsightUserAssignedIdentity(payload.Identity, *payload.Properties.SecurityProfile.MsiResourceId)
 		}
@@ -287,14 +281,14 @@ func resourceHDInsightSparkClusterCreate(d *pluginsdk.ResourceData, meta interfa
 
 	// We can only enable monitoring after creation
 	if v, ok := d.GetOk("monitor"); ok {
-		monitorRaw := v.([]interface{})
+		monitorRaw := v.([]any)
 		if err := enableHDInsightMonitoring(ctx, extensionsClient, id, monitorRaw); err != nil {
 			return err
 		}
 	}
 
 	if v, ok := d.GetOk("extension"); ok {
-		extensionRaw := v.([]interface{})
+		extensionRaw := v.([]any)
 		if err := enableHDInsightAzureMonitor(ctx, extensionsClient, id, extensionRaw); err != nil {
 			return err
 		}
@@ -303,7 +297,7 @@ func resourceHDInsightSparkClusterCreate(d *pluginsdk.ResourceData, meta interfa
 	return resourceHDInsightSparkClusterRead(d, meta)
 }
 
-func resourceHDInsightSparkClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceHDInsightSparkClusterRead(d *pluginsdk.ResourceData, meta any) error {
 	clustersClient := meta.(*clients.Client).HDInsight.Clusters
 	configurationsClient := meta.(*clients.Client).HDInsight.Configurations
 	extensionsClient := meta.(*clients.Client).HDInsight.Extensions
@@ -359,7 +353,7 @@ func resourceHDInsightSparkClusterRead(d *pluginsdk.ResourceData, meta interface
 
 		// storage_account isn't returned so I guess we just leave it ¯\_(ツ)_/¯
 		if props := model.Properties; props != nil {
-			d.Set("tier", string(pointer.From(props.Tier)))
+			d.Set("tier", pointer.FromEnum(props.Tier))
 			d.Set("cluster_version", props.ClusterVersion)
 			d.Set("tls_min_version", props.MinSupportedTlsVersion)
 
@@ -403,8 +397,7 @@ func resourceHDInsightSparkClusterRead(d *pluginsdk.ResourceData, meta interface
 				return fmt.Errorf("flattening `private_link_configuration`: %+v", err)
 			}
 
-			flattenedRoles := flattenHDInsightRoles(d, props.ComputeProfile, sparkRoles)
-			if err := d.Set("roles", flattenedRoles); err != nil {
+			if err := d.Set("roles", flattenHDInsightRoles(d, props.ComputeProfile, sparkRoles)); err != nil {
 				return fmt.Errorf("flattening `roles`: %+v", err)
 			}
 
@@ -412,10 +405,8 @@ func resourceHDInsightSparkClusterRead(d *pluginsdk.ResourceData, meta interface
 				return fmt.Errorf("failed setting `compute_isolation`: %+v", err)
 			}
 
-			httpEndpoint := findHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints)
-			d.Set("https_endpoint", httpEndpoint)
-			sshEndpoint := findHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
-			d.Set("ssh_endpoint", sshEndpoint)
+			d.Set("https_endpoint", findHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints))
+			d.Set("ssh_endpoint", findHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints))
 
 			d.Set("monitor", flattenHDInsightMonitoring(monitor.Model))
 
@@ -433,21 +424,21 @@ func resourceHDInsightSparkClusterRead(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func expandHDInsightSparkComponentVersion(input []interface{}) map[string]string {
-	vs := input[0].(map[string]interface{})
+func expandHDInsightSparkComponentVersion(input []any) map[string]string {
+	vs := input[0].(map[string]any)
 	return map[string]string{
 		"Spark": vs["spark"].(string),
 	}
 }
 
-func flattenHDInsightSparkComponentVersion(input *map[string]string) []interface{} {
-	output := make([]interface{}, 0)
+func flattenHDInsightSparkComponentVersion(input *map[string]string) []any {
+	output := make([]any, 0)
 	if input != nil {
 		sparkVersion := ""
 		if v, ok := (*input)["Spark"]; ok {
 			sparkVersion = v
 		}
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"spark": sparkVersion,
 		})
 	}

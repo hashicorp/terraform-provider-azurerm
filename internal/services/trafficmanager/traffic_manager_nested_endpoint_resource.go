@@ -14,10 +14,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/trafficmanagers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -28,7 +27,7 @@ func resourceNestedEndpoint() *pluginsdk.Resource {
 		Read:   resourceNestedEndpointRead,
 		Update: resourceNestedEndpointCreateUpdate,
 		Delete: resourceNestedEndpointDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: schema.ValidateResourceIDPriorToImport(func(id string) error {
 			endpointType, err := trafficmanagers.ParseEndpointTypeID(id)
 			if err != nil {
 				return err
@@ -128,7 +127,7 @@ func resourceNestedEndpoint() *pluginsdk.Resource {
 			"endpoint_location": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Computed:         true,
+				Computed:         true, // azignore:AZS007 - pre-existing violation
 				StateFunc:        location.StateFunc,
 				DiffSuppressFunc: location.DiffSuppressFunc,
 			},
@@ -148,12 +147,12 @@ func resourceNestedEndpoint() *pluginsdk.Resource {
 						"first": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: azValidate.IPv4Address,
+							ValidateFunc: validation.IsIPv4Address,
 						},
 						"last": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: azValidate.IPv4Address,
+							ValidateFunc: validation.IsIPv4Address,
 						},
 						"scope": {
 							Type:         pluginsdk.TypeInt,
@@ -167,7 +166,7 @@ func resourceNestedEndpoint() *pluginsdk.Resource {
 	}
 }
 
-func resourceNestedEndpointCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNestedEndpointCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).TrafficManager.EndpointsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -203,11 +202,11 @@ func resourceNestedEndpointCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		Name: pointer.To(id.EndpointName),
 		Type: pointer.To(fmt.Sprintf("Microsoft.Network/trafficManagerProfiles/%s", trafficmanagers.EndpointTypeNestedEndpoints)),
 		Properties: &trafficmanagers.EndpointProperties{
-			CustomHeaders:     expandEndpointCustomHeaderConfig(d.Get("custom_header").([]interface{})),
+			CustomHeaders:     expandEndpointCustomHeaderConfig(d.Get("custom_header").([]any)),
 			EndpointStatus:    &status,
 			MinChildEndpoints: pointer.To(int64(d.Get("minimum_child_endpoints").(int))),
 			TargetResourceId:  pointer.To(d.Get("target_resource_id").(string)),
-			Subnets:           expandEndpointSubnetConfig(d.Get("subnet").([]interface{})),
+			Subnets:           expandEndpointSubnetConfig(d.Get("subnet").([]any)),
 		},
 	}
 
@@ -233,7 +232,7 @@ func resourceNestedEndpointCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		params.Properties.EndpointLocation = pointer.To(endpointLocation)
 	}
 
-	inputMappings := d.Get("geo_mappings").([]interface{})
+	inputMappings := d.Get("geo_mappings").([]any)
 	geoMappings := make([]string, 0)
 	for _, v := range inputMappings {
 		geoMappings = append(geoMappings, v.(string))
@@ -253,7 +252,7 @@ func resourceNestedEndpointCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	return resourceNestedEndpointRead(d, meta)
 }
 
-func resourceNestedEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNestedEndpointRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).TrafficManager.EndpointsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -303,7 +302,7 @@ func resourceNestedEndpointRead(d *pluginsdk.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceNestedEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNestedEndpointDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).TrafficManager.EndpointsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

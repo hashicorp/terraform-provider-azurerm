@@ -32,7 +32,7 @@ func (r PrivateDNSResolverForwardingRuleDataSource) ResourceType() string {
 	return "azurerm_private_dns_resolver_forwarding_rule"
 }
 
-func (r PrivateDNSResolverForwardingRuleDataSource) ModelObject() interface{} {
+func (r PrivateDNSResolverForwardingRuleDataSource) ModelObject() any {
 	return &PrivateDNSResolverForwardingRuleModel{}
 }
 

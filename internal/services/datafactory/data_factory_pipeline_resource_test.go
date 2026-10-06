@@ -139,13 +139,13 @@ func (t PipelineResource) Exists(ctx context.Context, clients *clients.Client, s
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (t PipelineResource) appendVariableActivityNameIs(expected string) func(input []interface{}) (*bool, error) {
-	return func(input []interface{}) (*bool, error) {
+func (t PipelineResource) appendVariableActivityNameIs(expected string) func(input []any) (*bool, error) {
+	return func(input []any) (*bool, error) {
 		if len(input) == 0 || input[0] == nil {
 			return pointer.To(false), nil
 		}
 
-		val, ok := input[0].(map[string]interface{})
+		val, ok := input[0].(map[string]any)
 		if !ok {
 			return nil, fmt.Errorf("nested item was not a dictionary")
 		}

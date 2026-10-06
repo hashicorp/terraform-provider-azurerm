@@ -10,7 +10,7 @@ import (
 
 // HashString hashes strings. If you want a Set of strings, this is the
 // SchemaSetFunc you want.
-func HashString(input interface{}) int {
+func HashString(input any) int {
 	v := int(crc32.ChecksumIEEE([]byte(input.(string))))
 	if v >= 0 {
 		return v
@@ -23,6 +23,6 @@ func HashString(input interface{}) int {
 }
 
 // HashStringInsensitively provides case-insensitive hashing for TypeSet elements
-func HashStringInsensitively(v interface{}) int {
+func HashStringInsensitively(v any) int {
 	return HashString(strings.ToLower(v.(string)))
 }
