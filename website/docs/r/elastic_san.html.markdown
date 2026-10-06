@@ -61,7 +61,7 @@ The `sku` block supports the following arguments:
 
 * `name` - (Required) The SKU name. Possible values are `Premium_LRS` and `Premium_ZRS`. Changing this forces a new resource to be created.
 
--> **Note:** `Premium_ZRS` SKU is only available in limited Azure regions including `France Central`, `North Europe`, `West Europe`, and `West US 2`. Please refer to this [document](https://azure.microsoft.com/updates/regional-expansion-azure-elastic-san-public-preview-is-now-available-in-more-regions) for more details.
+-> **Note:** `Premium_ZRS` SKU is only available in limited Azure regions including `France Central`, `North Europe`, `West Europe`, and `West US 2`. Please refer to this [document](https://learn.microsoft.com/azure/storage/elastic-san/elastic-san-planning) for more details.
 
 * `tier` - (Optional) The SKU tier. The only possible value is `Premium`. Defaults to `Premium`.
 
@@ -83,7 +83,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Elastic SAN resource.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Elastic SAN resource.

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package check
@@ -23,13 +23,12 @@ type Fixer struct {
 }
 
 func NewFixer(d *ResourceDiff) *Fixer {
-	f := &Fixer{
+	return &Fixer{
 		MDFile:       d.MDFile,
 		SchemaFile:   d.SchemaFile,
 		ResourceType: d.tf.ResourceType,
 		Diff:         d.Diff,
 	}
-	return f
 }
 
 // param rt: resource type
@@ -43,7 +42,7 @@ func tryFixTimeouts(rt string, lines []string, diffs []TimeoutDiffItem) []string
 		// no such timeout block, add to the end of lines
 		addSuf("## Timeouts")
 		addSuf("")
-		addSuf("The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:")
+		addSuf("The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:")
 		addSuf("")
 		diffs = diffs[1:]
 	}
@@ -156,8 +155,7 @@ func (f *Fixer) WriteBack() (err error) {
 		_ = fd.Sync()
 		_ = fd.Close()
 	}()
-	_, err = fd.WriteString(f.FixedContent)
-	if err != nil {
+	if _, err = fd.WriteString(f.FixedContent); err != nil {
 		log.Printf("write %s back: %v", f.MDFile, err)
 		return err
 	}

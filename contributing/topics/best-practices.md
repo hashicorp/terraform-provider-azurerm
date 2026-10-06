@@ -13,7 +13,7 @@ For example, whilst a Create method may look similar to below:
 ```go
 payload := resources.Group{
     Location: location.Normalize(d.Get("location").(string)),
-    Tags: tags.Expand(d.Get("tags").(map[string]interface{}),
+    Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 }
 
 if err := client.CreateThenPoll(ctx, id, payload); err != nil {
@@ -23,37 +23,54 @@ if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 
 The update method should be checking if the updatable fields (in this example, only tags) - have changes (using `d.HasChanges` - which will flag updated values in the config if they're not ignored via `ignore_changes`).
 
-Depending on the API there are two types of Updates, a patch/delta update (where only the fields containing changes are sent) - and a full update (which requires sending the full payload) - these are differentiable via the method name in the SDK, patch/delta updates are generally called `Update`, with a full update being called `CreateOrUpdate`.
+### Updates should default to the PUT method
 
-A patch/delta update would look similar to below:
+Depending on the API there can be two ways to perform an Update - a PUT (a full update requiring the complete payload to be sent, generally called `CreateOrUpdate` in the SDK) - and a PATCH (a partial/delta update where only the fields being changed are sent, generally called `Update` in the SDK).
 
-```go
-payload := resources.GroupUpdate{}
-if d.HasChanges("tags") {
-  // this uses `pointer.To` since all fields are optional in a patch/delta update, so they'll only be updated if specified
-  payload.Tags = pointer.To(tags.Expand(d.Get("tags").(map[string]interface{}))
-}
+**Updates should default to using the PUT API: retrieve the existing resource from the API, apply the changed fields to the retrieved model, and send the full payload back.**
 
-if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
-  return fmt.Errorf("updating %s: %+v", id, err)
-}
-```
+The reason for this comes from Terraform's declarative model. The user's configuration is the desired state, so removing an optional field from the configuration means "unset this value" - which means an Update method must be able to *clear* any optional field, not just set it. PATCH semantics are the opposite - an absent field means "leave it unchanged" - and since the SDK structs generated from the OpenAPI spec use `omitempty` JSON tags, a `nil` field is omitted from the payload entirely, so the explicit `"field": null` that a PATCH requires to clear a value can never be sent.
 
-A full update would retrieve the existing object from the API and then patch it, for example:
+This makes PATCH-based Updates a trap: setting and changing values works fine, but when a user removes an optional field from their configuration the plan shows the field being removed, the apply "succeeds", and the next plan shows the same diff again - permanent drift that the provider cannot correct. Because this only surfaces when a field is *removed* from the configuration (a case frequently missing from acceptance tests) the failure is silent. A PUT does not have this gap - a full payload with the field absent resets it on the server - and its failure modes are loud (the API rejects the payload) rather than silent drift.
+
+A PUT-based Update retrieves the existing object from the API, applies the changed fields, and sends it back, for example:
 
 ```go
-resp, err := client.Get(ctx, id)
+existing, err := client.Get(ctx, id)
 if err != nil {
   return fmt.Errorf("retrieving %s: %+v", id, err)
 }
 
-if resp.Model == nil {
-  return fmt.Errorf("retrieving %s: model was nil", id)
+if existing.Model == nil {
+  return fmt.Errorf("retrieving %s: `model` was nil", id)
 }
 
-payload := *resp.Model
 if d.HasChanges("tags") {
-  payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{})
+  existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+}
+
+if err := client.CreateOrUpdateThenPoll(ctx, id, *existing.Model); err != nil {
+  return fmt.Errorf("updating %s: %+v", id, err)
+}
+```
+
+Starting from the retrieved model (rather than rebuilding the payload from the configuration) preserves any server-set or externally-managed fields that a full replacement would otherwise wipe, and gating each field on `d.HasChanges` keeps `ignore_changes` working. Note that some APIs return read-only or write-once fields in the GET response which they then reject in a PUT - these need to be removed from the payload before sending.
+
+The PATCH API should only be used when:
+
+* the API does not offer a PUT, or
+* a property can only be set through the PATCH API and the PUT ignores it (e.g. `networkBypassMode` on a MongoDB cluster, which has to be applied with a separate PATCH after the cluster is created)
+
+**and** no updatable field ever needs to be cleared (or the PATCH model is able to send an explicit empty value, e.g. a non-pointer map that serialises to `{}`). The burden of proof sits on choosing PATCH - if PATCH is used, there must be a comment above the request explaining why the PUT could not be.
+
+A PATCH-based Update would look similar to below:
+
+```go
+// PATCH is used here because <reason the PUT cannot be used for this API>
+payload := resources.GroupUpdate{}
+if d.HasChanges("tags") {
+  // all fields in a PATCH model are pointers so only the fields that are set are sent
+  payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 }
 
 if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
@@ -221,11 +238,20 @@ In version 5 of the Terraform Protocol, if a field is created with one value at 
 
 To work around situations where we need to expose the default value from the Azure API - we've historically marked fields as both `Optional` and `Computed` - meaning that a value will be returned from the API when it's not defined.
 
-Whilst this works, a side effect is that it's hard for users to reset a field to its default value when this is done - as such some fields today (such as the subnets block within the azurerm_virtual_network resource) require that an explicit empty list is specified (for example `subnets = []`) to remove this value, where this field is `Optional` and `Computed`.
+Whilst this works, there are some side effects, for example:
 
-Due to some of the issues surrounding `Optional` + `Computed` properties, avoid this usage where other options exist, e.g. specifying a `Default` if Azure consistently sets the same value. However, if no other options exist, we should mark the property `Optional` + `Computed` in favour of having users specify `ignore_changes`.
+1. It's hard for users to reset a field to its default value, for example: subnets block within the azurerm_virtual_network resource require that an explicit empty list is specified (`subnets = []`) to remove
+2. The default value set by the Azure API cannot be documented because it is not set in the Terraform schema, and not possible for [document-lint](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/internal/tools/document-lint) to statically check
+
+Avoid `Optional` + `Computed` properties usage where other options exist, e.g:
+
+1. Specifying a `Default` if Azure consistently sets the same value
+2. Setting the property `Required` and force user to specify a value at creation
+
+However, if no other options exist, we can use `Optional` + `Computed` in favour of having users specify `ignore_changes`.
 
 If you encounter a field that must be `Optional` and `Computed`, make sure it follows the following conventions:
+
 * The properties are in this sequence: Optional, Explanatory Comment, Computed
 * The comment should start with `// NOTE: O+C `, and then explain the reason for the field being `Optional` and `Computed`
 
@@ -238,4 +264,125 @@ Example:
 		// NOTE: O+C Azure generates a new value every time this resource is updated
 		Computed: true,
 	},
+```
+
+## Consider the use of `GetRawConfig()` in CustomizeDiff to handle known-after-apply values
+
+Known-after-apply values can cause false-positives when using `(*schema.ResourceDiff).Get()` or the `(sdk.ResourceMetaData).DecodeDiff()` functions. For example, when checking that two properties are both set by comparing the returned values against an empty string, a `d.Get()` on an unknown value will return an empty string which then triggers the error, regardless of whether the value was set in config.
+
+Given the following configuration:
+
+```hcl
+resource "azurerm_user_assigned_identity" "example" {
+	name                = "example-uai"
+	resource_group_name = "example-rg"
+	location            = "West Europe"
+}
+
+resource "azurerm_foo" "example" {
+	name                = "example-foo"
+	location            = "West Europe"
+	resource_group_name = "example-rg"
+
+	customer_managed_key_id          = "https://my-kv.vault.azure.net/keys/my-key-1/00000000000000000000000000000000"
+	customer_managed_key_identity_id = azurerm_user_assigned_identity.example.id
+}
+```
+
+The following CustomizeDiff validation that asserts `customize_managed_key_identity_id` has to be provided when `customer_managed_key_id` is provided will fail during creation, because `azurerm_user_assigned_identity.example.id` is not known until apply time:
+
+```go
+func (r FooResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			if metadata.ResourceDiff == nil {
+				return nil
+			}
+
+			var model FooModel
+			if err := metadata.DecodeDiff(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			if metadata.ResourceDiff.HasChanges("customer_managed_key_id", "customer_managed_key_identity_id") {
+				if model.CustomerManagedKeyID != "" && model.CustomerManagedKeyIdentityID == "" {
+					// This error will be returned since model.CustomerManagedKeyIdentityID is not known until apply time
+					return fmt.Errorf("customer_managed_key_identity_id must be specified when customer_managed_key_id is specified")
+				}
+			}
+
+			return nil
+		},
+	}
+}
+```
+
+Instead, the CustomizeDiff function can use `metadata.ResourceDiff.GetRawConfig()`:
+
+```go
+func (r FooResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			if metadata.ResourceDiff == nil {
+				return nil
+			}
+
+			if metadata.ResourceDiff.HasChanges("customer_managed_key_id", "customer_managed_key_identity_id") {
+				rawConfig := metadata.ResourceDiff.GetRawConfig().AsValueMap()
+
+				rawCMK := rawConfig["customer_managed_key_id"]
+				rawCMKIdentity := rawConfig["customer_managed_key_identity_id"]
+
+				if !rawCMK.IsNull() && rawCMKIdentity.IsNull() {
+					return fmt.Errorf("customer_managed_key_identity_id must be specified when customer_managed_key_id is specified")
+				}
+			}
+
+			return nil
+		},
+	}
+}
+```
+
+However if the logic depends on the known-after-apply value itself, then CustomizeDiff has to abstain.
+
+## File Header Comments
+
+Every source file (Go, Terraform, shell, YAML, etc.) starts with the licensing header below, placed at the very beginning of the file with no preceding blank lines. CI enforces this with [license-eye](https://github.com/apache/skywalking-eyes) (config in `.licenserc.yaml`) - run `make copyright-fix` to add missing headers. Existing headers keep the year they have.
+
+```go
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+```
+
+## Pointer Helpers
+
+- `pointer.From` returns the dereferenced value or the *zero* value if the pointer is `nil`. Use `pointer.From` instead of manual `nil` checks.
+
+:white_check_mark: **DO**
+
+```go
+output.Name = pointer.From(input.Name)
+```
+
+- Use `pointer.To` to take the address of a value without declaring temporary variables.
+
+:white_check_mark: **DO**
+
+```go
+if _, err := client.Delete(ctx, newId, apirelease.DeleteOperationOptions{IfMatch: pointer.To("*")}); err != nil {
+    return fmt.Errorf("deleting %s: %+v", newId, err)
+}
+```
+
+- Use `pointer.ToEnum` to convert Enum type instead of explicitly type conversion.
+
+:white_check_mark: **DO**
+
+```go
+return &managedclusters.ManagedClusterBootstrapProfile{
+    ArtifactSource: pointer.ToEnum[managedclusters.ArtifactSource](config["artifact_source"].(string)),
+}
 ```

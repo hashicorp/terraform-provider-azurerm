@@ -20,13 +20,13 @@ data "azurerm_site_recovery_fabric" "fabric" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Site Recovery Replication Fabric.
 
-* `recovery_vault_name` - (Required) The name of the Recovery Services Vault that the Site Recovery Replication Fabric is associated witth.
+* `recovery_vault_name` - (Required) The name of the Recovery Services Vault that the Site Recovery Replication Fabric is associated with.
 
 * `resource_group_name` - (Required) The name of the resource group in which the associated Recovery Services Vault resides.
 
@@ -40,7 +40,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Recovery Services Vault.
 

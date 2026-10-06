@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package hybridcompute
@@ -43,7 +43,7 @@ func (r ArcMachineExtensionResource) ResourceType() string {
 	return "azurerm_arc_machine_extension"
 }
 
-func (r ArcMachineExtensionResource) ModelObject() interface{} {
+func (r ArcMachineExtensionResource) ModelObject() any {
 	return &MachineExtensionModel{}
 }
 
@@ -154,13 +154,16 @@ func (r ArcMachineExtensionResource) Create() sdk.ResourceFunc {
 			}
 
 			id := machineextensions.NewExtensionID(machineId.SubscriptionId, machineId.ResourceGroupName, machineId.MachineName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			properties := &machineextensions.MachineExtension{
@@ -176,9 +179,8 @@ func (r ArcMachineExtensionResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.ProtectedSettings != "" {
-				protectedSettingsValue := make(map[string]interface{})
-				err = json.Unmarshal([]byte(model.ProtectedSettings), &protectedSettingsValue)
-				if err != nil {
+				protectedSettingsValue := make(map[string]any)
+				if err = json.Unmarshal([]byte(model.ProtectedSettings), &protectedSettingsValue); err != nil {
 					return err
 				}
 				properties.Properties.ProtectedSettings = &protectedSettingsValue
@@ -189,9 +191,8 @@ func (r ArcMachineExtensionResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.Settings != "" {
-				settingsValue := make(map[string]interface{})
-				err = json.Unmarshal([]byte(model.Settings), &settingsValue)
-				if err != nil {
+				settingsValue := make(map[string]any)
+				if err = json.Unmarshal([]byte(model.Settings), &settingsValue); err != nil {
 					return err
 				}
 				properties.Properties.Settings = &settingsValue
@@ -205,7 +206,7 @@ func (r ArcMachineExtensionResource) Create() sdk.ResourceFunc {
 				properties.Properties.TypeHandlerVersion = &model.TypeHandlerVersion
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, *properties, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -254,9 +255,8 @@ func (r ArcMachineExtensionResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("protected_settings") {
-				protectedSettingsValue := make(map[string]interface{})
-				err := json.Unmarshal([]byte(model.ProtectedSettings), &protectedSettingsValue)
-				if err != nil {
+				protectedSettingsValue := make(map[string]any)
+				if err := json.Unmarshal([]byte(model.ProtectedSettings), &protectedSettingsValue); err != nil {
 					return err
 				}
 
@@ -272,9 +272,8 @@ func (r ArcMachineExtensionResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("settings") {
-				settingsValue := make(map[string]interface{})
-				err := json.Unmarshal([]byte(model.Settings), &settingsValue)
-				if err != nil {
+				settingsValue := make(map[string]any)
+				if err := json.Unmarshal([]byte(model.Settings), &settingsValue); err != nil {
 					return err
 				}
 
@@ -356,8 +355,7 @@ func (r ArcMachineExtensionResource) Read() sdk.ResourceFunc {
 					}
 
 					var extModel MachineExtensionModel
-					err := metadata.Decode(&extModel)
-					if err != nil {
+					if err := metadata.Decode(&extModel); err != nil {
 						return err
 					}
 
