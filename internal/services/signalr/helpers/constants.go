@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package helpers
 
 // PublicNetworkAccess Enum is missing in the REST API spec

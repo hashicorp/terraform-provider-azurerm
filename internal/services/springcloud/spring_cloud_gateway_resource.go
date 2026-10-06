@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -80,16 +80,21 @@ type ResponseCacheModel struct {
 
 type SpringCloudGatewayResource struct{}
 
+func (s SpringCloudGatewayResource) DeprecationMessage() string {
+	return "Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_gateway` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information."
+}
+
 var (
-	_ sdk.ResourceWithUpdate         = SpringCloudGatewayResource{}
-	_ sdk.ResourceWithStateMigration = SpringCloudGatewayResource{}
+	_ sdk.ResourceWithUpdate                      = SpringCloudGatewayResource{}
+	_ sdk.ResourceWithStateMigration              = SpringCloudGatewayResource{}
+	_ sdk.ResourceWithDeprecationAndNoReplacement = SpringCloudGatewayResource{}
 )
 
 func (s SpringCloudGatewayResource) ResourceType() string {
 	return "azurerm_spring_cloud_gateway"
 }
 
-func (s SpringCloudGatewayResource) ModelObject() interface{} {
+func (s SpringCloudGatewayResource) ModelObject() any {
 	return &SpringCloudGatewayModel{}
 }
 
@@ -168,14 +173,8 @@ func (s SpringCloudGatewayResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(appplatform.ApmTypeAppDynamics),
-					string(appplatform.ApmTypeApplicationInsights),
-					string(appplatform.ApmTypeDynatrace),
-					string(appplatform.ApmTypeElasticAPM),
-					string(appplatform.ApmTypeNewRelic),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringInSlice(appplatform.PossibleValuesForApmType(), false),
 			},
 		},
 
@@ -355,7 +354,7 @@ func (s SpringCloudGatewayResource) Arguments() map[string]*pluginsdk.Schema {
 		"quota": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -450,12 +449,14 @@ func (s SpringCloudGatewayResource) Create() sdk.ResourceFunc {
 			}
 			id := appplatform.NewGatewayID(springId.SubscriptionId, springId.ResourceGroupName, springId.ServiceName, model.Name)
 
-			existing, err := client.GatewaysGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(s.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GatewaysGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(s.ResourceType(), id)
+				}
 			}
 
 			service, err := client.ServicesGet(ctx, *springId)
@@ -490,12 +491,11 @@ func (s SpringCloudGatewayResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			err = client.GatewaysCreateOrUpdateThenPoll(ctx, id, gatewayResource)
-			if err != nil {
+			if err := client.GatewaysCreateOrUpdateCallbackThenPoll(ctx, id, gatewayResource, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}
@@ -554,7 +554,7 @@ func (s SpringCloudGatewayResource) Update() sdk.ResourceFunc {
 				properties.CorsProperties = expandGatewayGatewayCorsProperties(model.Cors)
 			}
 
-			if metadata.ResourceData.HasChange("environment_variables") || metadata.ResourceData.HasChange("sensitive_environment_variables") {
+			if metadata.ResourceData.HasChanges("environment_variables", "sensitive_environment_variables") {
 				properties.EnvironmentVariables = expandGatewayGatewayEnvironmentVariables(model.EnvironmentVariables, model.SensitiveEnvironmentVariables)
 			}
 
@@ -574,7 +574,7 @@ func (s SpringCloudGatewayResource) Update() sdk.ResourceFunc {
 				properties.SsoProperties = expandGatewaySsoProperties(model.Sso)
 			}
 
-			if metadata.ResourceData.HasChange("local_response_cache_per_instance") || metadata.ResourceData.HasChange("local_response_cache_per_route") {
+			if metadata.ResourceData.HasChanges("local_response_cache_per_instance", "local_response_cache_per_route") {
 				properties.ResponseCacheProperties = expandGatewayResponseCacheProperties(model)
 			}
 
@@ -586,8 +586,7 @@ func (s SpringCloudGatewayResource) Update() sdk.ResourceFunc {
 				Sku:        sku,
 			}
 
-			err = client.GatewaysCreateOrUpdateThenPoll(ctx, *id, resource)
-			if err != nil {
+			if err = client.GatewaysCreateOrUpdateThenPoll(ctx, *id, resource); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -671,8 +670,7 @@ func (s SpringCloudGatewayResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			err = client.GatewaysDeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.GatewaysDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -857,10 +855,7 @@ func flattenGatewaySsoProperties(input *appplatform.SsoProperties, old []Gateway
 		oldItems[item.IssuerUri] = item
 	}
 
-	var issuerUri string
-	if input.IssuerUri != nil {
-		issuerUri = *input.IssuerUri
-	}
+	issuerUri := pointer.From(input.IssuerUri)
 	var clientId string
 	var clientSecret string
 	if oldItem, ok := oldItems[issuerUri]; ok {
@@ -879,7 +874,7 @@ func flattenGatewaySsoProperties(input *appplatform.SsoProperties, old []Gateway
 
 func flattenGatewayGatewayApmTypes(input *[]appplatform.ApmType) []string {
 	if input == nil {
-		return nil
+		return []string{}
 	}
 	out := make([]string, 0)
 	for _, v := range *input {
@@ -901,10 +896,8 @@ func flattenGatewayClientAuth(input *appplatform.GatewayPropertiesClientAuth) []
 			}
 		}
 	}
-	verificationEnabled := false
-	if input.CertificateVerification != nil && *input.CertificateVerification == appplatform.GatewayCertificateVerificationEnabled {
-		verificationEnabled = true
-	}
+	verificationEnabled := input.CertificateVerification != nil && *input.CertificateVerification == appplatform.GatewayCertificateVerificationEnabled
+
 	return []ClientAuthorizationModel{
 		{
 			CertificateIds:      certificateIds,

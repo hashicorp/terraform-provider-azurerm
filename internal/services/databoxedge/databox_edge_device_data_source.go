@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package databoxedge
@@ -114,7 +114,7 @@ func (d EdgeDeviceDataSource) Attributes() map[string]*schema.Schema {
 	}
 }
 
-func (d EdgeDeviceDataSource) ModelObject() interface{} {
+func (d EdgeDeviceDataSource) ModelObject() any {
 	return &EdgeDeviceModel{}
 }
 

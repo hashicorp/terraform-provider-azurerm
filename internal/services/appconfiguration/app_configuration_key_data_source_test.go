@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appconfiguration_test
@@ -69,6 +69,9 @@ func TestAccAppConfigurationKeyDataSource_basicVault(t *testing.T) {
 				check.That(data.ResourceName).Key("vault_key_reference").MatchesOtherKey(check.That(data.ResourceName).Key("value")),
 				check.That(data.ResourceName).Key("etag").IsSet(),
 				check.That(data.ResourceName).Key("label").IsSet(),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("development"),
+				check.That(data.ResourceName).Key("tags.hello").HasValue("world"),
 			),
 		},
 	})
