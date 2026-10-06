@@ -1103,6 +1103,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2025-01-01/
 github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/backupshorttermretentionpolicies
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/blobauditing
+github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databaseoperations
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databases
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databasesecurityalertpolicies
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databasevulnerabilityassessmentrulebaselines

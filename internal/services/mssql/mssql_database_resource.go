@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"net/http"
 	"strings"
 	"time"
 
@@ -21,6 +22,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/publicmaintenanceconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/backupshorttermretentionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databaseoperations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databasesecurityalertpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/elasticpools"
@@ -30,13 +32,12 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/serversecurityalertpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/transparentdataencryptions"
-	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
@@ -221,6 +222,7 @@ func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceDat
 
 func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
+	databaseOperationsClient := meta.(*clients.Client).MSSQL.DatabaseOperationsClient
 	serversClient := meta.(*clients.Client).MSSQL.ServersClient
 	elasticPoolClient := meta.(*clients.Client).MSSQL.ElasticPoolsClient
 	databaseSecurityAlertPoliciesClient := meta.(*clients.Client).MSSQL.DatabaseSecurityAlertPoliciesClient
@@ -330,7 +332,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 					return fmt.Errorf("updating SKU of Replication Partner Database %s: %+v", partnerDatabaseId, err)
 				}
 
-				if err := waitForMsSqlDatabaseOnline(ctx, client, *partnerDatabaseId); err != nil {
+				if err := waitForMsSqlDatabaseOnline(ctx, client, databaseOperationsClient, *partnerDatabaseId); err != nil {
 					return err
 				}
 			}
@@ -543,7 +545,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 		return err
 	}
 
-	if err := waitForMsSqlDatabaseOnline(ctx, client, id); err != nil {
+	if err := waitForMsSqlDatabaseOnline(ctx, client, databaseOperationsClient, id); err != nil {
 		return err
 	}
 
@@ -681,6 +683,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 
 func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
+	databaseOperationsClient := meta.(*clients.Client).MSSQL.DatabaseOperationsClient
 	serversClient := meta.(*clients.Client).MSSQL.ServersClient
 	securityAlertPoliciesClient := meta.(*clients.Client).MSSQL.DatabaseSecurityAlertPoliciesClient
 	longTermRetentionClient := meta.(*clients.Client).MSSQL.LongTermRetentionPoliciesClient
@@ -795,7 +798,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta any) error {
 						return fmt.Errorf("updating SKU of Replication Partner Database %s: %+v", partnerDatabaseId, err)
 					}
 
-					if err := waitForMsSqlDatabaseOnline(ctx, client, *partnerDatabaseId); err != nil {
+					if err := waitForMsSqlDatabaseOnline(ctx, client, databaseOperationsClient, *partnerDatabaseId); err != nil {
 						return err
 					}
 				}
@@ -1026,7 +1029,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta any) error {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
 
-		if err := waitForMsSqlDatabaseOnline(ctx, client, id); err != nil {
+		if err := waitForMsSqlDatabaseOnline(ctx, client, databaseOperationsClient, id); err != nil {
 			return err
 		}
 	}
@@ -1174,9 +1177,45 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta any) error {
 
 // waitForMsSqlDatabaseOnline waits for the database to finish provisioning. `Status` can read
 // `Online` while an operation is still running, so the poller also checks the `/operations` list.
-func waitForMsSqlDatabaseOnline(ctx context.Context, client *databases.DatabasesClient, id commonids.SqlDatabaseId) error {
-	pollerType := custompollers.NewMsSqlDatabaseOnlinePoller(client, id)
-	poller := pollers.NewPoller(pollerType, 0, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+func waitForMsSqlDatabaseOnline(ctx context.Context, client *databases.DatabasesClient, databaseOperationsClient *databaseoperations.DatabaseOperationsClient, id commonids.SqlDatabaseId) error {
+	poller := custompollers.NewEventualConsistencyPoller(2, func(pollerCtx context.Context) (*http.Response, error) {
+		operations, err := databaseOperationsClient.ListByDatabaseComplete(pollerCtx, id)
+		if err != nil {
+			return nil, fmt.Errorf("checking database operations for %s: %+v", id, err)
+		}
+		for _, operation := range operations.Items {
+			if operation.Properties == nil || operation.Properties.State == nil {
+				continue
+			}
+
+			switch *operation.Properties.State {
+			case databaseoperations.ManagementOperationStateCancelInProgress, databaseoperations.ManagementOperationStateInProgress, databaseoperations.ManagementOperationStatePending:
+				return nil, nil
+			}
+		}
+
+		resp, err := client.Get(pollerCtx, id, databases.DefaultGetOperationOptions())
+		if err != nil {
+			return nil, fmt.Errorf("retrieving %s: %+v", id, err)
+		}
+		if resp.Model == nil {
+			return nil, fmt.Errorf("retrieving %s: `model` was nil", id)
+		}
+		if resp.Model.Properties == nil {
+			return nil, fmt.Errorf("retrieving %s: `properties` was nil", id)
+		}
+		if resp.Model.Properties.Status == nil {
+			return nil, fmt.Errorf("retrieving %s: `status` was nil", id)
+		}
+		if pointer.From(resp.Model.Properties.Status) != databases.DatabaseStatusOnline {
+			return nil, nil
+		}
+
+		return resp.HttpResponse, nil
+	}, &custompollers.EventualConsistencyPollerOptions{
+		Interval:         time.Minute,
+		TargetStatusCode: pointer.To(http.StatusOK),
+	})
 	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to become ready: %+v", id, err)
 	}

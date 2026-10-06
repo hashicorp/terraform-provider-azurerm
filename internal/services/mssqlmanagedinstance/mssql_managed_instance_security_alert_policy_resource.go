@@ -4,8 +4,10 @@
 package mssqlmanagedinstance
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -13,10 +15,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedserversecurityalertpolicies"
-	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -122,9 +123,7 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyCreate(d *pluginsdk.Resource
 
 	managedInstanceId := commonids.NewSqlManagedInstanceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("managed_instance_name").(string))
 
-	pollerType := custompollers.NewManagedInstanceSecurityAlertPolicyPoller(client, managedInstanceId, *alertPolicy)
-	poller := pollers.NewPoller(pollerType, 0, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-	if err := poller.PollUntilDone(ctx); err != nil {
+	if err := waitForMsSqlManagedInstanceSecurityAlertPolicy(ctx, client, managedInstanceId, *alertPolicy); err != nil {
 		return fmt.Errorf("creating Security Alert Policy for %s: %+v", managedInstanceId, err)
 	}
 
@@ -230,15 +229,34 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyUpdate(d *pluginsdk.Resource
 		payload.Properties.StorageEndpoint = nil
 	}
 
-	pollerType := custompollers.NewManagedInstanceSecurityAlertPolicyPoller(client, managedInstanceId, *payload)
-	poller := pollers.NewPoller(pollerType, 0, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-	if err := poller.PollUntilDone(ctx); err != nil {
+	if err := waitForMsSqlManagedInstanceSecurityAlertPolicy(ctx, client, managedInstanceId, *payload); err != nil {
 		return fmt.Errorf("updating Security Alert Policy for %s: %+v", managedInstanceId, err)
 	}
 
 	d.SetId(id.ID())
 
 	return resourceMsSqlManagedInstanceSecurityAlertPolicyRead(d, meta)
+}
+
+func waitForMsSqlManagedInstanceSecurityAlertPolicy(ctx context.Context, client *managedserversecurityalertpolicies.ManagedServerSecurityAlertPoliciesClient, id commonids.SqlManagedInstanceId, payload managedserversecurityalertpolicies.ManagedServerSecurityAlertPolicy) error {
+	// A concurrent security policy operation can return ServerSecurityAlertPolicyInProgress (409).
+	// Retry submission until accepted, then wait for that operation's SDK poller to complete.
+	poller := custompollers.NewEventualConsistencyPoller(1, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.CreateOrUpdate(pollerCtx, id, payload)
+		if err != nil {
+			return resp.HttpResponse, fmt.Errorf("performing CreateOrUpdate: %+v", err)
+		}
+		if err := resp.Poller.PollUntilDone(pollerCtx); err != nil {
+			return nil, fmt.Errorf("polling after CreateOrUpdate: %+v", err)
+		}
+
+		return resp.HttpResponse, nil
+	}, &custompollers.EventualConsistencyPollerOptions{
+		Interval:              30 * time.Second,
+		RetryErrorStatusCodes: []int{http.StatusConflict},
+	})
+
+	return poller.PollUntilDone(ctx)
 }
 
 func resourceMsSqlManagedInstanceSecurityAlertPolicyRead(d *pluginsdk.ResourceData, meta any) error {
