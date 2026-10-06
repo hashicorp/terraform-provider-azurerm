@@ -14,10 +14,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatedns"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -52,22 +51,16 @@ func resourcePrivateDnsMxRecord() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				ForceNew: true,
 				// name is optional and defaults to root zone (@) if not set
-				Optional: true,
-				Default:  "@",
-				// lower-cased due to the broken API https://github.com/Azure/azure-rest-api-specs/issues/6641
-				ValidateFunc: validate.LowerCasedString,
+				Optional:     true,
+				Default:      "@",
+				ValidateFunc: validation.StringIsNotWhiteSpace,
 			},
 
-			// TODO: in 4.0 make `name` case sensitive and replace `resource_group_name` and `zone_name` with `private_zone_id`
-
-			// TODO: make this case sensitive once the API's fixed https://github.com/Azure/azure-rest-api-specs/issues/6641
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
-
-			"zone_name": {
+			"private_dns_zone_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: privatezones.ValidatePrivateDnsZoneID,
 			},
 
 			"record": {
@@ -106,13 +99,19 @@ func resourcePrivateDnsMxRecord() *pluginsdk.Resource {
 	}
 }
 
-func resourcePrivateDnsMxRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePrivateDnsMxRecordCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).PrivateDns.RecordSetsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := privatedns.NewRecordTypeID(subscriptionId, d.Get("resource_group_name").(string), d.Get("zone_name").(string), privatedns.RecordTypeMX, d.Get("name").(string))
+	privateDNSZoneID, err := privatezones.ParsePrivateDnsZoneID(d.Get("private_dns_zone_id").(string))
+	if err != nil {
+		return err
+	}
+
+	id := privatedns.NewRecordTypeID(privateDNSZoneID.SubscriptionId, privateDNSZoneID.ResourceGroupName, privateDNSZoneID.PrivateDnsZoneName, privatedns.RecordTypeMX, d.Get("name").(string))
+
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			existing, err := client.RecordSetsGet(ctx, id)
@@ -131,7 +130,7 @@ func resourcePrivateDnsMxRecordCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	parameters := privatedns.RecordSet{
 		Name: pointer.To(id.RelativeRecordSetName),
 		Properties: &privatedns.RecordSetProperties{
-			Metadata:  tags.Expand(d.Get("tags").(map[string]interface{})),
+			Metadata:  tags.Expand(d.Get("tags").(map[string]any)),
 			Ttl:       pointer.To(int64(d.Get("ttl").(int))),
 			MxRecords: expandAzureRmPrivateDnsMxRecords(d),
 		},
@@ -152,7 +151,7 @@ func resourcePrivateDnsMxRecordCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	return resourcePrivateDnsMxRecordRead(d, meta)
 }
 
-func resourcePrivateDnsMxRecordRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePrivateDnsMxRecordRead(d *pluginsdk.ResourceData, meta any) error {
 	dnsClient := meta.(*clients.Client).PrivateDns.RecordSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -173,8 +172,7 @@ func resourcePrivateDnsMxRecordRead(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	d.Set("name", id.RelativeRecordSetName)
-	d.Set("zone_name", id.PrivateDnsZoneName)
-	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("private_dns_zone_id", privatezones.NewPrivateDnsZoneID(id.SubscriptionId, id.ResourceGroupName, id.PrivateDnsZoneName).ID())
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
@@ -194,7 +192,7 @@ func resourcePrivateDnsMxRecordRead(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func resourcePrivateDnsMxRecordDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePrivateDnsMxRecordDelete(d *pluginsdk.ResourceData, meta any) error {
 	dnsClient := meta.(*clients.Client).PrivateDns.RecordSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -213,8 +211,8 @@ func resourcePrivateDnsMxRecordDelete(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func flattenAzureRmPrivateDnsMxRecords(records *[]privatedns.MxRecord) []map[string]interface{} {
-	results := make([]map[string]interface{}, 0)
+func flattenAzureRmPrivateDnsMxRecords(records *[]privatedns.MxRecord) []map[string]any {
+	results := make([]map[string]any, 0)
 
 	if records != nil {
 		for _, record := range *records {
@@ -223,7 +221,7 @@ func flattenAzureRmPrivateDnsMxRecords(records *[]privatedns.MxRecord) []map[str
 				continue
 			}
 
-			results = append(results, map[string]interface{}{
+			results = append(results, map[string]any{
 				"preference": *record.Preference,
 				"exchange":   *record.Exchange,
 			})
@@ -241,24 +239,22 @@ func expandAzureRmPrivateDnsMxRecords(d *pluginsdk.ResourceData) *[]privatedns.M
 		if v == nil {
 			continue
 		}
-		record := v.(map[string]interface{})
-		mxRecord := privatedns.MxRecord{
+		record := v.(map[string]any)
+		records[i] = privatedns.MxRecord{
 			Preference: pointer.To(int64(record["preference"].(int))),
 			Exchange:   pointer.To(record["exchange"].(string)),
 		}
-
-		records[i] = mxRecord
 	}
 
 	return &records
 }
 
-func resourcePrivateDnsMxRecordHash(v interface{}) int {
+func resourcePrivateDnsMxRecordHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%d-", m["preference"].(int)))
-		buf.WriteString(fmt.Sprintf("%s-", m["exchange"].(string)))
+	if m, ok := v.(map[string]any); ok {
+		fmt.Fprintf(&buf, "%d-", m["preference"].(int))
+		fmt.Fprintf(&buf, "%s-", m["exchange"].(string))
 	}
 
 	return pluginsdk.HashString(buf.String())

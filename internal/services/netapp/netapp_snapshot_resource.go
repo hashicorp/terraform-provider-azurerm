@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/snapshots"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -74,7 +74,7 @@ func resourceNetAppSnapshot() *pluginsdk.Resource {
 	}
 }
 
-func resourceNetAppSnapshotCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetAppSnapshotCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NetApp.SnapshotClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -108,7 +108,7 @@ func resourceNetAppSnapshotCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	return resourceNetAppSnapshotRead(d, meta)
 }
 
-func resourceNetAppSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetAppSnapshotRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NetApp.SnapshotClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -141,7 +141,7 @@ func resourceNetAppSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceNetAppSnapshotDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetAppSnapshotDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NetApp.SnapshotClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -179,7 +179,7 @@ func resourceNetAppSnapshotDelete(d *pluginsdk.ResourceData, meta interface{}) e
 }
 
 func netappSnapshotDeleteStateRefreshFunc(ctx context.Context, client *snapshots.SnapshotsClient, id snapshots.SnapshotId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		res, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(res.HttpResponse) {

@@ -82,7 +82,7 @@ func resourceApiManagementGateway() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementGatewayCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementGatewayCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.GatewayClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -110,7 +110,7 @@ func resourceApiManagementGatewayCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	description := d.Get("description").(string)
-	locationData := expandApiManagementGatewayLocationData(d.Get("location_data").([]interface{}))
+	locationData := expandApiManagementGatewayLocationData(d.Get("location_data").([]any))
 
 	parameters := gateway.GatewayContract{
 		Properties: &gateway.GatewayContractProperties{
@@ -128,7 +128,7 @@ func resourceApiManagementGatewayCreateUpdate(d *pluginsdk.ResourceData, meta in
 	return resourceApiManagementGatewayRead(d, meta)
 }
 
-func resourceApiManagementGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementGatewayRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.GatewayClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -163,7 +163,7 @@ func resourceApiManagementGatewayRead(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func resourceApiManagementGatewayDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementGatewayDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.GatewayClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -182,14 +182,14 @@ func resourceApiManagementGatewayDelete(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func expandApiManagementGatewayLocationData(input []interface{}) *gateway.ResourceLocationDataContract {
+func expandApiManagementGatewayLocationData(input []any) *gateway.ResourceLocationDataContract {
 	if len(input) == 0 {
 		return nil
 	}
 
 	locationData := gateway.ResourceLocationDataContract{}
 
-	vs := input[0].(map[string]interface{})
+	vs := input[0].(map[string]any)
 	for k, v := range vs {
 		switch k {
 		case "name":
@@ -206,17 +206,17 @@ func expandApiManagementGatewayLocationData(input []interface{}) *gateway.Resour
 	return &locationData
 }
 
-func flattenApiManagementGatewayLocationData(input *gateway.ResourceLocationDataContract) []interface{} {
+func flattenApiManagementGatewayLocationData(input *gateway.ResourceLocationDataContract) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	locationData := map[string]interface{}{
+	locationData := map[string]any{
 		"name":     input.Name,
 		"city":     pointer.From(input.City),
 		"region":   pointer.From(input.CountryOrRegion),
 		"district": pointer.From(input.District),
 	}
 
-	return []interface{}{locationData}
+	return []any{locationData}
 }

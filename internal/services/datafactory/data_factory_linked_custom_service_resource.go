@@ -6,9 +6,11 @@ package datafactory
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -17,8 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 func resourceDataFactoryLinkedCustomService() *pluginsdk.Resource {
@@ -64,7 +65,7 @@ func resourceDataFactoryLinkedCustomService() *pluginsdk.Resource {
 			"type_properties_json": {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
-				StateFunc:        utils.NormalizeJson,
+				StateFunc:        pluginsdk.NormalizeJson,
 				DiffSuppressFunc: suppressJsonOrderingDifference,
 			},
 
@@ -124,7 +125,7 @@ func resourceDataFactoryLinkedCustomService() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryLinkedCustomServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedCustomServiceCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -140,19 +141,19 @@ func resourceDataFactoryLinkedCustomServiceCreateUpdate(d *pluginsdk.ResourceDat
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.Response.Response) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return tf.ImportAsExistsError("azurerm_data_factory_linked_custom_service", id.ID())
 			}
 		}
 	}
 
-	props := map[string]interface{}{
+	props := map[string]any{
 		"type":       d.Get("type").(string),
-		"connectVia": expandDataFactoryLinkedServiceIntegrationRuntimeV2(d.Get("integration_runtime").([]interface{})),
+		"connectVia": expandDataFactoryLinkedServiceIntegrationRuntimeV2(d.Get("integration_runtime").([]any)),
 	}
 
 	jsonDataStr := fmt.Sprintf(`{ "typeProperties": %s }`, d.Get("type_properties_json").(string))
@@ -165,19 +166,17 @@ func resourceDataFactoryLinkedCustomServiceCreateUpdate(d *pluginsdk.ResourceDat
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		props["parameters"] = expandLinkedServiceParameters(v.(map[string]interface{}))
+		props["parameters"] = expandLinkedServiceParameters(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		props["annotations"] = v.([]interface{})
+		props["annotations"] = v.([]any)
 	}
 
-	additionalProperties := d.Get("additional_properties").(map[string]interface{})
-	for k, v := range additionalProperties {
-		props[k] = v
-	}
+	additionalProperties := d.Get("additional_properties").(map[string]any)
+	maps.Copy(props, additionalProperties)
 
-	jsonData, err := json.Marshal(map[string]interface{}{
+	jsonData, err := json.Marshal(map[string]any{
 		"properties": props,
 	})
 	if err != nil {
@@ -200,7 +199,7 @@ func resourceDataFactoryLinkedCustomServiceCreateUpdate(d *pluginsdk.ResourceDat
 	return resourceDataFactoryLinkedCustomServiceRead(d, meta)
 }
 
-func resourceDataFactoryLinkedCustomServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedCustomServiceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -213,7 +212,7 @@ func resourceDataFactoryLinkedCustomServiceRead(d *pluginsdk.ResourceData, meta 
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -252,7 +251,7 @@ func resourceDataFactoryLinkedCustomServiceRead(d *pluginsdk.ResourceData, meta 
 	}
 	d.Set("type", t)
 
-	annotations := make([]interface{}, 0)
+	annotations := make([]any, 0)
 	if v, ok := m["annotations"]; ok && v != nil {
 		if err := json.Unmarshal(*v, &annotations); err != nil {
 			return err
@@ -287,7 +286,7 @@ func resourceDataFactoryLinkedCustomServiceRead(d *pluginsdk.ResourceData, meta 
 	delete(m, "typeProperties")
 
 	// set "additional_properties"
-	additionalProperties := make(map[string]interface{})
+	additionalProperties := make(map[string]any)
 	bytes, err := json.Marshal(m)
 	if err != nil {
 		return err
@@ -300,7 +299,7 @@ func resourceDataFactoryLinkedCustomServiceRead(d *pluginsdk.ResourceData, meta 
 	return nil
 }
 
-func resourceDataFactoryLinkedCustomServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedCustomServiceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -317,32 +316,27 @@ func resourceDataFactoryLinkedCustomServiceDelete(d *pluginsdk.ResourceData, met
 	return nil
 }
 
-func expandDataFactoryLinkedServiceIntegrationRuntimeV2(input []interface{}) *datafactory.IntegrationRuntimeReference {
+func expandDataFactoryLinkedServiceIntegrationRuntimeV2(input []any) *datafactory.IntegrationRuntimeReference {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	return &datafactory.IntegrationRuntimeReference{
 		ReferenceName: pointer.To(v["name"].(string)),
 		Type:          pointer.To("IntegrationRuntimeReference"),
-		Parameters:    v["parameters"].(map[string]interface{}),
+		Parameters:    v["parameters"].(map[string]any),
 	}
 }
 
-func flattenDataFactoryLinkedServiceIntegrationRuntimeV2(input *datafactory.IntegrationRuntimeReference) []interface{} {
+func flattenDataFactoryLinkedServiceIntegrationRuntimeV2(input *datafactory.IntegrationRuntimeReference) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	name := ""
-	if input.ReferenceName != nil {
-		name = *input.ReferenceName
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"name":       name,
+	return []any{
+		map[string]any{
+			"name":       pointer.From(input.ReferenceName),
 			"parameters": input.Parameters,
 		},
 	}

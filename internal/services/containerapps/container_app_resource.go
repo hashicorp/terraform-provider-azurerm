@@ -42,7 +42,7 @@ type ContainerAppModel struct {
 	Identity             []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	WorkloadProfileName  string                                     `tfschema:"workload_profile_name"`
 	MaxInactiveRevisions int64                                      `tfschema:"max_inactive_revisions"`
-	Tags                 map[string]interface{}                     `tfschema:"tags"`
+	Tags                 map[string]any                             `tfschema:"tags"`
 
 	OutboundIpAddresses        []string `tfschema:"outbound_ip_addresses"`
 	LatestRevisionName         string   `tfschema:"latest_revision_name"`
@@ -54,7 +54,7 @@ var _ sdk.ResourceWithUpdate = ContainerAppResource{}
 
 var _ sdk.ResourceWithCustomizeDiff = ContainerAppResource{}
 
-func (r ContainerAppResource) ModelObject() interface{} {
+func (r ContainerAppResource) ModelObject() any {
 	return &ContainerAppModel{}
 }
 
@@ -89,12 +89,9 @@ func (r ContainerAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"template": helpers.ContainerTemplateSchema(),
 
 		"revision_mode": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(containerapps.ActiveRevisionsModeSingle),
-				string(containerapps.ActiveRevisionsModeMultiple),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForActiveRevisionsMode(), false),
 		},
 
 		"ingress": helpers.ContainerAppIngressSchema(),
@@ -235,7 +232,7 @@ func (r ContainerAppResource) Create() sdk.ResourceFunc {
 			}
 			containerApp.Identity = pointer.To(identity.LegacySystemAndUserAssignedMap(*ident))
 
-			containerApp.Properties.Configuration.ActiveRevisionsMode = pointer.To(containerapps.ActiveRevisionsMode(app.RevisionMode))
+			containerApp.Properties.Configuration.ActiveRevisionsMode = pointer.ToEnum[containerapps.ActiveRevisionsMode](app.RevisionMode)
 
 			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, containerApp, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -292,7 +289,7 @@ func (r ContainerAppResource) Read() sdk.ResourceFunc {
 					state.Template = helpers.FlattenContainerAppTemplate(props.Template)
 					if config := props.Configuration; config != nil {
 						if config.ActiveRevisionsMode != nil {
-							state.RevisionMode = string(pointer.From(config.ActiveRevisionsMode))
+							state.RevisionMode = pointer.FromEnum(config.ActiveRevisionsMode)
 						}
 						state.Ingress = helpers.FlattenContainerAppIngress(config.Ingress, id.ContainerAppName)
 						state.Registries = helpers.FlattenContainerAppRegistries(config.Registries)
@@ -363,7 +360,7 @@ func (r ContainerAppResource) Update() sdk.ResourceFunc {
 			model := existing.Model
 
 			if model.Properties == nil {
-				return fmt.Errorf("retreiving properties for %s for update: %+v", *id, err)
+				return fmt.Errorf("retrieving properties for %s for update: %+v", *id, err)
 			}
 
 			if model.Properties.Configuration == nil {
@@ -380,7 +377,7 @@ func (r ContainerAppResource) Update() sdk.ResourceFunc {
 			model.Properties.Configuration.Secrets = helpers.UnpackContainerSecretsCollection(secretsResp.Model)
 
 			if metadata.ResourceData.HasChange("revision_mode") {
-				model.Properties.Configuration.ActiveRevisionsMode = pointer.To(containerapps.ActiveRevisionsMode(state.RevisionMode))
+				model.Properties.Configuration.ActiveRevisionsMode = pointer.ToEnum[containerapps.ActiveRevisionsMode](state.RevisionMode)
 			}
 
 			if metadata.ResourceData.HasChange("ingress") {

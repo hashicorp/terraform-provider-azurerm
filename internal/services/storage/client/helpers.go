@@ -125,7 +125,7 @@ func (ad *AccountDetails) DataPlaneEndpoint(endpointType EndpointType) (*string,
 
 	if baseUri == nil {
 		if StorageDomainSuffix != nil && ad.StorageAccountId.StorageAccountName != "" {
-			uri := fmt.Sprintf("https://%s.%s.%s/", ad.StorageAccountId.StorageAccountName, endpointType, *StorageDomainSuffix)
+			uri := fmt.Sprintf("https://%s.%s.%s", ad.StorageAccountId.StorageAccountName, endpointType, *StorageDomainSuffix)
 			return &uri, nil
 		}
 		return nil, fmt.Errorf("determining %s endpoint for %s: missing primary endpoint", endpointType, ad.StorageAccountId)

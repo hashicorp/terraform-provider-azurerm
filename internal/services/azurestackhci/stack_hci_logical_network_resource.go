@@ -36,19 +36,19 @@ func (StackHCILogicalNetworkResource) ResourceType() string {
 	return "azurerm_stack_hci_logical_network"
 }
 
-func (StackHCILogicalNetworkResource) ModelObject() interface{} {
+func (StackHCILogicalNetworkResource) ModelObject() any {
 	return &StackHCILogicalNetworkResourceModel{}
 }
 
 type StackHCILogicalNetworkResourceModel struct {
-	Name              string                 `tfschema:"name"`
-	ResourceGroupName string                 `tfschema:"resource_group_name"`
-	Location          string                 `tfschema:"location"`
-	CustomLocationId  string                 `tfschema:"custom_location_id"`
-	DNSServers        []string               `tfschema:"dns_servers"`
-	Subnet            []StackHCISubnetModel  `tfschema:"subnet"`
-	VirtualSwitchName string                 `tfschema:"virtual_switch_name"`
-	Tags              map[string]interface{} `tfschema:"tags"`
+	Name              string                `tfschema:"name"`
+	ResourceGroupName string                `tfschema:"resource_group_name"`
+	Location          string                `tfschema:"location"`
+	CustomLocationId  string                `tfschema:"custom_location_id"`
+	DNSServers        []string              `tfschema:"dns_servers"`
+	Subnet            []StackHCISubnetModel `tfschema:"subnet"`
+	VirtualSwitchName string                `tfschema:"virtual_switch_name"`
+	Tags              map[string]any        `tfschema:"tags"`
 }
 
 type StackHCISubnetModel struct {
@@ -180,7 +180,7 @@ func (StackHCILogicalNetworkResource) Arguments() map[string]*pluginsdk.Schema {
 									ForceNew: true,
 									ValidateFunc: validation.StringMatch(
 										regexp.MustCompile(`^[a-zA-Z0-9][\-\.\_a-zA-Z0-9]{0,78}[a-zA-Z0-9]$`),
-										"name must be between 2 and 80 characters and can only contain alphanumberic characters, hyphen, dot and underline",
+										"name must be between 2 and 80 characters and can only contain alphanumeric characters, hyphen, dot and underline",
 									),
 								},
 							},
@@ -378,7 +378,7 @@ func expandStackHCILogicalNetworkSubnet(input []StackHCISubnetModel) *[]logicaln
 		results = append(results, logicalnetworks.Subnet{
 			Properties: &logicalnetworks.SubnetPropertiesFormat{
 				AddressPrefix:      pointer.To(v.AddressPrefix),
-				IPAllocationMethod: pointer.To(logicalnetworks.IPAllocationMethodEnum(v.IpAllocationMethod)),
+				IPAllocationMethod: pointer.ToEnum[logicalnetworks.IPAllocationMethodEnum](v.IpAllocationMethod),
 				IPPools:            expandStackHCILogicalNetworkIPPool(v.IpPool),
 				RouteTable:         expandStackHCILogicalNetworkRouteTable(v.Route),
 				Vlan:               pointer.To(v.VlanId),
@@ -399,7 +399,7 @@ func flattenStackHCILogicalNetworkSubnet(input *[]logicalnetworks.Subnet) []Stac
 		if v.Properties != nil {
 			results = append(results, StackHCISubnetModel{
 				AddressPrefix:      pointer.From(v.Properties.AddressPrefix),
-				IpAllocationMethod: string(pointer.From(v.Properties.IPAllocationMethod)),
+				IpAllocationMethod: pointer.FromEnum(v.Properties.IPAllocationMethod),
 				IpPool:             flattenStackHCILogicalNetworkIPPool(v.Properties.IPPools),
 				Route:              flattenStackHCILogicalNetworkRouteTable(v.Properties.RouteTable),
 				VlanId:             pointer.From(v.Properties.Vlan),
