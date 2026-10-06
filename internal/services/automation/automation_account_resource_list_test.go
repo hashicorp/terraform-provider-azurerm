@@ -19,7 +19,7 @@ func TestAccAutomationAccount_list_basic(t *testing.T) {
 	r := AutomationAccountResource{}
 	listResourceAddress := "azurerm_automation_account.list"
 
-	data := acceptance.BuildTestData(t, "azurerm_automation_account", "test1")
+	data := acceptance.BuildTestData(t, "azurerm_automation_account", "test")
 
 	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -66,22 +66,10 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_automation_account" "test1" {
-  name                = "acctestauto1-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "Basic"
-}
+resource "azurerm_automation_account" "test" {
+  count = 3
 
-resource "azurerm_automation_account" "test2" {
-  name                = "acctestauto2-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "Basic"
-}
-
-resource "azurerm_automation_account" "test3" {
-  name                = "acctestauto3-%[1]d"
+  name                = "acctestauto${count.index}-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Basic"

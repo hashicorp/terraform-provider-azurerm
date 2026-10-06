@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/namespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -41,7 +40,7 @@ var _ sdk.ResourceWithUpdate = WebAppHybridConnectionResource{}
 
 var _ sdk.ResourceWithCustomImporter = WebAppHybridConnectionResource{}
 
-func (r WebAppHybridConnectionResource) ModelObject() interface{} {
+func (r WebAppHybridConnectionResource) ModelObject() any {
 	return &WebAppHybridConnectionModel{}
 }
 
@@ -81,7 +80,7 @@ func (r WebAppHybridConnectionResource) Arguments() map[string]*pluginsdk.Schema
 		"port": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
-			ValidateFunc: azValidate.PortNumberOrZero,
+			ValidateFunc: validation.IsPortNumberOrZero,
 			Description:  "The port to use for the endpoint",
 		},
 
@@ -152,14 +151,16 @@ func (r WebAppHybridConnectionResource) Create() sdk.ResourceFunc {
 
 			id := webapps.NewRelayID(appId.SubscriptionId, appId.ResourceGroupName, appId.SiteName, relayId.NamespaceName, relayId.HybridConnectionName)
 
-			existing, err := client.GetHybridConnection(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetHybridConnection(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				}
 			}
 
 			sendKeyValue, err := helpers.GetSendKeyValue(ctx, metadata, *relayId, appHybridConn.SendKeyName)
@@ -177,8 +178,7 @@ func (r WebAppHybridConnectionResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			_, err = client.CreateOrUpdateHybridConnection(ctx, id, envelope)
-			if err != nil {
+			if _, err = client.CreateOrUpdateHybridConnection(ctx, id, envelope); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -323,8 +323,7 @@ func (r WebAppHybridConnectionResource) Update() sdk.ResourceFunc {
 				model.Properties.SendKeyValue = sendKeyValue
 			}
 
-			_, err = client.CreateOrUpdateHybridConnection(ctx, *id, model)
-			if err != nil {
+			if _, err = client.CreateOrUpdateHybridConnection(ctx, *id, model); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 

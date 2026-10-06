@@ -74,7 +74,7 @@ func resourceDataShareDataSetKustoCluster() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataShareDataSetKustoClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataShareDataSetKustoClusterCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -85,14 +85,16 @@ func resourceDataShareDataSetKustoClusterCreate(d *pluginsdk.ResourceData, meta 
 	}
 	id := dataset.NewDataSetID(shareId.SubscriptionId, shareId.ResourceGroupName, shareId.AccountName, shareId.ShareName, d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_data_share_dataset_kusto_cluster", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_data_share_dataset_kusto_cluster", id.ID())
+		}
 	}
 
 	dataSet := dataset.KustoClusterDataSet{
@@ -112,7 +114,7 @@ func resourceDataShareDataSetKustoClusterCreate(d *pluginsdk.ResourceData, meta 
 	return resourceDataShareDataSetKustoClusterRead(d, meta)
 }
 
-func resourceDataShareDataSetKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataShareDataSetKustoClusterRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -152,7 +154,7 @@ func resourceDataShareDataSetKustoClusterRead(d *pluginsdk.ResourceData, meta in
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceDataShareDataSetKustoClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataShareDataSetKustoClusterDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

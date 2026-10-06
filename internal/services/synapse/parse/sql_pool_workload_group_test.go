@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = SqlPoolWorkloadGroupId{}
 
-func TestSqlPoolWorkloadGroupIDFormatter(t *testing.T) {
+func TestParseSqlPoolWorkloadGroupIDFormatter(t *testing.T) {
 	actual := NewSqlPoolWorkloadGroupID("12345678-1234-9876-4563-123456789012", "resGroup1", "workspace1", "sqlPool1", "workloadGroup1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Synapse/workspaces/workspace1/sqlPools/sqlPool1/workloadGroups/workloadGroup1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestSqlPoolWorkloadGroupIDFormatter(t *testing.T) {
 	}
 }
 
-func TestSqlPoolWorkloadGroupID(t *testing.T) {
+func TestParseSqlPoolWorkloadGroupID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
