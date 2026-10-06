@@ -4,18 +4,9 @@
 package storage
 
 import (
-	"context"
-	"errors"
-	"fmt"
-	"log"
-	"regexp"
 	"slices"
-	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storageaccounts"
-	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/custompollers"
 )
 
 type storageAccountServiceSupportLevel struct {
@@ -23,6 +14,7 @@ type storageAccountServiceSupportLevel struct {
 	supportQueue         bool
 	supportShare         bool
 	supportStaticWebsite bool
+	supportTable         bool
 }
 
 func availableFunctionalityForAccount(kind storageaccounts.Kind, tier storageaccounts.SkuTier, replicationType string) storageAccountServiceSupportLevel {
@@ -37,7 +29,7 @@ func availableFunctionalityForAccount(kind storageaccounts.Kind, tier storageacc
 			slices.Contains([]string{"LRS", "GRS", "RAGRS"}, replicationType)))
 
 	// File share is only supported for StorageV2 and FileStorage.
-	// See: https://docs.microsoft.com/en-us/azure/storage/files/storage-files-planning#management-concepts
+	// See: https://docs.microsoft.com/azure/storage/files/storage-files-planning#management-concepts
 	// Per test, the StorageV2 with Premium sku tier also doesn't support file share.
 	supportShare := kind == storageaccounts.KindFileStorage || (tier != storageaccounts.SkuTierPremium && (kind == storageaccounts.KindStorageVTwo ||
 		(kind == storageaccounts.KindStorage &&
@@ -48,81 +40,17 @@ func availableFunctionalityForAccount(kind storageaccounts.Kind, tier storageacc
 	// Static Website is only supported for StorageV2 (not for Storage(v1)) and BlockBlobStorage
 	supportStaticWebSite := kind == storageaccounts.KindStorageVTwo || kind == storageaccounts.KindBlockBlobStorage
 
+	// Table is only supported for Storage and StorageV2, in Standard sku tier.
+	// This matches the same conditions as Queue Storage.
+	supportTable := tier == storageaccounts.SkuTierStandard && (kind == storageaccounts.KindStorageVTwo ||
+		(kind == storageaccounts.KindStorage &&
+			slices.Contains([]string{"LRS", "GRS", "RAGRS"}, replicationType)))
+
 	return storageAccountServiceSupportLevel{
 		supportBlob:          supportBlob,
 		supportQueue:         supportQueue,
 		supportShare:         supportShare,
 		supportStaticWebsite: supportStaticWebSite,
+		supportTable:         supportTable,
 	}
-}
-
-func waitForDataPlaneToBecomeAvailableForAccount(ctx context.Context, client *client.Client, account *client.AccountDetails, supportLevel storageAccountServiceSupportLevel) error {
-	initialDelayDuration := 10 * time.Second
-
-	if supportLevel.supportBlob {
-		log.Printf("[DEBUG] waiting for the Blob Service to become available")
-		pollerType, err := custompollers.NewDataPlaneBlobContainersAvailabilityPoller(ctx, client, account)
-		if err != nil {
-			return fmt.Errorf("building Blob Service Poller: %+v", err)
-		}
-		poller := pollers.NewPoller(pollerType, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-		if err = poller.PollUntilDone(ctx); err != nil {
-			if !connectionError(err) {
-				return fmt.Errorf("waiting for the Blob Service to become available: %+v", err)
-			}
-		}
-	}
-
-	if supportLevel.supportQueue {
-		log.Printf("[DEBUG] waiting for the Queues Service to become available")
-		pollerType, err := custompollers.NewDataPlaneQueuesAvailabilityPoller(ctx, client, account)
-		if err != nil {
-			return fmt.Errorf("building Queues Poller: %+v", err)
-		}
-		poller := pollers.NewPoller(pollerType, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-		if err = poller.PollUntilDone(ctx); err != nil {
-			if !connectionError(err) {
-				return fmt.Errorf("waiting for the Queues Service to become available: %+v", err)
-			}
-		}
-	}
-
-	if supportLevel.supportShare {
-		log.Printf("[DEBUG] waiting for the File Service to become available")
-		pollerType, err := custompollers.NewDataPlaneFileShareAvailabilityPoller(client, account)
-		if err != nil {
-			return fmt.Errorf("building File Share Poller: %+v", err)
-		}
-		poller := pollers.NewPoller(pollerType, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-		if err = poller.PollUntilDone(ctx); err != nil {
-			if !connectionError(err) {
-				return fmt.Errorf("waiting for the File Service to become available: %+v", err)
-			}
-		}
-	}
-
-	if supportLevel.supportStaticWebsite {
-		log.Printf("[DEBUG] waiting for the Static Website to become available")
-		pollerType, err := custompollers.NewDataPlaneStaticWebsiteAvailabilityPoller(ctx, client, account)
-		if err != nil {
-			return fmt.Errorf("building Static Website Poller: %+v", err)
-		}
-		poller := pollers.NewPoller(pollerType, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-		if err = poller.PollUntilDone(ctx); err != nil {
-			if !connectionError(err) {
-				return fmt.Errorf("waiting for the Static Website to become available: %+v", err)
-			}
-		}
-	}
-
-	return nil
-}
-
-func connectionError(e error) bool {
-	var pollingDroppedConnectionError pollers.PollingDroppedConnectionError
-	if errors.As(e, &pollingDroppedConnectionError) {
-		return true
-	}
-
-	return regexp.MustCompile(`dial tcp`).MatchString(e.Error()) || regexp.MustCompile(`EOF$`).MatchString(e.Error())
 }

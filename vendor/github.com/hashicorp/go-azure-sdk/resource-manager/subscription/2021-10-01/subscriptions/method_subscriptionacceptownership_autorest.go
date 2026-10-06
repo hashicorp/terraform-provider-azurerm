@@ -37,9 +37,20 @@ func (c SubscriptionsClient) SubscriptionAcceptOwnership(ctx context.Context, id
 
 // SubscriptionAcceptOwnershipThenPoll performs SubscriptionAcceptOwnership then polls until it's completed
 func (c SubscriptionsClient) SubscriptionAcceptOwnershipThenPoll(ctx context.Context, id ProviderSubscriptionId, input AcceptOwnershipRequest) error {
+	return c.SubscriptionAcceptOwnershipCallbackThenPoll(ctx, id, input, nil)
+}
+
+// SubscriptionAcceptOwnershipCallbackThenPoll performs SubscriptionAcceptOwnership, runs the optional callback function, then polls until it's completed
+func (c SubscriptionsClient) SubscriptionAcceptOwnershipCallbackThenPoll(ctx context.Context, id ProviderSubscriptionId, input AcceptOwnershipRequest, callback func() error) error {
 	result, err := c.SubscriptionAcceptOwnership(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing SubscriptionAcceptOwnership: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(); err != nil {

@@ -53,7 +53,7 @@ The following attributes are exported:
 
 * `enabled_for_template_deployment` - Can Azure Resource Manager retrieve secrets from the Key Vault?
 
-* `enable_rbac_authorization` - Is Role Based Access Control (RBAC) for authorization of data actions enabled on this Key Vault?
+* `rbac_authorization_enabled` - Is Role Based Access Control (RBAC) for authorization of data actions enabled on this Key Vault?
 
 * `purge_protection_enabled` - Is purge protection enabled on this Key Vault?
 
@@ -82,3 +82,9 @@ An `access_policy` block supports the following:
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.KeyVault` - 2026-02-01

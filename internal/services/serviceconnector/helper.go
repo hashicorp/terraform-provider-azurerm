@@ -353,7 +353,7 @@ func expandPublicNetworkSolution(input []PublicNetworkSolution) *servicelinker.P
 
 	action := v.Action
 	return &servicelinker.PublicNetworkSolution{
-		Action: pointer.To(servicelinker.ActionType(action)),
+		Action: pointer.ToEnum[servicelinker.ActionType](action),
 	}
 }
 
@@ -471,14 +471,9 @@ func flattenTargetService(input servicelinker.TargetServiceBase) string {
 }
 
 func flattenSecretStore(input servicelinker.SecretStore) []SecretStoreModel {
-	var keyVaultId string
-	if input.KeyVaultId != nil {
-		keyVaultId = *input.KeyVaultId
-	}
-
 	return []SecretStoreModel{
 		{
-			KeyVaultId: keyVaultId,
+			KeyVaultId: pointer.From(input.KeyVaultId),
 		},
 	}
 }
