@@ -138,12 +138,6 @@ func (r StaticWebAppBuildResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.StaticSitesClient
 
-			config := StaticWebAppBuildResourceModel{}
-
-			if err := metadata.Decode(&config); err != nil {
-				return err
-			}
-
 			id, err := staticsites.ParseBuildID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
