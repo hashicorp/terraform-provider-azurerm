@@ -8,7 +8,7 @@ import (
 	"fmt"
 )
 
-func IsCert(i interface{}, k string) (warning []string, errors []error) {
+func IsCert(i any, k string) (warning []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		return nil, append(errors, fmt.Errorf("expected type of %s to be string", k))
