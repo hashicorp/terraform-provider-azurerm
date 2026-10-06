@@ -40,7 +40,7 @@ var _ sdk.ResourceWithUpdate = WebAppHybridConnectionResource{}
 
 var _ sdk.ResourceWithCustomImporter = WebAppHybridConnectionResource{}
 
-func (r WebAppHybridConnectionResource) ModelObject() interface{} {
+func (r WebAppHybridConnectionResource) ModelObject() any {
 	return &WebAppHybridConnectionModel{}
 }
 

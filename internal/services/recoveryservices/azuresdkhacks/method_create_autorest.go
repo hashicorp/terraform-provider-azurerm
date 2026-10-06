@@ -45,7 +45,7 @@ func (c VaultCertificatesClient) Create(ctx context.Context, id vaultcertificate
 
 // preparerForCreate prepares the Create request.
 func (c VaultCertificatesClient) preparerForCreate(ctx context.Context, id vaultcertificates.CertificateId, input CertificateRequest) (*http.Request, error) {
-	queryParameters := map[string]interface{}{
+	queryParameters := map[string]any{
 		"api-version": defaultApiVersion,
 	}
 

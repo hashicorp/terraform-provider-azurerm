@@ -24,7 +24,7 @@ func (r ManagerNetworkGroupDataSource) ResourceType() string {
 	return "azurerm_network_manager_network_group"
 }
 
-func (r ManagerNetworkGroupDataSource) ModelObject() interface{} {
+func (r ManagerNetworkGroupDataSource) ModelObject() any {
 	return &ManagerNetworkGroupModel{}
 }
 

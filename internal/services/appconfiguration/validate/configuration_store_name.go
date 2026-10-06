@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func ConfigurationStoreName(v interface{}, k string) ([]string, []error) {
+func ConfigurationStoreName(v any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9-]{5,50}$`), "may only contain alphanumeric characters and dashes and must be between 5-50 chars")(v, k)
 }

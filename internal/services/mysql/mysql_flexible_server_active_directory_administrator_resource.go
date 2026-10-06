@@ -35,7 +35,7 @@ func (r MySQLFlexibleServerAdministratorResource) ResourceType() string {
 	return "azurerm_mysql_flexible_server_active_directory_administrator"
 }
 
-func (r MySQLFlexibleServerAdministratorResource) ModelObject() interface{} {
+func (r MySQLFlexibleServerAdministratorResource) ModelObject() any {
 	return &MySQLFlexibleServerAdministratorModel{}
 }
 

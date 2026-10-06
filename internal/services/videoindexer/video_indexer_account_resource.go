@@ -102,7 +102,7 @@ func (r AccountResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r AccountResource) ModelObject() interface{} {
+func (r AccountResource) ModelObject() any {
 	return &AccountModel{}
 }
 

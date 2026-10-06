@@ -6,7 +6,7 @@ package deliveryruleactions
 import (
 	"errors"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -34,11 +34,11 @@ func ModifyResponseHeader() *pluginsdk.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointActionModifyResponseHeader(input []interface{}) (*[]cdn.BasicDeliveryRuleAction, error) {
+func ExpandArmCdnEndpointActionModifyResponseHeader(input []any) (*[]cdn.BasicDeliveryRuleAction, error) {
 	output := make([]cdn.BasicDeliveryRuleAction, 0)
 
 	for _, v := range input {
-		item := v.(map[string]interface{})
+		item := v.(map[string]any)
 
 		requestHeaderAction := cdn.DeliveryRuleResponseHeaderAction{
 			Name: cdn.NameBasicDeliveryRuleActionNameModifyResponseHeader,
@@ -59,7 +59,7 @@ func ExpandArmCdnEndpointActionModifyResponseHeader(input []interface{}) (*[]cdn
 	return &output, nil
 }
 
-func FlattenArmCdnEndpointActionModifyResponseHeader(input cdn.BasicDeliveryRuleAction) (*map[string]interface{}, error) {
+func FlattenArmCdnEndpointActionModifyResponseHeader(input cdn.BasicDeliveryRuleAction) (*map[string]any, error) {
 	action, ok := input.AsDeliveryRuleResponseHeaderAction()
 	if !ok {
 		return nil, errors.New("expected a delivery rule response header action")
@@ -79,7 +79,7 @@ func FlattenArmCdnEndpointActionModifyResponseHeader(input cdn.BasicDeliveryRule
 		}
 	}
 
-	return &map[string]interface{}{
+	return &map[string]any{
 		"action": headerAction,
 		"name":   headerName,
 		"value":  value,

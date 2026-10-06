@@ -82,7 +82,7 @@ func resourceStorageSync() *pluginsdk.Resource {
 	}
 }
 
-func resourceStorageSyncCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageSyncCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.SyncServiceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -107,7 +107,7 @@ func resourceStorageSyncCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Properties: &storagesyncservicesresource.StorageSyncServiceCreateParametersProperties{
 			IncomingTrafficPolicy: pointer.ToEnum[storagesyncservicesresource.IncomingTrafficPolicy](d.Get("incoming_traffic_policy").(string)),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if err := client.StorageSyncServicesCreateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
@@ -121,7 +121,7 @@ func resourceStorageSyncCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	return resourceStorageSyncRead(d, meta)
 }
 
-func resourceStorageSyncRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageSyncRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.SyncServiceClient
 	registeredServerClient := meta.(*clients.Client).Storage.SyncRegisteredServerClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -171,7 +171,7 @@ func resourceStorageSyncFlatten(ctx context.Context, d *pluginsdk.ResourceData, 
 		}
 
 		if serverModel := registeredServersResp.Model; serverModel != nil && serverModel.Value != nil {
-			registeredServers := make([]interface{}, 0, len(*serverModel.Value))
+			registeredServers := make([]any, 0, len(*serverModel.Value))
 			for _, registeredServer := range *serverModel.Value {
 				if registeredServer.Id != nil {
 					registeredServers = append(registeredServers, *registeredServer.Id)
@@ -186,7 +186,7 @@ func resourceStorageSyncFlatten(ctx context.Context, d *pluginsdk.ResourceData, 
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceStorageSyncUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageSyncUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.SyncServiceClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -199,7 +199,7 @@ func resourceStorageSyncUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	update := storagesyncservicesresource.StorageSyncServiceUpdateParameters{}
 
 	if d.HasChange("tags") {
-		update.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		update.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if d.HasChange("incoming_traffic_policy") {
@@ -215,7 +215,7 @@ func resourceStorageSyncUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	return resourceStorageSyncRead(d, meta)
 }
 
-func resourceStorageSyncDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageSyncDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.SyncServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
