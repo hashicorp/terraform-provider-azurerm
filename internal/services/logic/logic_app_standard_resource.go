@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"maps"
 	"strconv"
 	"strings"
 	"time"
@@ -81,7 +82,7 @@ var (
 )
 
 func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -102,7 +103,7 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"app_settings": {
 			Type:     pluginsdk.TypeMap,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -123,7 +124,7 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"client_affinity_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 		},
 
 		"client_certificate_mode": {
@@ -164,7 +165,7 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"connection_string": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -173,21 +174,9 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(webapps.ConnectionStringTypeApiHub),
-							string(webapps.ConnectionStringTypeCustom),
-							string(webapps.ConnectionStringTypeDocDb),
-							string(webapps.ConnectionStringTypeEventHub),
-							string(webapps.ConnectionStringTypeMySql),
-							string(webapps.ConnectionStringTypeNotificationHub),
-							string(webapps.ConnectionStringTypePostgreSQL),
-							string(webapps.ConnectionStringTypeRedisCache),
-							string(webapps.ConnectionStringTypeServiceBus),
-							string(webapps.ConnectionStringTypeSQLAzure),
-							string(webapps.ConnectionStringTypeSQLServer),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForConnectionStringType(), false),
 					},
 
 					"value": {
@@ -256,7 +245,7 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"storage_account_share_name": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 		},
 
 		"version": {
@@ -278,8 +267,6 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
-
-	return s
 }
 
 func (r LogicAppResource) Attributes() map[string]*pluginsdk.Schema {
@@ -329,7 +316,7 @@ func (r LogicAppResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r LogicAppResource) ModelObject() interface{} {
+func (r LogicAppResource) ModelObject() any {
 	return &LogicAppResourceModel{}
 }
 
@@ -923,17 +910,12 @@ var (
 )
 
 func getBasicLogicAppSettings(d LogicAppResourceModel, endpointSuffix string) ([]webapps.NameValuePair, error) {
-	appKindPropName := "APP_KIND"
-	appKindPropValue := "workflowApp"
-
 	var storageConnection string
 	if d.StorageKeyVaultSecretID != "" {
 		storageConnection = fmt.Sprintf(helpers.StorageStringFmtKV, d.StorageKeyVaultSecretID)
 	} else {
 		storageConnection = fmt.Sprintf(helpers.StorageStringFmt, d.StorageAccountName, d.StorageAccountAccessKey, endpointSuffix)
 	}
-
-	functionVersion := d.Version
 
 	contentShare := strings.ToLower(d.Name) + "-content"
 	if d.StorageAccountShareName != "" {
@@ -942,16 +924,13 @@ func getBasicLogicAppSettings(d LogicAppResourceModel, endpointSuffix string) ([
 
 	basicSettings := []webapps.NameValuePair{
 		{Name: &storageAppSettingName, Value: &storageConnection},
-		{Name: &functionVersionAppSettingName, Value: &functionVersion},
-		{Name: &appKindPropName, Value: &appKindPropValue},
+		{Name: &functionVersionAppSettingName, Value: pointer.To(d.Version)},
+		{Name: pointer.To("APP_KIND"), Value: pointer.To("workflowApp")},
 		{Name: &contentShareAppSettingName, Value: &contentShare},
 		{Name: &contentFileConnStringAppSettingName, Value: &storageConnection},
 	}
 
 	if d.UseExtensionBundle {
-		extensionBundlePropName := "AzureFunctionsJobHost__extensionBundle__id"
-		extensionBundleName := "Microsoft.Azure.Functions.ExtensionBundle.Workflows"
-		extensionBundleVersionPropName := "AzureFunctionsJobHost__extensionBundle__version"
 		extensionBundleVersion := d.BundleVersion
 
 		if extensionBundleVersion == "" {
@@ -961,8 +940,8 @@ func getBasicLogicAppSettings(d LogicAppResourceModel, endpointSuffix string) ([
 		}
 
 		bundleSettings := []webapps.NameValuePair{
-			{Name: &extensionBundlePropName, Value: &extensionBundleName},
-			{Name: &extensionBundleVersionPropName, Value: &extensionBundleVersion},
+			{Name: pointer.To("AzureFunctionsJobHost__extensionBundle__id"), Value: pointer.To("Microsoft.Azure.Functions.ExtensionBundle.Workflows")},
+			{Name: pointer.To("AzureFunctionsJobHost__extensionBundle__version"), Value: &extensionBundleVersion},
 		}
 
 		return append(basicSettings, bundleSettings...), nil
@@ -1020,15 +999,15 @@ func flattenLogicAppStandardSiteConfig(input *webapps.SiteConfig) []helpers.Logi
 	return results
 }
 
-func flattenLogicAppStandardIpRestriction(input *[]webapps.IPSecurityRestriction) []interface{} {
-	restrictions := make([]interface{}, 0)
+func flattenLogicAppStandardIpRestriction(input *[]webapps.IPSecurityRestriction) []any {
+	restrictions := make([]any, 0)
 
 	if input == nil {
-		return nil
+		return []any{}
 	}
 
 	for _, v := range *input {
-		restriction := make(map[string]interface{})
+		restriction := make(map[string]any)
 		if ip := v.IPAddress; ip != nil {
 			if *ip == "Any" {
 				continue
@@ -1042,17 +1021,9 @@ func flattenLogicAppStandardIpRestriction(input *[]webapps.IPSecurityRestriction
 			}
 		}
 
-		subnetId := ""
-		if subnetIdRaw := v.VnetSubnetResourceId; subnetIdRaw != nil {
-			subnetId = *subnetIdRaw
-		}
-		restriction["virtual_network_subnet_id"] = subnetId
+		restriction["virtual_network_subnet_id"] = pointer.From(v.VnetSubnetResourceId)
 
-		name := ""
-		if nameRaw := v.Name; nameRaw != nil {
-			name = *nameRaw
-		}
-		restriction["name"] = name
+		restriction["name"] = pointer.From(v.Name)
 
 		priority := 0
 		if priorityRaw := v.Priority; priorityRaw != nil {
@@ -1060,11 +1031,7 @@ func flattenLogicAppStandardIpRestriction(input *[]webapps.IPSecurityRestriction
 		}
 		restriction["priority"] = priority
 
-		action := ""
-		if actionRaw := v.Action; actionRaw != nil {
-			action = *actionRaw
-		}
-		restriction["action"] = action
+		restriction["action"] = pointer.From(v.Action)
 
 		if headers := v.Headers; headers != nil {
 			restriction["headers"] = flattenHeaders(*headers)
@@ -1089,7 +1056,7 @@ func expandLogicAppStandardSiteConfigForCreate(d []helpers.LogicAppSiteConfig, m
 	siteConfig.FunctionsRuntimeScaleMonitoringEnabled = pointer.To(config.RuntimeScaleMonitoringEnabled)
 	siteConfig.Use32BitWorkerProcess = pointer.To(config.Use32BitWorkerProcess)
 	siteConfig.WebSocketsEnabled = pointer.To(config.WebSocketsEnabled)
-	siteConfig.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(config.SCMIpRestrictionDefaultAction))
+	siteConfig.ScmIPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](config.SCMIpRestrictionDefaultAction)
 
 	if config.LinuxFxVersion != "" {
 		siteConfig.LinuxFxVersion = pointer.To(config.LinuxFxVersion)
@@ -1191,7 +1158,7 @@ func expandLogicAppStandardSiteConfigForUpdate(d []helpers.LogicAppSiteConfig, m
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction_default_action") {
-		siteConfig.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(config.SCMIpRestrictionDefaultAction))
+		siteConfig.ScmIPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](config.SCMIpRestrictionDefaultAction)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_min_tls_version") {
@@ -1246,7 +1213,7 @@ func expandLogicAppStandardSiteConfigForUpdate(d []helpers.LogicAppSiteConfig, m
 			appSettings = *existing.AppSettings
 		}
 
-		siteConfig.AppSettings = mergeAppSettings(appSettings, o.(map[string]interface{}), n.(map[string]interface{}), metadata)
+		siteConfig.AppSettings = mergeAppSettings(appSettings, o.(map[string]any), n.(map[string]any), metadata)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.ip_restriction_default_action") {
@@ -1270,8 +1237,8 @@ func expandAppSettings(input map[string]string) []webapps.NameValuePair {
 	return output
 }
 
-func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]interface{}, metadata sdk.ResourceMetaData) *[]webapps.NameValuePair {
-	f := func(input map[string]interface{}) (result map[string]string) {
+func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]any, metadata sdk.ResourceMetaData) *[]webapps.NameValuePair {
+	f := func(input map[string]any) (result map[string]string) {
 		result = make(map[string]string)
 		for k, v := range input {
 			result[k] = v.(string)
@@ -1339,17 +1306,13 @@ func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]inte
 		addOrUpdate[k] = v
 	}
 
-	for k, v := range cMap {
-		addOrUpdate[k] = v
-	}
+	maps.Copy(addOrUpdate, cMap)
 
 	for k := range remove {
 		delete(eMap, k)
 	}
 
-	for k, v := range addOrUpdate {
-		eMap[k] = v
-	}
+	maps.Copy(eMap, addOrUpdate)
 
 	return pointer.To(expandAppSettings(eMap))
 }

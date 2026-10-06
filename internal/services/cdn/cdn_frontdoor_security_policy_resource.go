@@ -15,8 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/securitypolicies"
-	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2024-02-01/webapplicationfirewallpolicies"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2024-02-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -78,7 +77,7 @@ func resourceCdnFrontDoorSecurityPolicy() *pluginsdk.Resource {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ForceNew:     true,
-										ValidateFunc: waf.ValidateFrontDoorWebApplicationFirewallPolicyID,
+										ValidateFunc: webapplicationfirewallpolicies.ValidateFrontDoorWebApplicationFirewallPolicyID,
 									},
 
 									"association": {
@@ -140,7 +139,7 @@ func resourceCdnFrontDoorSecurityPolicy() *pluginsdk.Resource {
 	}
 }
 
-func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorSecurityPoliciesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -183,7 +182,7 @@ func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta in
 		return errors.New("profileModel.Sku.Name is 'nil'")
 	}
 
-	params, err := expandCdnFrontdoorFirewallPolicyParameters(d.Get("security_policies").([]interface{}), strings.EqualFold(pointer.FromEnum(profileModel.Sku.Name), string(profiles.SkuNameStandardAzureFrontDoor)))
+	params, err := expandCdnFrontdoorFirewallPolicyParameters(d.Get("security_policies").([]any), strings.EqualFold(pointer.FromEnum(profileModel.Sku.Name), string(profiles.SkuNameStandardAzureFrontDoor)))
 	if err != nil {
 		return fmt.Errorf("expanding 'security_policies': %+v", err)
 	}
@@ -202,7 +201,7 @@ func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta in
 	return resourceCdnFrontdoorSecurityPolicyRead(d, meta)
 }
 
-func resourceCdnFrontdoorSecurityPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorSecurityPolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorSecurityPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -240,7 +239,7 @@ func resourceCdnFrontdoorSecurityPolicyRead(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func resourceCdnFrontdoorSecurityPolicyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorSecurityPolicyUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorSecurityPoliciesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -277,7 +276,7 @@ func resourceCdnFrontdoorSecurityPolicyUpdate(d *pluginsdk.ResourceData, meta in
 		return errors.New("profileModel.Sku.Name is 'nil'")
 	}
 
-	params, err := expandCdnFrontdoorFirewallPolicyParameters(d.Get("security_policies").([]interface{}), strings.EqualFold(pointer.FromEnum(profileModel.Sku.Name), string(profiles.SkuNameStandardAzureFrontDoor)))
+	params, err := expandCdnFrontdoorFirewallPolicyParameters(d.Get("security_policies").([]any), strings.EqualFold(pointer.FromEnum(profileModel.Sku.Name), string(profiles.SkuNameStandardAzureFrontDoor)))
 	if err != nil {
 		return fmt.Errorf("expanding 'security_policies': %+v", err)
 	}
@@ -289,15 +288,14 @@ func resourceCdnFrontdoorSecurityPolicyUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	// Using 'Create' for update because it is a PUT operation
-	err = client.CreateThenPoll(ctx, id, props)
-	if err != nil {
+	if err = client.CreateThenPoll(ctx, id, props); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	return resourceCdnFrontdoorSecurityPolicyRead(d, meta)
 }
 
-func resourceCdnFrontdoorSecurityPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontdoorSecurityPolicyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorSecurityPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -307,15 +305,14 @@ func resourceCdnFrontdoorSecurityPolicyDelete(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, pointer.From(id))
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, pointer.From(id)); err != nil {
 		return fmt.Errorf("deleting %s: %+v", pointer.From(id), err)
 	}
 
 	return nil
 }
 
-func expandCdnFrontdoorFirewallPolicyParameters(input []interface{}, isStandardSku bool) (*securitypolicies.SecurityPolicyWebApplicationFirewallParameters, error) {
+func expandCdnFrontdoorFirewallPolicyParameters(input []any, isStandardSku bool) (*securitypolicies.SecurityPolicyWebApplicationFirewallParameters, error) {
 	results := securitypolicies.SecurityPolicyWebApplicationFirewallParameters{}
 	if len(input) == 0 {
 		return &results, nil
@@ -324,9 +321,9 @@ func expandCdnFrontdoorFirewallPolicyParameters(input []interface{}, isStandardS
 	associations := make([]securitypolicies.SecurityPolicyWebApplicationFirewallAssociation, 0)
 
 	// pull off only the firewall policy from the security_policies list
-	policyType := input[0].(map[string]interface{})
-	firewallPolicy := policyType["firewall"].([]interface{})
-	v := firewallPolicy[0].(map[string]interface{})
+	policyType := input[0].(map[string]any)
+	firewallPolicy := policyType["firewall"].([]any)
+	v := firewallPolicy[0].(map[string]any)
 
 	if id := v["cdn_frontdoor_firewall_policy_id"].(string); id != "" {
 		results.WafPolicy = &securitypolicies.ResourceReference{
@@ -334,11 +331,11 @@ func expandCdnFrontdoorFirewallPolicyParameters(input []interface{}, isStandardS
 		}
 	}
 
-	configAssociations := v["association"].([]interface{})
+	configAssociations := v["association"].([]any)
 
 	for _, item := range configAssociations {
-		v := item.(map[string]interface{})
-		domains := expandSecurityPoliciesActivatedResourceReference(v["domain"].([]interface{}))
+		v := item.(map[string]any)
+		domains := expandSecurityPoliciesActivatedResourceReference(v["domain"].([]any))
 		domainCount := len(*domains)
 
 		if isStandardSku {
@@ -353,7 +350,7 @@ func expandCdnFrontdoorFirewallPolicyParameters(input []interface{}, isStandardS
 
 		association := securitypolicies.SecurityPolicyWebApplicationFirewallAssociation{
 			Domains:         domains,
-			PatternsToMatch: helpers.ExpandStringSlice(v["patterns_to_match"].([]interface{})),
+			PatternsToMatch: pluginsdk.ExpandStringSlice(v["patterns_to_match"].([]any)),
 		}
 
 		associations = append(associations, association)
@@ -364,14 +361,14 @@ func expandCdnFrontdoorFirewallPolicyParameters(input []interface{}, isStandardS
 	return &results, nil
 }
 
-func expandSecurityPoliciesActivatedResourceReference(input []interface{}) *[]securitypolicies.ActivatedResourceReference {
+func expandSecurityPoliciesActivatedResourceReference(input []any) *[]securitypolicies.ActivatedResourceReference {
 	results := make([]securitypolicies.ActivatedResourceReference, 0)
 	if len(input) == 0 {
 		return &results
 	}
 
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 
 		if id := v["cdn_frontdoor_domain_id"].(string); id != "" {
 			results = append(results, securitypolicies.ActivatedResourceReference{
@@ -383,8 +380,8 @@ func expandSecurityPoliciesActivatedResourceReference(input []interface{}) *[]se
 	return &results
 }
 
-func flattenSecurityPoliciesActivatedResourceReference(input *[]securitypolicies.ActivatedResourceReference) ([]interface{}, error) {
-	results := make([]interface{}, 0)
+func flattenSecurityPoliciesActivatedResourceReference(input *[]securitypolicies.ActivatedResourceReference) ([]any, error) {
+	results := make([]any, 0)
 	if input == nil {
 		return results, nil
 	}
@@ -401,7 +398,7 @@ func flattenSecurityPoliciesActivatedResourceReference(input *[]securitypolicies
 			}
 		}
 
-		results = append(results, map[string]interface{}{
+		results = append(results, map[string]any{
 			"active":                  pointer.From(item.IsActive),
 			"cdn_frontdoor_domain_id": frontDoorDomainId,
 		})
@@ -410,18 +407,18 @@ func flattenSecurityPoliciesActivatedResourceReference(input *[]securitypolicies
 	return results, nil
 }
 
-func flattenCdnFrontDoorSecurityPolicyResource(input securitypolicies.SecurityPolicyPropertiesParameters) ([]interface{}, error) {
-	results := make([]interface{}, 0)
+func flattenCdnFrontDoorSecurityPolicyResource(input securitypolicies.SecurityPolicyPropertiesParameters) ([]any, error) {
+	results := make([]any, 0)
 	if input.SecurityPolicyPropertiesParameters().Type != securitypolicies.SecurityPolicyTypeWebApplicationFirewall {
 		return results, fmt.Errorf("unexpected security policy `Type` %q, expected `WebApplicationFirewall`", input.SecurityPolicyPropertiesParameters().Type)
 	}
 
 	wafParams := input.(securitypolicies.SecurityPolicyWebApplicationFirewallParameters)
-	associations := make([]interface{}, 0)
+	associations := make([]any, 0)
 	wafPolicyId := ""
 
 	if wafParams.WafPolicy != nil {
-		parsedId, err := waf.ParseFrontDoorWebApplicationFirewallPolicyIDInsensitively(pointer.From(wafParams.WafPolicy.Id))
+		parsedId, err := webapplicationfirewallpolicies.ParseFrontDoorWebApplicationFirewallPolicyIDInsensitively(pointer.From(wafParams.WafPolicy.Id))
 		if err != nil {
 			return results, err
 		}
@@ -436,17 +433,17 @@ func flattenCdnFrontDoorSecurityPolicyResource(input securitypolicies.SecurityPo
 				return results, fmt.Errorf("flattening `domain`: %+v", err)
 			}
 
-			associations = append(associations, map[string]interface{}{
+			associations = append(associations, map[string]any{
 				"domain":            domain,
-				"patterns_to_match": helpers.FlattenStringSlice(item.PatternsToMatch),
+				"patterns_to_match": pluginsdk.FlattenSlice(item.PatternsToMatch),
 			})
 		}
 	}
 
-	results = []interface{}{
-		map[string]interface{}{
-			"firewall": []interface{}{
-				map[string]interface{}{
+	results = []any{
+		map[string]any{
+			"firewall": []any{
+				map[string]any{
 					"association":                      associations,
 					"cdn_frontdoor_firewall_policy_id": wafPolicyId,
 				},

@@ -39,7 +39,7 @@ type MachineLearningDataStoreFileShareModel struct {
 	Tags                  map[string]string `tfschema:"tags"`
 }
 
-func (r MachineLearningDataStoreFileShare) ModelObject() interface{} {
+func (r MachineLearningDataStoreFileShare) ModelObject() any {
 	return &MachineLearningDataStoreFileShareModel{}
 }
 
@@ -99,11 +99,7 @@ func (r MachineLearningDataStoreFileShare) Arguments() map[string]*pluginsdk.Sch
 		"service_data_identity": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(datastore.ServiceDataAccessAuthIdentityNone),
-				string(datastore.ServiceDataAccessAuthIdentityWorkspaceSystemAssignedIdentity),
-				string(datastore.ServiceDataAccessAuthIdentityWorkspaceUserAssignedIdentity),
-			},
+			ValidateFunc: validation.StringInSlice(datastore.PossibleValuesForServiceDataAccessAuthIdentity(),
 				false),
 			Default: string(datastore.ServiceDataAccessAuthIdentityNone),
 		},
@@ -183,7 +179,7 @@ func (r MachineLearningDataStoreFileShare) Create() sdk.ResourceFunc {
 				Endpoint:                      pointer.To(metadata.Client.Storage.StorageDomainSuffix),
 				FileShareName:                 shareId.ShareName,
 				Description:                   pointer.To(model.Description),
-				ServiceDataAccessAuthIdentity: pointer.To(datastore.ServiceDataAccessAuthIdentity(model.ServiceDataIdentity)),
+				ServiceDataAccessAuthIdentity: pointer.ToEnum[datastore.ServiceDataAccessAuthIdentity](model.ServiceDataIdentity),
 				Tags:                          pointer.To(model.Tags),
 			}
 
@@ -246,7 +242,7 @@ func (r MachineLearningDataStoreFileShare) Update() sdk.ResourceFunc {
 				AccountName:                   shareId.StorageAccountName,
 				FileShareName:                 shareId.ShareName,
 				Description:                   pointer.To(state.Description),
-				ServiceDataAccessAuthIdentity: pointer.To(datastore.ServiceDataAccessAuthIdentity(state.ServiceDataIdentity)),
+				ServiceDataAccessAuthIdentity: pointer.ToEnum[datastore.ServiceDataAccessAuthIdentity](state.ServiceDataIdentity),
 				Tags:                          pointer.To(state.Tags),
 			}
 
@@ -350,11 +346,7 @@ func (r MachineLearningDataStoreFileShare) Read() sdk.ResourceFunc {
 				}
 			}
 
-			desc := ""
-			if v := data.Description; v != nil {
-				desc = *v
-			}
-			model.Description = desc
+			model.Description = pointer.From(data.Description)
 
 			if data.Tags != nil {
 				model.Tags = *data.Tags

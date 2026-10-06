@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/blobservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -79,7 +80,7 @@ func (r storageContainersDataSource) ResourceType() string {
 	return "azurerm_storage_containers"
 }
 
-func (r storageContainersDataSource) ModelObject() interface{} {
+func (r storageContainersDataSource) ModelObject() any {
 	return &storageContainersDataSourceModel{}
 }
 
@@ -141,23 +142,15 @@ func (r storageContainersDataSource) Read() sdk.ResourceFunc {
 func flattenStorageContainersContainers(l []blobservices.ListContainerItem, accountId accounts.AccountId, prefix string) []containerModel {
 	output := make([]containerModel, 0, len(l))
 	for _, item := range l {
-		var name string
-		if item.Name != nil {
-			name = *item.Name
-		}
+		name := pointer.From(item.Name)
 
 		if prefix != "" && !strings.HasPrefix(name, prefix) {
 			continue
 		}
 
-		var mgmtId string
-		if item.Id != nil {
-			mgmtId = *item.Id
-		}
-
 		output = append(output, containerModel{
 			Name:              name,
-			ResourceManagerId: mgmtId,
+			ResourceManagerId: pointer.From(item.Id),
 			DataPlaneId:       containers.NewContainerID(accountId, name).ID(),
 		})
 	}

@@ -72,7 +72,7 @@ The following arguments are supported:
 
 * `diagnostic_storage_account` - (Optional) A `diagnostic_storage_account` block as defined below.
 
-* `diagnostic_enabled` - (Optional) Whether the diagnostic log collection is enabled. Possible values are `true` and `false`. Defaults to `false`.
+* `diagnostic_enabled` - (Optional) Whether the diagnostic log collection is enabled. Defaults to `false`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the IoT Hub Device Update Instance.
 
@@ -80,9 +80,15 @@ The following arguments are supported:
 
 A `diagnostic_storage_account` block supports the following:
 
-* `connection_string` - (Required) Connection String of the Diagnostic Storage Account.
-
 * `id` - (Required) Resource ID of the Diagnostic Storage Account.
+
+* `connection_string` - (Optional) Connection String of the Diagnostic Storage Account.
+
+* `connection_string_wo` - (Optional, Write-Only) Connection String of the Diagnostic Storage Account.
+
+~> **Note:** Exactly one of `connection_string` or `connection_string_wo` must be specified.
+
+* `connection_string_wo_version` - (Optional) An integer value used to trigger an update for `connection_string_wo`. Possible values are integers greater than `1`.
 
 ## Attributes Reference
 
