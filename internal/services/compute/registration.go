@@ -95,13 +95,13 @@ func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		GalleryApplicationResource{},
 		GalleryApplicationVersionResource{},
+		ImageBuilderTemplateResource{},
 		VirtualMachineGalleryApplicationAssignmentResource{},
 		VirtualMachineImplicitDataDiskFromSourceResource{},
 		VirtualMachineRestorePointCollectionResource{},
 		VirtualMachineRestorePointResource{},
 		VirtualMachineRunCommandResource{},
 		VirtualMachineScaleSetStandbyPoolResource{},
-		ImageBuilderTemplateResource{},
 	}
 }
 

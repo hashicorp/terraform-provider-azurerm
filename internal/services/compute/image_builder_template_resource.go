@@ -23,7 +23,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -223,11 +223,11 @@ func (ImageBuilderTemplateResource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
-					// If not specify this property but only "file_source_uri" to the service, the service will calculate the sha256 of the file and return it.
-					// So set this property as Computed for possible future usage. So forth to other similar properties in the `customizer` block.
 					"file_sha256_checksum": {
-						Type:         schema.TypeString,
-						Optional:     true,
+						Type:     schema.TypeString,
+						Optional: true,
+						// Note: O+C because if not specify this property but only "file_source_uri" to the service, the service will calculate the sha256 of the file and return it.
+						// So set this property as Computed for possible future usage. So forth to other similar properties in the `customizer` block.
 						Computed:     true,
 						ForceNew:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -277,8 +277,10 @@ func (ImageBuilderTemplateResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"powershell_sha256_checksum": {
-						Type:         schema.TypeString,
-						Optional:     true,
+						Type:     schema.TypeString,
+						Optional: true,
+						// Note: O+C because if not specify this property but only "powershell_script_uri" to the service, the service will calculate the sha256 of the file and return it.
+						// So set this property as Computed for possible future usage. So forth to other similar properties in the `customizer` block.
 						Computed:     true,
 						ForceNew:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -311,8 +313,10 @@ func (ImageBuilderTemplateResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"shell_sha256_checksum": {
-						Type:         schema.TypeString,
-						Computed:     true,
+						Type:     schema.TypeString,
+						Computed: true,
+						// Note: O+C because if not specify this property but only "shell_script_uri" to the service, the service will calculate the sha256 of the file and return it.
+						// So set this property as Computed for possible future usage. So forth to other similar properties in the `customizer` block.
 						Optional:     true,
 						ForceNew:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -609,7 +613,7 @@ func (ImageBuilderTemplateResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         schema.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: networkValidate.SubnetID,
+			ValidateFunc: validate.SubnetID,
 		},
 
 		"tags": commonschema.Tags(),
@@ -683,8 +687,7 @@ func (r ImageBuilderTemplateResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
-			if err != nil {
+			if err = client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 				return fmt.Errorf("creating image builder template %q (Resource Group %q): %+v", model.Name, model.ResourceGroupName, err)
 			}
 
@@ -801,8 +804,7 @@ func (r ImageBuilderTemplateResource) Update() sdk.ResourceFunc {
 				parameters.Tags = &model.Tags
 			}
 
-			err = client.UpdateThenPoll(ctx, *id, parameters)
-			if err != nil {
+			if err = client.UpdateThenPoll(ctx, *id, parameters); err != nil {
 				return fmt.Errorf("updating image builder template %q (Resource Group %q): %+v", id.ImageTemplateName, id.ResourceGroupName, err)
 			}
 
@@ -822,8 +824,7 @@ func (r ImageBuilderTemplateResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			err = client.DeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting image builder template %q (Resource Group %q): %+v", id.ImageTemplateName, id.ResourceGroupName, err)
 			}
 
@@ -874,15 +875,15 @@ func flattenBasicImageTemplateSource(input virtualmachineimagetemplate.ImageTemp
 	if input != nil {
 		switch source := input.(type) {
 		case virtualmachineimagetemplate.ImageTemplateManagedImageSource:
-			return flattenSourceManagedImage(&source), nil, ""
+			return flattenSourceManagedImage(&source), make([]ImageBuilderTemplateSourcePlatformImage, 0), ""
 		case virtualmachineimagetemplate.ImageTemplatePlatformImageSource:
 			return "", flattenSourcePlatformImage(&source), ""
 		case virtualmachineimagetemplate.ImageTemplateSharedImageVersionSource:
-			return "", nil, flattenSourceSharedImageVersion(&source)
+			return "", make([]ImageBuilderTemplateSourcePlatformImage, 0), flattenSourceSharedImageVersion(&source)
 		}
 	}
 
-	return "", nil, ""
+	return "", make([]ImageBuilderTemplateSourcePlatformImage, 0), ""
 }
 
 func flattenSourceManagedImage(input *virtualmachineimagetemplate.ImageTemplateManagedImageSource) string {
@@ -895,7 +896,7 @@ func flattenSourceManagedImage(input *virtualmachineimagetemplate.ImageTemplateM
 
 func flattenSourcePlatformImage(input *virtualmachineimagetemplate.ImageTemplatePlatformImageSource) []ImageBuilderTemplateSourcePlatformImage {
 	if input == nil {
-		return nil
+		return make([]ImageBuilderTemplateSourcePlatformImage, 0)
 	}
 
 	result := make([]ImageBuilderTemplateSourcePlatformImage, 0)
@@ -924,7 +925,7 @@ func flattenSourcePlatformImage(input *virtualmachineimagetemplate.ImageTemplate
 
 func flattenImageBuilderTemplateSourcePlatformImagePlan(input *virtualmachineimagetemplate.PlatformImagePurchasePlan) []ImageBuilderTemplateSourcePlatformImagePlan {
 	if input == nil {
-		return nil
+		return make([]ImageBuilderTemplateSourcePlatformImagePlan, 0)
 	}
 
 	result := make([]ImageBuilderTemplateSourcePlatformImagePlan, 0)
@@ -995,7 +996,7 @@ func expandBasicImageTemplateDistributor(distributions []ImageBuilderTemplateDis
 							ReplicationRegions: expandImageTemplateSharedImageDistributorReplicaRegions(sharedImage.ReplicaRegions),
 							RunOutputName:      sharedImage.RunOutputName,
 							ExcludeFromLatest:  &sharedImage.ExcludeFromLatest,
-							StorageAccountType: pointer.To(virtualmachineimagetemplate.SharedImageStorageAccountType(sharedImage.StorageAccountType)),
+							StorageAccountType: pointer.ToEnum[virtualmachineimagetemplate.SharedImageStorageAccountType](sharedImage.StorageAccountType),
 							ArtifactTags:       &sharedImage.Tags,
 							Versioning:         expandImageTemplateSharedImageDistributorVersioning(sharedImage.Versioning),
 						})
