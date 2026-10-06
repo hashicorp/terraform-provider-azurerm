@@ -57,7 +57,7 @@ func resourceApiManagementApiOperationTag() *pluginsdk.Resource {
 	}
 
 	if !features.SixPointOh() {
-		resource.Update = resourceApiManagementApiOperationTagUpdate //nolint:staticcheck
+		resource.Update = resourceApiManagementApiOperationTagUpdate
 		resource.Timeouts.Update = pluginsdk.DefaultTimeout(30 * time.Minute)
 
 		resource.Schema["display_name"] = &pluginsdk.Schema{
