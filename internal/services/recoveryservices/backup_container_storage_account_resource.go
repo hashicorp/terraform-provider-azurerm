@@ -55,7 +55,7 @@ func resourceBackupProtectionContainerStorageAccount() *pluginsdk.Resource {
 	}
 }
 
-func resourceBackupProtectionContainerStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBackupProtectionContainerStorageAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).RecoveryServices.BackupProtectionContainersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -101,7 +101,7 @@ func resourceBackupProtectionContainerStorageAccountCreate(d *pluginsdk.Resource
 	return resourceBackupProtectionContainerStorageAccountRead(d, meta)
 }
 
-func resourceBackupProtectionContainerStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBackupProtectionContainerStorageAccountRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).RecoveryServices.BackupProtectionContainersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -132,7 +132,7 @@ func resourceBackupProtectionContainerStorageAccountRead(d *pluginsdk.ResourceDa
 	return nil
 }
 
-func resourceBackupProtectionContainerStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBackupProtectionContainerStorageAccountDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).RecoveryServices.BackupProtectionContainersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

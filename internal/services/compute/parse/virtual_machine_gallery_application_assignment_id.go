@@ -64,7 +64,7 @@ func VirtualMachineGalleryApplicationAssignmentID(input string) (VirtualMachineG
 	}, nil
 }
 
-func VirtualMachineGalleryApplicationAssignmentIDValidation(input interface{}, key string) (warnings []string, errors []error) {
+func VirtualMachineGalleryApplicationAssignmentIDValidation(input any, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
