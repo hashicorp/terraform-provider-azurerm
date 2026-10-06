@@ -75,7 +75,7 @@ func resourceMySqlFlexibleServerFirewallRule() *pluginsdk.Resource {
 	}
 }
 
-func resourceMySqlFlexibleServerFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMySqlFlexibleServerFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MySQL.FlexibleServers.FirewallRules
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -122,7 +122,7 @@ func resourceMySqlFlexibleServerFirewallRuleCreateUpdate(d *pluginsdk.ResourceDa
 	return resourceMySqlFlexibleServerFirewallRuleRead(d, meta)
 }
 
-func resourceMySqlFlexibleServerFirewallRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMySqlFlexibleServerFirewallRuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MySQL.FlexibleServers.FirewallRules
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -157,7 +157,7 @@ func resourceMySqlFlexibleServerFirewallRuleFlatten(d *pluginsdk.ResourceData, i
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceMySqlFlexibleServerFirewallRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMySqlFlexibleServerFirewallRuleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MySQL.FlexibleServers.FirewallRules
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -42,7 +42,7 @@ func dataWebApplicationFirewallPolicy() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceWebApplicationFirewallPolicy(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceWebApplicationFirewallPolicy(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.WebApplicationFirewallPolicies
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

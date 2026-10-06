@@ -15,48 +15,48 @@ import (
 )
 
 func TestStorageDiscoveryScopeReplacementPath(t *testing.T) {
-	base := storageDiscoveryScopeTestData("TestScope", []interface{}{"Microsoft.Storage/storageAccounts"}, []interface{}{}, map[string]interface{}{})
-	additional := storageDiscoveryScopeTestData("AdditionalScope", []interface{}{"Microsoft.Storage/storageAccounts"}, []interface{}{}, map[string]interface{}{})
+	base := storageDiscoveryScopeTestData("TestScope", []any{"Microsoft.Storage/storageAccounts"}, []any{}, map[string]any{})
+	additional := storageDiscoveryScopeTestData("AdditionalScope", []any{"Microsoft.Storage/storageAccounts"}, []any{}, map[string]any{})
 
 	testCases := []struct {
 		name     string
-		old      []interface{}
-		new      []interface{}
+		old      []any
+		new      []any
 		expected string
 	}{
 		{
 			name:     "add scope",
-			old:      []interface{}{base},
-			new:      []interface{}{base, additional},
+			old:      []any{base},
+			new:      []any{base, additional},
 			expected: "",
 		},
 		{
 			name:     "remove scope",
-			old:      []interface{}{base, additional},
-			new:      []interface{}{base},
+			old:      []any{base, additional},
+			new:      []any{base},
 			expected: "",
 		},
 		{
 			name: "change resource types",
-			old:  []interface{}{base},
-			new: []interface{}{
-				storageDiscoveryScopeTestData("TestScope", []interface{}{"Microsoft.Storage/storageAccounts", "Microsoft.Storage/storageAccounts/blobServices"}, []interface{}{}, map[string]interface{}{}),
+			old:  []any{base},
+			new: []any{
+				storageDiscoveryScopeTestData("TestScope", []any{"Microsoft.Storage/storageAccounts", "Microsoft.Storage/storageAccounts/blobServices"}, []any{}, map[string]any{}),
 			},
 			expected: "scope.0.resource_types",
 		},
 		{
 			name: "change tag keys",
-			old:  []interface{}{base},
-			new: []interface{}{
-				storageDiscoveryScopeTestData("TestScope", []interface{}{"Microsoft.Storage/storageAccounts"}, []interface{}{"environment"}, map[string]interface{}{}),
+			old:  []any{base},
+			new: []any{
+				storageDiscoveryScopeTestData("TestScope", []any{"Microsoft.Storage/storageAccounts"}, []any{"environment"}, map[string]any{}),
 			},
 			expected: "scope.0.tag_keys_only",
 		},
 		{
 			name: "change tags",
-			old:  []interface{}{base},
-			new: []interface{}{
-				storageDiscoveryScopeTestData("TestScope", []interface{}{"Microsoft.Storage/storageAccounts"}, []interface{}{}, map[string]interface{}{"environment": "test"}),
+			old:  []any{base},
+			new: []any{
+				storageDiscoveryScopeTestData("TestScope", []any{"Microsoft.Storage/storageAccounts"}, []any{}, map[string]any{"environment": "test"}),
 			},
 			expected: "scope.0.tags",
 		},
@@ -73,92 +73,92 @@ func TestStorageDiscoveryScopeReplacementPath(t *testing.T) {
 }
 
 func TestStorageDiscoveryWorkspaceScopeDiffRequiresReplacement(t *testing.T) {
-	base := storageDiscoveryScopeConfig("TestScope", []interface{}{"Microsoft.Storage/storageAccounts"}, []interface{}{}, map[string]interface{}{})
-	additional := storageDiscoveryScopeConfig("AdditionalScope", []interface{}{"Microsoft.Storage/storageAccounts"}, []interface{}{}, map[string]interface{}{})
-	filtered := storageDiscoveryScopeConfig("FilteredScope", []interface{}{"Microsoft.Storage/storageAccounts"}, []interface{}{"environment"}, map[string]interface{}{"tier": "production"})
-	unfiltered := storageDiscoveryScopeConfig("FilteredScope", []interface{}{"Microsoft.Storage/storageAccounts"}, []interface{}{}, map[string]interface{}{})
+	base := storageDiscoveryScopeConfig("TestScope", []any{"Microsoft.Storage/storageAccounts"}, []any{}, map[string]any{})
+	additional := storageDiscoveryScopeConfig("AdditionalScope", []any{"Microsoft.Storage/storageAccounts"}, []any{}, map[string]any{})
+	filtered := storageDiscoveryScopeConfig("FilteredScope", []any{"Microsoft.Storage/storageAccounts"}, []any{"environment"}, map[string]any{"tier": "production"})
+	unfiltered := storageDiscoveryScopeConfig("FilteredScope", []any{"Microsoft.Storage/storageAccounts"}, []any{}, map[string]any{})
 
 	testCases := []struct {
 		name        string
-		oldScopes   []interface{}
-		newScopes   []interface{}
+		oldScopes   []any
+		newScopes   []any
 		requiresNew bool
 	}{
 		{
 			name:        "add scope",
-			oldScopes:   []interface{}{base},
-			newScopes:   []interface{}{base, additional},
+			oldScopes:   []any{base},
+			newScopes:   []any{base, additional},
 			requiresNew: false,
 		},
 		{
 			name:        "remove scope",
-			oldScopes:   []interface{}{base, additional},
-			newScopes:   []interface{}{base},
+			oldScopes:   []any{base, additional},
+			newScopes:   []any{base},
 			requiresNew: false,
 		},
 		{
 			name:        "insert scope before an existing scope",
-			oldScopes:   []interface{}{filtered},
-			newScopes:   []interface{}{base, filtered},
+			oldScopes:   []any{filtered},
+			newScopes:   []any{base, filtered},
 			requiresNew: false,
 		},
 		{
 			name:        "remove scope before an existing scope",
-			oldScopes:   []interface{}{base, filtered},
-			newScopes:   []interface{}{filtered},
+			oldScopes:   []any{base, filtered},
+			newScopes:   []any{filtered},
 			requiresNew: false,
 		},
 		{
 			name:        "reorder scopes",
-			oldScopes:   []interface{}{base, filtered},
-			newScopes:   []interface{}{filtered, base},
+			oldScopes:   []any{base, filtered},
+			newScopes:   []any{filtered, base},
 			requiresNew: false,
 		},
 		{
 			name:        "remove scope and change shifted scope filters",
-			oldScopes:   []interface{}{base, filtered},
-			newScopes:   []interface{}{unfiltered},
+			oldScopes:   []any{base, filtered},
+			newScopes:   []any{unfiltered},
 			requiresNew: true,
 		},
 		{
 			name:        "insert scope and change shifted scope filters",
-			oldScopes:   []interface{}{filtered, base},
-			newScopes:   []interface{}{additional, unfiltered, base},
+			oldScopes:   []any{filtered, base},
+			newScopes:   []any{additional, unfiltered, base},
 			requiresNew: true,
 		},
 		{
 			name:        "reorder and change scope filters",
-			oldScopes:   []interface{}{filtered, base},
-			newScopes:   []interface{}{base, unfiltered},
+			oldScopes:   []any{filtered, base},
+			newScopes:   []any{base, unfiltered},
 			requiresNew: true,
 		},
 		{
 			name:        "remove scope and change shifted scope tags",
-			oldScopes:   []interface{}{base, storageDiscoveryScopeConfig("AdditionalScope", []interface{}{"Microsoft.Storage/storageAccounts"}, []interface{}{}, map[string]interface{}{"tier": "production"})},
-			newScopes:   []interface{}{additional},
+			oldScopes:   []any{base, storageDiscoveryScopeConfig("AdditionalScope", []any{"Microsoft.Storage/storageAccounts"}, []any{}, map[string]any{"tier": "production"})},
+			newScopes:   []any{additional},
 			requiresNew: true,
 		},
 		{
 			name:      "change resource types",
-			oldScopes: []interface{}{base},
-			newScopes: []interface{}{
-				storageDiscoveryScopeConfig("TestScope", []interface{}{"Microsoft.Storage/storageAccounts", "Microsoft.Storage/storageAccounts/blobServices"}, []interface{}{}, map[string]interface{}{}),
+			oldScopes: []any{base},
+			newScopes: []any{
+				storageDiscoveryScopeConfig("TestScope", []any{"Microsoft.Storage/storageAccounts", "Microsoft.Storage/storageAccounts/blobServices"}, []any{}, map[string]any{}),
 			},
 			requiresNew: true,
 		},
 		{
 			name:      "change tag keys",
-			oldScopes: []interface{}{base},
-			newScopes: []interface{}{
-				storageDiscoveryScopeConfig("TestScope", []interface{}{"Microsoft.Storage/storageAccounts"}, []interface{}{"environment"}, map[string]interface{}{}),
+			oldScopes: []any{base},
+			newScopes: []any{
+				storageDiscoveryScopeConfig("TestScope", []any{"Microsoft.Storage/storageAccounts"}, []any{"environment"}, map[string]any{}),
 			},
 			requiresNew: true,
 		},
 		{
 			name:      "change tags",
-			oldScopes: []interface{}{base},
-			newScopes: []interface{}{
-				storageDiscoveryScopeConfig("TestScope", []interface{}{"Microsoft.Storage/storageAccounts"}, []interface{}{}, map[string]interface{}{"environment": "test"}),
+			oldScopes: []any{base},
+			newScopes: []any{
+				storageDiscoveryScopeConfig("TestScope", []any{"Microsoft.Storage/storageAccounts"}, []any{}, map[string]any{"environment": "test"}),
 			},
 			requiresNew: true,
 		},
@@ -201,15 +201,15 @@ func TestStorageDiscoveryWorkspaceScopeDiffRequiresReplacement(t *testing.T) {
 }
 
 func TestValidateStorageDiscoveryScopes(t *testing.T) {
-	first := storageDiscoveryScopeTestData("TestScope", []interface{}{"Microsoft.Storage/storageAccounts"}, []interface{}{}, map[string]interface{}{})
-	second := storageDiscoveryScopeTestData("TestScope", []interface{}{"Microsoft.Storage/storageAccounts"}, []interface{}{"environment"}, map[string]interface{}{})
-	unique := storageDiscoveryScopeTestData("AdditionalScope", []interface{}{"Microsoft.Storage/storageAccounts"}, []interface{}{}, map[string]interface{}{})
+	first := storageDiscoveryScopeTestData("TestScope", []any{"Microsoft.Storage/storageAccounts"}, []any{}, map[string]any{})
+	second := storageDiscoveryScopeTestData("TestScope", []any{"Microsoft.Storage/storageAccounts"}, []any{"environment"}, map[string]any{})
+	unique := storageDiscoveryScopeTestData("AdditionalScope", []any{"Microsoft.Storage/storageAccounts"}, []any{}, map[string]any{})
 
-	if err := validateStorageDiscoveryScopes([]interface{}{first, unique}); err != nil {
+	if err := validateStorageDiscoveryScopes([]any{first, unique}); err != nil {
 		t.Fatalf("validating unique scope display names: %v", err)
 	}
 
-	if err := validateStorageDiscoveryScopes([]interface{}{first, second}); err == nil {
+	if err := validateStorageDiscoveryScopes([]any{first, second}); err == nil {
 		t.Fatal("expected an error for duplicate scope display names")
 	}
 }
@@ -220,29 +220,29 @@ func TestStorageDiscoveryWorkspaceRootsDiff(t *testing.T) {
 
 	testCases := []struct {
 		name      string
-		roots     []interface{}
+		roots     []any
 		wantError bool
 	}{
 		{
 			name:  "subscription",
-			roots: []interface{}{subscriptionID},
+			roots: []any{subscriptionID},
 		},
 		{
 			name:  "resource groups",
-			roots: []interface{}{subscriptionID + "/resourceGroups/first", subscriptionID + "/resourceGroups/second"},
+			roots: []any{subscriptionID + "/resourceGroups/first", subscriptionID + "/resourceGroups/second"},
 		},
 		{
 			name:  "subscription and unrelated resource group",
-			roots: []interface{}{subscriptionID, otherSubscriptionID + "/resourceGroups/test"},
+			roots: []any{subscriptionID, otherSubscriptionID + "/resourceGroups/test"},
 		},
 		{
 			name:      "subscription and child resource group",
-			roots:     []interface{}{subscriptionID, subscriptionID + "/resourceGroups/test"},
+			roots:     []any{subscriptionID, subscriptionID + "/resourceGroups/test"},
 			wantError: true,
 		},
 		{
 			name:      "subscription and child with different subscription casing",
-			roots:     []interface{}{"/subscriptions/AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA", subscriptionID + "/resourceGroups/test"},
+			roots:     []any{"/subscriptions/AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA", subscriptionID + "/resourceGroups/test"},
 			wantError: true,
 		},
 	}
@@ -255,8 +255,8 @@ func TestStorageDiscoveryWorkspaceRootsDiff(t *testing.T) {
 				t.Fatalf("building resource: %v", err)
 			}
 
-			config := storageDiscoveryWorkspaceConfig([]interface{}{
-				storageDiscoveryScopeConfig("TestScope", []interface{}{"Microsoft.Storage/storageAccounts"}, []interface{}{}, map[string]interface{}{}),
+			config := storageDiscoveryWorkspaceConfig([]any{
+				storageDiscoveryScopeConfig("TestScope", []any{"Microsoft.Storage/storageAccounts"}, []any{}, map[string]any{}),
 			})
 			config["workspace_roots"] = testCase.roots
 			_, err = resource.Diff(context.Background(), nil, terraform.NewResourceConfigRaw(config), &clients.Client{})
@@ -311,8 +311,8 @@ func TestStorageDiscoveryWorkspaceRootValidation(t *testing.T) {
 	}
 }
 
-func storageDiscoveryScopeTestData(displayName string, resourceTypes, tagKeysOnly []interface{}, tags map[string]interface{}) map[string]interface{} {
-	return map[string]interface{}{
+func storageDiscoveryScopeTestData(displayName string, resourceTypes, tagKeysOnly []any, tags map[string]any) map[string]any {
+	return map[string]any{
 		"display_name":   displayName,
 		"resource_types": pluginsdk.NewSet(pluginsdk.HashString, resourceTypes),
 		"tag_keys_only":  pluginsdk.NewSet(pluginsdk.HashString, tagKeysOnly),
@@ -320,18 +320,18 @@ func storageDiscoveryScopeTestData(displayName string, resourceTypes, tagKeysOnl
 	}
 }
 
-func storageDiscoveryWorkspaceConfig(scopes []interface{}) map[string]interface{} {
-	return map[string]interface{}{
+func storageDiscoveryWorkspaceConfig(scopes []any) map[string]any {
+	return map[string]any{
 		"name":                "test",
 		"resource_group_name": "test",
 		"location":            "westus2",
-		"workspace_roots":     []interface{}{`/subscriptions/00000000-0000-0000-0000-000000000000`},
+		"workspace_roots":     []any{`/subscriptions/00000000-0000-0000-0000-000000000000`},
 		"scope":               scopes,
 	}
 }
 
-func storageDiscoveryScopeConfig(displayName string, resourceTypes, tagKeysOnly []interface{}, tags map[string]interface{}) map[string]interface{} {
-	return map[string]interface{}{
+func storageDiscoveryScopeConfig(displayName string, resourceTypes, tagKeysOnly []any, tags map[string]any) map[string]any {
+	return map[string]any{
 		"display_name":   displayName,
 		"resource_types": resourceTypes,
 		"tag_keys_only":  tagKeysOnly,

@@ -62,7 +62,7 @@ func dataSourcePrivateDnsZone() *pluginsdk.Resource {
 	}
 }
 
-func dataSourcePrivateDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourcePrivateDnsZoneRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).PrivateDns
 	resourceGroupsClient := meta.(*clients.Client).Resource.ResourceGroupsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId

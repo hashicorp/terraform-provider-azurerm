@@ -68,7 +68,7 @@ func resourceDataProtectionResourceGuard() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataProtectionResourceGuardCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataProtectionResourceGuardCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DataProtection.ResourceGuardClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -93,9 +93,9 @@ func resourceDataProtectionResourceGuardCreateUpdate(d *pluginsdk.ResourceData, 
 	parameters := resourceguardresources.ResourceGuardResource{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &resourceguardresources.ResourceGuard{
-			VaultCriticalOperationExclusionList: pluginsdk.ExpandStringSlice(d.Get("vault_critical_operation_exclusion_list").([]interface{})),
+			VaultCriticalOperationExclusionList: pluginsdk.ExpandStringSlice(d.Get("vault_critical_operation_exclusion_list").([]any)),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if _, err := client.ResourceGuardsPut(ctx, id, parameters); err != nil {
@@ -112,7 +112,7 @@ func resourceDataProtectionResourceGuardCreateUpdate(d *pluginsdk.ResourceData, 
 	return resourceDataProtectionResourceGuardRead(d, meta)
 }
 
-func resourceDataProtectionResourceGuardRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataProtectionResourceGuardRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataProtection.ResourceGuardClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -149,7 +149,7 @@ func resourceDataProtectionResourceGuardRead(d *pluginsdk.ResourceData, meta int
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceDataProtectionResourceGuardDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataProtectionResourceGuardDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataProtection.ResourceGuardClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

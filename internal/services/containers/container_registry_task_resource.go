@@ -140,7 +140,7 @@ type ContainerRegistryTaskModel struct {
 	Tags                map[string]string    `tfschema:"tags"`
 }
 
-func userDataStateFunc(v interface{}) string {
+func userDataStateFunc(v any) string {
 	switch s := v.(type) {
 	case string:
 		return base64.EncodeIfNot(s)
@@ -593,18 +593,18 @@ func (r ContainerRegistryTaskResource) CustomizeDiff() sdk.ResourceFunc {
 			if isSystemTask {
 				invalidProps := []string{"platform", "docker_step", "file_step", "encoded_step", "base_image_trigger", "source_trigger", "timer_trigger"}
 				for _, prop := range invalidProps {
-					if v := rd.Get(prop).([]interface{}); len(v) != 0 {
+					if v := rd.Get(prop).([]any); len(v) != 0 {
 						return fmt.Errorf("system task can't specify `%s`", prop)
 					}
 				}
 			} else {
-				if v := rd.Get("platform").([]interface{}); len(v) == 0 {
+				if v := rd.Get("platform").([]any); len(v) == 0 {
 					return fmt.Errorf("non-system task have to specify `platform`")
 				}
 
-				dockerStep := rd.Get("docker_step").([]interface{})
-				fileTaskStep := rd.Get("file_step").([]interface{})
-				encodedTaskStep := rd.Get("encoded_step").([]interface{})
+				dockerStep := rd.Get("docker_step").([]any)
+				fileTaskStep := rd.Get("file_step").([]any)
+				encodedTaskStep := rd.Get("encoded_step").([]any)
 				if len(dockerStep)+len(fileTaskStep)+len(encodedTaskStep) == 0 {
 					return fmt.Errorf("non-system task have to specify one of `docker_step`, `file_step` and `encoded_step`")
 				}
@@ -623,7 +623,7 @@ func (r ContainerRegistryTaskResource) ResourceType() string {
 	return "azurerm_container_registry_task"
 }
 
-func (r ContainerRegistryTaskResource) ModelObject() interface{} {
+func (r ContainerRegistryTaskResource) ModelObject() any {
 	return &ContainerRegistryTaskModel{}
 }
 
@@ -672,7 +672,7 @@ func (r ContainerRegistryTaskResource) Create() sdk.ResourceFunc {
 				status = tasks.TaskStatusEnabled
 			}
 
-			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]any))
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
@@ -888,7 +888,7 @@ func (r ContainerRegistryTaskResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
-				expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+				expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]any))
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}

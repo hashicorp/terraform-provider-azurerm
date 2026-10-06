@@ -88,7 +88,7 @@ func (m Python3PackageResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (m Python3PackageResource) ModelObject() interface{} {
+func (m Python3PackageResource) ModelObject() any {
 	return &Python3PackageModel{}
 }
 
