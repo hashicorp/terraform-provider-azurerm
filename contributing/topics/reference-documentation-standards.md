@@ -20,7 +20,7 @@ Reference documentation should follow the name of the Terraform resource or data
 
 ## Front Matter
 
-Each resource/data source must include the below Front Matter at the begining of the documentation file e.g., `example.html.markdown`.
+Each resource/data source must include the below Front Matter at the beginning of the documentation file e.g., `example.html.markdown`.
 
 The `subcategory` value should come from the website category defined for the service. To find the allowed values, check `website/allowed-subcategories`. If you scaffold the documentation using `make scaffold-website`, the generated front matter will also tell you which category to use. If the service supports multiple website categories, match the existing documentation for that service.
 
@@ -84,7 +84,6 @@ The following conventions apply to argument descriptions:
   * Other common entries include:
     - Arguments with a single allowed value: `` The only possible value is `valueOne`. ``
     - Arguments allowing a range of values, e.g. `validation.IntBetween()`: `` Possible values range between `1` and `100`. ``
-
 
 Examples:
 

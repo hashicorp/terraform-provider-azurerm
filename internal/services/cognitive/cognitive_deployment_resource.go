@@ -64,7 +64,7 @@ func (r CognitiveDeploymentResource) ResourceType() string {
 	return "azurerm_cognitive_deployment"
 }
 
-func (r CognitiveDeploymentResource) ModelObject() interface{} {
+func (r CognitiveDeploymentResource) ModelObject() any {
 	return &cognitiveDeploymentModel{}
 }
 
@@ -274,8 +274,7 @@ func (r CognitiveDeploymentResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.VersionUpgradeOption != "" {
-				option := deployments.DeploymentModelVersionUpgradeOption(model.VersionUpgradeOption)
-				properties.Properties.VersionUpgradeOption = &option
+				properties.Properties.VersionUpgradeOption = pointer.ToEnum[deployments.DeploymentModelVersionUpgradeOption](model.VersionUpgradeOption)
 			}
 
 			if model.SpilloverDeploymentName != "" {
@@ -400,7 +399,7 @@ func (r CognitiveDeploymentResource) flatten(metadata sdk.ResourceMetaData, id *
 		state.DynamicThrottlingEnabled = pointer.From(properties.DynamicThrottlingEnabled)
 		state.RaiPolicyName = pointer.From(properties.RaiPolicyName)
 		state.SpilloverDeploymentName = pointer.From(properties.SpilloverDeploymentName)
-		state.VersionUpgradeOption = string(pointer.From(properties.VersionUpgradeOption))
+		state.VersionUpgradeOption = pointer.FromEnum(properties.VersionUpgradeOption)
 	}
 	if sku := flattenDeploymentSkuModel(model.Sku); sku != nil {
 		state.Sku = sku
@@ -473,8 +472,7 @@ func expandDeploymentSkuModel(inputList []DeploymentSkuModel) *deployments.Sku {
 		s.Size = pointer.To(input.Size)
 	}
 	if input.Tier != "" {
-		tier := deployments.SkuTier(input.Tier)
-		s.Tier = &tier
+		s.Tier = pointer.ToEnum[deployments.SkuTier](input.Tier)
 	}
 	return s
 }
@@ -495,7 +493,7 @@ func flattenDeploymentModelModel(input *deployments.DeploymentModel) []Deploymen
 
 func flattenDeploymentSkuModel(input *deployments.Sku) []DeploymentSkuModel {
 	if input == nil {
-		return nil
+		return []DeploymentSkuModel{}
 	}
 	output := DeploymentSkuModel{
 		Name: input.Name,

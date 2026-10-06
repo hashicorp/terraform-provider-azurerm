@@ -34,7 +34,7 @@ func (r WorkspaceNetworkOutboundRuleFqdn) ResourceType() string {
 	return "azurerm_machine_learning_workspace_network_outbound_rule_fqdn"
 }
 
-func (r WorkspaceNetworkOutboundRuleFqdn) ModelObject() interface{} {
+func (r WorkspaceNetworkOutboundRuleFqdn) ModelObject() any {
 	return &machineLearningWorkspaceOutboundRuleFqdnModel{}
 }
 

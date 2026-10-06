@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 func resourceDataFactoryTriggerCustomEvent() *pluginsdk.Resource {
@@ -137,7 +137,7 @@ func resourceDataFactoryTriggerCustomEvent() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryTriggerCustomEventCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryTriggerCustomEventCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.TriggersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -183,8 +183,7 @@ func resourceDataFactoryTriggerCustomEventCreateUpdate(d *pluginsdk.ResourceData
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		trigger.Annotations = &annotations
+		trigger.Annotations = pointer.To(v.([]any))
 	}
 
 	if v, ok := d.GetOk("subject_begins_with"); ok {
@@ -196,7 +195,7 @@ func resourceDataFactoryTriggerCustomEventCreateUpdate(d *pluginsdk.ResourceData
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		trigger.AdditionalProperties = v.(map[string]interface{})
+		trigger.AdditionalProperties = v.(map[string]any)
 	}
 
 	resource := datafactory.TriggerResource{
@@ -222,7 +221,7 @@ func resourceDataFactoryTriggerCustomEventCreateUpdate(d *pluginsdk.ResourceData
 	return resourceDataFactoryTriggerCustomEventRead(d, meta)
 }
 
-func resourceDataFactoryTriggerCustomEventRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryTriggerCustomEventRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.TriggersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -272,7 +271,7 @@ func resourceDataFactoryTriggerCustomEventRead(d *pluginsdk.ResourceData, meta i
 	return nil
 }
 
-func resourceDataFactoryTriggerCustomEventDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryTriggerCustomEventDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.TriggersClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()

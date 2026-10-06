@@ -20,8 +20,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/accessconnector"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/workspaces"
 	mlworkspace "github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/subnets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/subnets"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -177,7 +177,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							ForceNew:     true,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							AtLeastOneOf: workspaceCustomParametersString(),
 						},
 
@@ -192,7 +192,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							ForceNew:     true,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							AtLeastOneOf: workspaceCustomParametersString(),
 						},
 
@@ -236,7 +236,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							ForceNew:     true,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: storageValidate.StorageAccountName,
 							AtLeastOneOf: workspaceCustomParametersString(),
 						},
@@ -244,7 +244,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 						"storage_account_sku_name": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							AtLeastOneOf: workspaceCustomParametersString(),
 						},
 
@@ -252,7 +252,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							ForceNew:     true,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							AtLeastOneOf: workspaceCustomParametersString(),
 						},
 					},
@@ -359,7 +359,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v any) error {
 				_, customerEncryptionEnabled := d.GetChange("customer_managed_key_enabled")
 				_, defaultStorageFirewallEnabled := d.GetChange("default_storage_firewall_enabled")
 				_, infrastructureEncryptionEnabled := d.GetChange("infrastructure_encryption_enabled")
@@ -374,7 +374,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 
 				// Disabling Public Network Access means that this is a Private Endpoint Workspace
 				// Having a Load Balancer Backend Address Pool means the this is a Secure Cluster Connectivity Workspace
-				// You cannot have a Private Enpoint Workspace and a Secure Cluster Connectivity Workspace definitions in
+				// You cannot have a Private Endpoint Workspace and a Secure Cluster Connectivity Workspace definitions in
 				// the same workspace configuration...
 				if !publicNetworkAccess.(bool) {
 					if requireNsgRules.(string) == string(workspaces.RequiredNsgRulesAllRules) {
@@ -394,7 +394,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 					}
 				}
 
-				if (customerEncryptionEnabled.(bool) || defaultStorageFirewallEnabled.(bool) || len(enhancedSecurityCompliance.([]interface{})) > 0 || infrastructureEncryptionEnabled.(bool) || managedServicesCMK.(string) != "" || managedDiskCMK.(string) != "") && !strings.EqualFold("premium", newSku.(string)) {
+				if (customerEncryptionEnabled.(bool) || defaultStorageFirewallEnabled.(bool) || len(enhancedSecurityCompliance.([]any)) > 0 || infrastructureEncryptionEnabled.(bool) || managedServicesCMK.(string) != "" || managedDiskCMK.(string) != "") && !strings.EqualFold("premium", newSku.(string)) {
 					return fmt.Errorf("`customer_managed_key_enabled`, `default_storage_firewall_enabled`, `enhanced_security_compliance`, `infrastructure_encryption_enabled`, `managed_disk_cmk_key_vault_key_id` and `managed_services_cmk_key_vault_key_id` are only available with a `premium` workspace `sku`, got %q", newSku)
 				}
 
@@ -402,18 +402,18 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 			}),
 
 			// Once compliance security profile has been enabled, disabling it will force a workspace replacement
-			pluginsdk.ForceNewIfChange("enhanced_security_compliance.0.compliance_security_profile_enabled", func(ctx context.Context, old, new, meta interface{}) bool {
+			pluginsdk.ForceNewIfChange("enhanced_security_compliance.0.compliance_security_profile_enabled", func(ctx context.Context, old, new, meta any) bool {
 				return old.(bool) && !new.(bool)
 			}),
 
 			// Once a compliance standard is enabled, disabling it will force a workspace replacement
-			pluginsdk.ForceNewIfChange("enhanced_security_compliance.0.compliance_security_profile_standards", func(ctx context.Context, old, new, meta interface{}) bool {
+			pluginsdk.ForceNewIfChange("enhanced_security_compliance.0.compliance_security_profile_standards", func(ctx context.Context, old, new, meta any) bool {
 				removedStandards := old.(*pluginsdk.Set).Difference(new.(*pluginsdk.Set))
 				return removedStandards.Len() > 0
 			}),
 
 			// Compliance security profile requires automatic cluster update and enhanced security monitoring to be enabled
-			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v any) error {
 				_, complianceSecurityProfileEnabled := d.GetChange("enhanced_security_compliance.0.compliance_security_profile_enabled")
 				_, automaticClusterUpdateEnabled := d.GetChange("enhanced_security_compliance.0.automatic_cluster_update_enabled")
 				_, enhancedSecurityMonitoringEnabled := d.GetChange("enhanced_security_compliance.0.enhanced_security_monitoring_enabled")
@@ -426,7 +426,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 			}),
 
 			// compliance standards cannot be specified without enabling compliance profile
-			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v any) error {
 				_, complianceSecurityProfileEnabled := d.GetChange("enhanced_security_compliance.0.compliance_security_profile_enabled")
 				_, complianceStandards := d.GetChange("enhanced_security_compliance.0.compliance_security_profile_standards")
 
@@ -437,13 +437,13 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				return nil
 			}),
 
-			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v any) error {
 				// Neither of these arguments can be removed once set
 				for _, k := range []string{"managed_disk_cmk_key_vault_key_id", "managed_services_cmk_key_vault_key_id"} {
 					o, n := d.GetChange(k)
 
 					if o.(string) != "" && n.(string) == "" {
-						// Check RawConfig to prevent replacments on `(known after apply)` values
+						// Check RawConfig to prevent replacements on `(known after apply)` values
 						rawConfig := d.GetRawConfig()
 						if rawConfig.IsNull() || !rawConfig.IsKnown() {
 							return nil
@@ -492,7 +492,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 	return resource
 }
 
-func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataBricks.WorkspacesClient
 	acClient := meta.(*clients.Client).DataBricks.AccessConnectorClient
 	lbClient := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
@@ -555,11 +555,11 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 		publicNetworkAccess = workspaces.PublicNetworkAccessEnabled
 	}
 
-	customParamsRaw := d.Get("custom_parameters").([]interface{})
+	customParamsRaw := d.Get("custom_parameters").([]any)
 	customParams, pubSubAssoc, priSubAssoc := expandWorkspaceCustomParameters(customParamsRaw, d.Get("customer_managed_key_enabled").(bool), d.Get("infrastructure_encryption_enabled").(bool), backendPoolName, loadBalancerId)
 
 	if len(customParamsRaw) > 0 && customParamsRaw[0] != nil {
-		config := customParamsRaw[0].(map[string]interface{})
+		config := customParamsRaw[0].(map[string]any)
 		pubSub := config["public_subnet_name"].(string)
 		priSub := config["private_subnet_name"].(string)
 		vnetID := config["virtual_network_id"].(string)
@@ -598,9 +598,9 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 			ManagedResourceGroupId:     pointer.To(commonids.NewResourceGroupID(id.SubscriptionId, managedResourceGroupName).ID()),
 			Parameters:                 customParams,
 			Encryption:                 encryption,
-			EnhancedSecurityCompliance: expandWorkspaceEnhancedSecurity(d.Get("enhanced_security_compliance").([]interface{})),
+			EnhancedSecurityCompliance: expandWorkspaceEnhancedSecurity(d.Get("enhanced_security_compliance").([]any)),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if d.Get("default_storage_firewall_enabled").(bool) {
@@ -661,7 +661,7 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 	return resourceDatabricksWorkspaceRead(d, meta)
 }
 
-func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataBricks.WorkspacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -735,7 +735,7 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 
 			// The subnet associations only exist in the statefile, so we need to do a Get before we Set
 			// with what has come back from the Azure response...
-			_, pubSubAssoc, priSubAssoc := expandWorkspaceCustomParameters(d.Get("custom_parameters").([]interface{}), cmkEnabled, infraEnabled, "", "")
+			_, pubSubAssoc, priSubAssoc := expandWorkspaceCustomParameters(d.Get("custom_parameters").([]any), cmkEnabled, infraEnabled, "", "")
 
 			custom, backendPoolReadId := flattenWorkspaceCustomParameters(parameters, pubSubAssoc, priSubAssoc)
 			if err := d.Set("custom_parameters", custom); err != nil {
@@ -807,7 +807,7 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceDatabricksWorkspaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatabricksWorkspaceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataBricks.WorkspacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -829,7 +829,7 @@ func resourceDatabricksWorkspaceDelete(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataBricks.WorkspacesClient
 	acClient := meta.(*clients.Client).DataBricks.AccessConnectorClient
 
@@ -861,7 +861,7 @@ func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("tags") {
-		model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		model.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if d.HasChange("customer_managed_key_enabled") {
@@ -941,8 +941,8 @@ func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface
 			props.Parameters = &workspaces.WorkspaceCustomParameters{}
 		}
 
-		if customParams := d.Get("custom_parameters").([]interface{}); len(customParams) > 0 && customParams[0] != nil {
-			config := customParams[0].(map[string]interface{})
+		if customParams := d.Get("custom_parameters").([]any); len(customParams) > 0 && customParams[0] != nil {
+			config := customParams[0].(map[string]any)
 			var pubSubnetAssoc, priSubnetAssoc *string
 
 			pubSub := config["public_subnet_name"].(string)
@@ -1040,7 +1040,7 @@ func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("enhanced_security_compliance") {
-		props.EnhancedSecurityCompliance = expandWorkspaceEnhancedSecurity(d.Get("enhanced_security_compliance").([]interface{}))
+		props.EnhancedSecurityCompliance = expandWorkspaceEnhancedSecurity(d.Get("enhanced_security_compliance").([]any))
 	}
 
 	model.Properties = props
@@ -1104,12 +1104,12 @@ func expandDatabricksWorkspaceEncryption(d *pluginsdk.ResourceData) (*workspaces
 	return result, nil
 }
 
-func flattenWorkspaceManagedIdentity(input *workspaces.ManagedIdentityConfiguration) []interface{} {
+func flattenWorkspaceManagedIdentity(input *workspaces.ManagedIdentityConfiguration) []any {
 	if input == nil {
-		return nil
+		return []any{}
 	}
 
-	e := make(map[string]interface{})
+	e := make(map[string]any)
 
 	if t := input.PrincipalId; t != nil {
 		e["principal_id"] = *t
@@ -1124,19 +1124,19 @@ func flattenWorkspaceManagedIdentity(input *workspaces.ManagedIdentityConfigurat
 	}
 
 	if len(e) != 0 {
-		return []interface{}{e}
+		return []any{e}
 	}
 
-	return []interface{}{e}
+	return []any{e}
 }
 
-func flattenWorkspaceCustomParameters(input *workspaces.WorkspaceCustomParameters, publicSubnetAssociation, privateSubnetAssociation *string) ([]interface{}, string) {
+func flattenWorkspaceCustomParameters(input *workspaces.WorkspaceCustomParameters, publicSubnetAssociation, privateSubnetAssociation *string) ([]any, string) {
 	if input == nil {
-		return nil, ""
+		return []any{}, ""
 	}
 
 	var backendAddressPoolId, backendName, loadBalancerId string
-	parameters := make(map[string]interface{})
+	parameters := make(map[string]any)
 
 	if publicSubnetAssociation != nil && *publicSubnetAssociation != "" {
 		parameters["public_subnet_network_security_group_association_id"] = *publicSubnetAssociation
@@ -1201,10 +1201,10 @@ func flattenWorkspaceCustomParameters(input *workspaces.WorkspaceCustomParameter
 		backendAddressPoolId = backendId.ID()
 	}
 
-	return []interface{}{parameters}, backendAddressPoolId
+	return []any{parameters}, backendAddressPoolId
 }
 
-func expandWorkspaceCustomParameters(input []interface{}, customerManagedKeyEnabled, infrastructureEncryptionEnabled bool, backendAddressPoolName, loadBalancerId string) (workspaceCustomParameters *workspaces.WorkspaceCustomParameters, publicSubnetAssociation, privateSubnetAssociation *string) {
+func expandWorkspaceCustomParameters(input []any, customerManagedKeyEnabled, infrastructureEncryptionEnabled bool, backendAddressPoolName, loadBalancerId string) (workspaceCustomParameters *workspaces.WorkspaceCustomParameters, publicSubnetAssociation, privateSubnetAssociation *string) {
 	if len(input) == 0 || input[0] == nil {
 		// This will be hit when there are no custom params set but we still
 		// need to pass the customerManagedKeyEnabled and infrastructureEncryptionEnabled
@@ -1222,7 +1222,7 @@ func expandWorkspaceCustomParameters(input []interface{}, customerManagedKeyEnab
 		return &parameters, nil, nil
 	}
 
-	config := input[0].(map[string]interface{})
+	config := input[0].(map[string]any)
 	var pubSubnetAssoc, priSubnetAssoc *string
 	parameters := workspaces.WorkspaceCustomParameters{}
 
@@ -1327,12 +1327,12 @@ func workspaceCustomParametersString() []string {
 	}
 }
 
-func flattenWorkspaceEnhancedSecurity(input *workspaces.EnhancedSecurityComplianceDefinition) []interface{} {
+func flattenWorkspaceEnhancedSecurity(input *workspaces.EnhancedSecurityComplianceDefinition) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	enhancedSecurityCompliance := make(map[string]interface{})
+	enhancedSecurityCompliance := make(map[string]any)
 
 	if v := input.AutomaticClusterUpdate; v != nil {
 		enhancedSecurityCompliance["automatic_cluster_update_enabled"] = pointer.From(v.Value) != workspaces.AutomaticClusterUpdateValueDisabled
@@ -1356,15 +1356,15 @@ func flattenWorkspaceEnhancedSecurity(input *workspaces.EnhancedSecurityComplian
 		enhancedSecurityCompliance["compliance_security_profile_standards"] = standards
 	}
 
-	return []interface{}{enhancedSecurityCompliance}
+	return []any{enhancedSecurityCompliance}
 }
 
-func expandWorkspaceEnhancedSecurity(input []interface{}) *workspaces.EnhancedSecurityComplianceDefinition {
+func expandWorkspaceEnhancedSecurity(input []any) *workspaces.EnhancedSecurityComplianceDefinition {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	config := input[0].(map[string]interface{})
+	config := input[0].(map[string]any)
 
 	automaticClusterUpdateEnabled := workspaces.AutomaticClusterUpdateValueDisabled
 	if enabled, ok := config["automatic_cluster_update_enabled"].(bool); ok && enabled {

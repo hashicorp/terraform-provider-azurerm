@@ -51,7 +51,7 @@ func resourceApiManagementSubscription() *pluginsdk.Resource {
 			"subscription_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ForceNew:     true,
 				ValidateFunc: validation.Any(validate.ApiManagementChildName, validation.StringIsEmpty),
 			},
@@ -98,15 +98,17 @@ func resourceApiManagementSubscription() *pluginsdk.Resource {
 			},
 
 			"primary_key": {
-				Type:      pluginsdk.TypeString,
-				Optional:  true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// Note: O+C because the API generates a subscription key when not specified
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"secondary_key": {
-				Type:      pluginsdk.TypeString,
-				Optional:  true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// Note: O+C because the API generates a subscription key when not specified
 				Computed:  true,
 				Sensitive: true,
 			},
@@ -120,7 +122,7 @@ func resourceApiManagementSubscription() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.SubscriptionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -207,7 +209,7 @@ func resourceApiManagementSubscriptionCreateUpdate(d *pluginsdk.ResourceData, me
 	return resourceApiManagementSubscriptionRead(d, meta)
 }
 
-func resourceApiManagementSubscriptionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementSubscriptionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.SubscriptionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -272,7 +274,7 @@ func resourceApiManagementSubscriptionRead(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func resourceApiManagementSubscriptionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementSubscriptionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.SubscriptionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

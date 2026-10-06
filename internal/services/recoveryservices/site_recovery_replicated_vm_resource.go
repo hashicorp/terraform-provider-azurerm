@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -21,19 +21,17 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/loadbalancers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationfabrics"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationprotecteditems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationprotectioncontainers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
-	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -141,14 +139,14 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 
 			"target_network_id": {
 				Type:         pluginsdk.TypeString,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				Optional:     true,
 				ValidateFunc: commonids.ValidateVirtualNetworkID,
 			},
 
 			"test_network_id": {
 				Type:         pluginsdk.TypeString,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				Optional:     true,
 				ValidateFunc: commonids.ValidateVirtualNetworkID,
 			},
@@ -158,7 +156,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			"unmanaged_disk": {
 				Type:       pluginsdk.TypeSet,
 				Optional:   true,
-				Computed:   true,
+				Computed:   true, // azignore:AZS007 - pre-existing violation
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				ForceNew:   true,
 				Elem: &pluginsdk.Resource{
@@ -196,7 +194,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			"managed_disk": {
 				Type:       pluginsdk.TypeSet,
 				Optional:   true,
-				Computed:   true,
+				Computed:   true, // azignore:AZS007 - pre-existing violation
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Set:        resourceSiteRecoveryReplicatedVMDiskHash,
 				Elem: &pluginsdk.Resource{
@@ -275,7 +273,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			"target_virtual_machine_size": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				// O+C if not specified, this gets set to the vm_size of the virtual machine
+				// Note: O+C if not specified, this gets set to the vm_size of the virtual machine
 				Computed:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -283,7 +281,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			"network_interface": {
 				Type:       pluginsdk.TypeList,
 				Optional:   true,
-				Computed:   true,
+				Computed:   true, // azignore:AZS007 - pre-existing violation
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Elem:       networkInterfaceResource(),
 			},
@@ -291,7 +289,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 	}
 }
 
-func resourceSiteRecoveryReplicatedVMCustomizeDiff(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+func resourceSiteRecoveryReplicatedVMCustomizeDiff(ctx context.Context, diff *pluginsdk.ResourceDiff, v any) error {
 	rawConfig := diff.GetRawConfig()
 	if !rawConfig.IsKnown() || rawConfig.IsNull() {
 		return nil
@@ -344,6 +342,7 @@ func resourceSiteRecoveryReplicatedVMCustomizeDiff(ctx context.Context, diff *pl
 			resourceSiteRecoveryReplicatedVMDiskHash,
 			[]string{"staging_storage_account_id", "target_resource_group_id", "target_disk_encryption_set_id"},
 			[]string{"target_disk_type", "target_replica_disk_type"},
+			[]string{"staging_storage_account_id", "target_resource_group_id", "target_disk_encryption_set_id"},
 		)
 		if err := managedDiskCustomDiff(ctx, diff, v); err != nil {
 			return err
@@ -358,7 +357,7 @@ func networkInterfaceResource() *pluginsdk.Resource {
 		Schema: map[string]*pluginsdk.Schema{
 			"source_network_interface_id": {
 				Type:         pluginsdk.TypeString,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				Optional:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
@@ -372,7 +371,7 @@ func networkInterfaceResource() *pluginsdk.Resource {
 						"name": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
@@ -476,7 +475,7 @@ func diskEncryptionResource() *pluginsdk.Resource {
 	}
 }
 
-func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
@@ -525,7 +524,7 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 	managedDisksGet := d.Get("managed_disk").(*pluginsdk.Set).List()
 	managedDisks := make([]replicationprotecteditems.A2AVMManagedDiskInputDetails, 0, len(managedDisksGet))
 	for _, raw := range managedDisksGet {
-		diskInput := raw.(map[string]interface{})
+		diskInput := raw.(map[string]any)
 		managedDisks = append(managedDisks, replicationprotecteditems.A2AVMManagedDiskInputDetails{
 			DiskId:                              diskInput["disk_id"].(string),
 			PrimaryStagingAzureStorageAccountId: diskInput["staging_storage_account_id"].(string),
@@ -533,14 +532,14 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 			RecoveryReplicaDiskAccountType:      pointer.To(diskInput["target_replica_disk_type"].(string)),
 			RecoveryTargetDiskAccountType:       pointer.To(diskInput["target_disk_type"].(string)),
 			RecoveryDiskEncryptionSetId:         pointer.To(diskInput["target_disk_encryption_set_id"].(string)),
-			DiskEncryptionInfo:                  expandDiskEncryption(diskInput["target_disk_encryption"].([]interface{})),
+			DiskEncryptionInfo:                  expandDiskEncryption(diskInput["target_disk_encryption"].([]any)),
 		})
 	}
 
 	vmDisksGet := d.Get("unmanaged_disk").(*pluginsdk.Set).List()
 	vmDisks := make([]replicationprotecteditems.A2AVMDiskInputDetails, 0, len(vmDisksGet))
 	for _, raw := range vmDisksGet {
-		diskInput := raw.(map[string]interface{})
+		diskInput := raw.(map[string]any)
 		vmDisks = append(vmDisks, replicationprotecteditems.A2AVMDiskInputDetails{
 			DiskUri:                             diskInput["disk_uri"].(string),
 			PrimaryStagingAzureStorageAccountId: diskInput["staging_storage_account_id"].(string),
@@ -604,10 +603,10 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
-	nicList := d.Get("network_interface").([]interface{})
+	nicList := d.Get("network_interface").([]any)
 	vmNics := make([]replicationprotecteditems.VMNicInputDetails, 0, len(nicList))
 	for _, raw := range nicList {
-		vmNicInput := raw.(map[string]interface{})
+		vmNicInput := raw.(map[string]any)
 		sourceNicId := vmNicInput["source_network_interface_id"].(string)
 		nicId := findNicId(state, sourceNicId)
 		if nicId == nil {
@@ -653,7 +652,7 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 	return flattenSiteRecoveryReplicatedItem(d, resp.Model)
 }
 
-func resourceSiteRecoveryReplicatedItemUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryReplicatedItemUpdate(d *pluginsdk.ResourceData, meta any) error {
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -677,16 +676,15 @@ func resourceSiteRecoveryReplicatedItemUpdate(d *pluginsdk.ResourceData, meta in
 
 	var targetAvailabilitySetID *string
 	if id, isSet := d.GetOk("target_availability_set_id"); isSet {
-		tmp := id.(string)
-		targetAvailabilitySetID = &tmp
+		targetAvailabilitySetID = pointer.To(id.(string))
 	} else {
 		targetAvailabilitySetID = nil
 	}
 
-	nicList := d.Get("network_interface").([]interface{})
+	nicList := d.Get("network_interface").([]any)
 	vmNics := make([]replicationprotecteditems.VMNicInputDetails, 0, len(nicList))
 	for _, raw := range nicList {
-		vmNicInput := raw.(map[string]interface{})
+		vmNicInput := raw.(map[string]any)
 		sourceNicId := vmNicInput["source_network_interface_id"].(string)
 		nicId := findNicId(state, sourceNicId)
 		if nicId == nil {
@@ -709,7 +707,7 @@ func resourceSiteRecoveryReplicatedItemUpdate(d *pluginsdk.ResourceData, meta in
 	if len(addedDisks) > 0 {
 		var vmManagedDisks []replicationprotecteditems.A2AVMManagedDiskInputDetails
 		for _, raw := range addedDisks {
-			diskInput := raw.(map[string]interface{})
+			diskInput := raw.(map[string]any)
 			diskId := diskInput["disk_id"].(string)
 			stagingStorageAccountId := diskInput["staging_storage_account_id"].(string)
 			targetResourceGroupId := diskInput["target_resource_group_id"].(string)
@@ -730,7 +728,7 @@ func resourceSiteRecoveryReplicatedItemUpdate(d *pluginsdk.ResourceData, meta in
 				diskInputDetails.RecoveryDiskEncryptionSetId = &v
 			}
 
-			diskEncryptionRaw := diskInput["target_disk_encryption"].([]interface{})
+			diskEncryptionRaw := diskInput["target_disk_encryption"].([]any)
 			if len(diskEncryptionRaw) > 0 {
 				diskInputDetails.DiskEncryptionInfo = expandDiskEncryption(diskEncryptionRaw)
 			}
@@ -751,16 +749,13 @@ func resourceSiteRecoveryReplicatedItemUpdate(d *pluginsdk.ResourceData, meta in
 
 	managedDisks := make([]replicationprotecteditems.A2AVMManagedDiskUpdateDetails, 0, len(existingDisks))
 	for _, raw := range existingDisks {
-		diskInput := raw.(map[string]interface{})
-		diskId := diskInput["disk_id"].(string)
-		targetReplicaDiskType := diskInput["target_replica_disk_type"].(string)
-		targetDiskType := diskInput["target_disk_type"].(string)
+		diskInput := raw.(map[string]any)
 
 		managedDisks = append(managedDisks, replicationprotecteditems.A2AVMManagedDiskUpdateDetails{
-			DiskId:                         &diskId,
-			RecoveryReplicaDiskAccountType: &targetReplicaDiskType,
-			RecoveryTargetDiskAccountType:  &targetDiskType,
-			DiskEncryptionInfo:             expandDiskEncryption(diskInput["target_disk_encryption"].([]interface{})),
+			DiskId:                         pointer.To(diskInput["disk_id"].(string)),
+			RecoveryReplicaDiskAccountType: pointer.To(diskInput["target_replica_disk_type"].(string)),
+			RecoveryTargetDiskAccountType:  pointer.To(diskInput["target_disk_type"].(string)),
+			DiskEncryptionInfo:             expandDiskEncryption(diskInput["target_disk_encryption"].([]any)),
 		})
 	}
 
@@ -832,7 +827,7 @@ func findNicId(state *replicationprotecteditems.ReplicationProtectedItem, source
 	return nil
 }
 
-func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta any) error {
 	id, err := replicationprotecteditems.ParseReplicationProtectedItemID(d.Id())
 	if err != nil {
 		return err
@@ -915,7 +910,7 @@ func flattenSiteRecoveryReplicatedItem(d *pluginsdk.ResourceData, model *replica
 
 			recoveryGroupId := ""
 			if groupId := pointer.From(a2aDetails.RecoveryAzureResourceGroupId); groupId != "" {
-				parsedGroupId, err := resourceParse.ResourceGroupIDInsensitively(groupId)
+				parsedGroupId, err := commonids.ParseResourceGroupIDInsensitively(groupId)
 				if err != nil {
 					return err
 				}
@@ -999,9 +994,9 @@ func flattenSiteRecoveryReplicatedItem(d *pluginsdk.ResourceData, model *replica
 			d.Set("multi_vm_group_name", a2aDetails.MultiVMGroupName)
 			d.Set("test_network_id", a2aDetails.SelectedTfoAzureNetworkId)
 			if a2aDetails.ProtectedDisks != nil {
-				disksOutput := make([]interface{}, 0)
+				disksOutput := make([]any, 0)
 				for _, disk := range *a2aDetails.ProtectedDisks {
-					disksOutput = append(disksOutput, map[string]interface{}{
+					disksOutput = append(disksOutput, map[string]any{
 						"disk_uri":                   disk.DiskUri,
 						"staging_storage_account_id": disk.PrimaryStagingAzureStorageAccountId,
 						"target_storage_account_id":  disk.RecoveryAzureStorageAccountId,
@@ -1011,9 +1006,9 @@ func flattenSiteRecoveryReplicatedItem(d *pluginsdk.ResourceData, model *replica
 			}
 
 			if a2aDetails.ProtectedManagedDisks != nil {
-				disksOutput := make([]interface{}, 0)
+				disksOutput := make([]any, 0)
 				for _, disk := range *a2aDetails.ProtectedManagedDisks {
-					diskOutput := make(map[string]interface{})
+					diskOutput := make(map[string]any)
 					diskId := ""
 					if respDiskId := pointer.From(disk.DiskId); respDiskId != "" {
 						parsedDiskId, err := commonids.ParseManagedDiskIDInsensitively(respDiskId)
@@ -1036,7 +1031,7 @@ func flattenSiteRecoveryReplicatedItem(d *pluginsdk.ResourceData, model *replica
 
 					recoveryResourceGroupID := ""
 					if respRGId := pointer.From(disk.RecoveryResourceGroupId); respRGId != "" {
-						parsedResourceGroupId, err := resourceParse.ResourceGroupIDInsensitively(respRGId)
+						parsedResourceGroupId, err := commonids.ParseResourceGroupIDInsensitively(respRGId)
 						if err != nil {
 							return err
 						}
@@ -1066,9 +1061,9 @@ func flattenSiteRecoveryReplicatedItem(d *pluginsdk.ResourceData, model *replica
 			}
 
 			if a2aDetails.VMNics != nil {
-				nicsOutput := make([]interface{}, 0)
+				nicsOutput := make([]any, 0)
 				for _, nic := range *a2aDetails.VMNics {
-					nicOutput := make(map[string]interface{})
+					nicOutput := make(map[string]any)
 					if nic.SourceNicArmId != nil {
 						nicOutput["source_network_interface_id"] = *nic.SourceNicArmId
 					}
@@ -1088,7 +1083,7 @@ func flattenSiteRecoveryReplicatedItem(d *pluginsdk.ResourceData, model *replica
 	return nil
 }
 
-func resourceSiteRecoveryReplicatedItemDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryReplicatedItemDelete(d *pluginsdk.ResourceData, meta any) error {
 	id, err := replicationprotecteditems.ParseReplicationProtectedItemID(d.Id())
 	if err != nil {
 		return err
@@ -1096,11 +1091,9 @@ func resourceSiteRecoveryReplicatedItemDelete(d *pluginsdk.ResourceData, meta in
 
 	client := meta.(*clients.Client).RecoveryServices.ReplicationProtectedItemsClient
 
-	disableProtectionReason := replicationprotecteditems.DisableProtectionReasonNotSpecified
-
 	disableProtectionInput := replicationprotecteditems.DisableProtectionInput{
 		Properties: replicationprotecteditems.DisableProtectionInputProperties{
-			DisableProtectionReason: &disableProtectionReason,
+			DisableProtectionReason: pointer.To(replicationprotecteditems.DisableProtectionReasonNotSpecified),
 			// It's a workaround for https://github.com/hashicorp/pandora/issues/1864
 			ReplicationProviderInput: replicationprotecteditems.BaseDisableProtectionProviderSpecificInputImpl{
 				InstanceType: string(siterecovery.InstanceTypeDisableProtectionProviderSpecificInput),
@@ -1117,10 +1110,10 @@ func resourceSiteRecoveryReplicatedItemDelete(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func resourceSiteRecoveryReplicatedVMDiskHash(v interface{}) int {
+func resourceSiteRecoveryReplicatedVMDiskHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
+	if m, ok := v.(map[string]any); ok {
 		if v, ok := m["disk_id"]; ok {
 			buf.WriteString(strings.ToLower(v.(string)))
 		}
@@ -1129,7 +1122,7 @@ func resourceSiteRecoveryReplicatedVMDiskHash(v interface{}) int {
 	return pluginsdk.HashString(buf.String())
 }
 
-func waitForReplicationToBeHealthy(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) (*replicationprotecteditems.ReplicationProtectedItem, error) {
+func waitForReplicationToBeHealthy(ctx context.Context, d *pluginsdk.ResourceData, meta any) (*replicationprotecteditems.ReplicationProtectedItem, error) {
 	log.Printf("Waiting for Site Recover to replicate VM.")
 	stateConf := &pluginsdk.StateChangeConf{
 		Target:       []string{"Protected"},
@@ -1156,8 +1149,8 @@ func waitForReplicationToBeHealthy(ctx context.Context, d *pluginsdk.ResourceDat
 	}
 }
 
-func waitForReplicationToBeHealthyRefreshFunc(d *pluginsdk.ResourceData, meta interface{}) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+func waitForReplicationToBeHealthyRefreshFunc(d *pluginsdk.ResourceData, meta any) pluginsdk.StateRefreshFunc {
+	return func() (any, string, error) {
 		id, err := replicationprotecteditems.ParseReplicationProtectedItemID(d.Id())
 		if err != nil {
 			return nil, "", err
@@ -1202,19 +1195,19 @@ func waitForReplicationToBeHealthyRefreshFunc(d *pluginsdk.ResourceData, meta in
 	}
 }
 
-func expandSiteRecoveryReplicatedVMIPConfig(nicInput map[string]interface{}) []replicationprotecteditems.IPConfigInputDetails {
+func expandSiteRecoveryReplicatedVMIPConfig(nicInput map[string]any) []replicationprotecteditems.IPConfigInputDetails {
 	output := make([]replicationprotecteditems.IPConfigInputDetails, 0)
-	ipConfigs := nicInput["ip_configuration"].([]interface{})
+	ipConfigs := nicInput["ip_configuration"].([]any)
 	if len(ipConfigs) > 0 {
 		for _, ipConfig := range ipConfigs {
-			ipConfig := ipConfig.(map[string]interface{})
+			ipConfig := ipConfig.(map[string]any)
 			var ipConfigName *string
 			if name, ok := ipConfig["name"].(string); ok && name != "" {
 				ipConfigName = pointer.To(name)
 			}
 			var recoveryLoadBalancerBackendPoolIds *[]string
 			if ids, ok := ipConfig["recovery_load_balancer_backend_address_pool_ids"].(*schema.Set); ok && ids.Len() > 0 {
-				recoveryLoadBalancerBackendPoolIds = helpers.ExpandStringSlice(ids.List())
+				recoveryLoadBalancerBackendPoolIds = pluginsdk.ExpandStringSlice(ids.List())
 			}
 			output = append(output, replicationprotecteditems.IPConfigInputDetails{
 				IPConfigName:                    ipConfigName,
@@ -1234,12 +1227,12 @@ func expandSiteRecoveryReplicatedVMIPConfig(nicInput map[string]interface{}) []r
 	return output
 }
 
-func flattenSiteRecoveryReplicatedVMIPConfig(ipConfigs *[]replicationprotecteditems.IPConfigDetails) []interface{} {
-	outputs := make([]interface{}, 0)
+func flattenSiteRecoveryReplicatedVMIPConfig(ipConfigs *[]replicationprotecteditems.IPConfigDetails) []any {
+	outputs := make([]any, 0)
 
 	if ipConfigs != nil {
 		for _, ipConfig := range *ipConfigs {
-			output := map[string]interface{}{
+			output := map[string]any{
 				"name":                               pointer.From(ipConfig.Name),
 				"primary":                            pointer.From(ipConfig.IsPrimary),
 				"target_static_ip":                   pointer.From(ipConfig.RecoveryStaticIPAddress),
@@ -1250,7 +1243,7 @@ func flattenSiteRecoveryReplicatedVMIPConfig(ipConfigs *[]replicationprotectedit
 				"failover_test_public_ip_address_id": pointer.From(ipConfig.TfoPublicIPAddressId),
 			}
 			if ipConfig.RecoveryLBBackendAddressPoolIds != nil {
-				output["recovery_load_balancer_backend_address_pool_ids"] = helpers.FlattenStringSlice(ipConfig.RecoveryLBBackendAddressPoolIds)
+				output["recovery_load_balancer_backend_address_pool_ids"] = pluginsdk.FlattenSlice(ipConfig.RecoveryLBBackendAddressPoolIds)
 			}
 			outputs = append(outputs, output)
 		}
@@ -1258,13 +1251,13 @@ func flattenSiteRecoveryReplicatedVMIPConfig(ipConfigs *[]replicationprotectedit
 	return outputs
 }
 
-func expandDiskEncryption(diskEncryptionInfoList []interface{}) *replicationprotecteditems.DiskEncryptionInfo {
+func expandDiskEncryption(diskEncryptionInfoList []any) *replicationprotecteditems.DiskEncryptionInfo {
 	if len(diskEncryptionInfoList) == 0 {
 		return &replicationprotecteditems.DiskEncryptionInfo{}
 	}
-	diskEncryptionInfoMap := diskEncryptionInfoList[0].(map[string]interface{})
+	diskEncryptionInfoMap := diskEncryptionInfoList[0].(map[string]any)
 
-	dek := diskEncryptionInfoMap["disk_encryption_key"].([]interface{})[0].(map[string]interface{})
+	dek := diskEncryptionInfoMap["disk_encryption_key"].([]any)[0].(map[string]any)
 	diskEncryptionInfo := &replicationprotecteditems.DiskEncryptionInfo{
 		DiskEncryptionKeyInfo: &replicationprotecteditems.DiskEncryptionKeyInfo{
 			SecretIdentifier:      pointer.To(dek["secret_url"].(string)),
@@ -1272,8 +1265,8 @@ func expandDiskEncryption(diskEncryptionInfoList []interface{}) *replicationprot
 		},
 	}
 
-	if keyEncryptionKey := diskEncryptionInfoMap["key_encryption_key"].([]interface{}); len(keyEncryptionKey) > 0 {
-		kek := keyEncryptionKey[0].(map[string]interface{})
+	if keyEncryptionKey := diskEncryptionInfoMap["key_encryption_key"].([]any); len(keyEncryptionKey) > 0 {
+		kek := keyEncryptionKey[0].(map[string]any)
 		diskEncryptionInfo.KeyEncryptionKeyInfo = &replicationprotecteditems.KeyEncryptionKeyInfo{
 			KeyIdentifier:         pointer.To(kek["key_url"].(string)),
 			KeyVaultResourceArmId: pointer.To(kek["vault_id"].(string)),
@@ -1283,7 +1276,7 @@ func expandDiskEncryption(diskEncryptionInfoList []interface{}) *replicationprot
 	return diskEncryptionInfo
 }
 
-func flattenTargetDiskEncryption(disk replicationprotecteditems.A2AProtectedManagedDiskDetails) []interface{} {
+func flattenTargetDiskEncryption(disk replicationprotecteditems.A2AProtectedManagedDiskDetails) []any {
 	secretUrl := ""
 	dekVaultId := ""
 	keyUrl := ""
@@ -1303,27 +1296,27 @@ func flattenTargetDiskEncryption(disk replicationprotecteditems.A2AProtectedMana
 	}
 
 	if secretUrl == "" && dekVaultId == "" && keyUrl == "" && kekVaultId == "" {
-		return []interface{}{}
+		return []any{}
 	}
 
-	diskEncryptionKeys := make([]interface{}, 0)
+	diskEncryptionKeys := make([]any, 0)
 	if secretUrl != "" || dekVaultId != "" {
-		diskEncryptionKeys = append(diskEncryptionKeys, map[string]interface{}{
+		diskEncryptionKeys = append(diskEncryptionKeys, map[string]any{
 			"secret_url": secretUrl,
 			"vault_id":   dekVaultId,
 		})
 	}
 
-	keyEncryptionKeys := make([]interface{}, 0)
+	keyEncryptionKeys := make([]any, 0)
 	if keyUrl != "" || kekVaultId != "" {
-		keyEncryptionKeys = append(keyEncryptionKeys, map[string]interface{}{
+		keyEncryptionKeys = append(keyEncryptionKeys, map[string]any{
 			"key_url":  keyUrl,
 			"vault_id": kekVaultId,
 		})
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"disk_encryption_key": diskEncryptionKeys,
 			"key_encryption_key":  keyEncryptionKeys,
 		},

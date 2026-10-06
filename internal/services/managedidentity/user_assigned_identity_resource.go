@@ -47,19 +47,19 @@ func (r UserAssignedIdentityResource) StateUpgraders() sdk.StateUpgradeData {
 	}
 }
 
-func (r UserAssignedIdentityResource) ModelObject() interface{} {
+func (r UserAssignedIdentityResource) ModelObject() any {
 	return &UserAssignedIdentityResourceSchema{}
 }
 
 type UserAssignedIdentityResourceSchema struct {
-	ClientId          string                 `tfschema:"client_id"`
-	IsolationScope    string                 `tfschema:"isolation_scope"`
-	Location          string                 `tfschema:"location"`
-	Name              string                 `tfschema:"name"`
-	PrincipalId       string                 `tfschema:"principal_id"`
-	ResourceGroupName string                 `tfschema:"resource_group_name"`
-	Tags              map[string]interface{} `tfschema:"tags"`
-	TenantId          string                 `tfschema:"tenant_id"`
+	ClientId          string         `tfschema:"client_id"`
+	IsolationScope    string         `tfschema:"isolation_scope"`
+	Location          string         `tfschema:"location"`
+	Name              string         `tfschema:"name"`
+	PrincipalId       string         `tfschema:"principal_id"`
+	ResourceGroupName string         `tfschema:"resource_group_name"`
+	Tags              map[string]any `tfschema:"tags"`
+	TenantId          string         `tfschema:"tenant_id"`
 }
 
 func (r UserAssignedIdentityResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
