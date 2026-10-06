@@ -10,7 +10,7 @@ description: |-
 
 Manages an Azure Quota Group, which allows organizations to pool and centrally manage virtual machine quota across multiple subscriptions under a Management Group.
 
-~> **Note:** Quota Groups are a feature of the [Azure Quotas service](https://learn.microsoft.com/en-us/azure/quotas/quota-groups) and require the `Microsoft.Quota` resource provider to be registered on the Management Group's subscriptions.
+~> **Note:** Quota Groups are a feature of the [Azure Quotas service](https://learn.microsoft.com/azure/quotas/quota-groups) and require the `Microsoft.Quota` resource provider to be registered on the Management Group's subscriptions.
 
 ## Example Usage
 
