@@ -1,4 +1,4 @@
-# Copyright (c) HashiCorp, Inc.
+# Copyright IBM Corp. 2014, 2026
 # SPDX-License-Identifier: MPL-2.0
 
 # NOTE: this config enables the azproviderlint and tfproviderlint module plugins, which only
@@ -38,6 +38,7 @@ linters:
     - nilerr                    # finds code that returns nil after it checks that the error is not nil
     - nilnesserr                # finds code that checks one error but mistakenly returns a different nil error
     - noctx                     # finds http requests and exec commands made without a context.Context
+    - nolintlint                # checks nolint comments are well formed, name a linter and still suppress something - see settings below
     - nosprintfhostport         # checks for misuse of Sprintf to construct host:port in a URL
     - predeclared               # find code that shadows one of Go's predeclared identifiers
     - reassign                  # checks that package variables are not reassigned
@@ -58,18 +59,17 @@ linters:
       - legacy
       - std-error-handling
     paths:
-      - vendor$
       - internal/services/.*/.*_gen.go$
-      - /sdk/
-      - third_party$
-      - builtin$
-      - examples$
     rules:
       # staticcheck 0.8 (golangci-lint v2.13) started reporting deprecated struct fields set in composite literals,
       # which flags the legacy Create/Read/Update/Delete funcs on every untyped resource (~2900 sites). Migrating
       # them to the *Context variants is a mechanical pr of its own; until then keep SA1019 quiet for just these.
       - linters: [staticcheck]
         text: '/(pluginsdk|schema)\.Resource\)\.(Create|Read|Update|Delete) is deprecated: Use'
+      # the sdk's own tests use int model fields on purpose, to check the encoder/decoder still handles them
+      - linters: [azproviderlint]
+        path: internal/sdk/.*_test\.go$
+        text: '^AZS001:'
 
   settings:
     errcheck:
@@ -88,8 +88,9 @@ linters:
         - exportfs
     modernize:
       disable:
-        - any # interface{} -> any: ~15k findings across ~2500 files, to be flipped on in a dedicated mechanical pr
         - newexpr # flags pointer.To(x) -> new(x), azurerm standardises on pointer.To (see AZG002 below)
+    nolintlint:
+      require-specific: true # a nolint that names no linter switches off every linter for the code below it
     predeclared:
       ignore: # widely used as ordinary variable/parameter names across the provider (old/new in diffs, min/max in validation)
         - new
@@ -108,14 +109,14 @@ linters:
         settings:
           disable:
             - AZG008 # pointer dereferences (*props.Status) must have a reachable nil guard - ~1398 findings to fix later
-            - AZR002 # splite create and udpate: ~350 todo over time
+            - AZR002 # split create and update: ~350 todo over time
             - AZT002 # tests should not obtain credentials via os.Getenv - investigate in a later pr
             - AZR004 # Resource IDs should not be compared with == or != - to fix in a later commit
             - AZR003 # d.Get should not be used within a Delete function as it does not work as expected during deletion - 9 findings to fix later
             - AZR007 # StateChangeConf should be replaced with a custom poller implementing pollers.PollerType - 159 findings, being migrated over time (eventual consistency poller series was the start)
             - AZS003 # TypeList blocks where every property is optional with no default allow empty blocks - 290 findings to fix later
-            - AZS005 # resources with no corresponding data source - 768 findings, to determine if to be fixed later
-            - AZS006 # data sources missing properties that exist on the resource - 185 findings, todo later
+            - AZP002 # resources with no corresponding data source - 768 findings, to determine if to be fixed later
+            - AZP003 # data sources missing properties that exist on the resource - 185 findings, todo later
             - AZR010 # callers nil-checking before flatten* functions that already handle nil - 244 findings, new in v0.8.0, to fix later
           AZG002:
             use: pointer.To # rather than the go1.26 new(<expr>) builtin
@@ -123,6 +124,9 @@ linters:
             # only inline temporaries into calls whose other arguments are all basic literals
             # (e.g. d.Set("key", x)) - among identifier/expression siblings the name adds context
             only-when-literals: true
+          AZG010:
+            ignore:
+              - '^v\d{4}_\d{2}_\d{2}' # versioned SDK packages (v2021_03_01) keep their descriptive alias
           AZS004:
             # exact-match only: report hand-written lists that exactly match the enum (a pure
             # PossibleValuesFor<Enum>() swap); deliberate subsets/supersets are left alone
@@ -167,9 +171,4 @@ formatters:
   exclusions:
     generated: lax
     paths:
-      - vendor$
       - internal/services/.*/.*_gen.go$
-      - /sdk/
-      - third_party$
-      - builtin$
-      - examples$

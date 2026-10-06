@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func PrivateLinkSubResourceName(i interface{}, k string) (_ []string, errors []error) {
+func PrivateLinkSubResourceName(i any, k string) (_ []string, errors []error) {
 	// empty is valid; otherwise the name must begin and end with an alphanumeric character, be between
 	// 3 and 63 characters in length and only contain letters, numbers, underscores, periods, dashes, and spaces
 	return validation.Any(

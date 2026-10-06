@@ -69,4 +69,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.ServiceBus` - 2024-01-01
+* `Microsoft.ServiceBus` - 2026-01-01

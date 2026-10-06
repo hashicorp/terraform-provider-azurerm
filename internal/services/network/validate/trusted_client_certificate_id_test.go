@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestTrustedClientCertificateID(t *testing.T) {
+func TestValidateTrustedClientCertificateID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool

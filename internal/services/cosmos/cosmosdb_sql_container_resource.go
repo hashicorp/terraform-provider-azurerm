@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2025-10-15/cosmosdb"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -148,19 +147,19 @@ func resourceCosmosDbSQLContainer() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			// The analytical_storage_ttl cannot be changed back once enabled on an existing container. -> we need ForceNew
-			pluginsdk.ForceNewIfChange("analytical_storage_ttl", func(ctx context.Context, old, new, _ interface{}) bool {
+			pluginsdk.ForceNewIfChange("analytical_storage_ttl", func(ctx context.Context, old, new, _ any) bool {
 				return (old.(int) == -1 || old.(int) > 0) && new.(int) == 0
 			}),
 
-			pluginsdk.ForceNewIfChange("partition_key_version", func(ctx context.Context, old, new, _ interface{}) bool {
-				// The behavior of the Azure API is that `partition_key_version` can be updated to `1` when it is not set at creation time, but it can not be updated to `2`.
+			pluginsdk.ForceNewIfChange("partition_key_version", func(ctx context.Context, old, new, _ any) bool {
+				// The behaviour of the Azure API is that `partition_key_version` can be updated to `1` when it is not set at creation time, but it can not be updated to `2`.
 				return old.(int) != 0 || new.(int) != 1
 			}),
 		),
 	}
 }
 
-func resourceCosmosDbSQLContainerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLContainerCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -190,8 +189,8 @@ func resourceCosmosDbSQLContainerCreate(d *pluginsdk.ResourceData, meta interfac
 			Resource: cosmosdb.SqlContainerResource{
 				Id:                       id.ContainerName,
 				IndexingPolicy:           indexingPolicy,
-				ConflictResolutionPolicy: common.ExpandCosmosDbConflicResolutionPolicy(d.Get("conflict_resolution_policy").([]interface{})),
-				FullTextPolicy:           expandCosmosSQLContainerFullTextPolicy(d.Get("full_text_policy").([]interface{})),
+				ConflictResolutionPolicy: common.ExpandCosmosDbConflicResolutionPolicy(d.Get("conflict_resolution_policy").([]any)),
+				FullTextPolicy:           expandCosmosSQLContainerFullTextPolicy(d.Get("full_text_policy").([]any)),
 			},
 			Options: &cosmosdb.CreateUpdateOptions{},
 		},
@@ -202,7 +201,7 @@ func resourceCosmosDbSQLContainerCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if v, ok := d.GetOk("partition_key_paths"); ok {
-		db.Properties.Resource.PartitionKey.Paths = helpers.ExpandStringSlice(v.([]interface{}))
+		db.Properties.Resource.PartitionKey.Paths = pluginsdk.ExpandStringSlice(v.([]any))
 	}
 
 	if partitionKeyVersion, ok := d.GetOk("partition_key_version"); ok {
@@ -242,7 +241,7 @@ func resourceCosmosDbSQLContainerCreate(d *pluginsdk.ResourceData, meta interfac
 	return resourceCosmosDbSQLContainerRead(d, meta)
 }
 
-func resourceCosmosDbSQLContainerUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLContainerUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -266,7 +265,7 @@ func resourceCosmosDbSQLContainerUpdate(d *pluginsdk.ResourceData, meta interfac
 			Resource: cosmosdb.SqlContainerResource{
 				Id:             id.ContainerName,
 				IndexingPolicy: indexingPolicy,
-				FullTextPolicy: expandCosmosSQLContainerFullTextPolicy(d.Get("full_text_policy").([]interface{})),
+				FullTextPolicy: expandCosmosSQLContainerFullTextPolicy(d.Get("full_text_policy").([]any)),
 			},
 			Options: &cosmosdb.CreateUpdateOptions{},
 		},
@@ -277,7 +276,7 @@ func resourceCosmosDbSQLContainerUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if v, ok := d.GetOk("partition_key_paths"); ok {
-		db.Properties.Resource.PartitionKey.Paths = helpers.ExpandStringSlice(v.([]interface{}))
+		db.Properties.Resource.PartitionKey.Paths = pluginsdk.ExpandStringSlice(v.([]any))
 	}
 
 	if partitionKeyVersion, ok := d.GetOk("partition_key_version"); ok {
@@ -311,7 +310,7 @@ func resourceCosmosDbSQLContainerUpdate(d *pluginsdk.ResourceData, meta interfac
 	return resourceCosmosDbSQLContainerRead(d, meta)
 }
 
-func resourceCosmosDbSQLContainerRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLContainerRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -342,7 +341,7 @@ func resourceCosmosDbSQLContainerRead(d *pluginsdk.ResourceData, meta interface{
 			if res := props.Resource; res != nil {
 				if pk := res.PartitionKey; pk != nil {
 					d.Set("partition_key_kind", pointer.FromEnum(pk.Kind))
-					d.Set("partition_key_paths", helpers.FlattenStringSlice(pk.Paths))
+					d.Set("partition_key_paths", pluginsdk.FlattenSlice(pk.Paths))
 					d.Set("partition_key_version", pk.Version)
 				}
 
@@ -391,7 +390,7 @@ func resourceCosmosDbSQLContainerRead(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func resourceCosmosDbSQLContainerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLContainerDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -417,7 +416,7 @@ func expandCosmosSQLContainerUniqueKeys(s *pluginsdk.Set) *[]cosmosdb.UniqueKey 
 
 	keys := make([]cosmosdb.UniqueKey, 0)
 	for _, k := range i {
-		key := k.(map[string]interface{})
+		key := k.(map[string]any)
 
 		paths := key["paths"].(*pluginsdk.Set).List()
 		if len(paths) == 0 {
@@ -425,23 +424,23 @@ func expandCosmosSQLContainerUniqueKeys(s *pluginsdk.Set) *[]cosmosdb.UniqueKey 
 		}
 
 		keys = append(keys, cosmosdb.UniqueKey{
-			Paths: helpers.ExpandStringSlice(paths),
+			Paths: pluginsdk.ExpandStringSlice(paths),
 		})
 	}
 
 	return &keys
 }
 
-func expandCosmosSQLContainerFullTextPolicy(input []interface{}) *cosmosdb.FullTextPolicy {
+func expandCosmosSQLContainerFullTextPolicy(input []any) *cosmosdb.FullTextPolicy {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	paths := make([]cosmosdb.FullTextPath, 0)
-	for _, item := range v["full_text_path"].([]interface{}) {
-		path := item.(map[string]interface{})
+	for _, item := range v["full_text_path"].([]any) {
+		path := item.(map[string]any)
 		paths = append(paths, cosmosdb.FullTextPath{
 			Path:     path["path"].(string),
 			Language: pointer.To(path["language"].(string)),
@@ -454,41 +453,41 @@ func expandCosmosSQLContainerFullTextPolicy(input []interface{}) *cosmosdb.FullT
 	}
 }
 
-func flattenCosmosSQLContainerFullTextPolicy(input *cosmosdb.FullTextPolicy) []interface{} {
+func flattenCosmosSQLContainerFullTextPolicy(input *cosmosdb.FullTextPolicy) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	paths := make([]interface{}, 0)
+	paths := make([]any, 0)
 	if input.FullTextPaths != nil {
 		for _, v := range *input.FullTextPaths {
-			paths = append(paths, map[string]interface{}{
+			paths = append(paths, map[string]any{
 				"path":     v.Path,
 				"language": pointer.From(v.Language),
 			})
 		}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"default_language": pointer.From(input.DefaultLanguage),
 			"full_text_path":   paths,
 		},
 	}
 }
 
-func flattenCosmosSQLContainerUniqueKeys(keys *[]cosmosdb.UniqueKey) *[]map[string]interface{} {
+func flattenCosmosSQLContainerUniqueKeys(keys *[]cosmosdb.UniqueKey) *[]map[string]any {
 	if keys == nil {
 		return nil
 	}
 
-	slice := make([]map[string]interface{}, 0)
+	slice := make([]map[string]any, 0)
 	for _, k := range *keys {
 		if k.Paths == nil {
 			continue
 		}
 
-		slice = append(slice, map[string]interface{}{
+		slice = append(slice, map[string]any{
 			"paths": *k.Paths,
 		})
 	}

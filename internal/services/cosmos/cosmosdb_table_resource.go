@@ -74,7 +74,7 @@ func resourceCosmosDbTable() *pluginsdk.Resource {
 	}
 }
 
-func resourceCosmosDbTableCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbTableCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -118,7 +118,7 @@ func resourceCosmosDbTableCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceCosmosDbTableRead(d, meta)
 }
 
-func resourceCosmosDbTableUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbTableUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -142,7 +142,7 @@ func resourceCosmosDbTableUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceCosmosDbTableRead(d, meta)
 }
 
-func resourceCosmosDbTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbTableRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -191,7 +191,7 @@ func resourceCosmosDbTableRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceCosmosDbTableDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbTableDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)

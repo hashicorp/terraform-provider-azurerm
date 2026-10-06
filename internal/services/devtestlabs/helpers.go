@@ -6,7 +6,6 @@ package devtestlabs
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/virtualmachines"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -29,7 +28,7 @@ func schemaDevTestVirtualMachineInboundNatRule() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: validate.PortNumber,
+					ValidateFunc: validation.IsPortNumber,
 				},
 
 				"frontend_port": {
@@ -48,7 +47,7 @@ func expandDevTestLabVirtualMachineNatRules(input *pluginsdk.Set) []virtualmachi
 	}
 
 	for _, val := range input.List() {
-		v := val.(map[string]interface{})
+		v := val.(map[string]any)
 		backendPort := v["backend_port"].(int)
 
 		rule := virtualmachines.InboundNatRule{
@@ -62,12 +61,12 @@ func expandDevTestLabVirtualMachineNatRules(input *pluginsdk.Set) []virtualmachi
 	return rules
 }
 
-func expandDevTestLabVirtualMachineGalleryImageReference(input []interface{}, osType string) *virtualmachines.GalleryImageReference {
+func expandDevTestLabVirtualMachineGalleryImageReference(input []any, osType string) *virtualmachines.GalleryImageReference {
 	if len(input) == 0 {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	offer := v["offer"].(string)
 	publisher := v["publisher"].(string)
 	sku := v["sku"].(string)
@@ -114,11 +113,11 @@ func schemaDevTestVirtualMachineGalleryImageReference() *pluginsdk.Schema {
 	}
 }
 
-func flattenDevTestVirtualMachineGalleryImage(input *virtualmachines.GalleryImageReference) []interface{} {
-	results := make([]interface{}, 0)
+func flattenDevTestVirtualMachineGalleryImage(input *virtualmachines.GalleryImageReference) []any {
+	results := make([]any, 0)
 
 	if input != nil {
-		output := make(map[string]interface{})
+		output := make(map[string]any)
 
 		if input.Offer != nil {
 			output["offer"] = *input.Offer

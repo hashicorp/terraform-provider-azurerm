@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -66,7 +65,7 @@ func resourceCapacityReservationGroup() *pluginsdk.Resource {
 	}
 }
 
-func resourceCapacityReservationGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCapacityReservationGroupCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.CapacityReservationGroupsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -88,7 +87,7 @@ func resourceCapacityReservationGroupCreate(d *pluginsdk.ResourceData, meta inte
 
 	parameters := capacityreservationgroups.CapacityReservationGroup{
 		Location: location.Normalize(d.Get("location").(string)),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
@@ -108,7 +107,7 @@ func resourceCapacityReservationGroupCreate(d *pluginsdk.ResourceData, meta inte
 	return resourceCapacityReservationGroupRead(d, meta)
 }
 
-func resourceCapacityReservationGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCapacityReservationGroupRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.CapacityReservationGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -137,7 +136,7 @@ func resourceCapacityReservationGroupFlatten(d *pluginsdk.ResourceData, id *capa
 
 	if model != nil {
 		d.Set("location", location.Normalize(model.Location))
-		d.Set("zones", helpers.FlattenStringSlice(model.Zones))
+		d.Set("zones", pluginsdk.FlattenSlice(model.Zones))
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return fmt.Errorf("setting `tags`: %+v", err)
 		}
@@ -146,7 +145,7 @@ func resourceCapacityReservationGroupFlatten(d *pluginsdk.ResourceData, id *capa
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceCapacityReservationGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCapacityReservationGroupUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.CapacityReservationGroupsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -159,7 +158,7 @@ func resourceCapacityReservationGroupUpdate(d *pluginsdk.ResourceData, meta inte
 	parameters := capacityreservationgroups.CapacityReservationGroupUpdate{}
 
 	if d.HasChange("tags") {
-		parameters.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		parameters.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if _, err := client.Update(ctx, *id, parameters); err != nil {
@@ -169,7 +168,7 @@ func resourceCapacityReservationGroupUpdate(d *pluginsdk.ResourceData, meta inte
 	return resourceCapacityReservationGroupRead(d, meta)
 }
 
-func resourceCapacityReservationGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCapacityReservationGroupDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.CapacityReservationGroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -185,7 +184,7 @@ func resourceCapacityReservationGroupDelete(d *pluginsdk.ResourceData, meta inte
 		stateConf := &pluginsdk.StateChangeConf{
 			Pending: []string{"Deleting"},
 			Target:  []string{"Deleted"},
-			Refresh: func() (interface{}, string, error) {
+			Refresh: func() (any, string, error) {
 				res, err := client.Delete(ctx, *id)
 				if err != nil {
 					return res, "Deleting", nil // lint:ignore nilerr Returning nil error is intentional as we will retry the delete operation

@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func VirtualHubName(v interface{}, k string) ([]string, []error) {
+func VirtualHubName(v any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile(`^.{1,256}$`), "must be between 1 and 256 characters in length")(v, k)
 }

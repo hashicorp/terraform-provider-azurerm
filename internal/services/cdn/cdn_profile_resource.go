@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -76,7 +76,7 @@ func resourceCdnProfile() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v any) error {
 			sku := d.Get("sku").(string)
 
 			if IsCdnFullyRetired() {
@@ -109,7 +109,7 @@ func resourceCdnProfile() *pluginsdk.Resource {
 	}
 }
 
-func resourceCdnProfileCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnProfileCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.ProfilesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -132,7 +132,7 @@ func resourceCdnProfileCreate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	location := location.Normalize(d.Get("location").(string))
 	sku := d.Get("sku").(string)
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
 	cdnProfile := cdn.Profile{
 		Location: &location,
@@ -156,7 +156,7 @@ func resourceCdnProfileCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	return resourceCdnProfileRead(d, meta)
 }
 
-func resourceCdnProfileUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnProfileUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.ProfilesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -170,7 +170,7 @@ func resourceCdnProfileUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		return err
 	}
 
-	newTags := d.Get("tags").(map[string]interface{})
+	newTags := d.Get("tags").(map[string]any)
 
 	props := cdn.ProfileUpdateParameters{
 		Tags: tags.Expand(newTags),
@@ -187,7 +187,7 @@ func resourceCdnProfileUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	return resourceCdnProfileRead(d, meta)
 }
 
-func resourceCdnProfileRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnProfileRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.ProfilesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -217,7 +217,7 @@ func resourceCdnProfileRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceCdnProfileDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnProfileDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.ProfilesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
