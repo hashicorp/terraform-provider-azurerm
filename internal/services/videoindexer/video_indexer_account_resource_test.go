@@ -18,6 +18,8 @@ import (
 
 type AccountResource struct{}
 
+type VideoIndexerAccountResource = AccountResource
+
 func TestAccVideoIndexerAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_video_indexer_account", "test")
 	r := AccountResource{}
@@ -90,9 +92,8 @@ func (r AccountResource) Exists(ctx context.Context, client *clients.Client, sta
 		return nil, err
 	}
 
-	_, err = client.VideoIndexer.AccountClient.Get(ctx, *id)
-	if err != nil {
-		return nil, fmt.Errorf("retreiving %s: %v", id, err)
+	if _, err = client.VideoIndexer.AccountClient.Get(ctx, *id); err != nil {
+		return nil, fmt.Errorf("retrieving %s: %v", id, err)
 	}
 
 	return pointer.To(true), nil

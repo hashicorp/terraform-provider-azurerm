@@ -26,7 +26,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name availability_set -service-package-name compute -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceAvailabilitySet() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -102,7 +102,7 @@ func resourceAvailabilitySet() *pluginsdk.Resource {
 	}
 }
 
-func resourceAvailabilitySetCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAvailabilitySetCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.AvailabilitySetsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -110,22 +110,24 @@ func resourceAvailabilitySetCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	id := commonids.NewAvailabilitySetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_availability_set", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_availability_set", id.ID())
+			}
 		}
 	}
 
 	updateDomainCount := d.Get("platform_update_domain_count").(int)
 	faultDomainCount := d.Get("platform_fault_domain_count").(int)
 	managed := d.Get("managed").(bool)
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
 	payload := availabilitysets.AvailabilitySet{
 		Location: location.Normalize(d.Get("location").(string)),
@@ -143,14 +145,12 @@ func resourceAvailabilitySetCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if managed {
-		n := "Aligned"
 		payload.Sku = &availabilitysets.Sku{
-			Name: &n,
+			Name: pointer.To("Aligned"),
 		}
 	}
 
-	_, err := client.CreateOrUpdate(ctx, id, payload)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, payload); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -162,7 +162,7 @@ func resourceAvailabilitySetCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	return resourceAvailabilitySetRead(d, meta)
 }
 
-func resourceAvailabilitySetRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAvailabilitySetRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.AvailabilitySetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -182,10 +182,14 @@ func resourceAvailabilitySetRead(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	return resourceAvailabilitySetFlatten(d, id, resp.Model)
+}
+
+func resourceAvailabilitySetFlatten(d *pluginsdk.ResourceData, id *commonids.AvailabilitySetId, model *availabilitysets.AvailabilitySet) error {
 	d.Set("name", id.AvailabilitySetName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.Normalize(model.Location))
 		managed := false
 		if model.Sku != nil && model.Sku.Name != nil {
@@ -210,7 +214,7 @@ func resourceAvailabilitySetRead(d *pluginsdk.ResourceData, meta interface{}) er
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceAvailabilitySetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAvailabilitySetDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.AvailabilitySetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
