@@ -94,7 +94,7 @@ func (EventGridPartnerNamespaceTestResource) Exists(ctx context.Context, client 
 
 	resp, err := client.EventGrid.PartnerNamespaces.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf(("retrieving %s: %+v"), *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	return pointer.To(resp.Model != nil), nil
