@@ -16,7 +16,24 @@ import (
 type WorkbookTemplatesListByResourceGroupOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *WorkbookTemplatesListResult
+	Model        *[]WorkbookTemplate
+}
+
+type WorkbookTemplatesListByResourceGroupCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []WorkbookTemplate
+}
+
+type WorkbookTemplatesListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *WorkbookTemplatesListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // WorkbookTemplatesListByResourceGroup ...
@@ -27,6 +44,7 @@ func (c WorkbookTemplatesAPIsClient) WorkbookTemplatesListByResourceGroup(ctx co
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &WorkbookTemplatesListByResourceGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Insights/workbookTemplates", id.ID()),
 	}
 
@@ -36,7 +54,7 @@ func (c WorkbookTemplatesAPIsClient) WorkbookTemplatesListByResourceGroup(ctx co
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -45,11 +63,44 @@ func (c WorkbookTemplatesAPIsClient) WorkbookTemplatesListByResourceGroup(ctx co
 		return
 	}
 
-	var model WorkbookTemplatesListResult
-	result.Model = &model
-	if err = resp.Unmarshal(result.Model); err != nil {
+	var values struct {
+		Values *[]WorkbookTemplate `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// WorkbookTemplatesListByResourceGroupComplete retrieves all the results into a single object
+func (c WorkbookTemplatesAPIsClient) WorkbookTemplatesListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (WorkbookTemplatesListByResourceGroupCompleteResult, error) {
+	return c.WorkbookTemplatesListByResourceGroupCompleteMatchingPredicate(ctx, id, WorkbookTemplateOperationPredicate{})
+}
+
+// WorkbookTemplatesListByResourceGroupCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c WorkbookTemplatesAPIsClient) WorkbookTemplatesListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate WorkbookTemplateOperationPredicate) (result WorkbookTemplatesListByResourceGroupCompleteResult, err error) {
+	items := make([]WorkbookTemplate, 0)
+
+	resp, err := c.WorkbookTemplatesListByResourceGroup(ctx, id)
+	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = WorkbookTemplatesListByResourceGroupCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

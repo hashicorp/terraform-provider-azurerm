@@ -28,7 +28,7 @@ kubectl apply -f virtual-node.yaml
 ```
 
 Further references:
-- [Create and configure an Azure Kubernetes Services (AKS) cluster to use virtual nodes using the Azure CLI](https://docs.microsoft.com/en-us/azure/aks/virtual-nodes-cli)
+- [Create and configure an Azure Kubernetes Services (AKS) cluster to use virtual nodes using the Azure CLI](https://docs.microsoft.com/azure/aks/virtual-nodes-cli)
 ### Variables
 
 - `prefix` - (Required) A prefix used for all resources in this example

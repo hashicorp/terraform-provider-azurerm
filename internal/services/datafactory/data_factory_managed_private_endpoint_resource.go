@@ -13,19 +13,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/managedprivateendpoints"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/privatelinkservices"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/privatelinkservices"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/custompollers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDataFactoryManagedPrivateEndpoint() *pluginsdk.Resource {
@@ -35,7 +33,7 @@ func resourceDataFactoryManagedPrivateEndpoint() *pluginsdk.Resource {
 		Delete: resourceDataFactoryManagedPrivateEndpointDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ManagedPrivateEndpointID(id)
+			_, err := managedprivateendpoints.ParseManagedPrivateEndpointID(id)
 			return err
 		}),
 
@@ -77,7 +75,7 @@ func resourceDataFactoryManagedPrivateEndpoint() *pluginsdk.Resource {
 			"fqdns": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ForceNew: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
@@ -88,7 +86,7 @@ func resourceDataFactoryManagedPrivateEndpoint() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.ManagedPrivateEndpoints
 	managedVirtualNetworksClient := meta.(*clients.Client).DataFactory.ManagedVirtualNetworks
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -109,17 +107,20 @@ func resourceDataFactoryManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, 
 	}
 
 	id := managedprivateendpoints.NewManagedPrivateEndpointID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, *managedVirtualNetworkName, d.Get("name").(string))
-	existing, err := getManagedPrivateEndpoint(ctx, client, id.SubscriptionId, id.ResourceGroupName, id.FactoryName, id.ManagedVirtualNetworkName, id.ManagedPrivateEndpointName)
-	if err != nil {
-		return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-	}
-	if existing != nil {
-		return tf.ImportAsExistsError("azurerm_data_factory_managed_private_endpoint", id.ID())
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := getManagedPrivateEndpoint(ctx, client, id.SubscriptionId, id.ResourceGroupName, id.FactoryName, id.ManagedVirtualNetworkName, id.ManagedPrivateEndpointName)
+		if err != nil {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		}
+		if existing != nil {
+			return tf.ImportAsExistsError("azurerm_data_factory_managed_private_endpoint", id.ID())
+		}
 	}
 
 	targetResourceId := d.Get("target_resource_id").(string)
 	subResourceName := d.Get("subresource_name").(string)
-	fqdns := d.Get("fqdns").([]interface{})
+	fqdns := d.Get("fqdns").([]any)
 
 	if _, err := privatelinkservices.ParsePrivateLinkServiceID(targetResourceId); err == nil {
 		if len(subResourceName) > 0 {
@@ -131,7 +132,7 @@ func resourceDataFactoryManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, 
 		}
 	} else {
 		if len(strings.TrimSpace(subResourceName)) < 3 {
-			return fmt.Errorf("`subresource_name` must be at least 3 character in length")
+			return fmt.Errorf("`subresource_name` must be at least 3 characters in length")
 		}
 
 		if len(fqdns) > 0 {
@@ -150,12 +151,14 @@ func resourceDataFactoryManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, 
 	}
 
 	if len(fqdns) > 0 {
-		payload.Properties.Fqdns = utils.ExpandStringSlice(fqdns)
+		payload.Properties.Fqdns = pluginsdk.ExpandStringSlice(fqdns)
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, payload, managedprivateendpoints.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+
+	d.SetId(id.ID())
 
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{"Provisioning"},
@@ -168,12 +171,10 @@ func resourceDataFactoryManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("waiting for %s to be created: %+v", id.ID(), err)
 	}
 
-	d.SetId(id.ID())
-
 	return resourceDataFactoryManagedPrivateEndpointRead(d, meta)
 }
 
-func resourceDataFactoryManagedPrivateEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryManagedPrivateEndpointRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.ManagedPrivateEndpoints
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -201,13 +202,13 @@ func resourceDataFactoryManagedPrivateEndpointRead(d *pluginsdk.ResourceData, me
 		props := model.Properties
 		d.Set("target_resource_id", props.PrivateLinkResourceId)
 		d.Set("subresource_name", props.GroupId)
-		d.Set("fqdns", utils.FlattenStringSlice(props.Fqdns))
+		d.Set("fqdns", pluginsdk.FlattenSlice(props.Fqdns))
 	}
 
 	return nil
 }
 
-func resourceDataFactoryManagedPrivateEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryManagedPrivateEndpointDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.ManagedPrivateEndpoints
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -248,7 +249,7 @@ func getManagedPrivateEndpoint(ctx context.Context, client *managedprivateendpoi
 }
 
 func getManagedPrivateEndpointProvisionStatus(ctx context.Context, client *managedprivateendpoints.ManagedPrivateEndpointsClient, id managedprivateendpoints.ManagedPrivateEndpointId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		// TODO: it should be possible to remove this function https://github.com/hashicorp/go-azure-sdk/issues/307 has been fixed
 		resp, err := client.Get(ctx, id, managedprivateendpoints.DefaultGetOperationOptions())
 		if err != nil {

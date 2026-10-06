@@ -72,7 +72,7 @@ data "azurerm_mssql_database" "test" {
   name      = azurerm_mssql_database.test.name
   server_id = azurerm_mssql_server.test.id
 }
-`, MsSqlDatabaseResource{}.basic(data))
+`, MssqlDatabaseResource{}.basic(data))
 }
 
 func (MsSqlDatabaseDataSource) complete(data acceptance.TestData) string {
@@ -83,7 +83,7 @@ data "azurerm_mssql_database" "test" {
   name      = azurerm_mssql_database.test.name
   server_id = azurerm_mssql_server.test.id
 }
-`, MsSqlDatabaseResource{}.complete(data))
+`, MssqlDatabaseResource{}.complete(data))
 }
 
 func (MsSqlDatabaseDataSource) transparentDataEncryptionKey(data acceptance.TestData) string {
@@ -94,5 +94,5 @@ data "azurerm_mssql_database" "test" {
   name      = azurerm_mssql_database.test.name
   server_id = azurerm_mssql_server.test.id
 }
-`, MsSqlDatabaseResource{}.transparentDataEncryptionKey(data))
+`, MssqlDatabaseResource{}.transparentDataEncryptionKey(data))
 }

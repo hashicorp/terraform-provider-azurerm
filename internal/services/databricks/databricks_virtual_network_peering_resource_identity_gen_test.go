@@ -6,7 +6,6 @@ package databricks_test
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -17,13 +16,21 @@ func TestAccDatabricksVirtualNetworkPeering_resourceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_virtual_network_peering", "test")
 	r := DatabricksVirtualNetworkPeeringResource{}
 
+	checkedFields := map[string]struct{}{
+		"name":                {},
+		"resource_group_name": {},
+		"subscription_id":     {},
+		"workspace_name":      {},
+	}
+
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
-				statecheck.ExpectIdentityValue("azurerm_databricks_virtual_network_peering.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
+				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_databricks_virtual_network_peering.test", checkedFields),
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_databricks_virtual_network_peering.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_databricks_virtual_network_peering.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("workspace_id")),
+				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_databricks_virtual_network_peering.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("workspace_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_databricks_virtual_network_peering.test", tfjsonpath.New("workspace_name"), tfjsonpath.New("workspace_id")),
 			},
 		},
