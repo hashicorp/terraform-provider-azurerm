@@ -62,9 +62,20 @@ func (c CloudEndpointResourceClient) CloudEndpointsCreate(ctx context.Context, i
 
 // CloudEndpointsCreateThenPoll performs CloudEndpointsCreate then polls until it's completed
 func (c CloudEndpointResourceClient) CloudEndpointsCreateThenPoll(ctx context.Context, id CloudEndpointId, input CloudEndpointCreateParameters) error {
+	return c.CloudEndpointsCreateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CloudEndpointsCreateCallbackThenPoll performs CloudEndpointsCreate, runs the optional callback function, then polls until it's completed
+func (c CloudEndpointResourceClient) CloudEndpointsCreateCallbackThenPoll(ctx context.Context, id CloudEndpointId, input CloudEndpointCreateParameters, callback func() error) error {
 	result, err := c.CloudEndpointsCreate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CloudEndpointsCreate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

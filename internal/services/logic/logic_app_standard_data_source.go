@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -136,6 +135,12 @@ func dataSourceLogicAppStandard() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 
+			"storage_key_vault_secret_id": {
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Description: "The Key Vault Secret ID, optionally including version, that contains the connection string to the backend storage account for the Logic App.",
+			},
+
 			"storage_account_share_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -204,9 +209,10 @@ func dataSourceLogicAppStandard() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppService.WebAppsClient
-	subscriptionId := meta.(*clients.Client).Web.AppServicesClient.SubscriptionID
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -252,7 +258,7 @@ func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{})
 
 			clientCertMode := ""
 			if props.ClientCertEnabled != nil && *props.ClientCertEnabled {
-				clientCertMode = string(pointer.From(props.ClientCertMode))
+				clientCertMode = pointer.FromEnum(props.ClientCertMode)
 			}
 			d.Set("client_certificate_mode", clientCertMode)
 
@@ -269,21 +275,12 @@ func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{})
 
 		connectionString := appSettings["AzureWebJobsStorage"]
 
-		// This teases out the necessary attributes from the storage connection string
-		connectionStringParts := strings.Split(connectionString, ";")
-		for _, part := range connectionStringParts {
-			if strings.HasPrefix(part, "AccountName") {
-				accountNameParts := strings.Split(part, "AccountName=")
-				if len(accountNameParts) > 1 {
-					d.Set("storage_account_name", accountNameParts[1])
-				}
-			}
-			if strings.HasPrefix(part, "AccountKey") {
-				accountKeyParts := strings.Split(part, "AccountKey=")
-				if len(accountKeyParts) > 1 {
-					d.Set("storage_account_access_key", accountKeyParts[1])
-				}
-			}
+		if strings.HasPrefix(connectionString, "@Microsoft.KeyVault") {
+			d.Set("storage_key_vault_secret_id", strings.TrimPrefix(strings.TrimSuffix(connectionString, ")"), "@Microsoft.KeyVault(SecretUri="))
+		} else {
+			name, key := helpers.ParseWebJobsStorageString(connectionString)
+			d.Set("storage_account_name", name)
+			d.Set("storage_account_access_key", key)
 		}
 
 		d.Set("version", appSettings["FUNCTIONS_EXTENSION_VERSION"])
@@ -351,8 +348,7 @@ func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if model := configResp.Model; model != nil {
-		siteConfig := flattenLogicAppStandardDataSourceSiteConfig(model.Properties)
-		if err = d.Set("site_config", siteConfig); err != nil {
+		if err = d.Set("site_config", flattenLogicAppStandardDataSourceSiteConfig(model.Properties)); err != nil {
 			return err
 		}
 	}
@@ -369,15 +365,15 @@ func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func flattenLogicAppStandardDataSourceConnectionStrings(input *map[string]webapps.ConnStringValueTypePair) interface{} {
-	results := make([]interface{}, 0)
+func flattenLogicAppStandardDataSourceConnectionStrings(input *map[string]webapps.ConnStringValueTypePair) any {
+	results := make([]any, 0)
 
 	if input == nil || len(*input) == 0 {
 		return results
 	}
 
 	for k, v := range *input {
-		result := make(map[string]interface{})
+		result := make(map[string]any)
 		result["name"] = k
 		result["type"] = string(v.Type)
 		result["value"] = v.Value
@@ -387,9 +383,9 @@ func flattenLogicAppStandardDataSourceConnectionStrings(input *map[string]webapp
 	return results
 }
 
-func flattenLogicAppStandardDataSourceSiteConfig(input *webapps.SiteConfig) []interface{} {
-	results := make([]interface{}, 0)
-	result := make(map[string]interface{})
+func flattenLogicAppStandardDataSourceSiteConfig(input *webapps.SiteConfig) []any {
+	results := make([]any, 0)
+	result := make(map[string]any)
 
 	if input == nil {
 		log.Printf("[DEBUG] SiteConfig is nil")
@@ -405,14 +401,14 @@ func flattenLogicAppStandardDataSourceSiteConfig(input *webapps.SiteConfig) []in
 
 	result["ip_restriction"] = flattenLogicAppStandardIpRestriction(input.IPSecurityRestrictions)
 
-	result["scm_type"] = string(pointer.From(input.ScmType))
-	result["scm_min_tls_version"] = string(pointer.From(input.ScmMinTlsVersion))
+	result["scm_type"] = pointer.FromEnum(input.ScmType)
+	result["scm_min_tls_version"] = pointer.FromEnum(input.ScmMinTlsVersion)
 	result["scm_ip_restriction"] = flattenLogicAppStandardIpRestriction(input.ScmIPSecurityRestrictions)
-
+	result["scm_ip_restriction_default_action"] = pointer.FromEnum(input.ScmIPSecurityRestrictionsDefaultAction)
 	result["scm_use_main_ip_restriction"] = pointer.From(input.ScmIPSecurityRestrictionsUseMain)
 
-	result["min_tls_version"] = string(pointer.From(input.MinTlsVersion))
-	result["ftps_state"] = string(pointer.From(input.FtpsState))
+	result["min_tls_version"] = pointer.FromEnum(input.MinTlsVersion)
+	result["ftps_state"] = pointer.FromEnum(input.FtpsState)
 
 	result["cors"] = flattenLogicAppStandardCorsSettings(input.Cors)
 
@@ -426,13 +422,15 @@ func flattenLogicAppStandardDataSourceSiteConfig(input *webapps.SiteConfig) []in
 
 	result["vnet_route_all_enabled"] = pointer.From(input.VnetRouteAllEnabled)
 
+	result["ip_restriction_default_action"] = pointer.FromEnum(input.IPSecurityRestrictionsDefaultAction)
+
 	results = append(results, result)
 	return results
 }
 
-func flattenLogicAppStandardSiteCredential(input *webapps.User) []interface{} {
-	results := make([]interface{}, 0)
-	result := make(map[string]interface{})
+func flattenLogicAppStandardSiteCredential(input *webapps.User) []any {
+	results := make([]any, 0)
+	result := make(map[string]any)
 
 	if input == nil || input.Properties == nil {
 		log.Printf("[DEBUG] UserProperties is nil")
@@ -446,15 +444,15 @@ func flattenLogicAppStandardSiteCredential(input *webapps.User) []interface{} {
 	return append(results, result)
 }
 
-func flattenLogicAppStandardCorsSettings(input *webapps.CorsSettings) []interface{} {
-	results := make([]interface{}, 0)
+func flattenLogicAppStandardCorsSettings(input *webapps.CorsSettings) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 
-	allowedOrigins := make([]interface{}, 0)
+	allowedOrigins := make([]any, 0)
 	if s := input.AllowedOrigins; s != nil {
 		for _, v := range *s {
 			allowedOrigins = append(allowedOrigins, v)
@@ -469,9 +467,9 @@ func flattenLogicAppStandardCorsSettings(input *webapps.CorsSettings) []interfac
 	return append(results, result)
 }
 
-func flattenHeaders(input map[string][]string) []interface{} {
-	output := make([]interface{}, 0)
-	headers := make(map[string]interface{})
+func flattenHeaders(input map[string][]string) []any {
+	output := make([]any, 0)
+	headers := make(map[string]any)
 	if input == nil {
 		return output
 	}
@@ -493,7 +491,7 @@ func flattenHeaders(input map[string][]string) []interface{} {
 }
 
 func schemaLogicAppStandardSiteConfigDataSource() *pluginsdk.Schema {
-	schema := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
 		Elem: &pluginsdk.Resource{
@@ -533,6 +531,11 @@ func schemaLogicAppStandardSiteConfigDataSource() *pluginsdk.Schema {
 				},
 
 				"scm_ip_restriction": schemaLogicAppStandardIpRestrictionDataSource(),
+
+				"scm_ip_restriction_default_action": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
 
 				"scm_use_main_ip_restriction": {
 					Type:     pluginsdk.TypeBool,
@@ -593,27 +596,14 @@ func schemaLogicAppStandardSiteConfigDataSource() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
+
+				"ip_restriction_default_action": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		schema.Elem.(*pluginsdk.Resource).Schema["public_network_access_enabled"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Computed:   true,
-			Deprecated: "the `site_config.public_network_access_enabled` property has been superseded by the `public_network_access` property and will be removed in v5.0 of the AzureRM Provider.",
-		}
-		schema.Elem.(*pluginsdk.Resource).Schema["scm_min_tls_version"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		}
-		schema.Elem.(*pluginsdk.Resource).Schema["min_tls_version"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		}
-	}
-
-	return schema
 }
 
 func schemaLogicAppCorsSettingsDataSource() *pluginsdk.Schema {

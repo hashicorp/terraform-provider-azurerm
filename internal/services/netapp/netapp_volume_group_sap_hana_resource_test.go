@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumegroups"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -328,7 +328,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
     subnet_id                    = azurerm_subnet.test.id
     proximity_placement_group_id = azurerm_proximity_placement_group.test.id
     volume_spec_name             = "shared"
-    storage_quota_in_gb          = 1024
+    storage_quota_in_gb          = 50
     throughput_in_mibps          = 24
     protocols                    = ["NFSv4.1"]
     security_style               = "unix"
@@ -2625,6 +2625,7 @@ resource "azurerm_key_vault" "test" {
   name                            = "anfkv%[4]d"
   location                        = azurerm_resource_group.test.location
   resource_group_name             = azurerm_resource_group.test.name
+  rbac_authorization_enabled      = false
   enabled_for_disk_encryption     = true
   enabled_for_deployment          = true
   enabled_for_template_deployment = true
@@ -2741,7 +2742,7 @@ resource "azurerm_private_endpoint" "test" {
   }
 
   tags = {
-    CreatedOnDate = "2023-10-03T19:58:43.6509795Z"
+    "CreatedOnDate" = "2022-07-08T23-50-21Z"
   }
 }
 

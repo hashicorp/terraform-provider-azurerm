@@ -142,13 +142,13 @@ func FlattenWorkloadProfiles(input *[]managedenvironments.WorkloadProfile) []Wor
 }
 
 type IngressConfigurationModel struct {
-	WorkloadProfileName             string `tfschema:"workload_profile_name"`
-	WorkloadProfileType             string `tfschema:"workload_profile_type"`
-	MinimumNodeCount                int64  `tfschema:"minimum_node_count"`
-	MaximumNodeCount                int64  `tfschema:"maximum_node_count"`
-	TerminationGracePeriodMinutes   int64  `tfschema:"termination_grace_period_minutes"`
-	RequestIdleTimeout              int64  `tfschema:"request_idle_timeout"`
-	HeaderCountLimit                int64  `tfschema:"header_count_limit"`
+	WorkloadProfileName           string `tfschema:"workload_profile_name"`
+	WorkloadProfileType           string `tfschema:"workload_profile_type"`
+	MinimumNodeCount              int64  `tfschema:"minimum_node_count"`
+	MaximumNodeCount              int64  `tfschema:"maximum_node_count"`
+	TerminationGracePeriodMinutes int64  `tfschema:"termination_grace_period_minutes"`
+	RequestIdleTimeout            int64  `tfschema:"request_idle_timeout"`
+	HeaderCountLimit              int64  `tfschema:"header_count_limit"`
 }
 
 func IngressConfigurationSchema() *pluginsdk.Schema {
@@ -365,7 +365,7 @@ func OneAdditionalConsumptionProfileReturnedByAPI(returnedProfiles, definedProfi
 	if returnedProfiles.Len() == definedProfiles.Len()+1 {
 		// check if we have defined a consumption profile
 		for _, v := range definedProfiles.List() {
-			profile := v.(map[string]interface{})
+			profile := v.(map[string]any)
 			if profile["workload_profile_type"].(string) == string(WorkloadProfileSkuConsumption) {
 				return false
 			}
@@ -373,7 +373,7 @@ func OneAdditionalConsumptionProfileReturnedByAPI(returnedProfiles, definedProfi
 
 		// now that we know there are no consumption profiles defined in the config, check if the API returned a consumption profile
 		for _, v := range returnedProfiles.List() {
-			profile := v.(map[string]interface{})
+			profile := v.(map[string]any)
 			if profile["workload_profile_type"].(string) == string(WorkloadProfileSkuConsumption) {
 				return true
 			}
