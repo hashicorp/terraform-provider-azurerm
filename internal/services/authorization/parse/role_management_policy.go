@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -51,7 +51,7 @@ func (id RoleManagementPolicyId) String() string {
 	return fmt.Sprintf("Role Definition (%s)", strings.Join(components, "\n"))
 }
 
-func ValidateRoleManagementPolicyId(input interface{}, key string) (warnings []string, errors []error) {
+func ValidateRoleManagementPolicyId(input any, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))

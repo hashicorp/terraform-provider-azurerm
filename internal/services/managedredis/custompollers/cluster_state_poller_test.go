@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package custompollers
@@ -103,7 +103,7 @@ func TestClusterStatePoller_UnexpectedState(t *testing.T) {
 			HttpResponse: &http.Response{StatusCode: 200},
 			Model: &redisenterprise.Cluster{
 				Properties: &redisenterprise.ClusterCreateProperties{
-					ResourceState: pointer.To(redisenterprise.ResourceState("UnexpectedState")),
+					ResourceState: pointer.ToEnum[redisenterprise.ResourceState]("UnexpectedState"),
 				},
 			},
 		},

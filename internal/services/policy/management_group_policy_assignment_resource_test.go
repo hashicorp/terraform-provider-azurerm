@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package policy_test
@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	assignments "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2025-01-01/policyassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2025-01-01/policyassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ManagementGroupAssignmentTestResource struct{}
@@ -303,21 +303,21 @@ func TestAccManagementGroupPolicyAssignment_basicComplexWithCustomPolicy(t *test
 }
 
 func (r ManagementGroupAssignmentTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := assignments.ParseScopedPolicyAssignmentID(state.ID)
+	id, err := policyassignments.ParseScopedPolicyAssignmentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	assignment, err := client.Policy.AssignmentsClient.Get(ctx, *id)
+	assignment, err := client.Policy.AssignmentsClient.Get(ctx, *id, policyassignments.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(assignment.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r ManagementGroupAssignmentTestResource) withBuiltInPolicyBasic(data acceptance.TestData) string {

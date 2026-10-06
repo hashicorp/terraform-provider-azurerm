@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package policy_test
@@ -71,20 +71,6 @@ func TestAccDataSourceAssignment_identity(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
 				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
-			),
-		},
-	})
-}
-
-func TestAccDataSourceAssignment_definitionVersion(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_policy_assignment", "test")
-	d := AssignmentDataSource{}
-
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: d.definitionVersion(data, "9.*.*"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("definition_version").HasValue("9.*.*"),
 			),
 		},
 	})
@@ -170,6 +156,20 @@ data "azurerm_policy_assignment" "test" {
   scope_id = azurerm_resource_group.test.id
 }
 `, config)
+}
+
+func TestAccDataSourceAssignment_definitionVersion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_policy_assignment", "test")
+	d := AssignmentDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: d.definitionVersion(data, "9.*.*"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("definition_version").HasValue("9.*.*"),
+			),
+		},
+	})
 }
 
 func (d AssignmentDataSource) definitionVersion(data acceptance.TestData, version string) string {

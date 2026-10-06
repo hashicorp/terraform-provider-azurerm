@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -94,7 +93,7 @@ func resourceApiManagementCustomDomain() *pluginsdk.Resource {
 	}
 }
 
-func apiManagementCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func apiManagementCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -112,8 +111,10 @@ func apiManagementCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if d.IsNewResource() {
-		if existing.Model != nil && existing.Model.Properties.HostnameConfigurations != nil && len(*existing.Model.Properties.HostnameConfigurations) > 1 {
-			return tf.ImportAsExistsError(apiManagementCustomDomainResourceName, *existing.Model.Id)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if existing.Model != nil && existing.Model.Properties.HostnameConfigurations != nil && len(*existing.Model.Properties.HostnameConfigurations) > 1 {
+				return tf.ImportAsExistsError(apiManagementCustomDomainResourceName, *existing.Model.Id)
+			}
 		}
 	}
 
@@ -147,6 +148,7 @@ func apiManagementCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		}
 	}
 
+	// TODO: implement callback, requires migrating to an ID implementing `resourceids.ResourceId`
 	if err := client.CreateOrUpdateThenPoll(ctx, *apiMgmtId, *existing.Model); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
@@ -161,7 +163,7 @@ func apiManagementCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	return apiManagementCustomDomainRead(d, meta)
 }
 
-func apiManagementCustomDomainRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func apiManagementCustomDomainRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
 	environment := meta.(*clients.Client).Account.Environment
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -195,7 +197,7 @@ func apiManagementCustomDomainRead(d *pluginsdk.ResourceData, meta interface{}) 
 	if resp.Model != nil && resp.Model.Properties.HostnameConfigurations != nil {
 		configs := flattenApiManagementHostnameConfiguration(resp.Model.Properties.HostnameConfigurations, d, *resp.Model.Name, *apimHostNameSuffix)
 		for _, config := range configs {
-			for key, v := range config.(map[string]interface{}) {
+			for key, v := range config.(map[string]any) {
 				// lintignore:R001
 				if err := d.Set(key, v); err != nil {
 					return fmt.Errorf("setting `hostname_configuration` %q: %+v", key, err)
@@ -207,7 +209,7 @@ func apiManagementCustomDomainRead(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func apiManagementCustomDomainDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func apiManagementCustomDomainDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -245,8 +247,6 @@ func apiManagementCustomDomainDelete(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("waiting for %s to become ready: %+v", *id, err)
 	}
 
-	log.Printf("[DEBUG] Deleting %s", *id)
-
 	if resp.Model != nil {
 		resp.Model.Properties.HostnameConfigurations = nil
 	}
@@ -268,46 +268,50 @@ func expandApiManagementCustomDomains(input *pluginsdk.ResourceData) *[]apimanag
 	results := make([]apimanagementservice.HostnameConfiguration, 0)
 
 	if managementRawVal, ok := input.GetOk("management"); ok {
-		vs := managementRawVal.([]interface{})
+		vs := managementRawVal.([]any)
 		for _, rawVal := range vs {
-			v := rawVal.(map[string]interface{})
+			v := rawVal.(map[string]any)
 			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypeManagement)
 			results = append(results, output)
 		}
 	}
+
 	if portalRawVal, ok := input.GetOk("portal"); ok {
-		vs := portalRawVal.([]interface{})
+		vs := portalRawVal.([]any)
 		for _, rawVal := range vs {
-			v := rawVal.(map[string]interface{})
+			v := rawVal.(map[string]any)
 			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypePortal)
 			results = append(results, output)
 		}
 	}
+
 	if developerPortalRawVal, ok := input.GetOk("developer_portal"); ok {
-		vs := developerPortalRawVal.([]interface{})
+		vs := developerPortalRawVal.([]any)
 		for _, rawVal := range vs {
-			v := rawVal.(map[string]interface{})
+			v := rawVal.(map[string]any)
 			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypeDeveloperPortal)
 			results = append(results, output)
 		}
 	}
 
 	if gatewayRawVal, ok := input.GetOk("gateway"); ok {
-		vs := gatewayRawVal.([]interface{})
+		vs := gatewayRawVal.([]any)
 		for _, rawVal := range vs {
-			v := rawVal.(map[string]interface{})
+			v := rawVal.(map[string]any)
 			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypeProxy)
+
 			if value, ok := v["default_ssl_binding"]; ok {
 				output.DefaultSslBinding = pointer.To(value.(bool))
 			}
+
 			results = append(results, output)
 		}
 	}
 
 	if scmRawVal, ok := input.GetOk("scm"); ok {
-		vs := scmRawVal.([]interface{})
+		vs := scmRawVal.([]any)
 		for _, rawVal := range vs {
-			v := rawVal.(map[string]interface{})
+			v := rawVal.(map[string]any)
 			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypeScm)
 			results = append(results, output)
 		}
@@ -315,20 +319,20 @@ func expandApiManagementCustomDomains(input *pluginsdk.ResourceData) *[]apimanag
 	return &results
 }
 
-func flattenApiManagementHostnameConfiguration(input *[]apimanagementservice.HostnameConfiguration, d *pluginsdk.ResourceData, name, apimHostNameSuffix string) []interface{} {
-	results := make([]interface{}, 0)
+func flattenApiManagementHostnameConfiguration(input *[]apimanagementservice.HostnameConfiguration, d *pluginsdk.ResourceData, name, apimHostNameSuffix string) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
-	managementResults := make([]interface{}, 0)
-	portalResults := make([]interface{}, 0)
-	developerPortalResults := make([]interface{}, 0)
-	gatewayResults := make([]interface{}, 0)
-	scmResults := make([]interface{}, 0)
+	managementResults := make([]any, 0)
+	portalResults := make([]any, 0)
+	developerPortalResults := make([]any, 0)
+	gatewayResults := make([]any, 0)
+	scmResults := make([]any, 0)
 
 	for _, config := range *input {
-		output := make(map[string]interface{})
+		output := make(map[string]any)
 
 		// There'll always be a default custom domain with hostName "apim_name.azure-api.net" and Type "Proxy", which should be ignored
 		if config.HostName == strings.ToLower(name)+"."+apimHostNameSuffix && config.Type == apimanagementservice.HostnameTypeProxy {
@@ -339,10 +343,6 @@ func flattenApiManagementHostnameConfiguration(input *[]apimanagementservice.Hos
 		output["negotiate_client_certificate"] = pointer.From(config.NegotiateClientCertificate)
 		output["key_vault_certificate_id"] = pointer.From(config.KeyVaultId)
 		output["ssl_keyvault_identity_client_id"] = pointer.From(config.IdentityClientId)
-
-		if !features.FivePointOh() {
-			output["key_vault_id"] = pointer.From(config.KeyVaultId)
-		}
 
 		var configType string
 		switch strings.ToLower(string(config.Type)) {
@@ -371,13 +371,13 @@ func flattenApiManagementHostnameConfiguration(input *[]apimanagementservice.Hos
 
 		if configType != "" {
 			if valsRaw, ok := d.GetOk(configType); ok {
-				vals := valsRaw.([]interface{})
+				vals := valsRaw.([]any)
 				schemaz.CopyCertificateAndPassword(vals, config.HostName, output)
 			}
 		}
 	}
 
-	res := map[string]interface{}{
+	res := map[string]any{
 		"management":       managementResults,
 		"portal":           portalResults,
 		"developer_portal": developerPortalResults,
@@ -385,5 +385,5 @@ func flattenApiManagementHostnameConfiguration(input *[]apimanagementservice.Hos
 		"gateway":          gatewayResults,
 	}
 
-	return []interface{}{res}
+	return []any{res}
 }

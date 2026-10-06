@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package policy
@@ -16,7 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	assignments "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2025-01-01/policyassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2025-01-01/policyassignments"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -30,8 +31,8 @@ var _ sdk.DataSource = AssignmentDataSource{}
 type AssignmentDataSourceModel struct {
 	Name                 string                                     `tfschema:"name"`
 	ScopeId              string                                     `tfschema:"scope_id"`
-	DefinitionVersion    string                                     `tfschema:"definition_version"`
 	Description          string                                     `tfschema:"description"`
+	DefinitionVersion    string                                     `tfschema:"definition_version"`
 	DisplayName          string                                     `tfschema:"display_name"`
 	Enforce              bool                                       `tfschema:"enforce"`
 	Identity             []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
@@ -48,7 +49,7 @@ type NonComplianceMessage struct {
 	PolicyDefinitionReferenceId string `tfschema:"policy_definition_reference_id"`
 }
 
-func (AssignmentDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (AssignmentDataSource) Arguments() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -70,14 +71,14 @@ func (AssignmentDataSource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (AssignmentDataSource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"definition_version": {
+func (AssignmentDataSource) Attributes() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"description": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
-		"description": {
+		"definition_version": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -139,7 +140,7 @@ func (AssignmentDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (AssignmentDataSource) ModelObject() interface{} {
+func (AssignmentDataSource) ModelObject() any {
 	return &AssignmentDataSourceModel{}
 }
 
@@ -158,9 +159,9 @@ func (AssignmentDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-		id := assignments.NewScopedPolicyAssignmentID(plan.ScopeId, plan.Name)
-		resp, err := client.Get(ctx, id, assignments.DefaultGetOperationOptions())
-		if err != nil {
+			id := policyassignments.NewScopedPolicyAssignmentID(plan.ScopeId, plan.Name)
+			resp, err := client.Get(ctx, id, policyassignments.DefaultGetOperationOptions())
+			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("%s was not found", id)
 				}
@@ -182,17 +183,15 @@ func (AssignmentDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if props := respModel.Properties; props != nil {
-				if v := props.DefinitionVersion; v != nil {
-					model.DefinitionVersion = *v
-				}
 				if v := props.Description; v != nil {
 					model.Description = *v
 				}
+				model.DefinitionVersion = pointer.From(props.DefinitionVersion)
 				if v := props.DisplayName; v != nil {
 					model.DisplayName = *v
 				}
 				if mode := props.EnforcementMode; mode != nil {
-					model.Enforce = *mode == assignments.EnforcementModeDefault
+					model.Enforce = *mode == policyassignments.EnforcementModeDefault
 				}
 				model.Metadata = flattenJSON(pointer.From(props.Metadata))
 				if v := props.NotScopes; v != nil {
@@ -218,7 +217,7 @@ func (AssignmentDataSource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (m *AssignmentDataSourceModel) flattenNonComplianceMessages(input *[]assignments.NonComplianceMessage) {
+func (m *AssignmentDataSourceModel) flattenNonComplianceMessages(input *[]policyassignments.NonComplianceMessage) {
 	if input == nil {
 		return
 	}
@@ -232,7 +231,7 @@ func (m *AssignmentDataSourceModel) flattenNonComplianceMessages(input *[]assign
 	}
 }
 
-func (m *AssignmentDataSourceModel) flattenParameter(input *map[string]assignments.ParameterValuesValue) error {
+func (m *AssignmentDataSourceModel) flattenParameter(input *map[string]policyassignments.ParameterValuesValue) error {
 	if input == nil || len(*input) == 0 {
 		return nil
 	}
