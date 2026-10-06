@@ -56,7 +56,7 @@ func (d GiVersionsDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (d GiVersionsDataSource) ModelObject() interface{} {
+func (d GiVersionsDataSource) ModelObject() any {
 	return &GiVersionsModel{}
 }
 

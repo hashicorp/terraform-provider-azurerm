@@ -19,7 +19,7 @@ const (
 )
 
 func importSpringCloudAppAssociation(resourceType string) pluginsdk.ImporterFunc {
-	return func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) (data []*pluginsdk.ResourceData, err error) {
+	return func(ctx context.Context, d *pluginsdk.ResourceData, meta any) (data []*pluginsdk.ResourceData, err error) {
 		// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
 		// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
 		id, err := appplatform.ParseBindingIDInsensitively(d.Id())
