@@ -62,9 +62,20 @@ func (c ResourcesClient) ValidateMoveResources(ctx context.Context, id commonids
 
 // ValidateMoveResourcesThenPoll performs ValidateMoveResources then polls until it's completed
 func (c ResourcesClient) ValidateMoveResourcesThenPoll(ctx context.Context, id commonids.ResourceGroupId, input ResourcesMoveInfo) error {
+	return c.ValidateMoveResourcesCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ValidateMoveResourcesCallbackThenPoll performs ValidateMoveResources, runs the optional callback function, then polls until it's completed
+func (c ResourcesClient) ValidateMoveResourcesCallbackThenPoll(ctx context.Context, id commonids.ResourceGroupId, input ResourcesMoveInfo, callback func() error) error {
 	result, err := c.ValidateMoveResources(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ValidateMoveResources: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

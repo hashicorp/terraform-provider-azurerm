@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -497,17 +497,41 @@ resource "azurerm_subnet" "test" {
   private_endpoint_network_policies             = "Disabled"
   private_link_service_network_policies_enabled = true
 
-  service_endpoints = [
-    "Microsoft.AzureActiveDirectory",
-    "Microsoft.AzureCosmosDB",
-    "Microsoft.ContainerRegistry",
-    "Microsoft.EventHub",
-    "Microsoft.KeyVault",
-    "Microsoft.ServiceBus",
-    "Microsoft.Sql",
-    "Microsoft.Storage",
-    "Microsoft.Web",
-  ]
+  service_endpoint {
+    service = "Microsoft.AzureActiveDirectory"
+  }
+
+  service_endpoint {
+    service = "Microsoft.AzureCosmosDB"
+  }
+
+  service_endpoint {
+    service = "Microsoft.ContainerRegistry"
+  }
+
+  service_endpoint {
+    service = "Microsoft.EventHub"
+  }
+
+  service_endpoint {
+    service = "Microsoft.KeyVault"
+  }
+
+  service_endpoint {
+    service = "Microsoft.ServiceBus"
+  }
+
+  service_endpoint {
+    service = "Microsoft.Sql"
+  }
+
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
+
+  service_endpoint {
+    service = "Microsoft.Web"
+  }
 }
 
 resource "azurerm_virtual_wan" "test" {

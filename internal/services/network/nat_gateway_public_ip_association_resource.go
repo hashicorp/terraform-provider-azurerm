@@ -12,11 +12,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/natgateways"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/publicipaddresses"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/natgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/publicipaddresses"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -56,7 +57,7 @@ func resourceNATGatewayPublicIpAssociation() *pluginsdk.Resource {
 	}
 }
 
-func resourceNATGatewayPublicIpAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNATGatewayPublicIpAssociationCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NatGateways
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -111,22 +112,29 @@ func resourceNATGatewayPublicIpAssociationCreate(d *pluginsdk.ResourceData, meta
 	if isIPv6 {
 		publicIpAddresses = pointer.From(gatewayProps.PublicIPAddressesV6)
 	}
+
+	exists := false
 	for _, existingPublicIPAddress := range publicIpAddresses {
 		if strings.EqualFold(pointer.From(existingPublicIPAddress.Id), publicIpAddressId.ID()) {
-			return tf.ImportAsExistsError("azurerm_nat_gateway_public_ip_association", id.ID())
+			exists = true
+			if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				return tf.ImportAsExistsError("azurerm_nat_gateway_public_ip_association", id.ID())
+			}
 		}
 	}
 
-	publicIpAddresses = append(publicIpAddresses, natgateways.SubResource{
-		Id: pointer.To(publicIpAddressId.ID()),
-	})
+	if !exists {
+		publicIpAddresses = append(publicIpAddresses, natgateways.SubResource{
+			Id: pointer.To(publicIpAddressId.ID()),
+		})
+	}
 	if isIPv6 {
 		gatewayProps.PublicIPAddressesV6 = pointer.To(publicIpAddresses)
 	} else {
 		gatewayProps.PublicIPAddresses = pointer.To(publicIpAddresses)
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, *natGatewayId, *natGateway.Model); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, *natGatewayId, *natGateway.Model, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("updating %s: %+v", natGatewayId, err)
 	}
 
@@ -135,7 +143,7 @@ func resourceNATGatewayPublicIpAssociationCreate(d *pluginsdk.ResourceData, meta
 	return resourceNATGatewayPublicIpAssociationRead(d, meta)
 }
 
-func resourceNATGatewayPublicIpAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNATGatewayPublicIpAssociationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NatGateways
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -173,7 +181,7 @@ func resourceNATGatewayPublicIpAssociationRead(d *pluginsdk.ResourceData, meta i
 	return nil
 }
 
-func resourceNATGatewayPublicIpAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNATGatewayPublicIpAssociationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NatGateways
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
