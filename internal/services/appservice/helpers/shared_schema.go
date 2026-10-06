@@ -1,10 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
 
 import (
 	"fmt"
+	"maps"
 	"math"
 	"strings"
 
@@ -13,9 +14,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/ctyhelpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type IpRestriction struct {
@@ -82,7 +83,7 @@ func IpRestrictionSchema() *pluginsdk.Schema {
 				"name": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringIsNotEmpty,
 					Description:  "The name which should be used for this `ip_restriction`.",
 				},
@@ -123,7 +124,7 @@ func IpRestrictionSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"ip_address": {
@@ -291,13 +292,13 @@ func CorsSettingsSchema() *pluginsdk.Schema {
 			if stateCors == nil || planCors == nil {
 				return false
 			}
-			stateAttrs := stateCors.([]interface{})
-			planAttrs := planCors.([]interface{})
+			stateAttrs := stateCors.([]any)
+			planAttrs := planCors.([]any)
 
 			// Fixes https://github.com/hashicorp/terraform-provider-azurerm/issues/22879
 			// If the plan wants to set default values and the state is empty; suppress diff
 			if len(stateAttrs) == 0 && len(planAttrs) > 0 && planAttrs[0] != nil {
-				planAttr := planAttrs[0].(map[string]interface{})
+				planAttr := planAttrs[0].(map[string]any)
 
 				newAllowedOrigins, ok := planAttr["allowed_origins"].(*schema.Set)
 				if !ok {
@@ -392,14 +393,6 @@ func ExpandCorsSettings(input []CorsSetting) *webapps.CorsSettings {
 	}
 }
 
-type SourceControl struct {
-	RepoURL           string `tfschema:"repo_url"`
-	Branch            string `tfschema:"branch"`
-	ManualIntegration bool   `tfschema:"manual_integration"`
-	UseMercurial      bool   `tfschema:"use_mercurial"`
-	RollbackEnabled   bool   `tfschema:"rollback_enabled"`
-}
-
 type SiteCredential struct {
 	Username string `tfschema:"name"`
 	Password string `tfschema:"password"`
@@ -458,6 +451,29 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
+		DiffSuppressFunc: func(k, o, n string, d *pluginsdk.ResourceData) bool {
+			if k != "auth_settings.#" {
+				return false
+			}
+
+			oldVal, _ := d.GetChange("auth_settings")
+			if oldVal == nil {
+				return false
+			}
+
+			oldAuth := oldVal.([]any)
+			if len(oldAuth) > 0 {
+				if oldAuthMap, ok := oldAuth[0].(map[string]any); ok {
+					// Suppress removal of `auth_settings` block if `auth_settings` was disabled (either explicitly or by omitting `auth_settings` block)
+					if !oldAuthMap["enabled"].(bool) && o == "1" && n == "0" {
+						return true
+					}
+				}
+			}
+
+			return false
+		},
+		DiffSuppressOnRefresh: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"enabled": {
@@ -478,7 +494,7 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 				"allowed_external_redirect_urls": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -489,16 +505,10 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 				"default_provider": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true, // Once set, cannot be unset
-					ValidateFunc: validation.StringInSlice([]string{
-						string(webapps.BuiltInAuthenticationProviderAzureActiveDirectory),
-						string(webapps.BuiltInAuthenticationProviderFacebook),
-						string(webapps.BuiltInAuthenticationProviderGithub),
-						string(webapps.BuiltInAuthenticationProviderGoogle),
-						string(webapps.BuiltInAuthenticationProviderMicrosoftAccount),
-						string(webapps.BuiltInAuthenticationProviderTwitter),
-					}, false),
-					Description: "The default authentication provider to use when multiple providers are configured. Possible values include: `AzureActiveDirectory`, `Facebook`, `Google`, `MicrosoftAccount`, `Twitter`, `Github`.",
+					// Note: O+C because Once set, cannot be unset
+					Computed:     true,
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForBuiltInAuthenticationProvider(), false),
+					Description:  "The default authentication provider to use when multiple providers are configured. Possible values include: `AzureActiveDirectory`, `Facebook`, `Google`, `MicrosoftAccount`, `Twitter`, `Github`.",
 				},
 
 				"issuer": {
@@ -511,7 +521,7 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 				"runtime_version": {
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
-					Computed:    true,
+					Computed:    true, // azignore:AZS007 - pre-existing violation
 					Description: "The RuntimeVersion of the Authentication / Authorization feature in use.",
 				},
 
@@ -520,6 +530,18 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 					Optional:    true,
 					Default:     72,
 					Description: "The number of hours after session token expiration that a session token can be used to call the token refresh API. Defaults to `72` hours.",
+					DiffSuppressFunc: func(k, o, n string, d *pluginsdk.ResourceData) bool {
+						// If `auth_settings` is not defined in config, the Create request doesn't send an `auth_settings` request.
+						// Azure returns nothing for `tokenRefreshExtensionHours`, and the zero-value is set into state.
+						// This then causes a diff on subsequent plans where Terraform wants to change from `0` to the default of `72`. So we'll suppress it.
+						authSettingsVal, authSettingsDiags := d.GetRawConfigAt(ctyhelpers.ConstructCtyPath("auth_settings"))
+						if !authSettingsDiags.HasError() && authSettingsVal.IsKnown() {
+							return authSettingsVal.LengthInt() == 0 && o == "0" && n == "72"
+						}
+
+						return false
+					},
+					DiffSuppressOnRefresh: true,
 				},
 
 				"token_store_enabled": {
@@ -532,12 +554,10 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 				"unauthenticated_client_action": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true, // Once set, cannot be removed
-					ValidateFunc: validation.StringInSlice([]string{
-						string(webapps.UnauthenticatedClientActionAllowAnonymous),
-						string(webapps.UnauthenticatedClientActionRedirectToLoginPage),
-					}, false),
-					Description: "The action to take when an unauthenticated client attempts to access the app. Possible values include: `RedirectToLoginPage`, `AllowAnonymous`.",
+					// Note: O+C because Once set, cannot be removed
+					Computed:     true,
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForUnauthenticatedClientAction(), false),
+					Description:  "The action to take when an unauthenticated client attempts to access the app. Possible values include: `RedirectToLoginPage`, `AllowAnonymous`.",
 				},
 
 				"active_directory": AadAuthSettingsSchema(),
@@ -1190,20 +1210,20 @@ func ExpandIpRestrictions(restrictions []IpRestriction) (*[]webapps.IPSecurityRe
 
 		var restriction webapps.IPSecurityRestriction
 		if v.Name != "" {
-			restriction.Name = utils.String(v.Name)
+			restriction.Name = pointer.To(v.Name)
 		}
 
 		if v.IpAddress != "" {
-			restriction.IPAddress = utils.String(v.IpAddress)
+			restriction.IPAddress = pointer.To(v.IpAddress)
 		}
 
 		if v.ServiceTag != "" {
-			restriction.IPAddress = utils.String(v.ServiceTag)
+			restriction.IPAddress = pointer.To(v.ServiceTag)
 			restriction.Tag = pointer.To(webapps.IPFilterTagServiceTag)
 		}
 
 		if v.VnetSubnetId != "" {
-			restriction.VnetSubnetResourceId = utils.String(v.VnetSubnetId)
+			restriction.VnetSubnetResourceId = pointer.To(v.VnetSubnetId)
 		}
 
 		if v.Description != "" {
@@ -1263,12 +1283,12 @@ func ExpandAuthSettings(auth []AuthSettings) *webapps.SiteAuthSettings {
 		for k, s := range v.AdditionalLoginParameters {
 			additionalLoginParams = append(additionalLoginParams, fmt.Sprintf("%s=%s", k, s))
 		}
-		props.AdditionalLoginParams = &additionalLoginParams
 	}
+	props.AdditionalLoginParams = &additionalLoginParams
 
 	props.AllowedExternalRedirectURLs = &v.AllowedExternalRedirectURLs
 
-	props.DefaultProvider = pointer.To(webapps.BuiltInAuthenticationProvider(v.DefaultProvider))
+	props.DefaultProvider = pointer.ToEnum[webapps.BuiltInAuthenticationProvider](v.DefaultProvider)
 
 	props.Issuer = pointer.To(v.Issuer)
 
@@ -1278,7 +1298,7 @@ func ExpandAuthSettings(auth []AuthSettings) *webapps.SiteAuthSettings {
 
 	props.TokenRefreshExtensionHours = pointer.To(v.TokenRefreshExtensionHours)
 
-	props.UnauthenticatedClientAction = pointer.To(webapps.UnauthenticatedClientAction(v.UnauthenticatedClientAction))
+	props.UnauthenticatedClientAction = pointer.ToEnum[webapps.UnauthenticatedClientAction](v.UnauthenticatedClientAction)
 
 	a := AadAuthSettings{}
 	if len(v.AzureActiveDirectoryAuth) > 0 {
@@ -1347,15 +1367,15 @@ func ExpandAuthSettings(auth []AuthSettings) *webapps.SiteAuthSettings {
 }
 
 func FlattenAuthSettings(auth *webapps.SiteAuthSettings) []AuthSettings {
-	if auth == nil || auth.Properties == nil || !pointer.From(auth.Properties.Enabled) || strings.ToLower(pointer.From(auth.Properties.ConfigVersion)) != "v1" {
+	if auth == nil || auth.Properties == nil || strings.ToLower(pointer.From(auth.Properties.ConfigVersion)) != "v1" {
 		return []AuthSettings{}
 	}
 
 	props := *auth.Properties
 
 	result := AuthSettings{
-		DefaultProvider:             string(pointer.From(props.DefaultProvider)),
-		UnauthenticatedClientAction: string(pointer.From(props.UnauthenticatedClientAction)),
+		DefaultProvider:             pointer.FromEnum(props.DefaultProvider),
+		UnauthenticatedClientAction: pointer.FromEnum(props.UnauthenticatedClientAction),
 	}
 
 	if props.Enabled != nil {
@@ -1374,11 +1394,7 @@ func FlattenAuthSettings(auth *webapps.SiteAuthSettings) []AuthSettings {
 		result.AdditionalLoginParameters = params
 	}
 
-	var allowedRedirectUrls []string
-	if props.AllowedExternalRedirectURLs != nil {
-		allowedRedirectUrls = *props.AllowedExternalRedirectURLs
-	}
-	result.AllowedExternalRedirectURLs = allowedRedirectUrls
+	result.AllowedExternalRedirectURLs = pointer.From(props.AllowedExternalRedirectURLs)
 
 	if props.Issuer != nil {
 		result.Issuer = *props.Issuer
@@ -1585,9 +1601,7 @@ func flattenIpRestrictionHeaders(headers map[string][]string) []IpRestrictionHea
 func FlattenWebStringDictionary(input *webapps.StringDictionary) map[string]string {
 	result := make(map[string]string)
 	if input != nil && input.Properties != nil {
-		for k, v := range *input.Properties {
-			result[k] = v
-		}
+		maps.Copy(result, *input.Properties)
 	}
 	return result
 }
@@ -1595,7 +1609,7 @@ func FlattenWebStringDictionary(input *webapps.StringDictionary) map[string]stri
 func FlattenSiteCredentials(input *webapps.User) []SiteCredential {
 	var result []SiteCredential
 	if input == nil || input.Properties == nil {
-		return result
+		return []SiteCredential{}
 	}
 
 	userProps := *input.Properties
@@ -1610,7 +1624,7 @@ func FlattenSiteCredentials(input *webapps.User) []SiteCredential {
 func FlattenSiteCredentialsLogicApp(input *webapps.User) []SiteCredentialLogicApp {
 	var result []SiteCredentialLogicApp
 	if input == nil || input.Properties == nil {
-		return result
+		return []SiteCredentialLogicApp{}
 	}
 
 	userProps := *input.Properties
@@ -1718,4 +1732,39 @@ func FlattenStickySettings(input *webapps.SlotConfigNames) []StickySettings {
 	}
 
 	return []StickySettings{result}
+}
+
+// DefaultAuthSettingsProperties returns a `SiteAuthSettingsProperties` struct populated with "empty" and default values to clear previous configuration.
+func DefaultAuthSettingsProperties() *webapps.SiteAuthSettingsProperties {
+	return &webapps.SiteAuthSettingsProperties{
+		Enabled:                                 pointer.To(false),
+		AdditionalLoginParams:                   pointer.To(make([]string, 0)),
+		AllowedAudiences:                        pointer.To(make([]string, 0)),
+		ClientId:                                pointer.To(""),
+		ClientSecret:                            pointer.To(""),
+		ClientSecretSettingName:                 pointer.To(""),
+		ClientSecretCertificateThumbprint:       pointer.To(""),
+		FacebookAppId:                           pointer.To(""),
+		FacebookAppSecret:                       pointer.To(""),
+		FacebookAppSecretSettingName:            pointer.To(""),
+		FacebookOAuthScopes:                     pointer.To(make([]string, 0)),
+		GitHubClientId:                          pointer.To(""),
+		GitHubOAuthScopes:                       pointer.To(make([]string, 0)),
+		GitHubClientSecret:                      pointer.To(""),
+		GitHubClientSecretSettingName:           pointer.To(""),
+		GoogleClientId:                          pointer.To(""),
+		GoogleOAuthScopes:                       pointer.To(make([]string, 0)),
+		GoogleClientSecret:                      pointer.To(""),
+		GoogleClientSecretSettingName:           pointer.To(""),
+		Issuer:                                  pointer.To(""),
+		MicrosoftAccountClientId:                pointer.To(""),
+		MicrosoftAccountOAuthScopes:             pointer.To(make([]string, 0)),
+		MicrosoftAccountClientSecret:            pointer.To(""),
+		MicrosoftAccountClientSecretSettingName: pointer.To(""),
+		TokenRefreshExtensionHours:              pointer.To(72.0),
+		TokenStoreEnabled:                       pointer.To(false),
+		TwitterConsumerKey:                      pointer.To(""),
+		TwitterConsumerSecret:                   pointer.To(""),
+		TwitterConsumerSecretSettingName:        pointer.To(""),
+	}
 }

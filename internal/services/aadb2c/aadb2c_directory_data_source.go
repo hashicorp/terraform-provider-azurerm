@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package aadb2c
@@ -35,7 +35,7 @@ func (r AadB2cDirectoryDataSource) ResourceType() string {
 	return "azurerm_aadb2c_directory"
 }
 
-func (r AadB2cDirectoryDataSource) ModelObject() interface{} {
+func (r AadB2cDirectoryDataSource) ModelObject() any {
 	return &AadB2cDirectoryDataSourceModel{}
 }
 

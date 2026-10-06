@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = BotConnectionId{}
 
-func TestBotConnectionIDFormatter(t *testing.T) {
+func TestParseBotConnectionIDFormatter(t *testing.T) {
 	actual := NewBotConnectionID("12345678-1234-9876-4563-123456789012", "resGroup1", "botService1", "connection1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.BotService/botServices/botService1/connections/connection1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestBotConnectionIDFormatter(t *testing.T) {
 	}
 }
 
-func TestBotConnectionID(t *testing.T) {
+func TestParseBotConnectionID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
