@@ -54,6 +54,7 @@ func (v *VirtualMachinePowerAction) Schema(_ context.Context, _ action.SchemaReq
 				MarkdownDescription: "The power state action to take on this virtual machine. Possible values include `restart`, `power_on`, and `power_off`.",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
+						"deallocate",
 						"power_on",
 						"power_off",
 						"restart",
@@ -126,6 +127,12 @@ func (v *VirtualMachinePowerAction) Invoke(ctx context.Context, request action.I
 	case "power_off":
 		if err := client.PowerOffThenPoll(ctx, *id, virtualmachines.DefaultPowerOffOperationOptions()); err != nil {
 			sdk.SetResponseErrorDiagnostic(response, "running action", fmt.Sprintf("stopping %s: %+v", id, err))
+			return
+		}
+
+	case "deallocate":
+		if err := client.DeallocateThenPoll(ctx, *id, virtualmachines.DefaultDeallocateOperationOptions()); err != nil {
+			sdk.SetResponseErrorDiagnostic(response, "running action", fmt.Sprintf("deallocating %s: %+v", id, err))
 			return
 		}
 	}
