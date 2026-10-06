@@ -245,7 +245,7 @@ A `private_link` block supports the following:
 
 ~> **Note:** At this time the Private Link Endpoint **must be approved manually** - for more information and region availability please see the [product documentation](https://docs.microsoft.com/azure/frontdoor/private-link).
 
-!> **Note:** Origin support for direct private endpoint connectivity is limited to `Storage (Azure Blobs)`, `Storage (Static Web Sites)`, `App Services`, `internal load balancers`, `Azure Container Apps (preview)` and `Azure API Management`. The Azure Front Door Private Link feature is region agnostic but for the best latency, you should always pick an Azure region closest to your origin when choosing to enable Azure Front Door Private Link endpoint.
+!> **Note:** Origin support for direct private endpoint connectivity is limited to `Storage (Azure Blobs)`, `Storage (Static Web Sites)`, `App Services`, `internal load balancers`, `Azure Container Apps` and `Azure API Management`. The Azure Front Door Private Link feature is region agnostic but for the best latency, you should always pick an Azure region closest to your origin when choosing to enable Azure Front Door Private Link endpoint.
 
 !> **Note:** To associate a Load Balancer with a Front Door Origin via Private Link you must stand up your own `azurerm_private_link_service` - and ensure that a `depends_on` exists on the `azurerm_cdn_frontdoor_origin` resource to ensure it's destroyed before the `azurerm_private_link_service` resource (e.g. `depends_on = [azurerm_private_link_service.example]`) due to the design of the Front Door Service.
 
@@ -278,12 +278,12 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Front Door Origin.
+* `create` - (Defaults to 4 hours) Used when creating the Front Door Origin.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Origin.
-* `update` - (Defaults to 30 minutes) Used when updating the Front Door Origin.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Front Door Origin.
+* `update` - (Defaults to 4 hours) Used when updating the Front Door Origin.
+* `delete` - (Defaults to 6 hours) Used when deleting the Front Door Origin.
 
 ## Import
 
@@ -297,4 +297,4 @@ terraform import azurerm_cdn_frontdoor_origin.example /subscriptions/00000000-00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Cdn`: 2024-02-01
+* `Microsoft.Cdn` - 2025-12-01

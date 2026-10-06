@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package machinelearning_test
@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/managednetwork"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/managednetwork"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -82,6 +82,22 @@ func TestAccMachineLearningWorkspaceNetworkOutboundRulePrivateEndpoint_workspace
 	})
 }
 
+func TestAccMachineLearningWorkspaceNetworkOutboundRulePrivateEndpoint_cognitiveAccount(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace_network_outbound_rule_private_endpoint", "test")
+	r := WorkspaceNetworkOutboundPrivateEndpointResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withCognitiveAccount(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("service_resource_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMachineLearningWorkspaceNetworkOutboundRulePrivateEndpoint_redis(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace_network_outbound_rule_private_endpoint", "test")
 	r := WorkspaceNetworkOutboundPrivateEndpointResource{}
@@ -144,14 +160,16 @@ resource "azurerm_application_insights" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestvault%[3]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
+  name                       = "acctestvault%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
 
   sku_name = "standard"
 
-  purge_protection_enabled = true
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 }
 
 resource "azurerm_key_vault_access_policy" "test" {
@@ -174,7 +192,7 @@ resource "azurerm_storage_account" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
   account_replication_type = "LRS"
-}`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomIntOfLength(10))
+}`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomIntOfLength(14))
 }
 
 func (r WorkspaceNetworkOutboundPrivateEndpointResource) onlyApprovedOutbound(data acceptance.TestData) string {
@@ -182,6 +200,9 @@ func (r WorkspaceNetworkOutboundPrivateEndpointResource) onlyApprovedOutbound(da
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
+    application_insights {
+      disable_generated_rule = true
+    }
     key_vault {
       purge_soft_delete_on_destroy       = false
       purge_soft_deleted_keys_on_destroy = false
@@ -229,6 +250,9 @@ func (r WorkspaceNetworkOutboundPrivateEndpointResource) internetOutbound(data a
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
+    application_insights {
+      disable_generated_rule = true
+    }
     key_vault {
       purge_soft_delete_on_destroy       = false
       purge_soft_deleted_keys_on_destroy = false
@@ -276,6 +300,9 @@ func (r WorkspaceNetworkOutboundPrivateEndpointResource) withKeyVault(data accep
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
+    application_insights {
+      disable_generated_rule = true
+    }
     key_vault {
       purge_soft_delete_on_destroy       = false
       purge_soft_deleted_keys_on_destroy = false
@@ -302,14 +329,16 @@ resource "azurerm_machine_learning_workspace" "test" {
 }
 
 resource "azurerm_key_vault" "test2" {
-  name                = "acctestvault%[3]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
+  name                       = "acctestvault%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
 
   sku_name = "standard"
 
-  purge_protection_enabled = true
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 }
 
 resource "azurerm_key_vault_access_policy" "test2" {
@@ -340,6 +369,9 @@ func (r WorkspaceNetworkOutboundPrivateEndpointResource) withWorkspace(data acce
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
+    application_insights {
+      disable_generated_rule = true
+    }
     key_vault {
       purge_soft_delete_on_destroy       = false
       purge_soft_deleted_keys_on_destroy = false
@@ -387,11 +419,60 @@ resource "azurerm_machine_learning_workspace_network_outbound_rule_private_endpo
 `, template, data.RandomInteger, data.RandomStringOfLength(6))
 }
 
+func (r WorkspaceNetworkOutboundPrivateEndpointResource) withCognitiveAccount(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+  }
+}
+
+%[1]s
+
+resource "azurerm_machine_learning_workspace" "test" {
+  name                    = "acctest-MLW-%[2]d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  application_insights_id = azurerm_application_insights.test.id
+  key_vault_id            = azurerm_key_vault.test.id
+  storage_account_id      = azurerm_storage_account.test.id
+
+  managed_network {
+    isolation_mode = "AllowOnlyApprovedOutbound"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_cognitive_account" "test" {
+  name                = "acctestcogaccount-%[3]s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  kind                = "OpenAI"
+  sku_name            = "S0"
+}
+
+resource "azurerm_machine_learning_workspace_network_outbound_rule_private_endpoint" "test" {
+  name                = "acctest-CSA-outboundrule-%[3]s"
+  workspace_id        = azurerm_machine_learning_workspace.test.id
+  service_resource_id = azurerm_cognitive_account.test.id
+  sub_resource_target = "account"
+}
+`, r.template(data), data.RandomInteger, data.RandomStringOfLength(6))
+}
+
 func (r WorkspaceNetworkOutboundPrivateEndpointResource) withRedis(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
+    application_insights {
+      disable_generated_rule = true
+    }
     key_vault {
       purge_soft_delete_on_destroy       = false
       purge_soft_deleted_keys_on_destroy = false
@@ -431,11 +512,20 @@ resource "azurerm_redis_cache" "test" {
   }
 }
 
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_redis_cache.test.id
+  role_definition_name = "Contributor"
+  principal_id         = azurerm_machine_learning_workspace.test.identity[0].principal_id
+}
+
 resource "azurerm_machine_learning_workspace_network_outbound_rule_private_endpoint" "test" {
   name                = "acctest-MLW-outboundrule-%[3]s"
   workspace_id        = azurerm_machine_learning_workspace.test.id
   service_resource_id = azurerm_redis_cache.test.id
   sub_resource_target = "redisCache"
+  depends_on = [
+    azurerm_role_assignment.test
+  ]
 }
 `, template, data.RandomInteger, data.RandomStringOfLength(6))
 }

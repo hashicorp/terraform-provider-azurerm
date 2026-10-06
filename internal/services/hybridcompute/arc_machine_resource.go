@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package hybridcompute
@@ -34,7 +34,7 @@ func (r ArcMachineResource) ResourceType() string {
 	return "azurerm_arc_machine"
 }
 
-func (r ArcMachineResource) ModelObject() interface{} {
+func (r ArcMachineResource) ModelObject() any {
 	return &ArcMachineResourceModel{}
 }
 
@@ -86,25 +86,28 @@ func (r ArcMachineResource) Create() sdk.ResourceFunc {
 
 			id := machines.NewMachineID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := client.Get(ctx, id, machines.DefaultGetOperationOptions())
-			if err != nil {
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id, machines.DefaultGetOperationOptions())
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
+				}
 				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
 				}
 			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+
+			expandedIdentity, err := identity.ExpandSystemAssignedFromModel(model.Identity)
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 
 			parameters := machines.Machine{
 				Location: location.Normalize(model.Location),
-				Kind:     pointer.To(machines.ArcKindEnum(model.Kind)),
+				Kind:     pointer.ToEnum[machines.ArcKindEnum](model.Kind),
 				Tags:     pointer.To(model.Tags),
-			}
-
-			parameters.Identity, err = identity.ExpandSystemAssignedFromModel(model.Identity)
-			if err != nil {
-				return fmt.Errorf("expanding `identity`: %+v", err)
+				Identity: expandedIdentity,
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, id, parameters, machines.DefaultCreateOrUpdateOperationOptions()); err != nil {
@@ -142,7 +145,7 @@ func (r ArcMachineResource) Read() sdk.ResourceFunc {
 			}
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
-				state.Kind = string(pointer.From(model.Kind))
+				state.Kind = pointer.FromEnum(model.Kind)
 				state.Identity = identity.FlattenSystemAssignedToModel(model.Identity)
 				state.Tags = pointer.From(model.Tags)
 			}

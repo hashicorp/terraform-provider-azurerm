@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -9,10 +9,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -35,27 +35,55 @@ func additionalUnattendContentSchema() *pluginsdk.Schema {
 					Sensitive: true,
 				},
 				"setting": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ForceNew: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(virtualmachines.SettingNamesAutoLogon),
-						string(virtualmachines.SettingNamesFirstLogonCommands),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForSettingNames(), false),
 				},
 			},
 		},
 	}
 }
 
-func expandAdditionalUnattendContent(input []interface{}) *[]virtualmachines.AdditionalUnattendContent {
+func additionalUnattendContentSchemaVM() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		// whilst the SDK supports updating, the API doesn't:
+		//   Code="PropertyChangeNotAllowed"
+		//   Message="Changing property 'windowsConfiguration.additionalUnattendContent' is not allowed."
+		//   Target="windowsConfiguration.additionalUnattendContent
+		ForceNew: true,
+		ConflictsWith: []string{
+			"os_managed_disk_id",
+		},
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"content": {
+					Type:      pluginsdk.TypeString,
+					Required:  true,
+					ForceNew:  true,
+					Sensitive: true,
+				},
+				"setting": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForSettingNames(), false),
+				},
+			},
+		},
+	}
+}
+
+func expandAdditionalUnattendContent(input []any) *[]virtualmachines.AdditionalUnattendContent {
 	output := make([]virtualmachines.AdditionalUnattendContent, 0)
 
 	for _, v := range input {
-		raw := v.(map[string]interface{})
+		raw := v.(map[string]any)
 
 		output = append(output, virtualmachines.AdditionalUnattendContent{
-			SettingName: pointer.To(virtualmachines.SettingNames(raw["setting"].(string))),
+			SettingName: pointer.ToEnum[virtualmachines.SettingNames](raw["setting"].(string)),
 			Content:     pointer.To(raw["content"].(string)),
 
 			// no other possible values
@@ -67,42 +95,42 @@ func expandAdditionalUnattendContent(input []interface{}) *[]virtualmachines.Add
 	return &output
 }
 
-func expandAdditionalUnattendContentVMSS(input []interface{}) *[]virtualmachinescalesets.AdditionalUnattendContent {
+func expandAdditionalUnattendContentVMSS(input []any) *[]virtualmachinescalesets.AdditionalUnattendContent {
 	output := make([]virtualmachinescalesets.AdditionalUnattendContent, 0)
 
 	for _, v := range input {
-		raw := v.(map[string]interface{})
+		raw := v.(map[string]any)
 
 		output = append(output, virtualmachinescalesets.AdditionalUnattendContent{
-			SettingName: pointer.To(virtualmachinescalesets.SettingNames(raw["setting"].(string))),
+			SettingName: pointer.ToEnum[virtualmachinescalesets.SettingNames](raw["setting"].(string)),
 			Content:     pointer.To(raw["content"].(string)),
 
 			// no other possible values
-			PassName:      pointer.To(virtualmachinescalesets.PassNamesOobeSystem),
-			ComponentName: pointer.To(virtualmachinescalesets.ComponentNamesMicrosoftNegativeWindowsNegativeShellNegativeSetup),
+			PassName:      pointer.To(virtualmachinescalesets.PassNameOobeSystem),
+			ComponentName: pointer.To(virtualmachinescalesets.ComponentNameMicrosoftNegativeWindowsNegativeShellNegativeSetup),
 		})
 	}
 
 	return &output
 }
 
-func flattenAdditionalUnattendContent(input *[]virtualmachines.AdditionalUnattendContent, d *pluginsdk.ResourceData) []interface{} {
+func flattenAdditionalUnattendContent(input *[]virtualmachines.AdditionalUnattendContent, d *pluginsdk.ResourceData) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	existing := make([]interface{}, 0)
+	existing := make([]any, 0)
 	if v, ok := d.GetOk("additional_unattend_content"); ok {
-		existing = v.([]interface{})
+		existing = v.([]any)
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 	for i, v := range *input {
 		// content isn't returned from the API as it's sensitive so we need to look it up
 		content := ""
 		if len(existing) > i {
 			existingVal := existing[i]
-			existingRaw, ok := existingVal.(map[string]interface{})
+			existingRaw, ok := existingVal.(map[string]any)
 			if ok {
 				contentRaw, ok := existingRaw["content"]
 				if ok {
@@ -111,7 +139,7 @@ func flattenAdditionalUnattendContent(input *[]virtualmachines.AdditionalUnatten
 			}
 		}
 
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"content": content,
 			"setting": pointer.From(v.SettingName),
 		})
@@ -120,23 +148,23 @@ func flattenAdditionalUnattendContent(input *[]virtualmachines.AdditionalUnatten
 	return output
 }
 
-func flattenAdditionalUnattendContentVMSS(input *[]virtualmachinescalesets.AdditionalUnattendContent, d *pluginsdk.ResourceData) []interface{} {
+func flattenAdditionalUnattendContentVMSS(input *[]virtualmachinescalesets.AdditionalUnattendContent, d *pluginsdk.ResourceData) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	existing := make([]interface{}, 0)
+	existing := make([]any, 0)
 	if v, ok := d.GetOk("additional_unattend_content"); ok {
-		existing = v.([]interface{})
+		existing = v.([]any)
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 	for i, v := range *input {
 		// content isn't returned from the API as it's sensitive so we need to look it up
 		content := ""
 		if len(existing) > i {
 			existingVal := existing[i]
-			existingRaw, ok := existingVal.(map[string]interface{})
+			existingRaw, ok := existingVal.(map[string]any)
 			if ok {
 				contentRaw, ok := existingRaw["content"]
 				if ok {
@@ -145,7 +173,7 @@ func flattenAdditionalUnattendContentVMSS(input *[]virtualmachinescalesets.Addit
 			}
 		}
 
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"content": content,
 			"setting": pointer.From(v.SettingName),
 		})
@@ -173,7 +201,7 @@ func bootDiagnosticsSchema() *pluginsdk.Schema {
 	}
 }
 
-func expandBootDiagnostics(input []interface{}) *virtualmachines.DiagnosticsProfile {
+func expandBootDiagnostics(input []any) *virtualmachines.DiagnosticsProfile {
 	if len(input) == 0 {
 		return &virtualmachines.DiagnosticsProfile{
 			BootDiagnostics: &virtualmachines.BootDiagnostics{
@@ -193,7 +221,7 @@ func expandBootDiagnostics(input []interface{}) *virtualmachines.DiagnosticsProf
 		}
 	}
 
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 
 	storageAccountUri := raw["storage_account_uri"].(string)
 
@@ -205,7 +233,7 @@ func expandBootDiagnostics(input []interface{}) *virtualmachines.DiagnosticsProf
 	}
 }
 
-func expandBootDiagnosticsVMSS(input []interface{}) *virtualmachinescalesets.DiagnosticsProfile {
+func expandBootDiagnosticsVMSS(input []any) *virtualmachinescalesets.DiagnosticsProfile {
 	if len(input) == 0 {
 		return &virtualmachinescalesets.DiagnosticsProfile{
 			BootDiagnostics: &virtualmachinescalesets.BootDiagnostics{
@@ -225,7 +253,7 @@ func expandBootDiagnosticsVMSS(input []interface{}) *virtualmachinescalesets.Dia
 		}
 	}
 
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 
 	storageAccountUri := raw["storage_account_uri"].(string)
 
@@ -237,35 +265,29 @@ func expandBootDiagnosticsVMSS(input []interface{}) *virtualmachinescalesets.Dia
 	}
 }
 
-func flattenBootDiagnostics(input *virtualmachines.DiagnosticsProfile) []interface{} {
+func flattenBootDiagnostics(input *virtualmachines.DiagnosticsProfile) []any {
 	if input == nil || input.BootDiagnostics == nil || input.BootDiagnostics.Enabled == nil || !*input.BootDiagnostics.Enabled {
-		return []interface{}{}
+		return []any{}
 	}
 
-	storageAccountUri := ""
-	if input.BootDiagnostics.StorageUri != nil {
-		storageAccountUri = *input.BootDiagnostics.StorageUri
-	}
+	storageAccountUri := pointer.From(input.BootDiagnostics.StorageUri)
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"storage_account_uri": storageAccountUri,
 		},
 	}
 }
 
-func flattenBootDiagnosticsVMSS(input *virtualmachinescalesets.DiagnosticsProfile) []interface{} {
+func flattenBootDiagnosticsVMSS(input *virtualmachinescalesets.DiagnosticsProfile) []any {
 	if input == nil || input.BootDiagnostics == nil || input.BootDiagnostics.Enabled == nil || !*input.BootDiagnostics.Enabled {
-		return []interface{}{}
+		return []any{}
 	}
 
-	storageAccountUri := ""
-	if input.BootDiagnostics.StorageUri != nil {
-		storageAccountUri = *input.BootDiagnostics.StorageUri
-	}
+	storageAccountUri := pointer.From(input.BootDiagnostics.StorageUri)
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"storage_account_uri": storageAccountUri,
 		},
 	}
@@ -291,7 +313,7 @@ func linuxSecretSchema() *pluginsdk.Schema {
 							"url": {
 								Type:         pluginsdk.TypeString,
 								Required:     true,
-								ValidateFunc: keyVaultValidate.NestedItemId,
+								ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret),
 							},
 						},
 					},
@@ -301,17 +323,17 @@ func linuxSecretSchema() *pluginsdk.Schema {
 	}
 }
 
-func expandLinuxSecrets(input []interface{}) *[]virtualmachines.VaultSecretGroup {
+func expandLinuxSecrets(input []any) *[]virtualmachines.VaultSecretGroup {
 	output := make([]virtualmachines.VaultSecretGroup, 0)
 
 	for _, raw := range input {
-		v := raw.(map[string]interface{})
+		v := raw.(map[string]any)
 
 		keyVaultId := v["key_vault_id"].(string)
 		certificatesRaw := v["certificate"].(*pluginsdk.Set).List()
 		certificates := make([]virtualmachines.VaultCertificate, 0)
 		for _, certificateRaw := range certificatesRaw {
-			certificateV := certificateRaw.(map[string]interface{})
+			certificateV := certificateRaw.(map[string]any)
 
 			url := certificateV["url"].(string)
 			certificates = append(certificates, virtualmachines.VaultCertificate{
@@ -330,17 +352,17 @@ func expandLinuxSecrets(input []interface{}) *[]virtualmachines.VaultSecretGroup
 	return &output
 }
 
-func expandLinuxSecretsVMSS(input []interface{}) *[]virtualmachinescalesets.VaultSecretGroup {
+func expandLinuxSecretsVMSS(input []any) *[]virtualmachinescalesets.VaultSecretGroup {
 	output := make([]virtualmachinescalesets.VaultSecretGroup, 0)
 
 	for _, raw := range input {
-		v := raw.(map[string]interface{})
+		v := raw.(map[string]any)
 
 		keyVaultId := v["key_vault_id"].(string)
 		certificatesRaw := v["certificate"].(*pluginsdk.Set).List()
 		certificates := make([]virtualmachinescalesets.VaultCertificate, 0)
 		for _, certificateRaw := range certificatesRaw {
-			certificateV := certificateRaw.(map[string]interface{})
+			certificateV := certificateRaw.(map[string]any)
 
 			url := certificateV["url"].(string)
 			certificates = append(certificates, virtualmachinescalesets.VaultCertificate{
@@ -359,12 +381,12 @@ func expandLinuxSecretsVMSS(input []interface{}) *[]virtualmachinescalesets.Vaul
 	return &output
 }
 
-func flattenLinuxSecrets(input *[]virtualmachines.VaultSecretGroup) []interface{} {
+func flattenLinuxSecrets(input *[]virtualmachines.VaultSecretGroup) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 
 	for _, v := range *input {
 		keyVaultId := ""
@@ -372,7 +394,7 @@ func flattenLinuxSecrets(input *[]virtualmachines.VaultSecretGroup) []interface{
 			keyVaultId = *v.SourceVault.Id
 		}
 
-		certificates := make([]interface{}, 0)
+		certificates := make([]any, 0)
 
 		if v.VaultCertificates != nil {
 			for _, c := range *v.VaultCertificates {
@@ -380,13 +402,13 @@ func flattenLinuxSecrets(input *[]virtualmachines.VaultSecretGroup) []interface{
 					continue
 				}
 
-				certificates = append(certificates, map[string]interface{}{
+				certificates = append(certificates, map[string]any{
 					"url": *c.CertificateURL,
 				})
 			}
 		}
 
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"key_vault_id": keyVaultId,
 			"certificate":  certificates,
 		})
@@ -395,12 +417,12 @@ func flattenLinuxSecrets(input *[]virtualmachines.VaultSecretGroup) []interface{
 	return output
 }
 
-func flattenLinuxSecretsVMSS(input *[]virtualmachinescalesets.VaultSecretGroup) []interface{} {
+func flattenLinuxSecretsVMSS(input *[]virtualmachinescalesets.VaultSecretGroup) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 
 	for _, v := range *input {
 		keyVaultId := ""
@@ -408,7 +430,7 @@ func flattenLinuxSecretsVMSS(input *[]virtualmachinescalesets.VaultSecretGroup) 
 			keyVaultId = *v.SourceVault.Id
 		}
 
-		certificates := make([]interface{}, 0)
+		certificates := make([]any, 0)
 
 		if v.VaultCertificates != nil {
 			for _, c := range *v.VaultCertificates {
@@ -416,13 +438,13 @@ func flattenLinuxSecretsVMSS(input *[]virtualmachinescalesets.VaultSecretGroup) 
 					continue
 				}
 
-				certificates = append(certificates, map[string]interface{}{
+				certificates = append(certificates, map[string]any{
 					"url": *c.CertificateURL,
 				})
 			}
 		}
 
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"key_vault_id": keyVaultId,
 			"certificate":  certificates,
 		})
@@ -461,12 +483,12 @@ func planSchema() *pluginsdk.Schema {
 	}
 }
 
-func expandPlan(input []interface{}) *virtualmachines.Plan {
+func expandPlan(input []any) *virtualmachines.Plan {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 
 	return &virtualmachines.Plan{
 		Name:      pointer.To(raw["name"].(string)),
@@ -475,12 +497,12 @@ func expandPlan(input []interface{}) *virtualmachines.Plan {
 	}
 }
 
-func expandPlanVMSS(input []interface{}) *virtualmachinescalesets.Plan {
+func expandPlanVMSS(input []any) *virtualmachinescalesets.Plan {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 
 	return &virtualmachinescalesets.Plan{
 		Name:      pointer.To(raw["name"].(string)),
@@ -489,28 +511,19 @@ func expandPlanVMSS(input []interface{}) *virtualmachinescalesets.Plan {
 	}
 }
 
-func flattenPlan(input *virtualmachines.Plan) []interface{} {
+func flattenPlan(input *virtualmachines.Plan) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	name := ""
-	if input.Name != nil {
-		name = *input.Name
-	}
+	name := pointer.From(input.Name)
 
-	product := ""
-	if input.Product != nil {
-		product = *input.Product
-	}
+	product := pointer.From(input.Product)
 
-	publisher := ""
-	if input.Publisher != nil {
-		publisher = *input.Publisher
-	}
+	publisher := pointer.From(input.Publisher)
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"name":      name,
 			"product":   product,
 			"publisher": publisher,
@@ -518,31 +531,64 @@ func flattenPlan(input *virtualmachines.Plan) []interface{} {
 	}
 }
 
-func flattenPlanVMSS(input *virtualmachinescalesets.Plan) []interface{} {
+func flattenPlanVMSS(input *virtualmachinescalesets.Plan) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	name := ""
-	if input.Name != nil {
-		name = *input.Name
-	}
+	name := pointer.From(input.Name)
 
-	product := ""
-	if input.Product != nil {
-		product = *input.Product
-	}
+	product := pointer.From(input.Product)
 
-	publisher := ""
-	if input.Publisher != nil {
-		publisher = *input.Publisher
-	}
+	publisher := pointer.From(input.Publisher)
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"name":      name,
 			"product":   product,
 			"publisher": publisher,
+		},
+	}
+}
+
+func sourceImageReferenceSchemaVM() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		ForceNew: true,
+		MaxItems: 1,
+		ExactlyOneOf: []string{
+			"os_managed_disk_id",
+			"source_image_id",
+			"source_image_reference",
+		},
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"publisher": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+				"offer": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+				"sku": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+				"version": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
 		},
 	}
 }
@@ -566,13 +612,13 @@ func sourceImageReferenceSchema(isVirtualMachine bool) *pluginsdk.Schema {
 				"publisher": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ForceNew:     true,
+					ForceNew:     isVirtualMachine,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"offer": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ForceNew:     true,
+					ForceNew:     isVirtualMachine,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"sku": {
@@ -629,7 +675,7 @@ func sourceImageReferenceSchemaOrchestratedVMSS() *pluginsdk.Schema {
 	}
 }
 
-func isValidHotPatchSourceImageReference(referenceInput []interface{}, imageId string) bool {
+func isValidHotPatchSourceImageReference(referenceInput []any, imageId string) bool {
 	if imageId != "" {
 		return false
 	}
@@ -638,7 +684,7 @@ func isValidHotPatchSourceImageReference(referenceInput []interface{}, imageId s
 		return false
 	}
 
-	raw := referenceInput[0].(map[string]interface{})
+	raw := referenceInput[0].(map[string]any)
 	pub := raw["publisher"].(string)
 	offer := raw["offer"].(string)
 	sku := raw["sku"].(string)
@@ -661,7 +707,7 @@ func isValidHotPatchSourceImageReference(referenceInput []interface{}, imageId s
 	return false
 }
 
-func expandSourceImageReference(referenceInput []interface{}, imageId string) *virtualmachines.ImageReference {
+func expandSourceImageReference(referenceInput []any, imageId string) *virtualmachines.ImageReference {
 	if imageId != "" {
 		// With Version            : "/communityGalleries/publicGalleryName/images/myGalleryImageName/versions/(major.minor.patch | latest)"
 		// Versionless(e.g. latest): "/communityGalleries/publicGalleryName/images/myGalleryImageName"
@@ -684,7 +730,7 @@ func expandSourceImageReference(referenceInput []interface{}, imageId string) *v
 		}
 	}
 
-	raw := referenceInput[0].(map[string]interface{})
+	raw := referenceInput[0].(map[string]any)
 	return &virtualmachines.ImageReference{
 		Publisher: pointer.To(raw["publisher"].(string)),
 		Offer:     pointer.To(raw["offer"].(string)),
@@ -693,7 +739,7 @@ func expandSourceImageReference(referenceInput []interface{}, imageId string) *v
 	}
 }
 
-func expandSourceImageReferenceVMSS(referenceInput []interface{}, imageId string) *virtualmachinescalesets.ImageReference {
+func expandSourceImageReferenceVMSS(referenceInput []any, imageId string) *virtualmachinescalesets.ImageReference {
 	if imageId != "" {
 		// With Version            : "/communityGalleries/publicGalleryName/images/myGalleryImageName/versions/(major.minor.patch | latest)"
 		// Versionless(e.g. latest): "/communityGalleries/publicGalleryName/images/myGalleryImageName"
@@ -716,7 +762,7 @@ func expandSourceImageReferenceVMSS(referenceInput []interface{}, imageId string
 		}
 	}
 
-	raw := referenceInput[0].(map[string]interface{})
+	raw := referenceInput[0].(map[string]any)
 	return &virtualmachinescalesets.ImageReference{
 		Publisher: pointer.To(raw["publisher"].(string)),
 		Offer:     pointer.To(raw["offer"].(string)),
@@ -725,10 +771,10 @@ func expandSourceImageReferenceVMSS(referenceInput []interface{}, imageId string
 	}
 }
 
-func flattenSourceImageReference(input *virtualmachines.ImageReference, hasImageId bool) []interface{} {
+func flattenSourceImageReference(input *virtualmachines.ImageReference, hasImageId bool) []any {
 	// since the image id is pulled out as a separate field, if that's set we should return an empty block here
 	if input == nil || hasImageId {
-		return []interface{}{}
+		return []any{}
 	}
 
 	var publisher, offer, sku, version string
@@ -746,8 +792,8 @@ func flattenSourceImageReference(input *virtualmachines.ImageReference, hasImage
 		version = *input.Version
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"publisher": publisher,
 			"offer":     offer,
 			"sku":       sku,
@@ -756,10 +802,10 @@ func flattenSourceImageReference(input *virtualmachines.ImageReference, hasImage
 	}
 }
 
-func flattenSourceImageReferenceVMSS(input *virtualmachinescalesets.ImageReference, hasImageId bool) []interface{} {
+func flattenSourceImageReferenceVMSS(input *virtualmachinescalesets.ImageReference, hasImageId bool) []any {
 	// since the image id is pulled out as a separate field, if that's set we should return an empty block here
 	if input == nil || hasImageId {
-		return []interface{}{}
+		return []any{}
 	}
 
 	var publisher, offer, sku, version string
@@ -777,8 +823,8 @@ func flattenSourceImageReferenceVMSS(input *virtualmachinescalesets.ImageReferen
 		version = *input.Version
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"publisher": publisher,
 			"offer":     offer,
 			"sku":       sku,
@@ -799,34 +845,63 @@ func winRmListenerSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"protocol": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ForceNew: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(virtualmachines.ProtocolTypesHTTP),
-						string(virtualmachines.ProtocolTypesHTTPS),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForProtocolTypes(), false),
 				},
 
 				"certificate_url": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ForceNew:     true,
-					ValidateFunc: keyVaultValidate.NestedItemId,
+					ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret),
 				},
 			},
 		},
 	}
 }
 
-func expandWinRMListener(input []interface{}) *virtualmachines.WinRMConfiguration {
+func winRmListenerSchemaVM() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeSet,
+		Optional: true,
+		// Whilst the SDK allows you to modify this, the API does not:
+		//   Code="PropertyChangeNotAllowed"
+		//   Message="Changing property 'windowsConfiguration.winRM.listeners' is not allowed."
+		//   Target="windowsConfiguration.winRM.listeners"
+		ForceNew: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"protocol": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForProtocolTypes(), false),
+				},
+
+				"certificate_url": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret),
+				},
+			},
+		},
+		ConflictsWith: []string{
+			"os_managed_disk_id",
+		},
+	}
+}
+
+func expandWinRMListener(input []any) *virtualmachines.WinRMConfiguration {
 	listeners := make([]virtualmachines.WinRMListener, 0)
 
 	for _, v := range input {
-		raw := v.(map[string]interface{})
+		raw := v.(map[string]any)
 
 		listener := virtualmachines.WinRMListener{
-			Protocol: pointer.To(virtualmachines.ProtocolTypes(raw["protocol"].(string))),
+			Protocol: pointer.ToEnum[virtualmachines.ProtocolTypes](raw["protocol"].(string)),
 		}
 
 		certificateUrl := raw["certificate_url"].(string)
@@ -842,14 +917,14 @@ func expandWinRMListener(input []interface{}) *virtualmachines.WinRMConfiguratio
 	}
 }
 
-func expandWinRMListenerVMSS(input []interface{}) *virtualmachinescalesets.WinRMConfiguration {
+func expandWinRMListenerVMSS(input []any) *virtualmachinescalesets.WinRMConfiguration {
 	listeners := make([]virtualmachinescalesets.WinRMListener, 0)
 
 	for _, v := range input {
-		raw := v.(map[string]interface{})
+		raw := v.(map[string]any)
 
 		listener := virtualmachinescalesets.WinRMListener{
-			Protocol: pointer.To(virtualmachinescalesets.ProtocolTypes(raw["protocol"].(string))),
+			Protocol: pointer.ToEnum[virtualmachinescalesets.ProtocolTypes](raw["protocol"].(string)),
 		}
 
 		certificateUrl := raw["certificate_url"].(string)
@@ -865,20 +940,17 @@ func expandWinRMListenerVMSS(input []interface{}) *virtualmachinescalesets.WinRM
 	}
 }
 
-func flattenWinRMListener(input *virtualmachines.WinRMConfiguration) []interface{} {
+func flattenWinRMListener(input *virtualmachines.WinRMConfiguration) []any {
 	if input == nil || input.Listeners == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 
 	for _, v := range *input.Listeners {
-		certificateUrl := ""
-		if v.CertificateURL != nil {
-			certificateUrl = *v.CertificateURL
-		}
+		certificateUrl := pointer.From(v.CertificateURL)
 
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"certificate_url": certificateUrl,
 			"protocol":        pointer.From(v.Protocol),
 		})
@@ -887,20 +959,17 @@ func flattenWinRMListener(input *virtualmachines.WinRMConfiguration) []interface
 	return output
 }
 
-func flattenWinRMListenerVMSS(input *virtualmachinescalesets.WinRMConfiguration) []interface{} {
+func flattenWinRMListenerVMSS(input *virtualmachinescalesets.WinRMConfiguration) []any {
 	if input == nil || input.Listeners == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 
 	for _, v := range *input.Listeners {
-		certificateUrl := ""
-		if v.CertificateURL != nil {
-			certificateUrl = *v.CertificateURL
-		}
+		certificateUrl := pointer.From(v.CertificateURL)
 
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"certificate_url": certificateUrl,
 			"protocol":        pointer.From(v.Protocol),
 		})
@@ -931,7 +1000,7 @@ func windowsSecretSchema() *pluginsdk.Schema {
 							"url": {
 								Type:         pluginsdk.TypeString,
 								Required:     true,
-								ValidateFunc: keyVaultValidate.NestedItemId,
+								ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret),
 							},
 						},
 					},
@@ -941,17 +1010,52 @@ func windowsSecretSchema() *pluginsdk.Schema {
 	}
 }
 
-func expandWindowsSecrets(input []interface{}) *[]virtualmachines.VaultSecretGroup {
+func windowsSecretSchemaVM() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				// whilst this isn't present in the nested object it's required when this is specified
+				"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
+
+				"certificate": {
+					Type:     pluginsdk.TypeSet,
+					Required: true,
+					MinItems: 1,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"store": {
+								Type:     pluginsdk.TypeString,
+								Required: true,
+							},
+							"url": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret),
+							},
+						},
+					},
+				},
+			},
+		},
+		ConflictsWith: []string{
+			"os_managed_disk_id",
+		},
+	}
+}
+
+func expandWindowsSecrets(input []any) *[]virtualmachines.VaultSecretGroup {
 	output := make([]virtualmachines.VaultSecretGroup, 0)
 
 	for _, raw := range input {
-		v := raw.(map[string]interface{})
+		v := raw.(map[string]any)
 
 		keyVaultId := v["key_vault_id"].(string)
 		certificatesRaw := v["certificate"].(*pluginsdk.Set).List()
 		certificates := make([]virtualmachines.VaultCertificate, 0)
 		for _, certificateRaw := range certificatesRaw {
-			certificateV := certificateRaw.(map[string]interface{})
+			certificateV := certificateRaw.(map[string]any)
 
 			store := certificateV["store"].(string)
 			url := certificateV["url"].(string)
@@ -972,17 +1076,17 @@ func expandWindowsSecrets(input []interface{}) *[]virtualmachines.VaultSecretGro
 	return &output
 }
 
-func expandWindowsSecretsVMSS(input []interface{}) *[]virtualmachinescalesets.VaultSecretGroup {
+func expandWindowsSecretsVMSS(input []any) *[]virtualmachinescalesets.VaultSecretGroup {
 	output := make([]virtualmachinescalesets.VaultSecretGroup, 0)
 
 	for _, raw := range input {
-		v := raw.(map[string]interface{})
+		v := raw.(map[string]any)
 
 		keyVaultId := v["key_vault_id"].(string)
 		certificatesRaw := v["certificate"].(*pluginsdk.Set).List()
 		certificates := make([]virtualmachinescalesets.VaultCertificate, 0)
 		for _, certificateRaw := range certificatesRaw {
-			certificateV := certificateRaw.(map[string]interface{})
+			certificateV := certificateRaw.(map[string]any)
 
 			store := certificateV["store"].(string)
 			url := certificateV["url"].(string)
@@ -1003,12 +1107,12 @@ func expandWindowsSecretsVMSS(input []interface{}) *[]virtualmachinescalesets.Va
 	return &output
 }
 
-func flattenWindowsSecrets(input *[]virtualmachines.VaultSecretGroup) []interface{} {
+func flattenWindowsSecrets(input *[]virtualmachines.VaultSecretGroup) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 
 	for _, v := range *input {
 		keyVaultId := ""
@@ -1016,28 +1120,22 @@ func flattenWindowsSecrets(input *[]virtualmachines.VaultSecretGroup) []interfac
 			keyVaultId = *v.SourceVault.Id
 		}
 
-		certificates := make([]interface{}, 0)
+		certificates := make([]any, 0)
 
 		if v.VaultCertificates != nil {
 			for _, c := range *v.VaultCertificates {
-				store := ""
-				if c.CertificateStore != nil {
-					store = *c.CertificateStore
-				}
+				store := pointer.From(c.CertificateStore)
 
-				url := ""
-				if c.CertificateURL != nil {
-					url = *c.CertificateURL
-				}
+				url := pointer.From(c.CertificateURL)
 
-				certificates = append(certificates, map[string]interface{}{
+				certificates = append(certificates, map[string]any{
 					"store": store,
 					"url":   url,
 				})
 			}
 		}
 
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"key_vault_id": keyVaultId,
 			"certificate":  certificates,
 		})
@@ -1046,12 +1144,12 @@ func flattenWindowsSecrets(input *[]virtualmachines.VaultSecretGroup) []interfac
 	return output
 }
 
-func flattenWindowsSecretsVMSS(input *[]virtualmachinescalesets.VaultSecretGroup) []interface{} {
+func flattenWindowsSecretsVMSS(input *[]virtualmachinescalesets.VaultSecretGroup) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 
 	for _, v := range *input {
 		keyVaultId := ""
@@ -1059,28 +1157,22 @@ func flattenWindowsSecretsVMSS(input *[]virtualmachinescalesets.VaultSecretGroup
 			keyVaultId = *v.SourceVault.Id
 		}
 
-		certificates := make([]interface{}, 0)
+		certificates := make([]any, 0)
 
 		if v.VaultCertificates != nil {
 			for _, c := range *v.VaultCertificates {
-				store := ""
-				if c.CertificateStore != nil {
-					store = *c.CertificateStore
-				}
+				store := pointer.From(c.CertificateStore)
 
-				url := ""
-				if c.CertificateURL != nil {
-					url = *c.CertificateURL
-				}
+				url := pointer.From(c.CertificateURL)
 
-				certificates = append(certificates, map[string]interface{}{
+				certificates = append(certificates, map[string]any{
 					"store": store,
 					"url":   url,
 				})
 			}
 		}
 
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"key_vault_id": keyVaultId,
 			"certificate":  certificates,
 		})

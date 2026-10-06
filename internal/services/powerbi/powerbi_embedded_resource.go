@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package powerbi
@@ -13,14 +13,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/powerbidedicated/2021-01-01/capacities"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/powerbi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourcePowerBIEmbedded() *pluginsdk.Resource {
@@ -79,14 +78,11 @@ func resourcePowerBIEmbedded() *pluginsdk.Resource {
 			},
 
 			"mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(capacities.ModeGenOne),
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(capacities.ModeGenOne),
-					string(capacities.ModeGenTwo),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(capacities.ModeGenTwo),
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(capacities.PossibleValuesForMode(), false),
 			},
 
 			"tags": commonschema.Tags(),
@@ -94,49 +90,52 @@ func resourcePowerBIEmbedded() *pluginsdk.Resource {
 	}
 }
 
-func resourcePowerBIEmbeddedCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePowerBIEmbeddedCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).PowerBI.CapacityClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := capacities.NewCapacityID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.GetDetails(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.GetDetails(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_powerbi_embedded", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_powerbi_embedded", id.ID())
+		}
 	}
 
 	administrators := d.Get("administrators").(*pluginsdk.Set).List()
 	mode := capacities.Mode(d.Get("mode").(string))
 
 	parameters := capacities.DedicatedCapacity{
-		Location: azure.NormalizeLocation(d.Get("location").(string)),
+		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &capacities.DedicatedCapacityProperties{
 			Administration: &capacities.DedicatedCapacityAdministrators{
-				Members: utils.ExpandStringSlice(administrators),
+				Members: pluginsdk.ExpandStringSlice(administrators),
 			},
 			Mode: &mode,
 		},
 		Sku: capacities.CapacitySku{
 			Name: d.Get("sku_name").(string),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
-	if err := client.CreateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-
 	d.SetId(id.ID())
+
 	return resourcePowerBIEmbeddedRead(d, meta)
 }
 
-func resourcePowerBIEmbeddedRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePowerBIEmbeddedRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).PowerBI.CapacityClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -167,7 +166,7 @@ func resourcePowerBIEmbeddedRead(d *pluginsdk.ResourceData, meta interface{}) er
 			if props.Administration != nil {
 				adminMembers = props.Administration.Members
 			}
-			if err := d.Set("administrators", utils.FlattenStringSlice(adminMembers)); err != nil {
+			if err := d.Set("administrators", pluginsdk.FlattenSlice(adminMembers)); err != nil {
 				return fmt.Errorf("setting `administration`: %+v", err)
 			}
 
@@ -188,7 +187,7 @@ func resourcePowerBIEmbeddedRead(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourcePowerBIEmbeddedUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePowerBIEmbeddedUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).PowerBI.CapacityClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -200,13 +199,13 @@ func resourcePowerBIEmbeddedUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	parameters := capacities.DedicatedCapacityUpdateParameters{}
 
-	if d.HasChange("administrators") || d.HasChange("mode") {
+	if d.HasChanges("administrators", "mode") {
 		administrators := d.Get("administrators").(*pluginsdk.Set).List()
 		mode := capacities.Mode(d.Get("mode").(string))
 
 		parameters.Properties = &capacities.DedicatedCapacityMutableProperties{
 			Administration: &capacities.DedicatedCapacityAdministrators{
-				Members: utils.ExpandStringSlice(administrators),
+				Members: pluginsdk.ExpandStringSlice(administrators),
 			},
 			Mode: &mode,
 		}
@@ -219,7 +218,7 @@ func resourcePowerBIEmbeddedUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	if d.HasChange("tags") {
-		parameters.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		parameters.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
@@ -229,7 +228,7 @@ func resourcePowerBIEmbeddedUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	return resourcePowerBIEmbeddedRead(d, meta)
 }
 
-func resourcePowerBIEmbeddedDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePowerBIEmbeddedDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).PowerBI.CapacityClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

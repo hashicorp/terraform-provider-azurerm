@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sdk
@@ -37,7 +37,7 @@ func TestValidateTopLevelObjectInvalidInterface(t *testing.T) {
 	type Person struct {
 		Name string `tfschema:"name"`
 	}
-	var p interface{} = Person{}
+	var p any = Person{}
 	if err := ValidateModelObject(&p); err == nil {
 		t.Fatalf("expected an error but didn't get one")
 	}

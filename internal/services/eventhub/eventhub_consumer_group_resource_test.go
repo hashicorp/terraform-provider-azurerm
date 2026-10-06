@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package eventhub_test
@@ -8,19 +8,19 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/consumergroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type EventHubConsumerGroupResource struct{}
+type EventhubConsumerGroupResource struct{}
 
 func TestAccEventHubConsumerGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_consumer_group", "test")
-	r := EventHubConsumerGroupResource{}
+	r := EventhubConsumerGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccEventHubConsumerGroup_basic(t *testing.T) {
 
 func TestAccEventHubConsumerGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_consumer_group", "test")
-	r := EventHubConsumerGroupResource{}
+	r := EventhubConsumerGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -53,7 +53,7 @@ func TestAccEventHubConsumerGroup_requiresImport(t *testing.T) {
 
 func TestAccEventHubConsumerGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_consumer_group", "test")
-	r := EventHubConsumerGroupResource{}
+	r := EventhubConsumerGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -68,7 +68,7 @@ func TestAccEventHubConsumerGroup_complete(t *testing.T) {
 
 func TestAccEventHubConsumerGroup_userMetadataUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_consumer_group", "test")
-	r := EventHubConsumerGroupResource{}
+	r := EventhubConsumerGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -88,7 +88,7 @@ func TestAccEventHubConsumerGroup_userMetadataUpdate(t *testing.T) {
 	})
 }
 
-func (EventHubConsumerGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (EventhubConsumerGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := consumergroups.ParseConsumerGroupID(state.ID)
 	if err != nil {
 		return nil, err
@@ -99,10 +99,10 @@ func (EventHubConsumerGroupResource) Exists(ctx context.Context, clients *client
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
-func (EventHubConsumerGroupResource) basic(data acceptance.TestData) string {
+func (EventhubConsumerGroupResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -121,11 +121,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctesteventhub-%d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 2
-  message_retention   = 7
+  name              = "acctesteventhub-%d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 7
 }
 
 resource "azurerm_eventhub_consumer_group" "test" {
@@ -137,8 +136,8 @@ resource "azurerm_eventhub_consumer_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (EventHubConsumerGroupResource) requiresImport(data acceptance.TestData) string {
-	template := EventHubConsumerGroupResource{}.basic(data)
+func (EventhubConsumerGroupResource) requiresImport(data acceptance.TestData) string {
+	template := EventhubConsumerGroupResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -151,7 +150,7 @@ resource "azurerm_eventhub_consumer_group" "import" {
 `, template)
 }
 
-func (EventHubConsumerGroupResource) complete(data acceptance.TestData) string {
+func (EventhubConsumerGroupResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -170,11 +169,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctesteventhub-%d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 2
-  message_retention   = 7
+  name              = "acctesteventhub-%d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 7
 }
 
 resource "azurerm_eventhub_consumer_group" "test" {

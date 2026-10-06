@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sdk
@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -38,6 +39,10 @@ func (rw *ResourceWrapper) Resource() (*schema.Resource, error) {
 	}
 
 	modelObj := rw.resource.ModelObject()
+	// TODO: this should probably return an error when modelObj is nil, but currently 16 typed resources
+	// return nil because they use metadata.ResourceData directly instead of a typed model.
+	// Once those resources are migrated to use metadata.Decode/Encode with a proper model struct,
+	// this nil check should be replaced with an error.
 	if modelObj != nil {
 		if err := ValidateModelObject(modelObj); err != nil {
 			return nil, fmt.Errorf("validating model for %q: %+v", rw.resource.ResourceType(), err)
@@ -51,10 +56,9 @@ func (rw *ResourceWrapper) Resource() (*schema.Resource, error) {
 	resource := schema.Resource{
 		Schema: *resourceSchema,
 
-		CreateContext: rw.diagnosticsWrapper(func(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+		CreateContext: rw.diagnosticsWrapper(func(ctx context.Context, d *schema.ResourceData, meta any) error {
 			metaData := runArgs(d, meta, rw.logger)
-			err := rw.resource.Create().Func(ctx, metaData)
-			if err != nil {
+			if err := rw.resource.Create().Func(ctx, metaData); err != nil {
 				return err
 			}
 			// NOTE: whilst this may look like we should use the Read
@@ -64,11 +68,11 @@ func (rw *ResourceWrapper) Resource() (*schema.Resource, error) {
 		}),
 
 		// looks like these could be reused, easiest if they're not
-		ReadContext: rw.diagnosticsWrapper(func(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+		ReadContext: rw.diagnosticsWrapper(func(ctx context.Context, d *schema.ResourceData, meta any) error {
 			metaData := runArgs(d, meta, rw.logger)
 			return rw.resource.Read().Func(ctx, metaData)
 		}),
-		DeleteContext: rw.diagnosticsWrapper(func(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+		DeleteContext: rw.diagnosticsWrapper(func(ctx context.Context, d *schema.ResourceData, meta any) error {
 			metaData := runArgs(d, meta, rw.logger)
 			return rw.resource.Delete().Func(ctx, metaData)
 		}),
@@ -88,22 +92,21 @@ func (rw *ResourceWrapper) Resource() (*schema.Resource, error) {
 				}
 			}
 			if len(errs) > 0 {
-				out := ""
+				var out strings.Builder
 				for _, err := range errs {
-					out += err.Error()
+					out.WriteString(err.Error())
 				}
-				return errors.New(out)
+				return errors.New(out.String())
 			}
 
 			return nil
-		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
 			if v, ok := rw.resource.(ResourceWithCustomImporter); ok {
 				metaData := runArgs(d, meta, rw.logger)
 
 				ctx, cancel := context.WithTimeout(ctx, rw.resource.Read().Timeout)
 				defer cancel()
-				err := v.CustomImporter()(ctx, metaData)
-				if err != nil {
+				if err := v.CustomImporter()(ctx, metaData); err != nil {
 					return nil, err
 				}
 
@@ -117,11 +120,10 @@ func (rw *ResourceWrapper) Resource() (*schema.Resource, error) {
 	// Not all resources support update - so this is an separate interface
 	// implementations can opt to interface
 	if v, ok := rw.resource.(ResourceWithUpdate); ok {
-		resource.UpdateContext = rw.diagnosticsWrapper(func(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+		resource.UpdateContext = rw.diagnosticsWrapper(func(ctx context.Context, d *schema.ResourceData, meta any) error {
 			metaData := runArgs(d, meta, rw.logger)
 
-			err := v.Update().Func(ctx, metaData)
-			if err != nil {
+			if err := v.Update().Func(ctx, metaData); err != nil {
 				return err
 			}
 			// whilst this may look like we should use the Update timeout here
@@ -133,7 +135,7 @@ func (rw *ResourceWrapper) Resource() (*schema.Resource, error) {
 	}
 
 	if v, ok := rw.resource.(ResourceWithCustomizeDiff); ok {
-		resource.CustomizeDiff = func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+		resource.CustomizeDiff = func(ctx context.Context, d *schema.ResourceDiff, meta any) error {
 			client := meta.(*clients.Client)
 			ctx, cancel := context.WithTimeout(ctx, v.CustomizeDiff().Timeout)
 			defer cancel()
@@ -186,20 +188,14 @@ and we recommend using the %[2]q resource instead.
 		resource.Identity = &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(resourceId, idType),
 		}
-		if v, ok := rw.resource.(ResourceWithIdentityDiscriminatedType); ok {
-			resource.Identity = &schema.ResourceIdentity{
-				SchemaFunc: pluginsdk.GenerateIdentitySchemaWithDiscriminatedType(resourceId, v.DiscriminatedType().Field, idType),
-			}
-		}
 
-		resource.Importer = pluginsdk.ImporterValidatingIdentityThen(resourceId, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+		resource.Importer = pluginsdk.ImporterValidatingIdentityThen(resourceId, func(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
 			if v, ok := rw.resource.(ResourceWithCustomImporter); ok {
 				metaData := runArgs(d, meta, rw.logger)
 
 				ctx, cancel := context.WithTimeout(ctx, rw.resource.Read().Timeout)
 				defer cancel()
-				err := v.CustomImporter()(ctx, metaData)
-				if err != nil {
+				if err := v.CustomImporter()(ctx, metaData); err != nil {
 					return nil, err
 				}
 
@@ -213,12 +209,12 @@ and we recommend using the %[2]q resource instead.
 	return &resource, nil
 }
 
-func (rw *ResourceWrapper) diagnosticsWrapper(in func(ctx context.Context, d *schema.ResourceData, meta interface{}) error) func(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func (rw *ResourceWrapper) diagnosticsWrapper(in func(ctx context.Context, d *schema.ResourceData, meta any) error) func(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	return diagnosticsWrapper(in, rw.logger)
 }
 
-func diagnosticsWrapper(in func(ctx context.Context, d *schema.ResourceData, meta interface{}) error, logger Logger) func(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return func(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func diagnosticsWrapper(in func(ctx context.Context, d *schema.ResourceData, meta any) error, logger Logger) func(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	return func(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 		out := make([]diag.Diagnostic, 0)
 		if err := in(ctx, d, meta); err != nil {
 			out = append(out, diag.Diagnostic{
@@ -235,4 +231,14 @@ func diagnosticsWrapper(in func(ctx context.Context, d *schema.ResourceData, met
 
 		return out
 	}
+}
+
+func WrappedResource(resource Resource) *pluginsdk.Resource {
+	wrapper := NewResourceWrapper(resource)
+	wrappedResource, err := wrapper.Resource()
+	if err != nil {
+		panic(err)
+	}
+
+	return wrappedResource
 }
