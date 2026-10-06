@@ -205,7 +205,6 @@ func sortSecretVersions(values []secretVersionModel) ([]secretVersionModel, []er
 		}
 
 		return timeA.After(timeB)
-
 	})
 
 	if len(errors) > 0 {
