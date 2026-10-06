@@ -130,7 +130,6 @@ func (ds ComputeSkusDataSource) Read() sdk.ResourceFunc {
 			name := state.Name
 			loc := location.Normalize(state.Location)
 			availableSkus := make([]ComputeSkusSkuModel, 0)
-			id := parse.NewSkusID(subscriptionId)
 
 			resp, err := metadata.Client.Compute.SkusClient.ResourceSkusList(ctx, commonids.NewSubscriptionID(subscriptionId), skus.DefaultResourceSkusListOperationOptions())
 			if err != nil {
@@ -148,7 +147,7 @@ func (ds ComputeSkusDataSource) Read() sdk.ResourceFunc {
 
 					// while the API accepts OData filters, the location filter is currently
 					// not working, thus we need to filter the results manually
-					locationsNormalized := make([]string, len(*sku.Locations))
+					locationsNormalized := make([]string, 0, len(*sku.Locations))
 					for _, v := range *sku.Locations {
 						locationsNormalized = append(locationsNormalized, location.Normalize(v))
 					}
@@ -210,7 +209,7 @@ func (ds ComputeSkusDataSource) Read() sdk.ResourceFunc {
 				state.Skus = availableSkus
 			}
 
-			metadata.SetID(id)
+			metadata.SetID(parse.NewSkusID(subscriptionId))
 			return metadata.Encode(&state)
 		},
 	}
