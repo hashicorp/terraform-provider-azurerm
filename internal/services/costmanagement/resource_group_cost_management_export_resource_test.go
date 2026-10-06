@@ -143,8 +143,8 @@ resource "azurerm_resource_group_cost_management_export" "test" {
   recurrence_period_start_date = "%sT00:00:00Z"
   recurrence_period_end_date   = "%sT00:00:00Z"
 
-  file_format     = "Csv"
-  partition_data  = true
+  file_format    = "Csv"
+  partition_data = true
 
   export_data_storage_location {
     container_id     = "${azurerm_storage_account.test.id}/blobServices/default/containers/${azurerm_storage_container.test.name}"
@@ -253,8 +253,8 @@ resource "azurerm_resource_group_cost_management_export" "test" {
   recurrence_period_start_date = "%sT00:00:00Z"
   recurrence_period_end_date   = "%sT00:00:00Z"
 
-  file_format     = "Csv"
-  partition_data  = true
+  file_format    = "Csv"
+  partition_data = true
 
   export_data_storage_location {
     container_id     = "${azurerm_storage_account.test.id}/blobServices/default/containers/${azurerm_storage_container.test.name}"
@@ -280,8 +280,8 @@ resource "azurerm_resource_group_cost_management_export" "import" {
   recurrence_period_start_date = azurerm_resource_group_cost_management_export.test.recurrence_period_start_date
   recurrence_period_end_date   = azurerm_resource_group_cost_management_export.test.recurrence_period_start_date
 
-  file_format     = "Csv"
-  partition_data  = true
+  file_format    = "Csv"
+  partition_data = true
 
   export_data_storage_location {
     container_id     = "${azurerm_storage_account.test.id}/blobServices/default/containers/${azurerm_storage_container.test.name}"

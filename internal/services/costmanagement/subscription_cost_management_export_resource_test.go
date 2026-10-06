@@ -148,7 +148,7 @@ resource "azurerm_subscription_cost_management_export" "test" {
   recurrence_period_start_date = "%sT00:00:00Z"
   recurrence_period_end_date   = "%sT00:00:00Z"
 
-  partition_data  = true
+  partition_data = true
 
   export_data_storage_location {
     container_id     = "${azurerm_storage_account.test.id}/blobServices/default/containers/${azurerm_storage_container.test.name}"
