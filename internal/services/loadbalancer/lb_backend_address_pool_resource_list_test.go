@@ -42,7 +42,7 @@ func TestAccLbBackendAddressPool_listByLoadBalancerID(t *testing.T) {
 							"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
 							"resource_group_name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
 							"load_balancer_name":  knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
-							"name":                knownvalue.StringExact("pool"),
+							"name":                knownvalue.StringRegexp(regexp.MustCompile("acctestpool")),
 						},
 					),
 				},
