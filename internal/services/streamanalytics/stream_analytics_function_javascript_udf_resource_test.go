@@ -111,7 +111,6 @@ func (r StreamAnalyticsFunctionJavaScriptUDFResource) Exists(ctx context.Context
 }
 
 func (r StreamAnalyticsFunctionJavaScriptUDFResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -135,11 +134,10 @@ SCRIPT
     type = "bigint"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsFunctionJavaScriptUDFResource) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -157,11 +155,10 @@ resource "azurerm_stream_analytics_function_javascript_udf" "import" {
     type = azurerm_stream_analytics_function_javascript_udf.test.output.0.type
   }
 }
-`, template)
+`, r.basic(data))
 }
 
 func (r StreamAnalyticsFunctionJavaScriptUDFResource) inputs(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -189,11 +186,10 @@ SCRIPT
     type = "bigint"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsFunctionJavaScriptUDFResource) isConfigurationParameter(data acceptance.TestData, isConfigurationParameter bool) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -218,7 +214,7 @@ SCRIPT
     type = "bigint"
   }
 }
-`, template, data.RandomInteger, isConfigurationParameter)
+`, r.template(data), data.RandomInteger, isConfigurationParameter)
 }
 
 func (r StreamAnalyticsFunctionJavaScriptUDFResource) template(data acceptance.TestData) string {

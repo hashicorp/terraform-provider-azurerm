@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/namespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -41,7 +40,7 @@ var _ sdk.ResourceWithUpdate = FunctionAppHybridConnectionResource{}
 
 var _ sdk.ResourceWithCustomImporter = FunctionAppHybridConnectionResource{}
 
-func (r FunctionAppHybridConnectionResource) ModelObject() interface{} {
+func (r FunctionAppHybridConnectionResource) ModelObject() any {
 	return &FunctionAppHybridConnectionModel{}
 }
 
@@ -81,7 +80,7 @@ func (r FunctionAppHybridConnectionResource) Arguments() map[string]*pluginsdk.S
 		"port": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
-			ValidateFunc: azValidate.PortNumberOrZero,
+			ValidateFunc: validation.IsPortNumberOrZero,
 			Description:  "The port to use for the endpoint",
 		},
 
