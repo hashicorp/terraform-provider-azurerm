@@ -302,9 +302,7 @@ func resourceHDInsightHadoopClusterCreate(d *pluginsdk.ResourceData, meta any) e
 			if payload.Identity == nil {
 				payload.Identity = diskEncryptionIdentity
 			} else {
-				for k, v := range diskEncryptionIdentity.IdentityIds {
-					payload.Identity.IdentityIds[k] = v
-				}
+				maps.Copy(payload.Identity.IdentityIds, diskEncryptionIdentity.IdentityIds)
 			}
 		}
 	}

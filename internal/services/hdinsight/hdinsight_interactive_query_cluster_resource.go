@@ -256,9 +256,7 @@ func resourceHDInsightInteractiveQueryClusterCreate(d *pluginsdk.ResourceData, m
 			if params.Identity == nil {
 				params.Identity = diskEncryptionIdentity
 			} else {
-				for k, v := range diskEncryptionIdentity.IdentityIds {
-					params.Identity.IdentityIds[k] = v
-				}
+				maps.Copy(params.Identity.IdentityIds, diskEncryptionIdentity.IdentityIds)
 			}
 		}
 	}
