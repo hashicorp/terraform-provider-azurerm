@@ -160,7 +160,7 @@ func FlattenLongTermRetentionPolicy(input *longtermretentionpolicies.LongTermRet
 	// the API continues to return a mode after time based immutability has been disabled
 	immutabilityMode := ""
 	if pointer.From(input.Properties.TimeBasedImmutability) == longtermretentionpolicies.TimeBasedImmutabilityEnabled {
-		immutabilityMode = string(pointer.From(input.Properties.TimeBasedImmutabilityMode))
+		immutabilityMode = pointer.FromEnum(input.Properties.TimeBasedImmutabilityMode)
 	}
 
 	return []any{
