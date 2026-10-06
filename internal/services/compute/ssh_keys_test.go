@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -6,7 +6,7 @@ package compute
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 )
 
 func TestParseUsernameFromAuthorizedKeysPath(t *testing.T) {
@@ -40,15 +40,15 @@ func TestParseUsernameFromAuthorizedKeysPath(t *testing.T) {
 		},
 		{
 			Input:    "/home/username/.ssh/authorized_keys",
-			Expected: utils.String("username"),
+			Expected: pointer.To("username"),
 		},
 		{
 			Input:    "/home/abc123/.ssh/authorized_keys",
-			Expected: utils.String("abc123"),
+			Expected: pointer.To("abc123"),
 		},
 		{
 			Input:    "/home/!!&abc-123!/.ssh/authorized_keys",
-			Expected: utils.String("!!&abc-123!"),
+			Expected: pointer.To("!!&abc-123!"),
 		},
 	}
 	for _, v := range testData {

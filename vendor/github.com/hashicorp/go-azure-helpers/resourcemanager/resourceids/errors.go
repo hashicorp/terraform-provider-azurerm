@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2018, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package resourceids
@@ -7,6 +7,18 @@ import (
 	"fmt"
 	"strings"
 )
+
+// BuildExpectedResourceId iterates over the Resource ID to build up the "expected" value for the Resource ID
+// this is done using the example segment values for each segment type.
+func BuildExpectedResourceId(segments []Segment) string {
+	components := make([]string, 0)
+	for _, v := range segments {
+		components = append(components, strings.TrimPrefix(v.ExampleValue, "/"))
+	}
+
+	out := strings.Join(components, "/")
+	return fmt.Sprintf("/%s", out)
+}
 
 // descriptionForSegments returns a summary/description for the provided Resource ID Segments
 func descriptionForSegments(input []Segment) (*string, error) {
@@ -101,18 +113,6 @@ func descriptionForSpecifiedSegment(segment Segment) (*string, error) {
 	}
 
 	return nil, fmt.Errorf("internal-error: the Segment Type %q was not implemented for Segment %q", string(segment.Type), segment.Name)
-}
-
-// buildExpectedResourceId iterates over the Resource ID to build up the "expected" value for the Resource ID
-// this is done using the example segment values for each segment type.
-func buildExpectedResourceId(segments []Segment) string {
-	components := make([]string, 0)
-	for _, v := range segments {
-		components = append(components, strings.TrimPrefix(v.ExampleValue, "/"))
-	}
-
-	out := strings.Join(components, "/")
-	return fmt.Sprintf("/%s", out)
 }
 
 // findPositionOfSegment returns the position of the segment specified by segmentName within segments

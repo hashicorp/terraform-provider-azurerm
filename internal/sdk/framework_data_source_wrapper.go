@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package sdk
 
 import (
@@ -15,7 +18,7 @@ type FrameworkDataSourceWrapper struct {
 
 	FrameworkWrappedDataSource
 
-	Model interface{}
+	Model any
 }
 
 var _ datasource.DataSourceWithConfigure = &FrameworkDataSourceWrapper{}
@@ -41,7 +44,7 @@ func (d *FrameworkDataSourceWrapper) Configure(ctx context.Context, request data
 }
 
 func (d *FrameworkDataSourceWrapper) Metadata(ctx context.Context, request datasource.MetadataRequest, response *datasource.MetadataResponse) {
-	response.TypeName = d.FrameworkWrappedDataSource.ResourceType()
+	response.TypeName = d.ResourceType()
 }
 
 func (d *FrameworkDataSourceWrapper) Read(ctx context.Context, request datasource.ReadRequest, response *datasource.ReadResponse) {
@@ -51,7 +54,7 @@ func (d *FrameworkDataSourceWrapper) Read(ctx context.Context, request datasourc
 		return
 	}
 
-	readTimeout, diags := customTimeouts.Read(ctx, d.ResourceMetadata.TimeoutRead)
+	readTimeout, diags := customTimeouts.Read(ctx, d.TimeoutRead)
 	if diags.HasError() {
 		response.Diagnostics.Append(diags...)
 		return
@@ -60,16 +63,16 @@ func (d *FrameworkDataSourceWrapper) Read(ctx context.Context, request datasourc
 	ctx, cancel := context.WithTimeout(ctx, readTimeout)
 	defer cancel()
 
-	config := d.FrameworkWrappedDataSource.ModelObject()
+	config := d.ModelObject()
 
-	d.ResourceMetadata.DecodeDataSourceRead(ctx, request, response, config)
+	d.DecodeDataSourceRead(ctx, request, response, config)
 	if response.Diagnostics.HasError() {
 		return
 	}
 
 	d.FrameworkWrappedDataSource.Read(ctx, request, response, d.ResourceMetadata, config)
 
-	d.ResourceMetadata.EncodeDataSourceRead(ctx, response, config)
+	d.EncodeDataSourceRead(ctx, response, config)
 }
 
 func (d *FrameworkDataSourceWrapper) DataSource() func() datasource.DataSource {

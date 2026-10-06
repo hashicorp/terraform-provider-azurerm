@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers_test
@@ -9,13 +9,13 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/registries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ContainerRegistryResource struct{}
@@ -223,7 +223,7 @@ func TestAccContainerRegistry_networkAccessProfileIp(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.networkAccessProfileNetworkRuleSetRemoved(data, "Basic"),
+			Config: r.networkAccessProfileNetworkRuleSetRemoved(data, "Premium"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -414,7 +414,7 @@ func (t ContainerRegistryResource) Exists(ctx context.Context, clients *clients.
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (ContainerRegistryResource) basic(data acceptance.TestData) string {
@@ -491,15 +491,16 @@ resource "azurerm_container_registry" "test" {
     type = "SystemAssigned"
   }
 
-  public_network_access_enabled = false
-  quarantine_policy_enabled     = true
-  retention_policy_in_days      = 10
-  trust_policy_enabled          = true
-  export_policy_enabled         = false
-  anonymous_pull_enabled        = true
-  data_endpoint_enabled         = true
-
-  network_rule_bypass_option = "None"
+  public_network_access_enabled                = false
+  quarantine_policy_enabled                    = true
+  retention_policy_in_days                     = 10
+  export_policy_enabled                        = false
+  azuread_authentication_as_arm_policy_enabled = false
+  anonymous_pull_enabled                       = true
+  data_endpoint_enabled                        = true
+  network_rule_bypass_option                   = "None"
+  network_rule_bypass_for_tasks_enabled        = true
+  role_assignment_mode                         = "AbacRepositoryPermissions"
 
   tags = {
     environment = "production"
@@ -540,15 +541,16 @@ resource "azurerm_container_registry" "test" {
     ]
   }
 
-  public_network_access_enabled = true
-  quarantine_policy_enabled     = false
-  retention_policy_in_days      = 15
-  trust_policy_enabled          = false
-  export_policy_enabled         = true
-  anonymous_pull_enabled        = false
-  data_endpoint_enabled         = false
-
-  network_rule_bypass_option = "AzureServices"
+  public_network_access_enabled                = true
+  quarantine_policy_enabled                    = false
+  retention_policy_in_days                     = 15
+  export_policy_enabled                        = true
+  azuread_authentication_as_arm_policy_enabled = true
+  anonymous_pull_enabled                       = false
+  data_endpoint_enabled                        = false
+  network_rule_bypass_option                   = "AzureServices"
+  network_rule_bypass_for_tasks_enabled        = false
+  role_assignment_mode                         = "LegacyRegistryPermissions"
 
   tags = {
     environment = "production"
@@ -600,7 +602,8 @@ resource "azurerm_container_registry" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
   georeplications {
-    location = "%s"
+    location                        = "%s"
+    global_endpoint_routing_enabled = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, replicationRegion)
@@ -623,10 +626,12 @@ resource "azurerm_container_registry" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
   georeplications {
-    location = "%s"
+    location                        = "%s"
+    global_endpoint_routing_enabled = true
   }
   georeplications {
-    location = "%s"
+    location                        = "%s"
+    global_endpoint_routing_enabled = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, primaryLocation, secondaryLocation)
@@ -649,12 +654,13 @@ resource "azurerm_container_registry" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
   georeplications {
-    location                = "%s"
-    zone_redundancy_enabled = true
+    location                        = "%s"
+    global_endpoint_routing_enabled = true
+    zone_redundancy_enabled         = true
   }
   georeplications {
-    location                  = "%s"
-    regional_endpoint_enabled = true
+    location                        = "%s"
+    global_endpoint_routing_enabled = true
     tags = {
       foo = "bar"
     }
@@ -694,12 +700,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-acr-%[1]d"
   location = "%[2]s"
 }
 
 resource "azurerm_container_registry" "test" {
-  name                = "testAccCr%[1]d"
+  name                = "testacccr%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "%[3]s"
@@ -729,12 +735,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-acr-%[1]d"
   location = "%[2]s"
 }
 
 resource "azurerm_container_registry" "test" {
-  name                = "testAccCr%[1]d"
+  name                = "testacccr%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "%[3]s"
@@ -754,12 +760,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-acr-%[1]d"
   location = "%[2]s"
 }
 
 resource "azurerm_container_registry" "test" {
-  name                = "testAccCr%[1]d"
+  name                = "testacccr%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "%[3]s"
@@ -802,8 +808,9 @@ resource "azurerm_container_registry" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
   georeplications {
-    location                = "%s"
-    zone_redundancy_enabled = true
+    location                        = "%s"
+    zone_redundancy_enabled         = true
+    global_endpoint_routing_enabled = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary)
@@ -824,8 +831,8 @@ resource "azurerm_container_registry" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
   georeplications {
-    location                  = "%s"
-    regional_endpoint_enabled = true
+    location                        = "%s"
+    global_endpoint_routing_enabled = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary)
@@ -954,12 +961,14 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                     = "acctestkv%[3]s"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "acctestkv%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id

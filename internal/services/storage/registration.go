@@ -1,16 +1,21 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework/action"
+	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
 
-var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+var (
+	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+	_ sdk.FrameworkServiceRegistration               = Registration{}
+)
 
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/storage"
@@ -31,9 +36,9 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
+		"azurerm_storage_account":                    dataSourceStorageAccount(),
 		"azurerm_storage_account_blob_container_sas": dataSourceStorageAccountBlobContainerSharedAccessSignature(),
 		"azurerm_storage_account_sas":                dataSourceStorageAccountSharedAccessSignature(),
-		"azurerm_storage_account":                    dataSourceStorageAccount(),
 		"azurerm_storage_blob":                       dataSourceStorageBlob(),
 		"azurerm_storage_container":                  dataSourceStorageContainer(),
 		"azurerm_storage_encryption_scope":           dataSourceStorageEncryptionScope(),
@@ -55,28 +60,28 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_storage_blob":                         resourceStorageBlob(),
 		"azurerm_storage_blob_inventory_policy":        resourceStorageBlobInventoryPolicy(),
 		"azurerm_storage_container":                    resourceStorageContainer(),
-		"azurerm_storage_encryption_scope":             resourceStorageEncryptionScope(),
 		"azurerm_storage_data_lake_gen2_filesystem":    resourceStorageDataLakeGen2FileSystem(),
 		"azurerm_storage_data_lake_gen2_path":          resourceStorageDataLakeGen2Path(),
+		"azurerm_storage_encryption_scope":             resourceStorageEncryptionScope(),
 		"azurerm_storage_management_policy":            resourceStorageManagementPolicy(),
 		"azurerm_storage_object_replication":           resourceStorageObjectReplication(),
 		"azurerm_storage_queue":                        resourceStorageQueue(),
 		"azurerm_storage_share":                        resourceStorageShare(),
-		"azurerm_storage_share_file":                   resourceStorageShareFile(),
 		"azurerm_storage_share_directory":              resourceStorageShareDirectory(),
-		"azurerm_storage_table":                        resourceStorageTable(),
-		"azurerm_storage_table_entity":                 resourceStorageTableEntity(),
+		"azurerm_storage_share_file":                   resourceStorageShareFile(),
 		"azurerm_storage_sync":                         resourceStorageSync(),
 		"azurerm_storage_sync_cloud_endpoint":          resourceStorageSyncCloudEndpoint(),
 		"azurerm_storage_sync_group":                   resourceStorageSyncGroup(),
+		"azurerm_storage_table":                        resourceStorageTable(),
+		"azurerm_storage_table_entity":                 resourceStorageTableEntity(),
 	}
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
+		storageContainersDataSource{},
 		storageTableDataSource{},
 		storageTableEntitiesDataSource{},
-		storageContainersDataSource{},
 	}
 }
 
@@ -84,8 +89,37 @@ func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		AccountQueuePropertiesResource{},
 		AccountStaticWebsiteResource{},
+		AccountTablePropertiesResource{},
 		LocalUserResource{},
 		StorageContainerImmutabilityPolicyResource{},
+		StorageDiscoveryWorkspaceResource{},
 		SyncServerEndpointResource{},
+	}
+}
+
+func (r Registration) Actions() []func() action.Action {
+	return []func() action.Action{}
+}
+
+func (r Registration) FrameworkResources() []sdk.FrameworkWrappedResource {
+	return []sdk.FrameworkWrappedResource{}
+}
+
+func (r Registration) FrameworkDataSources() []sdk.FrameworkWrappedDataSource {
+	return []sdk.FrameworkWrappedDataSource{}
+}
+
+func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource {
+	return []func() ephemeral.EphemeralResource{}
+}
+
+func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
+	return []sdk.FrameworkListWrappedResource{
+		StorageAccountCustomerManagedKeyListResource{},
+		StorageAccountListResource{},
+		StorageAccountNetworkRulesListResource{},
+		StorageContainerListResource{},
+		StorageSyncListResource{},
+		SyncServerEndpointListResource{},
 	}
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managedhsm_test
@@ -8,17 +8,17 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/managedhsms"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type KeyVaultManagedHardwareSecurityModuleResource struct{}
 
-func TestAccKeyVaultManagedHardwareSecurityModule(t *testing.T) {
+func TestAccKeyVaultManagedHardwareSecurityModule_sequential(t *testing.T) {
 	// @manicminer: these tests are sequential due to low service limits for Managed HSM
 	// (max 5 instances per subscription as of 2024-04-23)
 	// and to try and maintain a little headroom for cleanup after failed tests
@@ -146,7 +146,7 @@ func (KeyVaultManagedHardwareSecurityModuleResource) Exists(ctx context.Context,
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r KeyVaultManagedHardwareSecurityModuleResource) basic(data acceptance.TestData) string {
@@ -234,9 +234,10 @@ provider "azurerm" {
 }
 %[1]s
 resource "azurerm_key_vault" "test" {
-  name                       = "acc%[2]d"
+  name                       = "acctest%[2]s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -311,7 +312,7 @@ resource "azurerm_key_vault_certificate" "cert" {
   }
 }
 resource "azurerm_key_vault_managed_hardware_security_module" "test" {
-  name                     = "kvHsm%[2]d"
+  name                     = "acctestkvHsm%[2]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   sku_name                 = "Standard_B1"
@@ -320,7 +321,7 @@ resource "azurerm_key_vault_managed_hardware_security_module" "test" {
   purge_protection_enabled = false
   %[4]s
 }
-`, template, data.RandomInteger, certCount, activateConfig)
+`, template, data.RandomString, certCount, activateConfig)
 }
 
 func (r KeyVaultManagedHardwareSecurityModuleResource) complete(data acceptance.TestData) string {
@@ -344,7 +345,9 @@ resource "azurerm_subnet" "test_a" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
-  service_endpoints    = ["Microsoft.KeyVault"]
+  service_endpoint {
+    service = "Microsoft.KeyVault"
+  }
 }
 
 resource "azurerm_key_vault_managed_hardware_security_module" "test" {

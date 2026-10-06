@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package iothub
@@ -62,7 +62,7 @@ func dataSourceIotHubDPS() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceIotHubDPSRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceIotHubDPSRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.DPSResourceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -73,7 +73,7 @@ func dataSourceIotHubDPSRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	resp, err := client.Get(ctx, id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("Error: IoT Device Provisioning Service %s was not found", id)
+			return fmt.Errorf("the IoT Device Provisioning Service %s was not found", id)
 		}
 
 		return fmt.Errorf("retrieving IoT Device Provisioning Service %s: %+v", id, err)
@@ -90,7 +90,7 @@ func dataSourceIotHubDPSRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("service_operations_host_name", props.ServiceOperationsHostName)
 		d.Set("device_provisioning_host_name", props.DeviceProvisioningHostName)
 		d.Set("id_scope", props.IdScope)
-		d.Set("allocation_policy", string(pointer.From(props.AllocationPolicy)))
+		d.Set("allocation_policy", pointer.FromEnum(props.AllocationPolicy))
 		d.Set("tags", flattenTags(model.Tags))
 	}
 
