@@ -37,7 +37,7 @@ func (r NextGenerationFirewallMetricsResource) ResourceType() string {
 	return "azurerm_palo_alto_next_generation_firewall_metrics"
 }
 
-func (r NextGenerationFirewallMetricsResource) ModelObject() interface{} {
+func (r NextGenerationFirewallMetricsResource) ModelObject() any {
 	return &NextGenerationFirewallMetricsModel{}
 }
 

@@ -38,9 +38,20 @@ func (c ProtectedItemsClient) CreateOrUpdate(ctx context.Context, id ProtectedIt
 
 // CreateOrUpdateThenPoll performs CreateOrUpdate then polls until it's completed
 func (c ProtectedItemsClient) CreateOrUpdateThenPoll(ctx context.Context, id ProtectedItemId, input ProtectedItemResource) error {
+	return c.CreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CreateOrUpdateCallbackThenPoll performs CreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c ProtectedItemsClient) CreateOrUpdateCallbackThenPoll(ctx context.Context, id ProtectedItemId, input ProtectedItemResource, callback func() error) error {
 	result, err := c.CreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(); err != nil {
