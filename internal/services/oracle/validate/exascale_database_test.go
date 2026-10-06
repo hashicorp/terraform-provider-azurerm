@@ -97,27 +97,27 @@ func TestExascaleDatabaseStorageVaultName(t *testing.T) {
 func TestExascaleDatabaseVirtualMachineClusterSSHPublicKeys(t *testing.T) {
 	testData := []struct {
 		name     string
-		input    interface{}
+		input    any
 		expected bool
 	}{
 		{
 			name:     "multiple keys",
-			input:    []interface{}{"ssh-rsa aaaaaa", "ssh-ed25519 bbbbbbb"},
+			input:    []any{"ssh-rsa aaaaaa", "ssh-ed25519 bbbbbbb"},
 			expected: true,
 		},
 		{
 			name:     "combined length equal to limit",
-			input:    []interface{}{strings.Repeat("a", 5000), strings.Repeat("b", 2500), strings.Repeat("b", 2500)},
+			input:    []any{strings.Repeat("a", 5000), strings.Repeat("b", 2500), strings.Repeat("b", 2500)},
 			expected: true,
 		},
 		{
 			name:     "combined length exceeding limit",
-			input:    []interface{}{strings.Repeat("a", 5000), strings.Repeat("b", 2500), strings.Repeat("b", 2501)},
+			input:    []any{strings.Repeat("a", 5000), strings.Repeat("b", 2500), strings.Repeat("b", 2501)},
 			expected: false,
 		},
 		{
 			name:     "single key exceeding limit",
-			input:    []interface{}{strings.Repeat("a", 10001)},
+			input:    []any{strings.Repeat("a", 10001)},
 			expected: false,
 		},
 		{

@@ -441,7 +441,7 @@ func (d ExascaleDatabaseVirtualMachineClusterDataSource) Attributes() map[string
 	}
 }
 
-func (d ExascaleDatabaseVirtualMachineClusterDataSource) ModelObject() interface{} {
+func (d ExascaleDatabaseVirtualMachineClusterDataSource) ModelObject() any {
 	return &ExascaleDatabaseVirtualMachineClusterDataModel{}
 }
 
@@ -489,7 +489,7 @@ func (d ExascaleDatabaseVirtualMachineClusterDataSource) Read() sdk.ResourceFunc
 					state.ExascaleDatabaseStorageVaultId = props.ExascaleDbStorageVaultId
 					state.GridInfrastructureVersion = pointer.From(props.GiVersion)
 					state.GridImageOcid = pointer.From(props.GridImageOcid)
-					state.GridImageType = string(pointer.From(props.GridImageType))
+					state.GridImageType = pointer.FromEnum(props.GridImageType)
 					state.Hostname = removeHostnameSuffix(props.Hostname)
 					state.HostnameActual = props.Hostname
 					state.IormConfigCache = flattenIormConfig(props.IormConfigCache)
@@ -550,8 +550,8 @@ func flattenIormConfig(input *exadbvmclusters.ExadataIormConfig) []IormConfigMod
 		return append(output, IormConfigModel{
 			DatabasePlans:    dbIormConfigModel,
 			LifecycleDetails: pointer.From(input.LifecycleDetails),
-			LifecycleState:   string(pointer.From(input.LifecycleState)),
-			Objective:        string(pointer.From(input.Objective)),
+			LifecycleState:   pointer.FromEnum(input.LifecycleState),
+			Objective:        pointer.FromEnum(input.Objective),
 		})
 	}
 

@@ -14,8 +14,8 @@ import (
 )
 
 func TestExpandVirtualMachineScaleSetAutomaticUpgradePolicy(t *testing.T) {
-	input := []interface{}{
-		map[string]interface{}{
+	input := []any{
+		map[string]any{
 			"automatic_rollback_enabled":   false,
 			"automatic_os_upgrade_enabled": true,
 		},

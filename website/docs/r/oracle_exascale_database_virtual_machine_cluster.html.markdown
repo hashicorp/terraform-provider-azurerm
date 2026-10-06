@@ -194,10 +194,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Exadata VM Cluster.
+* `create` - (Defaults to 4 hours) Used when creating the Exadata VM Cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Exadata VM Cluster.
-* `update` - (Defaults to 30 minutes) Used when updating the Exadata VM Cluster.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Exadata VM Cluster.
+* `update` - (Defaults to 4 hours) Used when updating the Exadata VM Cluster.
+* `delete` - (Defaults to 4 hours) Used when deleting the Exadata VM Cluster.
 
 ## Import
 

@@ -12,14 +12,14 @@ import (
 
 const exascaleDatabaseVirtualMachineClusterSSHPublicKeysMaxCombinedLength = 10000
 
-func ExascaleDatabaseResourceName(i interface{}, k string) ([]string, []error) {
+func ExascaleDatabaseResourceName(i any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile(`^[a-zA-Z_](?:[a-zA-Z0-9_]*(?:-[a-zA-Z0-9_]+)*-?)?$`), "must begin with a letter or underscore (_), contain only letters, numbers, underscores (_) and cannot contain any consecutive hyphens (--)")(i, k)
 }
 
-func ExascaleDatabaseVirtualMachineClusterSSHPublicKeys(i interface{}, k string) (warnings []string, errors []error) {
+func ExascaleDatabaseVirtualMachineClusterSSHPublicKeys(i any, k string) (warnings []string, errors []error) {
 	var keys []string
 	switch v := i.(type) {
-	case []interface{}:
+	case []any:
 		keys = make([]string, 0, len(v))
 		for _, keyRaw := range v {
 			key, ok := keyRaw.(string)

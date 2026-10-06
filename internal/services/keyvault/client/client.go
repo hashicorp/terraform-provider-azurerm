@@ -6,13 +6,13 @@ package client
 import (
 	"fmt"
 
-	dataplane7_4 "github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4"
+	v7_4 "github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4" // azignore:AZG010 - package name does not match its path
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/deletedvaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/vaults"
-	resources20151101 "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2015-11-01/resources"
-	dataplaneClient "github.com/hashicorp/go-azure-sdk/sdk/client/dataplane"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2015-11-01/resources"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/dataplane"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	dataplane "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
+	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 type Client struct {
@@ -25,15 +25,15 @@ type Client struct {
 	VaultsClient        *vaults.VaultsClient
 	DeletedVaultsClient *deletedvaults.DeletedVaultsClient
 
-	ManagementClient        *dataplane.BaseClient // TODO: we should rename this DataPlaneClient in time
-	DataPlaneKeyVaultClient *dataplane7_4.Client
+	ManagementClient        *keyvault.BaseClient // TODO: we should rename this DataPlaneClient in time
+	DataPlaneKeyVaultClient *v7_4.Client
 
 	// NOTE: @tombuildsstuff: this client is intentionally internal-only so that it's not used directly
-	resources20151101Client *resources20151101.ResourcesClient
+	resources20151101Client *resources.ResourcesClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	resources20151101Client, err := resources20151101.NewResourcesClientWithBaseURI(o.Environment.ResourceManager)
+	resources20151101Client, err := resources.NewResourcesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building legacy Resources client: %+v", err)
 	}
@@ -51,10 +51,10 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(deletedVaultsClient.Client, o.Authorizers.ResourceManager)
 
-	managementClient := dataplane.New()
+	managementClient := keyvault.New()
 	o.ConfigureClient(&managementClient.Client, o.KeyVaultAuthorizer)
 
-	dataplaneKeyvaultClient, err := dataplane7_4.NewClient(func(c *dataplaneClient.Client) {
+	dataplaneKeyvaultClient, err := v7_4.NewClient(func(c *dataplane.Client) {
 		o.Configure(c.Client, o.Authorizers.KeyVault)
 	})
 	if err != nil {

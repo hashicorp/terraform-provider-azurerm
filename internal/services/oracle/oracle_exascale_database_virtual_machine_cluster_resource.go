@@ -370,7 +370,7 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Attributes() map[string]*pl
 	}
 }
 
-func (ExascaleDatabaseVirtualMachineClusterResource) ModelObject() interface{} {
+func (ExascaleDatabaseVirtualMachineClusterResource) ModelObject() any {
 	return &ExascaleDatabaseVirtualMachineClusterResource{}
 }
 
@@ -449,7 +449,7 @@ func (r ExascaleDatabaseVirtualMachineClusterResource) Create() sdk.ResourceFunc
 				param.Properties.Domain = pointer.To(model.Domain)
 			}
 			if model.LicenseModel != "" {
-				param.Properties.LicenseModel = pointer.To(exadbvmclusters.LicenseModel(model.LicenseModel))
+				param.Properties.LicenseModel = pointer.ToEnum[exadbvmclusters.LicenseModel](model.LicenseModel)
 			}
 			if len(model.InboundNetworkSecurityGroupRule) > 0 {
 				param.Properties.NsgCidrs = pointer.To(expandNsgCidrs(model.InboundNetworkSecurityGroupRule))

@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = AnalyticsSharedItemId{}
 
-func TestAnalyticsSharedItemIDFormatter(t *testing.T) {
+func TestParseAnalyticsSharedItemIDFormatter(t *testing.T) {
 	actual := NewAnalyticsSharedItemID("12345678-1234-9876-4563-123456789012", "group1", "component1", "item1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Insights/components/component1/analyticsItems/item1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestAnalyticsSharedItemIDFormatter(t *testing.T) {
 	}
 }
 
-func TestAnalyticsSharedItemID(t *testing.T) {
+func TestParseAnalyticsSharedItemID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
