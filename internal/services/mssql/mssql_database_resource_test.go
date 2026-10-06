@@ -16,9 +16,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databases"
 	"github.com/hashicorp/go-uuid"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -73,9 +76,14 @@ func TestAccMsSqlDatabase_free(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MssqlDatabaseResource{}
 
+	omittedBehaviorAction := plancheck.ResourceActionNoop
+	if features.SixPointOh() {
+		omittedBehaviorAction = plancheck.ResourceActionReplace
+	}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.freeTier(data),
+			Config: r.freeTier(data, "true", "", false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("free_limit_enabled").HasValue("true"),
@@ -84,6 +92,43 @@ func TestAccMsSqlDatabase_free(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.freeTier(data, "true", "BillOverUsage", true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config:             r.freeTier(data, "true", "AutoPause", false),
+			PlanOnly:           true,
+			ExpectNonEmptyPlan: true,
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PostApplyPreRefresh: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
+		},
+		{
+			Config:             r.freeTier(data, "true", "", !features.SixPointOh()),
+			PlanOnly:           true,
+			ExpectNonEmptyPlan: features.SixPointOh(),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PostApplyPreRefresh: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, omittedBehaviorAction),
+				},
+			},
+		},
+		{
+			Config:             r.freeTier(data, "null", "", true),
+			PlanOnly:           true,
+			ExpectNonEmptyPlan: features.SixPointOh(),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PostApplyPreRefresh: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, omittedBehaviorAction),
+				},
+			},
+		},
 	})
 }
 
@@ -1405,7 +1450,12 @@ resource "azurerm_mssql_database" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MssqlDatabaseResource) freeTier(data acceptance.TestData) string {
+func (r MssqlDatabaseResource) freeTier(data acceptance.TestData, freeLimitEnabled, exhaustionBehavior string, geoBackupEnabled bool) string {
+	behaviorConfig := ""
+	if exhaustionBehavior != "" {
+		behaviorConfig = fmt.Sprintf("free_limit_exhaustion_behavior = %q", exhaustionBehavior)
+	}
+
 	return fmt.Sprintf(`
 %[1]s
 
@@ -1415,11 +1465,12 @@ resource "azurerm_mssql_database" "test" {
   auto_pause_delay_in_minutes = 60
   min_capacity                = 0.5
   sku_name                    = "GP_S_Gen5_2"
-  free_limit_enabled          = true
+  free_limit_enabled          = %[3]s
   storage_account_type        = "Local"
-  geo_backup_enabled          = false
+  geo_backup_enabled          = %[5]t
+  %[4]s
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, freeLimitEnabled, behaviorConfig, geoBackupEnabled)
 }
 
 func (r MssqlDatabaseResource) freeLimitExhaustionBehaviorWithoutEnabled(data acceptance.TestData) string {

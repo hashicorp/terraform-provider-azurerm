@@ -237,21 +237,23 @@ The following arguments are supported:
 
 -> **Note:** The default `sku_name` value may differ between Azure locations depending on local availability of Gen4/Gen5 capacity. When databases are replicated using the `creation_source_database_id` property, the source (primary) database cannot have a higher SKU service tier than any secondary databases. When changing the `sku_name` of a database having one or more secondary databases, this resource will first update any secondary databases as necessary. In such cases it's recommended to use the same `sku_name` in your configuration for all related databases, as not doing so may cause an unresolvable diff during subsequent plans.
 
-* `free_limit_enabled` - (Optional) Whether the Azure SQL Database free offer is enabled for this database. Defaults to `false`.
+* `free_limit_enabled` - (Optional) Whether the Azure SQL Database free offer is enabled for this database.
 
 ~> **Note:** `free_limit_enabled` can only be set to `true` when `sku_name` is a serverless General Purpose SKU (for example `GP_S_Gen5_2`).
 
 -> **Note:** When enabled, the database receives a monthly free allocation of vCore-seconds and storage. Once the allocation is exhausted, the behavior is controlled by `free_limit_exhaustion_behavior`.
 
-* `free_limit_exhaustion_behavior` - (Optional) Specifies the behavior of the database when the monthly free offer allocation is exhausted. Possible values are `AutoPause` and `BillOverUsage`. Defaults to `AutoPause` when `free_limit_enabled` is set to `true`.
+* `free_limit_exhaustion_behavior` - (Optional) Specifies the behavior of the database when the monthly free offer allocation is exhausted. Possible values are `AutoPause` and `BillOverUsage`.
 
 ~> **Note:** `free_limit_exhaustion_behavior` can only be configured when `free_limit_enabled` is set to `true`.
 
-~> **Note:** Once set to `BillOverUsage`, the Azure SQL free offer does not allow reverting to `AutoPause`. See the [Azure SQL free offer limitations](https://learn.microsoft.com/azure/azure-sql/database/free-offer?view=azuresql#offer-limitations) for more information.
+!> **Note:** Changing `free_limit_exhaustion_behavior` from `BillOverUsage` to `AutoPause` forces a new resource to be created. See the [Azure SQL free offer limitations](https://learn.microsoft.com/azure/azure-sql/database/free-offer?view=azuresql#offer-limitations) for more information.
 
 * `storage_account_type` - (Optional) Specifies the storage account type used to store backups for this database. Possible values are `Geo`, `GeoZone`, `Local` and `Zone`. Defaults to `Geo`.
 
-~> **Note:** When `free_limit_enabled` is `true`, `storage_account_type` must be `Local` if `free_limit_exhaustion_behavior` is `AutoPause` or omitted.
+~> **Note:** When `free_limit_enabled` is `true`, `storage_account_type` must be `Local` if `free_limit_exhaustion_behavior` is `AutoPause`.
+
+~> **Note:** When `free_limit_enabled` is `true` and `free_limit_exhaustion_behavior` is `AutoPause`, long-term backup retention is not available and point-in-time restore (PITR) retention is limited to 7 days. See the [Azure SQL free offer limitations](https://learn.microsoft.com/azure/azure-sql/database/free-offer?view=azuresql#offer-limitations) for more information.
 
 * `threat_detection_policy` - (Optional) Threat detection policy configuration. The `threat_detection_policy` block supports fields documented below.
 

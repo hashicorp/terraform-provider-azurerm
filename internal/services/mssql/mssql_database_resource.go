@@ -36,6 +36,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
@@ -77,6 +78,9 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 		Schema: resourceMsSqlDatabaseSchema(),
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.ForceNewIfChange("free_limit_exhaustion_behavior", func(ctx context.Context, old, new, _ any) bool {
+				return old.(string) == string(databases.FreeLimitExhaustionBehaviorBillOverUsage) && new.(string) == string(databases.FreeLimitExhaustionBehaviorAutoPause)
+			}),
 			pluginsdk.ForceNewIfChange("sku_name", func(ctx context.Context, old, new, _ any) bool {
 				// hyperscale can not be changed to another sku
 				return strings.HasPrefix(old.(string), "HS") && !strings.HasPrefix(new.(string), "HS")
@@ -148,13 +152,16 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 				behaviorSet := hasBehavior && behaviorVal.IsKnown() && !behaviorVal.IsNull()
 
 				enabledVal, hasEnabled := rawConfig["free_limit_enabled"]
-				enabledSet := hasEnabled && enabledVal.IsKnown() && !enabledVal.IsNull() && enabledVal.True()
+				if hasEnabled && !enabledVal.IsKnown() {
+					return nil
+				}
+				useFreeLimit := d.Get("free_limit_enabled").(bool)
 
-				if behaviorSet && !enabledSet {
+				if behaviorSet && !useFreeLimit {
 					return errors.New("`free_limit_exhaustion_behavior` can only be set when `free_limit_enabled` is `true`")
 				}
 
-				if enabledSet {
+				if useFreeLimit {
 					skuVal, hasSku := rawConfig["sku_name"]
 					if hasSku && skuVal.IsKnown() && !skuVal.IsNull() {
 						sku := skuVal.AsString()
@@ -163,11 +170,18 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 						}
 					}
 
-					behavior := string(databases.FreeLimitExhaustionBehaviorAutoPause)
-					if behaviorSet {
-						behavior = behaviorVal.AsString()
+					if hasBehavior && !behaviorVal.IsKnown() {
+						return nil
+					}
+					storageVal, hasStorage := rawConfig["storage_account_type"]
+					if hasStorage && !storageVal.IsKnown() {
+						return nil
 					}
 
+					behavior := d.Get("free_limit_exhaustion_behavior").(string)
+					if behavior == "" {
+						behavior = string(databases.FreeLimitExhaustionBehaviorAutoPause)
+					}
 					if behavior == string(databases.FreeLimitExhaustionBehaviorAutoPause) && d.Get("storage_account_type").(string) != string(databases.BackupStorageRedundancyLocal) {
 						return errors.New("`storage_account_type` must be `Local` when `free_limit_enabled` is `true`")
 					}
@@ -487,8 +501,10 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 
 	useFreeLimit := d.Get("free_limit_enabled").(bool)
 	input.Properties.UseFreeLimit = pointer.To(useFreeLimit)
-	if v, ok := d.GetOk("free_limit_exhaustion_behavior"); ok {
-		input.Properties.FreeLimitExhaustionBehavior = pointer.ToEnum[databases.FreeLimitExhaustionBehavior](v.(string))
+	if useFreeLimit {
+		if v, ok := d.GetOk("free_limit_exhaustion_behavior"); ok {
+			input.Properties.FreeLimitExhaustionBehavior = pointer.ToEnum[databases.FreeLimitExhaustionBehavior](v.(string))
+		}
 	}
 
 	if skuName != "" {
@@ -973,9 +989,11 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta any) error {
 		propertiesUpdateRequired = true
 	}
 
-	if d.HasChange("free_limit_exhaustion_behavior") {
-		props.FreeLimitExhaustionBehavior = pointer.ToEnum[databases.FreeLimitExhaustionBehavior](d.Get("free_limit_exhaustion_behavior").(string))
-		propertiesUpdateRequired = true
+	if d.Get("free_limit_enabled").(bool) && d.HasChanges("free_limit_enabled", "free_limit_exhaustion_behavior") {
+		if v, ok := d.GetOk("free_limit_exhaustion_behavior"); ok {
+			props.FreeLimitExhaustionBehavior = pointer.ToEnum[databases.FreeLimitExhaustionBehavior](v.(string))
+			propertiesUpdateRequired = true
+		}
 	}
 
 	if d.HasChange("tags") {
@@ -1316,9 +1334,11 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 
 			d.Set("free_limit_enabled", pointer.From(props.UseFreeLimit))
 
-			if props.FreeLimitExhaustionBehavior != nil {
-				d.Set("free_limit_exhaustion_behavior", pointer.FromEnum(props.FreeLimitExhaustionBehavior))
+			freeLimitExhaustionBehavior := string(databases.FreeLimitExhaustionBehaviorAutoPause)
+			if pointer.From(props.UseFreeLimit) && props.FreeLimitExhaustionBehavior != nil {
+				freeLimitExhaustionBehavior = pointer.FromEnum(props.FreeLimitExhaustionBehavior)
 			}
+			d.Set("free_limit_exhaustion_behavior", freeLimitExhaustionBehavior)
 
 			if props.IsLedgerOn != nil {
 				ledgerEnabled = *props.IsLedgerOn
@@ -1365,11 +1385,10 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 		// Determine whether the SKU is for SQL Data Warehouse
 		isDwSku := strings.HasPrefix(strings.ToLower(skuName), "dw")
 
-		// Determine whether the SKU is for SQL Database Free tier.
-		isFreeSku := model.Properties != nil && pointer.From(model.Properties.UseFreeLimit)
+		// BillOverUsage free-offer databases support normal backup retention policies.
+		isAutoPauseFreeDatabase := model.Properties != nil && pointer.From(model.Properties.UseFreeLimit) && pointer.From(model.Properties.FreeLimitExhaustionBehavior) != databases.FreeLimitExhaustionBehaviorBillOverUsage
 
-		// DW SKUs and SQL Database Free tier do not currently support LRP and do not honour normal SRP operations
-		if !isDwSku && !isFreeSku {
+		if !isDwSku && !isAutoPauseFreeDatabase {
 			longTermPolicy, err := longTermRetentionClient.Get(ctx, pointer.From(id))
 			if err != nil {
 				return fmt.Errorf("retrieving Long Term Retention Policies for %s: %+v", id, err)
@@ -1392,7 +1411,7 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 				}
 			}
 		} else {
-			// DW SKUs and SQL Database Free tier need the retention policies to be empty for state consistency
+			// DW and AutoPause free-offer databases cannot use normal retention policies.
 			emptySlice := make([]any, 0)
 			d.Set("long_term_retention_policy", emptySlice)
 			d.Set("short_term_retention_policy", emptySlice)
@@ -1407,9 +1426,9 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 				return fmt.Errorf("retrieving Geo Backup Policies for %s: %+v", id, err)
 			}
 
-			// For Datawarehouse SKUs and SQL Database Free tier, set the geo-backup policy setting
+			// For Datawarehouse and AutoPause free-offer databases, set the geo-backup policy setting.
 			if geoPolicyModel := geoPoliciesResponse.Model; geoPolicyModel != nil {
-				if (isDwSku || isFreeSku) && geoPolicyModel.Properties.State == geobackuppolicies.GeoBackupPolicyStateDisabled {
+				if (isDwSku || isAutoPauseFreeDatabase) && geoPolicyModel.Properties.State == geobackuppolicies.GeoBackupPolicyStateDisabled {
 					geoBackupPolicy = false
 				}
 			}
@@ -1595,7 +1614,7 @@ func resourceMsSqlDatabaseMaintenanceNames() []string {
 }
 
 func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -1787,15 +1806,13 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"free_limit_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
+			Default:  false,
 		},
 
 		"free_limit_exhaustion_behavior": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			// NOTE: O+C - the API assigns `AutoPause` when this is omitted. `BillOverUsage` -> `AutoPause` is a
-			// one-way transition the service rejects, so the value is intentionally retained rather than
-			// reset to the default when removed from config.
-			Computed:     true,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(databases.FreeLimitExhaustionBehaviorAutoPause),
 			ValidateFunc: validation.StringInSlice(databases.PossibleValuesForFreeLimitExhaustionBehavior(), false),
 		},
 
@@ -1945,6 +1962,25 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.SixPointOh() {
+		s["free_limit_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			// NOTE: O+C - preserve existing free-offer settings when upgrading from a provider that did not expose this field.
+			Computed: true,
+		}
+
+		s["free_limit_exhaustion_behavior"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C - preserve the existing behavior in 5.x so an omitted field does not force replacement on upgrade.
+			Computed:     true,
+			ValidateFunc: validation.StringInSlice(databases.PossibleValuesForFreeLimitExhaustionBehavior(), false),
+		}
+	}
+
+	return s
 }
 
 func calculateMaxSizeBytes(v float64) (*int64, error) {
