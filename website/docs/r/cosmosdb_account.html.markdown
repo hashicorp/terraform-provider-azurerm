@@ -140,9 +140,9 @@ The following arguments are supported:
 
 * `ip_range_filter` - (Optional) A set of IP addresses or IP address ranges in CIDR form to be included as the allowed list of client IPs for a given database account. For example `["55.0.1.0/24", "55.0.2.0/24"]`.
 
-~> **Note:** To enable the "Allow access from the Azure portal" behavior, you should add the IP addresses provided by the [documentation](https://docs.microsoft.com/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-the-azure-portal) to this list.
+~> **Note:** To enable the "Allow access from the Azure portal" behaviour, you should add the IP addresses provided by the [documentation](https://docs.microsoft.com/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-the-azure-portal) to this list.
 
-~> **Note:** To enable the "Accept connections from within public Azure datacenters" behavior, you should add `0.0.0.0` to the list, see the [documentation](https://docs.microsoft.com/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-global-azure-datacenters-or-other-sources-within-azure) for more details.
+~> **Note:** To enable the "Accept connections from within public Azure datacenters" behaviour, you should add `0.0.0.0` to the list, see the [documentation](https://docs.microsoft.com/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-global-azure-datacenters-or-other-sources-within-azure) for more details.
 
 * `free_tier_enabled` - (Optional) Enable the Free Tier pricing option for this Cosmos DB account. Defaults to `false`. Changing this forces a new resource to be created.
 
@@ -176,9 +176,9 @@ The following arguments are supported:
 
 * `network_acl_bypass_ids` - (Optional) The list of resource Ids for Network Acl Bypass for this Cosmos DB account.
 
-* `local_authentication_enabled` - (Optional) Whether `local authentication` is enabled. Defaults to `true`.
+* `local_authentication_enabled` - (Optional) Whether local authentication is enabled, when disabled only MSI and AAD can be used exclusively for authentication. Defaults to `true`.
 
-~> **Note:** This can be disabled only when using the SQL API. When disabled, account key and connection string attributes are empty.
+~> **Note:** When local authentication is disabled, the account key and connection string attributes are empty.
 
 * `backup` - (Optional) A `backup` block as defined below.
 

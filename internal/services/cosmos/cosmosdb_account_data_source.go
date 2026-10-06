@@ -252,7 +252,7 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -277,11 +277,11 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("resource_group_name", id.ResourceGroupName)
 
 		d.Set("location", location.NormalizeNilable(model.Location))
-		d.Set("kind", string(pointer.From(model.Kind)))
+		d.Set("kind", pointer.FromEnum(model.Kind))
 
 		if props := model.Properties; props != nil {
 			localAuthenticationDisabled = pointer.From(props.DisableLocalAuth)
-			d.Set("offer_type", string(pointer.From(props.DatabaseAccountOfferType)))
+			d.Set("offer_type", pointer.FromEnum(props.DatabaseAccountOfferType))
 			d.Set("ip_range_filter", common.CosmosDBIpRulesToIpRangeFilter(props.IPRules))
 			d.Set("endpoint", props.DocumentEndpoint)
 			d.Set("is_virtual_network_filter_enabled", props.IsVirtualNetworkFilterEnabled)
@@ -297,7 +297,7 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 				return fmt.Errorf("setting `consistency_policy`: %+v", err)
 			}
 
-			locations := make([]map[string]interface{}, len(*props.FailoverPolicies))
+			locations := make([]map[string]any, len(*props.FailoverPolicies))
 
 			// the original procedure leads to a sorted locations slice by using failover priority as index
 			// sort `geo_locations` by failover priority if we found priorities were not within limitation.
@@ -307,7 +307,7 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 					return *policies[i].FailoverPriority < *policies[j].FailoverPriority
 				})
 				for i, l := range policies {
-					locations[i] = map[string]interface{}{
+					locations[i] = map[string]any{
 						"id":                *l.Id,
 						"location":          location.NormalizeNilable(l.LocationName),
 						"failover_priority": int(*l.FailoverPriority),
@@ -315,7 +315,7 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 				}
 			} else {
 				for _, l := range *props.FailoverPolicies {
-					locations[*l.FailoverPriority] = map[string]interface{}{
+					locations[*l.FailoverPriority] = map[string]any{
 						"id":                *l.Id,
 						"location":          location.NormalizeNilable(l.LocationName),
 						"failover_priority": int(*l.FailoverPriority),
@@ -426,12 +426,12 @@ func anyUnexpectedFailoverPriority(failoverPolicies []cosmosdb.FailoverPolicy) b
 	return false
 }
 
-func flattenAzureRmCosmosDBAccountCapabilitiesAsList(capabilities *[]cosmosdb.Capability) *[]map[string]interface{} {
-	slice := make([]map[string]interface{}, 0)
+func flattenAzureRmCosmosDBAccountCapabilitiesAsList(capabilities *[]cosmosdb.Capability) *[]map[string]any {
+	slice := make([]map[string]any, 0)
 
 	for _, c := range *capabilities {
 		if v := c.Name; v != nil {
-			e := map[string]interface{}{
+			e := map[string]any{
 				"name": *v,
 			}
 			slice = append(slice, e)
@@ -441,14 +441,14 @@ func flattenAzureRmCosmosDBAccountCapabilitiesAsList(capabilities *[]cosmosdb.Ca
 	return &slice
 }
 
-func flattenAzureRmCosmosDBAccountVirtualNetworkRulesAsList(rules *[]cosmosdb.VirtualNetworkRule) []map[string]interface{} {
+func flattenAzureRmCosmosDBAccountVirtualNetworkRulesAsList(rules *[]cosmosdb.VirtualNetworkRule) []map[string]any {
 	if rules == nil {
-		return []map[string]interface{}{}
+		return []map[string]any{}
 	}
 
-	virtualNetworkRules := make([]map[string]interface{}, len(*rules))
+	virtualNetworkRules := make([]map[string]any, len(*rules))
 	for i, r := range *rules {
-		virtualNetworkRules[i] = map[string]interface{}{
+		virtualNetworkRules[i] = map[string]any{
 			"id": *r.Id,
 		}
 	}

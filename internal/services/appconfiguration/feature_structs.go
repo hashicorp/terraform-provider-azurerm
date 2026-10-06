@@ -20,19 +20,19 @@ const (
 )
 
 type ClientFilter struct {
-	Filters []interface{}
+	Filters []any
 }
 
 func (p *ClientFilter) UnmarshalJSON(b []byte) error {
-	var tempIntf []interface{}
+	var tempIntf []any
 
 	if err := json.Unmarshal(b, &tempIntf); err != nil {
 		return err
 	}
 
-	filtersOut := make([]interface{}, 0)
+	filtersOut := make([]any, 0)
 	for _, filterRawIntf := range tempIntf {
-		filterRaw, ok := filterRawIntf.(map[string]interface{})
+		filterRaw, ok := filterRawIntf.(map[string]any)
 		if !ok {
 			return fmt.Errorf("wtf")
 		}
@@ -138,8 +138,8 @@ type TargetingFeatureFilter struct {
 }
 
 type TimewindowFilterParameters struct {
-	Start string `json:"Start" tfschema:"start"`
-	End   string `json:"End"   tfschema:"end"`
+	Start string `json:"Start,omitempty" tfschema:"start"`
+	End   string `json:"End,omitempty"   tfschema:"end"`
 }
 
 type TimewindowFeatureFilter struct {

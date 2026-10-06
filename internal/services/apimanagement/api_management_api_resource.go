@@ -333,7 +333,7 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v any) error {
 				values := d.GetRawConfig().AsValueMap()
 				if d.Get("version").(string) != "" && values["version_set_id"].IsNull() {
 					return errors.New("setting `version` without the required `version_set_id`")
@@ -353,7 +353,7 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementApiCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementApiCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ApiClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -392,7 +392,7 @@ func resourceApiManagementApiCreate(d *pluginsdk.ResourceData, meta interface{})
 	// If import is used, we need to send properties to Azure API in two operations.
 	// First we execute import and then updated the other props.
 	if importVs, ok := d.GetOk("import"); ok {
-		if apiParams := expandApiManagementApiImport(importVs.([]interface{}), apiType, soapApiType,
+		if apiParams := expandApiManagementApiImport(importVs.([]any), apiType, soapApiType,
 			path, d.Get("service_url").(string), version, versionSetId); apiParams != nil {
 			result, err := client.CreateOrUpdate(ctx, id, *apiParams, api.CreateOrUpdateOperationOptions{})
 			if err != nil {
@@ -411,20 +411,20 @@ func resourceApiManagementApiCreate(d *pluginsdk.ResourceData, meta interface{})
 	serviceUrl := d.Get("service_url").(string)
 	subscriptionRequired := d.Get("subscription_required").(bool)
 
-	subscriptionKeyParameterNames := expandApiManagementApiSubscriptionKeyParamNames(d.Get("subscription_key_parameter_names").([]interface{}))
+	subscriptionKeyParameterNames := expandApiManagementApiSubscriptionKeyParamNames(d.Get("subscription_key_parameter_names").([]any))
 
 	authenticationSettings := &api.AuthenticationSettingsContract{}
 
-	oAuth2AuthorizationSettingsRaw := d.Get("oauth2_authorization").([]interface{})
+	oAuth2AuthorizationSettingsRaw := d.Get("oauth2_authorization").([]any)
 	authenticationSettings.OAuth2 = expandApiManagementOAuth2AuthenticationSettingsContract(oAuth2AuthorizationSettingsRaw)
 
-	openIDAuthorizationSettingsRaw := d.Get("openid_authentication").([]interface{})
+	openIDAuthorizationSettingsRaw := d.Get("openid_authentication").([]any)
 	authenticationSettings.Openid = expandApiManagementOpenIDAuthenticationSettingsContract(openIDAuthorizationSettingsRaw)
 
-	contactInfoRaw := d.Get("contact").([]interface{})
+	contactInfoRaw := d.Get("contact").([]any)
 	contactInfo := expandApiManagementApiContact(contactInfoRaw)
 
-	licenseInfoRaw := d.Get("license").([]interface{})
+	licenseInfoRaw := d.Get("license").([]any)
 	licenseInfo := expandApiManagementApiLicense(licenseInfoRaw)
 
 	params := api.ApiCreateOrUpdateParameter{
@@ -488,7 +488,7 @@ func resourceApiManagementApiCreate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceApiManagementApiRead(d, meta)
 }
 
-func resourceApiManagementApiUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementApiUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ApiClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -517,7 +517,7 @@ func resourceApiManagementApiUpdate(d *pluginsdk.ResourceData, meta interface{})
 	// First we execute import and then updated the other props.
 	if d.HasChange("import") {
 		if vs, hasImport := d.GetOk("import"); hasImport {
-			if apiParams := expandApiManagementApiImport(vs.([]interface{}), apiType, soapApiType,
+			if apiParams := expandApiManagementApiImport(vs.([]any), apiType, soapApiType,
 				path, serviceUrl, version, versionSetId); apiParams != nil {
 				result, err := client.CreateOrUpdate(ctx, *id, *apiParams, api.CreateOrUpdateOperationOptions{})
 				if err != nil {
@@ -573,7 +573,7 @@ func resourceApiManagementApiUpdate(d *pluginsdk.ResourceData, meta interface{})
 	//   3. Cannot use `OpenidAuthenticationSettings` in combination with `Openid` nor `OAuth2`
 	// If specifying `oauth2_authorization`/`openid_authentication` when creating a resource and then updating the resource, the error #2/#3 mentioned above will occur.
 	// This is because starting from the 2022-08-01 version, the Get API additionally returns a collection of `oauth2_authorization`/`openid_authentication` authentication settings, which property name is `OAuth2AuthenticationSettings`/`OpenidAuthenticationSetting`.
-	// Given the API behavior, the update here should only read the specified property `oauth2_authorization`/`openid_authentication` to exclude `OAuth2AuthenticationSettings`/`OpenidAuthenticationSetting` to ensure the update works properly.
+	// Given the API behaviour, the update here should only read the specified property `oauth2_authorization`/`openid_authentication` to exclude `OAuth2AuthenticationSettings`/`OpenidAuthenticationSetting` to ensure the update works properly.
 	if v := existing.AuthenticationSettings; v != nil {
 		authenticationSettings := &api.AuthenticationSettingsContract{}
 		if v.OAuth2 != nil {
@@ -620,30 +620,30 @@ func resourceApiManagementApiUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if d.HasChange("subscription_key_parameter_names") {
-		subscriptionKeyParameterNamesRaw := d.Get("subscription_key_parameter_names").([]interface{})
+		subscriptionKeyParameterNamesRaw := d.Get("subscription_key_parameter_names").([]any)
 		prop.SubscriptionKeyParameterNames = expandApiManagementApiSubscriptionKeyParamNames(subscriptionKeyParameterNamesRaw)
 	}
 
 	if d.HasChange("oauth2_authorization") {
 		authenticationSettings := &api.AuthenticationSettingsContract{}
-		oAuth2AuthorizationSettingsRaw := d.Get("oauth2_authorization").([]interface{})
+		oAuth2AuthorizationSettingsRaw := d.Get("oauth2_authorization").([]any)
 		authenticationSettings.OAuth2 = expandApiManagementOAuth2AuthenticationSettingsContract(oAuth2AuthorizationSettingsRaw)
 		prop.AuthenticationSettings = authenticationSettings
 	}
 
 	if d.HasChange("openid_authentication") {
 		authenticationSettings := &api.AuthenticationSettingsContract{}
-		openIDAuthorizationSettingsRaw := d.Get("openid_authentication").([]interface{})
+		openIDAuthorizationSettingsRaw := d.Get("openid_authentication").([]any)
 		authenticationSettings.Openid = expandApiManagementOpenIDAuthenticationSettingsContract(openIDAuthorizationSettingsRaw)
 		prop.AuthenticationSettings = authenticationSettings
 	}
 
 	if d.HasChange("contact") {
-		prop.Contact = expandApiManagementApiContact(d.Get("contact").([]interface{}))
+		prop.Contact = expandApiManagementApiContact(d.Get("contact").([]any))
 	}
 
 	if d.HasChange("license") {
-		prop.License = expandApiManagementApiLicense(d.Get("license").([]interface{}))
+		prop.License = expandApiManagementApiLicense(d.Get("license").([]any))
 	}
 
 	if d.HasChange("source_api_id") {
@@ -685,7 +685,7 @@ func resourceApiManagementApiUpdate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceApiManagementApiRead(d, meta)
 }
 
-func resourceApiManagementApiRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementApiRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ApiClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -712,7 +712,7 @@ func resourceApiManagementApiRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			apiType := string(pointer.From(props.Type))
+			apiType := pointer.FromEnum(props.Type)
 			if len(apiType) == 0 {
 				apiType = string(api.ApiTypeHTTP)
 			}
@@ -759,7 +759,7 @@ func resourceApiManagementApiRead(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceApiManagementApiDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementApiDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ApiClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -787,12 +787,12 @@ func soapApiTypeFromApiType(apiType api.ApiType) api.SoapApiType {
 	}[apiType]
 }
 
-func expandApiManagementApiImport(importVs []interface{}, apiType api.ApiType, soapApiType api.SoapApiType, path, serviceUrl, version, versionSetId string) *api.ApiCreateOrUpdateParameter {
+func expandApiManagementApiImport(importVs []any, apiType api.ApiType, soapApiType api.SoapApiType, path, serviceUrl, version, versionSetId string) *api.ApiCreateOrUpdateParameter {
 	if len(importVs) == 0 || importVs[0] == nil {
 		return nil
 	}
 
-	importV := importVs[0].(map[string]interface{})
+	importV := importVs[0].(map[string]any)
 	if len(importV) == 0 {
 		return nil
 	}
@@ -810,9 +810,9 @@ func expandApiManagementApiImport(importVs []interface{}, apiType api.ApiType, s
 		},
 	}
 
-	wsdlSelectorVs := importV["wsdl_selector"].([]interface{})
+	wsdlSelectorVs := importV["wsdl_selector"].([]any)
 	if len(wsdlSelectorVs) > 0 && wsdlSelectorVs[0] != nil {
-		if wsdlSelectorV := wsdlSelectorVs[0].(map[string]interface{}); len(wsdlSelectorV) > 0 {
+		if wsdlSelectorV := wsdlSelectorVs[0].(map[string]any); len(wsdlSelectorV) > 0 {
 			wSvcName := wsdlSelectorV["service_name"].(string)
 			wEndpName := wsdlSelectorV["endpoint_name"].(string)
 
@@ -837,7 +837,7 @@ func expandApiManagementApiImport(importVs []interface{}, apiType api.ApiType, s
 	return &apiParams
 }
 
-func expandApiManagementApiProtocols(input []interface{}) *[]api.Protocol {
+func expandApiManagementApiProtocols(input []any) *[]api.Protocol {
 	if len(input) == 0 {
 		return nil
 	}
@@ -863,12 +863,12 @@ func flattenApiManagementApiProtocols(input *[]api.Protocol) []string {
 	return results
 }
 
-func expandApiManagementApiSubscriptionKeyParamNames(input []interface{}) *api.SubscriptionKeyParameterNamesContract {
+func expandApiManagementApiSubscriptionKeyParamNames(input []any) *api.SubscriptionKeyParameterNamesContract {
 	if len(input) == 0 {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	query := v["query"].(string)
 	header := v["header"].(string)
 	contract := api.SubscriptionKeyParameterNamesContract{
@@ -878,57 +878,57 @@ func expandApiManagementApiSubscriptionKeyParamNames(input []interface{}) *api.S
 	return &contract
 }
 
-func flattenApiManagementApiSubscriptionKeyParamNames(paramNames *api.SubscriptionKeyParameterNamesContract) []interface{} {
+func flattenApiManagementApiSubscriptionKeyParamNames(paramNames *api.SubscriptionKeyParameterNamesContract) []any {
 	if paramNames == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 
 	result["header"] = pointer.From(paramNames.Header)
 	result["query"] = pointer.From(paramNames.Query)
 
-	return []interface{}{result}
+	return []any{result}
 }
 
-func expandApiManagementOAuth2AuthenticationSettingsContract(input []interface{}) *api.OAuth2AuthenticationSettingsContract {
+func expandApiManagementOAuth2AuthenticationSettingsContract(input []any) *api.OAuth2AuthenticationSettingsContract {
 	if len(input) == 0 {
 		return nil
 	}
 
-	oAuth2AuthorizationV := input[0].(map[string]interface{})
+	oAuth2AuthorizationV := input[0].(map[string]any)
 	return &api.OAuth2AuthenticationSettingsContract{
 		AuthorizationServerId: pointer.To(oAuth2AuthorizationV["authorization_server_name"].(string)),
 		Scope:                 pointer.To(oAuth2AuthorizationV["scope"].(string)),
 	}
 }
 
-func flattenApiManagementOAuth2Authorization(input *api.OAuth2AuthenticationSettingsContract) []interface{} {
+func flattenApiManagementOAuth2Authorization(input *api.OAuth2AuthenticationSettingsContract) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 
 	result["authorization_server_name"] = pointer.From(input.AuthorizationServerId)
 	result["scope"] = pointer.From(input.Scope)
 
-	return []interface{}{result}
+	return []any{result}
 }
 
-func expandApiManagementOpenIDAuthenticationSettingsContract(input []interface{}) *api.OpenIdAuthenticationSettingsContract {
+func expandApiManagementOpenIDAuthenticationSettingsContract(input []any) *api.OpenIdAuthenticationSettingsContract {
 	if len(input) == 0 {
 		return nil
 	}
 
-	openIDAuthorizationV := input[0].(map[string]interface{})
+	openIDAuthorizationV := input[0].(map[string]any)
 	return &api.OpenIdAuthenticationSettingsContract{
 		OpenidProviderId:          pointer.To(openIDAuthorizationV["openid_provider_name"].(string)),
 		BearerTokenSendingMethods: expandApiManagementOpenIDAuthenticationSettingsBearerTokenSendingMethods(openIDAuthorizationV["bearer_token_sending_methods"].(*pluginsdk.Set).List()),
 	}
 }
 
-func expandApiManagementOpenIDAuthenticationSettingsBearerTokenSendingMethods(input []interface{}) *[]api.BearerTokenSendingMethods {
+func expandApiManagementOpenIDAuthenticationSettingsBearerTokenSendingMethods(input []any) *[]api.BearerTokenSendingMethods {
 	if input == nil {
 		return nil
 	}
@@ -941,16 +941,16 @@ func expandApiManagementOpenIDAuthenticationSettingsBearerTokenSendingMethods(in
 	return &results
 }
 
-func flattenApiManagementOpenIDAuthentication(input *api.OpenIdAuthenticationSettingsContract) []interface{} {
+func flattenApiManagementOpenIDAuthentication(input *api.OpenIdAuthenticationSettingsContract) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 
 	result["openid_provider_name"] = pointer.From(input.OpenidProviderId)
 
-	bearerTokenSendingMethods := make([]interface{}, 0)
+	bearerTokenSendingMethods := make([]any, 0)
 	if s := input.BearerTokenSendingMethods; s != nil {
 		for _, v := range *s {
 			bearerTokenSendingMethods = append(bearerTokenSendingMethods, string(v))
@@ -958,15 +958,15 @@ func flattenApiManagementOpenIDAuthentication(input *api.OpenIdAuthenticationSet
 	}
 	result["bearer_token_sending_methods"] = pluginsdk.NewSet(pluginsdk.HashString, bearerTokenSendingMethods)
 
-	return []interface{}{result}
+	return []any{result}
 }
 
-func expandApiManagementApiContact(input []interface{}) *api.ApiContactInformation {
+func expandApiManagementApiContact(input []any) *api.ApiContactInformation {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	return &api.ApiContactInformation{
 		Email: pointer.To(v["email"].(string)),
 		Name:  pointer.To(v["name"].(string)),
@@ -974,43 +974,43 @@ func expandApiManagementApiContact(input []interface{}) *api.ApiContactInformati
 	}
 }
 
-func flattenApiManagementApiContact(contact *api.ApiContactInformation) []interface{} {
+func flattenApiManagementApiContact(contact *api.ApiContactInformation) []any {
 	if contact == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 
 	result["email"] = pointer.From(contact.Email)
 	result["name"] = pointer.From(contact.Name)
 	result["url"] = pointer.From(contact.Url)
 
-	return []interface{}{result}
+	return []any{result}
 }
 
-func expandApiManagementApiLicense(input []interface{}) *api.ApiLicenseInformation {
+func expandApiManagementApiLicense(input []any) *api.ApiLicenseInformation {
 	if len(input) == 0 {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	return &api.ApiLicenseInformation{
 		Name: pointer.To(v["name"].(string)),
 		Url:  pointer.To(v["url"].(string)),
 	}
 }
 
-func flattenApiManagementApiLicense(license *api.ApiLicenseInformation) []interface{} {
+func flattenApiManagementApiLicense(license *api.ApiLicenseInformation) []any {
 	if license == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 
 	result["name"] = pointer.From(license.Name)
 	result["url"] = pointer.From(license.Url)
 
-	return []interface{}{result}
+	return []any{result}
 }
 
 func getApiName(apiId string) string {

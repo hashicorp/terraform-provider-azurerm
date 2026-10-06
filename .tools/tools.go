@@ -1,0 +1,22 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+//go:build tools
+
+// Package tools pins the dev tool dependencies. The tag above means this file never compiles;
+// the blank imports exist so go mod tidy treats the tools as direct dependencies and keeps them
+// in their own require block, separate from the wall of transitive // indirect requirements.
+package tools
+
+import (
+	_ "github.com/YakDriver/tfproviderdocs"
+	_ "github.com/apache/skywalking-eyes/cmd/license-eye"
+	_ "github.com/golangci/golangci-lint/v2/cmd/golangci-lint"
+	_ "github.com/katbyte/actionlint/cmd/actionlint"
+	_ "github.com/katbyte/tctest"
+	_ "github.com/katbyte/terrafmt"
+	_ "github.com/sreallymatt/changeloggy"
+	_ "golang.org/x/tools/cmd/goimports"
+	_ "gotest.tools/gotestsum"
+	_ "mvdan.cc/gofumpt"
+)

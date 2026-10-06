@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func ContainerRegistryWebhookServiceUri(v interface{}, k string) ([]string, []error) {
+func ContainerRegistryWebhookServiceUri(v any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile(`^https?://[^\s]+$`), "must start with http:// or https:// and must not contain whitespaces")(v, k)
 }

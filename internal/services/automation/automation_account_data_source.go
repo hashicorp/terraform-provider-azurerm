@@ -132,7 +132,7 @@ func dataSourceAutomationAccount() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceAutomationAccountRead(d *pluginsdk.ResourceData, meta any) error {
 	iclient := meta.(*clients.Client).Automation.AgentRegistrationInfoClient
 	client := meta.(*clients.Client).Automation.AutomationAccount
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -146,14 +146,14 @@ func dataSourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}
 		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("retreiving %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 	d.SetId(id.ID())
 
 	infoId := agentregistrationinformation.NewAutomationAccountID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName)
 	infoResp, err := iclient.Get(ctx, infoId)
 	if err != nil {
-		return fmt.Errorf("retreiving Agent Registration Information for %s: %+v", id, err)
+		return fmt.Errorf("retrieving Agent Registration Information for %s: %+v", id, err)
 	}
 
 	if model := resp.Model; model != nil {
@@ -208,14 +208,14 @@ func dataSourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func flattenPrivateEndpointConnectionsDataSource(input *[]automationaccount.PrivateEndpointConnection) []interface{} {
+func flattenPrivateEndpointConnectionsDataSource(input *[]automationaccount.PrivateEndpointConnection) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 	for _, item := range *input {
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"id":   pointer.From(item.Id),
 			"name": pointer.From(item.Name),
 		})

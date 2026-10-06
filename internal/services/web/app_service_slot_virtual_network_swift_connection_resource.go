@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
-	networkpoller "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/custompollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -64,7 +64,7 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnection() *pluginsdk.Resource {
 	}
 }
 
-func resourceAppServiceSlotVirtualNetworkSwiftConnectionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceSlotVirtualNetworkSwiftConnectionCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.WebAppsClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -117,7 +117,7 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnectionCreate(d *pluginsdk.Reso
 		return fmt.Errorf("creating association between %s and %s: %w", appSlotID, subnetID, err)
 	}
 
-	pollerType := networkpoller.NewVirtualNetworkAndSubnetProvisioningSucceededPoller(meta.(*clients.Client).Network, subnetID)
+	pollerType := custompollers.NewVirtualNetworkAndSubnetProvisioningSucceededPoller(meta.(*clients.Client).Network, subnetID)
 	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("polling for completion of association between %s and %s: %w", appSlotID, subnetID, err)
@@ -143,7 +143,7 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnectionCreate(d *pluginsdk.Reso
 	return resourceAppServiceSlotVirtualNetworkSwiftConnectionRead(d, meta)
 }
 
-func resourceAppServiceSlotVirtualNetworkSwiftConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceSlotVirtualNetworkSwiftConnectionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.WebAppsClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -184,7 +184,7 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnectionRead(d *pluginsdk.Resour
 	return nil
 }
 
-func resourceAppServiceSlotVirtualNetworkSwiftConnectionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceSlotVirtualNetworkSwiftConnectionUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.WebAppsClient
 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -220,7 +220,7 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnectionUpdate(d *pluginsdk.Reso
 		return fmt.Errorf("updating association between %s and %s: %w", appSlotID, subnetID, err)
 	}
 
-	pollerType := networkpoller.NewVirtualNetworkAndSubnetProvisioningSucceededPoller(meta.(*clients.Client).Network, subnetID)
+	pollerType := custompollers.NewVirtualNetworkAndSubnetProvisioningSucceededPoller(meta.(*clients.Client).Network, subnetID)
 	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("polling for completion of association between %s and %s: %w", appSlotID, subnetID, err)
@@ -229,7 +229,7 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnectionUpdate(d *pluginsdk.Reso
 	return resourceAppServiceSlotVirtualNetworkSwiftConnectionRead(d, meta)
 }
 
-func resourceAppServiceSlotVirtualNetworkSwiftConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceSlotVirtualNetworkSwiftConnectionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.WebAppsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
