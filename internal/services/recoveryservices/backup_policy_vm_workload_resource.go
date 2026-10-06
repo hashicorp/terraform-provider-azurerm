@@ -1121,7 +1121,7 @@ func expandBackupProtectionPolicyVMWorkloadTieringPolicy(input []TieringPolicy) 
 		arp := input[0].ArchivedRestorePoint[0]
 
 		tieringPolicy := protectionpolicies.TieringPolicy{
-			TieringMode: pointer.To(protectionpolicies.TieringMode(arp.Mode)),
+			TieringMode: pointer.ToEnum[protectionpolicies.TieringMode](arp.Mode),
 		}
 
 		if arp.Duration != 0 {
@@ -1129,7 +1129,7 @@ func expandBackupProtectionPolicyVMWorkloadTieringPolicy(input []TieringPolicy) 
 		}
 
 		if arp.DurationType != "" {
-			tieringPolicy.DurationType = pointer.To(protectionpolicies.RetentionDurationType(arp.DurationType))
+			tieringPolicy.DurationType = pointer.ToEnum[protectionpolicies.RetentionDurationType](arp.DurationType)
 		}
 
 		result["ArchivedRP"] = tieringPolicy
@@ -1185,9 +1185,9 @@ func flattenBackupProtectionPolicyVMWorkloadTieringPolicy(input *map[string]prot
 		{
 			ArchivedRestorePoint: []ArchivedRestorePoint{
 				{
-					Mode:         string(pointer.From(archivedRP.TieringMode)),
+					Mode:         pointer.FromEnum(archivedRP.TieringMode),
 					Duration:     pointer.From(archivedRP.Duration),
-					DurationType: string(pointer.From(archivedRP.DurationType)),
+					DurationType: pointer.FromEnum(archivedRP.DurationType),
 				},
 			},
 		},
