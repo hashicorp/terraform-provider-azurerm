@@ -82,7 +82,7 @@ An `encryption_settings` block supports the following:
 
 * `key_vault_key_id` - (Required) The ID of the Key Vault Key which should be used to encrypt the data in this Backup Vault.
 
-* `infrastructure_encryption_enabled` - (Required) Whether to enable [infrastructure encryption](https://learn.microsoft.com/en-us/azure/storage/common/infrastructure-encryption-enable?tabs=portal). Changing this forces a new resource to be created.
+* `infrastructure_encryption_enabled` - (Required) Whether to enable [infrastructure encryption](https://learn.microsoft.com/azure/storage/common/infrastructure-encryption-enable?tabs=portal). Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
