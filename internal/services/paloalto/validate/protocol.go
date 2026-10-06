@@ -5,6 +5,7 @@ package validate
 
 import (
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -20,10 +21,8 @@ func ProtocolWithPort(input any, k string) (warnings []string, errors []error) {
 		return
 	}
 
-	for _, standalone := range protocolWithPortStandaloneValues {
-		if v == standalone {
-			return
-		}
+	if slices.Contains(protocolWithPortStandaloneValues, v) {
+		return
 	}
 
 	parts := strings.SplitN(v, ":", 2)
