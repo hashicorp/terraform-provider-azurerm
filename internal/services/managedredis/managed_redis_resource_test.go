@@ -104,23 +104,23 @@ func TestAccManagedRedis_updateSku(t *testing.T) {
 }
 
 func TestAccManagedRedis_updateClusteringPolicyFromNoCluster(t *testing.T) {
-  data := acceptance.BuildTestData(t, "azurerm_managed_redis", "test")
-  r := ManagedRedisResource{}
-  data.ResourceTest(t, r, []acceptance.TestStep{
-    {
-      Config: r.clusteringPolicy(data, "NoCluster"),
-      Check: acceptance.ComposeTestCheckFunc(
-        check.That(data.ResourceName).Key("default_database.0.clustering_policy").HasValue("NoCluster"),
-      ),
-    },
-    {
-      Config: r.clusteringPolicy(data, "EnterpriseCluster"),
-      Check: acceptance.ComposeTestCheckFunc(
-        check.That(data.ResourceName).Key("default_database.0.clustering_policy").HasValue("EnterpriseCluster"),
-      ),
-    },
-    data.ImportStep(),
-  })
+	data := acceptance.BuildTestData(t, "azurerm_managed_redis", "test")
+	r := ManagedRedisResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.clusteringPolicy(data, "NoCluster"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("default_database.0.clustering_policy").HasValue("NoCluster"),
+			),
+		},
+		{
+			Config: r.clusteringPolicy(data, "EnterpriseCluster"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("default_database.0.clustering_policy").HasValue("EnterpriseCluster"),
+			),
+		},
+		data.ImportStep(),
+	})
 }
 
 func TestAccManagedRedis_withPrivateEndpoint(t *testing.T) {
