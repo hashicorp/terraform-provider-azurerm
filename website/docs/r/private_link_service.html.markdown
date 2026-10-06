@@ -10,7 +10,7 @@ description: |-
 
 Manages a Private Link Service.
 
--> **Note:** Private Link is now in [GA](https://docs.microsoft.com/en-gb/azure/private-link/).
+-> **Note:** Private Link is now in [GA](https://docs.microsoft.com/azure/private-link/).
 
 ## Example Usage
 
@@ -100,7 +100,7 @@ The following arguments are supported:
 
 * `destination_ip_address` - (Optional) The destination IP address of the Private Link Service.
 
-* `enable_proxy_protocol` - (Optional) Should the Private Link Service support the Proxy Protocol? 
+* `proxy_protocol_enabled` - (Optional) Should the Private Link Service support the Proxy Protocol? Defaults to `false`.
 
 * `fqdns` - (Optional) List of FQDNs allowed for the Private Link Service.
 
@@ -155,4 +155,4 @@ terraform import azurerm_private_link_service.example /subscriptions/00000000-00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2025-01-01
+* `Microsoft.Network` - 2025-07-01

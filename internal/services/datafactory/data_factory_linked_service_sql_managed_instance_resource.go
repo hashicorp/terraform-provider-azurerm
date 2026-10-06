@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory
@@ -31,7 +31,7 @@ type LinkedServiceSqlManagedInstanceModel struct {
 	IntegrationRuntimeName   string                           `tfschema:"integration_runtime_name"`
 	KeyVaultConnectionString []KeyVaultConnectionStringConfig `tfschema:"key_vault_connection_string"`
 	KeyVaultPassword         []KeyVaultPasswordConfig         `tfschema:"key_vault_password"`
-	Parameters               map[string]interface{}           `tfschema:"parameters"`
+	Parameters               map[string]any                   `tfschema:"parameters"`
 	ServicePrincipalID       string                           `tfschema:"service_principal_id"`
 	ServicePrincipalKey      string                           `tfschema:"service_principal_key"`
 	Tenant                   string                           `tfschema:"tenant"`
@@ -170,7 +170,7 @@ func (r LinkedServiceSqlManagedInstanceResource) Attributes() map[string]*plugin
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r LinkedServiceSqlManagedInstanceResource) ModelObject() interface{} {
+func (r LinkedServiceSqlManagedInstanceResource) ModelObject() any {
 	return &LinkedServiceSqlManagedInstanceModel{}
 }
 
@@ -197,13 +197,15 @@ func (r LinkedServiceSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 
 			id := linkedservices.NewLinkedServiceID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, config.Name)
 
-			existing, err := client.Get(ctx, id, linkedservices.DefaultGetOperationOptions())
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id, linkedservices.DefaultGetOperationOptions())
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				}
 			}
 
 			sqlMILinkedService := &linkedservices.AzureSqlMILinkedService{
@@ -216,7 +218,7 @@ func (r LinkedServiceSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 			}
 
 			if config.ConnectionString != "" {
-				sqlMILinkedService.TypeProperties.ConnectionString = pointer.To(interface{}(config.ConnectionString))
+				sqlMILinkedService.TypeProperties.ConnectionString = pointer.To(any(config.ConnectionString))
 			}
 
 			if len(config.KeyVaultConnectionString) > 0 {
@@ -224,7 +226,7 @@ func (r LinkedServiceSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 			}
 
 			if config.ServicePrincipalID != "" {
-				sqlMILinkedService.TypeProperties.ServicePrincipalId = pointer.To(interface{}(config.ServicePrincipalID))
+				sqlMILinkedService.TypeProperties.ServicePrincipalId = pointer.To(any(config.ServicePrincipalID))
 			}
 
 			if config.ServicePrincipalKey != "" {
@@ -234,7 +236,7 @@ func (r LinkedServiceSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 			}
 
 			if config.Tenant != "" {
-				sqlMILinkedService.TypeProperties.Tenant = pointer.To(interface{}(config.Tenant))
+				sqlMILinkedService.TypeProperties.Tenant = pointer.To(any(config.Tenant))
 			}
 
 			sqlMILinkedService.ConnectVia = expandLinkedServiceSqlManagedInstanceIntegrationRuntimeName(config.IntegrationRuntimeName)
@@ -305,7 +307,7 @@ func (r LinkedServiceSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 			if props.ConnectionString != nil {
 				val := pointer.From(props.ConnectionString)
 				switch v := val.(type) {
-				case map[string]interface{}:
+				case map[string]any:
 					state.KeyVaultConnectionString = flattenLinkedServiceSqlManagedInstanceKeyVaultConnectionString(v)
 				case string:
 					state.ConnectionString = v
@@ -364,7 +366,7 @@ func (r LinkedServiceSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 			typeProps := props.TypeProperties
 
 			if metadata.ResourceData.HasChanges("connection_string", "key_vault_connection_string") {
-				typeProps.ConnectionString = pointer.To(interface{}(config.ConnectionString))
+				typeProps.ConnectionString = pointer.To(any(config.ConnectionString))
 
 				if len(config.KeyVaultConnectionString) > 0 {
 					typeProps.ConnectionString = pointer.To(expandLinkedServiceSqlManagedInstanceKeyVaultConnectionString(config.KeyVaultConnectionString))
@@ -376,7 +378,7 @@ func (r LinkedServiceSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("service_principal_id") {
-				typeProps.ServicePrincipalId = pointer.To(interface{}(config.ServicePrincipalID))
+				typeProps.ServicePrincipalId = pointer.To(any(config.ServicePrincipalID))
 			}
 
 			if metadata.ResourceData.HasChange("service_principal_key") {
@@ -389,7 +391,7 @@ func (r LinkedServiceSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("tenant") {
-				typeProps.Tenant = pointer.To(interface{}(config.Tenant))
+				typeProps.Tenant = pointer.To(any(config.Tenant))
 			}
 
 			if metadata.ResourceData.HasChange("parameters") {
@@ -433,8 +435,7 @@ func (r LinkedServiceSqlManagedInstanceResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			_, err = client.Delete(ctx, *id)
-			if err != nil {
+			if _, err = client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
@@ -447,7 +448,7 @@ func (r LinkedServiceSqlManagedInstanceResource) IDValidationFunc() pluginsdk.Sc
 	return linkedservices.ValidateLinkedServiceID
 }
 
-func expandLinkedServiceSqlManagedInstanceKeyVaultConnectionString(input []KeyVaultConnectionStringConfig) interface{} {
+func expandLinkedServiceSqlManagedInstanceKeyVaultConnectionString(input []KeyVaultConnectionStringConfig) any {
 	if len(input) == 0 {
 		return nil
 	}
@@ -477,17 +478,17 @@ func expandLinkedServiceSqlManagedInstanceKeyVaultPassword(input []KeyVaultPassw
 	}
 }
 
-func flattenLinkedServiceSqlManagedInstanceKeyVaultConnectionString(input interface{}) []KeyVaultConnectionStringConfig {
+func flattenLinkedServiceSqlManagedInstanceKeyVaultConnectionString(input any) []KeyVaultConnectionStringConfig {
 	if input == nil {
 		return []KeyVaultConnectionStringConfig{}
 	}
 
-	flattened := flattenAzureKeyVaultConnectionString(input.(map[string]interface{}))
+	flattened := flattenAzureKeyVaultConnectionString(input.(map[string]any))
 	if len(flattened) == 0 {
 		return []KeyVaultConnectionStringConfig{}
 	}
 
-	configMap := flattened[0].(map[string]interface{})
+	configMap := flattened[0].(map[string]any)
 	return []KeyVaultConnectionStringConfig{{
 		LinkedServiceName: configMap["linked_service_name"].(string),
 		SecretName:        configMap["secret_name"].(string),
@@ -510,7 +511,7 @@ func flattenLinkedServiceSqlManagedInstanceKeyVaultPassword(input *linkedservice
 	return []KeyVaultPasswordConfig{config}
 }
 
-func expandLinkedServiceSqlManagedInstanceParameters(input map[string]interface{}) *map[string]linkedservices.ParameterSpecification {
+func expandLinkedServiceSqlManagedInstanceParameters(input map[string]any) *map[string]linkedservices.ParameterSpecification {
 	if len(input) == 0 {
 		return nil
 	}
@@ -525,8 +526,8 @@ func expandLinkedServiceSqlManagedInstanceParameters(input map[string]interface{
 	return &parameterSpec
 }
 
-func flattenLinkedServiceSqlManagedInstanceParameters(input *map[string]linkedservices.ParameterSpecification) map[string]interface{} {
-	output := make(map[string]interface{})
+func flattenLinkedServiceSqlManagedInstanceParameters(input *map[string]linkedservices.ParameterSpecification) map[string]any {
+	output := make(map[string]any)
 	if input == nil {
 		return output
 	}
@@ -541,19 +542,19 @@ func flattenLinkedServiceSqlManagedInstanceParameters(input *map[string]linkedse
 	return output
 }
 
-func expandLinkedServiceSqlManagedInstanceAnnotations(input []string) *[]interface{} {
+func expandLinkedServiceSqlManagedInstanceAnnotations(input []string) *[]any {
 	if len(input) == 0 {
 		return nil
 	}
 
-	annotations := make([]interface{}, len(input))
+	annotations := make([]any, len(input))
 	for i, v := range input {
 		annotations[i] = v
 	}
 	return &annotations
 }
 
-func flattenLinkedServiceSqlManagedInstanceAnnotations(input *[]interface{}) []string {
+func flattenLinkedServiceSqlManagedInstanceAnnotations(input *[]any) []string {
 	annotations := make([]string, 0)
 	if input == nil {
 		return annotations

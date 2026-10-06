@@ -57,7 +57,7 @@ The following arguments are supported:
 * `resource_id` - (Required) The ID of the associated resource. Changing this forces a new Network Security Perimeter Association to be created.
 
 -> **Note:** A resource can only be associated with one Network Security Perimeter at a time.
-If the target resource is already associated with another Network Security Perimeter, the creation of this association may appear to succeed in Terraform but will not be reflected in Azure. In such cases, the association will not actually exist and subsequent Terraform operations may show unexpected behavior.
+If the target resource is already associated with another Network Security Perimeter, the creation of this association may appear to succeed in Terraform but will not be reflected in Azure. In such cases, the association will not actually exist and subsequent Terraform operations may show unexpected behaviour.
 
 ## Attributes Reference
 
@@ -67,7 +67,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Network Security Perimeter Association.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Network Security Perimeter Association.
@@ -86,4 +86,4 @@ terraform import azurerm_network_security_perimeter_association.example /subscri
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2025-01-01
+* `Microsoft.Network` - 2025-07-01

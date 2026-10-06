@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/table/tables"
 )
 
@@ -53,5 +54,30 @@ func (w DataPlaneStorageTableWrapper) GetACLs(ctx context.Context, tableName str
 
 func (w DataPlaneStorageTableWrapper) UpdateACLs(ctx context.Context, tableName string, acls []tables.SignedIdentifier) error {
 	_, err := w.client.SetACL(ctx, tableName, acls)
+	return err
+}
+
+func (w DataPlaneStorageTableWrapper) GetServiceProperties(ctx context.Context) (*tables.StorageServiceProperties, error) {
+	serviceProps, err := w.client.GetServiceProperties(ctx)
+	if err != nil {
+		if serviceProps.HttpResponse == nil {
+			return nil, pollers.PollingDroppedConnectionError{
+				Message: err.Error(),
+			}
+		}
+		if response.WasNotFound(serviceProps.HttpResponse) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &serviceProps.StorageServiceProperties, nil
+}
+
+func (w DataPlaneStorageTableWrapper) UpdateServiceProperties(ctx context.Context, properties tables.StorageServiceProperties) error {
+	input := tables.SetStorageServicePropertiesInput{
+		Properties: properties,
+	}
+	_, err := w.client.SetServiceProperties(ctx, input)
 	return err
 }
