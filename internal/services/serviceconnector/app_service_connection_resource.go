@@ -91,7 +91,7 @@ func (r AppServiceConnectorResource) Attributes() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r AppServiceConnectorResource) ModelObject() interface{} {
+func (r AppServiceConnectorResource) ModelObject() any {
 	return &AppServiceConnectorResourceModel{}
 }
 

@@ -61,7 +61,7 @@ The following attributes are exported:
 
 * `data_protection_replication` - Volume data protection replication block
 
-* `data_protection_backup_policy` - A data protecion backup policy block
+* `data_protection_backup_policy` - A data protection backup policy block
 
 * `data_protection_advanced_ransomware` - An Advanced Ransomware Protection (ARP) data protection block.
 

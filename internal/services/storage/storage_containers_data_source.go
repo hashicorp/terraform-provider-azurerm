@@ -80,7 +80,7 @@ func (r storageContainersDataSource) ResourceType() string {
 	return "azurerm_storage_containers"
 }
 
-func (r storageContainersDataSource) ModelObject() interface{} {
+func (r storageContainersDataSource) ModelObject() any {
 	return &storageContainersDataSourceModel{}
 }
 
