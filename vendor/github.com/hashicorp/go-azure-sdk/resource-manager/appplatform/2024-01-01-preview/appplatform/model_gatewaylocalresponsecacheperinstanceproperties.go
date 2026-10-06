@@ -15,6 +15,14 @@ type GatewayLocalResponseCachePerInstanceProperties struct {
 	TimeToLive *string `json:"timeToLive,omitempty"`
 
 	// Fields inherited from GatewayResponseCacheProperties
+
+	ResponseCacheType string `json:"responseCacheType"`
+}
+
+func (s GatewayLocalResponseCachePerInstanceProperties) GatewayResponseCacheProperties() BaseGatewayResponseCachePropertiesImpl {
+	return BaseGatewayResponseCachePropertiesImpl{
+		ResponseCacheType: s.ResponseCacheType,
+	}
 }
 
 var _ json.Marshaler = GatewayLocalResponseCachePerInstanceProperties{}
@@ -28,9 +36,10 @@ func (s GatewayLocalResponseCachePerInstanceProperties) MarshalJSON() ([]byte, e
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling GatewayLocalResponseCachePerInstanceProperties: %+v", err)
 	}
+
 	decoded["responseCacheType"] = "LocalCachePerInstance"
 
 	encoded, err = json.Marshal(decoded)

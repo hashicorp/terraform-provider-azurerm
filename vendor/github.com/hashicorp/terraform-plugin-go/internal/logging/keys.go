@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2020, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package logging
@@ -29,6 +29,15 @@ const (
 	// Underlying error string
 	KeyError = "error"
 
+	// Argument position of the function error.
+	KeyFunctionErrorArgument = "function_error_argument"
+
+	// Boolean indicating presence of function error
+	KeyFunctionErrorExists = "function_error_exists"
+
+	// Message of the function error.
+	KeyFunctionErrorText = "function_error_text"
+
 	// Duration in milliseconds for the RPC request
 	KeyRequestDurationMs = "tf_req_duration_ms"
 
@@ -48,15 +57,48 @@ const (
 	// The type of data source being operated on, such as "archive_file"
 	KeyDataSourceType = "tf_data_source_type"
 
+	// The type of ephemeral resource being operated on, such as "random_password"
+	KeyEphemeralResourceType = "tf_ephemeral_resource_type"
+
+	// The type of list resource being operated on
+	KeyListResourceType = "tf_list_resource_type"
+
+	// The action being operated on
+	KeyActionType = "tf_action_type"
+
+	// The type of state store being operated on, such as "examplecloud_fs"
+	KeyStateStoreType = "tf_state_store_type"
+
 	// Path to protocol data file, such as "/tmp/example.json"
 	KeyProtocolDataFile = "tf_proto_data_file"
 
 	// The protocol version being used, as a string, such as "6"
 	KeyProtocolVersion = "tf_proto_version"
 
+	// The Deferred reason for an RPC response
+	KeyDeferredReason = "tf_deferred_reason"
+
 	// Whether the GetProviderSchemaOptional server capability is enabled
 	KeyServerCapabilityGetProviderSchemaOptional = "tf_server_capability_get_provider_schema_optional"
 
+	// Whether the MoveResourceState server capability is enabled
+	KeyServerCapabilityMoveResourceState = "tf_server_capability_move_resource_state"
+
 	// Whether the PlanDestroy server capability is enabled
 	KeyServerCapabilityPlanDestroy = "tf_server_capability_plan_destroy"
+
+	// The final determined ChunkSize returned from the provider for transmitting state bytes.
+	KeyServerCapabilityChunkSize = "tf_server_capability_chunk_size"
+
+	// Whether the GenerateResourceConfig server capability is enabled
+	KeyServerCapabilityGenerateResourceConfig = "tf_server_capability_generate_resource_config"
+
+	// Whether the DeferralAllowed client capability is enabled
+	KeyClientCapabilityDeferralAllowed = "tf_client_capability_deferral_allowed"
+
+	// Whether the WriteOnlyAttributesAllowed client capability is enabled
+	KeyClientCapabilityWriteOnlyAttributesAllowed = "tf_client_capability_write_only_attributes_allowed"
+
+	// The ChunkSize requested from Terraform core for transmitting state bytes.
+	KeyClientCapabilityChunkSize = "tf_client_capability_chunk_size"
 )

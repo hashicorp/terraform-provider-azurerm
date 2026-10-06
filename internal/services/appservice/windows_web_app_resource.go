@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -17,14 +17,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -32,47 +29,52 @@ import (
 type WindowsWebAppResource struct{}
 
 type WindowsWebAppModel struct {
-	Name                             string                                     `tfschema:"name"`
-	ResourceGroup                    string                                     `tfschema:"resource_group_name"`
-	Location                         string                                     `tfschema:"location"`
-	ServicePlanId                    string                                     `tfschema:"service_plan_id"`
-	AppSettings                      map[string]string                          `tfschema:"app_settings"`
-	StickySettings                   []helpers.StickySettings                   `tfschema:"sticky_settings"`
-	AuthSettings                     []helpers.AuthSettings                     `tfschema:"auth_settings"`
-	AuthV2Settings                   []helpers.AuthV2Settings                   `tfschema:"auth_settings_v2"`
-	Backup                           []helpers.Backup                           `tfschema:"backup"`
-	ClientAffinityEnabled            bool                                       `tfschema:"client_affinity_enabled"`
-	ClientCertEnabled                bool                                       `tfschema:"client_certificate_enabled"`
-	ClientCertMode                   string                                     `tfschema:"client_certificate_mode"`
-	ClientCertExclusionPaths         string                                     `tfschema:"client_certificate_exclusion_paths"`
-	Enabled                          bool                                       `tfschema:"enabled"`
-	HttpsOnly                        bool                                       `tfschema:"https_only"`
-	Identity                         []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	KeyVaultReferenceIdentityID      string                                     `tfschema:"key_vault_reference_identity_id"`
-	LogsConfig                       []helpers.LogsConfig                       `tfschema:"logs"`
-	PublicNetworkAccess              bool                                       `tfschema:"public_network_access_enabled"`
-	PublishingDeployBasicAuthEnabled bool                                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
-	PublishingFTPBasicAuthEnabled    bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
-	SiteConfig                       []helpers.SiteConfigWindows                `tfschema:"site_config"`
-	StorageAccounts                  []helpers.StorageAccount                   `tfschema:"storage_account"`
-	ConnectionStrings                []helpers.ConnectionString                 `tfschema:"connection_string"`
-	CustomDomainVerificationId       string                                     `tfschema:"custom_domain_verification_id"`
-	HostingEnvId                     string                                     `tfschema:"hosting_environment_id"`
-	DefaultHostname                  string                                     `tfschema:"default_hostname"`
-	Kind                             string                                     `tfschema:"kind"`
-	OutboundIPAddresses              string                                     `tfschema:"outbound_ip_addresses"`
-	OutboundIPAddressList            []string                                   `tfschema:"outbound_ip_address_list"`
-	PossibleOutboundIPAddresses      string                                     `tfschema:"possible_outbound_ip_addresses"`
-	PossibleOutboundIPAddressList    []string                                   `tfschema:"possible_outbound_ip_address_list"`
-	SiteCredentials                  []helpers.SiteCredential                   `tfschema:"site_credential"`
-	ZipDeployFile                    string                                     `tfschema:"zip_deploy_file"`
-	Tags                             map[string]string                          `tfschema:"tags"`
-	VirtualNetworkSubnetID           string                                     `tfschema:"virtual_network_subnet_id"`
+	Name                               string                                     `tfschema:"name"`
+	ResourceGroup                      string                                     `tfschema:"resource_group_name"`
+	Location                           string                                     `tfschema:"location"`
+	ServicePlanId                      string                                     `tfschema:"service_plan_id"`
+	AppSettings                        map[string]string                          `tfschema:"app_settings"`
+	StickySettings                     []helpers.StickySettings                   `tfschema:"sticky_settings"`
+	AuthSettings                       []helpers.AuthSettings                     `tfschema:"auth_settings"`
+	AuthV2Settings                     []helpers.AuthV2Settings                   `tfschema:"auth_settings_v2"`
+	Backup                             []helpers.Backup                           `tfschema:"backup"`
+	ClientAffinityEnabled              bool                                       `tfschema:"client_affinity_enabled"`
+	ClientCertEnabled                  bool                                       `tfschema:"client_certificate_enabled"`
+	ClientCertMode                     string                                     `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths           string                                     `tfschema:"client_certificate_exclusion_paths"`
+	Enabled                            bool                                       `tfschema:"enabled"`
+	HttpsOnly                          bool                                       `tfschema:"https_only"`
+	Identity                           []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	KeyVaultReferenceIdentityID        string                                     `tfschema:"key_vault_reference_identity_id"`
+	LogsConfig                         []helpers.LogsConfig                       `tfschema:"logs"`
+	PublicNetworkAccess                bool                                       `tfschema:"public_network_access_enabled"`
+	PublishingDeployBasicAuthEnabled   bool                                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
+	PublishingFTPBasicAuthEnabled      bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
+	SiteConfig                         []helpers.SiteConfigWindows                `tfschema:"site_config"`
+	StorageAccounts                    []helpers.StorageAccount                   `tfschema:"storage_account"`
+	ConnectionStrings                  []helpers.ConnectionString                 `tfschema:"connection_string"`
+	CustomDomainVerificationId         string                                     `tfschema:"custom_domain_verification_id"`
+	HostingEnvId                       string                                     `tfschema:"hosting_environment_id"`
+	DefaultHostname                    string                                     `tfschema:"default_hostname"`
+	Kind                               string                                     `tfschema:"kind"`
+	OutboundIPAddresses                string                                     `tfschema:"outbound_ip_addresses"`
+	OutboundIPAddressList              []string                                   `tfschema:"outbound_ip_address_list"`
+	PossibleOutboundIPAddresses        string                                     `tfschema:"possible_outbound_ip_addresses"`
+	PossibleOutboundIPAddressList      []string                                   `tfschema:"possible_outbound_ip_address_list"`
+	SiteCredentials                    []helpers.SiteCredential                   `tfschema:"site_credential"`
+	ZipDeployFile                      string                                     `tfschema:"zip_deploy_file"`
+	Tags                               map[string]string                          `tfschema:"tags"`
+	VirtualNetworkBackupRestoreEnabled bool                                       `tfschema:"virtual_network_backup_restore_enabled"`
+	VirtualNetworkImagePullEnabled     bool                                       `tfschema:"virtual_network_image_pull_enabled"`
+	VirtualNetworkSubnetID             string                                     `tfschema:"virtual_network_subnet_id"`
+	EndToEndTLSEncryptionEnabled       bool                                       `tfschema:"end_to_end_tls_encryption_enabled"`
 }
 
-var _ sdk.ResourceWithCustomImporter = WindowsWebAppResource{}
-
-var _ sdk.ResourceWithStateMigration = WindowsWebAppResource{}
+var (
+	_ sdk.ResourceWithCustomImporter = WindowsWebAppResource{}
+	_ sdk.ResourceWithCustomizeDiff  = WindowsWebAppResource{}
+	_ sdk.ResourceWithStateMigration = WindowsWebAppResource{}
+)
 
 func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -154,7 +156,7 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"key_vault_reference_identity_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 		},
 
@@ -187,17 +189,35 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"zip_deploy_file": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringIsNotEmpty,
 			Description:  "The local path and filename of the Zip packaged application to deploy to this Windows Web App. **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`.",
 		},
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
+
+		"virtual_network_backup_restore_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"virtual_network_image_pull_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
 
 		"virtual_network_subnet_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateSubnetID,
+		},
+
+		"end_to_end_tls_encryption_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 	}
 }
@@ -255,7 +275,7 @@ func (r WindowsWebAppResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r WindowsWebAppResource) ModelObject() interface{} {
+func (r WindowsWebAppResource) ModelObject() any {
 	return &WindowsWebAppModel{}
 }
 
@@ -283,19 +303,21 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			existing, err := client.Get(ctx, *id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing Windows %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, *id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing Windows %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			sc := webApp.SiteConfig[0]
 
 			availabilityRequest := resourceproviders.ResourceNameAvailabilityRequest{
-				Name: (webApp.Name),
+				Name: webApp.Name,
 				Type: resourceproviders.CheckNameResourceTypesMicrosoftPointWebSites,
 			}
 
@@ -369,16 +391,20 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 				Tags:     pointer.To(webApp.Tags),
 				Identity: expandedIdentity,
 				Properties: &webapps.SiteProperties{
-					ServerFarmId:          pointer.To(webApp.ServicePlanId),
-					Enabled:               pointer.To(webApp.Enabled),
-					HTTPSOnly:             pointer.To(webApp.HttpsOnly),
-					SiteConfig:            siteConfig,
-					ClientAffinityEnabled: pointer.To(webApp.ClientAffinityEnabled),
-					ClientCertEnabled:     pointer.To(webApp.ClientCertEnabled),
-					ClientCertMode:        pointer.To(webapps.ClientCertMode(webApp.ClientCertMode)),
-					VnetRouteAllEnabled:   siteConfig.VnetRouteAllEnabled,
+					ServerFarmId:              pointer.To(webApp.ServicePlanId),
+					Enabled:                   pointer.To(webApp.Enabled),
+					HTTPSOnly:                 pointer.To(webApp.HttpsOnly),
+					SiteConfig:                siteConfig,
+					ClientAffinityEnabled:     pointer.To(webApp.ClientAffinityEnabled),
+					ClientCertEnabled:         pointer.To(webApp.ClientCertEnabled),
+					ClientCertMode:            pointer.ToEnum[webapps.ClientCertMode](webApp.ClientCertMode),
+					VnetBackupRestoreEnabled:  pointer.To(webApp.VirtualNetworkBackupRestoreEnabled),
+					VnetRouteAllEnabled:       siteConfig.VnetRouteAllEnabled,
+					EndToEndEncryptionEnabled: pointer.To(webApp.EndToEndTLSEncryptionEnabled),
 				},
 			}
+
+			siteEnvelope.Properties.VnetImagePullEnabled = pointer.To(webApp.VirtualNetworkImagePullEnabled)
 
 			pna := helpers.PublicNetworkAccessEnabled
 			if !webApp.PublicNetworkAccess {
@@ -401,7 +427,7 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 				siteEnvelope.Properties.ClientCertExclusionPaths = pointer.To(webApp.ClientCertExclusionPaths)
 			}
 
-			if err = client.CreateOrUpdateThenPoll(ctx, *id, siteEnvelope); err != nil {
+			if err = client.CreateOrUpdateCallbackThenPoll(ctx, *id, siteEnvelope, metadata.SetIDCallback(id)); err != nil {
 				return fmt.Errorf("creating Windows %s: %+v", id, err)
 			}
 
@@ -419,7 +445,7 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 			appSettings := helpers.ExpandAppSettingsForUpdate(siteConfig.AppSettings)
 			appSettingsProps := *appSettings.Properties
 			if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
-				appSettingsProps["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = strconv.Itoa(int(webApp.SiteConfig[0].HealthCheckEvictionTime))
+				appSettingsProps["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = strconv.FormatInt(webApp.SiteConfig[0].HealthCheckEvictionTime, 10)
 				appSettings.Properties = &appSettingsProps
 			}
 
@@ -477,9 +503,7 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 			storageConfig := helpers.ExpandStorageConfig(webApp.StorageAccounts)
 			if storageConfig.Properties != nil {
 				if _, err := client.UpdateAzureStorageAccounts(ctx, *id, *storageConfig); err != nil {
-					if err != nil {
-						return fmt.Errorf("setting Storage Accounts for Windows %s: %+v", *id, err)
-					}
+					return fmt.Errorf("setting Storage Accounts for Windows %s: %+v", *id, err)
 				}
 			}
 
@@ -498,9 +522,7 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 
 			if !webApp.PublishingDeployBasicAuthEnabled {
 				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
-					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-						Allow: false,
-					},
+					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{},
 				}
 				if _, err := client.UpdateScmAllowed(ctx, *id, sitePolicy); err != nil {
 					return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", *id, err)
@@ -509,9 +531,7 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 
 			if !webApp.PublishingFTPBasicAuthEnabled {
 				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
-					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-						Allow: false,
-					},
+					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{},
 				}
 				if _, err := client.UpdateFtpAllowed(ctx, *id, sitePolicy); err != nil {
 					return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", *id, err)
@@ -638,7 +658,7 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					state.ClientAffinityEnabled = pointer.From(props.ClientAffinityEnabled)
 					state.ClientCertEnabled = pointer.From(props.ClientCertEnabled)
-					state.ClientCertMode = string(pointer.From(props.ClientCertMode))
+					state.ClientCertMode = pointer.FromEnum(props.ClientCertMode)
 					state.ClientCertExclusionPaths = pointer.From(props.ClientCertExclusionPaths)
 					state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 					state.DefaultHostname = pointer.From(props.DefaultHostName)
@@ -650,6 +670,9 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 					state.PossibleOutboundIPAddresses = pointer.From(props.PossibleOutboundIPAddresses)
 					state.PossibleOutboundIPAddressList = strings.Split(pointer.From(props.PossibleOutboundIPAddresses), ",")
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
+					state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetBackupRestoreEnabled)
+					state.VirtualNetworkImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
+					state.EndToEndTLSEncryptionEnabled = pointer.From(props.EndToEndEncryptionEnabled)
 
 					serverFarmId, err := commonids.ParseAppServicePlanIDInsensitively(pointer.From(props.ServerFarmId))
 					if err != nil {
@@ -659,7 +682,7 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 					state.ServicePlanId = serverFarmId.ID()
 
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
-						hostingEnvId, err := parse.AppServiceEnvironmentIDInsensitively(pointer.From(hostingEnv.Id))
+						hostingEnvId, err := commonids.ParseAppServiceEnvironmentIDInsensitively(pointer.From(hostingEnv.Id))
 						if err != nil {
 							return err
 						}
@@ -667,7 +690,12 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 					}
 
 					if subnetId := pointer.From(props.VirtualNetworkSubnetId); subnetId != "" {
-						state.VirtualNetworkSubnetID = subnetId
+						// some users have provisioned these without a prefixed `/` - as such we need to normalize these
+						parsed, err := commonids.ParseSubnetIDInsensitively(subnetId)
+						if err != nil {
+							return err
+						}
+						state.VirtualNetworkSubnetID = parsed.ID()
 					}
 
 					state.PublishingFTPBasicAuthEnabled = basicAuthFTP
@@ -690,25 +718,14 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 					siteConfig.SetHealthCheckEvictionTime(state.AppSettings)
 					state.AppSettings = siteConfig.ParseNodeVersion(state.AppSettings)
 
-					// For non-import cases we check for use of the deprecated docker settings - remove in 4.0
-					_, usesDeprecatedDocker := metadata.ResourceData.GetOk("site_config.0.application_stack.0.docker_container_name")
-
 					if helpers.FxStringHasPrefix(siteConfig.WindowsFxVersion, helpers.FxStringPrefixDocker) {
-						if !features.FourPointOhBeta() {
-							siteConfig.DecodeDockerDeprecatedAppStack(state.AppSettings, usesDeprecatedDocker)
-						} else {
-							siteConfig.DecodeDockerAppStack(state.AppSettings)
-						}
+						siteConfig.DecodeDockerAppStack(state.AppSettings)
 					}
 
 					state.SiteConfig = []helpers.SiteConfigWindows{siteConfig}
 
 					// Filter out all settings we've consumed above
-					if !features.FourPointOhBeta() && usesDeprecatedDocker {
-						state.AppSettings = helpers.FilterManagedAppSettingsDeprecated(state.AppSettings)
-					} else {
-						state.AppSettings = helpers.FilterManagedAppSettings(state.AppSettings)
-					}
+					state.AppSettings = helpers.FilterManagedAppSettings(state.AppSettings)
 
 					// Zip Deploys are not retrievable, so attempt to get from config. This doesn't matter for imports as an unexpected value here could break the deployment.
 					if deployFile, ok := metadata.ResourceData.Get("zip_deploy_file").(string); ok {
@@ -725,7 +742,6 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 					if err := metadata.Encode(&state); err != nil {
 						return fmt.Errorf("encoding: %+v", err)
 					}
-
 				}
 			}
 
@@ -743,8 +759,6 @@ func (r WindowsWebAppResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-
-			metadata.Logger.Infof("deleting %s", *id)
 
 			delOptions := webapps.DeleteOperationOptions{
 				DeleteEmptyServerFarm: pointer.To(false),
@@ -827,7 +841,7 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 				model.Properties.ClientCertEnabled = pointer.To(state.ClientCertEnabled)
 			}
 			if metadata.ResourceData.HasChange("client_certificate_mode") {
-				model.Properties.ClientCertMode = pointer.To(webapps.ClientCertMode(state.ClientCertMode))
+				model.Properties.ClientCertMode = pointer.ToEnum[webapps.ClientCertMode](state.ClientCertMode)
 			}
 			if metadata.ResourceData.HasChange("client_certificate_exclusion_paths") {
 				model.Properties.ClientCertExclusionPaths = pointer.To(state.ClientCertExclusionPaths)
@@ -849,6 +863,14 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 				model.Tags = pointer.To(state.Tags)
 			}
 
+			if metadata.ResourceData.HasChange("virtual_network_backup_restore_enabled") {
+				model.Properties.VnetBackupRestoreEnabled = pointer.To(state.VirtualNetworkBackupRestoreEnabled)
+			}
+
+			if metadata.ResourceData.HasChange("virtual_network_image_pull_enabled") {
+				model.Properties.VnetImagePullEnabled = pointer.To(state.VirtualNetworkImagePullEnabled)
+			}
+
 			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {
 				subnetId := metadata.ResourceData.Get("virtual_network_subnet_id").(string)
 				if subnetId == "" {
@@ -860,6 +882,10 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 				} else {
 					model.Properties.VirtualNetworkSubnetId = pointer.To(subnetId)
 				}
+			}
+
+			if metadata.ResourceData.HasChange("end_to_end_tls_encryption_enabled") {
+				model.Properties.EndToEndEncryptionEnabled = pointer.To(state.EndToEndTLSEncryptionEnabled)
 			}
 
 			currentStack := ""
@@ -907,15 +933,24 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("setting Site Metadata for Current Stack on Windows %s: %+v", id, err)
 			}
 
-			// (@jackofallops) - App Settings can clobber logs configuration so must be updated before we send any Log updates
-			if metadata.ResourceData.HasChanges("app_settings", "site_config") || metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
+			updateLogs := false
+
+			// sending App Settings updates can clobber logs configuration so must be updated before we send any Log updates
+			if metadata.ResourceData.HasChanges("app_settings", "site_config") {
 				appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(model.Properties.SiteConfig.AppSettings)
 				appSettingsProps := *appSettingsUpdate.Properties
-				appSettingsProps["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = strconv.Itoa(int(state.SiteConfig[0].HealthCheckEvictionTime))
-				appSettingsUpdate.Properties = &appSettingsProps
+				if state.SiteConfig[0].HealthCheckEvictionTime != 0 {
+					appSettingsProps["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = strconv.FormatInt(state.SiteConfig[0].HealthCheckEvictionTime, 10)
+					appSettingsUpdate.Properties = &appSettingsProps
+				} else {
+					delete(appSettingsProps, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES")
+					appSettingsUpdate.Properties = &appSettingsProps
+				}
 				if _, err := client.UpdateApplicationSettings(ctx, *id, *appSettingsUpdate); err != nil {
 					return fmt.Errorf("updating App Settings for Linux %s: %+v", *id, err)
 				}
+
+				updateLogs = true
 			}
 
 			if metadata.ResourceData.HasChange("connection_string") {
@@ -952,22 +987,10 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			updateLogs := false
-
 			if metadata.ResourceData.HasChange("auth_settings") {
 				authUpdate := helpers.ExpandAuthSettings(state.AuthSettings)
 				if authUpdate.Properties == nil {
-					authUpdate.Properties = &webapps.SiteAuthSettingsProperties{
-						Enabled:                           pointer.To(false),
-						ClientSecret:                      pointer.To(""),
-						ClientSecretSettingName:           pointer.To(""),
-						ClientSecretCertificateThumbprint: pointer.To(""),
-						GoogleClientSecret:                pointer.To(""),
-						FacebookAppSecret:                 pointer.To(""),
-						GitHubClientSecret:                pointer.To(""),
-						TwitterConsumerSecret:             pointer.To(""),
-						MicrosoftAccountClientSecret:      pointer.To(""),
-					}
+					authUpdate.Properties = helpers.DefaultAuthSettingsProperties()
 					updateLogs = true
 				}
 				if _, err := client.UpdateAuthSettings(ctx, *id, *authUpdate); err != nil {
@@ -977,8 +1000,12 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("auth_settings_v2") {
 				authV2Update := helpers.ExpandAuthV2Settings(state.AuthV2Settings)
+				// (@toddgiguere) - in the case of a removal of this block, we need to zero these settings
+				if authV2Update.Properties == nil {
+					authV2Update.Properties = helpers.DefaultAuthV2SettingsProperties()
+				}
 				if _, err := client.UpdateAuthSettingsV2(ctx, *id, *authV2Update); err != nil {
-					return fmt.Errorf("updating AuthV2 Settings for Linux %s: %+v", id, err)
+					return fmt.Errorf("updating AuthV2 Settings for Windows %s: %+v", id, err)
 				}
 				updateLogs = true
 			}
@@ -1081,6 +1108,51 @@ func (r WindowsWebAppResource) CustomImporter() sdk.ResourceRunFunc {
 		}
 
 		return nil
+	}
+}
+
+func (r WindowsWebAppResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.AppService.ServicePlanClient
+
+			model := WindowsWebAppModel{}
+			if err := metadata.DecodeDiff(&model); err != nil {
+				return fmt.Errorf("decoding: %w", err)
+			}
+
+			if metadata.ResourceDiff.HasChange("virtual_network_image_pull_enabled") {
+				planId := model.ServicePlanId
+				if planId == "" {
+					return nil
+				}
+
+				_, newValue := metadata.ResourceDiff.GetChange("virtual_network_image_pull_enabled")
+				if newValue.(bool) {
+					return nil
+				}
+
+				servicePlanID, err := commonids.ParseAppServicePlanID(planId)
+				if err != nil {
+					return err
+				}
+
+				resp, err := client.Get(ctx, *servicePlanID)
+				if err != nil {
+					return fmt.Errorf("retrieving %s: %w", *servicePlanID, err)
+				}
+
+				if aspModel := resp.Model; aspModel != nil {
+					if aspModel.Properties != nil && aspModel.Properties.HostingEnvironmentProfile != nil &&
+						pointer.From(aspModel.Properties.HostingEnvironmentProfile.Id) != "" && !newValue.(bool) {
+						return fmt.Errorf("`virtual_network_image_pull_enabled` cannot be disabled for app running in an app service environment")
+					}
+				}
+			}
+
+			return nil
+		},
 	}
 }
 

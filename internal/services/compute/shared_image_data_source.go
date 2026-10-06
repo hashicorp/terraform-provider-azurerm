@@ -1,10 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -126,12 +127,42 @@ func dataSourceSharedImage() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"trusted_launch_supported": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"trusted_launch_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"confidential_vm_supported": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"confidential_vm_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"accelerated_network_support_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"hibernation_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
 
-func dataSourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceSharedImageRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.GalleryImagesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -174,21 +205,56 @@ func dataSourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			if err := d.Set("purchase_plan", flattenGalleryImageDataSourcePurchasePlan(props.PurchasePlan)); err != nil {
 				return fmt.Errorf("setting `purchase_plan`: %+v", err)
 			}
+
+			trustedLaunchSupported := false
+			trustedLaunchEnabled := false
+			cvmEnabled := false
+			cvmSupported := false
+			acceleratedNetworkSupportEnabled := false
+			hibernationEnabled := false
+			if model.Properties.Features != nil {
+				for _, feature := range *model.Properties.Features {
+					if feature.Name == nil || feature.Value == nil {
+						continue
+					}
+
+					if strings.EqualFold(*feature.Name, "SecurityType") {
+						trustedLaunchSupported = strings.EqualFold(*feature.Value, "TrustedLaunchSupported")
+						trustedLaunchEnabled = strings.EqualFold(*feature.Value, "TrustedLaunch")
+						cvmSupported = strings.EqualFold(*feature.Value, "ConfidentialVmSupported")
+						cvmEnabled = strings.EqualFold(*feature.Value, "ConfidentialVm")
+					}
+
+					if strings.EqualFold(*feature.Name, "IsAcceleratedNetworkSupported") {
+						acceleratedNetworkSupportEnabled = strings.EqualFold(*feature.Value, "true")
+					}
+
+					if strings.EqualFold(*feature.Name, "IsHibernateSupported") {
+						hibernationEnabled = strings.EqualFold(*feature.Value, "true")
+					}
+				}
+			}
+
+			d.Set("confidential_vm_supported", cvmSupported)
+			d.Set("confidential_vm_enabled", cvmEnabled)
+			d.Set("trusted_launch_supported", trustedLaunchSupported)
+			d.Set("trusted_launch_enabled", trustedLaunchEnabled)
+			d.Set("accelerated_network_support_enabled", acceleratedNetworkSupportEnabled)
+			d.Set("hibernation_enabled", hibernationEnabled)
 		}
 
 		return tags.FlattenAndSet(d, model.Tags)
-
 	}
 	return nil
 }
 
-func flattenGalleryImageDataSourceIdentifier(input *galleryimages.GalleryImageIdentifier) []interface{} {
+func flattenGalleryImageDataSourceIdentifier(input *galleryimages.GalleryImageIdentifier) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"offer":     input.Offer,
 			"publisher": input.Publisher,
 			"sku":       input.Sku,
@@ -196,31 +262,16 @@ func flattenGalleryImageDataSourceIdentifier(input *galleryimages.GalleryImageId
 	}
 }
 
-func flattenGalleryImageDataSourcePurchasePlan(input *galleryimages.ImagePurchasePlan) []interface{} {
+func flattenGalleryImageDataSourcePurchasePlan(input *galleryimages.ImagePurchasePlan) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	name := ""
-	if input.Name != nil {
-		name = *input.Name
-	}
-
-	publisher := ""
-	if input.Publisher != nil {
-		publisher = *input.Publisher
-	}
-
-	product := ""
-	if input.Product != nil {
-		product = *input.Product
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"name":      name,
-			"publisher": publisher,
-			"product":   product,
+	return []any{
+		map[string]any{
+			"name":      pointer.From(input.Name),
+			"publisher": pointer.From(input.Publisher),
+			"product":   pointer.From(input.Product),
 		},
 	}
 }

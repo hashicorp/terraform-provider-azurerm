@@ -15,7 +15,7 @@ type QueryPacksClient struct {
 }
 
 func NewQueryPacksClientWithBaseURI(sdkApi sdkEnv.Api) (*QueryPacksClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "querypacks", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "querypacks", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating QueryPacksClient: %+v", err)
 	}

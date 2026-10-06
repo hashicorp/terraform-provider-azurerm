@@ -23,6 +23,18 @@ type ListCompleteResult struct {
 	Items              []SecurityAssessmentMetadataResponse
 }
 
+type ListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // List ...
 func (c AssessmentsMetadataClient) List(ctx context.Context) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c AssessmentsMetadataClient) List(ctx context.Context) (result ListOperati
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListCustomPager{},
 		Path:       "/providers/Microsoft.Security/assessmentMetadata",
 	}
 
@@ -72,6 +85,7 @@ func (c AssessmentsMetadataClient) ListCompleteMatchingPredicate(ctx context.Con
 
 	resp, err := c.List(ctx)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute_test
@@ -211,6 +211,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   platform_fault_domain_count = 1
+  single_placement_group      = false
 
   zones = ["1"]
 
@@ -269,6 +270,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   platform_fault_domain_count = 1
+  single_placement_group      = false
 
   zones = ["1"]
 
@@ -686,6 +688,10 @@ func (WindowsVirtualMachineResource) templateBaseForOchestratedVMSS(data accepta
 	return fmt.Sprintf(`
 locals {
   vm_name = "acctestvm%s"
+}
+
+provider "azurerm" {
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {

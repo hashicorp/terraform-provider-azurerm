@@ -18,11 +18,11 @@ type CreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *VMMServer
+	Model        *VMmServer
 }
 
 // CreateOrUpdate ...
-func (c VMmServersClient) CreateOrUpdate(ctx context.Context, id VMmServerId, input VMMServer) (result CreateOrUpdateOperationResponse, err error) {
+func (c VMmServersClient) CreateOrUpdate(ctx context.Context, id VMmServerId, input VMmServer) (result CreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -61,10 +61,21 @@ func (c VMmServersClient) CreateOrUpdate(ctx context.Context, id VMmServerId, in
 }
 
 // CreateOrUpdateThenPoll performs CreateOrUpdate then polls until it's completed
-func (c VMmServersClient) CreateOrUpdateThenPoll(ctx context.Context, id VMmServerId, input VMMServer) error {
+func (c VMmServersClient) CreateOrUpdateThenPoll(ctx context.Context, id VMmServerId, input VMmServer) error {
+	return c.CreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CreateOrUpdateCallbackThenPoll performs CreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c VMmServersClient) CreateOrUpdateCallbackThenPoll(ctx context.Context, id VMmServerId, input VMmServer, callback func() error) error {
 	result, err := c.CreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

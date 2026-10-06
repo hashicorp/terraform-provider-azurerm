@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package eventhub
@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationrulesnamespaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2022-01-01-preview/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/authorizationrulesnamespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -50,11 +50,6 @@ func EventHubNamespaceDataSource() *pluginsdk.Resource {
 			},
 
 			"auto_inflate_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
-			},
-
-			"zone_redundant": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
@@ -113,7 +108,7 @@ func EventHubNamespaceDataSource() *pluginsdk.Resource {
 	}
 }
 
-func EventHubNamespaceDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func EventHubNamespaceDataSourceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Eventhub.NamespacesClient
 	authorizationRulesClient := meta.(*clients.Client).Eventhub.NamespaceAuthorizationRulesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -146,7 +141,6 @@ func EventHubNamespaceDataSourceRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("auto_inflate_enabled", props.IsAutoInflateEnabled)
 			d.Set("kafka_enabled", props.KafkaEnabled)
 			d.Set("maximum_throughput_units", int(*props.MaximumThroughputUnits))
-			d.Set("zone_redundant", props.ZoneRedundant)
 			d.Set("dedicated_cluster_id", props.ClusterArmId)
 		}
 

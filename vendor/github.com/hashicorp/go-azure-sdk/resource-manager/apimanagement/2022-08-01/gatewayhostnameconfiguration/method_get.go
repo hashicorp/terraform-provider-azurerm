@@ -45,7 +45,6 @@ func (c GatewayHostnameConfigurationClient) Get(ctx context.Context, id Hostname
 
 	var model GatewayHostnameConfigurationContract
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

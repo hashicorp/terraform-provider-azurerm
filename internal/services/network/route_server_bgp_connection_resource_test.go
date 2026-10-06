@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -8,24 +8,25 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type RouteServerBGPConnectionResource struct{}
+type RouteServerBgpConnectionResource struct{}
 
 func TestAccRouteServerBgpConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_server_bgp_connection", "test")
-	r := RouteServerBGPConnectionResource{}
+	r := RouteServerBgpConnectionResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 	})
@@ -33,32 +34,33 @@ func TestAccRouteServerBgpConnection_basic(t *testing.T) {
 
 func TestAccRouteServerBgpConnection_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_server_bgp_connection", "test")
-	r := RouteServerBGPConnectionResource{}
+	r := RouteServerBgpConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func (r RouteServerBGPConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.BgpConnectionID(state.ID)
+func (r RouteServerBgpConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := commonids.ParseVirtualHubBGPConnectionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.VirtualHubBgpConnectionClient.Get(ctx, id.ResourceGroup, id.VirtualHubName, id.Name)
+	resp, err := clients.Network.VirtualWANs.VirtualHubBgpConnectionGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading route server bgp connection %s: %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
-func (r RouteServerBGPConnectionResource) basic(data acceptance.TestData) string {
+func (r RouteServerBgpConnectionResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -72,7 +74,7 @@ resource "azurerm_route_server_bgp_connection" "test" {
 `, RouteServerResource{}.basic(data), data.RandomInteger)
 }
 
-func (r RouteServerBGPConnectionResource) requiresImport(data acceptance.TestData) string {
+func (r RouteServerBgpConnectionResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

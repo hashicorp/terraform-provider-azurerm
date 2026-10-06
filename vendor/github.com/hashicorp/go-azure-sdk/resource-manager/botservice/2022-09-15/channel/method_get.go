@@ -46,7 +46,6 @@ func (c ChannelClient) Get(ctx context.Context, id commonids.BotServiceChannelId
 
 	var model BotChannel
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

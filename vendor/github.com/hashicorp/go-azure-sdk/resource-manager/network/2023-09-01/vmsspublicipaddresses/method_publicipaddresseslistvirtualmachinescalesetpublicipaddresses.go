@@ -23,6 +23,18 @@ type PublicIPAddressesListVirtualMachineScaleSetPublicIPAddressesCompleteResult 
 	Items              []PublicIPAddress
 }
 
+type PublicIPAddressesListVirtualMachineScaleSetPublicIPAddressesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *PublicIPAddressesListVirtualMachineScaleSetPublicIPAddressesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // PublicIPAddressesListVirtualMachineScaleSetPublicIPAddresses ...
 func (c VMSSPublicIPAddressesClient) PublicIPAddressesListVirtualMachineScaleSetPublicIPAddresses(ctx context.Context, id VirtualMachineScaleSetId) (result PublicIPAddressesListVirtualMachineScaleSetPublicIPAddressesOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c VMSSPublicIPAddressesClient) PublicIPAddressesListVirtualMachineScaleSet
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &PublicIPAddressesListVirtualMachineScaleSetPublicIPAddressesCustomPager{},
 		Path:       fmt.Sprintf("%s/publicIPAddresses", id.ID()),
 	}
 
@@ -72,6 +85,7 @@ func (c VMSSPublicIPAddressesClient) PublicIPAddressesListVirtualMachineScaleSet
 
 	resp, err := c.PublicIPAddressesListVirtualMachineScaleSetPublicIPAddresses(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

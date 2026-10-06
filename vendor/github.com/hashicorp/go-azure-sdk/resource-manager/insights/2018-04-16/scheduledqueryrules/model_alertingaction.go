@@ -17,6 +17,14 @@ type AlertingAction struct {
 	Trigger         TriggerCondition `json:"trigger"`
 
 	// Fields inherited from Action
+
+	OdataType string `json:"odata.type"`
+}
+
+func (s AlertingAction) Action() BaseActionImpl {
+	return BaseActionImpl{
+		OdataType: s.OdataType,
+	}
 }
 
 var _ json.Marshaler = AlertingAction{}
@@ -30,9 +38,10 @@ func (s AlertingAction) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AlertingAction: %+v", err)
 	}
+
 	decoded["odata.type"] = "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.Microsoft.AppInsights.Nexus.DataContracts.Resources.ScheduledQueryRules.AlertingAction"
 
 	encoded, err = json.Marshal(decoded)

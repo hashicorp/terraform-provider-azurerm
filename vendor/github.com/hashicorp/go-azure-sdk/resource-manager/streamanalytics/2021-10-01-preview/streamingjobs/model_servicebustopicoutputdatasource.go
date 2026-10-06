@@ -14,6 +14,14 @@ type ServiceBusTopicOutputDataSource struct {
 	Properties *ServiceBusTopicOutputDataSourceProperties `json:"properties,omitempty"`
 
 	// Fields inherited from OutputDataSource
+
+	Type string `json:"type"`
+}
+
+func (s ServiceBusTopicOutputDataSource) OutputDataSource() BaseOutputDataSourceImpl {
+	return BaseOutputDataSourceImpl{
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = ServiceBusTopicOutputDataSource{}
@@ -27,9 +35,10 @@ func (s ServiceBusTopicOutputDataSource) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling ServiceBusTopicOutputDataSource: %+v", err)
 	}
+
 	decoded["type"] = "Microsoft.ServiceBus/Topic"
 
 	encoded, err = json.Marshal(decoded)

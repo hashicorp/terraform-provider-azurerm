@@ -15,7 +15,7 @@ type RefreshSetPasswordLinkClient struct {
 }
 
 func NewRefreshSetPasswordLinkClientWithBaseURI(sdkApi sdkEnv.Api) (*RefreshSetPasswordLinkClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "refreshsetpasswordlink", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "refreshsetpasswordlink", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating RefreshSetPasswordLinkClient: %+v", err)
 	}

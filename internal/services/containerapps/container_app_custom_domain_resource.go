@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containerapps
@@ -12,8 +12,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/containerapps"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/managedenvironments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/containerapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
@@ -28,10 +28,11 @@ type ContainerAppCustomDomainResource struct{}
 var _ sdk.Resource = ContainerAppCustomDomainResource{}
 
 type ContainerAppCustomDomainResourceModel struct {
-	Name           string `tfschema:"name"`
-	ContainerAppId string `tfschema:"container_app_id"`
-	CertificateId  string `tfschema:"container_app_environment_certificate_id"`
-	BindingType    string `tfschema:"certificate_binding_type"`
+	Name                 string `tfschema:"name"`
+	ContainerAppId       string `tfschema:"container_app_id"`
+	CertificateId        string `tfschema:"container_app_environment_certificate_id"`
+	BindingType          string `tfschema:"certificate_binding_type"`
+	ManagedCertificateId string `tfschema:"container_app_environment_managed_certificate_id"`
 }
 
 func (a ContainerAppCustomDomainResource) Arguments() map[string]*pluginsdk.Schema {
@@ -70,10 +71,15 @@ func (a ContainerAppCustomDomainResource) Arguments() map[string]*pluginsdk.Sche
 }
 
 func (a ContainerAppCustomDomainResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
+	return map[string]*pluginsdk.Schema{
+		"container_app_environment_managed_certificate_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+	}
 }
 
-func (a ContainerAppCustomDomainResource) ModelObject() interface{} {
+func (a ContainerAppCustomDomainResource) ModelObject() any {
 	return &ContainerAppCustomDomainResourceModel{}
 }
 
@@ -143,10 +149,14 @@ func (a ContainerAppCustomDomainResource) Create() sdk.ResourceFunc {
 			ingress := *config.Ingress
 
 			customDomains := make([]containerapps.CustomDomain, 0)
+			exists := false
 			if existingCustomDomains := ingress.CustomDomains; existingCustomDomains != nil {
 				for _, v := range *existingCustomDomains {
 					if strings.EqualFold(v.Name, model.Name) {
-						return metadata.ResourceRequiresImport(ContainerAppCustomDomainResource{}.ResourceType(), id)
+						exists = true
+						if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+							return metadata.ResourceRequiresImport(ContainerAppCustomDomainResource{}.ResourceType(), id)
+						}
 					}
 				}
 
@@ -160,14 +170,16 @@ func (a ContainerAppCustomDomainResource) Create() sdk.ResourceFunc {
 
 			if certificateId != nil {
 				customDomain.CertificateId = pointer.To(certificateId.ID())
-				customDomain.BindingType = pointer.To(containerapps.BindingType(model.BindingType))
+				customDomain.BindingType = pointer.ToEnum[containerapps.BindingType](model.BindingType)
 			}
 
-			customDomains = append(customDomains, customDomain)
+			if !exists {
+				customDomains = append(customDomains, customDomain)
+			}
 
 			containerApp.Model.Properties.Configuration.Ingress.CustomDomains = pointer.To(customDomains)
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *containerAppId, *containerApp.Model); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, *containerAppId, *containerApp.Model, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -192,10 +204,16 @@ func (a ContainerAppCustomDomainResource) Read() sdk.ResourceFunc {
 			containerAppId := containerapps.NewContainerAppID(id.SubscriptionId, id.ResourceGroupName, id.ContainerAppName)
 
 			containerApp, err := client.Get(ctx, containerAppId)
-			if err != nil || containerApp.Model == nil {
-				return fmt.Errorf("retrieving %s to read %s", containerAppId, id)
+			if err != nil {
+				if response.WasNotFound(containerApp.HttpResponse) {
+					return metadata.MarkAsGone(id)
+				}
+				return fmt.Errorf("retrieving %s: %+v", containerAppId, err)
 			}
 
+			if containerApp.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", containerAppId)
+			}
 			model := containerApp.Model
 
 			if model.Properties == nil || model.Properties.Configuration == nil || model.Properties.Configuration.Ingress == nil {
@@ -211,14 +229,23 @@ func (a ContainerAppCustomDomainResource) Read() sdk.ResourceFunc {
 						state.Name = id.CustomDomainName
 						state.ContainerAppId = containerAppId.ID()
 						if pointer.From(v.CertificateId) != "" {
-							certId, err := managedenvironments.ParseCertificateIDInsensitively(pointer.From(v.CertificateId))
-							if err != nil {
-								return err
+							// The `v.CertificateId` returned from API has two possible values. when using an Azure created Managed Certificate,
+							// its format is "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.App/managedEnvironments/%s/managedCertificates/%s",
+							// another format is "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.App/managedEnvironments/%s/certificates/%s",
+							// both cases are handled here to avoid parsing error.
+							certId, err1 := managedenvironments.ParseCertificateIDInsensitively(pointer.From(v.CertificateId))
+							if err1 != nil {
+								managedCertId, err2 := managedenvironments.ParseManagedCertificateID(pointer.From(v.CertificateId))
+								if err2 != nil {
+									return err1
+								}
+								state.ManagedCertificateId = managedCertId.ID()
+							} else {
+								state.CertificateId = certId.ID()
 							}
-							state.CertificateId = certId.ID()
 						}
 
-						state.BindingType = string(pointer.From(v.BindingType))
+						state.BindingType = pointer.FromEnum(v.BindingType)
 					}
 				}
 			}
@@ -243,14 +270,6 @@ func (a ContainerAppCustomDomainResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			// attempt to lock the cert if we have the ID
-			if certIdRaw := metadata.ResourceData.Get("container_app_environment_certificate_id").(string); certIdRaw != "" {
-				if certId, err := managedenvironments.ParseCertificateID(certIdRaw); err == nil {
-					locks.ByID(certId.ID())
-					defer locks.UnlockByID(certId.ID())
-				}
-			}
-
 			containerAppId := containerapps.NewContainerAppID(id.SubscriptionId, id.ResourceGroupName, id.ContainerAppName)
 
 			containerApp, err := client.Get(ctx, containerAppId)
@@ -270,6 +289,13 @@ func (a ContainerAppCustomDomainResource) Delete() sdk.ResourceFunc {
 				for _, v := range *customDomains {
 					if !strings.EqualFold(v.Name, id.CustomDomainName) {
 						updatedCustomDomains = append(updatedCustomDomains, v)
+					} else {
+						// attempt to lock the cert if we have the ID
+						certificateId := pointer.From(v.CertificateId)
+						if certificateId != "" {
+							locks.ByID(certificateId)
+							defer locks.UnlockByID(certificateId)
+						}
 					}
 				}
 			}

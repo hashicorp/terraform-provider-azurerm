@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package eventhub
@@ -9,17 +9,18 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2022-01-01-preview/namespaces"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceEventHubNamespaceCustomerManagedKey() *pluginsdk.Resource {
@@ -39,7 +40,7 @@ func resourceEventHubNamespaceCustomerManagedKey() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := namespaces.ParseNamespaceID(id)
 			return err
-		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
 			client := meta.(*clients.Client).Eventhub.NamespacesClient
 
 			var cancel context.CancelFunc
@@ -75,7 +76,7 @@ func resourceEventHubNamespaceCustomerManagedKey() *pluginsdk.Resource {
 				Required: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+					ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 				},
 			},
 
@@ -95,7 +96,7 @@ func resourceEventHubNamespaceCustomerManagedKey() *pluginsdk.Resource {
 	}
 }
 
-func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Eventhub.NamespacesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -117,15 +118,16 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 	}
 
 	if d.IsNewResource() {
-		if resp.Model.Properties != nil && resp.Model.Properties.Encryption != nil {
-			return tf.ImportAsExistsError("azurerm_eventhub_namespace_customer_managed_key", id.ID())
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if resp.Model.Properties != nil && resp.Model.Properties.Encryption != nil {
+				return tf.ImportAsExistsError("azurerm_eventhub_namespace_customer_managed_key", id.ID())
+			}
 		}
 	}
 
 	namespace := resp.Model
-	keySource := namespaces.KeySourceMicrosoftPointKeyVault
 	namespace.Properties.Encryption = &namespaces.Encryption{
-		KeySource: &keySource,
+		KeySource: pointer.To(namespaces.KeySourceMicrosoftPointKeyVault),
 	}
 
 	keyVaultProps, err := expandEventHubNamespaceKeyVaultKeyIds(d.Get("key_vault_key_ids").(*pluginsdk.Set).List())
@@ -135,6 +137,10 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 
 	userAssignedIdentity := d.Get("user_assigned_identity_id").(string)
 	if userAssignedIdentity != "" && keyVaultProps != nil {
+		userAssignedIdentityId, err := commonids.ParseUserAssignedIdentityID(userAssignedIdentity)
+		if err != nil {
+			return err
+		}
 
 		// this provides a more helpful error message than the API response
 		if namespace.Identity == nil {
@@ -143,7 +149,11 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 
 		isIdentityAssignedToParent := false
 		for item := range namespace.Identity.IdentityIds {
-			if item == userAssignedIdentity {
+			parentEhnUaiId, err := commonids.ParseUserAssignedIdentityIDInsensitively(item)
+			if err != nil {
+				return fmt.Errorf("parsing %q as a User Assigned Identity ID: %+v", item, err)
+			}
+			if resourceids.Match(parentEhnUaiId, userAssignedIdentityId) {
 				isIdentityAssignedToParent = true
 			}
 		}
@@ -161,18 +171,23 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 	}
 
 	namespace.Properties.Encryption.KeyVaultProperties = keyVaultProps
-	namespace.Properties.Encryption.RequireInfrastructureEncryption = utils.Bool(d.Get("infrastructure_encryption_enabled").(bool))
+	namespace.Properties.Encryption.RequireInfrastructureEncryption = pointer.To(d.Get("infrastructure_encryption_enabled").(bool))
 
-	if err := client.CreateOrUpdateThenPoll(ctx, *id, *namespace); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", *id, err)
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, *id, *namespace, sdk.SetIDCallback(meta, id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", *id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, *id, *namespace); err != nil {
+			return fmt.Errorf("updating %s: %+v", *id, err)
+		}
 	}
-
-	d.SetId(id.ID())
 
 	return resourceEventHubNamespaceCustomerManagedKeyRead(d, meta)
 }
 
-func resourceEventHubNamespaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Eventhub.NamespacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -230,12 +245,12 @@ func resourceEventHubNamespaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, 
 	return nil
 }
 
-func resourceEventHubNamespaceCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta any) error {
 	log.Printf(`[INFO] Customer Managed Keys cannot be removed from EventHub Namespaces once added. To remove the Customer Managed Key delete and recreate the parent EventHub Namespace`)
 	return nil
 }
 
-func expandEventHubNamespaceKeyVaultKeyIds(input []interface{}) (*[]namespaces.KeyVaultProperties, error) {
+func expandEventHubNamespaceKeyVaultKeyIds(input []any) (*[]namespaces.KeyVaultProperties, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -243,15 +258,15 @@ func expandEventHubNamespaceKeyVaultKeyIds(input []interface{}) (*[]namespaces.K
 	results := make([]namespaces.KeyVaultProperties, 0)
 
 	for _, item := range input {
-		keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(item.(string))
+		keyId, err := keyvault.ParseNestedItemID(item.(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 		if err != nil {
 			return nil, err
 		}
 
 		results = append(results, namespaces.KeyVaultProperties{
-			KeyName:     utils.String(keyId.Name),
-			KeyVaultUri: utils.String(keyId.KeyVaultBaseUrl),
-			KeyVersion:  utils.String(keyId.Version),
+			KeyName:     pointer.To(keyId.Name),
+			KeyVaultUri: pointer.To(keyId.KeyVaultBaseURL),
+			KeyVersion:  pointer.To(keyId.Version),
 		})
 	}
 
@@ -265,22 +280,7 @@ func flattenEventHubNamespaceKeyVaultKeyIds(input *namespaces.Encryption) ([]str
 	}
 
 	for _, item := range *input.KeyVaultProperties {
-		var keyName string
-		if item.KeyName != nil {
-			keyName = *item.KeyName
-		}
-
-		var keyVaultUri string
-		if item.KeyVaultUri != nil {
-			keyVaultUri = *item.KeyVaultUri
-		}
-
-		var keyVersion string
-		if item.KeyVersion != nil {
-			keyVersion = *item.KeyVersion
-		}
-
-		keyVaultKeyId, err := keyVaultParse.NewNestedItemID(keyVaultUri, keyVaultParse.NestedItemTypeKey, keyName, keyVersion)
+		keyVaultKeyId, err := keyvault.NewNestedItemID(pointer.From(item.KeyVaultUri), keyvault.NestedItemTypeKey, pointer.From(item.KeyName), pointer.From(item.KeyVersion))
 		if err != nil {
 			return nil, err
 		}

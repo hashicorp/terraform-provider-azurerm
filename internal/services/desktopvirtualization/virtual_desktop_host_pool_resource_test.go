@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package desktopvirtualization_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/hostpool"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/hostpool"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type VirtualDesktopHostPoolResource struct{}
@@ -197,7 +197,7 @@ func (VirtualDesktopHostPoolResource) Exists(ctx context.Context, clients *clien
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (VirtualDesktopHostPoolResource) agentUpdateBasic(data acceptance.TestData) string {
@@ -373,7 +373,7 @@ resource "azurerm_virtual_desktop_host_pool" "test" {
   start_vm_on_connect      = true
   load_balancer_type       = "BreadthFirst"
   maximum_sessions_allowed = 100
-  preferred_app_group_type = "Desktop"
+  preferred_app_group_type = "RailApplications"
   custom_rdp_properties    = "audiocapturemode:i:1;audiomode:i:0;"
 
   tags = {

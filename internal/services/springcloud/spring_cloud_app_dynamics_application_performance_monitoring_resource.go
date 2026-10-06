@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -29,20 +30,27 @@ type SpringCloudAppDynamicsApplicationPerformanceMonitoringModel struct {
 	AgentUniqueHostId     string `tfschema:"agent_unique_host_id"`
 	ControllerHostName    string `tfschema:"controller_host_name"`
 	ControllerSslEnabled  bool   `tfschema:"controller_ssl_enabled"`
-	ControllerPort        int    `tfschema:"controller_port"`
+	ControllerPort        int64  `tfschema:"controller_port"`
 	AgentAccountName      string `tfschema:"agent_account_name"`
 	AgentAccountAccessKey string `tfschema:"agent_account_access_key"`
 }
 
 type SpringCloudAppDynamicsApplicationPerformanceMonitoringResource struct{}
 
-var _ sdk.ResourceWithUpdate = SpringCloudAppDynamicsApplicationPerformanceMonitoringResource{}
+func (s SpringCloudAppDynamicsApplicationPerformanceMonitoringResource) DeprecationMessage() string {
+	return "Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_app_dynamics_application_performance_monitoring` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information."
+}
+
+var (
+	_ sdk.ResourceWithUpdate                      = SpringCloudAppDynamicsApplicationPerformanceMonitoringResource{}
+	_ sdk.ResourceWithDeprecationAndNoReplacement = SpringCloudAppDynamicsApplicationPerformanceMonitoringResource{}
+)
 
 func (s SpringCloudAppDynamicsApplicationPerformanceMonitoringResource) ResourceType() string {
 	return "azurerm_spring_cloud_app_dynamics_application_performance_monitoring"
 }
 
-func (s SpringCloudAppDynamicsApplicationPerformanceMonitoringResource) ModelObject() interface{} {
+func (s SpringCloudAppDynamicsApplicationPerformanceMonitoringResource) ModelObject() any {
 	return &SpringCloudAppDynamicsApplicationPerformanceMonitoringModel{}
 }
 
@@ -143,12 +151,14 @@ func (s SpringCloudAppDynamicsApplicationPerformanceMonitoringResource) Create()
 			}
 			id := appplatform.NewApmID(springId.SubscriptionId, springId.ResourceGroupName, springId.ServiceName, model.Name)
 
-			existing, err := client.ApmsGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(s.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.ApmsGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(s.ResourceType(), id)
+				}
 			}
 
 			resource := appplatform.ApmResource{
@@ -169,19 +179,17 @@ func (s SpringCloudAppDynamicsApplicationPerformanceMonitoringResource) Create()
 					}),
 				},
 			}
-			err = client.ApmsCreateOrUpdateThenPoll(ctx, id, resource)
-			if err != nil {
+
+			if err := client.ApmsCreateOrUpdateCallbackThenPoll(ctx, id, resource, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
 
 			if model.GloballyEnabled {
 				apmReference := appplatform.ApmReference{
 					ResourceId: id.ID(),
 				}
-				err = client.ServicesEnableApmGloballyThenPoll(ctx, *springId, apmReference)
-				if err != nil {
+				if err = client.ServicesEnableApmGloballyThenPoll(ctx, *springId, apmReference); err != nil {
 					return fmt.Errorf("enabling %s globally: %+v", id, err)
 				}
 			}
@@ -263,8 +271,7 @@ func (s SpringCloudAppDynamicsApplicationPerformanceMonitoringResource) Update()
 				Properties: properties,
 			}
 
-			err = client.ApmsCreateOrUpdateThenPoll(ctx, *id, resource)
-			if err != nil {
+			if err = client.ApmsCreateOrUpdateThenPoll(ctx, *id, resource); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -274,13 +281,11 @@ func (s SpringCloudAppDynamicsApplicationPerformanceMonitoringResource) Update()
 				}
 				springId := commonids.NewSpringCloudServiceID(id.SubscriptionId, id.ResourceGroupName, id.SpringName)
 				if model.GloballyEnabled {
-					err := client.ServicesEnableApmGloballyThenPoll(ctx, springId, apmReference)
-					if err != nil {
+					if err := client.ServicesEnableApmGloballyThenPoll(ctx, springId, apmReference); err != nil {
 						return fmt.Errorf("enabling %s globally: %+v", id, err)
 					}
 				} else {
-					err := client.ServicesDisableApmGloballyThenPoll(ctx, springId, apmReference)
-					if err != nil {
+					if err := client.ServicesDisableApmGloballyThenPoll(ctx, springId, apmReference); err != nil {
 						return fmt.Errorf("disabling %s globally: %+v", id, err)
 					}
 				}
@@ -320,7 +325,7 @@ func (s SpringCloudAppDynamicsApplicationPerformanceMonitoringResource) Read() s
 			if result.Model != nil && result.Model.Value != nil {
 				for _, value := range *result.Model.Value {
 					apmId, err := appplatform.ParseApmIDInsensitively(value)
-					if err == nil && apmId.ID() == id.ID() {
+					if err == nil && resourceids.Match(apmId, id) {
 						globallyEnabled = true
 						break
 					}
@@ -365,7 +370,7 @@ func (s SpringCloudAppDynamicsApplicationPerformanceMonitoringResource) Read() s
 					}
 					if value, ok := (*props.Properties)["controller_port"]; ok {
 						if v, err := strconv.ParseInt(value, 10, 32); err == nil {
-							state.ControllerPort = int(v)
+							state.ControllerPort = v
 						}
 					}
 				}
@@ -387,8 +392,7 @@ func (s SpringCloudAppDynamicsApplicationPerformanceMonitoringResource) Delete()
 				return err
 			}
 
-			err = client.ApmsDeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.ApmsDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 

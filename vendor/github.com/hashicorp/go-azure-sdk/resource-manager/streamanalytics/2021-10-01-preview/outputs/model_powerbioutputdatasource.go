@@ -14,6 +14,14 @@ type PowerBIOutputDataSource struct {
 	Properties *PowerBIOutputDataSourceProperties `json:"properties,omitempty"`
 
 	// Fields inherited from OutputDataSource
+
+	Type string `json:"type"`
+}
+
+func (s PowerBIOutputDataSource) OutputDataSource() BaseOutputDataSourceImpl {
+	return BaseOutputDataSourceImpl{
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = PowerBIOutputDataSource{}
@@ -27,9 +35,10 @@ func (s PowerBIOutputDataSource) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling PowerBIOutputDataSource: %+v", err)
 	}
+
 	decoded["type"] = "PowerBI"
 
 	encoded, err = json.Marshal(decoded)

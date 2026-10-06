@@ -10,18 +10,42 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type SynchronizationSetting interface {
+	SynchronizationSetting() BaseSynchronizationSettingImpl
 }
 
-// RawSynchronizationSettingImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+var _ SynchronizationSetting = BaseSynchronizationSettingImpl{}
+
+type BaseSynchronizationSettingImpl struct {
+	Id   *string                    `json:"id,omitempty"`
+	Kind SynchronizationSettingKind `json:"kind"`
+	Name *string                    `json:"name,omitempty"`
+	Type *string                    `json:"type,omitempty"`
+}
+
+func (s BaseSynchronizationSettingImpl) SynchronizationSetting() BaseSynchronizationSettingImpl {
+	return s
+}
+
+var _ SynchronizationSetting = RawSynchronizationSettingImpl{}
+
+// RawSynchronizationSettingImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawSynchronizationSettingImpl struct {
-	Type   string
-	Values map[string]interface{}
+	synchronizationSetting BaseSynchronizationSettingImpl
+	Type                   string
+	Values                 map[string]interface{}
 }
 
-func unmarshalSynchronizationSettingImplementation(input []byte) (SynchronizationSetting, error) {
+func (s RawSynchronizationSettingImpl) SynchronizationSetting() BaseSynchronizationSettingImpl {
+	return s.synchronizationSetting
+}
+
+func (s RawSynchronizationSettingImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
+}
+
+func UnmarshalSynchronizationSettingImplementation(input []byte) (SynchronizationSetting, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +55,9 @@ func unmarshalSynchronizationSettingImplementation(input []byte) (Synchronizatio
 		return nil, fmt.Errorf("unmarshaling SynchronizationSetting into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["kind"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["kind"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "ScheduleBased") {
@@ -44,10 +68,15 @@ func unmarshalSynchronizationSettingImplementation(input []byte) (Synchronizatio
 		return out, nil
 	}
 
-	out := RawSynchronizationSettingImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseSynchronizationSettingImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseSynchronizationSettingImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawSynchronizationSettingImpl{
+		synchronizationSetting: parent,
+		Type:                   value,
+		Values:                 temp,
+	}, nil
 
 }

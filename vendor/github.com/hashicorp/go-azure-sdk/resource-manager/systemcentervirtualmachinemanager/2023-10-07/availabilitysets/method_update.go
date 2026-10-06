@@ -22,7 +22,7 @@ type UpdateOperationResponse struct {
 }
 
 // Update ...
-func (c AvailabilitySetsClient) Update(ctx context.Context, id AvailabilitySetId, input ResourcePatch) (result UpdateOperationResponse, err error) {
+func (c AvailabilitySetsClient) Update(ctx context.Context, id AvailabilitySetId, input AvailabilitySetTagsUpdate) (result UpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -61,10 +61,21 @@ func (c AvailabilitySetsClient) Update(ctx context.Context, id AvailabilitySetId
 }
 
 // UpdateThenPoll performs Update then polls until it's completed
-func (c AvailabilitySetsClient) UpdateThenPoll(ctx context.Context, id AvailabilitySetId, input ResourcePatch) error {
+func (c AvailabilitySetsClient) UpdateThenPoll(ctx context.Context, id AvailabilitySetId, input AvailabilitySetTagsUpdate) error {
+	return c.UpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// UpdateCallbackThenPoll performs Update, runs the optional callback function, then polls until it's completed
+func (c AvailabilitySetsClient) UpdateCallbackThenPoll(ctx context.Context, id AvailabilitySetId, input AvailabilitySetTagsUpdate, callback func() error) error {
 	result, err := c.Update(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Update: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

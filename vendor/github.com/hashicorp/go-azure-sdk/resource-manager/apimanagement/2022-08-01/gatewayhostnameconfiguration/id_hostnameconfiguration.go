@@ -46,7 +46,7 @@ func ParseHostnameConfigurationID(input string) (*HostnameConfigurationId, error
 	}
 
 	id := HostnameConfigurationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -63,7 +63,7 @@ func ParseHostnameConfigurationIDInsensitively(input string) (*HostnameConfigura
 	}
 
 	id := HostnameConfigurationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -127,11 +127,11 @@ func (id HostnameConfigurationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftApiManagement", "Microsoft.ApiManagement", "Microsoft.ApiManagement"),
 		resourceids.StaticSegment("staticService", "service", "service"),
-		resourceids.UserSpecifiedSegment("serviceName", "serviceValue"),
+		resourceids.UserSpecifiedSegment("serviceName", "serviceName"),
 		resourceids.StaticSegment("staticGateways", "gateways", "gateways"),
-		resourceids.UserSpecifiedSegment("gatewayId", "gatewayIdValue"),
+		resourceids.UserSpecifiedSegment("gatewayId", "gatewayId"),
 		resourceids.StaticSegment("staticHostnameConfigurations", "hostnameConfigurations", "hostnameConfigurations"),
-		resourceids.UserSpecifiedSegment("hcId", "hcIdValue"),
+		resourceids.UserSpecifiedSegment("hcId", "hcId"),
 	}
 }
 

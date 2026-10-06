@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices
@@ -10,13 +10,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotectioncontainermappings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationprotectioncontainermappings"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -31,7 +30,7 @@ func resourceSiteRecoveryProtectionContainerMapping() *pluginsdk.Resource {
 		Update: resourceSiteRecoveryContainerMappingUpdate,
 		Delete: resourceSiteRecoveryServicesContainerMappingDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ReplicationProtectionContainerMappingsID(id)
+			_, err := replicationprotectioncontainermappings.ParseReplicationProtectionContainerMappingID(id)
 			return err
 		}),
 
@@ -88,33 +87,20 @@ func resourceSiteRecoveryProtectionContainerMapping() *pluginsdk.Resource {
 				MinItems: 1,
 				MaxItems: 1,
 				Optional: true,
-				// TODO: remove `computed` and `enabled` in `4.0` and use the presence of the block to indicate that
-				Computed: true, // set it to computed because the service will return it no matter if we have passed it.
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*schema.Schema{
-						"enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-
 						"automation_account_id": {
 							Type:         pluginsdk.TypeString,
-							Optional:     true,
+							Required:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 
 						"authentication_type": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default: func() interface{} {
-								if !features.FourPointOhBeta() {
-									return nil
-								}
-								return string(replicationprotectioncontainermappings.AutomationAccountAuthenticationTypeSystemAssignedIdentity)
-							}(),
+							Default:  string(replicationprotectioncontainermappings.AutomationAccountAuthenticationTypeSystemAssignedIdentity),
 							// The Swagger definition defaults to `RunAsAccount` but it is deprecated.
-							// deprecation details: https://learn.microsoft.com/en-us/azure/automation/whats-new#support-for-run-as-accounts
+							// deprecation details: https://learn.microsoft.com/azure/automation/whats-new#support-for-run-as-accounts
 							ValidateFunc: validation.StringInSlice(replicationprotectioncontainermappings.PossibleValuesForAutomationAccountAuthenticationType(), false),
 						},
 					},
@@ -124,7 +110,7 @@ func resourceSiteRecoveryProtectionContainerMapping() *pluginsdk.Resource {
 	}
 }
 
-func resourceSiteRecoveryContainerMappingCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryContainerMappingCreate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
@@ -140,7 +126,7 @@ func resourceSiteRecoveryContainerMappingCreate(d *pluginsdk.ResourceData, meta 
 
 	id := replicationprotectioncontainermappings.NewReplicationProtectionContainerMappingID(subscriptionId, resGroup, vaultName, fabricName, protectionContainerName, name)
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -161,7 +147,7 @@ func resourceSiteRecoveryContainerMappingCreate(d *pluginsdk.ResourceData, meta 
 		},
 	}
 
-	autoUpdateEnabledValue, automationAccountArmId, authType := expandAutoUpdateSettings(d.Get("automatic_update").([]interface{}))
+	autoUpdateEnabledValue, automationAccountArmId, authType := expandAutoUpdateSettings(d.Get("automatic_update").([]any))
 
 	if autoUpdateEnabledValue == replicationprotectioncontainermappings.AgentAutoUpdateStatusEnabled {
 		parameters.Properties.ProviderSpecificInput = replicationprotectioncontainermappings.A2AContainerMappingInput{
@@ -171,8 +157,7 @@ func resourceSiteRecoveryContainerMappingCreate(d *pluginsdk.ResourceData, meta 
 		}
 	}
 
-	err := client.CreateThenPoll(ctx, id, parameters)
-	if err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating site recovery protection container mapping %s (vault %s): %+v", name, vaultName, err)
 	}
 	d.SetId(id.ID())
@@ -180,7 +165,7 @@ func resourceSiteRecoveryContainerMappingCreate(d *pluginsdk.ResourceData, meta 
 	return resourceSiteRecoveryContainerMappingRead(d, meta)
 }
 
-func resourceSiteRecoveryContainerMappingUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryContainerMappingUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).RecoveryServices.ContainerMappingClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -212,24 +197,22 @@ func resourceSiteRecoveryContainerMappingUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if d.HasChange("automatic_update") {
-		autoUpdateEnabledValue, automationAccountArmId, authType := expandAutoUpdateSettings(d.Get("automatic_update").([]interface{}))
-		updateInput := replicationprotectioncontainermappings.A2AUpdateContainerMappingInput{
+		autoUpdateEnabledValue, automationAccountArmId, authType := expandAutoUpdateSettings(d.Get("automatic_update").([]any))
+		update.Properties.ProviderSpecificInput = replicationprotectioncontainermappings.A2AUpdateContainerMappingInput{
 			AgentAutoUpdateStatus:               &autoUpdateEnabledValue,
 			AutomationAccountArmId:              automationAccountArmId,
 			AutomationAccountAuthenticationType: authType,
 		}
-		update.Properties.ProviderSpecificInput = updateInput
 	}
 
-	err = client.UpdateThenPoll(ctx, *id, update)
-	if err != nil {
+	if err = client.UpdateThenPoll(ctx, *id, update); err != nil {
 		return fmt.Errorf("update %s: %+v", id, err)
 	}
 
 	return resourceSiteRecoveryContainerMappingRead(d, meta)
 }
 
-func resourceSiteRecoveryContainerMappingRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryContainerMappingRead(d *pluginsdk.ResourceData, meta any) error {
 	id, err := replicationprotectioncontainermappings.ParseReplicationProtectionContainerMappingID(d.Id())
 	if err != nil {
 		return err
@@ -272,13 +255,11 @@ func resourceSiteRecoveryContainerMappingRead(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func resourceSiteRecoveryServicesContainerMappingDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryServicesContainerMappingDelete(d *pluginsdk.ResourceData, meta any) error {
 	id, err := replicationprotectioncontainermappings.ParseReplicationProtectionContainerMappingID(d.Id())
 	if err != nil {
 		return err
 	}
-
-	instanceType := "A2A"
 
 	client := meta.(*clients.Client).RecoveryServices.ContainerMappingClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -287,51 +268,42 @@ func resourceSiteRecoveryServicesContainerMappingDelete(d *pluginsdk.ResourceDat
 	input := replicationprotectioncontainermappings.RemoveProtectionContainerMappingInput{
 		Properties: &replicationprotectioncontainermappings.RemoveProtectionContainerMappingInputProperties{
 			ProviderSpecificInput: &replicationprotectioncontainermappings.ReplicationProviderContainerUnmappingInput{
-				InstanceType: &instanceType,
+				InstanceType: pointer.To("A2A"),
 			},
 		},
 	}
 
-	err = client.DeleteThenPoll(ctx, *id, input)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id, input); err != nil {
 		return fmt.Errorf("deleting site recovery protection container mapping %s : %+v", id.String(), err)
 	}
 
 	return nil
 }
 
-func expandAutoUpdateSettings(input []interface{}) (enabled replicationprotectioncontainermappings.AgentAutoUpdateStatus, automationAccountId *string, authType *replicationprotectioncontainermappings.AutomationAccountAuthenticationType) {
+func expandAutoUpdateSettings(input []any) (enabled replicationprotectioncontainermappings.AgentAutoUpdateStatus, automationAccountId *string, authType *replicationprotectioncontainermappings.AutomationAccountAuthenticationType) {
 	if len(input) == 0 {
 		return replicationprotectioncontainermappings.AgentAutoUpdateStatusDisabled, nil, nil
 	}
-	autoUpdateSettingMap := input[0].(map[string]interface{})
 
-	autoUpdateEnabledValue := replicationprotectioncontainermappings.AgentAutoUpdateStatusDisabled
-	if autoUpdateSettingMap["enabled"].(bool) {
-		autoUpdateEnabledValue = replicationprotectioncontainermappings.AgentAutoUpdateStatusEnabled
-	}
+	v := input[0].(map[string]any)
 
 	var accountIdOutput *string
-	accountId := autoUpdateSettingMap["automation_account_id"].(string)
-	if accountId == "" {
-		accountIdOutput = nil
-	} else {
+	if accountId := v["automation_account_id"].(string); accountId != "" {
 		accountIdOutput = &accountId
 	}
 
-	authType = pointer.To(replicationprotectioncontainermappings.AutomationAccountAuthenticationType(autoUpdateSettingMap["authentication_type"].(string)))
-
-	return autoUpdateEnabledValue, accountIdOutput, authType
+	return replicationprotectioncontainermappings.AgentAutoUpdateStatusEnabled, accountIdOutput, pointer.ToEnum[replicationprotectioncontainermappings.AutomationAccountAuthenticationType](v["authentication_type"].(string))
 }
 
-func flattenAutoUpdateSettings(input *replicationprotectioncontainermappings.A2AProtectionContainerMappingDetails) []interface{} {
-	output := map[string]interface{}{}
-	if input == nil {
-		output["enabled"] = false
-		return []interface{}{output}
+func flattenAutoUpdateSettings(input *replicationprotectioncontainermappings.A2AProtectionContainerMappingDetails) []any {
+	if input == nil || pointer.From(input.AgentAutoUpdateStatus) == replicationprotectioncontainermappings.AgentAutoUpdateStatusDisabled {
+		return []any{}
 	}
-	output["enabled"] = *input.AgentAutoUpdateStatus == replicationprotectioncontainermappings.AgentAutoUpdateStatusEnabled
-	output["automation_account_id"] = input.AutomationAccountArmId
-	output["authentication_type"] = string(pointer.From(input.AutomationAccountAuthenticationType))
-	return []interface{}{output}
+
+	output := map[string]any{
+		"automation_account_id": input.AutomationAccountArmId,
+		"authentication_type":   pointer.FromEnum(input.AutomationAccountAuthenticationType),
+	}
+
+	return []any{output}
 }

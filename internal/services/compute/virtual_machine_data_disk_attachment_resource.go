@@ -1,9 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -29,9 +30,51 @@ func resourceVirtualMachineDataDiskAttachment() *pluginsdk.Resource {
 		Read:   resourceVirtualMachineDataDiskAttachmentRead,
 		Update: resourceVirtualMachineDataDiskAttachmentCreateUpdate,
 		Delete: resourceVirtualMachineDataDiskAttachmentDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.DataDiskID(id)
 			return err
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
+			client := meta.(*clients.Client).Compute.VirtualMachinesClient
+			id, err := parse.DataDiskID(d.Id())
+			if err != nil {
+				return nil, err
+			}
+
+			virtualMachineId := virtualmachines.NewVirtualMachineID(id.SubscriptionId, id.ResourceGroup, id.VirtualMachineName)
+			virtualMachine, err := client.Get(ctx, virtualMachineId, virtualmachines.DefaultGetOperationOptions())
+			if err != nil {
+				if response.WasNotFound(virtualMachine.HttpResponse) {
+					return nil, fmt.Errorf("%s was not found therefore Data Disk Attachment cannot be imported", virtualMachineId)
+				}
+
+				return nil, fmt.Errorf("retrieving %s: %+v", id, err)
+			}
+
+			var disk *virtualmachines.DataDisk
+			if model := virtualMachine.Model; model != nil {
+				if props := model.Properties; props != nil {
+					if profile := props.StorageProfile; profile != nil {
+						if dataDisks := profile.DataDisks; dataDisks != nil {
+							for _, dataDisk := range *dataDisks {
+								if *dataDisk.Name == id.Name {
+									disk = &dataDisk
+									break
+								}
+							}
+						}
+					}
+				}
+			}
+
+			if disk == nil {
+				return nil, fmt.Errorf("data disk %s was not found", *id)
+			}
+
+			if disk.CreateOption != virtualmachines.DiskCreateOptionTypesAttach && disk.CreateOption != virtualmachines.DiskCreateOptionTypesEmpty {
+				return nil, fmt.Errorf("the value of `create_option` for the imported `azurerm_virtual_machine_data_disk_attachment` instance must be `Attach` or `Empty`, whereas now is %s", disk.CreateOption)
+			}
+
+			return []*pluginsdk.ResourceData{d}, nil
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -65,13 +108,9 @@ func resourceVirtualMachineDataDiskAttachment() *pluginsdk.Resource {
 			},
 
 			"caching": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualmachines.CachingTypesNone),
-					string(virtualmachines.CachingTypesReadOnly),
-					string(virtualmachines.CachingTypesReadWrite),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForCachingTypes(), false),
 			},
 
 			"create_option": {
@@ -94,7 +133,7 @@ func resourceVirtualMachineDataDiskAttachment() *pluginsdk.Resource {
 	}
 }
 
-func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.VirtualMachinesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -144,14 +183,23 @@ func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceD
 
 	expandedDisk := virtualmachines.DataDisk{
 		Name:         pointer.To(name),
-		Caching:      pointer.To(virtualmachines.CachingTypes(caching)),
+		Caching:      pointer.ToEnum[virtualmachines.CachingTypes](caching),
 		CreateOption: createOption,
 		Lun:          int64(lun),
 		ManagedDisk: &virtualmachines.ManagedDiskParameters{
 			Id:                 pointer.To(managedDiskId),
-			StorageAccountType: pointer.To(virtualmachines.StorageAccountTypes(*managedDisk.Sku.Name)),
+			StorageAccountType: pointer.ToEnum[virtualmachines.StorageAccountTypes](string(*managedDisk.Sku.Name)),
 		},
 		WriteAcceleratorEnabled: pointer.To(writeAcceleratorEnabled),
+	}
+
+	// there are ways to provision a VM without a StorageProfile and/or DataDisks
+	if virtualMachine.Model.Properties.StorageProfile == nil {
+		virtualMachine.Model.Properties.StorageProfile = &virtualmachines.StorageProfile{}
+	}
+
+	if virtualMachine.Model.Properties.StorageProfile.DataDisks == nil {
+		virtualMachine.Model.Properties.StorageProfile.DataDisks = pointer.To(make([]virtualmachines.DataDisk, 0))
 	}
 
 	disks := *virtualMachine.Model.Properties.StorageProfile.DataDisks
@@ -165,14 +213,16 @@ func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	if d.IsNewResource() {
-		if existingIndex != -1 {
-			return tf.ImportAsExistsError("azurerm_virtual_machine_data_disk_attachment", resourceId)
-		}
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if existingIndex != -1 {
+				return tf.ImportAsExistsError("azurerm_virtual_machine_data_disk_attachment", resourceId)
+			}
 
-		disks = append(disks, expandedDisk)
+			disks = append(disks, expandedDisk)
+		}
 	} else {
 		if existingIndex == -1 {
-			return fmt.Errorf("Unable to find Disk %q attached to Virtual Machine %q ", name, parsedVirtualMachineId.String())
+			return fmt.Errorf("unable to find Disk %q attached to Virtual Machine %q ", name, parsedVirtualMachineId.String())
 		}
 
 		disks[existingIndex] = expandedDisk
@@ -190,6 +240,7 @@ func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceD
 	// if there's too many disks we get a 409 back with:
 	//   `The maximum number of data disks allowed to be attached to a VM of this size is 1.`
 	// which we're intentionally not wrapping, since the errors good.
+	// TODO: implement `CallbackThenPoll` on Create, requires updated resource ID implementing `resourceids.ResourceId`
 	if err := client.CreateOrUpdateThenPoll(ctx, *parsedVirtualMachineId, *virtualMachine.Model, virtualmachines.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("updating %s with Disk %q: %+v", parsedVirtualMachineId, name, err)
 	}
@@ -198,7 +249,7 @@ func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceD
 	return resourceVirtualMachineDataDiskAttachmentRead(d, meta)
 }
 
-func resourceVirtualMachineDataDiskAttachmentRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualMachineDataDiskAttachmentRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.VirtualMachinesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -245,7 +296,7 @@ func resourceVirtualMachineDataDiskAttachmentRead(d *pluginsdk.ResourceData, met
 	}
 
 	d.Set("virtual_machine_id", virtualMachineId.ID())
-	d.Set("caching", string(pointer.From(disk.Caching)))
+	d.Set("caching", pointer.FromEnum(disk.Caching))
 	d.Set("create_option", string(disk.CreateOption))
 	d.Set("write_accelerator_enabled", disk.WriteAcceleratorEnabled)
 
@@ -258,7 +309,7 @@ func resourceVirtualMachineDataDiskAttachmentRead(d *pluginsdk.ResourceData, met
 	return nil
 }
 
-func resourceVirtualMachineDataDiskAttachmentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualMachineDataDiskAttachmentDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.VirtualMachinesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -316,7 +367,7 @@ func resourceVirtualMachineDataDiskAttachmentDelete(d *pluginsdk.ResourceData, m
 	return nil
 }
 
-func retrieveDataDiskAttachmentManagedDisk(d *pluginsdk.ResourceData, meta interface{}, id string) (*disks.Disk, error) {
+func retrieveDataDiskAttachmentManagedDisk(d *pluginsdk.ResourceData, meta any, id string) (*disks.Disk, error) {
 	client := meta.(*clients.Client).Compute.DisksClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -329,7 +380,7 @@ func retrieveDataDiskAttachmentManagedDisk(d *pluginsdk.ResourceData, meta inter
 	resp, err := client.Get(ctx, *parsedId)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return nil, fmt.Errorf("Managed Disk %q  was not found!", parsedId.String())
+			return nil, fmt.Errorf("managed disk %q was not found", parsedId.String())
 		}
 
 		return nil, fmt.Errorf("making Read request on Azure Managed Disk %q : %+v", parsedId.String(), err)

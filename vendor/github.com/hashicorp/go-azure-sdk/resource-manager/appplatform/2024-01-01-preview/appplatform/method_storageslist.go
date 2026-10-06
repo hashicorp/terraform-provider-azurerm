@@ -24,6 +24,18 @@ type StoragesListCompleteResult struct {
 	Items              []StorageResource
 }
 
+type StoragesListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *StoragesListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // StoragesList ...
 func (c AppPlatformClient) StoragesList(ctx context.Context, id commonids.SpringCloudServiceId) (result StoragesListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c AppPlatformClient) StoragesList(ctx context.Context, id commonids.Spring
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &StoragesListCustomPager{},
 		Path:       fmt.Sprintf("%s/storages", id.ID()),
 	}
 
@@ -73,6 +86,7 @@ func (c AppPlatformClient) StoragesListCompleteMatchingPredicate(ctx context.Con
 
 	resp, err := c.StoragesList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

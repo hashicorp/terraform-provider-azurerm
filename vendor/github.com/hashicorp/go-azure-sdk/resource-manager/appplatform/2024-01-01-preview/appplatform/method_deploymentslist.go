@@ -40,6 +40,7 @@ func (o DeploymentsListOperationOptions) ToHeaders() *client.Headers {
 
 func (o DeploymentsListOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -54,6 +55,18 @@ func (o DeploymentsListOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type DeploymentsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *DeploymentsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // DeploymentsList ...
 func (c AppPlatformClient) DeploymentsList(ctx context.Context, id AppId, options DeploymentsListOperationOptions) (result DeploymentsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -62,8 +75,9 @@ func (c AppPlatformClient) DeploymentsList(ctx context.Context, id AppId, option
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/deployments", id.ID()),
 		OptionsObject: options,
+		Pager:         &DeploymentsListCustomPager{},
+		Path:          fmt.Sprintf("%s/deployments", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -104,6 +118,7 @@ func (c AppPlatformClient) DeploymentsListCompleteMatchingPredicate(ctx context.
 
 	resp, err := c.DeploymentsList(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

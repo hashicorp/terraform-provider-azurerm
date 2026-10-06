@@ -1,13 +1,12 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package tfversion
 
 import (
 	"context"
+	"errors"
 	"strings"
-
-	"github.com/hashicorp/terraform-plugin-testing/internal/errorshim"
 )
 
 // Any will return a nil error and empty skip message (run the test)
@@ -28,7 +27,7 @@ type anyCheck struct {
 
 // CheckTerraformVersion satisfies the TerraformVersionCheck interface.
 func (a anyCheck) CheckTerraformVersion(ctx context.Context, req CheckTerraformVersionRequest, resp *CheckTerraformVersionResponse) {
-	var joinedErrors error
+	var joinedErrors []error
 	strBuilder := strings.Builder{}
 
 	for _, subCheck := range a.terraformVersionChecks {
@@ -42,11 +41,7 @@ func (a anyCheck) CheckTerraformVersion(ctx context.Context, req CheckTerraformV
 			return
 		}
 
-		if checkResp.Error != nil {
-			// TODO: Once Go 1.20 is the minimum supported version for this module, replace with `errors.Join` function
-			// - https://github.com/hashicorp/terraform-plugin-testing/issues/99
-			joinedErrors = errorshim.Join(joinedErrors, checkResp.Error)
-		}
+		joinedErrors = append(joinedErrors, checkResp.Error)
 
 		if checkResp.Skip != "" {
 			strBuilder.WriteString(checkResp.Skip)
@@ -54,6 +49,6 @@ func (a anyCheck) CheckTerraformVersion(ctx context.Context, req CheckTerraformV
 		}
 	}
 
-	resp.Error = joinedErrors
+	resp.Error = errors.Join(joinedErrors...)
 	resp.Skip = strings.TrimSpace(strBuilder.String())
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -8,17 +8,18 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/routetables"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/subnets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networksecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/routetables"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/subnets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceSubnetRouteTableAssociation() *pluginsdk.Resource {
@@ -56,93 +57,129 @@ func resourceSubnetRouteTableAssociation() *pluginsdk.Resource {
 	}
 }
 
-func resourceSubnetRouteTableAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.Subnets
-	vnetClient := meta.(*clients.Client).Network.VnetClient
+func resourceSubnetRouteTableAssociationCreate(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Network.Subnets
+	vnetClient := meta.(*clients.Client).Network.VirtualNetworks
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Subnet <-> Route Table Association creation.")
-
-	subnetId := d.Get("subnet_id").(string)
-	routeTableId := d.Get("route_table_id").(string)
-
-	parsedSubnetId, err := commonids.ParseSubnetID(subnetId)
+	id, err := commonids.ParseSubnetID(d.Get("subnet_id").(string))
 	if err != nil {
 		return err
 	}
 
-	parsedRouteTableId, err := routetables.ParseRouteTableID(routeTableId)
+	routeTableId, err := routetables.ParseRouteTableID(d.Get("route_table_id").(string))
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(parsedRouteTableId.RouteTableName, routeTableResourceName)
-	defer locks.UnlockByName(parsedRouteTableId.RouteTableName, routeTableResourceName)
-
-	locks.ByName(parsedSubnetId.VirtualNetworkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(parsedSubnetId.VirtualNetworkName, VirtualNetworkResourceName)
-
-	subnet, err := client.Get(ctx, *parsedSubnetId, subnets.DefaultGetOperationOptions())
+	// find and lock chain of serialised change
+	existingUnlocked, err := client.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
-		if response.WasNotFound(subnet.HttpResponse) {
-			return fmt.Errorf("Subnet %q (Virtual Network %q / Resource Group %q) was not found!", parsedSubnetId.SubnetName, parsedSubnetId.VirtualNetworkName, parsedSubnetId.ResourceGroupName)
+		if response.WasNotFound(existingUnlocked.HttpResponse) {
+			return fmt.Errorf("%s was not found", id)
+		}
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	var nsgIds []string
+	var rtIds []string
+
+	rtIds = append(rtIds, routeTableId.ID())
+
+	if existingUnlocked.Model != nil && existingUnlocked.Model.Properties != nil {
+		propsUnlocked := existingUnlocked.Model.Properties
+		if propsUnlocked.NetworkSecurityGroup != nil && propsUnlocked.NetworkSecurityGroup.Id != nil {
+			oldNsgId, err := networksecuritygroups.ParseNetworkSecurityGroupID(*propsUnlocked.NetworkSecurityGroup.Id)
+			if err != nil {
+				return fmt.Errorf("parsing existing Network Security Group ID: %+v", err)
+			}
+			nsgIds = append(nsgIds, oldNsgId.ID())
 		}
 
-		return fmt.Errorf("retrieving Subnet %q (Virtual Network %q / Resource Group %q): %+v", parsedSubnetId.SubnetName, parsedSubnetId.VirtualNetworkName, parsedSubnetId.ResourceGroupName, err)
+		if propsUnlocked.RouteTable != nil && propsUnlocked.RouteTable.Id != nil {
+			oldRtId, err := routetables.ParseRouteTableID(*propsUnlocked.RouteTable.Id)
+			if err != nil {
+				return fmt.Errorf("parsing existing Route Table ID: %+v", err)
+			}
+			rtIds = append(rtIds, oldRtId.ID())
+		}
+	}
+
+	locks.MultipleByID(&nsgIds)
+	defer locks.UnlockMultipleByID(&nsgIds)
+
+	locks.MultipleByID(&rtIds)
+	defer locks.UnlockMultipleByID(&rtIds)
+
+	vnetId := commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, id.VirtualNetworkName)
+	locks.ByID(vnetId.ID())
+	defer locks.UnlockByID(vnetId.ID())
+
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
+
+	// now we have exclusive access, we can read reliably for create
+	subnet, err := client.Get(ctx, *id, subnets.DefaultGetOperationOptions())
+	if err != nil {
+		if response.WasNotFound(subnet.HttpResponse) {
+			return fmt.Errorf("%s was not found", id)
+		}
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	if model := subnet.Model; model != nil {
 		if props := model.Properties; props != nil {
-			if rt := props.RouteTable; rt != nil {
-				// we're intentionally not checking the ID - if there's a RouteTable, it needs to be imported
-				if rt.Id != nil && model.Id != nil {
-					return tf.ImportAsExistsError("azurerm_subnet_route_table_association", *model.Id)
+			if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				if rt := props.RouteTable; rt != nil {
+					// we're intentionally not checking the ID - if there's a RouteTable, it needs to be imported
+					if rt.Id != nil && model.Id != nil {
+						return tf.ImportAsExistsError("azurerm_subnet_route_table_association", *model.Id)
+					}
 				}
 			}
 
 			props.RouteTable = &subnets.RouteTable{
-				Id: utils.String(routeTableId),
+				Id: pointer.To(routeTableId.ID()),
 			}
 		}
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, *parsedSubnetId, *subnet.Model); err != nil {
-		return fmt.Errorf("updating Route Table Association for Subnet %q (Virtual Network %q / Resource Group %q): %+v", parsedSubnetId.SubnetName, parsedSubnetId.VirtualNetworkName, parsedSubnetId.ResourceGroupName, err)
+	// TODO: migrate this to a Composite ID
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, *id, *subnet.Model, sdk.SetIDCallback(meta, id, d)); err != nil {
+		return fmt.Errorf("updating Route Table Association for %s: %+v", id, err)
 	}
+	d.SetId(id.ID())
 
 	timeout, _ := ctx.Deadline()
 
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{string(network.ProvisioningStateUpdating)},
-		Target:     []string{string(network.ProvisioningStateSucceeded)},
-		Refresh:    SubnetProvisioningStateRefreshFunc(ctx, client, *parsedSubnetId),
+		Pending:    []string{string(subnets.ProvisioningStateUpdating)},
+		Target:     []string{string(subnets.ProvisioningStateSucceeded)},
+		Refresh:    SubnetProvisioningStateRefreshFunc(ctx, client, *id),
 		MinTimeout: 1 * time.Minute,
 		Timeout:    time.Until(timeout),
 	}
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for provisioning state of subnet for Route Table Association for Subnet %q (Virtual Network %q / Resource Group %q): %+v", parsedSubnetId.SubnetName, parsedSubnetId.VirtualNetworkName, parsedSubnetId.ResourceGroupName, err)
+		return fmt.Errorf("waiting for provisioning state of Route Table Association for %s: %+v", id, err)
 	}
 
-	vnetId := commonids.NewVirtualNetworkID(parsedSubnetId.SubscriptionId, parsedSubnetId.ResourceGroupName, parsedSubnetId.VirtualNetworkName)
 	vnetStateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{string(network.ProvisioningStateUpdating)},
-		Target:     []string{string(network.ProvisioningStateSucceeded)},
+		Pending:    []string{string(subnets.ProvisioningStateUpdating)},
+		Target:     []string{string(subnets.ProvisioningStateSucceeded)},
 		Refresh:    VirtualNetworkProvisioningStateRefreshFunc(ctx, vnetClient, vnetId),
 		MinTimeout: 1 * time.Minute,
 		Timeout:    time.Until(timeout),
 	}
 	if _, err = vnetStateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for provisioning state of virtual network for Route Table Association for Subnet %q (Virtual Network %q / Resource Group %q): %+v", parsedSubnetId.SubnetName, parsedSubnetId.VirtualNetworkName, parsedSubnetId.ResourceGroupName, err)
+		return fmt.Errorf("waiting for provisioning state of virtual network for Route Table Association for %s: %+v", id, err)
 	}
-
-	d.SetId(parsedSubnetId.ID())
 
 	return resourceSubnetRouteTableAssociationRead(d, meta)
 }
 
-func resourceSubnetRouteTableAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.Subnets
+func resourceSubnetRouteTableAssociationRead(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Network.Subnets
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -154,26 +191,26 @@ func resourceSubnetRouteTableAssociationRead(d *pluginsdk.ResourceData, meta int
 	resp, err := client.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			log.Printf("[DEBUG] Subnet %q (Virtual Network %q / Resource Group %q) could not be found - removing from state!", id.SubnetName, id.VirtualNetworkName, id.ResourceGroupName)
+			log.Printf("[DEBUG] %s could not be found - removing from state!", id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Subnet %q (Virtual Network %q / Resource Group %q): %+v", id.SubnetName, id.VirtualNetworkName, id.ResourceGroupName, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	model := resp.Model
 	if model == nil {
-		return fmt.Errorf("Error: `model` was nil for Subnet %q (Virtual Network %q / Resource Group %q)", id.SubnetName, id.VirtualNetworkName, id.ResourceGroupName)
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
 	}
 
 	props := model.Properties
 	if props == nil {
-		return fmt.Errorf("Error: `properties` was nil for Subnet %q (Virtual Network %q / Resource Group %q)", id.SubnetName, id.VirtualNetworkName, id.ResourceGroupName)
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
 	}
 
 	routeTable := props.RouteTable
 	if routeTable == nil {
-		log.Printf("[DEBUG] Subnet %q (Virtual Network %q / Resource Group %q) doesn't have a Route Table - removing from state!", id.SubnetName, id.VirtualNetworkName, id.ResourceGroupName)
+		log.Printf("[DEBUG] %s doesn't have a Route Table - removing from state!", id)
 		d.SetId("")
 		return nil
 	}
@@ -184,8 +221,8 @@ func resourceSubnetRouteTableAssociationRead(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func resourceSubnetRouteTableAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.Subnets
+func resourceSubnetRouteTableAssociationDelete(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Network.Subnets
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -194,59 +231,71 @@ func resourceSubnetRouteTableAssociationDelete(d *pluginsdk.ResourceData, meta i
 		return err
 	}
 
-	// retrieve the subnet
-	read, err := client.Get(ctx, *id, subnets.DefaultGetOperationOptions())
+	// find and lock chain of serialised change
+	readUnlocked, err := client.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
-		if response.WasNotFound(read.HttpResponse) {
-			log.Printf("[DEBUG] Subnet %q (Virtual Network %q / Resource Group %q) could not be found - removing from state!", id.SubnetName, id.VirtualNetworkName, id.ResourceGroupName)
+		if response.WasNotFound(readUnlocked.HttpResponse) {
+			log.Printf("[DEBUG] %s could not be found - removing from state!", id)
 			return nil
 		}
-
-		return fmt.Errorf("retrieving Subnet %q (Virtual Network %q / Resource Group %q): %+v", id.SubnetName, id.VirtualNetworkName, id.ResourceGroupName, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	model := read.Model
-	if model == nil {
-		return fmt.Errorf("`model` was nil for Subnet %q (Virtual Network %q / Resource Group %q)", id.SubnetName, id.VirtualNetworkName, id.ResourceGroupName)
+	if readUnlocked.Model == nil || readUnlocked.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `model` or `properties` was nil", id)
 	}
 
-	props := model.Properties
-	if props == nil {
-		return fmt.Errorf("`Properties` was nil for Subnet %q (Virtual Network %q / Resource Group %q)", id.SubnetName, id.VirtualNetworkName, id.ResourceGroupName)
-	}
+	propsUnlocked := readUnlocked.Model.Properties
 
-	if props.RouteTable == nil || props.RouteTable.Id == nil {
-		log.Printf("[DEBUG] Subnet %q (Virtual Network %q / Resource Group %q) has no Route Table - removing from state!", id.SubnetName, id.VirtualNetworkName, id.ResourceGroupName)
+	if propsUnlocked.RouteTable == nil || propsUnlocked.RouteTable.Id == nil {
+		log.Printf("[DEBUG] %s has no Route Table - removing from state!", id)
 		return nil
 	}
 
-	// once we have the route table id to lock on, lock on that
-	parsedRouteTableId, err := routetables.ParseRouteTableID(*props.RouteTable.Id)
+	var nsgIds []string
+	var rtIds []string
+
+	if propsUnlocked.NetworkSecurityGroup != nil && propsUnlocked.NetworkSecurityGroup.Id != nil {
+		nsgId, err := networksecuritygroups.ParseNetworkSecurityGroupID(*propsUnlocked.NetworkSecurityGroup.Id)
+		if err != nil {
+			return err
+		}
+		nsgIds = append(nsgIds, nsgId.ID())
+	}
+
+	parsedRouteTableId, err := routetables.ParseRouteTableID(*propsUnlocked.RouteTable.Id)
 	if err != nil {
 		return err
 	}
+	rtIds = append(rtIds, parsedRouteTableId.ID())
 
-	locks.ByName(parsedRouteTableId.RouteTableName, routeTableResourceName)
-	defer locks.UnlockByName(parsedRouteTableId.RouteTableName, routeTableResourceName)
+	locks.MultipleByID(&nsgIds)
+	defer locks.UnlockMultipleByID(&nsgIds)
 
-	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
+	locks.MultipleByID(&rtIds)
+	defer locks.UnlockMultipleByID(&rtIds)
 
-	// then re-retrieve it to ensure we've got the latest state
-	read, err = client.Get(ctx, *id, subnets.DefaultGetOperationOptions())
+	vnetId := commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, id.VirtualNetworkName)
+	locks.ByID(vnetId.ID())
+	defer locks.UnlockByID(vnetId.ID())
+
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
+
+	// Now we have the locks, we can try to delete
+	read, err := client.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(read.HttpResponse) {
-			log.Printf("[DEBUG] Subnet %q (Virtual Network %q / Resource Group %q) could not be found - removing from state!", id.SubnetName, id.VirtualNetworkName, id.ResourceGroupName)
+			log.Printf("[DEBUG] %s could not be found - removing from state!", id)
 			return nil
 		}
-
-		return fmt.Errorf("retrieving Subnet %q (Virtual Network %q / Resource Group %q): %+v", id.SubnetName, id.VirtualNetworkName, id.ResourceGroupName, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	read.Model.Properties.RouteTable = nil
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *read.Model); err != nil {
-		return fmt.Errorf("removing Route Table Association from Subnet %q (Virtual Network %q / Resource Group %q): %+v", id.SubnetName, id.VirtualNetworkName, id.ResourceGroupName, err)
+		return fmt.Errorf("removing Route Table Association from %s: %+v", id, err)
 	}
 
 	return nil

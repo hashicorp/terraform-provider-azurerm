@@ -121,6 +121,10 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Palo Alto Next Generation Firewall Virtual Network Panorama should exist. Changing this forces a new Palo Alto Next Generation Firewall Virtual Network Panorama to be created.
 
+* `marketplace_offer_id` - (Optional) The marketplace offer ID. Defaults to `pan_swfw_cloud_ngfw`. Changing this forces a new resource to be created.
+
+* `plan_id` - (Optional) The billing plan ID as published by Liftr.PAN. Defaults to `panw-cngfw-payg`.
+
 ---
 
 * `destination_nat` - (Optional) One or more `destination_nat` blocks as defined below.
@@ -217,7 +221,7 @@ A `panorama` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 3 hours) Used when creating the Palo Alto Next Generation Firewall Virtual Network Panorama.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Palo Alto Next Generation Firewall Virtual Network Panorama.
@@ -231,3 +235,9 @@ Palo Alto Next Generation Firewall Virtual Network Panoramas can be imported usi
 ```shell
 terraform import azurerm_palo_alto_next_generation_firewall_virtual_network_panorama.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/PaloAltoNetworks.Cloudngfw/firewalls/myVNetPanoramaFW
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `PaloAltoNetworks.Cloudngfw` - 2025-10-08

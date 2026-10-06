@@ -50,7 +50,6 @@ func (c AutomationsClient) CreateOrUpdate(ctx context.Context, id AutomationId, 
 
 	var model Automation
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

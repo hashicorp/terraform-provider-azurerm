@@ -16,12 +16,24 @@ import (
 type ListBySubscriptionOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]VMMServer
+	Model        *[]VMmServer
 }
 
 type ListBySubscriptionCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []VMMServer
+	Items              []VMmServer
+}
+
+type ListBySubscriptionCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListBySubscriptionCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListBySubscription ...
@@ -32,6 +44,7 @@ func (c VMmServersClient) ListBySubscription(ctx context.Context, id commonids.S
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListBySubscriptionCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.ScVmm/vmmServers", id.ID()),
 	}
 
@@ -51,7 +64,7 @@ func (c VMmServersClient) ListBySubscription(ctx context.Context, id commonids.S
 	}
 
 	var values struct {
-		Values *[]VMMServer `json:"value"`
+		Values *[]VMmServer `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -64,15 +77,16 @@ func (c VMmServersClient) ListBySubscription(ctx context.Context, id commonids.S
 
 // ListBySubscriptionComplete retrieves all the results into a single object
 func (c VMmServersClient) ListBySubscriptionComplete(ctx context.Context, id commonids.SubscriptionId) (ListBySubscriptionCompleteResult, error) {
-	return c.ListBySubscriptionCompleteMatchingPredicate(ctx, id, VMMServerOperationPredicate{})
+	return c.ListBySubscriptionCompleteMatchingPredicate(ctx, id, VMmServerOperationPredicate{})
 }
 
 // ListBySubscriptionCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c VMmServersClient) ListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate VMMServerOperationPredicate) (result ListBySubscriptionCompleteResult, err error) {
-	items := make([]VMMServer, 0)
+func (c VMmServersClient) ListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate VMmServerOperationPredicate) (result ListBySubscriptionCompleteResult, err error) {
+	items := make([]VMmServer, 0)
 
 	resp, err := c.ListBySubscription(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

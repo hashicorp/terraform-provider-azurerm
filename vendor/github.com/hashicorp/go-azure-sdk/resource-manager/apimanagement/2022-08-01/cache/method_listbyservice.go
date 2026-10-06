@@ -40,6 +40,7 @@ func (o ListByServiceOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListByServiceOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -54,6 +55,18 @@ func (o ListByServiceOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByServiceCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByServiceCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByService ...
 func (c CacheClient) ListByService(ctx context.Context, id ServiceId, options ListByServiceOperationOptions) (result ListByServiceOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -62,8 +75,9 @@ func (c CacheClient) ListByService(ctx context.Context, id ServiceId, options Li
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/caches", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByServiceCustomPager{},
+		Path:          fmt.Sprintf("%s/caches", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -104,6 +118,7 @@ func (c CacheClient) ListByServiceCompleteMatchingPredicate(ctx context.Context,
 
 	resp, err := c.ListByService(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

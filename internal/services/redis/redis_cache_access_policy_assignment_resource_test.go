@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package redis_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-08-01/redis"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/rediscacheaccesspolicyassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type RedisCacheAccessPolicyAssignmentResource struct{}
@@ -33,6 +33,23 @@ func TestAccRedisCacheAccessPolicyAssignment_basic(t *testing.T) {
 	})
 }
 
+func TestAccRedisCacheAccessPolicyAssignment_multi(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache_access_policy_assignment", "test")
+	r := RedisCacheAccessPolicyAssignmentResource{}
+	accessPolicyAssignmentTwo := "azurerm_redis_cache_access_policy_assignment.test2"
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multi(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(accessPolicyAssignmentTwo).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		data.ImportStep(accessPolicyAssignmentTwo),
+	})
+}
+
 func TestAccRedisCacheAccessPolicyAssignment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_cache_access_policy_assignment", "test")
 	r := RedisCacheAccessPolicyAssignmentResource{}
@@ -48,17 +65,17 @@ func TestAccRedisCacheAccessPolicyAssignment_requiresImport(t *testing.T) {
 }
 
 func (t RedisCacheAccessPolicyAssignmentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := redis.ParseAccessPolicyAssignmentID(state.ID)
+	id, err := rediscacheaccesspolicyassignments.ParseAccessPolicyAssignmentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Redis.Redis.AccessPolicyAssignmentGet(ctx, *id)
+	resp, err := clients.Redis.CacheAccessPolicyAssignmentsClient.AccessPolicyAssignmentGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (RedisCacheAccessPolicyAssignmentResource) basic(data acceptance.TestData) string {
@@ -76,14 +93,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_redis_cache" "test" {
-  name                = "acctestRedis-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  capacity            = 1
-  family              = "C"
-  sku_name            = "Basic"
-  enable_non_ssl_port = true
-  minimum_tls_version = "1.2"
+  name                 = "acctestRedis-%d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  capacity             = 1
+  family               = "C"
+  sku_name             = "Basic"
+  non_ssl_port_enabled = true
+  minimum_tls_version  = "1.2"
 
   redis_configuration {
   }
@@ -111,4 +128,30 @@ resource "azurerm_redis_cache_access_policy_assignment" "import" {
   object_id_alias    = azurerm_redis_cache_access_policy_assignment.test.object_id_alias
 }
 `, r.basic(data))
+}
+
+func (r RedisCacheAccessPolicyAssignmentResource) multi(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_redis_cache_access_policy" "test2" {
+  name           = "acctestRedisAccessPolicytest2"
+  redis_cache_id = azurerm_redis_cache.test.id
+  permissions    = "+@read +@connection +cluster|info allkeys"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_redis_cache_access_policy_assignment" "test2" {
+  name               = "acctestRedisAccessPolicyAssignmentTest2"
+  redis_cache_id     = azurerm_redis_cache.test.id
+  access_policy_name = azurerm_redis_cache_access_policy.test2.name
+  object_id          = azurerm_user_assigned_identity.test.principal_id
+  object_id_alias    = "UserAssignedIdentity"
+}
+`, r.basic(data), data.RandomInteger)
 }

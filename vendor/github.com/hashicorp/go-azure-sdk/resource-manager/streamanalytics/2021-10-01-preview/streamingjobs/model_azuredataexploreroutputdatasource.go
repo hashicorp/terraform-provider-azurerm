@@ -14,6 +14,14 @@ type AzureDataExplorerOutputDataSource struct {
 	Properties *AzureDataExplorerOutputDataSourceProperties `json:"properties,omitempty"`
 
 	// Fields inherited from OutputDataSource
+
+	Type string `json:"type"`
+}
+
+func (s AzureDataExplorerOutputDataSource) OutputDataSource() BaseOutputDataSourceImpl {
+	return BaseOutputDataSourceImpl{
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = AzureDataExplorerOutputDataSource{}
@@ -27,9 +35,10 @@ func (s AzureDataExplorerOutputDataSource) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AzureDataExplorerOutputDataSource: %+v", err)
 	}
+
 	decoded["type"] = "Microsoft.Kusto/clusters/databases"
 
 	encoded, err = json.Marshal(decoded)

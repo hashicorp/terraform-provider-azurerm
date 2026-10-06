@@ -23,6 +23,18 @@ type ListVirtualMachineScaleSetVMNetworkInterfacesCompleteResult struct {
 	Items              []NetworkInterface
 }
 
+type ListVirtualMachineScaleSetVMNetworkInterfacesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListVirtualMachineScaleSetVMNetworkInterfacesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListVirtualMachineScaleSetVMNetworkInterfaces ...
 func (c NetworkInterfacesClient) ListVirtualMachineScaleSetVMNetworkInterfaces(ctx context.Context, id VirtualMachineId) (result ListVirtualMachineScaleSetVMNetworkInterfacesOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c NetworkInterfacesClient) ListVirtualMachineScaleSetVMNetworkInterfaces(c
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListVirtualMachineScaleSetVMNetworkInterfacesCustomPager{},
 		Path:       fmt.Sprintf("%s/networkInterfaces", id.ID()),
 	}
 
@@ -72,6 +85,7 @@ func (c NetworkInterfacesClient) ListVirtualMachineScaleSetVMNetworkInterfacesCo
 
 	resp, err := c.ListVirtualMachineScaleSetVMNetworkInterfaces(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

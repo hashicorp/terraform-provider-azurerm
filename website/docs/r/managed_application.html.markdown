@@ -65,7 +65,7 @@ resource "azurerm_managed_application" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -81,13 +81,11 @@ The following arguments are supported:
 
 * `application_definition_id` - (Optional) The application definition ID to deploy.
 
-* `parameters` - (Optional) A mapping of name and value pairs to pass to the managed application as parameters.
-
-~> **NOTE:** `parameters` only supports values with `string` or `secureString` type and will be deprecated in version 4.0 of the provider - please use `parameter_values` instead which supports more parameter types.
-
 * `parameter_values` - (Optional) The parameter values to pass to the Managed Application. This field is a JSON object that allows you to assign parameters to this Managed Application.
 
 * `plan` - (Optional) One `plan` block as defined below. Changing this forces a new resource to be created.
+
+* `identity` - (Optional) An `identity` block as defined below. Removing this block forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -105,7 +103,17 @@ The `plan` block exports the following:
 
 * `promotion_code` - (Optional) Specifies the promotion code to use with the plan. Changing this forces a new resource to be created.
 
-~> **NOTE:** When `plan` is specified, legal terms must be accepted for this item on this subscription before creating the Managed Application. The `azurerm_marketplace_agreement` resource or AZ CLI tool can be used to do this.
+~> **Note:** When `plan` is specified, legal terms must be accepted for this item on this subscription before creating the Managed Application. The `azurerm_marketplace_agreement` resource or AZ CLI tool can be used to do this.
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Managed Application. Possible values are `SystemAssigned`, `UserAssigned`, and `SystemAssigned, UserAssigned` (to enable both).
+
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Managed Application.
+
+~> **Note:** The `identity_ids` argument is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ## Attributes Reference
 
@@ -115,13 +123,23 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `outputs` - The name and value pairs that define the managed application outputs.
 
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID associated with this Managed Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Identity.
+
+~> **Note:** When `type` is set to `SystemAssigned`, the assigned `principal_id` and `tenant_id` can be retrieved after the Managed Application has been created.
+
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Managed Application.
-* `update` - (Defaults to 30 minutes) Used when updating the Managed Application.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Managed Application.
+* `update` - (Defaults to 30 minutes) Used when updating the Managed Application.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Managed Application.
 
 ## Import
@@ -131,3 +149,9 @@ Managed Application can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_managed_application.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Solutions/applications/app1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Solutions` - 2021-07-01

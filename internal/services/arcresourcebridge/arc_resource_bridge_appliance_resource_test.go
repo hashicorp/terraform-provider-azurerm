@@ -1,11 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package arcresourcebridge_test
 
 import (
 	"context"
-	cryptoRand "crypto/rand"
+	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
@@ -72,7 +72,7 @@ func TestAccArcResourceBridgeAppliance_complete(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data, r.generatePublicKey()),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -103,7 +103,6 @@ func (r ArcResourceBridgeApplianceResource) Exists(ctx context.Context, clients 
 
 	client := clients.ArcResourceBridge.AppliancesClient
 	resp, err := client.Get(ctx, *id)
-
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %q: %+v", *id, err)
 	}
@@ -150,7 +149,7 @@ resource "azurerm_arc_resource_bridge_appliance" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ArcResourceBridgeApplianceResource) complete(data acceptance.TestData, publicKey string) string {
+func (r ArcResourceBridgeApplianceResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 %s
@@ -169,7 +168,7 @@ resource "azurerm_arc_resource_bridge_appliance" "test" {
     "hello" = "world"
   }
 }
-`, r.template(data), data.RandomInteger, publicKey)
+`, r.template(data), data.RandomInteger, r.generatePublicKey())
 }
 
 func (r ArcResourceBridgeApplianceResource) requiresImport(data acceptance.TestData) string {
@@ -202,7 +201,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 func (r ArcResourceBridgeApplianceResource) generatePublicKey() string {
-	privateKey, err := rsa.GenerateKey(cryptoRand.Reader, 4096)
+	privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
 	if err != nil {
 		return ""
 	}

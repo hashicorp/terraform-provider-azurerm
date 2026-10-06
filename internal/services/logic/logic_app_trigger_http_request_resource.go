@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package logic
@@ -37,12 +37,12 @@ func resourceLogicAppTriggerHttpRequest() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v any) error {
 			relativePath := diff.Get("relative_path").(string)
 			if relativePath != "" {
 				method := diff.Get("method").(string)
 				if method == "" {
-					return fmt.Errorf("`method` must be specified when `relative_path` is set.")
+					return fmt.Errorf("`method` must be specified when `relative_path` is set")
 				}
 			}
 
@@ -96,14 +96,14 @@ func resourceLogicAppTriggerHttpRequest() *pluginsdk.Resource {
 	}
 }
 
-func resourceLogicAppTriggerHttpRequestCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppTriggerHttpRequestCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	schemaRaw := d.Get("schema").(string)
-	var schema map[string]interface{}
+	var schema map[string]any
 	if err := json.Unmarshal([]byte(schemaRaw), &schema); err != nil {
 		return fmt.Errorf("unmarshalling JSON from Schema: %+v", err)
 	}
 
-	inputs := map[string]interface{}{
+	inputs := map[string]any{
 		"schema": schema,
 	}
 
@@ -115,7 +115,7 @@ func resourceLogicAppTriggerHttpRequestCreateUpdate(d *pluginsdk.ResourceData, m
 		inputs["relativePath"] = v.(string)
 	}
 
-	trigger := map[string]interface{}{
+	trigger := map[string]any{
 		"inputs": inputs,
 		"kind":   "Http",
 		"type":   "Request",
@@ -135,13 +135,13 @@ func resourceLogicAppTriggerHttpRequestCreateUpdate(d *pluginsdk.ResourceData, m
 	return resourceLogicAppTriggerHttpRequestRead(d, meta)
 }
 
-func resourceLogicAppTriggerHttpRequestRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppTriggerHttpRequestRead(d *pluginsdk.ResourceData, meta any) error {
 	id, err := workflowtriggers.ParseTriggerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	t, app, url, err := retrieveLogicAppHttpTrigger(d, meta, *id)
+	t, app, url, err := retrieveLogicAppTrigger(d, meta, *id)
 	if err != nil {
 		return err
 	}
@@ -163,7 +163,7 @@ func resourceLogicAppTriggerHttpRequestRead(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("`inputs` was nil for HTTP Trigger %s", id)
 	}
 
-	inputs, ok := v.(map[string]interface{})
+	inputs, ok := v.(map[string]any)
 	if !ok {
 		return fmt.Errorf("parsing `inputs` for HTTP Trigger %s", id)
 	}
@@ -188,7 +188,7 @@ func resourceLogicAppTriggerHttpRequestRead(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func resourceLogicAppTriggerHttpRequestDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppTriggerHttpRequestDelete(d *pluginsdk.ResourceData, meta any) error {
 	id, err := workflowtriggers.ParseTriggerID(d.Id())
 	if err != nil {
 		return err
@@ -196,8 +196,7 @@ func resourceLogicAppTriggerHttpRequestDelete(d *pluginsdk.ResourceData, meta in
 
 	workflowId := workflows.NewWorkflowID(id.SubscriptionId, id.ResourceGroupName, id.WorkflowName)
 
-	err = resourceLogicAppTriggerRemove(d, meta, workflowId, id.TriggerName)
-	if err != nil {
+	if err = resourceLogicAppTriggerRemove(d, meta, workflowId, id.TriggerName); err != nil {
 		return fmt.Errorf("removing Trigger %s: %+v", id, err)
 	}
 

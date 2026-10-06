@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -8,18 +8,17 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/subnets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/natgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/subnets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceSubnetNatGatewayAssociation() *pluginsdk.Resource {
@@ -51,95 +50,95 @@ func resourceSubnetNatGatewayAssociation() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NatGatewayID,
+				ValidateFunc: natgateways.ValidateNatGatewayID,
 			},
 		},
 	}
 }
 
-func resourceSubnetNatGatewayAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.Subnets
-	vnetClient := meta.(*clients.Client).Network.VnetClient
+func resourceSubnetNatGatewayAssociationCreate(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Network.Subnets
+	vnetClient := meta.(*clients.Client).Network.VirtualNetworks
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Subnet <-> NAT Gateway Association creation.")
-	natGatewayId := d.Get("nat_gateway_id").(string)
-	parsedSubnetId, err := commonids.ParseSubnetID(d.Get("subnet_id").(string))
+	subnetId, err := commonids.ParseSubnetID(d.Get("subnet_id").(string))
 	if err != nil {
 		return err
 	}
 
-	parsedGatewayId, err := parse.NatGatewayID(d.Get("nat_gateway_id").(string))
+	gatewayId, err := natgateways.ParseNatGatewayID(d.Get("nat_gateway_id").(string))
 	if err != nil {
-		return fmt.Errorf("parsing NAT gateway id '%s': %+v", natGatewayId, err)
+		return err
 	}
 
-	locks.ByName(parsedGatewayId.Name, natGatewayResourceName)
-	defer locks.UnlockByName(parsedGatewayId.Name, natGatewayResourceName)
-	locks.ByName(parsedSubnetId.VirtualNetworkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(parsedSubnetId.VirtualNetworkName, VirtualNetworkResourceName)
-	locks.ByName(parsedSubnetId.SubnetName, SubnetResourceName)
-	defer locks.UnlockByName(parsedSubnetId.SubnetName, SubnetResourceName)
+	locks.ByID(gatewayId.ID())
+	defer locks.UnlockByID(gatewayId.ID())
+	vnetId := commonids.NewVirtualNetworkID(subnetId.SubscriptionId, subnetId.ResourceGroupName, subnetId.VirtualNetworkName)
+	locks.ByID(vnetId.ID())
+	defer locks.UnlockByID(vnetId.ID())
+	locks.ByID(subnetId.ID())
+	defer locks.UnlockByID(subnetId.ID())
 
-	subnet, err := client.Get(ctx, *parsedSubnetId, subnets.DefaultGetOperationOptions())
+	subnet, err := client.Get(ctx, *subnetId, subnets.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(subnet.HttpResponse) {
-			return fmt.Errorf("%s was not found!", *parsedSubnetId)
+			return fmt.Errorf("%s was not found", *subnetId)
 		}
-		return fmt.Errorf("retrieving %s: %+v", *parsedSubnetId, err)
+		return fmt.Errorf("retrieving %s: %+v", *subnetId, err)
 	}
 
 	if model := subnet.Model; model != nil {
 		if props := model.Properties; props != nil {
 			// check if the resources are imported
-			if gateway := props.NatGateway; gateway != nil {
-				if gateway.Id != nil && model.Id != nil {
-					return tf.ImportAsExistsError("azurerm_subnet_nat_gateway_association", *model.Id)
+			if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				if gateway := props.NatGateway; gateway != nil {
+					if gateway.Id != nil && model.Id != nil {
+						return tf.ImportAsExistsError("azurerm_subnet_nat_gateway_association", *model.Id)
+					}
 				}
 			}
 			props.NatGateway = &subnets.SubResource{
-				Id: utils.String(natGatewayId),
+				Id: pointer.To(gatewayId.ID()),
 			}
 		}
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, *parsedSubnetId, *subnet.Model); err != nil {
-		return fmt.Errorf("updating NAT Gateway Association for %s: %+v", *parsedSubnetId, err)
+	// TODO: migrate this resource to a composite ID
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, *subnetId, *subnet.Model, sdk.SetIDCallback(meta, subnetId, d)); err != nil {
+		return fmt.Errorf("updating NAT Gateway Association for %s: %+v", *subnetId, err)
 	}
+	d.SetId(subnetId.ID())
 
 	timeout, _ := ctx.Deadline()
 
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{string(network.ProvisioningStateUpdating)},
-		Target:     []string{string(network.ProvisioningStateSucceeded)},
-		Refresh:    SubnetProvisioningStateRefreshFunc(ctx, client, *parsedSubnetId),
+		Pending:    []string{string(subnets.ProvisioningStateUpdating)},
+		Target:     []string{string(subnets.ProvisioningStateSucceeded)},
+		Refresh:    SubnetProvisioningStateRefreshFunc(ctx, client, *subnetId),
 		MinTimeout: 1 * time.Minute,
 		Timeout:    time.Until(timeout),
 	}
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for provisioning state of subnet for NAT Gateway Association for %s: %+v", *parsedSubnetId, err)
+		return fmt.Errorf("waiting for provisioning state of subnet for NAT Gateway Association for %s: %+v", *subnetId, err)
 	}
 
-	vnetId := commonids.NewVirtualNetworkID(parsedSubnetId.SubscriptionId, parsedSubnetId.ResourceGroupName, parsedSubnetId.VirtualNetworkName)
 	vnetStateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{string(network.ProvisioningStateUpdating)},
-		Target:     []string{string(network.ProvisioningStateSucceeded)},
+		Pending:    []string{string(subnets.ProvisioningStateUpdating)},
+		Target:     []string{string(subnets.ProvisioningStateSucceeded)},
 		Refresh:    VirtualNetworkProvisioningStateRefreshFunc(ctx, vnetClient, vnetId),
 		MinTimeout: 1 * time.Minute,
 		Timeout:    time.Until(timeout),
 	}
 	if _, err = vnetStateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for provisioning state of virtual network for NAT Gateway Association for %s: %+v", *parsedSubnetId, err)
+		return fmt.Errorf("waiting for provisioning state of virtual network for NAT Gateway Association for %s: %+v", *subnetId, err)
 	}
-
-	d.SetId(parsedSubnetId.ID())
 
 	return resourceSubnetNatGatewayAssociationRead(d, meta)
 }
 
-func resourceSubnetNatGatewayAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.Subnets
+func resourceSubnetNatGatewayAssociationRead(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Network.Subnets
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -158,29 +157,33 @@ func resourceSubnetNatGatewayAssociationRead(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	model := subnet.Model
-	if model == nil {
-		return fmt.Errorf("Error: `model` was nil for %s", *id)
+	if subnet.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil ", id)
 	}
-	props := model.Properties
-	if props == nil {
-		return fmt.Errorf("Error: `properties` was nil for %s", *id)
+	if subnet.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil ", id)
 	}
-	natGateway := props.NatGateway
-	if natGateway == nil {
+
+	props := subnet.Model.Properties
+	if props.NatGateway == nil || props.NatGateway.Id == nil {
 		log.Printf("[DEBUG] %s doesn't have a NAT Gateway - removing from state!", *id)
 		d.SetId("")
 		return nil
 	}
 
-	d.Set("subnet_id", model.Id)
-	d.Set("nat_gateway_id", natGateway.Id)
+	gatewayId, err := natgateways.ParseNatGatewayID(*props.NatGateway.Id)
+	if err != nil {
+		return err
+	}
+
+	d.Set("subnet_id", id.ID())
+	d.Set("nat_gateway_id", gatewayId.ID())
 
 	return nil
 }
 
-func resourceSubnetNatGatewayAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.Subnets
+func resourceSubnetNatGatewayAssociationDelete(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Network.Subnets
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -198,29 +201,30 @@ func resourceSubnetNatGatewayAssociationDelete(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	model := subnet.Model
-	if model == nil {
-		return fmt.Errorf("`model` was nil for %s ", *id)
+	if subnet.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil ", id)
 	}
-	props := model.Properties
-	if props == nil {
-		return fmt.Errorf("`Properties` was nil for %s ", *id)
+	if subnet.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil ", id)
 	}
+
+	props := subnet.Model.Properties
+
 	if props.NatGateway == nil || props.NatGateway.Id == nil {
 		log.Printf("[DEBUG] %s has no NAT Gateway - removing from state!", *id)
 		return nil
 	}
-	parsedGatewayId, err := parse.NatGatewayID(*props.NatGateway.Id)
+	gatewayId, err := natgateways.ParseNatGatewayID(*props.NatGateway.Id)
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(parsedGatewayId.Name, natGatewayResourceName)
-	defer locks.UnlockByName(parsedGatewayId.Name, natGatewayResourceName)
-	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
+	locks.ByID(gatewayId.ID())
+	defer locks.UnlockByID(gatewayId.ID())
+	vnetId := commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, id.VirtualNetworkName)
+	locks.ByID(vnetId.ID())
+	defer locks.UnlockByID(vnetId.ID())
 
-	// ensure we get the latest state
 	subnet, err = client.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(subnet.HttpResponse) {
@@ -230,7 +234,7 @@ func resourceSubnetNatGatewayAssociationDelete(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	subnet.Model.Properties.NatGateway = nil // remove the nat gateway from subnet
+	subnet.Model.Properties.NatGateway = nil
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *subnet.Model); err != nil {
 		return fmt.Errorf("removing %s: %+v", *id, err)

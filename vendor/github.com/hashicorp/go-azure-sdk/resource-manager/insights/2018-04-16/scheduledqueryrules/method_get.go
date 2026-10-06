@@ -45,7 +45,6 @@ func (c ScheduledQueryRulesClient) Get(ctx context.Context, id ScheduledQueryRul
 
 	var model LogSearchRuleResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

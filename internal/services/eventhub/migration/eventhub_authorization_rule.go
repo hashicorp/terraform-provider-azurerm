@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -7,7 +7,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/eventhubs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -16,7 +16,7 @@ var _ pluginsdk.StateUpgrade = EventHubAuthorizationRuleV0ToV1{}
 type EventHubAuthorizationRuleV0ToV1 struct{}
 
 func (EventHubAuthorizationRuleV0ToV1) Schema() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -41,11 +41,10 @@ func (EventHubAuthorizationRuleV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 		},
 	}
-	return s
 }
 
 func (EventHubAuthorizationRuleV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		oldID := rawState["id"].(string)
 
 		newID, err := eventhubs.ParseEventhubAuthorizationRuleIDInsensitively(oldID)

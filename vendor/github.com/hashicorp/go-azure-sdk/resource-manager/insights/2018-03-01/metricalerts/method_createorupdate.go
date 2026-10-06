@@ -49,7 +49,6 @@ func (c MetricAlertsClient) CreateOrUpdate(ctx context.Context, id MetricAlertId
 
 	var model MetricAlertResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

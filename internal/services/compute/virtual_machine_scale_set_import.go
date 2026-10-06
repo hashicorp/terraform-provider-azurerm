@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -8,12 +8,12 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func importOrchestratedVirtualMachineScaleSet(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) (data []*pluginsdk.ResourceData, err error) {
+func importOrchestratedVirtualMachineScaleSet(ctx context.Context, d *pluginsdk.ResourceData, meta any) (data []*pluginsdk.ResourceData, err error) {
 	id, err := virtualmachinescalesets.ParseVirtualMachineScaleSetID(d.Id())
 	if err != nil {
 		return []*pluginsdk.ResourceData{}, err
@@ -22,8 +22,7 @@ func importOrchestratedVirtualMachineScaleSet(ctx context.Context, d *pluginsdk.
 	client := meta.(*clients.Client).Compute.VirtualMachineScaleSetsClient
 	options := virtualmachinescalesets.DefaultGetOperationOptions()
 	options.Expand = pointer.To(virtualmachinescalesets.ExpandTypesForGetVMScaleSetsUserData)
-	_, err = client.Get(ctx, *id, options)
-	if err != nil {
+	if _, err = client.Get(ctx, *id, options); err != nil {
 		return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
@@ -31,7 +30,7 @@ func importOrchestratedVirtualMachineScaleSet(ctx context.Context, d *pluginsdk.
 }
 
 func importVirtualMachineScaleSet(osType virtualmachinescalesets.OperatingSystemTypes, resourceType string) pluginsdk.ImporterFunc {
-	return func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) (data []*pluginsdk.ResourceData, err error) {
+	return func(ctx context.Context, d *pluginsdk.ResourceData, meta any) (data []*pluginsdk.ResourceData, err error) {
 		id, err := virtualmachinescalesets.ParseVirtualMachineScaleSetID(d.Id())
 		if err != nil {
 			return []*pluginsdk.ResourceData{}, err
@@ -78,14 +77,14 @@ func importVirtualMachineScaleSet(osType virtualmachinescalesets.OperatingSystem
 		}
 
 		if !isCorrectOS {
-			return []*pluginsdk.ResourceData{}, fmt.Errorf("The %q resource only supports %s Virtual Machine Scale Sets", resourceType, string(osType))
+			return []*pluginsdk.ResourceData{}, fmt.Errorf("the %q resource only supports %s Virtual Machine Scale Sets", resourceType, string(osType))
 		}
 
 		if !hasSshKeys {
 			d.Set("admin_password", "ignored-as-imported")
 		}
 
-		var updatedExtensions []map[string]interface{}
+		var updatedExtensions []map[string]any
 		if vm.Model.Properties.VirtualMachineProfile.ExtensionProfile != nil {
 			if extensionsProfile := vm.Model.Properties.VirtualMachineProfile.ExtensionProfile; extensionsProfile != nil {
 				for _, v := range *extensionsProfile.Extensions {

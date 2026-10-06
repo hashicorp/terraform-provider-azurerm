@@ -21,7 +21,7 @@ type DeleteOperationResponse struct {
 }
 
 type DeleteOperationOptions struct {
-	Force *Force
+	Force *ForceDelete
 }
 
 func DefaultDeleteOperationOptions() DeleteOperationOptions {
@@ -36,6 +36,7 @@ func (o DeleteOperationOptions) ToHeaders() *client.Headers {
 
 func (o DeleteOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -56,8 +57,8 @@ func (c VirtualNetworksClient) Delete(ctx context.Context, id VirtualNetworkId, 
 			http.StatusNoContent,
 		},
 		HttpMethod:    http.MethodDelete,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

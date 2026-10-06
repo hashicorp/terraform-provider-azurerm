@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -9,14 +9,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/subnets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/subnets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SubnetRouteTableAssociationResource struct{}
@@ -103,44 +103,44 @@ func (SubnetRouteTableAssociationResource) Exists(ctx context.Context, clients *
 		return nil, err
 	}
 
-	resp, err := clients.Network.Client.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
+	resp, err := clients.Network.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
-		return nil, fmt.Errorf("reading Subnet Route Table Association (%s): %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	model := resp.Model
 	if model == nil {
-		return nil, fmt.Errorf("model was nil for Subnet %q (Virtual Network %q / Resource Group: %q)", id.SubnetName, id.VirtualNetworkName, id.ResourceGroupName)
+		return nil, fmt.Errorf("retrieving %s: `model` was nil", id)
 	}
 
 	props := model.Properties
 	if props == nil || props.RouteTable == nil {
-		return nil, fmt.Errorf("properties was nil for Subnet %q (Virtual Network %q / Resource Group: %q)", id.SubnetName, id.VirtualNetworkName, id.ResourceGroupName)
+		return nil, fmt.Errorf("retrieving %s: `properties` was nil", id)
 	}
 
-	return utils.Bool(props.RouteTable.Id != nil), nil
+	return pointer.To(props.RouteTable.Id != nil), nil
 }
 
 func (SubnetRouteTableAssociationResource) destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
 	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(15*time.Minute))
 	defer cancel()
 
-	parsedId, err := commonids.ParseSubnetID(state.Attributes["subnet_id"])
+	id, err := commonids.ParseSubnetID(state.Attributes["subnet_id"])
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Network.Client.Subnets.Get(ctx, *parsedId, subnets.DefaultGetOperationOptions())
+	read, err := client.Network.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
 		if !response.WasNotFound(read.HttpResponse) {
-			return fmt.Errorf("retrieving Subnet %q (Network %q / Resource Group %q): %+v", parsedId.SubnetName, parsedId.VirtualNetworkName, parsedId.ResourceGroupName, err)
+			return fmt.Errorf("retrieving %s: %+v", id, err)
 		}
 	}
 
 	read.Model.Properties.RouteTable = nil
 
-	if err := client.Network.Client.Subnets.CreateOrUpdateThenPoll(ctx, *parsedId, *read.Model); err != nil {
-		return fmt.Errorf("updating Subnet %q (Network %q / Resource Group %q): %+v", parsedId.SubnetName, parsedId.VirtualNetworkName, parsedId.ResourceGroupName, err)
+	if err := client.Network.Subnets.CreateOrUpdateThenPoll(ctx, *id, *read.Model); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	return nil
@@ -184,7 +184,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 
-  enforce_private_link_endpoint_network_policies = true
+  private_endpoint_network_policies = "Disabled"
 }
 
 resource "azurerm_subnet_route_table_association" "test" {

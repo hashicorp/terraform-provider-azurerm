@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package batch
@@ -12,10 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/batchaccount"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/batchaccount"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -75,16 +74,13 @@ func dataSourceBatchAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 			"encryption": {
-				Type:       pluginsdk.TypeList,
-				Optional:   true,
-				MaxItems:   1,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Type:     pluginsdk.TypeList,
+				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"key_vault_key_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+							Type:     pluginsdk.TypeString,
+							Computed: true,
 						},
 					},
 				},
@@ -95,7 +91,7 @@ func dataSourceBatchAccount() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceBatchAccountRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Batch.AccountClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -117,7 +113,7 @@ func dataSourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(model.Location))
+		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
 			d.Set("account_endpoint", props.AccountEndpoint)
@@ -125,7 +121,7 @@ func dataSourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			if autoStorage := props.AutoStorage; autoStorage != nil {
 				d.Set("storage_account_id", autoStorage.StorageAccountId)
 			}
-			d.Set("pool_allocation_mode", string(pointer.From(props.PoolAllocationMode)))
+			d.Set("pool_allocation_mode", pointer.FromEnum(props.PoolAllocationMode))
 			poolAllocationMode := d.Get("pool_allocation_mode").(string)
 
 			if encryption := props.Encryption; encryption != nil {
@@ -144,7 +140,7 @@ func dataSourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 				}
 
 				// set empty keyvault reference which is not needed in Batch Service allocation mode.
-				d.Set("key_vault_reference", []interface{}{})
+				d.Set("key_vault_reference", []any{})
 			} else if poolAllocationMode == string(batchaccount.PoolAllocationModeUserSubscription) {
 				if err := d.Set("key_vault_reference", flattenBatchAccountKeyvaultReference(props.KeyVaultReference)); err != nil {
 					return fmt.Errorf("flattening `key_vault_reference`: %+v", err)

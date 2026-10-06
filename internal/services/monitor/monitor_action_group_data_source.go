@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -9,17 +9,15 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-01-01/actiongroupsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func dataSourceMonitorActionGroup() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: dataSourceMonitorActionGroupRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -287,6 +285,7 @@ func dataSourceMonitorActionGroup() *pluginsdk.Resource {
 					},
 				},
 			},
+
 			"arm_role_receiver": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -307,103 +306,44 @@ func dataSourceMonitorActionGroup() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"event_hub_receiver": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"event_hub_name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"event_hub_namespace": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"use_common_alert_schema": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+						"subscription_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		resource.Schema["event_hub_receiver"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"event_hub_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: eventhubs.ValidateEventhubID,
-						Deprecated:   "This property is deprecated and will be removed in version 4.0 of the provider, please use 'event_hub_name' and 'event_hub_namespace' instead.",
-					},
-					"event_hub_name": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"event_hub_namespace": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"tenant_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: validation.IsUUID,
-					},
-					"use_common_alert_schema": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-					},
-					"subscription_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: validation.IsUUID,
-					},
-				},
-			},
-		}
-	} else {
-		resource.Schema["event_hub_receiver"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"event_hub_name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"event_hub_namespace": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"tenant_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: validation.IsUUID,
-					},
-					"use_common_alert_schema": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-					},
-					"subscription_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: validation.IsUUID,
-					},
-				},
-			},
-		}
-	}
-	return resource
 }
 
-func dataSourceMonitorActionGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceMonitorActionGroupRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.ActionGroupsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -465,7 +405,7 @@ func dataSourceMonitorActionGroupRead(d *pluginsdk.ResourceData, meta interface{
 			if err = d.Set("arm_role_receiver", flattenMonitorActionGroupRoleReceiver(props.ArmRoleReceivers)); err != nil {
 				return fmt.Errorf("setting `arm_role_receiver`: %+v", err)
 			}
-			if err = d.Set("event_hub_receiver", flattenMonitorActionGroupEventHubReceiver(resourceGroup, props.EventHubReceivers)); err != nil {
+			if err = d.Set("event_hub_receiver", flattenMonitorActionGroupEventHubReceiver(props.EventHubReceivers)); err != nil {
 				return fmt.Errorf("setting `event_hub_receiver`: %+v", err)
 			}
 		}

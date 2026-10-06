@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices
@@ -10,10 +10,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -27,7 +27,7 @@ func resourceSiteRecoveryReplicationPolicy() *pluginsdk.Resource {
 		Update: resourceSiteRecoveryReplicationPolicyUpdate,
 		Delete: resourceSiteRecoveryReplicationPolicyDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ReplicationPolicyID(id)
+			_, err := replicationpolicies.ParseReplicationPolicyID(id)
 			return err
 		}),
 		CustomizeDiff: resourceSiteRecoveryReplicationPolicyCustomDiff,
@@ -57,20 +57,18 @@ func resourceSiteRecoveryReplicationPolicy() *pluginsdk.Resource {
 			"recovery_point_retention_in_minutes": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
-				ForceNew:     false,
 				ValidateFunc: validation.IntBetween(0, 365*24*60),
 			},
 			"application_consistent_snapshot_frequency_in_minutes": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
-				ForceNew:     false,
 				ValidateFunc: validation.IntBetween(0, 365*24*60),
 			},
 		},
 	}
 }
 
-func resourceSiteRecoveryReplicationPolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryReplicationPolicyCreate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
@@ -82,7 +80,7 @@ func resourceSiteRecoveryReplicationPolicyCreate(d *pluginsdk.ResourceData, meta
 
 	id := replicationpolicies.NewReplicationPolicyID(subscriptionId, resGroup, vaultName, name)
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			// NOTE: Bad Request due to https://github.com/Azure/azure-rest-api-specs/issues/12759
@@ -110,17 +108,16 @@ func resourceSiteRecoveryReplicationPolicyCreate(d *pluginsdk.ResourceData, meta
 			},
 		},
 	}
-	err := client.CreateThenPoll(ctx, id, parameters)
-	if err != nil {
-		return fmt.Errorf("creating site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
-	}
 
+	if err := client.CreateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
 	d.SetId(id.ID())
 
 	return resourceSiteRecoveryReplicationPolicyRead(d, meta)
 }
 
-func resourceSiteRecoveryReplicationPolicyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryReplicationPolicyUpdate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
@@ -147,15 +144,14 @@ func resourceSiteRecoveryReplicationPolicyUpdate(d *pluginsdk.ResourceData, meta
 			},
 		},
 	}
-	err := client.UpdateThenPoll(ctx, id, parameters)
-	if err != nil {
+	if err := client.UpdateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("updating site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	return resourceSiteRecoveryReplicationPolicyRead(d, meta)
 }
 
-func resourceSiteRecoveryReplicationPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryReplicationPolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	id, err := replicationpolicies.ParseReplicationPolicyID(d.Id())
 	if err != nil {
 		return err
@@ -187,7 +183,7 @@ func resourceSiteRecoveryReplicationPolicyRead(d *pluginsdk.ResourceData, meta i
 	return nil
 }
 
-func resourceSiteRecoveryReplicationPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryReplicationPolicyDelete(d *pluginsdk.ResourceData, meta any) error {
 	id, err := replicationpolicies.ParseReplicationPolicyID(d.Id())
 	if err != nil {
 		return err
@@ -197,15 +193,14 @@ func resourceSiteRecoveryReplicationPolicyDelete(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting site recovery replication policy %s : %+v", id.String(), err)
 	}
 
 	return nil
 }
 
-func resourceSiteRecoveryReplicationPolicyCustomDiff(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
+func resourceSiteRecoveryReplicationPolicyCustomDiff(ctx context.Context, d *pluginsdk.ResourceDiff, i any) error {
 	retention := d.Get("recovery_point_retention_in_minutes").(int)
 	frequency := d.Get("application_consistent_snapshot_frequency_in_minutes").(int)
 

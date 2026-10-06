@@ -24,6 +24,18 @@ type ServiceRegistriesListCompleteResult struct {
 	Items              []ServiceRegistryResource
 }
 
+type ServiceRegistriesListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ServiceRegistriesListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ServiceRegistriesList ...
 func (c AppPlatformClient) ServiceRegistriesList(ctx context.Context, id commonids.SpringCloudServiceId) (result ServiceRegistriesListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c AppPlatformClient) ServiceRegistriesList(ctx context.Context, id commoni
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ServiceRegistriesListCustomPager{},
 		Path:       fmt.Sprintf("%s/serviceRegistries", id.ID()),
 	}
 
@@ -73,6 +86,7 @@ func (c AppPlatformClient) ServiceRegistriesListCompleteMatchingPredicate(ctx co
 
 	resp, err := c.ServiceRegistriesList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

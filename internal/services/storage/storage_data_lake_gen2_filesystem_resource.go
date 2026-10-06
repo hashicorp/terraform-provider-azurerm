@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -20,10 +21,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/datalakestore/filesystems"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/datalakestore/paths"
-	"github.com/tombuildsstuff/giovanni/storage/accesscontrol"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/datalakestore/filesystems"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/datalakestore/paths"
+	"github.com/jackofallops/giovanni/storage/accesscontrol"
 )
 
 func resourceStorageDataLakeGen2FileSystem() *pluginsdk.Resource {
@@ -36,7 +37,7 @@ func resourceStorageDataLakeGen2FileSystem() *pluginsdk.Resource {
 		Importer: helpers.ImporterValidatingStorageResourceIdThen(func(id, storageDomainSuffix string) error {
 			_, err := filesystems.ParseFileSystemID(id, storageDomainSuffix)
 			return err
-		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
 			storageClient := meta.(*clients.Client).Storage
 			subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 			ctx, cancel := context.WithTimeout(ctx, d.Timeout(pluginsdk.TimeoutRead))
@@ -86,9 +87,10 @@ func resourceStorageDataLakeGen2FileSystem() *pluginsdk.Resource {
 			"properties": MetaDataSchema(),
 
 			"default_encryption_scope": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true, // needed because a dummy value is returned when unspecified
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// Note: O+C because needed because a dummy value is returned when unspecified
+				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.StorageEncryptionScopeName,
 			},
@@ -96,21 +98,21 @@ func resourceStorageDataLakeGen2FileSystem() *pluginsdk.Resource {
 			"owner": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.Any(validation.IsUUID, validation.StringInSlice([]string{"$superuser"}, false)),
 			},
 
 			"group": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.Any(validation.IsUUID, validation.StringInSlice([]string{"$superuser"}, false)),
 			},
 
 			"ace": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"scope": {
@@ -141,7 +143,7 @@ func resourceStorageDataLakeGen2FileSystem() *pluginsdk.Resource {
 	}
 }
 
-func resourceStorageDataLakeGen2FileSystemCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageDataLakeGen2FileSystemCreate(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -199,21 +201,22 @@ func resourceStorageDataLakeGen2FileSystemCreate(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("an ACL can only be configured when Hierarchical Namespace (HNS) is enabled on the Storage Account")
 	}
 
-	propertiesRaw := d.Get("properties").(map[string]interface{})
+	propertiesRaw := d.Get("properties").(map[string]any)
 	properties := ExpandMetaData(propertiesRaw)
 
-	resp, err := dataPlaneFilesystemsClient.GetProperties(ctx, id.FileSystemName)
-	if err != nil {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		resp, err := dataPlaneFilesystemsClient.GetProperties(ctx, id.FileSystemName)
+		if err != nil {
+			if !response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("checking for existence of existing File System %q in %s: %v", id.FileSystemName, accountId, err)
+			}
+		}
+
 		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("checking for existence of existing File System %q in %s: %v", id.FileSystemName, accountId, err)
+			return tf.ImportAsExistsError("azurerm_storage_data_lake_gen2_filesystem", id.ID())
 		}
 	}
 
-	if !response.WasNotFound(resp.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_storage_data_lake_gen2_filesystem", id.ID())
-	}
-
-	log.Printf("[INFO] Creating %s...", id)
 	input := filesystems.CreateInput{
 		Properties: properties,
 	}
@@ -227,19 +230,16 @@ func resourceStorageDataLakeGen2FileSystemCreate(d *pluginsdk.ResourceData, meta
 
 	var owner *string
 	if v, ok := d.GetOk("owner"); ok {
-		sv := v.(string)
-		owner = &sv
+		owner = pointer.To(v.(string))
 	}
 	var group *string
 	if v, ok := d.GetOk("group"); ok {
-		sv := v.(string)
-		group = &sv
+		group = pointer.To(v.(string))
 	}
 
 	if acl != nil || owner != nil || group != nil {
 		var aclString *string
 		if acl != nil {
-			log.Printf("[INFO] Creating ACL %q for %s", acl, id)
 			v := acl.String()
 			aclString = &v
 		}
@@ -258,7 +258,7 @@ func resourceStorageDataLakeGen2FileSystemCreate(d *pluginsdk.ResourceData, meta
 	return resourceStorageDataLakeGen2FileSystemRead(d, meta)
 }
 
-func resourceStorageDataLakeGen2FileSystemUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageDataLakeGen2FileSystemUpdate(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -298,10 +298,9 @@ func resourceStorageDataLakeGen2FileSystemUpdate(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("an ACL can only be configured when Hierarchical Namespace (HNS) is enabled on the Storage Account")
 	}
 
-	propertiesRaw := d.Get("properties").(map[string]interface{})
+	propertiesRaw := d.Get("properties").(map[string]any)
 	properties := ExpandMetaData(propertiesRaw)
 
-	log.Printf("[INFO] Updating Properties for %s...", id)
 	input := filesystems.SetPropertiesInput{
 		Properties: properties,
 	}
@@ -311,19 +310,16 @@ func resourceStorageDataLakeGen2FileSystemUpdate(d *pluginsdk.ResourceData, meta
 
 	var owner *string
 	if v, ok := d.GetOk("owner"); ok {
-		sv := v.(string)
-		owner = &sv
+		owner = pointer.To(v.(string))
 	}
 	var group *string
 	if v, ok := d.GetOk("group"); ok {
-		sv := v.(string)
-		group = &sv
+		group = pointer.To(v.(string))
 	}
 
 	if acl != nil || owner != nil || group != nil {
 		var aclString *string
 		if acl != nil {
-			log.Printf("[INFO] Creating ACL %q for %s...", acl, id)
 			v := acl.String()
 			aclString = &v
 		}
@@ -340,7 +336,7 @@ func resourceStorageDataLakeGen2FileSystemUpdate(d *pluginsdk.ResourceData, meta
 	return resourceStorageDataLakeGen2FileSystemRead(d, meta)
 }
 
-func resourceStorageDataLakeGen2FileSystemRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageDataLakeGen2FileSystemRead(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -388,7 +384,7 @@ func resourceStorageDataLakeGen2FileSystemRead(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("setting `properties`: %v", err)
 	}
 
-	var ace []interface{}
+	var ace []any
 	var owner, group string
 	// acl is only enabled when `IsHnsEnabled` is true otherwise the rest api will report error
 	if account.IsHnsEnabled {
@@ -415,7 +411,7 @@ func resourceStorageDataLakeGen2FileSystemRead(d *pluginsdk.ResourceData, meta i
 	return nil
 }
 
-func resourceStorageDataLakeGen2FileSystemDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageDataLakeGen2FileSystemDelete(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -451,20 +447,10 @@ func resourceStorageDataLakeGen2FileSystemDelete(d *pluginsdk.ResourceData, meta
 	return nil
 }
 
-func validateStorageDataLakeGen2FileSystemName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-	if !regexp.MustCompile(`^\$root$|^[0-9a-z-]+$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"only lowercase alphanumeric characters and hyphens allowed in %q: %q",
-			k, value))
-	}
-	if len(value) < 3 || len(value) > 63 {
-		errors = append(errors, fmt.Errorf(
-			"%q must be between 3 and 63 characters: %q", k, value))
-	}
-	if regexp.MustCompile(`^-`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"%q cannot begin with a hyphen: %q", k, value))
-	}
-	return warnings, errors
+func validateStorageDataLakeGen2FileSystemName(v any, k string) ([]string, []error) {
+	return validation.All(
+		validation.StringMatch(regexp.MustCompile(`^\$root$|^[0-9a-z-]+$`), "only lowercase alphanumeric characters and hyphens allowed"),
+		validation.StringLenBetween(3, 63),
+		validation.StringDoesNotMatch(regexp.MustCompile(`^-`), "cannot begin with a hyphen"),
+	)(v, k)
 }

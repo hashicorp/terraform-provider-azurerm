@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -10,10 +10,10 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var _ pluginsdk.StateUpgrade = LegacyVMSSV0ToV1{}
@@ -242,7 +242,7 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		//lintignore:S018
+		// lintignore:S018
 		"os_profile_windows_config": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
@@ -253,7 +253,6 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 					},
-					// TODO 4.0: change this from enable_* to *_enabled
 					"enable_automatic_upgrades": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
@@ -304,7 +303,7 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Set: resourceArmVirtualMachineScaleSetOsProfileWindowsConfigHash,
 		},
 
-		//lintignore:S018
+		// lintignore:S018
 		"os_profile_linux_config": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
@@ -490,7 +489,7 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		//lintignore:S018
+		// lintignore:S018
 		"storage_profile_os_disk": {
 			Type:     pluginsdk.TypeSet,
 			Required: true,
@@ -515,10 +514,9 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					},
 
 					"managed_disk_type": {
-						Type:          pluginsdk.TypeString,
-						Optional:      true,
-						Computed:      true,
-						ConflictsWith: []string{"storage_profile_os_disk.vhd_containers"},
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Computed: true,
 					},
 
 					"caching": {
@@ -577,7 +575,7 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		//lintignore:S018
+		// lintignore:S018
 		"storage_profile_image_reference": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
@@ -614,7 +612,7 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Set: resourceArmVirtualMachineScaleSetStorageProfileImageReferenceHash,
 		},
 
-		//lintignore:S018
+		// lintignore:S018
 		"plan": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
@@ -695,7 +693,7 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (LegacyVMSSV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		// @tombuildsstuff: NOTE, this state migration is essentially pointless
 		// however it existed in the legacy migration so even though this is
 		//  essentially a noop there's no reason this shouldn't be the same I guess
@@ -720,10 +718,10 @@ func (LegacyVMSSV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	}
 }
 
-func userDataStateFunc(v interface{}) string {
+func userDataStateFunc(v any) string {
 	switch s := v.(type) {
 	case string:
-		s = utils.Base64EncodeIfNot(s)
+		s = base64.EncodeIfNot(s)
 		hash := sha1.Sum([]byte(s))
 		return hex.EncodeToString(hash[:])
 	default:
@@ -731,95 +729,95 @@ func userDataStateFunc(v interface{}) string {
 	}
 }
 
-func resourceArmVirtualMachineScaleSetOsProfileWindowsConfigHash(v interface{}) int {
+func resourceArmVirtualMachineScaleSetOsProfileWindowsConfigHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
+	if m, ok := v.(map[string]any); ok {
 		if v, ok := m["provision_vm_agent"]; ok {
-			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+			fmt.Fprintf(&buf, "%t-", v.(bool))
 		}
 		if v, ok := m["enable_automatic_upgrades"]; ok {
-			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+			fmt.Fprintf(&buf, "%t-", v.(bool))
 		}
 	}
 
 	return pluginsdk.HashString(buf.String())
 }
 
-func resourceArmVirtualMachineScaleSetOsProfileLinuxConfigHash(v interface{}) int {
+func resourceArmVirtualMachineScaleSetOsProfileLinuxConfigHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%t-", m["disable_password_authentication"].(bool)))
+	if m, ok := v.(map[string]any); ok {
+		fmt.Fprintf(&buf, "%t-", m["disable_password_authentication"].(bool))
 	}
 
 	return pluginsdk.HashString(buf.String())
 }
 
-func resourceArmVirtualMachineScaleSetNetworkConfigurationHash(v interface{}) int {
+func resourceArmVirtualMachineScaleSetNetworkConfigurationHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
-		buf.WriteString(fmt.Sprintf("%t-", m["primary"].(bool)))
+	if m, ok := v.(map[string]any); ok {
+		fmt.Fprintf(&buf, "%s-", m["name"].(string))
+		fmt.Fprintf(&buf, "%t-", m["primary"].(bool))
 	}
 
 	return pluginsdk.HashString(buf.String())
 }
 
-func resourceArmVirtualMachineScaleSetStorageProfileOsDiskHash(v interface{}) int {
+func resourceArmVirtualMachineScaleSetStorageProfileOsDiskHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
+	if m, ok := v.(map[string]any); ok {
+		fmt.Fprintf(&buf, "%s-", m["name"].(string))
 
 		if v, ok := m["vhd_containers"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(*pluginsdk.Set).List()))
+			fmt.Fprintf(&buf, "%s-", v.(*pluginsdk.Set).List())
 		}
 	}
 
 	return pluginsdk.HashString(buf.String())
 }
 
-func resourceArmVirtualMachineScaleSetStorageProfileImageReferenceHash(v interface{}) int {
+func resourceArmVirtualMachineScaleSetStorageProfileImageReferenceHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
+	if m, ok := v.(map[string]any); ok {
 		if v, ok := m["publisher"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+			fmt.Fprintf(&buf, "%s-", v.(string))
 		}
 		if v, ok := m["offer"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+			fmt.Fprintf(&buf, "%s-", v.(string))
 		}
 		if v, ok := m["sku"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+			fmt.Fprintf(&buf, "%s-", v.(string))
 		}
 		if v, ok := m["version"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+			fmt.Fprintf(&buf, "%s-", v.(string))
 		}
 		if v, ok := m["id"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+			fmt.Fprintf(&buf, "%s-", v.(string))
 		}
 	}
 
 	return pluginsdk.HashString(buf.String())
 }
 
-func resourceArmVirtualMachineScaleSetExtensionHash(v interface{}) int {
+func resourceArmVirtualMachineScaleSetExtensionHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["publisher"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["type"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["type_handler_version"].(string)))
+	if m, ok := v.(map[string]any); ok {
+		fmt.Fprintf(&buf, "%s-", m["name"].(string))
+		fmt.Fprintf(&buf, "%s-", m["publisher"].(string))
+		fmt.Fprintf(&buf, "%s-", m["type"].(string))
+		fmt.Fprintf(&buf, "%s-", m["type_handler_version"].(string))
 
 		if v, ok := m["auto_upgrade_minor_version"]; ok {
-			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+			fmt.Fprintf(&buf, "%t-", v.(bool))
 		}
 
 		if v, ok := m["provision_after_extensions"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(*pluginsdk.Set).List()))
+			fmt.Fprintf(&buf, "%s-", v.(*pluginsdk.Set).List())
 		}
 
 		// we need to ensure the whitespace is consistent
@@ -829,7 +827,7 @@ func resourceArmVirtualMachineScaleSetExtensionHash(v interface{}) int {
 			if err == nil {
 				serialisedSettings, err := pluginsdk.FlattenJsonToString(expandedSettings)
 				if err == nil {
-					buf.WriteString(fmt.Sprintf("%s-", serialisedSettings))
+					fmt.Fprintf(&buf, "%s-", serialisedSettings)
 				}
 			}
 		}

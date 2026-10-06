@@ -39,6 +39,7 @@ func (o ListByPublisherOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListByPublisherOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -50,6 +51,18 @@ func (o ListByPublisherOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByPublisherCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByPublisherCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByPublisher ...
 func (c OffersClient) ListByPublisher(ctx context.Context, id PublisherId, options ListByPublisherOperationOptions) (result ListByPublisherOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -58,8 +71,9 @@ func (c OffersClient) ListByPublisher(ctx context.Context, id PublisherId, optio
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/offers", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByPublisherCustomPager{},
+		Path:          fmt.Sprintf("%s/offers", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -100,6 +114,7 @@ func (c OffersClient) ListByPublisherCompleteMatchingPredicate(ctx context.Conte
 
 	resp, err := c.ListByPublisher(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

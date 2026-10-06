@@ -1,12 +1,18 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package client
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-02-01/vaults"
+	"fmt"
+
+	v7_4 "github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4" // azignore:AZG010 - package name does not match its path
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/deletedvaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/vaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2015-11-01/resources"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/dataplane"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	dataplane "github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
+	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 type Client struct {
@@ -16,21 +22,53 @@ type Client struct {
 	// services.
 	//
 	// As such this separation on our side is intentional to avoid code reuse given these differences.
+	VaultsClient        *vaults.VaultsClient
+	DeletedVaultsClient *deletedvaults.DeletedVaultsClient
 
-	VaultsClient *vaults.VaultsClient
+	ManagementClient        *keyvault.BaseClient // TODO: we should rename this DataPlaneClient in time
+	DataPlaneKeyVaultClient *v7_4.Client
 
-	ManagementClient *dataplane.BaseClient
+	// NOTE: @tombuildsstuff: this client is intentionally internal-only so that it's not used directly
+	resources20151101Client *resources.ResourcesClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	managementClient := dataplane.New()
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	resources20151101Client, err := resources.NewResourcesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building legacy Resources client: %+v", err)
+	}
+	o.Configure(resources20151101Client.Client, o.Authorizers.ResourceManager)
+
+	vaultsClient, err := vaults.NewVaultsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Vaults client: %+v", err)
+	}
+	o.Configure(vaultsClient.Client, o.Authorizers.ResourceManager)
+
+	deletedVaultsClient, err := deletedvaults.NewDeletedVaultsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building DeletedVaults client: %+v", err)
+	}
+	o.Configure(deletedVaultsClient.Client, o.Authorizers.ResourceManager)
+
+	managementClient := keyvault.New()
 	o.ConfigureClient(&managementClient.Client, o.KeyVaultAuthorizer)
 
-	vaultsClient := vaults.NewVaultsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&vaultsClient.Client, o.ResourceManagerAuthorizer)
+	dataplaneKeyvaultClient, err := v7_4.NewClient(func(c *dataplane.Client) {
+		o.Configure(c.Client, o.Authorizers.KeyVault)
+	})
+	if err != nil {
+		return nil, fmt.Errorf("building data-plane KeyVault client: %+v", err)
+	}
 
 	return &Client{
-		ManagementClient: &managementClient,
-		VaultsClient:     &vaultsClient,
-	}
+		ManagementClient:    &managementClient,
+		VaultsClient:        vaultsClient,
+		DeletedVaultsClient: deletedVaultsClient,
+
+		DataPlaneKeyVaultClient: dataplaneKeyvaultClient,
+
+		// intentionally internal to this package for now, see above.
+		resources20151101Client: resources20151101Client,
+	}, nil
 }

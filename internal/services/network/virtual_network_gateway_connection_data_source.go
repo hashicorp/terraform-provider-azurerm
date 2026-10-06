@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -7,16 +7,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworkgatewayconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func dataSourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
@@ -58,8 +57,7 @@ func dataSourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_bgp": {
+			"bgp_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
@@ -193,83 +191,87 @@ func dataSourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
 
-func dataSourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.VnetGatewayConnectionsClient
+func dataSourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Network.VirtualNetworkGatewayConnections
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewNetworkGatewayConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := virtualnetworkgatewayconnections.NewConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ConnectionName)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("making Read request on %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.ConnectionName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	respKey, err := client.GetSharedKey(ctx, id)
+	if err != nil {
+		return fmt.Errorf("retrieving Shared Key for %s: %+v", id, err)
+	}
 
-	if resp.VirtualNetworkGatewayConnectionPropertiesFormat != nil {
-		gwc := *resp.VirtualNetworkGatewayConnectionPropertiesFormat
+	if model := respKey.Model; model != nil {
+		d.Set("shared_key", model.Value)
+	}
 
-		d.Set("shared_key", gwc.SharedKey)
-		d.Set("authorization_key", gwc.AuthorizationKey)
-		d.Set("enable_bgp", gwc.EnableBgp)
-		d.Set("ingress_bytes_transferred", gwc.IngressBytesTransferred)
-		d.Set("egress_bytes_transferred", gwc.EgressBytesTransferred)
-		d.Set("use_policy_based_traffic_selectors", gwc.UsePolicyBasedTrafficSelectors)
-		d.Set("express_route_gateway_bypass", gwc.ExpressRouteGatewayBypass)
-		d.Set("private_link_fast_path_enabled", gwc.EnablePrivateLinkFastPath)
-		d.Set("type", string(gwc.ConnectionType))
-		d.Set("connection_protocol", string(gwc.ConnectionProtocol))
-		d.Set("routing_weight", gwc.RoutingWeight)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
 
-		if gwc.VirtualNetworkGateway1 != nil {
-			d.Set("virtual_network_gateway_id", gwc.VirtualNetworkGateway1.ID)
+		props := model.Properties
+
+		d.Set("authorization_key", props.AuthorizationKey)
+		d.Set("bgp_enabled", props.EnableBgp)
+		d.Set("ingress_bytes_transferred", props.IngressBytesTransferred)
+		d.Set("egress_bytes_transferred", props.EgressBytesTransferred)
+		d.Set("use_policy_based_traffic_selectors", props.UsePolicyBasedTrafficSelectors)
+		d.Set("express_route_gateway_bypass", props.ExpressRouteGatewayBypass)
+		d.Set("private_link_fast_path_enabled", props.EnablePrivateLinkFastPath)
+		d.Set("type", string(props.ConnectionType))
+		d.Set("connection_protocol", pointer.FromEnum(props.ConnectionProtocol))
+		d.Set("routing_weight", props.RoutingWeight)
+
+		d.Set("virtual_network_gateway_id", props.VirtualNetworkGateway1.Id)
+
+		if props.VirtualNetworkGateway2 != nil {
+			d.Set("peer_virtual_network_gateway_id", props.VirtualNetworkGateway2.Id)
 		}
 
-		if gwc.VirtualNetworkGateway2 != nil {
-			d.Set("peer_virtual_network_gateway_id", gwc.VirtualNetworkGateway2.ID)
+		if props.LocalNetworkGateway2 != nil {
+			d.Set("local_network_gateway_id", props.LocalNetworkGateway2.Id)
 		}
 
-		if gwc.LocalNetworkGateway2 != nil {
-			d.Set("local_network_gateway_id", gwc.LocalNetworkGateway2.ID)
+		if props.Peer != nil {
+			d.Set("express_route_circuit_id", props.Peer.Id)
 		}
 
-		if gwc.Peer != nil {
-			d.Set("express_route_circuit_id", gwc.Peer.ID)
+		if props.DpdTimeoutSeconds != nil {
+			d.Set("dpd_timeout_seconds", props.DpdTimeoutSeconds)
 		}
 
-		if gwc.DpdTimeoutSeconds != nil {
-			d.Set("dpd_timeout_seconds", gwc.DpdTimeoutSeconds)
+		if props.UseLocalAzureIPAddress != nil {
+			d.Set("local_azure_ip_address_enabled", props.UseLocalAzureIPAddress)
 		}
 
-		if gwc.UseLocalAzureIPAddress != nil {
-			d.Set("local_azure_ip_address_enabled", gwc.UseLocalAzureIPAddress)
-		}
+		d.Set("resource_guid", props.ResourceGuid)
 
-		d.Set("resource_guid", gwc.ResourceGUID)
-
-		ipsecPoliciesSettingsFlat := flattenVirtualNetworkGatewayConnectionDataSourceIpsecPolicies(gwc.IpsecPolicies)
-		if err := d.Set("ipsec_policy", ipsecPoliciesSettingsFlat); err != nil {
+		if err := d.Set("ipsec_policy", flattenVirtualNetworkGatewayConnectionDataSourceIpsecPolicies(props.IPsecPolicies)); err != nil {
 			return fmt.Errorf("setting `ipsec_policy`: %+v", err)
 		}
 
-		trafficSelectorsPolicyFlat := flattenVirtualNetworkGatewayConnectionDataSourcePolicyTrafficSelectors(gwc.TrafficSelectorPolicies)
-		if err := d.Set("traffic_selector_policy", trafficSelectorsPolicyFlat); err != nil {
+		if err := d.Set("traffic_selector_policy", flattenVirtualNetworkGatewayConnectionDataSourcePolicyTrafficSelectors(props.TrafficSelectorPolicies)); err != nil {
 			return fmt.Errorf("setting `traffic_selector_policy`: %+v", err)
 		}
 	}
@@ -277,27 +279,21 @@ func dataSourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, me
 	return nil
 }
 
-func flattenVirtualNetworkGatewayConnectionDataSourceIpsecPolicies(ipsecPolicies *[]network.IpsecPolicy) []interface{} {
-	schemaIpsecPolicies := make([]interface{}, 0)
+func flattenVirtualNetworkGatewayConnectionDataSourceIpsecPolicies(ipsecPolicies *[]virtualnetworkgatewayconnections.IPsecPolicy) []any {
+	schemaIpsecPolicies := make([]any, 0)
 
 	if ipsecPolicies != nil {
 		for _, ipsecPolicy := range *ipsecPolicies {
-			schemaIpsecPolicy := make(map[string]interface{})
+			schemaIpsecPolicy := make(map[string]any)
 
 			schemaIpsecPolicy["dh_group"] = string(ipsecPolicy.DhGroup)
 			schemaIpsecPolicy["ike_encryption"] = string(ipsecPolicy.IkeEncryption)
 			schemaIpsecPolicy["ike_integrity"] = string(ipsecPolicy.IkeIntegrity)
-			schemaIpsecPolicy["ipsec_encryption"] = string(ipsecPolicy.IpsecEncryption)
-			schemaIpsecPolicy["ipsec_integrity"] = string(ipsecPolicy.IpsecIntegrity)
+			schemaIpsecPolicy["ipsec_encryption"] = string(ipsecPolicy.IPsecEncryption)
+			schemaIpsecPolicy["ipsec_integrity"] = string(ipsecPolicy.IPsecIntegrity)
 			schemaIpsecPolicy["pfs_group"] = string(ipsecPolicy.PfsGroup)
-
-			if ipsecPolicy.SaDataSizeKilobytes != nil {
-				schemaIpsecPolicy["sa_datasize"] = int(*ipsecPolicy.SaDataSizeKilobytes)
-			}
-
-			if ipsecPolicy.SaLifeTimeSeconds != nil {
-				schemaIpsecPolicy["sa_lifetime"] = int(*ipsecPolicy.SaLifeTimeSeconds)
-			}
+			schemaIpsecPolicy["sa_datasize"] = int(ipsecPolicy.SaDataSizeKilobytes)
+			schemaIpsecPolicy["sa_lifetime"] = int(ipsecPolicy.SaLifeTimeSeconds)
 
 			schemaIpsecPolicies = append(schemaIpsecPolicies, schemaIpsecPolicy)
 		}
@@ -306,14 +302,14 @@ func flattenVirtualNetworkGatewayConnectionDataSourceIpsecPolicies(ipsecPolicies
 	return schemaIpsecPolicies
 }
 
-func flattenVirtualNetworkGatewayConnectionDataSourcePolicyTrafficSelectors(trafficSelectorPolicies *[]network.TrafficSelectorPolicy) []interface{} {
-	schemaTrafficSelectorPolicies := make([]interface{}, 0)
+func flattenVirtualNetworkGatewayConnectionDataSourcePolicyTrafficSelectors(trafficSelectorPolicies *[]virtualnetworkgatewayconnections.TrafficSelectorPolicy) []any {
+	schemaTrafficSelectorPolicies := make([]any, 0)
 
 	if trafficSelectorPolicies != nil {
 		for _, trafficSelectorPolicy := range *trafficSelectorPolicies {
-			schemaTrafficSelectorPolicies = append(schemaTrafficSelectorPolicies, map[string]interface{}{
-				"local_address_cidrs":  utils.FlattenStringSlice(trafficSelectorPolicy.LocalAddressRanges),
-				"remote_address_cidrs": utils.FlattenStringSlice(trafficSelectorPolicy.RemoteAddressRanges),
+			schemaTrafficSelectorPolicies = append(schemaTrafficSelectorPolicies, map[string]any{
+				"local_address_cidrs":  trafficSelectorPolicy.LocalAddressRanges,
+				"remote_address_cidrs": trafficSelectorPolicy.RemoteAddressRanges,
 			})
 		}
 	}

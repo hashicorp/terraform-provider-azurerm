@@ -1,25 +1,26 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql
 
 import (
 	"fmt"
-	"log"
 	"net/url"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/encryptionprotectors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/serverkeys"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	keyVaultParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
-	mssqlValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMsSqlTransparentDataEncryption() *pluginsdk.Resource {
@@ -52,13 +53,13 @@ func resourceMsSqlTransparentDataEncryption() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: mssqlValidate.ServerID,
+				ValidateFunc: validation.AsGeneratedID(commonids.ParseSqlServerIDInsensitively),
 			},
 
 			"key_vault_key_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: keyVaultValidate.NestedItemId,
+				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 			},
 
 			"auto_rotation_enabled": {
@@ -70,16 +71,19 @@ func resourceMsSqlTransparentDataEncryption() *pluginsdk.Resource {
 	}
 }
 
-func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	encryptionProtectorClient := meta.(*clients.Client).MSSQL.EncryptionProtectorClient
+func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).MSSQL.EncryptionProtectorClient
 	serverKeysClient := meta.(*clients.Client).MSSQL.ServerKeysClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	serverId, err := parse.ServerID(d.Get("server_id").(string))
+	serverId, err := commonids.ParseSqlServerID(d.Get("server_id").(string))
 	if err != nil {
 		return err
 	}
+
+	// Encryption protector always uses "current" for the name
+	id := parse.NewEncryptionProtectorID(serverId.SubscriptionId, serverId.ResourceGroupName, serverId.ServerName, "current")
 
 	// Normally we would check if this is a new resource, but the way encryption protector works, it always overwrites
 	// whatever is there anyways. Compounding the issue is that SQL Server creates an instance of encryption protector
@@ -88,97 +92,60 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceDat
 	// because after the SQL server is created, we need to grant it permissions to AKV, so encryption protector can use those
 	// keys are part of setting up TDE
 
-	var serverKey sql.ServerKey
+	payload := encryptionprotectors.EncryptionProtector{
+		Properties: &encryptionprotectors.EncryptionProtectorProperties{
+			AutoRotationEnabled: pointer.To(d.Get("auto_rotation_enabled").(bool)),
+			ServerKeyName:       pointer.To(""),
+			ServerKeyType:       encryptionprotectors.ServerKeyTypeServiceManaged,
+		},
+	}
 
-	// Default values for Service Managed keys. Will update to AKV values if key_vault_key_id references a key.
-	serverKeyName := ""
-	serverKeyType := sql.ServerKeyTypeServiceManaged
-
-	keyVaultKeyId := strings.TrimSpace(d.Get("key_vault_key_id").(string))
-
-	// If it has content, then we assume it's a key vault key id
-	if keyVaultKeyId != "" {
-		// Update the server key type to AKV
-		serverKeyType = sql.ServerKeyTypeAzureKeyVault
-
-		// Set the SQL Server Key properties
-		serverKeyProperties := sql.ServerKeyProperties{
-			ServerKeyType:       serverKeyType,
-			URI:                 &keyVaultKeyId,
-			AutoRotationEnabled: utils.Bool(d.Get("auto_rotation_enabled").(bool)),
-		}
-		serverKey.ServerKeyProperties = &serverKeyProperties
-
-		// Set the encryption protector properties
-		keyId, err := keyVaultParser.ParseNestedItemID(keyVaultKeyId)
+	var key *keyvault.NestedItemID
+	if v, ok := d.GetOk("key_vault_key_id"); ok {
+		keyId, err := keyvault.ParseNestedItemID(v.(string), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 		if err != nil {
-			return fmt.Errorf("unable to parse key: %q: %+v", keyVaultKeyId, err)
+			return err
 		}
-
-		// Make sure it's a key, if not, throw an error
-		if keyId.NestedItemType == keyVaultParser.NestedItemTypeKey {
-			keyName := keyId.Name
-			keyVersion := keyId.Version
-
-			// Extract the vault name from the keyvault base url
-			idURL, err := url.ParseRequestURI(keyId.KeyVaultBaseUrl)
-			if err != nil {
-				return fmt.Errorf("unable to parse key vault hostname: %s", keyId.KeyVaultBaseUrl)
-			}
-
-			hostParts := strings.Split(idURL.Host, ".")
-			vaultName := hostParts[0]
-
-			// Create the key path for the Encryption Protector. Format is: {vaultname}_{key}_{key_version}
-			serverKeyName = fmt.Sprintf("%s_%s_%s", vaultName, keyName, keyVersion)
-		} else {
-			return fmt.Errorf("key vault key id must be a reference to a key, but got: %s", keyId.NestedItemType)
-		}
+		key = keyId
 	}
 
-	// Service managed doesn't require a key name
-	encryptionProtectorProperties := sql.EncryptionProtectorProperties{
-		ServerKeyType:       serverKeyType,
-		ServerKeyName:       &serverKeyName,
-		AutoRotationEnabled: utils.Bool(d.Get("auto_rotation_enabled").(bool)),
-	}
-
-	// Only create a server key if the properties have been set
-	if serverKey.ServerKeyProperties != nil {
-		// Create a key on the server
-		futureServers, err := serverKeysClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, serverKeyName, serverKey)
+	if key != nil {
+		keyVaultName, err := resourceMsSqlTransparentDataEncryptionKeyVaultName(key.KeyVaultBaseURL)
 		if err != nil {
-			return fmt.Errorf("creating/updating server key for %s: %+v", serverId, err)
+			return err
 		}
 
-		if err = futureServers.WaitForCompletionRef(ctx, serverKeysClient.Client); err != nil {
-			return fmt.Errorf("waiting on update of %s: %+v", serverId, err)
+		serverKeyName := fmt.Sprintf("%s_%s_%s", keyVaultName, key.Name, key.Version)
+
+		serverKeyId := serverkeys.NewKeyID(serverId.SubscriptionId, serverId.ResourceGroupName, serverId.ServerName, serverKeyName)
+		serverKeyPayload := serverkeys.ServerKey{
+			Properties: &serverkeys.ServerKeyProperties{
+				AutoRotationEnabled: pointer.To(d.Get("auto_rotation_enabled").(bool)),
+				ServerKeyType:       serverkeys.ServerKeyTypeAzureKeyVault,
+				Uri:                 pointer.To(key.ID()),
+			},
 		}
+
+		if err := serverKeysClient.CreateOrUpdateThenPoll(ctx, serverKeyId, serverKeyPayload); err != nil {
+			return fmt.Errorf("creating/updating %s: %+v", serverKeyId, err)
+		}
+
+		// Update TDE properties to reflect usage of Server Key
+		payload.Properties.ServerKeyName = pointer.To(serverKeyName)
+		payload.Properties.ServerKeyType = encryptionprotectors.ServerKeyTypeAzureKeyVault
 	}
 
-	encryptionProtectorObject := sql.EncryptionProtector{
-		EncryptionProtectorProperties: &encryptionProtectorProperties,
-	}
-
-	// Encryption protector always uses "current" for the name
-	id := parse.NewEncryptionProtectorID(serverId.SubscriptionId, serverId.ResourceGroup, serverId.Name, "current")
-
-	futureEncryptionProtector, err := encryptionProtectorClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, encryptionProtectorObject)
-	if err != nil {
+	// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
+	if err := client.CreateOrUpdateThenPoll(ctx, *serverId, payload); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
-
-	if err = futureEncryptionProtector.WaitForCompletionRef(ctx, encryptionProtectorClient.Client); err != nil {
-		return fmt.Errorf("waiting on create/update future for %s: %+v", id, err)
-	}
-
 	d.SetId(id.ID())
 
 	return resourceMsSqlTransparentDataEncryptionRead(d, meta)
 }
 
-func resourceMsSqlTransparentDataEncryptionRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	encryptionProtectorClient := meta.(*clients.Client).MSSQL.EncryptionProtectorClient
+func resourceMsSqlTransparentDataEncryptionRead(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).MSSQL.EncryptionProtectorClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -188,51 +155,53 @@ func resourceMsSqlTransparentDataEncryptionRead(d *pluginsdk.ResourceData, meta 
 		return err
 	}
 
-	resp, err := encryptionProtectorClient.Get(ctx, id.ResourceGroup, id.ServerName)
+	serverId := commonids.NewSqlServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
+
+	resp, err := client.Get(ctx, serverId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request for %s: %v", id, err)
+		return fmt.Errorf("retrieving %s: %v", id, err)
 	}
 
-	serverId := parse.NewServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
 	d.Set("server_id", serverId.ID())
 
-	log.Printf("[INFO] Encryption protector key type is %s", resp.EncryptionProtectorProperties.ServerKeyType)
+	if resp.Model != nil {
+		if props := resp.Model.Properties; props != nil {
+			var key *keyvault.NestedItemID
+			if props.ServerKeyType == encryptionprotectors.ServerKeyTypeAzureKeyVault && props.Uri != nil {
+				key, err = keyvault.ParseNestedItemID(*props.Uri, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
+				if err != nil {
+					return err
+				}
+			}
 
-	keyVaultKeyId := ""
-	autoRotationEnabled := false
-	// Only set the key type if it's an AKV key. For service managed, we can omit the setting the key_vault_key_id
-	if resp.EncryptionProtectorProperties != nil && resp.EncryptionProtectorProperties.ServerKeyType == sql.ServerKeyTypeAzureKeyVault {
-		log.Printf("[INFO] Setting Key Vault URI to %s", *resp.EncryptionProtectorProperties.URI)
+			var keyVaultKeyId string
+			if key != nil {
+				keyVaultKeyId = key.ID()
+			}
 
-		keyVaultKeyId = *resp.EncryptionProtectorProperties.URI
+			if err := d.Set("key_vault_key_id", keyVaultKeyId); err != nil {
+				return fmt.Errorf("setting `key_vault_key_id`: %+v", err)
+			}
 
-		// autoRotation is only for AKV keys
-		if resp.EncryptionProtectorProperties.AutoRotationEnabled != nil {
-			autoRotationEnabled = *resp.EncryptionProtectorProperties.AutoRotationEnabled
+			if err := d.Set("auto_rotation_enabled", pointer.From(props.AutoRotationEnabled)); err != nil {
+				return fmt.Errorf("setting `auto_rotation_enabled`: %+v", err)
+			}
 		}
-	}
-
-	if err := d.Set("key_vault_key_id", keyVaultKeyId); err != nil {
-		return fmt.Errorf("setting `key_vault_key_id`: %+v", err)
-	}
-
-	if err := d.Set("auto_rotation_enabled", autoRotationEnabled); err != nil {
-		return fmt.Errorf("setting `auto_rotation_enabled`: %+v", err)
 	}
 
 	return nil
 }
 
-func resourceMsSqlTransparentDataEncryptionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlTransparentDataEncryptionDelete(d *pluginsdk.ResourceData, meta any) error {
 	// Note that encryption protector cannot be deleted. It can only be updated between AzureKeyVault
 	// and SystemManaged. For safety, when this resource is deleted, we're resetting the key type
 	// to service managed to prevent accidental lockout if someone were to delete the keys from key vault
 
-	encryptionProtectorClient := meta.(*clients.Client).MSSQL.EncryptionProtectorClient
+	client := meta.(*clients.Client).MSSQL.EncryptionProtectorClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -241,24 +210,27 @@ func resourceMsSqlTransparentDataEncryptionDelete(d *pluginsdk.ResourceData, met
 		return err
 	}
 
-	serverKeyName := ""
+	serverId := commonids.NewSqlServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
 
-	// Service managed doesn't require a key name
-	encryptionProtector := sql.EncryptionProtector{
-		EncryptionProtectorProperties: &sql.EncryptionProtectorProperties{
-			ServerKeyType: sql.ServerKeyTypeServiceManaged,
-			ServerKeyName: &serverKeyName,
+	encryptionProtector := encryptionprotectors.EncryptionProtector{
+		Properties: &encryptionprotectors.EncryptionProtectorProperties{
+			ServerKeyType: encryptionprotectors.ServerKeyTypeServiceManaged,
+			ServerKeyName: pointer.To(""),
 		},
 	}
 
-	futureEncryptionProtector, err := encryptionProtectorClient.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, encryptionProtector)
-	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-
-	if err = futureEncryptionProtector.WaitForCompletionRef(ctx, encryptionProtectorClient.Client); err != nil {
-		return fmt.Errorf("waiting on create/update future for %s: %+v", id, err)
+	if err = client.CreateOrUpdateThenPoll(ctx, serverId, encryptionProtector); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
+}
+
+func resourceMsSqlTransparentDataEncryptionKeyVaultName(keyVaultURL string) (string, error) {
+	parsedURL, err := url.ParseRequestURI(keyVaultURL)
+	if err != nil {
+		return "", fmt.Errorf("parsing Key Vault URL (%s): %+v", keyVaultURL, err)
+	}
+
+	return strings.Split(parsedURL.Host, ".")[0], nil
 }

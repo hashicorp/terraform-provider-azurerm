@@ -1,13 +1,14 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package schema
 
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkvirtualappliances"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2023-09-01/firewalls"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkvirtualappliances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -56,7 +57,7 @@ func VnetNetworkProfileSchema() *pluginsdk.Schema {
 					MinItems: 1,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
-						ValidateFunc: networkValidate.PublicIpAddressID,
+						ValidateFunc: commonids.ValidatePublicIPAddressID,
 					},
 				},
 
@@ -66,7 +67,7 @@ func VnetNetworkProfileSchema() *pluginsdk.Schema {
 					MinItems: 1,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
-						ValidateFunc: networkValidate.PublicIpAddressID,
+						ValidateFunc: commonids.ValidatePublicIPAddressID,
 					},
 				},
 
@@ -106,10 +107,10 @@ func VnetNetworkProfileSchema() *pluginsdk.Schema {
 	}
 }
 
-func ExpandNetworkProfileVnet(input []NetworkProfileVnet) firewalls.NetworkProfile {
-	result := firewalls.NetworkProfile{
-		EnableEgressNat: firewalls.EgressNatDISABLED,
-		NetworkType:     firewalls.NetworkTypeVNET,
+func ExpandNetworkProfileVnet(input []NetworkProfileVnet) firewallresources.NetworkProfile {
+	result := firewallresources.NetworkProfile{
+		EnableEgressNat: firewallresources.EgressNatDISABLED,
+		NetworkType:     firewallresources.NetworkTypeVNET,
 		TrustedRanges:   &[]string{},
 	}
 
@@ -120,9 +121,9 @@ func ExpandNetworkProfileVnet(input []NetworkProfileVnet) firewalls.NetworkProfi
 	profile := input[0]
 
 	if len(profile.PublicIPIDs) > 0 {
-		ipIDs := make([]firewalls.IPAddress, 0)
+		ipIDs := make([]firewallresources.IPAddress, 0)
 		for _, v := range profile.PublicIPIDs {
-			ipIDs = append(ipIDs, firewalls.IPAddress{
+			ipIDs = append(ipIDs, firewallresources.IPAddress{
 				ResourceId: pointer.To(v),
 			})
 		}
@@ -130,10 +131,10 @@ func ExpandNetworkProfileVnet(input []NetworkProfileVnet) firewalls.NetworkProfi
 	}
 
 	if len(profile.EgressNatIPIDs) > 0 {
-		result.EnableEgressNat = firewalls.EgressNatENABLED
-		egressNatIPs := make([]firewalls.IPAddress, 0)
+		result.EnableEgressNat = firewallresources.EgressNatENABLED
+		egressNatIPs := make([]firewallresources.IPAddress, 0)
 		for _, v := range profile.EgressNatIPIDs {
-			egressNatIPs = append(egressNatIPs, firewalls.IPAddress{
+			egressNatIPs = append(egressNatIPs, firewallresources.IPAddress{
 				ResourceId: pointer.To(v),
 			})
 		}
@@ -145,14 +146,14 @@ func ExpandNetworkProfileVnet(input []NetworkProfileVnet) firewalls.NetworkProfi
 	}
 
 	vnet := profile.VnetConfiguration[0]
-	result.VnetConfiguration = &firewalls.VnetConfiguration{
-		TrustSubnet: firewalls.IPAddressSpace{
+	result.VnetConfiguration = &firewallresources.VnetConfiguration{
+		TrustSubnet: firewallresources.IPAddressSpace{
 			ResourceId: pointer.To(vnet.TrustedSubnetID),
 		},
-		UnTrustSubnet: firewalls.IPAddressSpace{
+		UnTrustSubnet: firewallresources.IPAddressSpace{
 			ResourceId: pointer.To(vnet.UntrustedSubnetID),
 		},
-		Vnet: firewalls.IPAddressSpace{
+		Vnet: firewallresources.IPAddressSpace{
 			ResourceId: pointer.To(vnet.VNetID),
 		},
 	}
@@ -160,7 +161,7 @@ func ExpandNetworkProfileVnet(input []NetworkProfileVnet) firewalls.NetworkProfi
 	return result
 }
 
-func FlattenNetworkProfileVnet(input firewalls.NetworkProfile) []NetworkProfileVnet {
+func FlattenNetworkProfileVnet(input firewallresources.NetworkProfile) []NetworkProfileVnet {
 	result := NetworkProfileVnet{}
 
 	publicIPIDs := make([]string, 0)
@@ -225,7 +226,7 @@ func VHubNetworkProfileSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: networkValidate.VirtualHubID,
+					ValidateFunc: virtualwans.ValidateVirtualHubID,
 				},
 
 				"network_virtual_appliance_id": {
@@ -241,7 +242,7 @@ func VHubNetworkProfileSchema() *pluginsdk.Schema {
 					MinItems: 1,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
-						ValidateFunc: networkValidate.PublicIpAddressID,
+						ValidateFunc: commonids.ValidatePublicIPAddressID,
 					},
 				},
 
@@ -251,7 +252,7 @@ func VHubNetworkProfileSchema() *pluginsdk.Schema {
 					MinItems: 1,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
-						ValidateFunc: networkValidate.PublicIpAddressID,
+						ValidateFunc: commonids.ValidatePublicIPAddressID,
 					},
 				},
 
@@ -302,10 +303,10 @@ func VHubNetworkProfileSchema() *pluginsdk.Schema {
 	}
 }
 
-func ExpandNetworkProfileVHub(input []NetworkProfileVHub) firewalls.NetworkProfile {
-	result := firewalls.NetworkProfile{
-		EnableEgressNat: firewalls.EgressNatDISABLED,
-		EgressNatIP:     &[]firewalls.IPAddress{},
+func ExpandNetworkProfileVHub(input []NetworkProfileVHub) firewallresources.NetworkProfile {
+	result := firewallresources.NetworkProfile{
+		EnableEgressNat: firewallresources.EgressNatDISABLED,
+		EgressNatIP:     &[]firewallresources.IPAddress{},
 		TrustedRanges:   &[]string{},
 	}
 	if len(input) == 0 {
@@ -315,9 +316,9 @@ func ExpandNetworkProfileVHub(input []NetworkProfileVHub) firewalls.NetworkProfi
 	profile := input[0]
 
 	if len(profile.PublicIPIDs) > 0 {
-		ipIDs := make([]firewalls.IPAddress, 0)
+		ipIDs := make([]firewallresources.IPAddress, 0)
 		for _, v := range profile.PublicIPIDs {
-			ipIDs = append(ipIDs, firewalls.IPAddress{
+			ipIDs = append(ipIDs, firewallresources.IPAddress{
 				ResourceId: pointer.To(v),
 			})
 		}
@@ -325,10 +326,10 @@ func ExpandNetworkProfileVHub(input []NetworkProfileVHub) firewalls.NetworkProfi
 	}
 
 	if len(profile.EgressNatIPIDs) > 0 {
-		result.EnableEgressNat = firewalls.EgressNatENABLED
-		egressNatIPs := make([]firewalls.IPAddress, 0)
+		result.EnableEgressNat = firewallresources.EgressNatENABLED
+		egressNatIPs := make([]firewallresources.IPAddress, 0)
 		for _, v := range profile.EgressNatIPIDs {
-			egressNatIPs = append(egressNatIPs, firewalls.IPAddress{
+			egressNatIPs = append(egressNatIPs, firewallresources.IPAddress{
 				ResourceId: pointer.To(v),
 			})
 		}
@@ -340,10 +341,10 @@ func ExpandNetworkProfileVHub(input []NetworkProfileVHub) firewalls.NetworkProfi
 		result.TrustedRanges = pointer.To(profile.TrustedRanges)
 	}
 
-	result.NetworkType = firewalls.NetworkTypeVWAN
+	result.NetworkType = firewallresources.NetworkTypeVWAN
 
-	result.VwanConfiguration = &firewalls.VwanConfiguration{
-		VHub: firewalls.IPAddressSpace{
+	result.VwanConfiguration = &firewallresources.VwanConfiguration{
+		VHub: firewallresources.IPAddressSpace{
 			ResourceId: pointer.To(profile.VHubID),
 		},
 		NetworkVirtualApplianceId: pointer.To(profile.ApplianceID),
@@ -352,7 +353,7 @@ func ExpandNetworkProfileVHub(input []NetworkProfileVHub) firewalls.NetworkProfi
 	return result
 }
 
-func FlattenNetworkProfileVHub(input firewalls.NetworkProfile) (*NetworkProfileVHub, error) {
+func FlattenNetworkProfileVHub(input firewallresources.NetworkProfile) (*NetworkProfileVHub, error) {
 	result := NetworkProfileVHub{}
 
 	publicIPIDs := make([]string, 0)
@@ -390,9 +391,9 @@ func FlattenNetworkProfileVHub(input firewalls.NetworkProfile) (*NetworkProfileV
 	result.TrustedRanges = trustedRanges
 
 	if v := input.VwanConfiguration; v != nil {
-
 		result.VHubID = pointer.From(v.VHub.ResourceId)
-		applianceID, err := networkvirtualappliances.ParseNetworkVirtualApplianceID(pointer.From(v.NetworkVirtualApplianceId))
+		// The API may return the static segments lowercased so we'll need to parse it insensitively and set the normalized result into state.
+		applianceID, err := networkvirtualappliances.ParseNetworkVirtualApplianceIDInsensitively(pointer.From(v.NetworkVirtualApplianceId))
 		if err != nil {
 			return nil, err
 		}

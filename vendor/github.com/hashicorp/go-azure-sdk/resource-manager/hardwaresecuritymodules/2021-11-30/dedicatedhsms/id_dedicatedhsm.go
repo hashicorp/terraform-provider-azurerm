@@ -17,7 +17,7 @@ func init() {
 
 var _ resourceids.ResourceId = &DedicatedHSMId{}
 
-// DedicatedHSMId is a struct representing the Resource ID for a Dedicated H S M
+// DedicatedHSMId is a struct representing the Resource ID for a Dedicated HSM
 type DedicatedHSMId struct {
 	SubscriptionId    string
 	ResourceGroupName string
@@ -42,7 +42,7 @@ func ParseDedicatedHSMID(input string) (*DedicatedHSMId, error) {
 	}
 
 	id := DedicatedHSMId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseDedicatedHSMIDInsensitively(input string) (*DedicatedHSMId, error) {
 	}
 
 	id := DedicatedHSMId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -84,7 +84,7 @@ func (id *DedicatedHSMId) FromParseResult(input resourceids.ParseResult) error {
 	return nil
 }
 
-// ValidateDedicatedHSMID checks that 'input' can be parsed as a Dedicated H S M ID
+// ValidateDedicatedHSMID checks that 'input' can be parsed as a Dedicated HSM ID
 func ValidateDedicatedHSMID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
@@ -99,13 +99,13 @@ func ValidateDedicatedHSMID(input interface{}, key string) (warnings []string, e
 	return
 }
 
-// ID returns the formatted Dedicated H S M ID
+// ID returns the formatted Dedicated HSM ID
 func (id DedicatedHSMId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.HardwareSecurityModules/dedicatedHSMs/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.DedicatedHSMName)
 }
 
-// Segments returns a slice of Resource ID Segments which comprise this Dedicated H S M ID
+// Segments returns a slice of Resource ID Segments which comprise this Dedicated HSM ID
 func (id DedicatedHSMId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
@@ -115,16 +115,16 @@ func (id DedicatedHSMId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftHardwareSecurityModules", "Microsoft.HardwareSecurityModules", "Microsoft.HardwareSecurityModules"),
 		resourceids.StaticSegment("staticDedicatedHSMs", "dedicatedHSMs", "dedicatedHSMs"),
-		resourceids.UserSpecifiedSegment("dedicatedHSMName", "dedicatedHSMValue"),
+		resourceids.UserSpecifiedSegment("dedicatedHSMName", "dedicatedHSMName"),
 	}
 }
 
-// String returns a human-readable description of this Dedicated H S M ID
+// String returns a human-readable description of this Dedicated HSM ID
 func (id DedicatedHSMId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Dedicated H S M Name: %q", id.DedicatedHSMName),
+		fmt.Sprintf("Dedicated HSM Name: %q", id.DedicatedHSMName),
 	}
-	return fmt.Sprintf("Dedicated H S M (%s)", strings.Join(components, "\n"))
+	return fmt.Sprintf("Dedicated HSM (%s)", strings.Join(components, "\n"))
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sdk
@@ -10,7 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// Decode will decode the Terraform Schema into the specified object
+// Decode will decode the Terraform Schema into the specified object consisting of Supported Go native Types
+// These are: int64, float64, string, bool, as well as lists and maps of these base types.
 // NOTE: this object must be passed by value - and must contain `tfschema`
 // struct tags for all fields
 //
@@ -22,7 +23,7 @@ import (
 //
 // var person Person
 // if err := metadata.Decode(&person); err != nil { .. }
-func (rmd ResourceMetaData) Decode(input interface{}) error {
+func (rmd ResourceMetaData) Decode(input any) error {
 	if rmd.ResourceData == nil {
 		return fmt.Errorf("ResourceData was nil")
 	}
@@ -32,7 +33,7 @@ func (rmd ResourceMetaData) Decode(input interface{}) error {
 // DecodeDiff decodes the Terraform Schema into the specified object in the
 // same manner as Decode, but using the ResourceDiff as a source. Intended
 // for use in CustomizeDiff functions.
-func (rmd ResourceMetaData) DecodeDiff(input interface{}) error {
+func (rmd ResourceMetaData) DecodeDiff(input any) error {
 	if rmd.ResourceDiff == nil {
 		return fmt.Errorf("ResourceDiff was nil")
 	}
@@ -41,13 +42,13 @@ func (rmd ResourceMetaData) DecodeDiff(input interface{}) error {
 
 // stateRetriever is a convenience wrapper around the Plugin SDK to be able to test it more accurately
 type stateRetriever interface {
-	Get(key string) interface{}
-	GetOk(key string) (interface{}, bool)
-	GetOkExists(key string) (interface{}, bool)
+	Get(key string) any
+	GetOk(key string) (any, bool)
+	GetOkExists(key string) (any, bool)
 }
 
-func decodeReflectedType(input interface{}, stateRetriever stateRetriever, debugLogger Logger) error {
-	if reflect.TypeOf(input).Kind() != reflect.Ptr {
+func decodeReflectedType(input any, stateRetriever stateRetriever, debugLogger Logger) error {
+	if reflect.TypeOf(input).Kind() != reflect.Pointer {
 		return fmt.Errorf("need a pointer")
 	}
 
@@ -78,7 +79,7 @@ func decodeReflectedType(input interface{}, stateRetriever stateRetriever, debug
 	return nil
 }
 
-func setValue(input, tfschemaValue interface{}, index int, fieldName string, debugLogger Logger) (errOut error) {
+func setValue(input, tfschemaValue any, index int, fieldName string, debugLogger Logger) (errOut error) {
 	debugLogger.Infof("setting value for %q..", fieldName)
 	defer func() {
 		if r := recover(); r != nil {
@@ -113,39 +114,11 @@ func setValue(input, tfschemaValue interface{}, index int, fieldName string, deb
 		if n.Kind() == reflect.Pointer {
 			debugLogger.Infof("*[INT] Decode %+v", v)
 			tmp := reflect.New(n.Type().Elem())
-			tmp.Elem().Set(reflect.ValueOf(v))
+			tmp.Elem().Set(reflect.ValueOf(int64(v)))
 			n.Set(tmp)
 		} else {
 			debugLogger.Infof("[INT] Decode %+v", v)
 			n.SetInt(int64(v))
-		}
-		return nil
-	}
-
-	if v, ok := tfschemaValue.(int32); ok {
-		n := reflect.ValueOf(input).Elem().Field(index)
-		if n.Kind() == reflect.Pointer {
-			debugLogger.Infof("*[INT] Decode %+v", v)
-			tmp := reflect.New(n.Type().Elem())
-			tmp.Elem().Set(reflect.ValueOf(v))
-			n.Set(tmp)
-		} else {
-			debugLogger.Infof("[INT] Decode %+v", v)
-			n.SetInt(int64(v))
-		}
-		return nil
-	}
-
-	if v, ok := tfschemaValue.(int64); ok {
-		n := reflect.ValueOf(input).Elem().Field(index)
-		if n.Kind() == reflect.Pointer {
-			debugLogger.Infof("*[INT] Decode %+v", v)
-			tmp := reflect.New(n.Type().Elem())
-			tmp.Elem().Set(reflect.ValueOf(v))
-			n.Set(tmp)
-		} else {
-			debugLogger.Infof("[INT] Decode %+v", v)
-			n.SetInt(v)
 		}
 		return nil
 	}
@@ -155,7 +128,7 @@ func setValue(input, tfschemaValue interface{}, index int, fieldName string, deb
 		if n.Kind() == reflect.Pointer {
 			debugLogger.Infof("*[Float] Decode %+v", v)
 			tmp := reflect.New(n.Type().Elem())
-			tmp.Elem().Set(reflect.ValueOf(v))
+			tmp.Elem().SetFloat(v)
 			n.Set(tmp)
 		} else {
 			debugLogger.Infof("[Float] Decode %+v", v)
@@ -182,7 +155,7 @@ func setValue(input, tfschemaValue interface{}, index int, fieldName string, deb
 		return setListValue(input, index, fieldName, v.List(), debugLogger)
 	}
 
-	if mapConfig, ok := tfschemaValue.(map[string]interface{}); ok {
+	if mapConfig, ok := tfschemaValue.(map[string]any); ok {
 		n := reflect.ValueOf(input).Elem().Field(index)
 		if n.Kind() == reflect.Pointer {
 			tmp := reflect.New(n.Type().Elem())
@@ -190,7 +163,13 @@ func setValue(input, tfschemaValue interface{}, index int, fieldName string, deb
 
 			mapOutput := reflect.MakeMap(ty.Type())
 			for key, val := range mapConfig {
-				mapOutput.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(val))
+				switch t := val.(type) {
+				case int:
+					mapOutput.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(int64(t)))
+
+				default:
+					mapOutput.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(val))
+				}
 			}
 
 			tmp.Elem().Set(mapOutput)
@@ -199,7 +178,12 @@ func setValue(input, tfschemaValue interface{}, index int, fieldName string, deb
 		} else {
 			mapOutput := reflect.MakeMap(n.Type())
 			for key, val := range mapConfig {
-				mapOutput.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(val))
+				switch t := val.(type) {
+				case int:
+					mapOutput.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(int64(t)))
+				default:
+					mapOutput.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(val))
+				}
 			}
 
 			reflect.ValueOf(input).Elem().Field(index).Set(mapOutput)
@@ -207,7 +191,7 @@ func setValue(input, tfschemaValue interface{}, index int, fieldName string, deb
 		return nil
 	}
 
-	if mapConfig, ok := tfschemaValue.(*map[string]interface{}); ok {
+	if mapConfig, ok := tfschemaValue.(*map[string]any); ok {
 		n := reflect.ValueOf(input).Elem().Field(index).Type()
 
 		tmp := reflect.New(n.Elem())
@@ -215,7 +199,18 @@ func setValue(input, tfschemaValue interface{}, index int, fieldName string, deb
 
 		mapOutput := reflect.MakeMap(ty.Type())
 		for key, val := range *mapConfig {
-			mapOutput.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(val))
+			// GetOkExists always returns map[string]int rather than map[string]int64 - so we need to ensure we don't try to set the wrong type into the map
+			switch mapOutput.Type().Elem().Kind() {
+			case reflect.Int64:
+				// Guard against GetOkExists being updated to return int64
+				if v, ok := val.(int); ok {
+					mapOutput.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(int64(v)))
+				} else {
+					mapOutput.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(val))
+				}
+			default:
+				mapOutput.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(val))
+			}
 		}
 
 		tmp.Elem().Set(mapOutput)
@@ -225,80 +220,88 @@ func setValue(input, tfschemaValue interface{}, index int, fieldName string, deb
 		return nil
 	}
 
-	if v, ok := tfschemaValue.([]interface{}); ok {
+	if v, ok := tfschemaValue.([]any); ok {
 		return setListValue(input, index, fieldName, v, debugLogger)
 	}
 
 	return nil
 }
 
-func setListValue(input interface{}, index int, fieldName string, v []interface{}, debugLogger Logger) error {
+func setListValue(input any, index int, fieldName string, v []any, debugLogger Logger) error {
 	fieldType := reflect.ValueOf(input).Elem().Field(index).Type()
-	fieldTypeStr := fieldType.String()
-	switch fieldTypeStr {
-	case "[]string":
-		stringSlice := reflect.MakeSlice(reflect.TypeOf([]string{}), len(v), len(v))
-		for i, stringVal := range v {
-			stringSlice.Index(i).SetString(stringVal.(string))
+	var slice reflect.Value
+	if reflect.TypeOf(input).Elem().Field(index).Type.Kind() != reflect.Pointer {
+		slice = reflect.MakeSlice(reflect.TypeOf(input).Elem().Field(index).Type, len(v), len(v))
+	} else {
+		slice = reflect.MakeSlice(fieldType.Elem(), len(v), len(v))
+	}
+	isPtr := fieldType.Kind() == reflect.Pointer
+	var dereferenceFieldType reflect.Kind
+	if isPtr {
+		dereferenceFieldType = fieldType.Elem().Elem().Kind()
+	} else {
+		dereferenceFieldType = fieldType.Elem().Kind()
+	}
+	switch dereferenceFieldType {
+	case reflect.String:
+		if !isPtr {
+			for i, stringVal := range v {
+				slice.Index(i).SetString(stringVal.(string))
+			}
+			reflect.ValueOf(input).Elem().Field(index).Set(slice)
+		} else {
+			tmp := reflect.New(fieldType.Elem())
+			for i, stringVal := range v {
+				slice.Index(i).SetString(stringVal.(string))
+			}
+			tmp.Elem().Set(slice)
+			reflect.ValueOf(input).Elem().Field(index).Set(tmp)
 		}
-		reflect.ValueOf(input).Elem().Field(index).Set(stringSlice)
 
-	case "[]int":
-		iSlice := reflect.MakeSlice(reflect.TypeOf([]int{}), len(v), len(v))
-		for i, iVal := range v {
-			iSlice.Index(i).SetInt(int64(iVal.(int)))
+	case reflect.Int64:
+		if !isPtr {
+			for i, iVal := range v {
+				slice.Index(i).SetInt(int64(iVal.(int)))
+			}
+			reflect.ValueOf(input).Elem().Field(index).Set(slice)
+		} else {
+			tmp := reflect.New(fieldType.Elem())
+			for i, iVal := range v {
+				slice.Index(i).SetInt(int64(iVal.(int)))
+			}
+			tmp.Elem().Set(slice)
+			reflect.ValueOf(input).Elem().Field(index).Set(tmp)
 		}
-		reflect.ValueOf(input).Elem().Field(index).Set(iSlice)
 
-	case "[]float64":
-		fSlice := reflect.MakeSlice(reflect.TypeOf([]float64{}), len(v), len(v))
-		for i, fVal := range v {
-			fSlice.Index(i).SetFloat(fVal.(float64))
+	case reflect.Float64:
+		if !isPtr {
+			for i, fVal := range v {
+				slice.Index(i).SetFloat(fVal.(float64))
+			}
+			reflect.ValueOf(input).Elem().Field(index).Set(slice)
+		} else {
+			tmp := reflect.New(fieldType.Elem())
+			for i, fVal := range v {
+				slice.Index(i).SetFloat(fVal.(float64))
+			}
+			tmp.Elem().Set(slice)
+			reflect.ValueOf(input).Elem().Field(index).Set(tmp)
 		}
-		reflect.ValueOf(input).Elem().Field(index).Set(fSlice)
 
-	case "[]bool":
-		bSlice := reflect.MakeSlice(reflect.TypeOf([]bool{}), len(v), len(v))
-		for i, bVal := range v {
-			bSlice.Index(i).SetBool(bVal.(bool))
+	case reflect.Bool:
+		if !isPtr {
+			for i, bVal := range v {
+				slice.Index(i).SetBool(bVal.(bool))
+			}
+			reflect.ValueOf(input).Elem().Field(index).Set(slice)
+		} else {
+			tmp := reflect.New(fieldType.Elem())
+			for i, bVal := range v {
+				slice.Index(i).SetBool(bVal.(bool))
+			}
+			tmp.Elem().Set(slice)
+			reflect.ValueOf(input).Elem().Field(index).Set(tmp)
 		}
-		reflect.ValueOf(input).Elem().Field(index).Set(bSlice)
-
-	case "*[]string":
-		tmp := reflect.New(fieldType.Elem())
-		stringSlice := reflect.MakeSlice(reflect.TypeOf([]string{}), len(v), len(v))
-		for i, stringVal := range v {
-			stringSlice.Index(i).SetString(stringVal.(string))
-		}
-		tmp.Elem().Set(stringSlice)
-		reflect.ValueOf(input).Elem().Field(index).Set(tmp)
-
-	case "*[]int":
-		tmp := reflect.New(fieldType.Elem())
-		iSlice := reflect.MakeSlice(reflect.TypeOf([]int{}), len(v), len(v))
-		for i, iVal := range v {
-			iSlice.Index(i).SetInt(int64(iVal.(int)))
-		}
-		tmp.Elem().Set(iSlice)
-		reflect.ValueOf(input).Elem().Field(index).Set(tmp)
-
-	case "*[]float64":
-		tmp := reflect.New(fieldType.Elem())
-		fSlice := reflect.MakeSlice(reflect.TypeOf([]float64{}), len(v), len(v))
-		for i, fVal := range v {
-			fSlice.Index(i).SetFloat(fVal.(float64))
-		}
-		tmp.Elem().Set(fSlice)
-		reflect.ValueOf(input).Elem().Field(index).Set(tmp)
-
-	case "*[]bool":
-		tmp := reflect.New(fieldType.Elem())
-		bSlice := reflect.MakeSlice(reflect.TypeOf([]bool{}), len(v), len(v))
-		for i, bVal := range v {
-			bSlice.Index(i).SetBool(bVal.(bool))
-		}
-		tmp.Elem().Set(bSlice)
-		reflect.ValueOf(input).Elem().Field(index).Set(tmp)
 
 	default:
 		n := reflect.ValueOf(input).Elem().Field(index)
@@ -306,16 +309,16 @@ func setListValue(input interface{}, index int, fieldName string, v []interface{
 			tmp := reflect.New(fieldType.Elem())
 			valueToSet := reflect.MakeSlice(tmp.Elem().Type(), 0, 0)
 			for _, mapVal := range v {
-				if test, ok := mapVal.(map[string]interface{}); ok && test != nil {
+				if test, ok := mapVal.(map[string]any); ok && test != nil {
 					elem := reflect.New(fieldType.Elem().Elem())
-					debugLogger.Infof("element ", elem)
+					debugLogger.Infof("element %s", elem.String())
 					for j := 0; j < elem.Type().Elem().NumField(); j++ {
 						nestedField := elem.Type().Elem().Field(j)
-						debugLogger.Infof("nestedField ", nestedField)
+						debugLogger.Infof("nestedField Name: '%s', Tags: '%+v'", nestedField.Name, nestedField.Tag)
 
 						structTags, err := parseStructTags(nestedField.Tag)
 						if err != nil {
-							return fmt.Errorf("parsing struct tags for nested field %q: %+v", nestedField.Name, err)
+							return fmt.Errorf("parsing struct tags for nested field `%s`: %+v", nestedField.Name, err)
 						}
 
 						if structTags != nil {
@@ -330,13 +333,13 @@ func setListValue(input interface{}, index int, fieldName string, v []interface{
 						elem = elem.Elem()
 					}
 
-					if valueToSet.Kind() == reflect.Ptr {
+					if valueToSet.Kind() == reflect.Pointer {
 						valueToSet.Elem().Set(reflect.Append(valueToSet.Elem(), elem))
 					} else {
 						valueToSet = reflect.Append(valueToSet, elem)
 					}
 
-					debugLogger.Infof("value to set type after changes", valueToSet.Type())
+					debugLogger.Infof("value to set type after changes %s", valueToSet.Type().String())
 				}
 			}
 
@@ -344,24 +347,24 @@ func setListValue(input interface{}, index int, fieldName string, v []interface{
 			n.Set(tmp)
 		} else {
 			valueToSet := reflect.MakeSlice(n.Type(), 0, 0)
-			debugLogger.Infof("List Type", valueToSet.Type())
+			debugLogger.Infof("List Type '%s'", valueToSet.Type().String())
 
 			for _, mapVal := range v {
-				if test, ok := mapVal.(map[string]interface{}); ok && test != nil {
+				if test, ok := mapVal.(map[string]any); ok && test != nil {
 					elem := reflect.New(fieldType.Elem())
-					debugLogger.Infof("element ", elem)
+					debugLogger.Infof("element '%s'", elem.String())
 					for j := 0; j < elem.Type().Elem().NumField(); j++ {
 						nestedField := elem.Type().Elem().Field(j)
-						debugLogger.Infof("nestedField ", nestedField)
+						debugLogger.Infof("nestedField Name '%s', Tags: '%+v'", nestedField.Name, nestedField.Tag)
 
 						structTags, err := parseStructTags(nestedField.Tag)
 						if err != nil {
-							return fmt.Errorf("parsing struct tags for nested field %q: %+v", nestedField.Name, err)
+							return fmt.Errorf("parsing struct tags for nested field '%s': %+v", nestedField.Name, err)
 						}
 
 						if structTags != nil {
 							nestedTFSchemaValue := test[structTags.hclPath]
-							if err := setValue(elem.Interface(), nestedTFSchemaValue, j, fieldName, debugLogger); err != nil {
+							if err := setValue(elem.Interface(), nestedTFSchemaValue, j, nestedField.Name, debugLogger); err != nil {
 								return err
 							}
 						}
@@ -371,13 +374,13 @@ func setListValue(input interface{}, index int, fieldName string, v []interface{
 						elem = elem.Elem()
 					}
 
-					if valueToSet.Kind() == reflect.Ptr {
+					if valueToSet.Kind() == reflect.Pointer {
 						valueToSet.Elem().Set(reflect.Append(valueToSet.Elem(), elem))
 					} else {
 						valueToSet = reflect.Append(valueToSet, elem)
 					}
 
-					debugLogger.Infof("value to set type after changes", valueToSet.Type())
+					debugLogger.Infof("value to set type after changes '%s'", valueToSet.Type().String())
 				}
 			}
 

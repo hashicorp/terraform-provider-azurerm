@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -12,13 +12,12 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-05-01-preview/diagnosticsettingscategories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func dataSourceMonitorDiagnosticCategories() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: dataSourceMonitorDiagnosticCategoriesRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -54,21 +53,9 @@ func dataSourceMonitorDiagnosticCategories() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		resource.Schema["logs"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeSet,
-			Elem:       &pluginsdk.Schema{Type: pluginsdk.TypeString},
-			Set:        pluginsdk.HashString,
-			Computed:   true,
-			Deprecated: "`logs` will be removed in favour of the property `log_category_types` in version 4.0 of the AzureRM Provider.",
-		}
-	}
-
-	return resource
 }
 
-func dataSourceMonitorDiagnosticCategoriesRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceMonitorDiagnosticCategoriesRead(d *pluginsdk.ResourceData, meta any) error {
 	categoriesClient := meta.(*clients.Client).Monitor.DiagnosticSettingsCategoryClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -82,23 +69,18 @@ func dataSourceMonitorDiagnosticCategoriesRead(d *pluginsdk.ResourceData, meta i
 	}
 
 	// then retrieve the possible Diagnostics Categories for this Resource
-	categories, err := categoriesClient.DiagnosticSettingsCategoryList(ctx, *resourceIdToList)
+	categories, err := categoriesClient.DiagnosticSettingsCategoryListComplete(ctx, *resourceIdToList)
 	if err != nil {
 		return fmt.Errorf("retrieving Diagnostics Categories for Resource %q: %+v", actualResourceId, err)
 	}
 
-	if categories.Model == nil && categories.Model.Value == nil {
-		return fmt.Errorf("retrieving Diagnostics Categories for Resource %q: `categories.Value` was nil", actualResourceId)
-	}
-
 	d.SetId(actualResourceId.ID())
-	val := *categories.Model.Value
 
 	metrics := make([]string, 0)
 	logs := make([]string, 0)
 	categoryGroups := make([]string, 0)
 
-	for _, v := range val {
+	for _, v := range categories.Items {
 		if v.Name == nil {
 			continue
 		}
@@ -114,7 +96,7 @@ func dataSourceMonitorDiagnosticCategoriesRead(d *pluginsdk.ResourceData, meta i
 				case diagnosticsettingscategories.CategoryTypeMetrics:
 					metrics = append(metrics, *v.Name)
 				default:
-					return fmt.Errorf("Unsupported category type %q", string(*category.CategoryType))
+					return fmt.Errorf("unsupported category type %q", string(*category.CategoryType))
 				}
 			}
 		}
@@ -122,12 +104,6 @@ func dataSourceMonitorDiagnosticCategoriesRead(d *pluginsdk.ResourceData, meta i
 
 	if err := d.Set("log_category_types", logs); err != nil {
 		return fmt.Errorf("setting `log_category_types`: %+v", err)
-	}
-
-	if !features.FourPointOhBeta() {
-		if err := d.Set("logs", logs); err != nil {
-			return fmt.Errorf("setting `log`: %+v", err)
-		}
 	}
 
 	if err := d.Set("metrics", metrics); err != nil {

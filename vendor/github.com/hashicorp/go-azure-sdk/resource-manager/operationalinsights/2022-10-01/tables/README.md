@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/tables` Documentation
 
-The `tables` SDK allows for interaction with the Azure Resource Manager Service `operationalinsights` (API Version `2022-10-01`).
+The `tables` SDK allows for interaction with Azure Resource Manager `operationalinsights` (API Version `2022-10-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := tables.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "tableValue")
+id := tables.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "tableName")
 
 read, err := client.CancelSearch(ctx, id)
 if err != nil {
@@ -40,7 +40,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := tables.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "tableValue")
+id := tables.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "tableName")
 
 payload := tables.Table{
 	// ...
@@ -57,7 +57,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := tables.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "tableValue")
+id := tables.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "tableName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -69,7 +69,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := tables.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "tableValue")
+id := tables.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "tableName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -85,7 +85,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := tables.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue")
+id := tables.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName")
 
 read, err := client.ListByWorkspace(ctx, id)
 if err != nil {
@@ -101,7 +101,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := tables.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "tableValue")
+id := tables.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "tableName")
 
 read, err := client.Migrate(ctx, id)
 if err != nil {
@@ -117,7 +117,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := tables.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "tableValue")
+id := tables.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "tableName")
 
 payload := tables.Table{
 	// ...

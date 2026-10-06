@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package loganalytics
@@ -13,14 +13,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/clusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -28,13 +26,13 @@ import (
 type LogAnalyticsClusterResource struct{}
 
 type LogAnalyticsClusterModel struct {
-	Name              string                         `tfschema:"name"`
-	ResourceGroupName string                         `tfschema:"resource_group_name"`
-	Location          string                         `tfschema:"location"`
-	Identity          []identity.ModelSystemAssigned `tfschema:"identity"`
-	SizeGB            int64                          `tfschema:"size_gb"`
-	Tags              map[string]string              `tfschema:"tags"`
-	ClusterId         string                         `tfschema:"cluster_id"`
+	Name              string                                     `tfschema:"name"`
+	ResourceGroupName string                                     `tfschema:"resource_group_name"`
+	Location          string                                     `tfschema:"location"`
+	Identity          []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	SizeGB            int64                                      `tfschema:"size_gb"`
+	Tags              map[string]string                          `tfschema:"tags"`
+	ClusterId         string                                     `tfschema:"cluster_id"`
 }
 
 var _ sdk.ResourceWithUpdate = LogAnalyticsClusterResource{}
@@ -52,21 +50,16 @@ func (l LogAnalyticsClusterResource) Arguments() map[string]*schema.Schema {
 
 		"location": commonschema.Location(),
 
-		"identity": commonschema.SystemAssignedIdentityRequiredForceNew(),
+		"identity": commonschema.SystemOrUserAssignedIdentityRequiredForceNew(),
 
 		"size_gb": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			Default: func() int {
-				if !features.FourPointOh() {
-					return 1000
-				}
-				return 500
-			}(),
-			ValidateFunc: validation.IntInSlice([]int{500, 1000, 2000, 5000}),
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Default:      100,
+			ValidateFunc: validation.IntInSlice([]int{100, 200, 300, 400, 500, 1000, 2000, 5000, 10000, 25000, 50000}),
 		},
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -79,7 +72,7 @@ func (l LogAnalyticsClusterResource) Attributes() map[string]*schema.Schema {
 	}
 }
 
-func (r LogAnalyticsClusterResource) ModelObject() interface{} {
+func (r LogAnalyticsClusterResource) ModelObject() any {
 	return &LogAnalyticsClusterModel{}
 }
 
@@ -108,34 +101,34 @@ func (r LogAnalyticsClusterResource) Create() sdk.ResourceFunc {
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
+				}
 				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					return tf.ImportAsExistsError(r.ResourceType(), id.ID())
 				}
 			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
-			}
 
-			expandedIdentity, err := identity.ExpandSystemAssignedFromModel(config.Identity)
+			expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(config.Identity)
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 
-			capacityReservation := clusters.ClusterSkuNameEnumCapacityReservation
 			parameters := clusters.Cluster{
 				Location: location.Normalize(config.Location),
 				Identity: expandedIdentity,
 				Sku: &clusters.ClusterSku{
-					Capacity: pointer.To(config.SizeGB),
-					Name:     &capacityReservation,
+					Capacity: pointer.To(clusters.Capacity(config.SizeGB)),
+					Name:     pointer.To(clusters.ClusterSkuNameEnumCapacityReservation),
 				},
 				Tags: pointer.To(config.Tags),
 			}
 
-			err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
-			if err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -172,7 +165,7 @@ func (r LogAnalyticsClusterResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				state.Location = location.NormalizeNilable(&model.Location)
 
-				flattenedIdentity := identity.FlattenSystemAssignedToModel(model.Identity)
+				flattenedIdentity, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(model.Identity)
 				if err != nil {
 					return fmt.Errorf("flattening `identity`: %+v", err)
 				}
@@ -216,29 +209,20 @@ func (r LogAnalyticsClusterResource) Update() sdk.ResourceFunc {
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
 
-			resp, err := client.Get(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("retrieving %s: +%v", *id, err)
-			}
+			payload := clusters.ClusterPatch{}
 
-			model := resp.Model
-			if model == nil {
-				return fmt.Errorf("retrieving `azurerm_log_analytics_cluster` %s: `model` is nil", *id)
-			}
-
-			if props := model.Properties; props == nil {
-				return fmt.Errorf("retrieving `azurerm_log_analytics_cluster` %s: `Properties` is nil", *id)
-			}
-
-			if metadata.ResourceData.HasChange("size_gb") && model.Sku != nil && model.Sku.Capacity != nil {
-				model.Sku.Capacity = &config.SizeGB
+			if metadata.ResourceData.HasChange("size_gb") {
+				payload.Sku = &clusters.ClusterSku{
+					Capacity: pointer.To(clusters.Capacity(config.SizeGB)),
+					Name:     pointer.To(clusters.ClusterSkuNameEnumCapacityReservation),
+				}
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
-				model.Tags = pointer.To(config.Tags)
+				payload.Tags = pointer.To(config.Tags)
 			}
 
-			if err = client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
+			if err = client.UpdateThenPoll(ctx, *id, payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -261,8 +245,7 @@ func (r LogAnalyticsClusterResource) Delete() sdk.ResourceFunc {
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
 
-			err = client.DeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 

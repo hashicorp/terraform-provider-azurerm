@@ -1,34 +1,50 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package features
 
 type UserFeatures struct {
+	PersistIDOnCreateBeforePollingForCompletion                 bool
+	SkipImportCheckOnCreateAndAllowOverwritingExistingResources bool
+
 	ApiManagement            ApiManagementFeatures
 	AppConfiguration         AppConfigurationFeatures
 	ApplicationInsights      ApplicationInsightFeatures
 	CognitiveAccount         CognitiveAccountFeatures
+	DatabricksWorkspace      DatabricksWorkspaceFeatures
+	EnhancedValidation       EnhancedValidationFeatures
+	KeyVault                 KeyVaultFeatures
+	LogAnalyticsWorkspace    LogAnalyticsWorkspaceFeatures
+	MachineLearning          MachineLearningFeatures
+	ManagedDisk              ManagedDiskFeatures
+	NetApp                   NetAppFeatures
+	PostgresqlFlexibleServer PostgresqlFlexibleServerFeatures
+	RecoveryService          RecoveryServiceFeatures
+	RecoveryServicesVault    RecoveryServicesVault
+	ResourceGroup            ResourceGroupFeatures
+	Storage                  StorageFeatures
+	Subscription             SubscriptionFeatures
+	TemplateDeployment       TemplateDeploymentFeatures
 	VirtualMachine           VirtualMachineFeatures
 	VirtualMachineScaleSet   VirtualMachineScaleSetFeatures
-	KeyVault                 KeyVaultFeatures
-	TemplateDeployment       TemplateDeploymentFeatures
-	LogAnalyticsWorkspace    LogAnalyticsWorkspaceFeatures
-	ResourceGroup            ResourceGroupFeatures
-	ManagedDisk              ManagedDiskFeatures
-	Subscription             SubscriptionFeatures
-	PostgresqlFlexibleServer PostgresqlFlexibleServerFeatures
-	MachineLearning          MachineLearningFeatures
-	RecoveryService          RecoveryServiceFeatures
+	ServiceBus               ServiceBusFeatures
 }
 
 type CognitiveAccountFeatures struct {
 	PurgeSoftDeleteOnDestroy bool
 }
 
+type EnhancedValidationFeatures struct {
+	Locations         bool
+	ResourceProviders bool
+	PreflightEnabled  bool
+	LocationFallback  *string
+}
+
 type VirtualMachineFeatures struct {
-	DeleteOSDiskOnDeletion     bool
-	GracefulShutdown           bool
-	SkipShutdownAndForceDelete bool
+	DetachImplicitDataDiskOnDeletion bool
+	DeleteOSDiskOnDeletion           bool
+	SkipShutdownAndForceDelete       bool
 }
 
 type VirtualMachineScaleSetFeatures struct {
@@ -44,10 +60,12 @@ type KeyVaultFeatures struct {
 	PurgeSoftDeletedCertsOnDestroy   bool
 	PurgeSoftDeletedSecretsOnDestroy bool
 	PurgeSoftDeletedHSMsOnDestroy    bool
+	PurgeSoftDeletedHSMKeysOnDestroy bool
 	RecoverSoftDeletedKeyVaults      bool
 	RecoverSoftDeletedKeys           bool
 	RecoverSoftDeletedCerts          bool
 	RecoverSoftDeletedSecrets        bool
+	RecoverSoftDeletedHSMKeys        bool
 }
 
 type TemplateDeploymentFeatures struct {
@@ -80,8 +98,16 @@ type AppConfigurationFeatures struct {
 	RecoverSoftDeleted       bool
 }
 
+type StorageFeatures struct {
+	DataPlaneAvailable bool
+}
+
 type SubscriptionFeatures struct {
 	PreventCancellationOnDestroy bool
+}
+
+type RecoveryServicesVault struct {
+	RecoverSoftDeletedBackupProtectedVM bool
 }
 
 type PostgresqlFlexibleServerFeatures struct {
@@ -93,6 +119,20 @@ type MachineLearningFeatures struct {
 }
 
 type RecoveryServiceFeatures struct {
-	VMBackupStopProtectionAndRetainDataOnDestroy bool
-	PurgeProtectedItemsFromVaultOnDestroy        bool
+	VMBackupStopProtectionAndRetainDataOnDestroy    bool
+	VMBackupSuspendProtectionAndRetainDataOnDestroy bool
+	PurgeProtectedItemsFromVaultOnDestroy           bool
+}
+
+type NetAppFeatures struct {
+	DeleteBackupsOnBackupVaultDestroy bool
+	PreventVolumeDestruction          bool
+}
+
+type DatabricksWorkspaceFeatures struct {
+	ForceDelete bool
+}
+
+type ServiceBusFeatures struct {
+	AutoDeleteSubscriptionDefaultRule bool
 }

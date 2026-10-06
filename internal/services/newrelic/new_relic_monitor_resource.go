@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package newrelic
@@ -13,8 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2022-07-01/monitors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/monitors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -40,10 +41,10 @@ type NewRelicMonitorModel struct {
 }
 
 type PlanDataModel struct {
-	EffectiveDate string                `tfschema:"effective_date"`
-	BillingCycle  monitors.BillingCycle `tfschema:"billing_cycle"`
-	PlanDetails   string                `tfschema:"plan_id"`
-	UsageType     monitors.UsageType    `tfschema:"usage_type"`
+	EffectiveDate string             `tfschema:"effective_date"`
+	BillingCycle  string             `tfschema:"billing_cycle"`
+	PlanDetails   string             `tfschema:"plan_id"`
+	UsageType     monitors.UsageType `tfschema:"usage_type"`
 }
 
 type UserInfoModel struct {
@@ -61,7 +62,7 @@ func (r NewRelicMonitorResource) ResourceType() string {
 	return "azurerm_new_relic_monitor"
 }
 
-func (r NewRelicMonitorResource) ModelObject() interface{} {
+func (r NewRelicMonitorResource) ModelObject() any {
 	return &NewRelicMonitorModel{}
 }
 
@@ -100,15 +101,16 @@ func (r NewRelicMonitorResource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc:     validation.IsRFC3339Time,
 					},
 
+					// Enum is removed https://github.com/Azure/azure-rest-api-specs/issues/31093
 					"billing_cycle": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 						ForceNew: true,
-						Default:  string(monitors.BillingCycleMONTHLY),
+						Default:  "MONTHLY",
 						ValidateFunc: validation.StringInSlice([]string{
-							string(monitors.BillingCycleMONTHLY),
-							string(monitors.BillingCycleWEEKLY),
-							string(monitors.BillingCycleYEARLY),
+							"MONTHLY",
+							"WEEKLY",
+							"YEARLY",
 						}, false),
 					},
 
@@ -123,14 +125,11 @@ func (r NewRelicMonitorResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"usage_type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
-						Default:  string(monitors.UsageTypePAYG),
-						ValidateFunc: validation.StringInSlice([]string{
-							string(monitors.UsageTypeCOMMITTED),
-							string(monitors.UsageTypePAYG),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						Default:      string(monitors.UsageTypePAYG),
+						ValidateFunc: validation.StringInSlice(monitors.PossibleValuesForUsageType(), false),
 					},
 				},
 			},
@@ -175,23 +174,22 @@ func (r NewRelicMonitorResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"account_creation_source": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  string(monitors.AccountCreationSourceLIFTR),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(monitors.AccountCreationSourceLIFTR),
-				string(monitors.AccountCreationSourceNEWRELIC),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      string(monitors.AccountCreationSourceLIFTR),
+			ValidateFunc: validation.StringInSlice(monitors.PossibleValuesForAccountCreationSource(), false),
 		},
 
 		"account_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
+
+		"identity": commonschema.SystemAssignedIdentityOptionalForceNew(),
 
 		"ingestion_key": {
 			Type:         pluginsdk.TypeString,
@@ -205,19 +203,16 @@ func (r NewRelicMonitorResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"org_creation_source": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  string(monitors.OrgCreationSourceLIFTR),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(monitors.OrgCreationSourceLIFTR),
-				string(monitors.OrgCreationSourceNEWRELIC),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      string(monitors.OrgCreationSourceLIFTR),
+			ValidateFunc: validation.StringInSlice(monitors.PossibleValuesForOrgCreationSource(), false),
 		},
 
 		"user_id": {
@@ -245,13 +240,16 @@ func (r NewRelicMonitorResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.NewRelic.MonitorsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := monitors.NewMonitorID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			properties := &monitors.NewRelicMonitorResource{
@@ -265,11 +263,20 @@ func (r NewRelicMonitorResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
-				return fmt.Errorf("creating %s: %+v", id, err)
+			identityValue, err := identity.ExpandSystemAssigned(metadata.ResourceData.Get("identity").([]any))
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
+			}
+			// Currently the API does not accept `None` type: https://github.com/Azure/azure-rest-api-specs/issues/29257
+			if identityValue.Type != identity.TypeNone {
+				properties.Identity = identityValue
 			}
 
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, *properties, metadata.SetIDCallback(&id)); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
 			metadata.SetID(id)
+
 			return nil
 		},
 	}
@@ -308,6 +315,10 @@ func (r NewRelicMonitorResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
+
+				if err := metadata.ResourceData.Set("identity", identity.FlattenSystemAssigned(model.Identity)); err != nil {
+					return fmt.Errorf("setting `identity`: %+v", err)
+				}
 
 				properties := &model.Properties
 				if properties.AccountCreationSource != nil {
@@ -473,7 +484,7 @@ func expandUserInfoModel(inputList []UserInfoModel) *monitors.UserInfo {
 func flattenPlanDataModel(input *monitors.PlanData) []PlanDataModel {
 	var outputList []PlanDataModel
 	if input == nil {
-		return outputList
+		return []PlanDataModel{}
 	}
 	output := PlanDataModel{}
 	if input.BillingCycle != nil {
@@ -498,7 +509,7 @@ func flattenPlanDataModel(input *monitors.PlanData) []PlanDataModel {
 func flattenUserInfoModel(input *monitors.UserInfo) []UserInfoModel {
 	var outputList []UserInfoModel
 	if input == nil {
-		return outputList
+		return []UserInfoModel{}
 	}
 	output := UserInfoModel{}
 

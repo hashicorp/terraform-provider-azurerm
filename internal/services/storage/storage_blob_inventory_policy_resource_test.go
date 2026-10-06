@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage_test
@@ -96,6 +96,20 @@ func TestAccStorageBlobInventoryPolicy_update(t *testing.T) {
 	})
 }
 
+func TestAccStorageBlobInventoryPolicy_containerFilter(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob_inventory_policy", "test")
+	r := StorageBlobInventoryPolicyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.containerFilter(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r StorageBlobInventoryPolicyResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseStorageAccountID(state.ID)
 	if err != nil {
@@ -146,10 +160,10 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r StorageBlobInventoryPolicyResource) basic(data acceptance.TestData) string {
@@ -194,11 +208,11 @@ resource "azurerm_storage_blob_inventory_policy" "import" {
 func (r StorageBlobInventoryPolicyResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+	%s
 
 resource "azurerm_storage_container" "test2" {
   name                  = "vhds2"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -230,7 +244,7 @@ resource "azurerm_storage_blob_inventory_policy" "test" {
     }
   }
 }
-`, template)
+	`, template)
 }
 
 func (r StorageBlobInventoryPolicyResource) multipleRules(data acceptance.TestData) string {
@@ -279,4 +293,34 @@ resource "azurerm_storage_blob_inventory_policy" "test" {
   }
 }
 `, template)
+}
+
+func (r StorageBlobInventoryPolicyResource) containerFilter(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_blob_inventory_policy" "test" {
+  storage_account_id = azurerm_storage_account.test.id
+  rules {
+    name                   = "rule1"
+    storage_container_name = azurerm_storage_container.test.name
+    format                 = "Csv"
+    schedule               = "Daily"
+    scope                  = "Container"
+    filter {
+      blob_types      = []
+      include_deleted = true
+    }
+    schema_fields = [
+      "Name",
+      "Last-Modified",
+      "Deleted",
+      "HasImmutabilityPolicy",
+      "Version",
+      "DeletedTime",
+      "RemainingRetentionDays"
+    ]
+  }
+}
+`, r.template(data))
 }

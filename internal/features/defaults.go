@@ -1,14 +1,19 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package features
 
 func Default() UserFeatures {
-	return UserFeatures{
-		// NOTE: ensure all nested objects are fully populated
+	return UserFeatures{ // azignore:AZG007 - ensure all nested objects are fully populated so each default is intentional and visible.
 		ApiManagement: ApiManagementFeatures{
 			PurgeSoftDeleteOnDestroy: true,
 			RecoverSoftDeleted:       true,
+		},
+		EnhancedValidation: EnhancedValidationFeatures{
+			Locations:         false,
+			ResourceProviders: false,
+			PreflightEnabled:  false,
+			LocationFallback:  nil,
 		},
 		AppConfiguration: AppConfigurationFeatures{
 			PurgeSoftDeleteOnDestroy: true,
@@ -21,18 +26,23 @@ func Default() UserFeatures {
 			PurgeSoftDeleteOnDestroy: true,
 		},
 		KeyVault: KeyVaultFeatures{
+			// Standard
 			PurgeSoftDeleteOnDestroy:         true,
 			PurgeSoftDeletedKeysOnDestroy:    true,
 			PurgeSoftDeletedCertsOnDestroy:   true,
 			PurgeSoftDeletedSecretsOnDestroy: true,
-			PurgeSoftDeletedHSMsOnDestroy:    true,
 			RecoverSoftDeletedKeyVaults:      true,
 			RecoverSoftDeletedKeys:           true,
 			RecoverSoftDeletedCerts:          true,
 			RecoverSoftDeletedSecrets:        true,
+
+			// HSM
+			PurgeSoftDeletedHSMsOnDestroy:    true,
+			PurgeSoftDeletedHSMKeysOnDestroy: true,
+			RecoverSoftDeletedHSMKeys:        true,
 		},
 		LogAnalyticsWorkspace: LogAnalyticsWorkspaceFeatures{
-			PermanentlyDeleteOnDestroy: true,
+			PermanentlyDeleteOnDestroy: false,
 		},
 		ManagedDisk: ManagedDiskFeatures{
 			ExpandWithoutDowntime: true,
@@ -40,19 +50,25 @@ func Default() UserFeatures {
 		ResourceGroup: ResourceGroupFeatures{
 			PreventDeletionIfContainsResources: true,
 		},
+		RecoveryServicesVault: RecoveryServicesVault{
+			RecoverSoftDeletedBackupProtectedVM: true,
+		},
 		TemplateDeployment: TemplateDeploymentFeatures{
 			DeleteNestedItemsDuringDeletion: true,
 		},
 		VirtualMachine: VirtualMachineFeatures{
-			DeleteOSDiskOnDeletion:     true,
-			GracefulShutdown:           false,
-			SkipShutdownAndForceDelete: false,
+			DetachImplicitDataDiskOnDeletion: false,
+			DeleteOSDiskOnDeletion:           true,
+			SkipShutdownAndForceDelete:       false,
 		},
 		VirtualMachineScaleSet: VirtualMachineScaleSetFeatures{
 			ForceDelete:               false,
 			ReimageOnManualUpgrade:    true,
 			RollInstancesWhenRequired: true,
 			ScaleToZeroOnDelete:       true,
+		},
+		Storage: StorageFeatures{
+			DataPlaneAvailable: true,
 		},
 		Subscription: SubscriptionFeatures{
 			PreventCancellationOnDestroy: false,
@@ -64,8 +80,19 @@ func Default() UserFeatures {
 			PurgeSoftDeletedWorkspaceOnDestroy: false,
 		},
 		RecoveryService: RecoveryServiceFeatures{
-			VMBackupStopProtectionAndRetainDataOnDestroy: false,
-			PurgeProtectedItemsFromVaultOnDestroy:        false,
+			VMBackupStopProtectionAndRetainDataOnDestroy:    false,
+			VMBackupSuspendProtectionAndRetainDataOnDestroy: false,
+			PurgeProtectedItemsFromVaultOnDestroy:           false,
+		},
+		NetApp: NetAppFeatures{
+			DeleteBackupsOnBackupVaultDestroy: false,
+			PreventVolumeDestruction:          true,
+		},
+		DatabricksWorkspace: DatabricksWorkspaceFeatures{
+			ForceDelete: false,
+		},
+		ServiceBus: ServiceBusFeatures{
+			AutoDeleteSubscriptionDefaultRule: false,
 		},
 	}
 }

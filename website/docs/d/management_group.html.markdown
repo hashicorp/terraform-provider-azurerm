@@ -22,7 +22,7 @@ output "display_name" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -30,7 +30,7 @@ The following arguments are supported:
 
 * `display_name` - Specifies the display name of this Management Group.
 
-~> **NOTE** Whilst multiple management groups may share the same display name, when filtering Terraform expects a single management group to be found with this name.
+~> **Note:** Whilst multiple management groups may share the same display name, when filtering Terraform expects a single management group to be found with this name.
 
 ## Attributes Reference
 
@@ -52,6 +52,12 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Management Group.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Management` - 2020-05-01

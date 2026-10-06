@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package eventhub
@@ -9,8 +9,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationruleseventhubs"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/authorizationruleseventhubs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/eventhubs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -73,7 +73,7 @@ func EventHubAuthorizationRuleDataSource() *pluginsdk.Resource {
 	}
 }
 
-func EventHubAuthorizationRuleDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func EventHubAuthorizationRuleDataSourceRead(d *pluginsdk.ResourceData, meta any) error {
 	eventHubsClient := meta.(*clients.Client).Eventhub.EventHubsClient
 	rulesClient := meta.(*clients.Client).Eventhub.EventHubAuthorizationRulesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId

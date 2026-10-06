@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
@@ -25,7 +25,7 @@ func TestAccDataSourceVirtualNetwork_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue(name),
-				check.That(data.ResourceName).Key("location").HasValue(azure.NormalizeLocation(data.Locations.Primary)),
+				check.That(data.ResourceName).Key("location").HasValue(location.Normalize(data.Locations.Primary)),
 				check.That(data.ResourceName).Key("dns_servers.0").HasValue("10.0.0.4"),
 				check.That(data.ResourceName).Key("address_space.0").HasValue("10.0.0.0/16"),
 				check.That(data.ResourceName).Key("subnets.0").HasValue("subnet1"),
@@ -75,8 +75,8 @@ resource "azurerm_virtual_network" "test" {
   dns_servers         = ["10.0.0.4"]
 
   subnet {
-    name           = "subnet1"
-    address_prefix = "10.0.1.0/24"
+    name             = "subnet1"
+    address_prefixes = ["10.0.1.0/24"]
   }
 }
 

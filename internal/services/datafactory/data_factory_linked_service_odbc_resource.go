@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory
@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -15,8 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 func resourceDataFactoryLinkedServiceOdbc() *pluginsdk.Resource {
@@ -123,7 +124,7 @@ func resourceDataFactoryLinkedServiceOdbc() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryLinkedServiceOdbcCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceOdbcCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	subscriptionId := meta.(*clients.Client).DataFactory.LinkedServiceClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -137,20 +138,22 @@ func resourceDataFactoryLinkedServiceOdbcCreateUpdate(d *pluginsdk.ResourceData,
 	id := parse.NewLinkedServiceID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
+			if err != nil {
+				if !response.WasNotFound(existing.Response.Response) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_data_factory_linked_service_odbc", id.ID())
+			if !response.WasNotFound(existing.Response.Response) {
+				return tf.ImportAsExistsError("azurerm_data_factory_linked_service_odbc", id.ID())
+			}
 		}
 	}
 
 	odbcLinkedService := &datafactory.OdbcLinkedService{
-		Description: utils.String(d.Get("description").(string)),
+		Description: pointer.To(d.Get("description").(string)),
 		Type:        datafactory.TypeBasicLinkedServiceTypeOdbc,
 		OdbcLinkedServiceTypeProperties: &datafactory.OdbcLinkedServiceTypeProperties{
 			ConnectionString:   d.Get("connection_string").(string),
@@ -161,20 +164,20 @@ func resourceDataFactoryLinkedServiceOdbcCreateUpdate(d *pluginsdk.ResourceData,
 	// There are multiple authentication paths. If support for those get added, we can easily add them in
 	// a similar format to the below while not messing up the other attributes in OdbcLinkedServiceTypeProperties
 	if v, ok := d.GetOk("basic_authentication"); ok {
-		attrs := v.([]interface{})
+		attrs := v.([]any)
 		if len(attrs) != 0 && attrs[0] != nil {
-			raw := attrs[0].(map[string]interface{})
+			raw := attrs[0].(map[string]any)
 			odbcLinkedService.AuthenticationType = datafactory.AuthenticationTypeBasic
 			odbcLinkedService.UserName = raw["username"].(string)
 			odbcLinkedService.Password = datafactory.SecureString{
-				Value: utils.String(raw["password"].(string)),
+				Value: pointer.To(raw["password"].(string)),
 				Type:  datafactory.TypeSecureString,
 			}
 		}
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		odbcLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]interface{}))
+		odbcLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
@@ -182,12 +185,11 @@ func resourceDataFactoryLinkedServiceOdbcCreateUpdate(d *pluginsdk.ResourceData,
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		odbcLinkedService.AdditionalProperties = v.(map[string]interface{})
+		odbcLinkedService.AdditionalProperties = v.(map[string]any)
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		odbcLinkedService.Annotations = &annotations
+		odbcLinkedService.Annotations = pointer.To(v.([]any))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -203,7 +205,7 @@ func resourceDataFactoryLinkedServiceOdbcCreateUpdate(d *pluginsdk.ResourceData,
 	return resourceDataFactoryLinkedServiceOdbcRead(d, meta)
 }
 
-func resourceDataFactoryLinkedServiceOdbcRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceOdbcRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -217,7 +219,7 @@ func resourceDataFactoryLinkedServiceOdbcRead(d *pluginsdk.ResourceData, meta in
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -236,7 +238,7 @@ func resourceDataFactoryLinkedServiceOdbcRead(d *pluginsdk.ResourceData, meta in
 	props := odbc.OdbcLinkedServiceTypeProperties
 	d.Set("connection_string", props.ConnectionString)
 	if datafactory.AuthenticationType(props.AuthenticationType.(string)) == datafactory.AuthenticationTypeBasic {
-		if err := d.Set("basic_authentication", []interface{}{map[string]interface{}{
+		if err := d.Set("basic_authentication", []any{map[string]any{
 			"username": props.UserName,
 			// `password` isn't returned from the api so we'll set it to `*****` here to be able to check for diffs during plan
 			"password": "*****",
@@ -248,13 +250,11 @@ func resourceDataFactoryLinkedServiceOdbcRead(d *pluginsdk.ResourceData, meta in
 	d.Set("additional_properties", odbc.AdditionalProperties)
 	d.Set("description", odbc.Description)
 
-	annotations := flattenDataFactoryAnnotations(odbc.Annotations)
-	if err := d.Set("annotations", annotations); err != nil {
+	if err := d.Set("annotations", flattenDataFactoryAnnotations(odbc.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
-	parameters := flattenLinkedServiceParameters(odbc.Parameters)
-	if err := d.Set("parameters", parameters); err != nil {
+	if err := d.Set("parameters", flattenLinkedServiceParameters(odbc.Parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 
@@ -267,7 +267,7 @@ func resourceDataFactoryLinkedServiceOdbcRead(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func resourceDataFactoryLinkedServiceOdbcDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceOdbcDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -277,9 +277,9 @@ func resourceDataFactoryLinkedServiceOdbcDelete(d *pluginsdk.ResourceData, meta 
 		return err
 	}
 
-	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
-		if !utils.ResponseWasNotFound(response) {
+		if !response.WasNotFound(resp.Response) {
 			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}

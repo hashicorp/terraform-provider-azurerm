@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice_test
@@ -185,6 +185,9 @@ func TestAccWindowsFunctionApp_authV2Update(t *testing.T) {
 			Config: r.authV2Twitter(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.auth_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.twitter_v2.#").HasValue("1"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.twitter_v2.0.consumer_key").IsNotEmpty(),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -192,6 +195,30 @@ func TestAccWindowsFunctionApp_authV2Update(t *testing.T) {
 			Config: r.authV2Facebook(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.auth_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.twitter_v2.#").HasValue("0"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.facebook_v2.#").HasValue("1"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.facebook_v2.0.app_id").IsNotEmpty(),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.authV2Removed(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.auth_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.twitter_v2.#").HasValue("0"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.facebook_v2.#").HasValue("0"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.authV2Twitter(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.auth_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.twitter_v2.#").HasValue("1"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.twitter_v2.0.consumer_key").IsNotEmpty(),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -258,6 +285,7 @@ resource "azurerm_windows_function_app" "test" {
       client_id                  = data.azurerm_client_config.current.client_id
       client_secret_setting_name = "%[3]s"
       tenant_auth_endpoint       = "https://sts.windows.net/%[5]s/v2.0"
+      allowed_applications       = ["WhoopsMissedThisOne"]
     }
     login {}
   }
@@ -476,6 +504,30 @@ resource "azurerm_windows_function_app" "test" {
   }
 }
 `, r.template(data, planSku), data.RandomInteger, secretSettingName, secretSettingValue)
+}
+
+func (r WindowsFunctionAppResource) authV2Removed(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_windows_function_app" "test" {
+  name                = "acctest-WFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
+}
+`, r.template(data, planSku), data.RandomInteger)
 }
 
 func (r WindowsFunctionAppResource) authV2Github(data acceptance.TestData, planSku string) string {
@@ -890,7 +942,7 @@ resource "azurerm_windows_function_app" "test" {
     load_balancing_mode       = "LeastResponseTime"
     pre_warmed_instance_count = 2
     remote_debugging_enabled  = true
-    remote_debugging_version  = "VS2017"
+    remote_debugging_version  = "VS2022"
 
     scm_ip_restriction {
       ip_address = "10.20.20.20/32"
@@ -918,11 +970,12 @@ resource "azurerm_windows_function_app" "test" {
       }
     }
 
-    use_32_bit_worker  = true
-    websockets_enabled = true
-    ftps_state         = "FtpsOnly"
-    health_check_path  = "/health-check"
-    worker_count       = 3
+    use_32_bit_worker                 = true
+    websockets_enabled                = true
+    ftps_state                        = "FtpsOnly"
+    health_check_path                 = "/health-check"
+    health_check_eviction_time_in_min = 7
+    worker_count                      = 3
 
     minimum_tls_version     = "1.1"
     scm_minimum_tls_version = "1.1"

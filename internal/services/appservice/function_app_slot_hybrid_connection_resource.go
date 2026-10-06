@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -13,9 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/hybridconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/namespaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
@@ -43,7 +42,7 @@ var _ sdk.ResourceWithUpdate = FunctionAppSlotHybridConnectionResource{}
 
 var _ sdk.ResourceWithCustomImporter = FunctionAppSlotHybridConnectionResource{}
 
-func (r FunctionAppSlotHybridConnectionResource) ModelObject() interface{} {
+func (r FunctionAppSlotHybridConnectionResource) ModelObject() any {
 	return &FunctionAppSlotHybridConnectionModel{}
 }
 
@@ -91,7 +90,7 @@ func (r FunctionAppSlotHybridConnectionResource) Arguments() map[string]*plugins
 		"port": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
-			ValidateFunc: azValidate.PortNumberOrZero,
+			ValidateFunc: validation.IsPortNumberOrZero,
 			Description:  "The port to use for the endpoint",
 		},
 
@@ -162,14 +161,16 @@ func (r FunctionAppSlotHybridConnectionResource) Create() sdk.ResourceFunc {
 
 			id := webapps.NewSlotHybridConnectionNamespaceRelayID(appId.SubscriptionId, appId.ResourceGroupName, appId.SiteName, appHybridConn.Name, relayId.NamespaceName, relayId.HybridConnectionName)
 
-			existing, err := client.GetHybridConnectionSlot(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetHybridConnectionSlot(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+					}
 				}
-			}
-			if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
-				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
+					return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				}
 			}
 
 			sendKeyValue, err := helpers.GetSendKeyValue(ctx, metadata, *relayId, appHybridConn.SendKeyName)

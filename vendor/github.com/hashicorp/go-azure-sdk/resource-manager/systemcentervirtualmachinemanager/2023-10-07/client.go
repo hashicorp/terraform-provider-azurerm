@@ -8,27 +8,27 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/availabilitysets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/clouds"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/guestagents"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/inventoryitems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/virtualmachineinstances"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/virtualmachinetemplates"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/virtualnetworks"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/vminstanceguestagents"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/vminstancehybrididentitymetadata"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/vminstancehybrididentitymetadatas"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/vmmservers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 type Client struct {
-	AvailabilitySets                 *availabilitysets.AvailabilitySetsClient
-	Clouds                           *clouds.CloudsClient
-	InventoryItems                   *inventoryitems.InventoryItemsClient
-	VMInstanceGuestAgents            *vminstanceguestagents.VMInstanceGuestAgentsClient
-	VMInstanceHybridIdentityMetadata *vminstancehybrididentitymetadata.VMInstanceHybridIdentityMetadataClient
-	VMmServers                       *vmmservers.VMmServersClient
-	VirtualMachineInstances          *virtualmachineinstances.VirtualMachineInstancesClient
-	VirtualMachineTemplates          *virtualmachinetemplates.VirtualMachineTemplatesClient
-	VirtualNetworks                  *virtualnetworks.VirtualNetworksClient
+	AvailabilitySets                  *availabilitysets.AvailabilitySetsClient
+	Clouds                            *clouds.CloudsClient
+	GuestAgents                       *guestagents.GuestAgentsClient
+	InventoryItems                    *inventoryitems.InventoryItemsClient
+	VMInstanceHybridIdentityMetadatas *vminstancehybrididentitymetadatas.VMInstanceHybridIdentityMetadatasClient
+	VMmServers                        *vmmservers.VMmServersClient
+	VirtualMachineInstances           *virtualmachineinstances.VirtualMachineInstancesClient
+	VirtualMachineTemplates           *virtualmachinetemplates.VirtualMachineTemplatesClient
+	VirtualNetworks                   *virtualnetworks.VirtualNetworksClient
 }
 
 func NewClientWithBaseURI(sdkApi sdkEnv.Api, configureFunc func(c *resourcemanager.Client)) (*Client, error) {
@@ -44,23 +44,23 @@ func NewClientWithBaseURI(sdkApi sdkEnv.Api, configureFunc func(c *resourcemanag
 	}
 	configureFunc(cloudsClient.Client)
 
+	guestAgentsClient, err := guestagents.NewGuestAgentsClientWithBaseURI(sdkApi)
+	if err != nil {
+		return nil, fmt.Errorf("building GuestAgents client: %+v", err)
+	}
+	configureFunc(guestAgentsClient.Client)
+
 	inventoryItemsClient, err := inventoryitems.NewInventoryItemsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building InventoryItems client: %+v", err)
 	}
 	configureFunc(inventoryItemsClient.Client)
 
-	vMInstanceGuestAgentsClient, err := vminstanceguestagents.NewVMInstanceGuestAgentsClientWithBaseURI(sdkApi)
+	vMInstanceHybridIdentityMetadatasClient, err := vminstancehybrididentitymetadatas.NewVMInstanceHybridIdentityMetadatasClientWithBaseURI(sdkApi)
 	if err != nil {
-		return nil, fmt.Errorf("building VMInstanceGuestAgents client: %+v", err)
+		return nil, fmt.Errorf("building VMInstanceHybridIdentityMetadatas client: %+v", err)
 	}
-	configureFunc(vMInstanceGuestAgentsClient.Client)
-
-	vMInstanceHybridIdentityMetadataClient, err := vminstancehybrididentitymetadata.NewVMInstanceHybridIdentityMetadataClientWithBaseURI(sdkApi)
-	if err != nil {
-		return nil, fmt.Errorf("building VMInstanceHybridIdentityMetadata client: %+v", err)
-	}
-	configureFunc(vMInstanceHybridIdentityMetadataClient.Client)
+	configureFunc(vMInstanceHybridIdentityMetadatasClient.Client)
 
 	vMmServersClient, err := vmmservers.NewVMmServersClientWithBaseURI(sdkApi)
 	if err != nil {
@@ -87,14 +87,14 @@ func NewClientWithBaseURI(sdkApi sdkEnv.Api, configureFunc func(c *resourcemanag
 	configureFunc(virtualNetworksClient.Client)
 
 	return &Client{
-		AvailabilitySets:                 availabilitySetsClient,
-		Clouds:                           cloudsClient,
-		InventoryItems:                   inventoryItemsClient,
-		VMInstanceGuestAgents:            vMInstanceGuestAgentsClient,
-		VMInstanceHybridIdentityMetadata: vMInstanceHybridIdentityMetadataClient,
-		VMmServers:                       vMmServersClient,
-		VirtualMachineInstances:          virtualMachineInstancesClient,
-		VirtualMachineTemplates:          virtualMachineTemplatesClient,
-		VirtualNetworks:                  virtualNetworksClient,
+		AvailabilitySets:                  availabilitySetsClient,
+		Clouds:                            cloudsClient,
+		GuestAgents:                       guestAgentsClient,
+		InventoryItems:                    inventoryItemsClient,
+		VMInstanceHybridIdentityMetadatas: vMInstanceHybridIdentityMetadatasClient,
+		VMmServers:                        vMmServersClient,
+		VirtualMachineInstances:           virtualMachineInstancesClient,
+		VirtualMachineTemplates:           virtualMachineTemplatesClient,
+		VirtualNetworks:                   virtualNetworksClient,
 	}, nil
 }

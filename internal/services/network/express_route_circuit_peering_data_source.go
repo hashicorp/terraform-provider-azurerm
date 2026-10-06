@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -7,14 +7,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressroutecircuitpeerings"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func dataSourceExpressRouteCircuitPeering() *pluginsdk.Resource {
@@ -27,13 +28,9 @@ func dataSourceExpressRouteCircuitPeering() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"peering_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(network.ExpressRoutePeeringTypeAzurePrivatePeering),
-					string(network.ExpressRoutePeeringTypeAzurePublicPeering),
-					string(network.ExpressRoutePeeringTypeMicrosoftPeering),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(expressroutecircuitpeerings.PossibleValuesForExpressRoutePeeringType(), false),
 			},
 
 			"express_route_circuit_name": {
@@ -57,6 +54,100 @@ func dataSourceExpressRouteCircuitPeering() *pluginsdk.Resource {
 			"ipv4_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
+			},
+
+			"ipv6": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"microsoft_peering": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"advertised_public_prefixes": {
+										Type:     pluginsdk.TypeList,
+										Computed: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+										},
+									},
+
+									"customer_asn": {
+										Type:     pluginsdk.TypeInt,
+										Computed: true,
+									},
+
+									"routing_registry_name": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+
+									"advertised_communities": {
+										Type:     pluginsdk.TypeList,
+										Computed: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+										},
+									},
+								},
+							},
+						},
+
+						"primary_peer_address_prefix": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"secondary_peer_address_prefix": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
+						"route_filter_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"microsoft_peering_config": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"advertised_public_prefixes": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+						},
+
+						"customer_asn": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
+						},
+
+						"routing_registry_name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"advertised_communities": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+					},
+				},
 			},
 
 			"vlan_id": {
@@ -102,44 +193,53 @@ func dataSourceExpressRouteCircuitPeering() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceExpressRouteCircuitPeeringRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ExpressRoutePeeringsClient
+func dataSourceExpressRouteCircuitPeeringRead(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Network.ExpressRouteCircuitPeerings
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
-	id, err := parse.ExpressRouteCircuitPeeringID(d.Id())
-	if err != nil {
-		return err
-	}
+	id := commonids.NewExpressRouteCircuitPeeringID(subscriptionId, d.Get("resource_group_name").(string), d.Get("express_route_circuit_name").(string), d.Get("peering_type").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, id.PeeringName)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	d.Set("peering_type", id.PeeringName)
-	d.Set("express_route_circuit_name", id.ExpressRouteCircuitName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("express_route_circuit_name", id.CircuitName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.ExpressRouteCircuitPeeringPropertiesFormat; props != nil {
-		d.Set("azure_asn", props.AzureASN)
-		d.Set("peer_asn", props.PeerASN)
-		d.Set("primary_azure_port", props.PrimaryAzurePort)
-		d.Set("secondary_azure_port", props.SecondaryAzurePort)
-		d.Set("primary_peer_address_prefix", props.PrimaryPeerAddressPrefix)
-		d.Set("secondary_peer_address_prefix", props.SecondaryPeerAddressPrefix)
-		d.Set("vlan_id", props.VlanID)
-		d.Set("gateway_manager_etag", props.GatewayManagerEtag)
-		d.Set("ipv4_enabled", props.State == network.ExpressRoutePeeringStateEnabled)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("azure_asn", props.AzureASN)
+			d.Set("peer_asn", props.PeerASN)
+			d.Set("primary_azure_port", props.PrimaryAzurePort)
+			d.Set("secondary_azure_port", props.SecondaryAzurePort)
+			d.Set("primary_peer_address_prefix", props.PrimaryPeerAddressPrefix)
+			d.Set("secondary_peer_address_prefix", props.SecondaryPeerAddressPrefix)
+			d.Set("vlan_id", props.VlanId)
+			d.Set("gateway_manager_etag", props.GatewayManagerEtag)
+			d.Set("ipv4_enabled", pointer.From(props.State) == expressroutecircuitpeerings.ExpressRoutePeeringStateEnabled)
 
-		routeFilterId := ""
-		if props.RouteFilter != nil && props.RouteFilter.ID != nil {
-			routeFilterId = *props.RouteFilter.ID
+			routeFilterId := ""
+			if props.RouteFilter != nil && props.RouteFilter.Id != nil {
+				routeFilterId = *props.RouteFilter.Id
+			}
+			d.Set("route_filter_id", routeFilterId)
+
+			if err := d.Set("microsoft_peering_config", flattenExpressRouteCircuitPeeringMicrosoftConfig(props.MicrosoftPeeringConfig)); err != nil {
+				return fmt.Errorf("setting `microsoft_peering_config`: %+v", err)
+			}
+			if err := d.Set("ipv6", flattenExpressRouteCircuitIpv6PeeringConfig(props.IPv6PeeringConfig)); err != nil {
+				return fmt.Errorf("setting `ipv6`: %+v", err)
+			}
 		}
-		d.Set("route_filter_id", routeFilterId)
 	}
 
 	return nil

@@ -50,7 +50,6 @@ func (c UpdateSummariesClient) Put(ctx context.Context, id ClusterId, input Upda
 
 	var model UpdateSummaries
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

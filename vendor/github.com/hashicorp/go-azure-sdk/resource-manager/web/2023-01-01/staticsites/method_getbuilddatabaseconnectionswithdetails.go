@@ -23,6 +23,18 @@ type GetBuildDatabaseConnectionsWithDetailsCompleteResult struct {
 	Items              []DatabaseConnection
 }
 
+type GetBuildDatabaseConnectionsWithDetailsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *GetBuildDatabaseConnectionsWithDetailsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // GetBuildDatabaseConnectionsWithDetails ...
 func (c StaticSitesClient) GetBuildDatabaseConnectionsWithDetails(ctx context.Context, id BuildId) (result GetBuildDatabaseConnectionsWithDetailsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c StaticSitesClient) GetBuildDatabaseConnectionsWithDetails(ctx context.Co
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &GetBuildDatabaseConnectionsWithDetailsCustomPager{},
 		Path:       fmt.Sprintf("%s/showDatabaseConnections", id.ID()),
 	}
 
@@ -72,6 +85,7 @@ func (c StaticSitesClient) GetBuildDatabaseConnectionsWithDetailsCompleteMatchin
 
 	resp, err := c.GetBuildDatabaseConnectionsWithDetails(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

@@ -1,14 +1,14 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package firewall
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/firewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/firewallpolicies"
 )
 
-func flattenNetworkSubResourceID(input *[]firewallpolicies.SubResource) []interface{} {
-	results := make([]interface{}, 0)
+func flattenNetworkSubResourceID(input *[]firewallpolicies.SubResource) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}

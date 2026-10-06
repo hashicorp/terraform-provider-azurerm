@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package vmware
@@ -14,11 +14,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/privateclouds"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceVmwareCluster() *pluginsdk.Resource {
@@ -71,6 +71,8 @@ func resourceVmwareCluster() *pluginsdk.Resource {
 					"av36t",
 					"av36p",
 					"av36pt",
+					"av48",
+					"av48t",
 					"av52",
 					"av52t",
 					"av64",
@@ -93,7 +95,7 @@ func resourceVmwareCluster() *pluginsdk.Resource {
 	}
 }
 
-func resourceVmwareClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVmwareClusterCreate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Vmware.ClusterClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -106,14 +108,17 @@ func resourceVmwareClusterCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	id := clusters.NewClusterID(subscriptionId, privateCloudId.ResourceGroupName, privateCloudId.PrivateCloudName, name)
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_vmware_cluster", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_vmware_cluster", id.ID())
+		}
 	}
 
 	cluster := clusters.Cluster{
@@ -125,7 +130,7 @@ func resourceVmwareClusterCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		},
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, cluster); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, cluster, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -133,7 +138,7 @@ func resourceVmwareClusterCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceVmwareClusterRead(d, meta)
 }
 
-func resourceVmwareClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVmwareClusterRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Vmware.ClusterClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -159,14 +164,14 @@ func resourceVmwareClusterRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	if model := resp.Model; model != nil {
 		d.Set("cluster_node_count", model.Properties.ClusterSize)
 		d.Set("cluster_number", model.Properties.ClusterId)
-		d.Set("hosts", utils.FlattenStringSlice(model.Properties.Hosts))
+		d.Set("hosts", pluginsdk.FlattenSlice(model.Properties.Hosts))
 		d.Set("sku_name", model.Sku.Name)
 	}
 
 	return nil
 }
 
-func resourceVmwareClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVmwareClusterUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Vmware.ClusterClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -180,7 +185,7 @@ func resourceVmwareClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		Properties: &clusters.ClusterUpdateProperties{},
 	}
 	if d.HasChange("cluster_node_count") {
-		clusterUpdate.Properties.ClusterSize = utils.Int64(int64(d.Get("cluster_node_count").(int)))
+		clusterUpdate.Properties.ClusterSize = pointer.To(int64(d.Get("cluster_node_count").(int)))
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, clusterUpdate); err != nil {
@@ -189,7 +194,7 @@ func resourceVmwareClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceVmwareClusterRead(d, meta)
 }
 
-func resourceVmwareClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVmwareClusterDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Vmware.ClusterClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

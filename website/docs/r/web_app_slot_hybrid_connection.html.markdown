@@ -76,7 +76,7 @@ The following arguments are supported:
 
 * `name` - (Required) The Name of the Web App Deployment Slot for this Hybrid Connection. Changing this forces a new resource to be created.
 
-* `function_app_id` - (Required) The ID of the Web App for this Hybrid Connection. Changing this forces a new resource to be created.
+* `web_app_id` - (Required) The ID of the Web App for this Hybrid Connection. Changing this forces a new resource to be created.
 
 * `relay_id` - (Required) The ID of the Relay Hybrid Connection to use. Changing this forces a new resource to be created.
 
@@ -106,11 +106,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Web App Hybrid Connection.
-* `update` - (Defaults to 30 minutes) Used when updating the Web App Hybrid Connection.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Web App Hybrid Connection.
+* `update` - (Defaults to 30 minutes) Used when updating the Web App Hybrid Connection.
 * `delete` - (Defaults to 5 minutes) Used when deleting the Web App Hybrid Connection.
 
 ## Import
@@ -120,3 +120,11 @@ Web App Slot Hybrid Connections can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_web_app_slot_hybrid_connection.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Web/sites/site1/slots/slot1/hybridConnectionNamespaces/relay1/relays/hybridConnection1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Relay` - 2021-11-01
+
+* `Microsoft.Web` - 2023-12-01

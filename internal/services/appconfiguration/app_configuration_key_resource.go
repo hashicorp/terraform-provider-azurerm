@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appconfiguration
@@ -6,13 +6,17 @@ package appconfiguration
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/migration"
@@ -20,9 +24,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/appconfiguration/1.0/appconfiguration"
+	"github.com/jackofallops/kermit/sdk/appconfiguration/1.0/appconfiguration"
 )
 
 type KeyResource struct{}
@@ -38,16 +42,16 @@ const (
 )
 
 type KeyResourceModel struct {
-	ConfigurationStoreId string                 `tfschema:"configuration_store_id"`
-	Key                  string                 `tfschema:"key"`
-	ContentType          string                 `tfschema:"content_type"`
-	Etag                 string                 `tfschema:"etag"`
-	Label                string                 `tfschema:"label"`
-	Value                string                 `tfschema:"value"`
-	Locked               bool                   `tfschema:"locked"`
-	Tags                 map[string]interface{} `tfschema:"tags"`
-	Type                 string                 `tfschema:"type"`
-	VaultKeyReference    string                 `tfschema:"vault_key_reference"`
+	ConfigurationStoreId string         `tfschema:"configuration_store_id"`
+	Key                  string         `tfschema:"key"`
+	ContentType          string         `tfschema:"content_type"`
+	Etag                 string         `tfschema:"etag"`
+	Label                string         `tfschema:"label"`
+	Value                string         `tfschema:"value"`
+	Locked               bool           `tfschema:"locked"`
+	Tags                 map[string]any `tfschema:"tags"`
+	Type                 string         `tfschema:"type"`
+	VaultKeyReference    string         `tfschema:"vault_key_reference"`
 }
 
 type VaultKeyReference struct {
@@ -57,10 +61,13 @@ type VaultKeyReference struct {
 func (k KeyResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"configuration_store_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: configurationstores.ValidateConfigurationStoreID,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			// User-specified segments are lowercased in the API response
+			// tracked in https://github.com/Azure/azure-rest-api-specs/issues/24337
+			DiffSuppressFunc: suppress.CaseDifference,
+			ValidateFunc:     configurationstores.ValidateConfigurationStoreID,
 		},
 		"key": {
 			Type:         pluginsdk.TypeString,
@@ -71,11 +78,13 @@ func (k KeyResource) Arguments() map[string]*pluginsdk.Schema {
 		"content_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			// NOTE: O+C We set some values in this field depending on the `type` so this needs to remain Computed
 			Computed: true,
 		},
 		"etag": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
+			// NOTE: O+C The value of this is updated anytime the resource changes
 			Optional: true,
 		},
 		"label": {
@@ -113,7 +122,7 @@ func (k KeyResource) Arguments() map[string]*pluginsdk.Schema {
 				"value",
 			},
 		},
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -121,7 +130,7 @@ func (k KeyResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (k KeyResource) ModelObject() interface{} {
+func (k KeyResource) ModelObject() any {
 	return &KeyResourceModel{}
 }
 
@@ -159,12 +168,11 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 
 			deadline, ok := ctx.Deadline()
 			if !ok {
-				return fmt.Errorf("internal-error: context had no deadline")
+				return errors.New("internal-error: context had no deadline")
 			}
 
-			// from https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-enable-rbac#azure-built-in-roles-for-azure-app-configuration
+			// from https://learn.microsoft.com/azure/azure-app-configuration/concept-enable-rbac#azure-built-in-roles-for-azure-app-configuration
 			// allow some time for role permission to be propagated
-			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Key %q read permission to be propagated", model.Key)
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending:                   []string{"Forbidden"},
 				Target:                    []string{"Error", "Exists", "NotFound"},
@@ -178,36 +186,38 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("waiting for App Configuration Key %q read permission to be propagated: %+v", model.Key, err)
 			}
 
-			kv, err := client.GetKeyValue(ctx, model.Key, model.Label, "", "", "", []appconfiguration.KeyValueFields{})
-			if err != nil {
-				if v, ok := err.(autorest.DetailedError); ok {
-					if !utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
-						return fmt.Errorf("checking for presence of existing %s: %+v", nestedItemId, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				kv, err := client.GetKeyValue(ctx, model.Key, model.Label, "", "", "", []appconfiguration.KeyValueFields{})
+				if err != nil {
+					if v, ok := err.(autorest.DetailedError); ok {
+						if !response.WasNotFound(v.Response) {
+							return fmt.Errorf("checking for presence of existing %s: %+v", nestedItemId, err)
+						}
+					} else {
+						return fmt.Errorf("while checking for key's %q existence: %+v", model.Key, err)
 					}
-				} else {
-					return fmt.Errorf("while checking for key's %q existence: %+v", model.Key, err)
+				} else if kv.StatusCode == 200 {
+					return tf.ImportAsExistsError(k.ResourceType(), nestedItemId.ID())
 				}
-			} else if kv.Response.StatusCode == 200 {
-				return tf.ImportAsExistsError(k.ResourceType(), nestedItemId.ID())
 			}
 
 			entity := appconfiguration.KeyValue{
-				Key:   utils.String(model.Key),
-				Label: utils.String(model.Label),
+				Key:   pointer.To(model.Key),
+				Label: pointer.To(model.Label),
 				Tags:  tags.Expand(model.Tags),
 			}
 
 			switch model.Type {
 			case KeyTypeKV:
-				entity.ContentType = utils.String(model.ContentType)
-				entity.Value = utils.String(model.Value)
+				entity.ContentType = pointer.To(model.ContentType)
+				entity.Value = pointer.To(model.Value)
 			case KeyTypeVault:
-				entity.ContentType = utils.String(VaultKeyContentType)
+				entity.ContentType = pointer.To(VaultKeyContentType)
 				ref, err := json.Marshal(VaultKeyReference{URI: model.VaultKeyReference})
 				if err != nil {
 					return fmt.Errorf("while encoding vault key reference: %+v", err)
 				}
-				entity.Value = utils.String(string(ref))
+				entity.Value = pointer.To(string(ref))
 			}
 
 			if _, err = client.PutKeyValue(ctx, model.Key, model.Label, &entity, "", ""); err != nil {
@@ -215,20 +225,18 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.Locked {
-				_, err = client.PutLock(ctx, model.Key, model.Label, "", "")
-				if err != nil {
+				if _, err = client.PutLock(ctx, model.Key, model.Label, "", ""); err != nil {
 					return fmt.Errorf("while locking key/label pair %q/%q: %+v", model.Key, model.Label, err)
 				}
 			}
 
 			// https://github.com/Azure/AppConfiguration/issues/763
-			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Key %q to be provisioned", model.Key)
 			stateConf = &pluginsdk.StateChangeConf{
 				Pending:                   []string{"NotFound", "Forbidden"},
 				Target:                    []string{"Exists"},
 				Refresh:                   appConfigurationGetKeyRefreshFunc(ctx, client, model.Key, model.Label),
-				PollInterval:              10 * time.Second,
-				ContinuousTargetOccurence: 2,
+				PollInterval:              5 * time.Second,
+				ContinuousTargetOccurence: 4,
 				Timeout:                   time.Until(deadline),
 			}
 
@@ -289,7 +297,7 @@ func (k KeyResource) Read() sdk.ResourceFunc {
 			kv, err := client.GetKeyValue(ctx, nestedItemId.Key, nestedItemId.Label, "", "", "", []appconfiguration.KeyValueFields{})
 			if err != nil {
 				if v, ok := err.(autorest.DetailedError); ok {
-					if utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
+					if response.WasNotFound(v.Response) {
 						return metadata.MarkAsGone(nestedItemId)
 					}
 				} else {
@@ -300,28 +308,27 @@ func (k KeyResource) Read() sdk.ResourceFunc {
 
 			model := KeyResourceModel{
 				ConfigurationStoreId: configurationStoreId.ID(),
-				Key:                  utils.NormalizeNilableString(kv.Key),
-				ContentType:          utils.NormalizeNilableString(kv.ContentType),
-				Etag:                 utils.NormalizeNilableString(kv.Etag),
-				Label:                utils.NormalizeNilableString(kv.Label),
+				Key:                  pointer.From(kv.Key),
+				ContentType:          pointer.From(kv.ContentType),
+				Etag:                 pointer.From(kv.Etag),
+				Label:                pointer.From(kv.Label),
 				Tags:                 tags.Flatten(kv.Tags),
 			}
 
-			if utils.NormalizeNilableString(kv.ContentType) != VaultKeyContentType {
+			if pointer.From(kv.ContentType) != VaultKeyContentType {
 				model.Type = KeyTypeKV
-				model.Value = utils.NormalizeNilableString(kv.Value)
+				model.Value = pointer.From(kv.Value)
 			} else {
 				var ref VaultKeyReference
-				refBytes := []byte(utils.NormalizeNilableString(kv.Value))
-				err := json.Unmarshal(refBytes, &ref)
-				if err != nil {
+				refBytes := []byte(pointer.From(kv.Value))
+				if err := json.Unmarshal(refBytes, &ref); err != nil {
 					return fmt.Errorf("while unmarshalling vault reference: %+v", err)
 				}
 
 				model.Type = KeyTypeVault
 				model.VaultKeyReference = ref.URI
 				model.ContentType = VaultKeyContentType
-				model.Value = utils.NormalizeNilableString(kv.Value)
+				model.Value = pointer.From(kv.Value)
 			}
 
 			if kv.Locked != nil {
@@ -358,24 +365,25 @@ func (k KeyResource) Update() sdk.ResourceFunc {
 
 			metadata.Client.AppConfiguration.AddToCache(*configurationStoreId, nestedItemId.ConfigurationStoreEndpoint)
 
-			if metadata.ResourceData.HasChange("value") || metadata.ResourceData.HasChange("content_type") || metadata.ResourceData.HasChange("tags") || metadata.ResourceData.HasChange("type") || metadata.ResourceData.HasChange("vault_key_reference") {
+			// lintignore:R019 // deliberate subset: only the fields feeding the KeyValue update entity
+			if metadata.ResourceData.HasChanges("value", "content_type", "tags", "type", "vault_key_reference") {
 				entity := appconfiguration.KeyValue{
-					Key:   utils.String(model.Key),
-					Label: utils.String(model.Label),
+					Key:   pointer.To(model.Key),
+					Label: pointer.To(model.Label),
 					Tags:  tags.Expand(model.Tags),
 				}
 
 				switch model.Type {
 				case KeyTypeKV:
-					entity.ContentType = utils.String(model.ContentType)
-					entity.Value = utils.String(model.Value)
+					entity.ContentType = pointer.To(model.ContentType)
+					entity.Value = pointer.To(model.Value)
 				case KeyTypeVault:
-					entity.ContentType = utils.String(VaultKeyContentType)
+					entity.ContentType = pointer.To(VaultKeyContentType)
 					ref, err := json.Marshal(VaultKeyReference{URI: model.VaultKeyReference})
 					if err != nil {
 						return fmt.Errorf("while encoding vault key reference: %+v", err)
 					}
-					entity.Value = utils.String(string(ref))
+					entity.Value = pointer.To(string(ref))
 				}
 				if _, err = client.PutKeyValue(ctx, model.Key, model.Label, &entity, "", ""); err != nil {
 					return fmt.Errorf("while updating key/label pair %s/%s: %+v", model.Key, model.Label, err)

@@ -15,7 +15,7 @@ type CacheClient struct {
 }
 
 func NewCacheClientWithBaseURI(sdkApi sdkEnv.Api) (*CacheClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "cache", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "cache", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating CacheClient: %+v", err)
 	}

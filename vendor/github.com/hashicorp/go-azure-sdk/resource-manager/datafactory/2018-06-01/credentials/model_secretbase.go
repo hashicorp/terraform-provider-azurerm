@@ -10,18 +10,39 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type SecretBase interface {
+	SecretBase() BaseSecretBaseImpl
 }
 
-// RawSecretBaseImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+var _ SecretBase = BaseSecretBaseImpl{}
+
+type BaseSecretBaseImpl struct {
+	Type string `json:"type"`
+}
+
+func (s BaseSecretBaseImpl) SecretBase() BaseSecretBaseImpl {
+	return s
+}
+
+var _ SecretBase = RawSecretBaseImpl{}
+
+// RawSecretBaseImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawSecretBaseImpl struct {
-	Type   string
-	Values map[string]interface{}
+	secretBase BaseSecretBaseImpl
+	Type       string
+	Values     map[string]interface{}
 }
 
-func unmarshalSecretBaseImplementation(input []byte) (SecretBase, error) {
+func (s RawSecretBaseImpl) SecretBase() BaseSecretBaseImpl {
+	return s.secretBase
+}
+
+func (s RawSecretBaseImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
+}
+
+func UnmarshalSecretBaseImplementation(input []byte) (SecretBase, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +52,9 @@ func unmarshalSecretBaseImplementation(input []byte) (SecretBase, error) {
 		return nil, fmt.Errorf("unmarshaling SecretBase into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["type"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["type"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "AzureKeyVaultSecret") {
@@ -52,10 +73,15 @@ func unmarshalSecretBaseImplementation(input []byte) (SecretBase, error) {
 		return out, nil
 	}
 
-	out := RawSecretBaseImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseSecretBaseImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseSecretBaseImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawSecretBaseImpl{
+		secretBase: parent,
+		Type:       value,
+		Values:     temp,
+	}, nil
 
 }

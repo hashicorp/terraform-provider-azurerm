@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package suppress
 
 import (
@@ -9,6 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+// ListOrder is a DiffSuppressFunc intended to temporarily avoid breaking changes when moving from TypeSet to TypeList for lists that are not ordered but TF would otherwise detect as a change.
+// It should not be used in any other case and should be removed from any schema it is present in at a Major version as a breaking change notification.
 func ListOrder(key, old, new string, d *schema.ResourceData) bool {
 	// Taken from https://github.com/hashicorp/terraform-plugin-sdk/issues/477#issuecomment-1238807249
 	// For a list, the key is path to the element, rather than the list.
@@ -23,14 +28,14 @@ func ListOrder(key, old, new string, d *schema.ResourceData) bool {
 		return false
 	}
 
-	sOld := make([]string, len(oldData.([]interface{})))
-	sNew := make([]string, len(newData.([]interface{})))
+	sOld := make([]string, len(oldData.([]any)))
+	sNew := make([]string, len(newData.([]any)))
 
-	for i, v := range oldData.([]interface{}) {
+	for i, v := range oldData.([]any) {
 		sOld[i] = fmt.Sprint(v)
 	}
 
-	for i, v := range newData.([]interface{}) {
+	for i, v := range newData.([]any) {
 		sNew[i] = fmt.Sprint(v)
 	}
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package databasemigration_test
@@ -37,5 +37,5 @@ data "azurerm_database_migration_project" "test" {
   service_name        = azurerm_database_migration_project.test.service_name
   resource_group_name = azurerm_database_migration_project.test.resource_group_name
 }
-`, DatabaseMigrationProjectResource{}.basic(data))
+`, DatabaseMigrationProjectResource{}.basic(data, "SQL", "SQLDB"))
 }

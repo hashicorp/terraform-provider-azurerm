@@ -3,14 +3,14 @@ package vmmservers
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type VMMServerOperationPredicate struct {
+type VMmServerOperationPredicate struct {
 	Id       *string
 	Location *string
 	Name     *string
 	Type     *string
 }
 
-func (p VMMServerOperationPredicate) Matches(input VMMServer) bool {
+func (p VMmServerOperationPredicate) Matches(input VMmServer) bool {
 
 	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
 		return false

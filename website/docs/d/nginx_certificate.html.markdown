@@ -43,8 +43,24 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `key_vault_secret_id` - The ID of the Key Vault Secret for the certificate.
 
+* `sha1_thumbprint` - The SHA-1 thumbprint of the certificate.
+
+* `key_vault_secret_version` - The version of the certificate.
+
+* `key_vault_secret_creation_date` - The date/time the certificate was created in Azure Key Vault.
+
+* `error_code` - The error code of the certificate error, if any.
+
+* `error_message` - The error message of the certificate error, if any.
+
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the NGINX Certificate.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Nginx.NginxPlus` - 2024-11-01-preview

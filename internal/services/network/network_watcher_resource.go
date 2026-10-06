@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkwatchers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkwatchers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -21,9 +21,9 @@ import (
 
 func resourceNetworkWatcher() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceNetworkWatcherCreateUpdate,
+		Create: resourceNetworkWatcherCreate,
 		Read:   resourceNetworkWatcherRead,
-		Update: resourceNetworkWatcherCreateUpdate,
+		Update: resourceNetworkWatcherUpdate,
 		Delete: resourceNetworkWatcherDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := networkwatchers.ParseNetworkWatcherID(id)
@@ -53,14 +53,15 @@ func resourceNetworkWatcher() *pluginsdk.Resource {
 	}
 }
 
-func resourceNetworkWatcherCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkWatcherCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkWatchers
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := networkwatchers.NewNetworkWatcherID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -75,11 +76,11 @@ func resourceNetworkWatcherCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	watcher := networkwatchers.NetworkWatcher{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, watcher); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -87,7 +88,39 @@ func resourceNetworkWatcherCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	return resourceNetworkWatcherRead(d, meta)
 }
 
-func resourceNetworkWatcherRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkWatcherUpdate(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Network.NetworkWatchers
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := networkwatchers.ParseNetworkWatcherID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+
+	payload := existing.Model
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	return resourceNetworkWatcherRead(d, meta)
+}
+
+func resourceNetworkWatcherRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkWatchers
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -121,7 +154,7 @@ func resourceNetworkWatcherRead(d *pluginsdk.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceNetworkWatcherDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkWatcherDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkWatchers
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

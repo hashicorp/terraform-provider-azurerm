@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql
@@ -8,11 +8,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/serverdnsaliases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type ServerDNSAliasModel struct {
@@ -31,7 +34,7 @@ func (m ServerDNSAliasResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ServerID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseSqlServerIDInsensitively),
 		},
 
 		"name": {
@@ -52,7 +55,7 @@ func (m ServerDNSAliasResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (m ServerDNSAliasResource) ModelObject() interface{} {
+func (m ServerDNSAliasResource) ModelObject() any {
 	return &ServerDNSAliasModel{}
 }
 
@@ -71,29 +74,30 @@ func (m ServerDNSAliasResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			serverID, err := parse.ServerID(alias.MsSQLServerId)
+			// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
+			// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
+			serverID, err := commonids.ParseSqlServerIDInsensitively(alias.MsSQLServerId)
 			if err != nil {
 				return err
 			}
 
-			id := parse.NewServerDNSAliasID(serverID.SubscriptionId, serverID.ResourceGroup, serverID.Name, alias.Name)
-			existing, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.DnsAliaseName)
-			if !utils.ResponseWasNotFound(existing.Response) {
-				if err != nil {
-					return fmt.Errorf("retreiving %s: %v", id, err)
+			id := serverdnsaliases.NewDnsAliasID(serverID.SubscriptionId, serverID.ResourceGroupName, serverID.ServerName, alias.Name)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					if err != nil {
+						return fmt.Errorf("retrieving %s: %v", id, err)
+					}
+					return metadata.ResourceRequiresImport(m.ResourceType(), id)
 				}
-				return metadata.ResourceRequiresImport(m.ResourceType(), id)
 			}
 
-			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.DnsAliaseName)
-			if err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
 			}
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for creation of %s: %v", id, err)
-			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}
@@ -103,24 +107,26 @@ func (m ServerDNSAliasResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := parse.ServerDNSAliasID(metadata.ResourceData.Id())
+			id, err := serverdnsaliases.ParseDnsAliasID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 			client := metadata.Client.MSSQL.ServerDNSAliasClient
-			alias, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.DnsAliaseName)
+			alias, err := client.Get(ctx, *id)
 			if err != nil {
-				if utils.ResponseWasNotFound(alias.Response) {
+				if response.WasNotFound(alias.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return err
 			}
 			state := ServerDNSAliasModel{
-				Name:          id.DnsAliaseName,
-				MsSQLServerId: parse.NewServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName).ID(),
+				Name:          id.DnsAliasName,
+				MsSQLServerId: commonids.NewSqlServerID(id.SubscriptionId, id.ResourceGroupName, id.ServerName).ID(),
 			}
-			if prop := alias.ServerDNSAliasProperties; prop != nil {
-				state.DNSRecord = utils.NormalizeNilableString(prop.AzureDNSRecord)
+			if alias.Model != nil {
+				if prop := alias.Model.Properties; prop != nil {
+					state.DNSRecord = pointer.From(prop.AzureDnsRecord)
+				}
 			}
 			return metadata.Encode(&state)
 		},
@@ -131,25 +137,19 @@ func (m ServerDNSAliasResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := parse.ServerDNSAliasID(metadata.ResourceData.Id())
+			id, err := serverdnsaliases.ParseDnsAliasID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
-			metadata.Logger.Infof("deleting %s", id)
 			client := metadata.Client.MSSQL.ServerDNSAliasClient
-			future, err := client.Delete(ctx, id.ResourceGroup, id.ServerName, id.DnsAliaseName)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", id, err)
 			}
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for deletion of %q: %+v", id, err)
-			}
-
 			return nil
 		},
 	}
 }
 
 func (m ServerDNSAliasResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ServerDNSAliasID
+	return serverdnsaliases.ValidateDnsAliasID
 }

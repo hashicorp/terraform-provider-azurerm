@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package servicenetworking
@@ -14,10 +14,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2023-05-01-preview/trafficcontrollerinterface"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2025-01-01/trafficcontrollerinterface"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -47,7 +46,7 @@ func (t ApplicationLoadBalancerResource) Arguments() map[string]*schema.Schema {
 
 		"location": commonschema.Location(),
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -60,7 +59,7 @@ func (t ApplicationLoadBalancerResource) Attributes() map[string]*schema.Schema 
 	}
 }
 
-func (t ApplicationLoadBalancerResource) ModelObject() interface{} {
+func (t ApplicationLoadBalancerResource) ModelObject() any {
 	return &ApplicationLoadBalancerModel{}
 }
 
@@ -85,15 +84,18 @@ func (t ApplicationLoadBalancerResource) Create() sdk.ResourceFunc {
 			}
 
 			id := trafficcontrollerinterface.NewTrafficControllerID(subscriptionId, config.ResourceGroupName, config.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(t.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(t.ResourceType(), id)
+				}
 			}
 
 			payload := trafficcontrollerinterface.TrafficController{
@@ -101,11 +103,11 @@ func (t ApplicationLoadBalancerResource) Create() sdk.ResourceFunc {
 				Tags:     pointer.To(config.Tags),
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}
@@ -202,7 +204,7 @@ func (t ApplicationLoadBalancerResource) Delete() sdk.ResourceFunc {
 				Delay:   5 * time.Minute,
 				Pending: []string{"409"},
 				Target:  []string{"200", "202"},
-				Refresh: func() (result interface{}, state string, err error) {
+				Refresh: func() (result any, state string, err error) {
 					resp, err := client.Delete(ctx, *id)
 					if err != nil {
 						if resp.HttpResponse.StatusCode == http.StatusConflict {

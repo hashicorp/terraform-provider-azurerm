@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -6,32 +6,36 @@ package network
 import (
 	"context"
 	"fmt"
-	"log"
+	"math"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressroutecircuits"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/localnetworkgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworkgatewayconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworkgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVirtualNetworkGatewayConnectionCreateUpdate,
+		Create: resourceVirtualNetworkGatewayConnectionCreate,
 		Read:   resourceVirtualNetworkGatewayConnectionRead,
-		Update: resourceVirtualNetworkGatewayConnectionCreateUpdate,
+		Update: resourceVirtualNetworkGatewayConnectionUpdate,
 		Delete: resourceVirtualNetworkGatewayConnectionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.NetworkGatewayConnectionID(id)
+			_, err := virtualnetworkgatewayconnections.ParseConnectionID(id)
 			return err
 		}),
 
@@ -59,9 +63,9 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.VirtualNetworkGatewayConnectionTypeExpressRoute),
-					string(network.VirtualNetworkGatewayConnectionTypeIPsec),
-					string(network.VirtualNetworkGatewayConnectionTypeVnet2Vnet),
+					string(virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionTypeExpressRoute),
+					string(virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionTypeIPsec),
+					string(virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionTypeVnetTwoVnet),
 				}, false),
 			},
 
@@ -69,7 +73,15 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.VirtualNetworkGatewayID,
+				ValidateFunc: virtualnetworkgateways.ValidateVirtualNetworkGatewayID,
+			},
+
+			"shared_key": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// NOTE: O+C the API generates a key for the user if not supplied
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"authorization_key": {
@@ -89,7 +101,7 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ExpressRouteCircuitID,
+				ValidateFunc: expressroutecircuits.ValidateExpressRouteCircuitID,
 			},
 
 			"egress_nat_rule_ids": {
@@ -97,7 +109,7 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 				Optional: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					ValidateFunc: validate.VirtualNetworkGatewayNatRuleID,
+					ValidateFunc: networkgateways.ValidateVirtualNetworkGatewayNatRuleID,
 				},
 			},
 
@@ -106,7 +118,7 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 				Optional: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					ValidateFunc: validate.VirtualNetworkGatewayNatRuleID,
+					ValidateFunc: networkgateways.ValidateVirtualNetworkGatewayNatRuleID,
 				},
 			},
 
@@ -114,7 +126,7 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.VirtualNetworkGatewayID,
+				ValidateFunc: virtualnetworkgateways.ValidateVirtualNetworkGatewayID,
 			},
 
 			"local_azure_ip_address_enabled": {
@@ -126,39 +138,32 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 			"local_network_gateway_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.LocalNetworkGatewayID,
+				ValidateFunc: localnetworkgateways.ValidateLocalNetworkGatewayID,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_bgp": {
+			"bgp_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Default:  false,
 			},
 
 			"use_policy_based_traffic_selectors": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"routing_weight": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.IntBetween(0, 32000),
-			},
-
-			"shared_key": {
-				Type:      pluginsdk.TypeString,
-				Optional:  true,
-				Sensitive: true,
 			},
 
 			"express_route_gateway_bypass": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"private_link_fast_path_enabled": {
@@ -168,26 +173,19 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 			},
 
 			"connection_protocol": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(network.VirtualNetworkGatewayConnectionProtocolIKEv1),
-					string(network.VirtualNetworkGatewayConnectionProtocolIKEv2),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(virtualnetworkgatewayconnections.PossibleValuesForVirtualNetworkGatewayConnectionProtocol(), false),
 			},
 
 			"connection_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(network.VirtualNetworkGatewayConnectionModeInitiatorOnly),
-					string(network.VirtualNetworkGatewayConnectionModeResponderOnly),
-					string(network.VirtualNetworkGatewayConnectionModeDefault),
-				}, false),
-				Default: string(network.VirtualNetworkGatewayConnectionModeDefault),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(virtualnetworkgatewayconnections.PossibleValuesForVirtualNetworkGatewayConnectionMode(), false),
+				Default:      string(virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionModeDefault),
 			},
 
 			"traffic_selector_policy": {
@@ -240,154 +238,104 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"dh_group": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(network.DhGroupDHGroup1),
-								string(network.DhGroupDHGroup14),
-								string(network.DhGroupDHGroup2),
-								string(network.DhGroupDHGroup2048),
-								string(network.DhGroupDHGroup24),
-								string(network.DhGroupECP256),
-								string(network.DhGroupECP384),
-								string(network.DhGroupNone),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(virtualnetworkgatewayconnections.PossibleValuesForDhGroup(), false),
 						},
 
 						"ike_encryption": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(network.IkeEncryptionAES128),
-								string(network.IkeEncryptionAES192),
-								string(network.IkeEncryptionAES256),
-								string(network.IkeEncryptionDES),
-								string(network.IkeEncryptionDES3),
-								string(network.IkeEncryptionGCMAES128),
-								string(network.IkeEncryptionGCMAES256),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(virtualnetworkgatewayconnections.PossibleValuesForIkeEncryption(), false),
 						},
 
 						"ike_integrity": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(network.IkeIntegrityGCMAES128),
-								string(network.IkeIntegrityGCMAES256),
-								string(network.IkeIntegrityMD5),
-								string(network.IkeIntegritySHA1),
-								string(network.IkeIntegritySHA256),
-								string(network.IkeIntegritySHA384),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(virtualnetworkgatewayconnections.PossibleValuesForIkeIntegrity(), false),
 						},
 
 						"ipsec_encryption": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(network.IpsecEncryptionAES128),
-								string(network.IpsecEncryptionAES192),
-								string(network.IpsecEncryptionAES256),
-								string(network.IpsecEncryptionDES),
-								string(network.IpsecEncryptionDES3),
-								string(network.IpsecEncryptionGCMAES128),
-								string(network.IpsecEncryptionGCMAES192),
-								string(network.IpsecEncryptionGCMAES256),
-								string(network.IpsecEncryptionNone),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(virtualnetworkgatewayconnections.PossibleValuesForIPsecEncryption(), false),
 						},
 
 						"ipsec_integrity": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(network.IpsecIntegrityGCMAES128),
-								string(network.IpsecIntegrityGCMAES192),
-								string(network.IpsecIntegrityGCMAES256),
-								string(network.IpsecIntegrityMD5),
-								string(network.IpsecIntegritySHA1),
-								string(network.IpsecIntegritySHA256),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(virtualnetworkgatewayconnections.PossibleValuesForIPsecIntegrity(), false),
 						},
 
 						"pfs_group": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(network.PfsGroupECP256),
-								string(network.PfsGroupECP384),
-								string(network.PfsGroupNone),
-								string(network.PfsGroupPFS1),
-								string(network.PfsGroupPFS14),
-								string(network.PfsGroupPFS2),
-								string(network.PfsGroupPFS2048),
-								string(network.PfsGroupPFS24),
-								string(network.PfsGroupPFSMM),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(virtualnetworkgatewayconnections.PossibleValuesForPfsGroup(), false),
 						},
 
 						"sa_datasize": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validation.IntAtLeast(1024),
+							Computed:     true, // azignore:AZS007 - pre-existing violation
+							ValidateFunc: validation.IntBetween(0, math.MaxInt32),
 						},
 
 						"sa_lifetime": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.IntAtLeast(300),
 						},
 					},
 				},
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
 
-func resourceVirtualNetworkGatewayConnectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.VnetGatewayConnectionsClient
-	vnetGatewayClient := meta.(*clients.Client).Network.VnetGatewayClient
+func resourceVirtualNetworkGatewayConnectionCreate(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Network.VirtualNetworkGatewayConnections
+	vnetGatewayClient := meta.(*clients.Client).Network.VirtualNetworkGateways
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Virtual Network Gateway Connection creation.")
+	id := virtualnetworkgatewayconnections.NewConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	id := parse.NewNetworkGatewayConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ConnectionName)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_virtual_network_gateway_connection", id.ID())
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	t := d.Get("tags").(map[string]interface{})
-
-	var virtualNetworkGateway network.VirtualNetworkGateway
+	var virtualNetworkGateway virtualnetworkgateways.VirtualNetworkGateway
 	if v, ok := d.GetOk("virtual_network_gateway_id"); ok {
 		virtualNetworkGatewayId := v.(string)
 
-		gwid, err := parse.VirtualNetworkGatewayID(virtualNetworkGatewayId)
+		gwid, err := virtualnetworkgateways.ParseVirtualNetworkGatewayID(virtualNetworkGatewayId)
 		if err != nil {
 			return err
 		}
 
-		virtualNetworkGateway, err = vnetGatewayClient.Get(ctx, gwid.ResourceGroup, gwid.Name)
+		resp, err := vnetGatewayClient.Get(ctx, *gwid)
 		if err != nil {
 			return err
 		}
+
+		if resp.Model == nil {
+			return fmt.Errorf("retrieving %s: %+v", gwid, err)
+		}
+
+		virtualNetworkGateway = *resp.Model
 	}
 
 	properties, err := getVirtualNetworkGatewayConnectionProperties(d, virtualNetworkGateway)
@@ -395,38 +343,293 @@ func resourceVirtualNetworkGatewayConnectionCreateUpdate(d *pluginsdk.ResourceDa
 		return err
 	}
 
-	connection := network.VirtualNetworkGatewayConnection{
-		Name:     &id.ConnectionName,
-		Location: &location,
-		Tags:     tags.Expand(t),
-		VirtualNetworkGatewayConnectionPropertiesFormat: properties,
+	connection := virtualnetworkgatewayconnections.VirtualNetworkGatewayConnection{
+		Name:       pointer.To(id.ConnectionName),
+		Location:   pointer.To(location.Normalize(d.Get("location").(string))),
+		Tags:       tags.Expand(d.Get("tags").(map[string]any)),
+		Properties: *properties,
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ConnectionName, connection)
-	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, connection, sdk.SetIDCallback(meta, &id, d)); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of %s: %+v", id, err)
-	}
+	d.SetId(id.ID())
 
 	if properties.SharedKey != nil && !d.IsNewResource() {
-		future, err := client.SetSharedKey(ctx, id.ResourceGroup, id.ConnectionName, network.ConnectionSharedKey{
-			Value: properties.SharedKey,
-		})
-		if err != nil {
+		if err := client.SetSharedKeyThenPoll(ctx, id, virtualnetworkgatewayconnections.ConnectionSharedKey{
+			Value: pointer.From(properties.SharedKey),
+		}); err != nil {
 			return fmt.Errorf("updating Shared Key for %s: %+v", id, err)
-		}
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for updating Shared Key for %s: %+v", id, err)
 		}
 
 		// Once this issue https://github.com/Azure/azure-rest-api-specs/issues/26660 is fixed, below this part will be removed
 		stateConf := &pluginsdk.StateChangeConf{
-			Pending:    []string{string(network.ProvisioningStateUpdating)},
-			Target:     []string{string(network.ProvisioningStateSucceeded)},
+			Pending:    []string{string(virtualnetworkgatewayconnections.ProvisioningStateUpdating)},
+			Target:     []string{string(virtualnetworkgatewayconnections.ProvisioningStateSucceeded)},
 			Refresh:    virtualNetworkGatewayConnectionStateRefreshFunc(ctx, client, id),
+			MinTimeout: 15 * time.Second,
+			Timeout:    d.Timeout(pluginsdk.TimeoutUpdate),
+		}
+
+		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("waiting for update of %s: %+v", id, err)
+		}
+	}
+
+	return resourceVirtualNetworkGatewayConnectionRead(d, meta)
+}
+
+func resourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Network.VirtualNetworkGatewayConnections
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := virtualnetworkgatewayconnections.ParseConnectionID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.Get(ctx, *id)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	d.Set("name", id.ConnectionName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+
+	respKey, err := client.GetSharedKey(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving Shared Key for %s: %+v", id, err)
+	}
+
+	if model := respKey.Model; model != nil {
+		if model.Value != "" {
+			d.Set("shared_key", model.Value)
+		}
+	}
+
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
+
+		props := model.Properties
+
+		if string(props.ConnectionType) != "" {
+			d.Set("type", string(props.ConnectionType))
+		}
+
+		d.Set("virtual_network_gateway_id", props.VirtualNetworkGateway1.Id)
+
+		// not returned from api - getting from state
+		d.Set("authorization_key", d.Get("authorization_key").(string))
+
+		if props.DpdTimeoutSeconds != nil {
+			d.Set("dpd_timeout_seconds", props.DpdTimeoutSeconds)
+		}
+
+		if props.Peer != nil {
+			d.Set("express_route_circuit_id", props.Peer.Id)
+		}
+
+		if props.VirtualNetworkGateway2 != nil {
+			d.Set("peer_virtual_network_gateway_id", props.VirtualNetworkGateway2.Id)
+		}
+
+		if props.UseLocalAzureIPAddress != nil {
+			d.Set("local_azure_ip_address_enabled", props.UseLocalAzureIPAddress)
+		}
+
+		if props.LocalNetworkGateway2 != nil {
+			d.Set("local_network_gateway_id", props.LocalNetworkGateway2.Id)
+		}
+
+		d.Set("bgp_enabled", pointer.From(props.EnableBgp))
+
+		if props.UsePolicyBasedTrafficSelectors != nil {
+			d.Set("use_policy_based_traffic_selectors", props.UsePolicyBasedTrafficSelectors)
+		}
+
+		if props.RoutingWeight != nil {
+			d.Set("routing_weight", props.RoutingWeight)
+		}
+
+		if err := d.Set("custom_bgp_addresses", flattenGatewayCustomBgpIPAddresses(props.GatewayCustomBgpIPAddresses)); err != nil {
+			return fmt.Errorf("setting `custom_bgp_addresses`: %+v", err)
+		}
+
+		d.Set("connection_protocol", pointer.FromEnum(props.ConnectionProtocol))
+
+		d.Set("connection_mode", pointer.FromEnum(props.ConnectionMode))
+
+		if props.ExpressRouteGatewayBypass != nil {
+			d.Set("express_route_gateway_bypass", props.ExpressRouteGatewayBypass)
+		}
+
+		if props.EnablePrivateLinkFastPath != nil {
+			d.Set("private_link_fast_path_enabled", props.EnablePrivateLinkFastPath)
+		}
+
+		if props.IPsecPolicies != nil {
+			if err := d.Set("ipsec_policy", flattenVirtualNetworkGatewayConnectionIpsecPolicies(props.IPsecPolicies)); err != nil {
+				return fmt.Errorf("setting `ipsec_policy`: %+v", err)
+			}
+		}
+
+		if err := d.Set("traffic_selector_policy", flattenVirtualNetworkGatewayConnectionTrafficSelectorPolicies(props.TrafficSelectorPolicies)); err != nil {
+			return fmt.Errorf("setting `traffic_selector_policy`: %+v", err)
+		}
+
+		if err := d.Set("egress_nat_rule_ids", flattenVirtualNetworkGatewayConnectionNatRuleIds(props.EgressNatRules)); err != nil {
+			return fmt.Errorf("setting `egress_nat_rule_ids`: %+v", err)
+		}
+
+		if err := d.Set("ingress_nat_rule_ids", flattenVirtualNetworkGatewayConnectionNatRuleIds(props.IngressNatRules)); err != nil {
+			return fmt.Errorf("setting `ingress_nat_rule_ids`: %+v", err)
+		}
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func resourceVirtualNetworkGatewayConnectionUpdate(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Network.VirtualNetworkGatewayConnections
+	vnetGatewayClient := meta.(*clients.Client).Network.VirtualNetworkGateways
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := virtualnetworkgatewayconnections.ParseConnectionID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %s", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+
+	payload := existing.Model
+
+	var virtualNetworkGateway virtualnetworkgateways.VirtualNetworkGateway
+	if v, ok := d.GetOk("virtual_network_gateway_id"); ok {
+		virtualNetworkGatewayId := v.(string)
+
+		gwid, err := virtualnetworkgateways.ParseVirtualNetworkGatewayID(virtualNetworkGatewayId)
+		if err != nil {
+			return err
+		}
+
+		resp, err := vnetGatewayClient.Get(ctx, *gwid)
+		if err != nil {
+			return err
+		}
+
+		if resp.Model == nil {
+			return fmt.Errorf("retrieving %s: %+v", gwid, err)
+		}
+
+		virtualNetworkGateway = *resp.Model
+	}
+
+	if d.HasChange("authorization_key") {
+		payload.Properties.AuthorizationKey = pointer.To(d.Get("authorization_key").(string))
+	}
+
+	if d.HasChange("egress_nat_rule_ids") {
+		payload.Properties.EgressNatRules = expandVirtualNetworkGatewayConnectionNatRuleIds(d.Get("egress_nat_rule_ids").(*pluginsdk.Set).List())
+	}
+
+	if d.HasChange("ingress_nat_rule_ids") {
+		payload.Properties.IngressNatRules = expandVirtualNetworkGatewayConnectionNatRuleIds(d.Get("ingress_nat_rule_ids").(*pluginsdk.Set).List())
+	}
+
+	if d.HasChange("local_network_gateway_id") {
+		localNetworkGatewayId := d.Get("local_network_gateway_id").(string)
+		name, err := localNetworkGatewayFromId(localNetworkGatewayId)
+		if err != nil {
+			return fmt.Errorf("getting LocalNetworkGateway Name and Group: %+v", err)
+		}
+
+		payload.Properties.LocalNetworkGateway2 = &virtualnetworkgatewayconnections.LocalNetworkGateway{
+			Id:   &localNetworkGatewayId,
+			Name: &name,
+			Properties: virtualnetworkgatewayconnections.LocalNetworkGatewayPropertiesFormat{
+				LocalNetworkAddressSpace: &virtualnetworkgatewayconnections.AddressSpace{},
+			},
+		}
+	}
+
+	if d.HasChange("bgp_enabled") {
+		payload.Properties.EnableBgp = pointer.To(d.Get("bgp_enabled").(bool))
+	}
+
+	if d.HasChange("use_policy_based_traffic_selectors") {
+		payload.Properties.UsePolicyBasedTrafficSelectors = pointer.To(d.Get("use_policy_based_traffic_selectors").(bool))
+	}
+
+	if d.HasChange("routing_weight") {
+		payload.Properties.RoutingWeight = pointer.To(int64(d.Get("routing_weight").(int)))
+	}
+
+	if d.HasChange("express_route_gateway_bypass") {
+		payload.Properties.ExpressRouteGatewayBypass = pointer.To(d.Get("express_route_gateway_bypass").(bool))
+	}
+
+	if d.HasChange("private_link_fast_path_enabled") {
+		payload.Properties.EnablePrivateLinkFastPath = pointer.To(d.Get("private_link_fast_path_enabled").(bool))
+	}
+
+	if d.HasChange("traffic_selector_policy") {
+		payload.Properties.TrafficSelectorPolicies = expandVirtualNetworkGatewayConnectionTrafficSelectorPolicies(d.Get("traffic_selector_policy").([]any))
+	}
+
+	if d.HasChange("custom_bgp_addresses") {
+		if virtualNetworkGateway.Properties.BgpSettings == nil || virtualNetworkGateway.Properties.BgpSettings.BgpPeeringAddresses == nil {
+			return fmt.Errorf("retrieving BGP peering address from `virtual_network_gateway` %s (%s) failed: get nil", *virtualNetworkGateway.Name, *virtualNetworkGateway.Id)
+		}
+
+		gatewayCustomBgpIPAddresses, err := expandGatewayCustomBgpIPAddresses(d, virtualNetworkGateway.Properties.BgpSettings.BgpPeeringAddresses)
+		if err != nil {
+			return err
+		}
+
+		payload.Properties.GatewayCustomBgpIPAddresses = gatewayCustomBgpIPAddresses
+	}
+
+	if d.HasChange("ipsec_policy") {
+		payload.Properties.IPsecPolicies = expandVirtualNetworkGatewayConnectionIpsecPolicies(d.Get("ipsec_policy").([]any))
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	if d.HasChange("shared_key") {
+		if err := client.SetSharedKeyThenPoll(ctx, *id, virtualnetworkgatewayconnections.ConnectionSharedKey{
+			Value: d.Get("shared_key").(string),
+		}); err != nil {
+			return fmt.Errorf("updating Shared Key for %s: %+v", id, err)
+		}
+
+		// Once this issue https://github.com/Azure/azure-rest-api-specs/issues/26660 is fixed, below this part will be removed
+		stateConf := &pluginsdk.StateChangeConf{
+			Pending:    []string{string(virtualnetworkgatewayconnections.ProvisioningStateUpdating)},
+			Target:     []string{string(virtualnetworkgatewayconnections.ProvisioningStateSucceeded)},
+			Refresh:    virtualNetworkGatewayConnectionStateRefreshFunc(ctx, client, *id),
 			MinTimeout: 15 * time.Second,
 			Timeout:    d.Timeout(pluginsdk.TimeoutUpdate),
 		}
@@ -441,189 +644,72 @@ func resourceVirtualNetworkGatewayConnectionCreateUpdate(d *pluginsdk.ResourceDa
 	return resourceVirtualNetworkGatewayConnectionRead(d, meta)
 }
 
-func resourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.VnetGatewayConnectionsClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := parse.NetworkGatewayConnectionID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ConnectionName)
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			d.SetId("")
-			return nil
-		}
-		return fmt.Errorf("making Read request on %s: %+v", id, err)
-	}
-
-	conn := *resp.VirtualNetworkGatewayConnectionPropertiesFormat
-
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
-
-	if string(conn.ConnectionType) != "" {
-		d.Set("type", string(conn.ConnectionType))
-	}
-
-	if conn.VirtualNetworkGateway1 != nil {
-		d.Set("virtual_network_gateway_id", conn.VirtualNetworkGateway1.ID)
-	}
-
-	// not returned from api - getting from state
-	d.Set("authorization_key", d.Get("authorization_key").(string))
-
-	if conn.DpdTimeoutSeconds != nil {
-		d.Set("dpd_timeout_seconds", conn.DpdTimeoutSeconds)
-	}
-
-	if conn.Peer != nil {
-		d.Set("express_route_circuit_id", conn.Peer.ID)
-	}
-
-	if conn.VirtualNetworkGateway2 != nil {
-		d.Set("peer_virtual_network_gateway_id", conn.VirtualNetworkGateway2.ID)
-	}
-
-	if conn.UseLocalAzureIPAddress != nil {
-		d.Set("local_azure_ip_address_enabled", conn.UseLocalAzureIPAddress)
-	}
-
-	if conn.LocalNetworkGateway2 != nil {
-		d.Set("local_network_gateway_id", conn.LocalNetworkGateway2.ID)
-	}
-
-	if conn.EnableBgp != nil {
-		d.Set("enable_bgp", conn.EnableBgp)
-	}
-
-	if conn.UsePolicyBasedTrafficSelectors != nil {
-		d.Set("use_policy_based_traffic_selectors", conn.UsePolicyBasedTrafficSelectors)
-	}
-
-	if conn.RoutingWeight != nil {
-		d.Set("routing_weight", conn.RoutingWeight)
-	}
-
-	if conn.SharedKey != nil {
-		d.Set("shared_key", conn.SharedKey)
-	}
-
-	if err := d.Set("custom_bgp_addresses", flattenGatewayCustomBgpIPAddresses(conn.GatewayCustomBgpIPAddresses)); err != nil {
-		return fmt.Errorf("setting `custom_bgp_addresses`: %+v", err)
-	}
-
-	d.Set("connection_protocol", string(conn.ConnectionProtocol))
-
-	d.Set("connection_mode", string(conn.ConnectionMode))
-
-	if conn.ExpressRouteGatewayBypass != nil {
-		d.Set("express_route_gateway_bypass", conn.ExpressRouteGatewayBypass)
-	}
-
-	if conn.EnablePrivateLinkFastPath != nil {
-		d.Set("private_link_fast_path_enabled", conn.EnablePrivateLinkFastPath)
-	}
-
-	if conn.IpsecPolicies != nil {
-		ipsecPolicies := flattenVirtualNetworkGatewayConnectionIpsecPolicies(conn.IpsecPolicies)
-
-		if err := d.Set("ipsec_policy", ipsecPolicies); err != nil {
-			return fmt.Errorf("setting `ipsec_policy`: %+v", err)
-		}
-	}
-
-	trafficSelectorPolicies := flattenVirtualNetworkGatewayConnectionTrafficSelectorPolicies(conn.TrafficSelectorPolicies)
-	if err := d.Set("traffic_selector_policy", trafficSelectorPolicies); err != nil {
-		return fmt.Errorf("setting `traffic_selector_policy`: %+v", err)
-	}
-
-	if err := d.Set("egress_nat_rule_ids", flattenVirtualNetworkGatewayConnectionNatRuleIds(conn.EgressNatRules)); err != nil {
-		return fmt.Errorf("setting `egress_nat_rule_ids`: %+v", err)
-	}
-
-	if err := d.Set("ingress_nat_rule_ids", flattenVirtualNetworkGatewayConnectionNatRuleIds(conn.IngressNatRules)); err != nil {
-		return fmt.Errorf("setting `ingress_nat_rule_ids`: %+v", err)
-	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
-}
-
-func resourceVirtualNetworkGatewayConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.VnetGatewayConnectionsClient
+func resourceVirtualNetworkGatewayConnectionDelete(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Network.VirtualNetworkGatewayConnections
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.NetworkGatewayConnectionID(d.Id())
+	id, err := virtualnetworkgatewayconnections.ParseConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.ConnectionName)
-	if err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
 	}
 
 	return nil
 }
 
-func virtualNetworkGatewayConnectionStateRefreshFunc(ctx context.Context, client *network.VirtualNetworkGatewayConnectionsClient, id parse.NetworkGatewayConnectionId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id.ResourceGroup, id.ConnectionName)
+func virtualNetworkGatewayConnectionStateRefreshFunc(ctx context.Context, client *virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionsClient, id virtualnetworkgatewayconnections.ConnectionId) pluginsdk.StateRefreshFunc {
+	return func() (any, string, error) {
+		res, err := client.Get(ctx, id)
 		if err != nil {
-			return nil, "", fmt.Errorf("polling for %s: %+v", id.String(), err)
+			return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
 		}
 
-		return res, string(res.ProvisioningState), nil
+		if res.Model != nil && res.Model.Properties.ProvisioningState != nil {
+			return res, pointer.FromEnum(res.Model.Properties.ProvisioningState), nil
+		}
+
+		return nil, "", fmt.Errorf("polling for %s: %+v", id, err)
 	}
 }
 
-func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData, virtualNetworkGateway network.VirtualNetworkGateway) (*network.VirtualNetworkGatewayConnectionPropertiesFormat, error) {
-	connectionType := network.VirtualNetworkGatewayConnectionType(d.Get("type").(string))
-	connectionMode := network.VirtualNetworkGatewayConnectionMode(d.Get("connection_mode").(string))
+func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData, virtualNetworkGateway virtualnetworkgateways.VirtualNetworkGateway) (*virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionPropertiesFormat, error) {
+	connectionType := virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionType(d.Get("type").(string))
+	connectionMode := virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionMode(d.Get("connection_mode").(string))
 
-	props := &network.VirtualNetworkGatewayConnectionPropertiesFormat{
+	props := &virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionPropertiesFormat{
 		ConnectionType:                 connectionType,
-		ConnectionMode:                 connectionMode,
-		EnableBgp:                      utils.Bool(d.Get("enable_bgp").(bool)),
-		EnablePrivateLinkFastPath:      utils.Bool(d.Get("private_link_fast_path_enabled").(bool)),
-		ExpressRouteGatewayBypass:      utils.Bool(d.Get("express_route_gateway_bypass").(bool)),
-		UsePolicyBasedTrafficSelectors: utils.Bool(d.Get("use_policy_based_traffic_selectors").(bool)),
+		ConnectionMode:                 pointer.To(connectionMode),
+		EnableBgp:                      pointer.To(d.Get("bgp_enabled").(bool)),
+		EnablePrivateLinkFastPath:      pointer.To(d.Get("private_link_fast_path_enabled").(bool)),
+		ExpressRouteGatewayBypass:      pointer.To(d.Get("express_route_gateway_bypass").(bool)),
+		UsePolicyBasedTrafficSelectors: pointer.To(d.Get("use_policy_based_traffic_selectors").(bool)),
 	}
 
-	if virtualNetworkGateway.Name != nil && virtualNetworkGateway.ID != nil {
-		props.VirtualNetworkGateway1 = &network.VirtualNetworkGateway{
-			ID:   virtualNetworkGateway.ID,
+	if virtualNetworkGateway.Name != nil && virtualNetworkGateway.Id != nil {
+		props.VirtualNetworkGateway1 = virtualnetworkgatewayconnections.VirtualNetworkGateway{
+			Id:   virtualNetworkGateway.Id,
 			Name: virtualNetworkGateway.Name,
-			VirtualNetworkGatewayPropertiesFormat: &network.VirtualNetworkGatewayPropertiesFormat{
-				IPConfigurations: &[]network.VirtualNetworkGatewayIPConfiguration{},
+			Properties: virtualnetworkgatewayconnections.VirtualNetworkGatewayPropertiesFormat{
+				IPConfigurations: &[]virtualnetworkgatewayconnections.VirtualNetworkGatewayIPConfiguration{},
 			},
 		}
 	}
 
 	if v, ok := d.GetOk("authorization_key"); ok {
-		authorizationKey := v.(string)
-		props.AuthorizationKey = &authorizationKey
+		props.AuthorizationKey = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("dpd_timeout_seconds"); ok {
-		props.DpdTimeoutSeconds = utils.Int32(int32(v.(int)))
+		props.DpdTimeoutSeconds = pointer.To(int64(v.(int)))
 	}
 
 	if v, ok := d.GetOk("express_route_circuit_id"); ok {
-		expressRouteCircuitId := v.(string)
-		props.Peer = &network.SubResource{
-			ID: &expressRouteCircuitId,
+		props.Peer = &virtualnetworkgatewayconnections.SubResource{
+			Id: pointer.To(v.(string)),
 		}
 	}
 
@@ -636,68 +722,67 @@ func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData, vir
 	}
 
 	if v, ok := d.GetOk("peer_virtual_network_gateway_id"); ok {
-		gwid, err := parse.VirtualNetworkGatewayID(v.(string))
+		gwid, err := virtualnetworkgateways.ParseVirtualNetworkGatewayID(v.(string))
 		if err != nil {
 			return nil, err
 		}
-		props.VirtualNetworkGateway2 = &network.VirtualNetworkGateway{
-			ID:   utils.String(gwid.ID()),
-			Name: &gwid.Name,
-			VirtualNetworkGatewayPropertiesFormat: &network.VirtualNetworkGatewayPropertiesFormat{
-				IPConfigurations: &[]network.VirtualNetworkGatewayIPConfiguration{},
+		props.VirtualNetworkGateway2 = &virtualnetworkgatewayconnections.VirtualNetworkGateway{
+			Id:   pointer.To(gwid.ID()),
+			Name: &gwid.VirtualNetworkGatewayName,
+			Properties: virtualnetworkgatewayconnections.VirtualNetworkGatewayPropertiesFormat{
+				IPConfigurations: &[]virtualnetworkgatewayconnections.VirtualNetworkGatewayIPConfiguration{},
 			},
 		}
 	}
 
 	if v, ok := d.GetOk("local_azure_ip_address_enabled"); ok {
-		props.UseLocalAzureIPAddress = utils.Bool(v.(bool))
+		props.UseLocalAzureIPAddress = pointer.To(v.(bool))
 	}
 
 	if v, ok := d.GetOk("local_network_gateway_id"); ok {
 		localNetworkGatewayId := v.(string)
-		_, name, err := resourceGroupAndLocalNetworkGatewayFromId(localNetworkGatewayId)
+		name, err := localNetworkGatewayFromId(localNetworkGatewayId)
 		if err != nil {
-			return nil, fmt.Errorf("Getting LocalNetworkGateway Name and Group:: %+v", err)
+			return nil, fmt.Errorf("getting LocalNetworkGateway Name and Group: %+v", err)
 		}
 
-		props.LocalNetworkGateway2 = &network.LocalNetworkGateway{
-			ID:   &localNetworkGatewayId,
+		props.LocalNetworkGateway2 = &virtualnetworkgatewayconnections.LocalNetworkGateway{
+			Id:   &localNetworkGatewayId,
 			Name: &name,
-			LocalNetworkGatewayPropertiesFormat: &network.LocalNetworkGatewayPropertiesFormat{
-				LocalNetworkAddressSpace: &network.AddressSpace{},
+			Properties: virtualnetworkgatewayconnections.LocalNetworkGatewayPropertiesFormat{
+				LocalNetworkAddressSpace: &virtualnetworkgatewayconnections.AddressSpace{},
 			},
 		}
 	}
 
 	if v, ok := d.GetOk("routing_weight"); ok {
-		routingWeight := int32(v.(int))
-		props.RoutingWeight = &routingWeight
+		props.RoutingWeight = pointer.To(int64(v.(int)))
 	}
 
 	if v, ok := d.GetOk("shared_key"); ok {
-		props.SharedKey = utils.String(v.(string))
+		props.SharedKey = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("connection_protocol"); ok {
 		connectionProtocol := v.(string)
-		props.ConnectionProtocol = network.VirtualNetworkGatewayConnectionProtocol(connectionProtocol)
+		props.ConnectionProtocol = pointer.ToEnum[virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionProtocol](connectionProtocol)
 	}
 
 	if v, ok := d.GetOk("traffic_selector_policy"); ok {
-		props.TrafficSelectorPolicies = expandVirtualNetworkGatewayConnectionTrafficSelectorPolicies(v.([]interface{}))
+		props.TrafficSelectorPolicies = expandVirtualNetworkGatewayConnectionTrafficSelectorPolicies(v.([]any))
 	}
 
 	if v, ok := d.GetOk("ipsec_policy"); ok {
-		props.IpsecPolicies = expandVirtualNetworkGatewayConnectionIpsecPolicies(v.([]interface{}))
+		props.IPsecPolicies = expandVirtualNetworkGatewayConnectionIpsecPolicies(v.([]any))
 	}
 
-	if utils.NormaliseNilableBool(props.EnableBgp) {
+	if pointer.From(props.EnableBgp) {
 		if _, ok := d.GetOk("custom_bgp_addresses"); ok {
-			if virtualNetworkGateway.VirtualNetworkGatewayPropertiesFormat == nil || virtualNetworkGateway.VirtualNetworkGatewayPropertiesFormat.BgpSettings == nil || virtualNetworkGateway.VirtualNetworkGatewayPropertiesFormat.BgpSettings.BgpPeeringAddresses == nil {
-				return nil, fmt.Errorf("retrieving BGP peering address from `virtual_network_gateway `%s (%s) failed: get nil", *virtualNetworkGateway.Name, *virtualNetworkGateway.ID)
+			if virtualNetworkGateway.Properties.BgpSettings == nil || virtualNetworkGateway.Properties.BgpSettings.BgpPeeringAddresses == nil {
+				return nil, fmt.Errorf("retrieving BGP peering address from `virtual_network_gateway` %s (%s) failed: get nil", *virtualNetworkGateway.Name, *virtualNetworkGateway.Id)
 			}
 
-			gatewayCustomBgpIPAddresses, err := expandGatewayCustomBgpIPAddresses(d, virtualNetworkGateway.VirtualNetworkGatewayPropertiesFormat.BgpSettings.BgpPeeringAddresses)
+			gatewayCustomBgpIPAddresses, err := expandGatewayCustomBgpIPAddresses(d, virtualNetworkGateway.Properties.BgpSettings.BgpPeeringAddresses)
 			if err != nil {
 				return nil, err
 			}
@@ -706,8 +791,8 @@ func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData, vir
 		}
 	}
 
-	if props.ConnectionType == network.VirtualNetworkGatewayConnectionTypeExpressRoute {
-		if props.Peer == nil || props.Peer.ID == nil {
+	if props.ConnectionType == virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionTypeExpressRoute {
+		if props.Peer == nil || props.Peer.Id == nil {
 			return nil, fmt.Errorf("`express_route_circuit_id` must be specified when `type` is set to `ExpressRoute`")
 		}
 		if d.Get("private_link_fast_path_enabled").(bool) && !d.Get("express_route_gateway_bypass").(bool) {
@@ -715,68 +800,66 @@ func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData, vir
 		}
 	}
 
-	if props.ConnectionType == network.VirtualNetworkGatewayConnectionTypeIPsec {
-		if props.LocalNetworkGateway2 == nil || props.LocalNetworkGateway2.ID == nil {
+	if props.ConnectionType == virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionTypeIPsec {
+		if props.LocalNetworkGateway2 == nil || props.LocalNetworkGateway2.Id == nil {
 			return nil, fmt.Errorf("`local_network_gateway_id` must be specified when `type` is set to `IPsec`")
 		}
 	}
 
-	if props.ConnectionType == network.VirtualNetworkGatewayConnectionTypeVnet2Vnet {
-		if props.VirtualNetworkGateway2 == nil || props.VirtualNetworkGateway2.ID == nil {
+	if props.ConnectionType == virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionTypeVnetTwoVnet {
+		if props.VirtualNetworkGateway2 == nil || props.VirtualNetworkGateway2.Id == nil {
 			return nil, fmt.Errorf("`peer_virtual_network_gateway_id` must be specified when `type` is set to `Vnet2Vnet`")
 		}
 	}
 
-	if props.GatewayCustomBgpIPAddresses != nil && props.ConnectionType != network.VirtualNetworkGatewayConnectionTypeIPsec {
+	if props.GatewayCustomBgpIPAddresses != nil && props.ConnectionType != virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionTypeIPsec {
 		return nil, fmt.Errorf("`custom_bgp_addresses` can only be used when `type` is set to `IPsec`")
 	}
 
-	if props.GatewayCustomBgpIPAddresses != nil && virtualNetworkGateway.VirtualNetworkGatewayPropertiesFormat.ActiveActive == utils.Bool(false) {
+	if props.GatewayCustomBgpIPAddresses != nil && virtualNetworkGateway.Properties.ActiveActive == pointer.To(false) {
 		return nil, fmt.Errorf("`custom_bgp_addresses` can only be used when `azurerm_virtual_network_gateway` `active_active` is set enabled`")
 	}
 
 	return props, nil
 }
 
-func expandVirtualNetworkGatewayConnectionIpsecPolicies(schemaIpsecPolicies []interface{}) *[]network.IpsecPolicy {
-	ipsecPolicies := make([]network.IpsecPolicy, 0, len(schemaIpsecPolicies))
+func expandVirtualNetworkGatewayConnectionIpsecPolicies(schemaIpsecPolicies []any) *[]virtualnetworkgatewayconnections.IPsecPolicy {
+	ipsecPolicies := make([]virtualnetworkgatewayconnections.IPsecPolicy, 0, len(schemaIpsecPolicies))
 
 	for _, d := range schemaIpsecPolicies {
-		schemaIpsecPolicy := d.(map[string]interface{})
-		ipsecPolicy := &network.IpsecPolicy{}
+		schemaIpsecPolicy := d.(map[string]any)
+		ipsecPolicy := &virtualnetworkgatewayconnections.IPsecPolicy{}
 
 		if dhGroup, ok := schemaIpsecPolicy["dh_group"].(string); ok && dhGroup != "" {
-			ipsecPolicy.DhGroup = network.DhGroup(dhGroup)
+			ipsecPolicy.DhGroup = virtualnetworkgatewayconnections.DhGroup(dhGroup)
 		}
 
 		if ikeEncryption, ok := schemaIpsecPolicy["ike_encryption"].(string); ok && ikeEncryption != "" {
-			ipsecPolicy.IkeEncryption = network.IkeEncryption(ikeEncryption)
+			ipsecPolicy.IkeEncryption = virtualnetworkgatewayconnections.IkeEncryption(ikeEncryption)
 		}
 
 		if ikeIntegrity, ok := schemaIpsecPolicy["ike_integrity"].(string); ok && ikeIntegrity != "" {
-			ipsecPolicy.IkeIntegrity = network.IkeIntegrity(ikeIntegrity)
+			ipsecPolicy.IkeIntegrity = virtualnetworkgatewayconnections.IkeIntegrity(ikeIntegrity)
 		}
 
 		if ipsecEncryption, ok := schemaIpsecPolicy["ipsec_encryption"].(string); ok && ipsecEncryption != "" {
-			ipsecPolicy.IpsecEncryption = network.IpsecEncryption(ipsecEncryption)
+			ipsecPolicy.IPsecEncryption = virtualnetworkgatewayconnections.IPsecEncryption(ipsecEncryption)
 		}
 
 		if ipsecIntegrity, ok := schemaIpsecPolicy["ipsec_integrity"].(string); ok && ipsecIntegrity != "" {
-			ipsecPolicy.IpsecIntegrity = network.IpsecIntegrity(ipsecIntegrity)
+			ipsecPolicy.IPsecIntegrity = virtualnetworkgatewayconnections.IPsecIntegrity(ipsecIntegrity)
 		}
 
 		if pfsGroup, ok := schemaIpsecPolicy["pfs_group"].(string); ok && pfsGroup != "" {
-			ipsecPolicy.PfsGroup = network.PfsGroup(pfsGroup)
+			ipsecPolicy.PfsGroup = virtualnetworkgatewayconnections.PfsGroup(pfsGroup)
 		}
 
 		if v, ok := schemaIpsecPolicy["sa_datasize"].(int); ok {
-			saDatasize := int32(v)
-			ipsecPolicy.SaDataSizeKilobytes = &saDatasize
+			ipsecPolicy.SaDataSizeKilobytes = int64(v)
 		}
 
 		if v, ok := schemaIpsecPolicy["sa_lifetime"].(int); ok {
-			saLifetime := int32(v)
-			ipsecPolicy.SaLifeTimeSeconds = &saLifetime
+			ipsecPolicy.SaLifeTimeSeconds = int64(v)
 		}
 
 		ipsecPolicies = append(ipsecPolicies, *ipsecPolicy)
@@ -785,17 +868,17 @@ func expandVirtualNetworkGatewayConnectionIpsecPolicies(schemaIpsecPolicies []in
 	return &ipsecPolicies
 }
 
-func expandVirtualNetworkGatewayConnectionTrafficSelectorPolicies(schemaTrafficSelectorPolicies []interface{}) *[]network.TrafficSelectorPolicy {
-	trafficSelectorPolicies := make([]network.TrafficSelectorPolicy, 0, len(schemaTrafficSelectorPolicies))
+func expandVirtualNetworkGatewayConnectionTrafficSelectorPolicies(schemaTrafficSelectorPolicies []any) *[]virtualnetworkgatewayconnections.TrafficSelectorPolicy {
+	trafficSelectorPolicies := make([]virtualnetworkgatewayconnections.TrafficSelectorPolicy, 0, len(schemaTrafficSelectorPolicies))
 
 	for _, d := range schemaTrafficSelectorPolicies {
-		schemaTrafficSelectorPolicy := d.(map[string]interface{})
-		trafficSelectorPolicy := &network.TrafficSelectorPolicy{}
-		if localAddressRanges, ok := schemaTrafficSelectorPolicy["local_address_cidrs"].([]interface{}); ok {
-			trafficSelectorPolicy.LocalAddressRanges = utils.ExpandStringSlice(localAddressRanges)
+		schemaTrafficSelectorPolicy := d.(map[string]any)
+		trafficSelectorPolicy := &virtualnetworkgatewayconnections.TrafficSelectorPolicy{}
+		if localAddressRanges, ok := schemaTrafficSelectorPolicy["local_address_cidrs"].([]any); ok {
+			trafficSelectorPolicy.LocalAddressRanges = pointer.From(pluginsdk.ExpandStringSlice(localAddressRanges))
 		}
-		if remoteAddressRanges, ok := schemaTrafficSelectorPolicy["remote_address_cidrs"].([]interface{}); ok {
-			trafficSelectorPolicy.RemoteAddressRanges = utils.ExpandStringSlice(remoteAddressRanges)
+		if remoteAddressRanges, ok := schemaTrafficSelectorPolicy["remote_address_cidrs"].([]any); ok {
+			trafficSelectorPolicy.RemoteAddressRanges = pointer.From(pluginsdk.ExpandStringSlice(remoteAddressRanges))
 		}
 
 		trafficSelectorPolicies = append(trafficSelectorPolicies, *trafficSelectorPolicy)
@@ -804,15 +887,15 @@ func expandVirtualNetworkGatewayConnectionTrafficSelectorPolicies(schemaTrafficS
 	return &trafficSelectorPolicies
 }
 
-func expandGatewayCustomBgpIPAddresses(d *pluginsdk.ResourceData, bgpPeeringAddresses *[]network.IPConfigurationBgpPeeringAddress) (*[]network.GatewayCustomBgpIPAddressIPConfiguration, error) {
-	customBgpIpAddresses := make([]network.GatewayCustomBgpIPAddressIPConfiguration, 0)
+func expandGatewayCustomBgpIPAddresses(d *pluginsdk.ResourceData, bgpPeeringAddresses *[]virtualnetworkgateways.IPConfigurationBgpPeeringAddress) (*[]virtualnetworkgatewayconnections.GatewayCustomBgpIPAddressIPConfiguration, error) {
+	customBgpIpAddresses := make([]virtualnetworkgatewayconnections.GatewayCustomBgpIPAddressIPConfiguration, 0)
 
-	bgpAddresses := d.Get("custom_bgp_addresses").([]interface{})
+	bgpAddresses := d.Get("custom_bgp_addresses").([]any)
 	if len(bgpAddresses) == 0 {
 		return &customBgpIpAddresses, nil
 	}
 
-	bgAs := bgpAddresses[0].(map[string]interface{})
+	bgAs := bgpAddresses[0].(map[string]any)
 	primaryAddress := bgAs["primary"].(string)
 	secondaryAddress := bgAs["secondary"].(string)
 
@@ -829,14 +912,15 @@ func expandGatewayCustomBgpIPAddresses(d *pluginsdk.ResourceData, bgpPeeringAddr
 		}
 
 		for _, ip := range *address.CustomBgpIPAddresses {
-			if address.IpconfigurationID == nil {
+			if address.IPconfigurationId == nil {
 				continue
 			}
 
-			if ip == primaryAddress {
-				primaryIpConfiguration = *address.IpconfigurationID
-			} else if ip == secondaryAddress {
-				secondaryIpConfiguration = *address.IpconfigurationID
+			switch ip {
+			case primaryAddress:
+				primaryIpConfiguration = *address.IPconfigurationId
+			case secondaryAddress:
+				secondaryIpConfiguration = *address.IPconfigurationId
 			}
 		}
 	}
@@ -845,42 +929,36 @@ func expandGatewayCustomBgpIPAddresses(d *pluginsdk.ResourceData, bgpPeeringAddr
 		return &customBgpIpAddresses, fmt.Errorf("primary or secondary address not found at `virtual_network_gateway` configuration `bgp_settings` `peering_addresses`")
 	}
 
-	customBgpIpAddresses = append(customBgpIpAddresses, network.GatewayCustomBgpIPAddressIPConfiguration{
-		IPConfigurationID:  &primaryIpConfiguration,
-		CustomBgpIPAddress: utils.String(primaryAddress),
+	customBgpIpAddresses = append(customBgpIpAddresses, virtualnetworkgatewayconnections.GatewayCustomBgpIPAddressIPConfiguration{
+		IPConfigurationId:  primaryIpConfiguration,
+		CustomBgpIPAddress: primaryAddress,
 	})
 
 	if secondaryAddress != "" {
-		customBgpIpAddresses = append(customBgpIpAddresses, network.GatewayCustomBgpIPAddressIPConfiguration{
-			IPConfigurationID:  &secondaryIpConfiguration,
-			CustomBgpIPAddress: utils.String(secondaryAddress),
+		customBgpIpAddresses = append(customBgpIpAddresses, virtualnetworkgatewayconnections.GatewayCustomBgpIPAddressIPConfiguration{
+			IPConfigurationId:  secondaryIpConfiguration,
+			CustomBgpIPAddress: secondaryAddress,
 		})
 	}
 
 	return &customBgpIpAddresses, nil
 }
 
-func flattenVirtualNetworkGatewayConnectionIpsecPolicies(ipsecPolicies *[]network.IpsecPolicy) []interface{} {
-	schemaIpsecPolicies := make([]interface{}, 0)
+func flattenVirtualNetworkGatewayConnectionIpsecPolicies(ipsecPolicies *[]virtualnetworkgatewayconnections.IPsecPolicy) []any {
+	schemaIpsecPolicies := make([]any, 0)
 
 	if ipsecPolicies != nil {
 		for _, ipsecPolicy := range *ipsecPolicies {
-			schemaIpsecPolicy := make(map[string]interface{})
+			schemaIpsecPolicy := make(map[string]any)
 
 			schemaIpsecPolicy["dh_group"] = string(ipsecPolicy.DhGroup)
 			schemaIpsecPolicy["ike_encryption"] = string(ipsecPolicy.IkeEncryption)
 			schemaIpsecPolicy["ike_integrity"] = string(ipsecPolicy.IkeIntegrity)
-			schemaIpsecPolicy["ipsec_encryption"] = string(ipsecPolicy.IpsecEncryption)
-			schemaIpsecPolicy["ipsec_integrity"] = string(ipsecPolicy.IpsecIntegrity)
+			schemaIpsecPolicy["ipsec_encryption"] = string(ipsecPolicy.IPsecEncryption)
+			schemaIpsecPolicy["ipsec_integrity"] = string(ipsecPolicy.IPsecIntegrity)
 			schemaIpsecPolicy["pfs_group"] = string(ipsecPolicy.PfsGroup)
-
-			if ipsecPolicy.SaDataSizeKilobytes != nil {
-				schemaIpsecPolicy["sa_datasize"] = int(*ipsecPolicy.SaDataSizeKilobytes)
-			}
-
-			if ipsecPolicy.SaLifeTimeSeconds != nil {
-				schemaIpsecPolicy["sa_lifetime"] = int(*ipsecPolicy.SaLifeTimeSeconds)
-			}
+			schemaIpsecPolicy["sa_datasize"] = int(ipsecPolicy.SaDataSizeKilobytes)
+			schemaIpsecPolicy["sa_lifetime"] = int(ipsecPolicy.SaLifeTimeSeconds)
 
 			schemaIpsecPolicies = append(schemaIpsecPolicies, schemaIpsecPolicy)
 		}
@@ -889,32 +967,32 @@ func flattenVirtualNetworkGatewayConnectionIpsecPolicies(ipsecPolicies *[]networ
 	return schemaIpsecPolicies
 }
 
-func flattenGatewayCustomBgpIPAddresses(gatewayCustomBgpIPAddresses *[]network.GatewayCustomBgpIPAddressIPConfiguration) interface{} {
-	customBgpIpAddresses := make([]interface{}, 0)
+func flattenGatewayCustomBgpIPAddresses(gatewayCustomBgpIPAddresses *[]virtualnetworkgatewayconnections.GatewayCustomBgpIPAddressIPConfiguration) any {
+	customBgpIpAddresses := make([]any, 0)
 	if gatewayCustomBgpIPAddresses == nil || len(*gatewayCustomBgpIPAddresses) == 0 {
 		return customBgpIpAddresses
 	}
 
-	customBgpIpAddress := map[string]interface{}{}
+	customBgpIpAddress := map[string]any{}
 	for k, v := range *gatewayCustomBgpIPAddresses {
-		if k == 0 && v.CustomBgpIPAddress != nil {
-			customBgpIpAddress["primary"] = *v.CustomBgpIPAddress
-		} else if k == 1 && v.CustomBgpIPAddress != nil {
-			customBgpIpAddress["secondary"] = *v.CustomBgpIPAddress
+		if k == 0 && v.CustomBgpIPAddress != "" {
+			customBgpIpAddress["primary"] = v.CustomBgpIPAddress
+		} else if k == 1 && v.CustomBgpIPAddress != "" {
+			customBgpIpAddress["secondary"] = v.CustomBgpIPAddress
 		}
 	}
 
 	return append(customBgpIpAddresses, customBgpIpAddress)
 }
 
-func flattenVirtualNetworkGatewayConnectionTrafficSelectorPolicies(trafficSelectorPolicies *[]network.TrafficSelectorPolicy) []interface{} {
-	schemaTrafficSelectorPolicies := make([]interface{}, 0)
+func flattenVirtualNetworkGatewayConnectionTrafficSelectorPolicies(trafficSelectorPolicies *[]virtualnetworkgatewayconnections.TrafficSelectorPolicy) []any {
+	schemaTrafficSelectorPolicies := make([]any, 0)
 
 	if trafficSelectorPolicies != nil {
 		for _, trafficSelectorPolicy := range *trafficSelectorPolicies {
-			schemaTrafficSelectorPolicies = append(schemaTrafficSelectorPolicies, map[string]interface{}{
-				"local_address_cidrs":  utils.FlattenStringSlice(trafficSelectorPolicy.LocalAddressRanges),
-				"remote_address_cidrs": utils.FlattenStringSlice(trafficSelectorPolicy.RemoteAddressRanges),
+			schemaTrafficSelectorPolicies = append(schemaTrafficSelectorPolicies, map[string]any{
+				"local_address_cidrs":  trafficSelectorPolicy.LocalAddressRanges,
+				"remote_address_cidrs": trafficSelectorPolicy.RemoteAddressRanges,
 			})
 		}
 	}
@@ -922,29 +1000,26 @@ func flattenVirtualNetworkGatewayConnectionTrafficSelectorPolicies(trafficSelect
 	return schemaTrafficSelectorPolicies
 }
 
-func expandVirtualNetworkGatewayConnectionNatRuleIds(input []interface{}) *[]network.SubResource {
-	results := make([]network.SubResource, 0)
+func expandVirtualNetworkGatewayConnectionNatRuleIds(input []any) *[]virtualnetworkgatewayconnections.SubResource {
+	results := make([]virtualnetworkgatewayconnections.SubResource, 0)
 
 	for _, item := range input {
-		results = append(results, network.SubResource{
-			ID: utils.String(item.(string)),
+		results = append(results, virtualnetworkgatewayconnections.SubResource{
+			Id: pointer.To(item.(string)),
 		})
 	}
 
 	return &results
 }
 
-func flattenVirtualNetworkGatewayConnectionNatRuleIds(input *[]network.SubResource) []interface{} {
-	results := make([]interface{}, 0)
+func flattenVirtualNetworkGatewayConnectionNatRuleIds(input *[]virtualnetworkgatewayconnections.SubResource) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		var id string
-		if item.ID != nil {
-			id = *item.ID
-		}
+		id := pointer.From(item.Id)
 
 		results = append(results, id)
 	}

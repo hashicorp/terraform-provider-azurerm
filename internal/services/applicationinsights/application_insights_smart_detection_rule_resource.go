@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package applicationinsights
@@ -11,14 +11,13 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	smartdetection "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentproactivedetectionapis"
-	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentproactivedetectionapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceApplicationInsightsSmartDetectionRule() *pluginsdk.Resource {
@@ -29,7 +28,7 @@ func resourceApplicationInsightsSmartDetectionRule() *pluginsdk.Resource {
 		Delete: resourceApplicationInsightsSmartDetectionRuleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := smartdetection.ParseProactiveDetectionConfigID(id)
+			_, err := componentproactivedetectionapis.ParseProactiveDetectionConfigID(id)
 			return err
 		}),
 
@@ -71,7 +70,7 @@ func resourceApplicationInsightsSmartDetectionRule() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: components.ValidateComponentID,
+				ValidateFunc: componentsapis.ValidateComponentID,
 			},
 
 			"enabled": {
@@ -95,33 +94,30 @@ func resourceApplicationInsightsSmartDetectionRule() *pluginsdk.Resource {
 	}
 }
 
-func resourceApplicationInsightsSmartDetectionRuleUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsSmartDetectionRuleUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppInsights.SmartDetectionRuleClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for AzureRM Application Insights Smart Detection Rule update.")
 
 	// The Smart Detection Rule name from the UI doesn't match what the API accepts.
 	// We'll have the user submit what the name looks like in the UI and convert it behind the scenes to match what the API accepts
 	name := convertUiNameToApiName(d.Get("name"))
 
-	appInsightsId, err := smartdetection.ParseComponentID(d.Get("application_insights_id").(string))
+	appInsightsId, err := componentproactivedetectionapis.ParseComponentID(d.Get("application_insights_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := smartdetection.NewProactiveDetectionConfigID(appInsightsId.SubscriptionId, appInsightsId.ResourceGroupName, appInsightsId.ComponentName, name)
+	id := componentproactivedetectionapis.NewProactiveDetectionConfigID(appInsightsId.SubscriptionId, appInsightsId.ResourceGroupName, appInsightsId.ComponentName, name)
 
-	smartDetectionRuleProperties := smartdetection.ApplicationInsightsComponentProactiveDetectionConfiguration{
+	smartDetectionRuleProperties := componentproactivedetectionapis.ApplicationInsightsComponentProactiveDetectionConfiguration{
 		Name:                           &name,
 		Enabled:                        pointer.To(d.Get("enabled").(bool)),
 		SendEmailsToSubscriptionOwners: pointer.To(d.Get("send_emails_to_subscription_owners").(bool)),
-		CustomEmails:                   utils.ExpandStringSlice(d.Get("additional_email_recipients").(*pluginsdk.Set).List()),
+		CustomEmails:                   pluginsdk.ExpandStringSlice(d.Get("additional_email_recipients").(*pluginsdk.Set).List()),
 	}
 
-	_, err = client.ProactiveDetectionConfigurationsUpdate(ctx, id, smartDetectionRuleProperties)
-	if err != nil {
+	if _, err = client.ProactiveDetectionConfigurationsUpdate(ctx, id, smartDetectionRuleProperties); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -130,17 +126,15 @@ func resourceApplicationInsightsSmartDetectionRuleUpdate(d *pluginsdk.ResourceDa
 	return resourceApplicationInsightsSmartDetectionRuleRead(d, meta)
 }
 
-func resourceApplicationInsightsSmartDetectionRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsSmartDetectionRuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppInsights.SmartDetectionRuleClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := smartdetection.ParseProactiveDetectionConfigID(d.Id())
+	id, err := componentproactivedetectionapis.ParseProactiveDetectionConfigID(d.Id())
 	if err != nil {
 		return err
 	}
-
-	log.Printf("[DEBUG] Reading AzureRM Application Insights Smart Detection Rule %s", id)
 
 	resp, err := client.ProactiveDetectionConfigurationsGet(ctx, *id)
 	if err != nil {
@@ -152,29 +146,28 @@ func resourceApplicationInsightsSmartDetectionRuleRead(d *pluginsdk.ResourceData
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("application_insights_id", smartdetection.NewComponentID(id.SubscriptionId, id.ResourceGroupName, id.ComponentName).ID())
+	d.Set("application_insights_id", componentproactivedetectionapis.NewComponentID(id.SubscriptionId, id.ResourceGroupName, id.ComponentName).ID())
 
 	if model := resp.Model; model != nil {
 		d.Set("name", model.Name)
 		d.Set("enabled", model.Enabled)
 		d.Set("send_emails_to_subscription_owners", model.SendEmailsToSubscriptionOwners)
-		d.Set("additional_email_recipients", utils.FlattenStringSlice(model.CustomEmails))
-
+		d.Set("additional_email_recipients", pluginsdk.FlattenSlice(model.CustomEmails))
 	}
 	return nil
 }
 
-func resourceApplicationInsightsSmartDetectionRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsSmartDetectionRuleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppInsights.SmartDetectionRuleClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := smartdetection.ParseProactiveDetectionConfigID(d.Id())
+	id, err := componentproactivedetectionapis.ParseProactiveDetectionConfigID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	log.Printf("[DEBUG] reseting AzureRM Application Insights Smart Detection Rule %s", id)
+	log.Printf("[DEBUG] resetting AzureRM Application Insights Smart Detection Rule %s", id)
 
 	resp, err := client.ProactiveDetectionConfigurationsGet(ctx, *id)
 	if err != nil {
@@ -189,16 +182,15 @@ func resourceApplicationInsightsSmartDetectionRuleDelete(d *pluginsdk.ResourceDa
 	if resp.Model == nil {
 		return fmt.Errorf("model was nil for %s", id)
 	}
-	smartDetectionRuleProperties := smartdetection.ApplicationInsightsComponentProactiveDetectionConfiguration{
+	smartDetectionRuleProperties := componentproactivedetectionapis.ApplicationInsightsComponentProactiveDetectionConfiguration{
 		Name:                           pointer.To(id.ConfigurationId),
 		Enabled:                        resp.Model.RuleDefinitions.IsEnabledByDefault,
 		SendEmailsToSubscriptionOwners: resp.Model.RuleDefinitions.SupportsEmailNotifications,
-		CustomEmails:                   utils.ExpandStringSlice([]interface{}{}),
+		CustomEmails:                   pluginsdk.ExpandStringSlice([]any{}),
 	}
 
 	// Application Insights defaults all the Smart Detection Rules so if a user wants to delete a rule, we'll update it back to it's default values.
-	_, err = client.ProactiveDetectionConfigurationsUpdate(ctx, *id, smartDetectionRuleProperties)
-	if err != nil {
+	if _, err = client.ProactiveDetectionConfigurationsUpdate(ctx, *id, smartDetectionRuleProperties); err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return nil
 		}
@@ -216,7 +208,7 @@ func smartDetectionRuleNameDiff(_, old string, new string, _ *pluginsdk.Resource
 	return strings.EqualFold(old, apiNew)
 }
 
-func convertUiNameToApiName(uiName interface{}) string {
+func convertUiNameToApiName(uiName any) string {
 	apiName := uiName.(string)
 	switch uiName.(string) {
 	case "Slow page load time":

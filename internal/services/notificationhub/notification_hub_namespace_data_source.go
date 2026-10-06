@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package notificationhub
@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2017-04-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2023-09-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -69,7 +69,7 @@ func dataSourceNotificationHubNamespace() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmDataSourceNotificationHubNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmDataSourceNotificationHubNamespaceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NotificationHubs.NamespacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -90,15 +90,14 @@ func resourceArmDataSourceNotificationHubNamespaceRead(d *pluginsdk.ResourceData
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(model.Location))
-		sku := flattenNotificationHubDataSourceNamespacesSku(model.Sku)
-		if err := d.Set("sku", sku); err != nil {
+		d.Set("location", location.NormalizeNilable(&model.Location))
+		if err := d.Set("sku", flattenNotificationHubDataSourceNamespacesSku(&model.Sku)); err != nil {
 			return fmt.Errorf("setting `sku`: %+v", err)
 		}
 
 		if props := model.Properties; props != nil {
 			d.Set("enabled", props.Enabled)
-			d.Set("namespace_type", string(pointer.From(props.NamespaceType)))
+			d.Set("namespace_type", pointer.FromEnum(props.NamespaceType))
 			d.Set("servicebus_endpoint", props.ServiceBusEndpoint)
 		}
 
@@ -108,13 +107,13 @@ func resourceArmDataSourceNotificationHubNamespaceRead(d *pluginsdk.ResourceData
 	return nil
 }
 
-func flattenNotificationHubDataSourceNamespacesSku(input *namespaces.Sku) []interface{} {
-	outputs := make([]interface{}, 0)
+func flattenNotificationHubDataSourceNamespacesSku(input *namespaces.Sku) []any {
+	outputs := make([]any, 0)
 	if input == nil {
 		return outputs
 	}
 
-	output := map[string]interface{}{
+	output := map[string]any{
 		"name": string(input.Name),
 	}
 	outputs = append(outputs, output)

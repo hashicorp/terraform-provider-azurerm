@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2019, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package tfjson
@@ -57,6 +57,10 @@ func (f *MetadataFunctions) Validate() error {
 	return nil
 }
 
+// UnmarshalJSON implements json.Unmarshaler for MetadataFunctions.
+//
+// As per established convention this method should only ever
+// be invoked *indirectly* via [encoding/json] library.
 func (f *MetadataFunctions) UnmarshalJSON(b []byte) error {
 	type rawFunctions MetadataFunctions
 	var functions rawFunctions
@@ -76,6 +80,14 @@ type FunctionSignature struct {
 	// Description is an optional human-readable description
 	// of the function
 	Description string `json:"description,omitempty"`
+
+	// Summary is an optional shortened description of the function
+	Summary string `json:"summary,omitempty"`
+
+	// DeprecationMessage is an optional message that indicates that the
+	// function should be considered deprecated and what actions should be
+	// performed by the practitioner to handle the deprecation.
+	DeprecationMessage string `json:"deprecation_message,omitempty"`
 
 	// ReturnType is the ctyjson representation of the function's
 	// return types based on supplying all parameters using

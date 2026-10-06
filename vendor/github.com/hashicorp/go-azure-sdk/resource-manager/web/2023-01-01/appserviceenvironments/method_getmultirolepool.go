@@ -47,7 +47,6 @@ func (c AppServiceEnvironmentsClient) GetMultiRolePool(ctx context.Context, id c
 
 	var model WorkerPoolResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

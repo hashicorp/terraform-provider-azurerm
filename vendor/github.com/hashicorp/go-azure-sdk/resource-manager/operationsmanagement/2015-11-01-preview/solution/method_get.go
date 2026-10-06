@@ -45,7 +45,6 @@ func (c SolutionClient) Get(ctx context.Context, id SolutionId) (result GetOpera
 
 	var model Solution
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

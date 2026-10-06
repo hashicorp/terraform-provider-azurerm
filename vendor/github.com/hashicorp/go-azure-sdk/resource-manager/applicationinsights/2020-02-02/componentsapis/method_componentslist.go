@@ -24,6 +24,18 @@ type ComponentsListCompleteResult struct {
 	Items              []ApplicationInsightsComponent
 }
 
+type ComponentsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ComponentsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ComponentsList ...
 func (c ComponentsAPIsClient) ComponentsList(ctx context.Context, id commonids.SubscriptionId) (result ComponentsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c ComponentsAPIsClient) ComponentsList(ctx context.Context, id commonids.S
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ComponentsListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Insights/components", id.ID()),
 	}
 
@@ -73,6 +86,7 @@ func (c ComponentsAPIsClient) ComponentsListCompleteMatchingPredicate(ctx contex
 
 	resp, err := c.ComponentsList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

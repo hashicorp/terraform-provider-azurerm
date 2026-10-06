@@ -173,26 +173,26 @@ func parseDynamicMemoryEnabled(input string) (*DynamicMemoryEnabled, error) {
 	return &out, nil
 }
 
-type Force string
+type ForceDelete string
 
 const (
-	ForceFalse Force = "false"
-	ForceTrue  Force = "true"
+	ForceDeleteFalse ForceDelete = "false"
+	ForceDeleteTrue  ForceDelete = "true"
 )
 
-func PossibleValuesForForce() []string {
+func PossibleValuesForForceDelete() []string {
 	return []string{
-		string(ForceFalse),
-		string(ForceTrue),
+		string(ForceDeleteFalse),
+		string(ForceDeleteTrue),
 	}
 }
 
-func (s *Force) UnmarshalJSON(bytes []byte) error {
+func (s *ForceDelete) UnmarshalJSON(bytes []byte) error {
 	var decoded string
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)
 	}
-	out, err := parseForce(decoded)
+	out, err := parseForceDelete(decoded)
 	if err != nil {
 		return fmt.Errorf("parsing %q: %+v", decoded, err)
 	}
@@ -200,17 +200,17 @@ func (s *Force) UnmarshalJSON(bytes []byte) error {
 	return nil
 }
 
-func parseForce(input string) (*Force, error) {
-	vals := map[string]Force{
-		"false": ForceFalse,
-		"true":  ForceTrue,
+func parseForceDelete(input string) (*ForceDelete, error) {
+	vals := map[string]ForceDelete{
+		"false": ForceDeleteFalse,
+		"true":  ForceDeleteTrue,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
 	// otherwise presume it's an undefined value and best-effort it
-	out := Force(input)
+	out := ForceDelete(input)
 	return &out, nil
 }
 

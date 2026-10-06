@@ -1,48 +1,71 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package loadtestservice
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 import (
 	"context"
+	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2022-12-01/loadtests"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.Resource = LoadTestResource{}
-var _ sdk.ResourceWithUpdate = LoadTestResource{}
+var (
+	_ sdk.ResourceWithUpdate        = LoadTestResource{}
+	_ sdk.ResourceWithCustomizeDiff = LoadTestResource{}
+)
 
 type LoadTestResource struct{}
 
-func (r LoadTestResource) ModelObject() interface{} {
+func (r LoadTestResource) ModelObject() any {
 	return &LoadTestResourceSchema{}
 }
 
 type LoadTestResourceSchema struct {
 	DataPlaneURI      string                                     `tfschema:"data_plane_uri"`
 	Description       string                                     `tfschema:"description"`
+	Encryption        []LoadTestEncryption                       `tfschema:"encryption"`
 	Identity          []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	Location          string                                     `tfschema:"location"`
 	Name              string                                     `tfschema:"name"`
 	ResourceGroupName string                                     `tfschema:"resource_group_name"`
-	Tags              map[string]interface{}                     `tfschema:"tags"`
+	Tags              map[string]any                             `tfschema:"tags"`
+}
+
+type LoadTestEncryption struct {
+	KeyURL   string                       `tfschema:"key_url"`
+	Identity []LoadTestEncryptionIdentity `tfschema:"identity"`
+}
+
+type LoadTestEncryptionIdentity struct {
+	IdentityID string `tfschema:"identity_id"`
+	Type       string `tfschema:"type"`
 }
 
 func (r LoadTestResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return loadtests.ValidateLoadTestID
 }
+
 func (r LoadTestResource) ResourceType() string {
 	return "azurerm_load_test"
 }
+
 func (r LoadTestResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.Location(),
@@ -53,14 +76,52 @@ func (r LoadTestResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
 		"description": {
-			ForceNew: true,
 			Optional: true,
 			Type:     pluginsdk.TypeString,
 		},
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
-		"tags":     commonschema.Tags(),
+		"encryption": {
+			ForceNew: true,
+			MaxItems: 1,
+			Optional: true,
+			Type:     pluginsdk.TypeList,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"key_url": {
+						ForceNew:     true,
+						Required:     true,
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"identity": {
+						ForceNew: true,
+						MaxItems: 1,
+						Required: true,
+						Type:     pluginsdk.TypeList,
+						Elem: &schema.Resource{
+							Schema: map[string]*schema.Schema{
+								"type": {
+									ForceNew:     true,
+									Required:     true,
+									Type:         pluginsdk.TypeString,
+									ValidateFunc: validation.StringInSlice(loadtests.PossibleValuesForType(), false),
+								},
+								"identity_id": {
+									ForceNew:     true,
+									Required:     true,
+									Type:         pluginsdk.TypeString,
+									ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		"tags": commonschema.Tags(),
 	}
 }
+
 func (r LoadTestResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"data_plane_uri": {
@@ -69,6 +130,26 @@ func (r LoadTestResource) Attributes() map[string]*pluginsdk.Schema {
 		},
 	}
 }
+
+func (r LoadTestResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 10 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			var model LoadTestResourceSchema
+			if err := metadata.DecodeDiff(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			// If these values are not yet known, we want to avoid returning an error and will instead handle it in the Create/Update methods
+			if metadata.IsKnownAt("encryption.0.identity.0.identity_id") && metadata.IsWhollyKnownAt("identity.0.identity_ids") {
+				return r.EnsureEncryptionIdentityIDExistsInIdentity(model)
+			}
+
+			return nil
+		},
+	}
+}
+
 func (r LoadTestResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -79,19 +160,20 @@ func (r LoadTestResource) Create() sdk.ResourceFunc {
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
-
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := loadtests.NewLoadTestID(subscriptionId, config.ResourceGroupName, config.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			var payload loadtests.LoadTestResource
@@ -99,7 +181,7 @@ func (r LoadTestResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("mapping schema model to sdk model: %+v", err)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -108,6 +190,7 @@ func (r LoadTestResource) Create() sdk.ResourceFunc {
 		},
 	}
 }
+
 func (r LoadTestResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
@@ -134,12 +217,16 @@ func (r LoadTestResource) Read() sdk.ResourceFunc {
 				if err := r.mapLoadTestResourceToLoadTestResourceSchema(*model, &schema); err != nil {
 					return fmt.Errorf("flattening model: %+v", err)
 				}
+				if property := model.Properties; property != nil {
+					schema.Description = pointer.From(property.Description)
+				}
 			}
 
 			return metadata.Encode(&schema)
 		},
 	}
 }
+
 func (r LoadTestResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -159,6 +246,7 @@ func (r LoadTestResource) Delete() sdk.ResourceFunc {
 		},
 	}
 }
+
 func (r LoadTestResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -189,21 +277,77 @@ func (r LoadTestResource) Update() sdk.ResourceFunc {
 	}
 }
 
-// nolint unparam
-func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestProperties(input LoadTestResourceSchema, output *loadtests.LoadTestProperties) error {
+func (r LoadTestResource) EnsureEncryptionIdentityIDExistsInIdentity(model LoadTestResourceSchema) error {
+	if len(model.Encryption) == 1 && len(model.Encryption[0].Identity) == 1 && model.Encryption[0].Identity[0].Type == string(loadtests.TypeUserAssigned) {
+		msg := "when `encryption.identity.type` is set to `UserAssigned`, the `encryption.identity.identity_id` provided must also be specified in the `identity.identity_ids` list"
+		if len(model.Identity) == 0 {
+			return errors.New(msg)
+		}
 
-	output.Description = &input.Description
+		existsInIdentity := slices.Contains(model.Identity[0].IdentityIds, model.Encryption[0].Identity[0].IdentityID)
+
+		if !existsInIdentity {
+			return errors.New(msg)
+		}
+	}
+
 	return nil
 }
 
-// nolint unparam
+//nolint:unparam
+func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestProperties(input LoadTestResourceSchema, output *loadtests.LoadTestProperties) error {
+	output.Description = &input.Description
+	output.Encryption = r.mapLoadTestResourceSchemaToLoadTestEncryption(input.Encryption)
+
+	return nil
+}
+
+func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestEncryption(input []LoadTestEncryption) *loadtests.EncryptionProperties {
+	if len(input) == 0 || input[0].KeyURL == "" {
+		return nil
+	}
+
+	attr := input[0]
+
+	encryptionIdentity := &loadtests.EncryptionPropertiesIdentity{}
+	if attrIdentity := attr.Identity; len(attrIdentity) > 0 {
+		encryptionIdentity.ResourceId = pointer.To(attrIdentity[0].IdentityID)
+		encryptionIdentity.Type = pointer.ToEnum[loadtests.Type](attrIdentity[0].Type)
+	}
+
+	return &loadtests.EncryptionProperties{
+		KeyURL:   pointer.To(attr.KeyURL),
+		Identity: encryptionIdentity,
+	}
+}
+
+//nolint:unparam
 func (r LoadTestResource) mapLoadTestPropertiesToLoadTestResourceSchema(input loadtests.LoadTestProperties, output *LoadTestResourceSchema) error {
 	output.DataPlaneURI = pointer.From(input.DataPlaneURI)
 	output.Description = pointer.From(input.Description)
+
+	if encryption := input.Encryption; encryption != nil {
+		output.Encryption = []LoadTestEncryption{{
+			KeyURL:   pointer.From(encryption.KeyURL),
+			Identity: make([]LoadTestEncryptionIdentity, 0),
+		}}
+		if encryptionIdentity := encryption.Identity; encryptionIdentity != nil {
+			output.Encryption[0].Identity = append(output.Encryption[0].Identity, LoadTestEncryptionIdentity{
+				IdentityID: pointer.From(encryptionIdentity.ResourceId),
+			})
+
+			if encryptionIdentity.Type != nil {
+				output.Encryption[0].Identity[0].Type = pointer.FromEnum(encryptionIdentity.Type)
+			}
+		}
+	}
 	return nil
 }
 
 func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestResource(input LoadTestResourceSchema, output *loadtests.LoadTestResource) error {
+	if err := r.EnsureEncryptionIdentityIDExistsInIdentity(input); err != nil {
+		return err
+	}
 
 	identity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(input.Identity)
 	if err != nil {
@@ -225,7 +369,6 @@ func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestResource(input Load
 }
 
 func (r LoadTestResource) mapLoadTestResourceToLoadTestResourceSchema(input loadtests.LoadTestResource, output *LoadTestResourceSchema) error {
-
 	identity, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(input.Identity)
 	if err != nil {
 		return fmt.Errorf("flattening Legacy SystemAndUserAssigned Identity: %+v", err)
@@ -246,7 +389,6 @@ func (r LoadTestResource) mapLoadTestResourceToLoadTestResourceSchema(input load
 }
 
 func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestResourceUpdate(input LoadTestResourceSchema, output *loadtests.LoadTestResourceUpdate) error {
-
 	identity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(input.Identity)
 	if err != nil {
 		return fmt.Errorf("expanding Legacy SystemAndUserAssigned Identity: %+v", err)
@@ -254,18 +396,9 @@ func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestResourceUpdate(inpu
 	output.Identity = identity
 
 	output.Tags = tags.Expand(input.Tags)
-	return nil
-}
 
-// nolint: unused
-func (r LoadTestResource) mapLoadTestResourceUpdateToLoadTestResourceSchema(input loadtests.LoadTestResourceUpdate, output *LoadTestResourceSchema) error {
-
-	identity, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(input.Identity)
-	if err != nil {
-		return fmt.Errorf("flattening Legacy SystemAndUserAssigned Identity: %+v", err)
+	output.Properties = &loadtests.LoadTestResourceUpdateProperties{
+		Description: pointer.To(input.Description),
 	}
-	output.Identity = identity
-
-	output.Tags = tags.Flatten(input.Tags)
 	return nil
 }
