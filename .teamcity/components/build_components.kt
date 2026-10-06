@@ -7,7 +7,10 @@ import jetbrains.buildServer.configs.kotlin.triggers.schedule
 
 // NOTE: in time this could be pulled out into a separate Kotlin package
 
-const val useTeamCityGoTest = true
+// TeamCity's own Go support names each test after its package and doesn't group a test's output in
+// the build log, so tests are reported by `internal/tools/teamcity-test-reporter` instead (see
+// RunAcceptanceTests) - enabling this as well would report every test twice.
+const val useTeamCityGoTest = false
 
 fun BuildFeatures.Golang() {
     if (useTeamCityGoTest) {
@@ -92,7 +95,7 @@ fun BuildSteps.RunAcceptanceTests(packageName: String) {
     var servicePath = "./internal/services/%s/...".format(packageName)
     step(ScriptBuildStep {
         name = "Run Tests"
-        scriptContent = "go test -v \"$servicePath\" -timeout=\"%TIMEOUT%h\" -test.parallel=\"%PARALLELISM%\" -run=\"%TEST_PREFIX%\" -json"
+        scriptContent = "go test -v \"$servicePath\" -timeout=\"%TIMEOUT%h\" -test.parallel=\"%PARALLELISM%\" -run=\"%TEST_PREFIX%\" -json | go run ./internal/tools/teamcity-test-reporter"
         conditions {
             equals("env.SCHEDULE_MATCHES", "true")
         }
@@ -103,11 +106,10 @@ fun BuildSteps.RunAcceptanceTestsForPullRequest(packageName: String) {
     var servicePath = "./internal/services/%s/...".format(packageName)
     step(ScriptBuildStep {
         name = "Run Tests"
-        scriptContent = "go test -v \"$servicePath\" -timeout=\"%TIMEOUT%h\" -test.parallel=\"%PARALLELISM%\" -run=\"%TEST_PREFIX%\" -json"
+        scriptContent = "go test -v \"$servicePath\" -timeout=\"%TIMEOUT%h\" -test.parallel=\"%PARALLELISM%\" -run=\"%TEST_PREFIX%\" -json | go run ./internal/tools/teamcity-test-reporter"
         conditions {
             equals("env.SCHEDULE_MATCHES", "true")
         }
-        executionMode = BuildStep.ExecutionMode.RUN_ON_FAILURE
     })
 }
 
@@ -119,6 +121,7 @@ fun BuildSteps.PostTestResultsToGitHubPullRequest() {
         conditions {
             equals("env.SCHEDULE_MATCHES", "true")
         }
+        executionMode = BuildStep.ExecutionMode.RUN_ON_FAILURE
     })
 }
 
