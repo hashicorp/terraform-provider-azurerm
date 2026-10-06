@@ -608,26 +608,24 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta any
 		profile.OsDiskType = pointer.ToEnum[agentpools.OSDiskType](osDiskType)
 	}
 
-	subnetIDsToLock := make([]string, 0)
+	resourceIDsToLock := make([]string, 0)
 	if podSubnetID != nil {
 		// Lock the pod subnet and its vnet to avoid a race condition with AKS setting
 		// vnet ownership across node pools that share the same virtual network.
 		profile.PodSubnetID = pointer.To(podSubnetID.ID())
-		podVnetID := commonids.NewVirtualNetworkID(podSubnetID.SubscriptionId, podSubnetID.ResourceGroupName, podSubnetID.VirtualNetworkName)
-		subnetIDsToLock = append(subnetIDsToLock, podVnetID.ID())
-		subnetIDsToLock = append(subnetIDsToLock, podSubnetID.ID())
+		resourceIDsToLock = append(resourceIDsToLock, commonids.NewVirtualNetworkID(podSubnetID.SubscriptionId, podSubnetID.ResourceGroupName, podSubnetID.VirtualNetworkName).ID())
+		resourceIDsToLock = append(resourceIDsToLock, podSubnetID.ID())
 	}
 
 	if nodeSubnetID != nil {
 		// Lock the node subnet and its vnet to avoid a race condition with AKS setting
 		// vnet ownership across node pools that share the same virtual network.
 		profile.VnetSubnetID = pointer.To(nodeSubnetID.ID())
-		nodeVnetID := commonids.NewVirtualNetworkID(nodeSubnetID.SubscriptionId, nodeSubnetID.ResourceGroupName, nodeSubnetID.VirtualNetworkName)
-		subnetIDsToLock = append(subnetIDsToLock, nodeVnetID.ID())
-		subnetIDsToLock = append(subnetIDsToLock, nodeSubnetID.ID())
+		resourceIDsToLock = append(resourceIDsToLock, commonids.NewVirtualNetworkID(nodeSubnetID.SubscriptionId, nodeSubnetID.ResourceGroupName, nodeSubnetID.VirtualNetworkName).ID())
+		resourceIDsToLock = append(resourceIDsToLock, nodeSubnetID.ID())
 	}
-	locks.MultipleByID(&subnetIDsToLock)
-	defer locks.UnlockMultipleByID(&subnetIDsToLock)
+	locks.MultipleByID(&resourceIDsToLock)
+	defer locks.UnlockMultipleByID(&resourceIDsToLock)
 
 	if hostGroupID := d.Get("host_group_id").(string); hostGroupID != "" {
 		profile.HostGroupID = pointer.To(hostGroupID)
