@@ -121,9 +121,9 @@ func (id FirewallRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftCache", "Microsoft.Cache", "Microsoft.Cache"),
 		resourceids.StaticSegment("staticRedis", "redis", "redis"),
-		resourceids.UserSpecifiedSegment("redisName", "cacheName"),
+		resourceids.UserSpecifiedSegment("redisName", "redisName"),
 		resourceids.StaticSegment("staticFirewallRules", "firewallRules", "firewallRules"),
-		resourceids.UserSpecifiedSegment("firewallRuleName", "ruleName"),
+		resourceids.UserSpecifiedSegment("firewallRuleName", "firewallRuleName"),
 	}
 }
 

@@ -131,7 +131,7 @@ func (id PolicyId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticPolicySets", "policySets", "policySets"),
 		resourceids.UserSpecifiedSegment("policySetName", "policySetName"),
 		resourceids.StaticSegment("staticPolicies", "policies", "policies"),
-		resourceids.UserSpecifiedSegment("policyName", "name"),
+		resourceids.UserSpecifiedSegment("policyName", "policyName"),
 	}
 }
 

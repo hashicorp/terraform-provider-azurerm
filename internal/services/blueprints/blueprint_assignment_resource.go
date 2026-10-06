@@ -1,11 +1,13 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package blueprints
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -18,11 +20,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceBlueprintAssignment() *pluginsdk.Resource {
@@ -86,14 +88,10 @@ func resourceBlueprintAssignment() *pluginsdk.Resource {
 			},
 
 			"lock_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(assignment.AssignmentLockModeNone),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(assignment.AssignmentLockModeNone),
-					string(assignment.AssignmentLockModeAllResourcesReadOnly),
-					string(assignment.AssignmentLockModeAllResourcesDoNotDelete),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(assignment.AssignmentLockModeNone),
+				ValidateFunc: validation.StringInSlice(assignment.PossibleValuesForAssignmentLockMode(), false),
 				// The first character of value returned by the service is always in lower case.
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -140,7 +138,7 @@ func resourceBlueprintAssignment() *pluginsdk.Resource {
 	}
 }
 
-func resourceBlueprintAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBlueprintAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Blueprints.AssignmentsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -149,14 +147,16 @@ func resourceBlueprintAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 	blueprintId := d.Get("version_id").(string)
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("checking for an existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			resp, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(resp.HttpResponse) {
+					return fmt.Errorf("checking for an existing %s: %+v", id, err)
+				}
 			}
-		}
-		if !response.WasNotFound(resp.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_blueprint_assignment", id.ID())
+			if !response.WasNotFound(resp.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_blueprint_assignment", id.ID())
+			}
 		}
 	}
 
@@ -171,22 +171,22 @@ func resourceBlueprintAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 	if lockModeRaw, ok := d.GetOk("lock_mode"); ok {
 		assignmentLockSettings := &assignment.AssignmentLockSettings{}
 		lockMode := lockModeRaw.(string)
-		assignmentLockSettings.Mode = pointer.To(assignment.AssignmentLockMode(lockMode))
+		assignmentLockSettings.Mode = pointer.ToEnum[assignment.AssignmentLockMode](lockMode)
 		if lockMode != "None" {
-			excludedPrincipalsRaw := d.Get("lock_exclude_principals").([]interface{})
+			excludedPrincipalsRaw := d.Get("lock_exclude_principals").([]any)
 			if len(excludedPrincipalsRaw) != 0 {
-				assignmentLockSettings.ExcludedPrincipals = utils.ExpandStringSlice(excludedPrincipalsRaw)
+				assignmentLockSettings.ExcludedPrincipals = pluginsdk.ExpandStringSlice(excludedPrincipalsRaw)
 			}
 
-			excludedActionsRaw := d.Get("lock_exclude_actions").([]interface{})
+			excludedActionsRaw := d.Get("lock_exclude_actions").([]any)
 			if len(excludedActionsRaw) != 0 {
-				assignmentLockSettings.ExcludedActions = utils.ExpandStringSlice(excludedActionsRaw)
+				assignmentLockSettings.ExcludedActions = pluginsdk.ExpandStringSlice(excludedActionsRaw)
 			}
 		}
 		payload.Properties.Locks = assignmentLockSettings
 	}
 
-	i, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
+	i, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -208,6 +208,8 @@ func resourceBlueprintAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
+	d.SetId(id.ID())
+
 	deadline, ok := ctx.Deadline()
 	if !ok {
 		return fmt.Errorf("internal-error: context had no deadline")
@@ -228,12 +230,10 @@ func resourceBlueprintAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("failed waiting for Blueprint Assignment %s: %+v", id.String(), err)
 	}
 
-	d.SetId(id.ID())
-
 	return resourceBlueprintAssignmentRead(d, meta)
 }
 
-func resourceBlueprintAssignmentRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBlueprintAssignmentRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Blueprints.AssignmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -251,14 +251,14 @@ func resourceBlueprintAssignmentRead(d *pluginsdk.ResourceData, meta interface{}
 			return nil
 		}
 
-		return fmt.Errorf("Read failed for Blueprint Assignment (%q): %+v", id.String(), err)
+		return fmt.Errorf("read failed for Blueprint Assignment (%q): %+v", id.String(), err)
 	}
 
 	d.Set("name", id.BlueprintAssignmentName)
 	if model := resp.Model; model != nil {
 		p := model.Properties
 
-		d.Set("location", azure.NormalizeLocation(model.Location))
+		d.Set("location", location.Normalize(model.Location))
 		d.Set("target_subscription_id", pointer.From(p.Scope))
 		d.Set("version_id", pointer.From(p.BlueprintId))
 		d.Set("display_name", pointer.From(p.DisplayName))
@@ -282,7 +282,7 @@ func resourceBlueprintAssignmentRead(d *pluginsdk.ResourceData, meta interface{}
 
 		// Locks
 		if locks := p.Locks; locks != nil {
-			d.Set("lock_mode", string(pointer.From(locks.Mode)))
+			d.Set("lock_mode", pointer.FromEnum(locks.Mode))
 			if locks.ExcludedPrincipals != nil {
 				d.Set("lock_exclude_principals", locks.ExcludedPrincipals)
 			}
@@ -303,7 +303,7 @@ func resourceBlueprintAssignmentRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceBlueprintAssignmentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBlueprintAssignmentDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Blueprints.AssignmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -319,24 +319,12 @@ func resourceBlueprintAssignmentDelete(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("failed to delete Blueprint Assignment %q from scope %q: %+v", id.BlueprintAssignmentName, id.ResourceScope, err)
 	}
 
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
-	}
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending: []string{
-			string(assignment.AssignmentProvisioningStateWaiting),
-			string(assignment.AssignmentProvisioningStateValidating),
-			string(assignment.AssignmentProvisioningStateLocking),
-			string(assignment.AssignmentProvisioningStateDeleting),
-			string(assignment.AssignmentProvisioningStateFailed),
-		},
-		Target:  []string{"NotFound"},
-		Refresh: blueprintAssignmentDeleteStateRefreshFunc(ctx, client, *id),
-		Timeout: time.Until(deadline),
-	}
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for Blueprint Assignment %q: %+v", id.String(), err)
+	poller := custompollers.NewEventualConsistencyPoller(1, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.Get(pollerCtx, *id)
+		return resp.HttpResponse, err
+	}, custompollers.DefaultDeletionEventualConsistencyPollerOptions())
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to be deleted: %+v", id, err)
 	}
 
 	return nil

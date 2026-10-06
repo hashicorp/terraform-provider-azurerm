@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package acctest
@@ -34,9 +34,9 @@ func RandomWithPrefix(name string) string {
 	return fmt.Sprintf("%s-%d", name, RandInt())
 }
 
-// RandIntRange returns a random integer between min (inclusive) and max (exclusive)
-func RandIntRange(min int, max int) int {
-	return rand.Intn(max-min) + min
+// RandIntRange returns a random integer between minInt (inclusive) and maxInt (exclusive)
+func RandIntRange(minInt int, maxInt int) int {
+	return rand.Intn(maxInt-minInt) + minInt
 }
 
 // RandString generates a random alphanumeric string of the length specified

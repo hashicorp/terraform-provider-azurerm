@@ -139,7 +139,7 @@ func (id RecipientEmailId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticNotifications", "notifications", "notifications"),
 		resourceids.ConstantSegment("notificationName", PossibleValuesForNotificationName(), "AccountClosedPublisher"),
 		resourceids.StaticSegment("staticRecipientEmails", "recipientEmails", "recipientEmails"),
-		resourceids.UserSpecifiedSegment("recipientEmailName", "email"),
+		resourceids.UserSpecifiedSegment("recipientEmailName", "recipientEmailName"),
 	}
 }
 

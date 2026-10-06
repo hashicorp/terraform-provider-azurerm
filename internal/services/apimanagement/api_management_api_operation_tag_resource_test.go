@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement_test
@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -49,6 +50,10 @@ func TestAccApiManagementApiOperationTag_requiresImport(t *testing.T) {
 }
 
 func TestAccApiManagementApiOperationTag_basic_withDisplayNameBackwardCompatibility(t *testing.T) {
+	if features.SixPointOh() {
+		t.Skip("Skipping since `display_name` is deprecated and will be removed in 6.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_operation_tag", "test")
 	r := ApiManagementApiOperationTagResource{}
 
@@ -64,6 +69,10 @@ func TestAccApiManagementApiOperationTag_basic_withDisplayNameBackwardCompatibil
 }
 
 func TestAccApiManagementApiOperationTag_requiresImport_withDisplayNameBackwardCompatibility(t *testing.T) {
+	if features.SixPointOh() {
+		t.Skip("Skipping since `display_name` is deprecated and will be removed in 6.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_operation_tag", "test")
 	r := ApiManagementApiOperationTagResource{}
 
@@ -79,6 +88,10 @@ func TestAccApiManagementApiOperationTag_requiresImport_withDisplayNameBackwardC
 }
 
 func TestAccApiManagementApiOperationTag_update_withDisplayNameBackwardCompatibility(t *testing.T) {
+	if features.SixPointOh() {
+		t.Skip("Skipping since `display_name` is deprecated and will be removed in 6.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_operation_tag", "test")
 	r := ApiManagementApiOperationTagResource{}
 

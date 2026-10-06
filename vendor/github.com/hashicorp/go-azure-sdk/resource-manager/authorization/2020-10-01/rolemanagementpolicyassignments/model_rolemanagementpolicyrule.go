@@ -3,6 +3,7 @@ package rolemanagementpolicyassignments
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -26,9 +27,9 @@ func (s BaseRoleManagementPolicyRuleImpl) RoleManagementPolicyRule() BaseRoleMan
 
 var _ RoleManagementPolicyRule = RawRoleManagementPolicyRuleImpl{}
 
-// RawRoleManagementPolicyRuleImpl is returned when the Discriminated Value doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+// RawRoleManagementPolicyRuleImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawRoleManagementPolicyRuleImpl struct {
 	roleManagementPolicyRule BaseRoleManagementPolicyRuleImpl
 	Type                     string
@@ -37,6 +38,10 @@ type RawRoleManagementPolicyRuleImpl struct {
 
 func (s RawRoleManagementPolicyRuleImpl) RoleManagementPolicyRule() BaseRoleManagementPolicyRuleImpl {
 	return s.roleManagementPolicyRule
+}
+
+func (s RawRoleManagementPolicyRuleImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
 }
 
 func UnmarshalRoleManagementPolicyRuleImplementation(input []byte) (RoleManagementPolicyRule, error) {
@@ -52,6 +57,46 @@ func UnmarshalRoleManagementPolicyRuleImplementation(input []byte) (RoleManageme
 	var value string
 	if v, ok := temp["ruleType"]; ok {
 		value = fmt.Sprintf("%v", v)
+	}
+
+	if strings.EqualFold(value, "RoleManagementPolicyApprovalRule") {
+		var out RoleManagementPolicyApprovalRule
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into RoleManagementPolicyApprovalRule: %+v", err)
+		}
+		return out, nil
+	}
+
+	if strings.EqualFold(value, "RoleManagementPolicyAuthenticationContextRule") {
+		var out RoleManagementPolicyAuthenticationContextRule
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into RoleManagementPolicyAuthenticationContextRule: %+v", err)
+		}
+		return out, nil
+	}
+
+	if strings.EqualFold(value, "RoleManagementPolicyEnablementRule") {
+		var out RoleManagementPolicyEnablementRule
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into RoleManagementPolicyEnablementRule: %+v", err)
+		}
+		return out, nil
+	}
+
+	if strings.EqualFold(value, "RoleManagementPolicyExpirationRule") {
+		var out RoleManagementPolicyExpirationRule
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into RoleManagementPolicyExpirationRule: %+v", err)
+		}
+		return out, nil
+	}
+
+	if strings.EqualFold(value, "RoleManagementPolicyNotificationRule") {
+		var out RoleManagementPolicyNotificationRule
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into RoleManagementPolicyNotificationRule: %+v", err)
+		}
+		return out, nil
 	}
 
 	var parent BaseRoleManagementPolicyRuleImpl

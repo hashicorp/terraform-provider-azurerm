@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package schema
@@ -198,7 +198,7 @@ func (a SingleNestedAttribute) GetNestedObject() fwschema.NestedAttributeObject 
 	}
 }
 
-// GetNestingMode always returns NestingModeList.
+// GetNestingMode always returns NestingModeSingle.
 func (a SingleNestedAttribute) GetNestingMode() fwschema.NestingMode {
 	return fwschema.NestingModeSingle
 }
@@ -238,6 +238,23 @@ func (a SingleNestedAttribute) IsRequired() bool {
 // IsSensitive returns the Sensitive field value.
 func (a SingleNestedAttribute) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// IsWriteOnly returns false as write-only attributes are not supported in data source schemas.
+func (a SingleNestedAttribute) IsWriteOnly() bool {
+	return false
+}
+
+// IsRequiredForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a SingleNestedAttribute) IsRequiredForImport() bool {
+	return false
+}
+
+// IsOptionalForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a SingleNestedAttribute) IsOptionalForImport() bool {
+	return false
 }
 
 // ObjectValidators returns the Validators field value.

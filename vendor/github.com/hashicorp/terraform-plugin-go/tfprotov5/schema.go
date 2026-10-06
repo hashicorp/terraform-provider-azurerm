@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2020, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package tfprotov5
@@ -119,6 +119,11 @@ type SchemaBlock struct {
 	// experiences. Providers should set it when deprecating blocks in
 	// preparation for these tools.
 	Deprecated bool
+
+	// DeprecationMessage is human-readable documentation explaining why
+	// the block is deprecated and what users should do instead. This
+	// message will be surfaced to users in deprecation warnings.
+	DeprecationMessage string
 }
 
 // ValueType returns the tftypes.Type for a SchemaBlock.
@@ -221,6 +226,17 @@ type SchemaAttribute struct {
 	// experiences. Providers should set it when deprecating attributes in
 	// preparation for these tools.
 	Deprecated bool
+
+	// WriteOnly, when set to true, indicates that the attribute value will
+	// be provided via configuration and must be omitted from plan and state response objects. WriteOnly
+	// must be combined with Optional or Required, and is only valid for managed
+	// resource schemas.
+	WriteOnly bool
+
+	// DeprecationMessage is human-readable documentation explaining why
+	// the attribute is deprecated and what users should do instead. This
+	// message will be surfaced to users in deprecation warnings.
+	DeprecationMessage string
 }
 
 // ValueType returns the tftypes.Type for a SchemaAttribute.

@@ -7,18 +7,21 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/helpers/validatordiag"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+
+	"github.com/hashicorp/terraform-plugin-framework-validators/helpers/validatordiag"
 )
 
 // This type of validator must satisfy all types.
 var (
 	_ validator.Bool    = ExactlyOneOfValidator{}
+	_ validator.Float32 = ExactlyOneOfValidator{}
 	_ validator.Float64 = ExactlyOneOfValidator{}
+	_ validator.Int32   = ExactlyOneOfValidator{}
 	_ validator.Int64   = ExactlyOneOfValidator{}
 	_ validator.List    = ExactlyOneOfValidator{}
 	_ validator.Map     = ExactlyOneOfValidator{}
@@ -26,6 +29,7 @@ var (
 	_ validator.Object  = ExactlyOneOfValidator{}
 	_ validator.Set     = ExactlyOneOfValidator{}
 	_ validator.String  = ExactlyOneOfValidator{}
+	_ validator.Dynamic = ExactlyOneOfValidator{}
 )
 
 // ExactlyOneOfValidator is the underlying struct implementing ExactlyOneOf.
@@ -135,7 +139,35 @@ func (av ExactlyOneOfValidator) ValidateBool(ctx context.Context, req validator.
 	resp.Diagnostics.Append(validateResp.Diagnostics...)
 }
 
+func (av ExactlyOneOfValidator) ValidateFloat32(ctx context.Context, req validator.Float32Request, resp *validator.Float32Response) {
+	validateReq := ExactlyOneOfValidatorRequest{
+		Config:         req.Config,
+		ConfigValue:    req.ConfigValue,
+		Path:           req.Path,
+		PathExpression: req.PathExpression,
+	}
+	validateResp := &ExactlyOneOfValidatorResponse{}
+
+	av.Validate(ctx, validateReq, validateResp)
+
+	resp.Diagnostics.Append(validateResp.Diagnostics...)
+}
+
 func (av ExactlyOneOfValidator) ValidateFloat64(ctx context.Context, req validator.Float64Request, resp *validator.Float64Response) {
+	validateReq := ExactlyOneOfValidatorRequest{
+		Config:         req.Config,
+		ConfigValue:    req.ConfigValue,
+		Path:           req.Path,
+		PathExpression: req.PathExpression,
+	}
+	validateResp := &ExactlyOneOfValidatorResponse{}
+
+	av.Validate(ctx, validateReq, validateResp)
+
+	resp.Diagnostics.Append(validateResp.Diagnostics...)
+}
+
+func (av ExactlyOneOfValidator) ValidateInt32(ctx context.Context, req validator.Int32Request, resp *validator.Int32Response) {
 	validateReq := ExactlyOneOfValidatorRequest{
 		Config:         req.Config,
 		ConfigValue:    req.ConfigValue,
@@ -234,6 +266,20 @@ func (av ExactlyOneOfValidator) ValidateSet(ctx context.Context, req validator.S
 }
 
 func (av ExactlyOneOfValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	validateReq := ExactlyOneOfValidatorRequest{
+		Config:         req.Config,
+		ConfigValue:    req.ConfigValue,
+		Path:           req.Path,
+		PathExpression: req.PathExpression,
+	}
+	validateResp := &ExactlyOneOfValidatorResponse{}
+
+	av.Validate(ctx, validateReq, validateResp)
+
+	resp.Diagnostics.Append(validateResp.Diagnostics...)
+}
+
+func (av ExactlyOneOfValidator) ValidateDynamic(ctx context.Context, req validator.DynamicRequest, resp *validator.DynamicResponse) {
 	validateReq := ExactlyOneOfValidatorRequest{
 		Config:         req.Config,
 		ConfigValue:    req.ConfigValue,

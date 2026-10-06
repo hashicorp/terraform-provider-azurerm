@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics_test
@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type StreamAnalyticsOutputCosmosDBResource struct{}
@@ -84,6 +84,7 @@ func TestAccStreamAnalyticsOutputCosmosDB_requiresImport(t *testing.T) {
 		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
+
 func (r StreamAnalyticsOutputCosmosDBResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := outputs.ParseOutputID(state.ID)
 	if err != nil {
@@ -93,15 +94,14 @@ func (r StreamAnalyticsOutputCosmosDBResource) Exists(ctx context.Context, clien
 	resp, err := client.StreamAnalytics.OutputsClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r StreamAnalyticsOutputCosmosDBResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -112,11 +112,10 @@ resource "azurerm_stream_analytics_output_cosmosdb" "test" {
   cosmosdb_sql_database_id = azurerm_cosmosdb_sql_database.test.id
   container_name           = azurerm_cosmosdb_sql_container.test.name
 }
-`, template, data.RandomString, data.RandomInteger)
+`, r.template(data), data.RandomString, data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputCosmosDBResource) updated(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -142,11 +141,10 @@ resource "azurerm_stream_analytics_output_cosmosdb" "test" {
   cosmosdb_sql_database_id = azurerm_cosmosdb_sql_database.updated.id
   container_name           = azurerm_cosmosdb_sql_container.updated.name
 }
-`, template, data.RandomString, data.RandomInteger)
+`, r.template(data), data.RandomString, data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputCosmosDBResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -158,12 +156,12 @@ resource "azurerm_stream_analytics_output_cosmosdb" "test" {
   container_name           = azurerm_cosmosdb_sql_container.test.name
   document_id              = "exampledocumentid"
   partition_key            = "examplekey"
+  authentication_mode      = "Msi"
 }
-`, template, data.RandomString, data.RandomInteger)
+`, r.template(data), data.RandomString, data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputCosmosDBResource) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -174,7 +172,7 @@ resource "azurerm_stream_analytics_output_cosmosdb" "import" {
   cosmosdb_sql_database_id = azurerm_stream_analytics_output_cosmosdb.test.cosmosdb_sql_database_id
   container_name           = azurerm_stream_analytics_output_cosmosdb.test.container_name
 }
-`, template)
+`, r.template(data))
 }
 
 func (r StreamAnalyticsOutputCosmosDBResource) template(data acceptance.TestData) string {

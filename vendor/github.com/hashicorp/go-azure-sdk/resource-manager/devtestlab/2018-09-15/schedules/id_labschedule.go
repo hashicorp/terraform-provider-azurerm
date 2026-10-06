@@ -123,7 +123,7 @@ func (id LabScheduleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticLabs", "labs", "labs"),
 		resourceids.UserSpecifiedSegment("labName", "labName"),
 		resourceids.StaticSegment("staticSchedules", "schedules", "schedules"),
-		resourceids.UserSpecifiedSegment("scheduleName", "name"),
+		resourceids.UserSpecifiedSegment("scheduleName", "scheduleName"),
 	}
 }
 

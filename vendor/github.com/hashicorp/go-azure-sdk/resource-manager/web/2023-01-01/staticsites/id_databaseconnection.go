@@ -121,7 +121,7 @@ func (id DatabaseConnectionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticStaticSites", "staticSites", "staticSites"),
-		resourceids.UserSpecifiedSegment("staticSiteName", "name"),
+		resourceids.UserSpecifiedSegment("staticSiteName", "staticSiteName"),
 		resourceids.StaticSegment("staticDatabaseConnections", "databaseConnections", "databaseConnections"),
 		resourceids.UserSpecifiedSegment("databaseConnectionName", "databaseConnectionName"),
 	}

@@ -21,11 +21,27 @@ client.Client.Authorizer = authorizer
 ```
 
 
+### Example Usage: `AppliancesClient.AppliancesGetTelemetryConfig`
+
+```go
+ctx := context.TODO()
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+
+read, err := client.AppliancesGetTelemetryConfig(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
 ### Example Usage: `AppliancesClient.CreateOrUpdate`
 
 ```go
 ctx := context.TODO()
-id := appliances.NewApplianceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := appliances.NewApplianceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applianceName")
 
 payload := appliances.Appliance{
 	// ...
@@ -42,7 +58,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := appliances.NewApplianceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := appliances.NewApplianceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applianceName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,25 +70,9 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := appliances.NewApplianceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := appliances.NewApplianceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applianceName")
 
 read, err := client.Get(ctx, id)
-if err != nil {
-	// handle the error
-}
-if model := read.Model; model != nil {
-	// do something with the model/response object
-}
-```
-
-
-### Example Usage: `AppliancesClient.GetTelemetryConfig`
-
-```go
-ctx := context.TODO()
-id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
-
-read, err := client.GetTelemetryConfig(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -86,7 +86,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := appliances.NewUpgradeGraphID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "upgradeGraph")
+id := appliances.NewUpgradeGraphID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applianceName", "upgradeGraphName")
 
 read, err := client.GetUpgradeGraph(ctx, id)
 if err != nil {
@@ -136,7 +136,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := appliances.NewApplianceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := appliances.NewApplianceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applianceName")
 
 read, err := client.ListClusterUserCredential(ctx, id)
 if err != nil {
@@ -152,7 +152,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := appliances.NewApplianceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := appliances.NewApplianceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applianceName")
 
 read, err := client.ListKeys(ctx, id, appliances.DefaultListKeysOperationOptions())
 if err != nil {
@@ -168,7 +168,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := appliances.NewApplianceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := appliances.NewApplianceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "applianceName")
 
 payload := appliances.PatchableAppliance{
 	// ...

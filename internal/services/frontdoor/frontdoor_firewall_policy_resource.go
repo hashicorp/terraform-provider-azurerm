@@ -1,27 +1,28 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package frontdoor
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2020-04-01/webapplicationfirewallpolicies"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceFrontDoorFirewallPolicy() *pluginsdk.Resource {
@@ -37,7 +38,7 @@ func resourceFrontDoorFirewallPolicy() *pluginsdk.Resource {
 		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.WebApplicationFirewallPolicyIDInsensitively(id)
+			_, err := webapplicationfirewallpolicies.ParseFrontDoorWebApplicationFirewallPolicyIDInsensitively(id)
 			return err
 		}),
 
@@ -67,13 +68,10 @@ func resourceFrontDoorFirewallPolicy() *pluginsdk.Resource {
 			},
 
 			"mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(webapplicationfirewallpolicies.PolicyModeDetection),
-					string(webapplicationfirewallpolicies.PolicyModePrevention),
-				}, false),
-				Default: string(webapplicationfirewallpolicies.PolicyModePrevention),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForPolicyMode(), false),
+				Default:      string(webapplicationfirewallpolicies.PolicyModePrevention),
 			},
 
 			"redirect_url": {
@@ -125,12 +123,9 @@ func resourceFrontDoorFirewallPolicy() *pluginsdk.Resource {
 						},
 
 						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(webapplicationfirewallpolicies.RuleTypeMatchRule),
-								string(webapplicationfirewallpolicies.RuleTypeRateLimitRule),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForRuleType(), false),
 						},
 
 						"rate_limit_duration_in_minutes": {
@@ -146,14 +141,9 @@ func resourceFrontDoorFirewallPolicy() *pluginsdk.Resource {
 						},
 
 						"action": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(webapplicationfirewallpolicies.ActionTypeAllow),
-								string(webapplicationfirewallpolicies.ActionTypeBlock),
-								string(webapplicationfirewallpolicies.ActionTypeLog),
-								string(webapplicationfirewallpolicies.ActionTypeRedirect),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForActionType(), false),
 						},
 
 						"match_condition": {
@@ -163,19 +153,9 @@ func resourceFrontDoorFirewallPolicy() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"match_variable": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(webapplicationfirewallpolicies.MatchVariableCookies),
-											string(webapplicationfirewallpolicies.MatchVariablePostArgs),
-											string(webapplicationfirewallpolicies.MatchVariableQueryString),
-											string(webapplicationfirewallpolicies.MatchVariableRemoteAddr),
-											string(webapplicationfirewallpolicies.MatchVariableRequestBody),
-											string(webapplicationfirewallpolicies.MatchVariableRequestHeader),
-											string(webapplicationfirewallpolicies.MatchVariableRequestMethod),
-											string(webapplicationfirewallpolicies.MatchVariableRequestUri),
-											string(webapplicationfirewallpolicies.MatchVariableSocketAddr),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForMatchVariable(), false),
 									},
 
 									"match_values": {
@@ -189,22 +169,9 @@ func resourceFrontDoorFirewallPolicy() *pluginsdk.Resource {
 									},
 
 									"operator": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(webapplicationfirewallpolicies.OperatorAny),
-											string(webapplicationfirewallpolicies.OperatorBeginsWith),
-											string(webapplicationfirewallpolicies.OperatorContains),
-											string(webapplicationfirewallpolicies.OperatorEndsWith),
-											string(webapplicationfirewallpolicies.OperatorEqual),
-											string(webapplicationfirewallpolicies.OperatorGeoMatch),
-											string(webapplicationfirewallpolicies.OperatorGreaterThan),
-											string(webapplicationfirewallpolicies.OperatorGreaterThanOrEqual),
-											string(webapplicationfirewallpolicies.OperatorIPMatch),
-											string(webapplicationfirewallpolicies.OperatorLessThan),
-											string(webapplicationfirewallpolicies.OperatorLessThanOrEqual),
-											string(webapplicationfirewallpolicies.OperatorRegEx),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForOperator(), false),
 									},
 
 									"selector": {
@@ -224,15 +191,8 @@ func resourceFrontDoorFirewallPolicy() *pluginsdk.Resource {
 										Optional: true,
 										MaxItems: 5,
 										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{
-												string(webapplicationfirewallpolicies.TransformTypeLowercase),
-												string(webapplicationfirewallpolicies.TransformTypeRemoveNulls),
-												string(webapplicationfirewallpolicies.TransformTypeTrim),
-												string(webapplicationfirewallpolicies.TransformTypeUppercase),
-												string(webapplicationfirewallpolicies.TransformTypeUrlDecode),
-												string(webapplicationfirewallpolicies.TransformTypeUrlEncode),
-											}, false),
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForTransformType(), false),
 										},
 									},
 								},
@@ -267,25 +227,14 @@ func resourceFrontDoorFirewallPolicy() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"match_variable": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(webapplicationfirewallpolicies.ManagedRuleExclusionMatchVariableQueryStringArgNames),
-											string(webapplicationfirewallpolicies.ManagedRuleExclusionMatchVariableRequestBodyPostArgNames),
-											string(webapplicationfirewallpolicies.ManagedRuleExclusionMatchVariableRequestCookieNames),
-											string(webapplicationfirewallpolicies.ManagedRuleExclusionMatchVariableRequestHeaderNames),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForManagedRuleExclusionMatchVariable(), false),
 									},
 									"operator": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(webapplicationfirewallpolicies.ManagedRuleExclusionSelectorMatchOperatorContains),
-											string(webapplicationfirewallpolicies.ManagedRuleExclusionSelectorMatchOperatorEndsWith),
-											string(webapplicationfirewallpolicies.ManagedRuleExclusionSelectorMatchOperatorEquals),
-											string(webapplicationfirewallpolicies.ManagedRuleExclusionSelectorMatchOperatorEqualsAny),
-											string(webapplicationfirewallpolicies.ManagedRuleExclusionSelectorMatchOperatorStartsWith),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForManagedRuleExclusionSelectorMatchOperator(), false),
 									},
 									"selector": {
 										Type:         pluginsdk.TypeString,
@@ -315,25 +264,14 @@ func resourceFrontDoorFirewallPolicy() *pluginsdk.Resource {
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 												"match_variable": {
-													Type:     pluginsdk.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(webapplicationfirewallpolicies.ManagedRuleExclusionMatchVariableQueryStringArgNames),
-														string(webapplicationfirewallpolicies.ManagedRuleExclusionMatchVariableRequestBodyPostArgNames),
-														string(webapplicationfirewallpolicies.ManagedRuleExclusionMatchVariableRequestCookieNames),
-														string(webapplicationfirewallpolicies.ManagedRuleExclusionMatchVariableRequestHeaderNames),
-													}, false),
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForManagedRuleExclusionMatchVariable(), false),
 												},
 												"operator": {
-													Type:     pluginsdk.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(webapplicationfirewallpolicies.ManagedRuleExclusionSelectorMatchOperatorContains),
-														string(webapplicationfirewallpolicies.ManagedRuleExclusionSelectorMatchOperatorEndsWith),
-														string(webapplicationfirewallpolicies.ManagedRuleExclusionSelectorMatchOperatorEquals),
-														string(webapplicationfirewallpolicies.ManagedRuleExclusionSelectorMatchOperatorEqualsAny),
-														string(webapplicationfirewallpolicies.ManagedRuleExclusionSelectorMatchOperatorStartsWith),
-													}, false),
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForManagedRuleExclusionSelectorMatchOperator(), false),
 												},
 												"selector": {
 													Type:         pluginsdk.TypeString,
@@ -369,25 +307,14 @@ func resourceFrontDoorFirewallPolicy() *pluginsdk.Resource {
 													Elem: &pluginsdk.Resource{
 														Schema: map[string]*pluginsdk.Schema{
 															"match_variable": {
-																Type:     pluginsdk.TypeString,
-																Required: true,
-																ValidateFunc: validation.StringInSlice([]string{
-																	string(webapplicationfirewallpolicies.ManagedRuleExclusionMatchVariableQueryStringArgNames),
-																	string(webapplicationfirewallpolicies.ManagedRuleExclusionMatchVariableRequestBodyPostArgNames),
-																	string(webapplicationfirewallpolicies.ManagedRuleExclusionMatchVariableRequestCookieNames),
-																	string(webapplicationfirewallpolicies.ManagedRuleExclusionMatchVariableRequestHeaderNames),
-																}, false),
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForManagedRuleExclusionMatchVariable(), false),
 															},
 															"operator": {
-																Type:     pluginsdk.TypeString,
-																Required: true,
-																ValidateFunc: validation.StringInSlice([]string{
-																	string(webapplicationfirewallpolicies.ManagedRuleExclusionSelectorMatchOperatorContains),
-																	string(webapplicationfirewallpolicies.ManagedRuleExclusionSelectorMatchOperatorEndsWith),
-																	string(webapplicationfirewallpolicies.ManagedRuleExclusionSelectorMatchOperatorEquals),
-																	string(webapplicationfirewallpolicies.ManagedRuleExclusionSelectorMatchOperatorEqualsAny),
-																	string(webapplicationfirewallpolicies.ManagedRuleExclusionSelectorMatchOperatorStartsWith),
-																}, false),
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForManagedRuleExclusionSelectorMatchOperator(), false),
 															},
 															"selector": {
 																Type:         pluginsdk.TypeString,
@@ -399,14 +326,9 @@ func resourceFrontDoorFirewallPolicy() *pluginsdk.Resource {
 												},
 
 												"action": {
-													Type:     pluginsdk.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(webapplicationfirewallpolicies.ActionTypeAllow),
-														string(webapplicationfirewallpolicies.ActionTypeBlock),
-														string(webapplicationfirewallpolicies.ActionTypeLog),
-														string(webapplicationfirewallpolicies.ActionTypeRedirect),
-													}, false),
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForActionType(), false),
 												},
 											},
 										},
@@ -428,34 +350,48 @@ func resourceFrontDoorFirewallPolicy() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v any) error {
+			if IsFrontDoorFullyRetired() {
+				return fmt.Errorf("%s", FullyRetiredMessage)
+			}
+
+			// New resources are not supported, and since these fields are 'ForceNew' we also need to block changing them as
+			// the re-create would fail with the create error from the service API...
+			if IsFrontDoorDeprecatedForCreation() && d.HasChanges("name", "resource_group_name") {
+				return fmt.Errorf("%s", CreateDeprecationMessage)
+			}
+
+			return nil
+		}),
 	}
 }
 
-func resourceFrontDoorFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceFrontDoorFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Frontdoor.FrontDoorsPolicyClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing args for Front Door Firewall Policy")
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	id := webapplicationfirewallpolicies.NewFrontDoorWebApplicationFirewallPolicyID(subscriptionId, resourceGroup, name)
 
 	if d.IsNewResource() {
-		existing, err := client.PoliciesGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing Front Door Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.PoliciesGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing Front Door Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+				}
 			}
-		}
-		if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
-			return tf.ImportAsExistsError("azurerm_frontdoor_firewall_policy", id.ID())
+			if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
+				return tf.ImportAsExistsError("azurerm_frontdoor_firewall_policy", id.ID())
+			}
 		}
 	}
 
-	location := azure.NormalizeLocation("Global")
+	location := location.Normalize("Global")
 	enabled := webapplicationfirewallpolicies.PolicyEnabledStateDisabled
 	if d.Get("enabled").(bool) {
 		enabled = webapplicationfirewallpolicies.PolicyEnabledStateEnabled
@@ -464,14 +400,14 @@ func resourceFrontDoorFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta
 	redirectUrl := d.Get("redirect_url").(string)
 	customBlockResponseStatusCode := d.Get("custom_block_response_status_code").(int)
 	customBlockResponseBody := d.Get("custom_block_response_body").(string)
-	customRules := d.Get("custom_rule").([]interface{})
-	managedRules := d.Get("managed_rule").([]interface{})
+	customRules := d.Get("custom_rule").([]any)
+	managedRules := d.Get("managed_rule").([]any)
 
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
 	frontdoorWebApplicationFirewallPolicy := webapplicationfirewallpolicies.WebApplicationFirewallPolicy{
-		Name:     utils.String(name),
-		Location: utils.String(location),
+		Name:     pointer.To(name),
+		Location: pointer.To(location),
 		Properties: &webapplicationfirewallpolicies.WebApplicationFirewallPolicyProperties{
 			PolicySettings: &webapplicationfirewallpolicies.PolicySettings{
 				EnabledState: &enabled,
@@ -484,24 +420,30 @@ func resourceFrontDoorFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if redirectUrl != "" {
-		frontdoorWebApplicationFirewallPolicy.Properties.PolicySettings.RedirectUrl = utils.String(redirectUrl)
+		frontdoorWebApplicationFirewallPolicy.Properties.PolicySettings.RedirectURL = pointer.To(redirectUrl)
 	}
 	if customBlockResponseBody != "" {
-		frontdoorWebApplicationFirewallPolicy.Properties.PolicySettings.CustomBlockResponseBody = utils.String(customBlockResponseBody)
+		frontdoorWebApplicationFirewallPolicy.Properties.PolicySettings.CustomBlockResponseBody = pointer.To(customBlockResponseBody)
 	}
 	if customBlockResponseStatusCode > 0 {
-		frontdoorWebApplicationFirewallPolicy.Properties.PolicySettings.CustomBlockResponseStatusCode = utils.Int64(int64(customBlockResponseStatusCode))
+		frontdoorWebApplicationFirewallPolicy.Properties.PolicySettings.CustomBlockResponseStatusCode = pointer.To(int64(customBlockResponseStatusCode))
 	}
 
-	if err := client.PoliciesCreateOrUpdateThenPoll(ctx, id, frontdoorWebApplicationFirewallPolicy); err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.PoliciesCreateOrUpdateCallbackThenPoll(ctx, id, frontdoorWebApplicationFirewallPolicy, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.PoliciesCreateOrUpdateThenPoll(ctx, id, frontdoorWebApplicationFirewallPolicy); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
-	d.SetId(id.ID())
 	return resourceFrontDoorFirewallPolicyRead(d, meta)
 }
 
-func resourceFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Frontdoor.FrontDoorsPolicyClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -525,8 +467,8 @@ func resourceFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta interfa
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		if location := model.Location; location != nil {
-			d.Set("location", azure.NormalizeLocation(*location))
+		if loc := model.Location; loc != nil {
+			d.Set("location", location.Normalize(*loc))
 		}
 		if properties := model.Properties; properties != nil {
 			if policy := properties.PolicySettings; policy != nil {
@@ -536,7 +478,7 @@ func resourceFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta interfa
 				if policy.Mode != nil {
 					d.Set("mode", string(*policy.Mode))
 				}
-				d.Set("redirect_url", policy.RedirectUrl)
+				d.Set("redirect_url", policy.RedirectURL)
 				d.Set("custom_block_response_status_code", policy.CustomBlockResponseStatusCode)
 				d.Set("custom_block_response_body", policy.CustomBlockResponseBody)
 			}
@@ -554,12 +496,14 @@ func resourceFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta interfa
 			}
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
-func resourceFrontDoorFirewallPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceFrontDoorFirewallPolicyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Frontdoor.FrontDoorsPolicyClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -576,7 +520,7 @@ func resourceFrontDoorFirewallPolicyDelete(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func expandFrontDoorFirewallCustomRules(input []interface{}) *webapplicationfirewallpolicies.CustomRuleList {
+func expandFrontDoorFirewallCustomRules(input []any) *webapplicationfirewallpolicies.CustomRuleList {
 	if len(input) == 0 {
 		return nil
 	}
@@ -584,7 +528,7 @@ func expandFrontDoorFirewallCustomRules(input []interface{}) *webapplicationfire
 	output := make([]webapplicationfirewallpolicies.CustomRule, 0)
 
 	for _, cr := range input {
-		custom := cr.(map[string]interface{})
+		custom := cr.(map[string]any)
 
 		enabled := webapplicationfirewallpolicies.CustomRuleEnabledStateDisabled
 		if custom["enabled"].(bool) {
@@ -596,16 +540,16 @@ func expandFrontDoorFirewallCustomRules(input []interface{}) *webapplicationfire
 		ruleType := custom["type"].(string)
 		rateLimitDurationInMinutes := int64(custom["rate_limit_duration_in_minutes"].(int))
 		rateLimitThreshold := int64(custom["rate_limit_threshold"].(int))
-		matchConditions := expandFrontDoorFirewallMatchConditions(custom["match_condition"].([]interface{}))
+		matchConditions := expandFrontDoorFirewallMatchConditions(custom["match_condition"].([]any))
 		action := custom["action"].(string)
 
 		customRule := webapplicationfirewallpolicies.CustomRule{
-			Name:                       utils.String(name),
+			Name:                       pointer.To(name),
 			Priority:                   priority,
 			EnabledState:               &enabled,
 			RuleType:                   webapplicationfirewallpolicies.RuleType(ruleType),
-			RateLimitDurationInMinutes: utils.Int64(rateLimitDurationInMinutes),
-			RateLimitThreshold:         utils.Int64(rateLimitThreshold),
+			RateLimitDurationInMinutes: pointer.To(rateLimitDurationInMinutes),
+			RateLimitThreshold:         pointer.To(rateLimitThreshold),
 			MatchConditions:            matchConditions,
 			Action:                     webapplicationfirewallpolicies.ActionType(action),
 		}
@@ -617,7 +561,7 @@ func expandFrontDoorFirewallCustomRules(input []interface{}) *webapplicationfire
 	}
 }
 
-func expandFrontDoorFirewallMatchConditions(input []interface{}) []webapplicationfirewallpolicies.MatchCondition {
+func expandFrontDoorFirewallMatchConditions(input []any) []webapplicationfirewallpolicies.MatchCondition {
 	if len(input) == 0 {
 		return nil
 	}
@@ -625,19 +569,18 @@ func expandFrontDoorFirewallMatchConditions(input []interface{}) []webapplicatio
 	result := make([]webapplicationfirewallpolicies.MatchCondition, 0)
 
 	for _, v := range input {
-		match := v.(map[string]interface{})
+		match := v.(map[string]any)
 
 		matchVariable := match["match_variable"].(string)
 		selector := match["selector"].(string)
 		operator := match["operator"].(string)
-		negateCondition := match["negation_condition"].(bool)
-		matchValues := match["match_values"].([]interface{})
-		transforms := match["transforms"].([]interface{})
+		matchValues := match["match_values"].([]any)
+		transforms := match["transforms"].([]any)
 
 		matchCondition := webapplicationfirewallpolicies.MatchCondition{
 			Operator:        webapplicationfirewallpolicies.Operator(operator),
-			NegateCondition: &negateCondition,
-			MatchValue:      *utils.ExpandStringSlice(matchValues),
+			NegateCondition: pointer.To(match["negation_condition"].(bool)),
+			MatchValue:      *pluginsdk.ExpandStringSlice(matchValues),
 			Transforms:      expandFrontDoorFirewallTransforms(transforms),
 		}
 
@@ -645,7 +588,7 @@ func expandFrontDoorFirewallMatchConditions(input []interface{}) []webapplicatio
 			matchCondition.MatchVariable = webapplicationfirewallpolicies.MatchVariable(matchVariable)
 		}
 		if selector != "" {
-			matchCondition.Selector = utils.String(selector)
+			matchCondition.Selector = pointer.To(selector)
 		}
 
 		result = append(result, matchCondition)
@@ -654,7 +597,7 @@ func expandFrontDoorFirewallMatchConditions(input []interface{}) []webapplicatio
 	return result
 }
 
-func expandFrontDoorFirewallTransforms(input []interface{}) *[]webapplicationfirewallpolicies.TransformType {
+func expandFrontDoorFirewallTransforms(input []any) *[]webapplicationfirewallpolicies.TransformType {
 	if len(input) == 0 {
 		return nil
 	}
@@ -667,7 +610,7 @@ func expandFrontDoorFirewallTransforms(input []interface{}) *[]webapplicationfir
 	return &result
 }
 
-func expandFrontDoorFirewallManagedRules(input []interface{}) *webapplicationfirewallpolicies.ManagedRuleSetList {
+func expandFrontDoorFirewallManagedRules(input []any) *webapplicationfirewallpolicies.ManagedRuleSetList {
 	if len(input) == 0 {
 		return nil
 	}
@@ -675,23 +618,21 @@ func expandFrontDoorFirewallManagedRules(input []interface{}) *webapplicationfir
 	managedRules := make([]webapplicationfirewallpolicies.ManagedRuleSet, 0)
 
 	for _, mr := range input {
-		managedRule := mr.(map[string]interface{})
+		managedRule := mr.(map[string]any)
 
 		ruleType := managedRule["type"].(string)
 		version := managedRule["version"].(string)
-		overrides := managedRule["override"].([]interface{})
-		exclusions := managedRule["exclusion"].([]interface{})
 
 		managedRuleSet := webapplicationfirewallpolicies.ManagedRuleSet{
 			RuleSetType:    ruleType,
 			RuleSetVersion: version,
 		}
 
-		if exclusions := expandFrontDoorFirewallManagedRuleGroupExclusion(exclusions); exclusions != nil {
+		if exclusions := expandFrontDoorFirewallManagedRuleGroupExclusion(managedRule["exclusion"].([]any)); exclusions != nil {
 			managedRuleSet.Exclusions = exclusions
 		}
 
-		if ruleGroupOverrides := expandFrontDoorFirewallManagedRuleGroupOverride(overrides); ruleGroupOverrides != nil {
+		if ruleGroupOverrides := expandFrontDoorFirewallManagedRuleGroupOverride(managedRule["override"].([]any)); ruleGroupOverrides != nil {
 			managedRuleSet.RuleGroupOverrides = ruleGroupOverrides
 		}
 
@@ -703,14 +644,14 @@ func expandFrontDoorFirewallManagedRules(input []interface{}) *webapplicationfir
 	}
 }
 
-func expandFrontDoorFirewallManagedRuleGroupExclusion(input []interface{}) *[]webapplicationfirewallpolicies.ManagedRuleExclusion {
+func expandFrontDoorFirewallManagedRuleGroupExclusion(input []any) *[]webapplicationfirewallpolicies.ManagedRuleExclusion {
 	if len(input) == 0 {
 		return nil
 	}
 
 	managedRuleExclusions := make([]webapplicationfirewallpolicies.ManagedRuleExclusion, 0)
 	for _, v := range input {
-		exclusion := v.(map[string]interface{})
+		exclusion := v.(map[string]any)
 
 		matchVariable := exclusion["match_variable"].(string)
 		operator := exclusion["operator"].(string)
@@ -728,28 +669,26 @@ func expandFrontDoorFirewallManagedRuleGroupExclusion(input []interface{}) *[]we
 	return &managedRuleExclusions
 }
 
-func expandFrontDoorFirewallManagedRuleGroupOverride(input []interface{}) *[]webapplicationfirewallpolicies.ManagedRuleGroupOverride {
+func expandFrontDoorFirewallManagedRuleGroupOverride(input []any) *[]webapplicationfirewallpolicies.ManagedRuleGroupOverride {
 	if len(input) == 0 {
 		return nil
 	}
 
 	managedRuleGroupOverrides := make([]webapplicationfirewallpolicies.ManagedRuleGroupOverride, 0)
 	for _, v := range input {
-		override := v.(map[string]interface{})
+		override := v.(map[string]any)
 
 		ruleGroupName := override["rule_group_name"].(string)
-		rules := override["rule"].([]interface{})
-		exclusions := override["exclusion"].([]interface{})
 
 		managedRuleGroupOverride := webapplicationfirewallpolicies.ManagedRuleGroupOverride{
 			RuleGroupName: ruleGroupName,
 		}
 
-		if exclusions := expandFrontDoorFirewallManagedRuleGroupExclusion(exclusions); exclusions != nil {
+		if exclusions := expandFrontDoorFirewallManagedRuleGroupExclusion(override["exclusion"].([]any)); exclusions != nil {
 			managedRuleGroupOverride.Exclusions = exclusions
 		}
 
-		if managedRuleOverride := expandFrontDoorFirewallRuleOverride(rules); managedRuleOverride != nil {
+		if managedRuleOverride := expandFrontDoorFirewallRuleOverride(override["rule"].([]any)); managedRuleOverride != nil {
 			managedRuleGroupOverride.Rules = managedRuleOverride
 		}
 
@@ -759,30 +698,28 @@ func expandFrontDoorFirewallManagedRuleGroupOverride(input []interface{}) *[]web
 	return &managedRuleGroupOverrides
 }
 
-func expandFrontDoorFirewallRuleOverride(input []interface{}) *[]webapplicationfirewallpolicies.ManagedRuleOverride {
+func expandFrontDoorFirewallRuleOverride(input []any) *[]webapplicationfirewallpolicies.ManagedRuleOverride {
 	if len(input) == 0 {
 		return nil
 	}
 
 	managedRuleOverrides := make([]webapplicationfirewallpolicies.ManagedRuleOverride, 0)
 	for _, v := range input {
-		rule := v.(map[string]interface{})
+		rule := v.(map[string]any)
 
 		enabled := webapplicationfirewallpolicies.ManagedRuleEnabledStateDisabled
 		if rule["enabled"].(bool) {
 			enabled = webapplicationfirewallpolicies.ManagedRuleEnabledStateEnabled
 		}
 		ruleId := rule["rule_id"].(string)
-		action := webapplicationfirewallpolicies.ActionType(rule["action"].(string))
-		exclusions := rule["exclusion"].([]interface{})
 
 		managedRuleOverride := webapplicationfirewallpolicies.ManagedRuleOverride{
 			RuleId:       ruleId,
 			EnabledState: &enabled,
-			Action:       &action,
+			Action:       pointer.ToEnum[webapplicationfirewallpolicies.ActionType](rule["action"].(string)),
 		}
 
-		if exclusions := expandFrontDoorFirewallManagedRuleGroupExclusion(exclusions); exclusions != nil {
+		if exclusions := expandFrontDoorFirewallManagedRuleGroupExclusion(rule["exclusion"].([]any)); exclusions != nil {
 			managedRuleOverride.Exclusions = exclusions
 		}
 
@@ -792,14 +729,14 @@ func expandFrontDoorFirewallRuleOverride(input []interface{}) *[]webapplicationf
 	return &managedRuleOverrides
 }
 
-func flattenFrontDoorFirewallCustomRules(input *webapplicationfirewallpolicies.CustomRuleList) []interface{} {
+func flattenFrontDoorFirewallCustomRules(input *webapplicationfirewallpolicies.CustomRuleList) []any {
 	if input == nil || input.Rules == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	results := make([]interface{}, 0)
+	results := make([]any, 0)
 	for _, r := range *input.Rules {
-		output := make(map[string]interface{})
+		output := make(map[string]any)
 
 		output["name"] = r.Name
 		output["type"] = string(r.RuleType)
@@ -824,14 +761,14 @@ func flattenFrontDoorFirewallCustomRules(input *webapplicationfirewallpolicies.C
 	return results
 }
 
-func flattenFrontDoorFirewallMatchConditions(condition []webapplicationfirewallpolicies.MatchCondition) []interface{} {
+func flattenFrontDoorFirewallMatchConditions(condition []webapplicationfirewallpolicies.MatchCondition) []any {
 	if condition == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	results := make([]interface{}, 0)
+	results := make([]any, 0)
 	for _, c := range condition {
-		output := make(map[string]interface{})
+		output := make(map[string]any)
 
 		output["match_variable"] = string(c.MatchVariable)
 		output["operator"] = string(c.Operator)
@@ -852,14 +789,14 @@ func flattenFrontDoorFirewallMatchConditions(condition []webapplicationfirewallp
 	return results
 }
 
-func flattenFrontDoorFirewallManagedRules(input *webapplicationfirewallpolicies.ManagedRuleSetList) []interface{} {
+func flattenFrontDoorFirewallManagedRules(input *webapplicationfirewallpolicies.ManagedRuleSetList) []any {
 	if input == nil || input.ManagedRuleSets == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	results := make([]interface{}, 0)
+	results := make([]any, 0)
 	for _, r := range *input.ManagedRuleSets {
-		output := make(map[string]interface{})
+		output := make(map[string]any)
 
 		output["type"] = r.RuleSetType
 
@@ -879,14 +816,14 @@ func flattenFrontDoorFirewallManagedRules(input *webapplicationfirewallpolicies.
 	return results
 }
 
-func flattenFrontDoorFirewallExclusions(managedRuleExclusion *[]webapplicationfirewallpolicies.ManagedRuleExclusion) []interface{} {
+func flattenFrontDoorFirewallExclusions(managedRuleExclusion *[]webapplicationfirewallpolicies.ManagedRuleExclusion) []any {
 	if managedRuleExclusion == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	results := make([]interface{}, 0)
+	results := make([]any, 0)
 	for _, o := range *managedRuleExclusion {
-		output := make(map[string]interface{})
+		output := make(map[string]any)
 
 		output["match_variable"] = o.MatchVariable
 		output["operator"] = o.SelectorMatchOperator
@@ -898,14 +835,14 @@ func flattenFrontDoorFirewallExclusions(managedRuleExclusion *[]webapplicationfi
 	return results
 }
 
-func flattenFrontDoorFirewallOverrides(groupOverride *[]webapplicationfirewallpolicies.ManagedRuleGroupOverride) []interface{} {
+func flattenFrontDoorFirewallOverrides(groupOverride *[]webapplicationfirewallpolicies.ManagedRuleGroupOverride) []any {
 	if groupOverride == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	results := make([]interface{}, 0)
+	results := make([]any, 0)
 	for _, o := range *groupOverride {
-		output := make(map[string]interface{})
+		output := make(map[string]any)
 
 		output["rule_group_name"] = o.RuleGroupName
 
@@ -923,14 +860,14 @@ func flattenFrontDoorFirewallOverrides(groupOverride *[]webapplicationfirewallpo
 	return results
 }
 
-func flattenArmFrontdoorFirewallRules(override *[]webapplicationfirewallpolicies.ManagedRuleOverride) []interface{} {
+func flattenArmFrontdoorFirewallRules(override *[]webapplicationfirewallpolicies.ManagedRuleOverride) []any {
 	if override == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	results := make([]interface{}, 0)
+	results := make([]any, 0)
 	for _, o := range *override {
-		output := make(map[string]interface{})
+		output := make(map[string]any)
 
 		if o.EnabledState != nil {
 			output["enabled"] = *o.EnabledState == webapplicationfirewallpolicies.ManagedRuleEnabledStateEnabled

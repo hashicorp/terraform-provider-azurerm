@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sdk
@@ -23,7 +23,7 @@ import (
 //
 // var person Person
 // if err := metadata.Decode(&person); err != nil { .. }
-func (rmd ResourceMetaData) Decode(input interface{}) error {
+func (rmd ResourceMetaData) Decode(input any) error {
 	if rmd.ResourceData == nil {
 		return fmt.Errorf("ResourceData was nil")
 	}
@@ -33,7 +33,7 @@ func (rmd ResourceMetaData) Decode(input interface{}) error {
 // DecodeDiff decodes the Terraform Schema into the specified object in the
 // same manner as Decode, but using the ResourceDiff as a source. Intended
 // for use in CustomizeDiff functions.
-func (rmd ResourceMetaData) DecodeDiff(input interface{}) error {
+func (rmd ResourceMetaData) DecodeDiff(input any) error {
 	if rmd.ResourceDiff == nil {
 		return fmt.Errorf("ResourceDiff was nil")
 	}
@@ -42,13 +42,13 @@ func (rmd ResourceMetaData) DecodeDiff(input interface{}) error {
 
 // stateRetriever is a convenience wrapper around the Plugin SDK to be able to test it more accurately
 type stateRetriever interface {
-	Get(key string) interface{}
-	GetOk(key string) (interface{}, bool)
-	GetOkExists(key string) (interface{}, bool)
+	Get(key string) any
+	GetOk(key string) (any, bool)
+	GetOkExists(key string) (any, bool)
 }
 
-func decodeReflectedType(input interface{}, stateRetriever stateRetriever, debugLogger Logger) error {
-	if reflect.TypeOf(input).Kind() != reflect.Ptr {
+func decodeReflectedType(input any, stateRetriever stateRetriever, debugLogger Logger) error {
+	if reflect.TypeOf(input).Kind() != reflect.Pointer {
 		return fmt.Errorf("need a pointer")
 	}
 
@@ -79,7 +79,7 @@ func decodeReflectedType(input interface{}, stateRetriever stateRetriever, debug
 	return nil
 }
 
-func setValue(input, tfschemaValue interface{}, index int, fieldName string, debugLogger Logger) (errOut error) {
+func setValue(input, tfschemaValue any, index int, fieldName string, debugLogger Logger) (errOut error) {
 	debugLogger.Infof("setting value for %q..", fieldName)
 	defer func() {
 		if r := recover(); r != nil {
@@ -155,7 +155,7 @@ func setValue(input, tfschemaValue interface{}, index int, fieldName string, deb
 		return setListValue(input, index, fieldName, v.List(), debugLogger)
 	}
 
-	if mapConfig, ok := tfschemaValue.(map[string]interface{}); ok {
+	if mapConfig, ok := tfschemaValue.(map[string]any); ok {
 		n := reflect.ValueOf(input).Elem().Field(index)
 		if n.Kind() == reflect.Pointer {
 			tmp := reflect.New(n.Type().Elem())
@@ -191,7 +191,7 @@ func setValue(input, tfschemaValue interface{}, index int, fieldName string, deb
 		return nil
 	}
 
-	if mapConfig, ok := tfschemaValue.(*map[string]interface{}); ok {
+	if mapConfig, ok := tfschemaValue.(*map[string]any); ok {
 		n := reflect.ValueOf(input).Elem().Field(index).Type()
 
 		tmp := reflect.New(n.Elem())
@@ -220,22 +220,22 @@ func setValue(input, tfschemaValue interface{}, index int, fieldName string, deb
 		return nil
 	}
 
-	if v, ok := tfschemaValue.([]interface{}); ok {
+	if v, ok := tfschemaValue.([]any); ok {
 		return setListValue(input, index, fieldName, v, debugLogger)
 	}
 
 	return nil
 }
 
-func setListValue(input interface{}, index int, fieldName string, v []interface{}, debugLogger Logger) error {
+func setListValue(input any, index int, fieldName string, v []any, debugLogger Logger) error {
 	fieldType := reflect.ValueOf(input).Elem().Field(index).Type()
 	var slice reflect.Value
-	if reflect.TypeOf(input).Elem().Field(index).Type.Kind() != reflect.Ptr {
+	if reflect.TypeOf(input).Elem().Field(index).Type.Kind() != reflect.Pointer {
 		slice = reflect.MakeSlice(reflect.TypeOf(input).Elem().Field(index).Type, len(v), len(v))
 	} else {
 		slice = reflect.MakeSlice(fieldType.Elem(), len(v), len(v))
 	}
-	isPtr := fieldType.Kind() == reflect.Ptr
+	isPtr := fieldType.Kind() == reflect.Pointer
 	var dereferenceFieldType reflect.Kind
 	if isPtr {
 		dereferenceFieldType = fieldType.Elem().Elem().Kind()
@@ -301,7 +301,6 @@ func setListValue(input interface{}, index int, fieldName string, v []interface{
 			}
 			tmp.Elem().Set(slice)
 			reflect.ValueOf(input).Elem().Field(index).Set(tmp)
-
 		}
 
 	default:
@@ -310,7 +309,7 @@ func setListValue(input interface{}, index int, fieldName string, v []interface{
 			tmp := reflect.New(fieldType.Elem())
 			valueToSet := reflect.MakeSlice(tmp.Elem().Type(), 0, 0)
 			for _, mapVal := range v {
-				if test, ok := mapVal.(map[string]interface{}); ok && test != nil {
+				if test, ok := mapVal.(map[string]any); ok && test != nil {
 					elem := reflect.New(fieldType.Elem().Elem())
 					debugLogger.Infof("element %s", elem.String())
 					for j := 0; j < elem.Type().Elem().NumField(); j++ {
@@ -334,7 +333,7 @@ func setListValue(input interface{}, index int, fieldName string, v []interface{
 						elem = elem.Elem()
 					}
 
-					if valueToSet.Kind() == reflect.Ptr {
+					if valueToSet.Kind() == reflect.Pointer {
 						valueToSet.Elem().Set(reflect.Append(valueToSet.Elem(), elem))
 					} else {
 						valueToSet = reflect.Append(valueToSet, elem)
@@ -351,7 +350,7 @@ func setListValue(input interface{}, index int, fieldName string, v []interface{
 			debugLogger.Infof("List Type '%s'", valueToSet.Type().String())
 
 			for _, mapVal := range v {
-				if test, ok := mapVal.(map[string]interface{}); ok && test != nil {
+				if test, ok := mapVal.(map[string]any); ok && test != nil {
 					elem := reflect.New(fieldType.Elem())
 					debugLogger.Infof("element '%s'", elem.String())
 					for j := 0; j < elem.Type().Elem().NumField(); j++ {
@@ -375,7 +374,7 @@ func setListValue(input interface{}, index int, fieldName string, v []interface{
 						elem = elem.Elem()
 					}
 
-					if valueToSet.Kind() == reflect.Ptr {
+					if valueToSet.Kind() == reflect.Pointer {
 						valueToSet.Elem().Set(reflect.Append(valueToSet.Elem(), elem))
 					} else {
 						valueToSet = reflect.Append(valueToSet, elem)

@@ -1,21 +1,21 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: Upcoming Version 4.0 of the Azure Provider"
+page_title: "Azure Resource Manager: Version 4.0 of the Azure Provider"
 description: |-
-Azure Resource Manager: Upcoming Version 4.0 of the Azure Provider
+Azure Resource Manager: Version 4.0 of the Azure Provider
 ---
 
-# Upcoming Version 4.0 of the Azure Provider
+# Version 4.0 of the Azure Provider
 
 -> **Note:** Since this documentation is versioned, we recommend checking [the latest version of this document](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/4.0-overview).
 
-Version 4.0 of the Azure Provider will be a major release, which means that this will include breaking changes as required, in addition to new functionality and bug fixes.
+Version 4.0 of the Azure Provider is a major release. It has introduced breaking changes as required, in addition to new functionality and bug fixes.
 
 During the development of version 2.0 as well as 3.0 of the Azure Provider we made use of Feature Toggling to gradually add support for the new functionality. This allows users to try out the next major release of the provider in non-production environments, to get a sense of the upcoming changes that will be required in their configuration and to provide invaluable feedback on the changes.
 
 We have used the same approach for version 4.0 of the Azure Provider too, providing an opt-in Beta for the changes coming in version 4.0 whilst using 3.x versions of the Azure Provider.
 
-Since we'll be iteratively adding this functionality over time, we encourage you to use the latest version of the Azure Provider when using this functionality. Please note that this is subject to change (including breaking changes) prior to the release of version 4.0 of the Azure Provider. In addition, an upgrade guide containing the detailed changes coming in version 4.0 of the Azure Provider has been made available and can be found [here](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/4.0-upgrade-guide).
+An upgrade guide containing the detailed changes coming in version 4.0 of the Azure Provider has been made available and can be found [here](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/4.0-upgrade-guide).
 
 ## Disclaimer
 
@@ -45,7 +45,7 @@ provider "azurerm" {
 
 -> **Note:** Since new functionality is being added iteratively, this page will be updated as new functionality is added to the 4.0 Beta
 
-Version 4.0 of the Azure Provider is a work-in-progress, as such only functionality which is currently available is documented here.
+Version 4.0 of the Azure Provider is now released.
 
 Below is a brief overview of the biggest changes and new features coming in 4.0. For more details on these please see the [4.0 upgrade guide](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/4.0-upgrade-guide).
 

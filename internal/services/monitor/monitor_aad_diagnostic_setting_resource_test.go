@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor_test
@@ -8,21 +8,21 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azureactivedirectory/2017-04-01/diagnosticsettings"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MonitorAADDiagnosticSettingResource struct{}
 
 // NOTE: this is a combined test rather than separate split out tests due to
-// Azure only being happy about provisioning five per subscription at once and
-// there are existing resource in the test subscription hard to clear.
+// Azure only being happy about provisioning five per Azure Active Directory at once and
+// there are existing resource in the test tenant hard to clear.
 // (which our test suite can't easily workaround)
-func TestAccMonitorAADDiagnosticSetting(t *testing.T) {
+func TestAccMonitorAADDiagnosticSetting_sequential(t *testing.T) {
 	testCases := map[string]map[string]func(t *testing.T){
 		"basic": {
 			"eventhubDefault":       testAccMonitorAADDiagnosticSetting_eventhubDefault,
@@ -36,10 +36,8 @@ func TestAccMonitorAADDiagnosticSetting(t *testing.T) {
 	}
 
 	for group, m := range testCases {
-		m := m
 		t.Run(group, func(t *testing.T) {
 			for name, tc := range m {
-				tc := tc
 				t.Run(name, func(t *testing.T) {
 					tc(t)
 				})
@@ -199,7 +197,7 @@ func (t MonitorAADDiagnosticSettingResource) Exists(ctx context.Context, clients
 		return nil, fmt.Errorf("reading %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil && resp.Model.Id != nil), nil
 }
 
 func (MonitorAADDiagnosticSettingResource) eventhub(data acceptance.TestData) string {
@@ -221,11 +219,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctest-EH-%[1]d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 2
-  message_retention   = 1
+  name              = "acctest-EH-%[1]d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 1
 }
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
@@ -243,52 +240,24 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
   eventhub_name                  = azurerm_eventhub.test.name
   enabled_log {
     category = "SignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "AuditLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "NonInteractiveUserSignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "ServicePrincipalSignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "RiskyUsers"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "UserRiskEvents"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "B2CRequestLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -326,52 +295,24 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
   enabled_log {
     category = "SignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "AuditLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "NonInteractiveUserSignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "ServicePrincipalSignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "RiskyUsers"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "UserRiskEvents"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "B2CRequestLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -388,7 +329,6 @@ resource "azurerm_monitor_aad_diagnostic_setting" "import" {
 
   enabled_log {
     category = "SignInLogs"
-    retention_policy {}
   }
 }
 `, r.eventhub(data))
@@ -418,52 +358,24 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
   enabled_log {
     category = "SignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "AuditLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "NonInteractiveUserSignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "ServicePrincipalSignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "RiskyUsers"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "UserRiskEvents"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "B2CRequestLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -494,52 +406,24 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
   storage_account_id = azurerm_storage_account.test.id
   enabled_log {
     category = "SignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "AuditLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "NonInteractiveUserSignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "ServicePrincipalSignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "RiskyUsers"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "UserRiskEvents"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "B2CRequestLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(5))
@@ -570,24 +454,12 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
   storage_account_id = azurerm_storage_account.test.id
   enabled_log {
     category = "AuditLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "SignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 2
-    }
   }
   enabled_log {
     category = "NonInteractiveUserSignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(5))
@@ -618,10 +490,6 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
   storage_account_id = azurerm_storage_account.test.id
   enabled_log {
     category = "NonInteractiveUserSignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(5))
@@ -652,18 +520,12 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
   storage_account_id = azurerm_storage_account.test.id
   enabled_log {
     category = "AuditLogs"
-    retention_policy {}
   }
   enabled_log {
     category = "SignInLogs"
-    retention_policy {}
   }
   enabled_log {
     category = "NonInteractiveUserSignInLogs"
-    retention_policy {
-      enabled = false
-      days    = 3
-    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(5))

@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := functions.NewFunctionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobName", "functionName")
+id := functions.NewFunctionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "streamingJobName", "functionName")
 
 payload := functions.Function{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := functions.NewFunctionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobName", "functionName")
+id := functions.NewFunctionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "streamingJobName", "functionName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := functions.NewFunctionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobName", "functionName")
+id := functions.NewFunctionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "streamingJobName", "functionName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := functions.NewStreamingJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobName")
+id := functions.NewStreamingJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "streamingJobName")
 
 // alternatively `client.ListByStreamingJob(ctx, id, functions.DefaultListByStreamingJobOperationOptions())` can be used to do batched pagination
 items, err := client.ListByStreamingJobComplete(ctx, id, functions.DefaultListByStreamingJobOperationOptions())
@@ -94,7 +94,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := functions.NewFunctionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobName", "functionName")
+id := functions.NewFunctionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "streamingJobName", "functionName")
 
 payload := functions.FunctionRetrieveDefaultDefinitionParameters{
 	// ...
@@ -115,7 +115,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := functions.NewFunctionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobName", "functionName")
+id := functions.NewFunctionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "streamingJobName", "functionName")
 
 payload := functions.Function{
 	// ...
@@ -132,7 +132,7 @@ if err := client.TestThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := functions.NewFunctionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobName", "functionName")
+id := functions.NewFunctionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "streamingJobName", "functionName")
 
 payload := functions.Function{
 	// ...

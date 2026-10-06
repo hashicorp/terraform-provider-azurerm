@@ -107,7 +107,7 @@ func (id Providers2Id) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftFeatures", "Microsoft.Features", "Microsoft.Features"),
 		resourceids.StaticSegment("staticProviders2", "providers", "providers"),
-		resourceids.UserSpecifiedSegment("providerName", "resourceProviderNamespace"),
+		resourceids.UserSpecifiedSegment("providerName", "providerName"),
 	}
 }
 

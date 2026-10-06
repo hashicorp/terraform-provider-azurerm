@@ -1,22 +1,15 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
 
 import (
-	"fmt"
-	"strings"
+	"regexp"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 func BotMSTeamsCallingWebHook() pluginsdk.SchemaValidateFunc {
-	return func(i interface{}, k string) (warnings []string, errors []error) {
-		value := i.(string)
-		if !strings.HasPrefix(value, "https://") || !strings.HasSuffix(value, "/") {
-			errors = append(errors, fmt.Errorf("invalid `calling_web_hook`, must start with `https://` and end with `/`"))
-		}
-
-		return warnings, errors
-	}
+	return validation.StringMatch(regexp.MustCompile(`(?s)^https://(.*/)?$`), "must start with `https://` and end with `/`")
 }

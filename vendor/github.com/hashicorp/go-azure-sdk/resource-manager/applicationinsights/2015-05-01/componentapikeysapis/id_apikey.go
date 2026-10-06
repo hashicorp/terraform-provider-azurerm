@@ -121,7 +121,7 @@ func (id ApiKeyId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftInsights", "Microsoft.Insights", "Microsoft.Insights"),
 		resourceids.StaticSegment("staticComponents", "components", "components"),
-		resourceids.UserSpecifiedSegment("componentName", "resourceName"),
+		resourceids.UserSpecifiedSegment("componentName", "componentName"),
 		resourceids.StaticSegment("staticApiKeys", "apiKeys", "apiKeys"),
 		resourceids.UserSpecifiedSegment("keyId", "keyId"),
 	}

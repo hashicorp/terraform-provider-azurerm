@@ -113,7 +113,7 @@ func (id TagValueId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticTagNames", "tagNames", "tagNames"),
 		resourceids.UserSpecifiedSegment("tagName", "tagName"),
 		resourceids.StaticSegment("staticTagValues", "tagValues", "tagValues"),
-		resourceids.UserSpecifiedSegment("tagValueName", "tagValue"),
+		resourceids.UserSpecifiedSegment("tagValueName", "tagValueName"),
 	}
 }
 

@@ -1,16 +1,16 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package common
 
 import (
+	"math"
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-05-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func SchemaCorsRule() *pluginsdk.Schema {
@@ -74,14 +74,14 @@ func SchemaCorsRule() *pluginsdk.Schema {
 				"max_age_in_seconds": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					ValidateFunc: validation.IntBetween(1, 2147483647),
+					ValidateFunc: validation.IntBetween(1, math.MaxInt32),
 				},
 			},
 		},
 	}
 }
 
-func ExpandCosmosCorsRule(input []interface{}) *[]cosmosdb.CorsPolicy {
+func ExpandCosmosCorsRule(input []any) *[]cosmosdb.CorsPolicy {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
@@ -92,15 +92,15 @@ func ExpandCosmosCorsRule(input []interface{}) *[]cosmosdb.CorsPolicy {
 	}
 
 	for _, attr := range input {
-		corsRuleAttr := attr.(map[string]interface{})
+		corsRuleAttr := attr.(map[string]any)
 		corsRule := cosmosdb.CorsPolicy{}
-		corsRule.AllowedOrigins = strings.Join(*utils.ExpandStringSlice(corsRuleAttr["allowed_origins"].([]interface{})), ",")
-		corsRule.ExposedHeaders = utils.String(strings.Join(*utils.ExpandStringSlice(corsRuleAttr["exposed_headers"].([]interface{})), ","))
-		corsRule.AllowedHeaders = utils.String(strings.Join(*utils.ExpandStringSlice(corsRuleAttr["allowed_headers"].([]interface{})), ","))
-		corsRule.AllowedMethods = utils.String(strings.Join(*utils.ExpandStringSlice(corsRuleAttr["allowed_methods"].([]interface{})), ","))
+		corsRule.AllowedOrigins = strings.Join(*pluginsdk.ExpandStringSlice(corsRuleAttr["allowed_origins"].([]any)), ",")
+		corsRule.ExposedHeaders = pointer.To(strings.Join(*pluginsdk.ExpandStringSlice(corsRuleAttr["exposed_headers"].([]any)), ","))
+		corsRule.AllowedHeaders = pointer.To(strings.Join(*pluginsdk.ExpandStringSlice(corsRuleAttr["allowed_headers"].([]any)), ","))
+		corsRule.AllowedMethods = pointer.To(strings.Join(*pluginsdk.ExpandStringSlice(corsRuleAttr["allowed_methods"].([]any)), ","))
 
 		if corsRuleAttr["max_age_in_seconds"].(int) != 0 {
-			corsRule.MaxAgeInSeconds = utils.Int64(int64(corsRuleAttr["max_age_in_seconds"].(int)))
+			corsRule.MaxAgeInSeconds = pointer.To(int64(corsRuleAttr["max_age_in_seconds"].(int)))
 		}
 
 		corsRules = append(corsRules, corsRule)
@@ -109,8 +109,8 @@ func ExpandCosmosCorsRule(input []interface{}) *[]cosmosdb.CorsPolicy {
 	return &corsRules
 }
 
-func FlattenCosmosCorsRule(input *[]cosmosdb.CorsPolicy) []interface{} {
-	corsRules := make([]interface{}, 0)
+func FlattenCosmosCorsRule(input *[]cosmosdb.CorsPolicy) []any {
+	corsRules := make([]any, 0)
 
 	if input == nil || len(*input) == 0 {
 		return corsRules
@@ -123,7 +123,7 @@ func FlattenCosmosCorsRule(input *[]cosmosdb.CorsPolicy) []interface{} {
 			maxAgeInSeconds = int(*corsRule.MaxAgeInSeconds)
 		}
 
-		corsRules = append(corsRules, map[string]interface{}{
+		corsRules = append(corsRules, map[string]any{
 			"allowed_headers":    flattenCorsProperty(corsRule.AllowedHeaders),
 			"allowed_origins":    flattenCorsProperty(pointer.To(corsRule.AllowedOrigins)),
 			"allowed_methods":    flattenCorsProperty(corsRule.AllowedMethods),
@@ -135,15 +135,15 @@ func FlattenCosmosCorsRule(input *[]cosmosdb.CorsPolicy) []interface{} {
 	return corsRules
 }
 
-func flattenCorsProperty(input *string) []interface{} {
+func flattenCorsProperty(input *string) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	results := make([]interface{}, 0, len(*input))
+	results := make([]any, 0, len(*input))
 
-	origins := strings.Split(*input, ",")
-	for _, origin := range origins {
+	origins := strings.SplitSeq(*input, ",")
+	for origin := range origins {
 		results = append(results, origin)
 	}
 

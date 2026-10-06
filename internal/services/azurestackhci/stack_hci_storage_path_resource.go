@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package azurestackhci
@@ -36,17 +36,17 @@ func (StackHCIStoragePathResource) ResourceType() string {
 	return "azurerm_stack_hci_storage_path"
 }
 
-func (StackHCIStoragePathResource) ModelObject() interface{} {
+func (StackHCIStoragePathResource) ModelObject() any {
 	return &StackHCIStoragePathResourceModel{}
 }
 
 type StackHCIStoragePathResourceModel struct {
-	Name              string                 `tfschema:"name"`
-	ResourceGroupName string                 `tfschema:"resource_group_name"`
-	Location          string                 `tfschema:"location"`
-	CustomLocationId  string                 `tfschema:"custom_location_id"`
-	Path              string                 `tfschema:"path"`
-	Tags              map[string]interface{} `tfschema:"tags"`
+	Name              string         `tfschema:"name"`
+	ResourceGroupName string         `tfschema:"resource_group_name"`
+	Location          string         `tfschema:"location"`
+	CustomLocationId  string         `tfschema:"custom_location_id"`
+	Path              string         `tfschema:"path"`
+	Tags              map[string]any `tfschema:"tags"`
 }
 
 func (StackHCIStoragePathResource) Arguments() map[string]*pluginsdk.Schema {
@@ -57,7 +57,7 @@ func (StackHCIStoragePathResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[a-zA-Z0-9][\-\.\_a-zA-Z0-9]{1,78}[a-zA-Z0-9]$`),
-				"name must be between 3 and 80 characters and can only contain alphanumberic characters, hyphen, dot and underline",
+				"name must begin and end with an alphanumeric character, be between 3 and 80 characters in length and can only contain alphanumeric characters, hyphens, periods or underscores.",
 			),
 		},
 
@@ -101,12 +101,14 @@ func (r StackHCIStoragePathResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := storagecontainers.NewStorageContainerID(subscriptionId, config.ResourceGroupName, config.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			payload := storagecontainers.StorageContainers{
@@ -122,7 +124,7 @@ func (r StackHCIStoragePathResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

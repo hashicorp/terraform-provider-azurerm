@@ -72,6 +72,19 @@ func BugInProviderDiagnostic(summary string) diag.Diagnostic {
 	)
 }
 
+func InvalidValidatorUsageDiagnostic(path path.Path, validatorName string, description string) diag.Diagnostic {
+	return diag.NewAttributeErrorDiagnostic(
+		path,
+		"Invalid Validator Usage",
+		fmt.Sprintf("When validating the schema, an implementation issue was found. "+
+			"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+			"An invalid usage of the %q validator was found: %s",
+			validatorName,
+			description,
+		),
+	)
+}
+
 // capitalize will uppercase the first letter in a UTF-8 string.
 func capitalize(str string) string {
 	if str == "" {

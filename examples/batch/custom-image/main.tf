@@ -1,4 +1,4 @@
-# Copyright (c) HashiCorp, Inc.
+# Copyright IBM Corp. 2014, 2025
 # SPDX-License-Identifier: MPL-2.0
 
 provider "azurerm" {
@@ -59,7 +59,7 @@ resource "azurerm_storage_account" "example" {
 
 resource "azurerm_storage_container" "example" {
   name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.example.name
+  storage_account_id    = azurerm_storage_account.example.id
   container_access_type = "blob"
 }
 
@@ -107,11 +107,12 @@ resource "azurerm_image" "example" {
   resource_group_name = azurerm_resource_group.example.name
 
   os_disk {
-    os_type  = "Linux"
-    os_state = "Generalized"
-    blob_uri = azurerm_virtual_machine.example.storage_os_disk.0.vhd_uri
-    size_gb  = 30
-    caching  = "None"
+    os_type      = "Linux"
+    os_state     = "Generalized"
+    blob_uri     = azurerm_virtual_machine.example.storage_os_disk.0.vhd_uri
+    size_gb      = 30
+    caching      = "None"
+    storage_type = "Standard_LRS"
   }
 
   tags = {

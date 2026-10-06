@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package privatednsresolver
@@ -6,15 +6,17 @@ package privatednsresolver
 import (
 	"context"
 	"fmt"
-	"log"
+	"net/http"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/dnsresolvers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/inboundendpoints"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -42,7 +44,7 @@ func (r PrivateDNSResolverInboundEndpointResource) ResourceType() string {
 	return "azurerm_private_dns_resolver_inbound_endpoint"
 }
 
-func (r PrivateDNSResolverInboundEndpointResource) ModelObject() interface{} {
+func (r PrivateDNSResolverInboundEndpointResource) ModelObject() any {
 	return &PrivateDNSResolverInboundEndpointModel{}
 }
 
@@ -76,18 +78,22 @@ func (r PrivateDNSResolverInboundEndpointResource) Arguments() map[string]*plugi
 					"subnet_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
+						ForceNew:     true,
 						ValidateFunc: commonids.ValidateSubnetID,
 					},
 
 					"private_ip_address": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
+						ForceNew: true,
+						// Note: O+C because Azure assigns a private IP from the subnet when not specified
 						Computed: true,
 					},
 
 					"private_ip_allocation_method": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
+						ForceNew:     true,
 						Default:      string(inboundendpoints.IPAllocationMethodDynamic),
 						ValidateFunc: validation.StringInSlice(inboundendpoints.PossibleValuesForIPAllocationMethod(), false),
 					},
@@ -121,13 +127,16 @@ func (r PrivateDNSResolverInboundEndpointResource) Create() sdk.ResourceFunc {
 			}
 
 			id := inboundendpoints.NewInboundEndpointID(dnsResolverId.SubscriptionId, dnsResolverId.ResourceGroupName, dnsResolverId.DnsResolverName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			properties := &inboundendpoints.InboundEndpoint{
@@ -145,11 +154,11 @@ func (r PrivateDNSResolverInboundEndpointResource) Create() sdk.ResourceFunc {
 				properties.Properties.IPConfigurations = *iPConfigurationsValue
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties, inboundendpoints.CreateOrUpdateOperationOptions{}); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, *properties, inboundendpoints.CreateOrUpdateOperationOptions{}, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}
@@ -252,20 +261,14 @@ func (r PrivateDNSResolverInboundEndpointResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
-			log.Printf("[DEBUG] waiting for %s to be deleted", id)
-			deadline, ok := ctx.Deadline()
-			if !ok {
-				return fmt.Errorf("internal-error: context had no deadline")
-			}
-			stateConf := &pluginsdk.StateChangeConf{
-				Pending:                   []string{"Pending"},
-				Target:                    []string{"Succeeded"},
-				Refresh:                   dnsResolverInboundEndpointDeleteRefreshFunc(ctx, client, id),
-				MinTimeout:                1 * time.Minute,
-				Timeout:                   time.Until(deadline),
-				ContinuousTargetOccurence: 3,
-			}
-			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+			poller := custompollers.NewEventualConsistencyPoller(3, func(pollerCtx context.Context) (*http.Response, error) {
+				resp, err := client.Get(pollerCtx, *id)
+				return resp.HttpResponse, err
+			}, &custompollers.EventualConsistencyPollerOptions{
+				Interval:         1 * time.Minute,
+				TargetStatusCode: pointer.To(http.StatusNotFound),
+			})
+			if err := poller.PollUntilDone(ctx); err != nil {
 				return fmt.Errorf("waiting for %s to become deleted: %+v", id, err)
 			}
 
@@ -274,21 +277,8 @@ func (r PrivateDNSResolverInboundEndpointResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func dnsResolverInboundEndpointDeleteRefreshFunc(ctx context.Context, client *inboundendpoints.InboundEndpointsClient, id *inboundendpoints.InboundEndpointId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		existing, err := client.Get(ctx, *id)
-		if err != nil {
-			if response.WasNotFound(existing.HttpResponse) {
-				return existing, "Succeeded", nil
-			}
-			return existing, "", err
-		}
-		return existing, "Pending", fmt.Errorf("checking for existing %s: %+v", id, err)
-	}
-}
-
 func expandIPConfigurationModel(inputList []IPConfigurationModel) (*[]inboundendpoints.IPConfiguration, error) {
-	var outputList []inboundendpoints.IPConfiguration
+	outputList := make([]inboundendpoints.IPConfiguration, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
 		output := inboundendpoints.IPConfiguration{}
@@ -320,11 +310,11 @@ func expandIPConfigurationModel(inputList []IPConfigurationModel) (*[]inboundend
 }
 
 func flattenIPConfigurationModel(inputList *[]inboundendpoints.IPConfiguration) []IPConfigurationModel {
-	var outputList []IPConfigurationModel
 	if inputList == nil {
-		return outputList
+		return []IPConfigurationModel{}
 	}
 
+	outputList := make([]IPConfigurationModel, 0, len(*inputList))
 	for _, input := range *inputList {
 		output := IPConfigurationModel{}
 

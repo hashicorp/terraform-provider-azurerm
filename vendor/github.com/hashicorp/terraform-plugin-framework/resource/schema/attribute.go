@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package schema
@@ -10,7 +10,10 @@ import (
 // Attribute define a value field inside the Schema. Implementations in this
 // package include:
 //   - BoolAttribute
+//   - DynamicAttribute
+//   - Float32Attribute
 //   - Float64Attribute
+//   - Int32Attribute
 //   - Int64Attribute
 //   - ListAttribute
 //   - MapAttribute

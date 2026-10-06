@@ -1,4 +1,4 @@
-# Copyright (c) HashiCorp, Inc.
+# Copyright IBM Corp. 2014, 2025
 # SPDX-License-Identifier: MPL-2.0
 
 provider "azurerm" {
@@ -13,10 +13,11 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_key_vault" "example" {
-  name                = "${var.prefix}-key-vault"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-  tenant_id           = data.azurerm_client_config.current.tenant_id
+  name                       = "${var.prefix}-key-vault"
+  resource_group_name        = azurerm_resource_group.example.name
+  location                   = azurerm_resource_group.example.location
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  rbac_authorization_enabled = false
 
   sku_name = "standard"
 }
@@ -34,7 +35,7 @@ resource "azurerm_key_vault_access_policy" "current_user" {
 }
 
 data "azuread_service_principal" "web_app_resource_provider" {
-  application_id = "abfa0a7c-a6b6-4736-8310-5855508787cd"
+  client_id = data.azurerm_client_config.current.client_id
 }
 
 resource "azurerm_key_vault_access_policy" "web_app_resource_provider" {

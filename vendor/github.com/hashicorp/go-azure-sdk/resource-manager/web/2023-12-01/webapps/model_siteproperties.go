@@ -24,6 +24,7 @@ type SiteProperties struct {
 	DnsConfiguration            *SiteDnsConfig             `json:"dnsConfiguration,omitempty"`
 	Enabled                     *bool                      `json:"enabled,omitempty"`
 	EnabledHostNames            *[]string                  `json:"enabledHostNames,omitempty"`
+	EndToEndEncryptionEnabled   *bool                      `json:"endToEndEncryptionEnabled,omitempty"`
 	FunctionAppConfig           *FunctionAppConfig         `json:"functionAppConfig,omitempty"`
 	HTTPSOnly                   *bool                      `json:"httpsOnly,omitempty"`
 	HostNameSslStates           *[]HostNameSslState        `json:"hostNameSslStates,omitempty"`

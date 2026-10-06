@@ -161,18 +161,18 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `WorkflowsClient.ListCallbackUrl`
+### Example Usage: `WorkflowsClient.ListCallbackURL`
 
 ```go
 ctx := context.TODO()
 id := workflows.NewWorkflowID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowName")
 
-payload := workflows.GetCallbackUrlParameters{
+payload := workflows.GetCallbackURLParameters{
 	// ...
 }
 
 
-read, err := client.ListCallbackUrl(ctx, id, payload)
+read, err := client.ListCallbackURL(ctx, id, payload)
 if err != nil {
 	// handle the error
 }
@@ -256,7 +256,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workflows.NewLocationWorkflowID("12345678-1234-9876-4563-123456789012", "example-resource-group", "location", "workflowName")
+id := workflows.NewLocationWorkflowID("12345678-1234-9876-4563-123456789012", "example-resource-group", "locationName", "workflowName")
 
 payload := workflows.Workflow{
 	// ...

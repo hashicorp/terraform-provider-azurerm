@@ -123,7 +123,7 @@ func (id SingleSignOnConfigurationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticMonitors", "monitors", "monitors"),
 		resourceids.UserSpecifiedSegment("monitorName", "monitorName"),
 		resourceids.StaticSegment("staticSingleSignOnConfigurations", "singleSignOnConfigurations", "singleSignOnConfigurations"),
-		resourceids.UserSpecifiedSegment("singleSignOnConfigurationName", "configurationName"),
+		resourceids.UserSpecifiedSegment("singleSignOnConfigurationName", "singleSignOnConfigurationName"),
 	}
 }
 

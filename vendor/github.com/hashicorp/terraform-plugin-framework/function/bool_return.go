@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package function
@@ -19,6 +19,8 @@ var _ Return = BoolReturn{}
 //
 // - If CustomType is set, use its associated value type.
 // - Otherwise, use [types.Bool], *bool, or bool.
+//
+// Return documentation is expected in the function [Definition] documentation.
 type BoolReturn struct {
 	// CustomType enables the use of a custom data type in place of the
 	// default [basetypes.BoolType]. When setting data, the

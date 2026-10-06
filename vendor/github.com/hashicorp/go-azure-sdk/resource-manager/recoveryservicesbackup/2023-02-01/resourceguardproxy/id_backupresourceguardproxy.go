@@ -123,7 +123,7 @@ func (id BackupResourceGuardProxyId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticVaults", "vaults", "vaults"),
 		resourceids.UserSpecifiedSegment("vaultName", "vaultName"),
 		resourceids.StaticSegment("staticBackupResourceGuardProxies", "backupResourceGuardProxies", "backupResourceGuardProxies"),
-		resourceids.UserSpecifiedSegment("backupResourceGuardProxyName", "resourceGuardProxyName"),
+		resourceids.UserSpecifiedSegment("backupResourceGuardProxyName", "backupResourceGuardProxyName"),
 	}
 }
 

@@ -121,7 +121,7 @@ func (id HostingEnvironmentPrivateEndpointConnectionId) Segments() []resourceids
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticHostingEnvironments", "hostingEnvironments", "hostingEnvironments"),
-		resourceids.UserSpecifiedSegment("hostingEnvironmentName", "name"),
+		resourceids.UserSpecifiedSegment("hostingEnvironmentName", "hostingEnvironmentName"),
 		resourceids.StaticSegment("staticPrivateEndpointConnections", "privateEndpointConnections", "privateEndpointConnections"),
 		resourceids.UserSpecifiedSegment("privateEndpointConnectionName", "privateEndpointConnectionName"),
 	}

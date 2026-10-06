@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containerapps
@@ -15,8 +15,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/containerapps"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/managedenvironments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/containerapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
@@ -39,9 +39,10 @@ type ContainerAppModel struct {
 	Dapr         []helpers.Dapr              `tfschema:"dapr"`
 	Template     []helpers.ContainerTemplate `tfschema:"template"`
 
-	Identity            []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	WorkloadProfileName string                                     `tfschema:"workload_profile_name"`
-	Tags                map[string]interface{}                     `tfschema:"tags"`
+	Identity             []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	WorkloadProfileName  string                                     `tfschema:"workload_profile_name"`
+	MaxInactiveRevisions int64                                      `tfschema:"max_inactive_revisions"`
+	Tags                 map[string]any                             `tfschema:"tags"`
 
 	OutboundIpAddresses        []string `tfschema:"outbound_ip_addresses"`
 	LatestRevisionName         string   `tfschema:"latest_revision_name"`
@@ -53,7 +54,7 @@ var _ sdk.ResourceWithUpdate = ContainerAppResource{}
 
 var _ sdk.ResourceWithCustomizeDiff = ContainerAppResource{}
 
-func (r ContainerAppResource) ModelObject() interface{} {
+func (r ContainerAppResource) ModelObject() any {
 	return &ContainerAppModel{}
 }
 
@@ -88,12 +89,9 @@ func (r ContainerAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"template": helpers.ContainerTemplateSchema(),
 
 		"revision_mode": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(containerapps.ActiveRevisionsModeSingle),
-				string(containerapps.ActiveRevisionsModeMultiple),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForActiveRevisionsMode(), false),
 		},
 
 		"ingress": helpers.ContainerAppIngressSchema(),
@@ -110,6 +108,12 @@ func (r ContainerAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"max_inactive_revisions": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			ValidateFunc: validation.IntBetween(0, 100),
 		},
 
 		"tags": commonschema.Tags(),
@@ -165,14 +169,16 @@ func (r ContainerAppResource) Create() sdk.ResourceFunc {
 
 			id := containerapps.NewContainerAppID(subscriptionId, app.ResourceGroup, app.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			envId, err := managedenvironments.ParseManagedEnvironmentID(app.ManagedEnvironmentId)
@@ -199,10 +205,11 @@ func (r ContainerAppResource) Create() sdk.ResourceFunc {
 				Location: location.Normalize(env.Model.Location),
 				Properties: &containerapps.ContainerAppProperties{
 					Configuration: &containerapps.Configuration{
-						Ingress:    helpers.ExpandContainerAppIngress(app.Ingress, id.ContainerAppName),
-						Dapr:       helpers.ExpandContainerAppDapr(app.Dapr),
-						Secrets:    secrets,
-						Registries: registries,
+						Ingress:              helpers.ExpandContainerAppIngress(app.Ingress, id.ContainerAppName),
+						Dapr:                 helpers.ExpandContainerAppDapr(app.Dapr),
+						Secrets:              secrets,
+						Registries:           registries,
+						MaxInactiveRevisions: pointer.To(app.MaxInactiveRevisions),
 					},
 					ManagedEnvironmentId: pointer.To(app.ManagedEnvironmentId),
 					Template:             helpers.ExpandContainerAppTemplate(app.Template, metadata),
@@ -217,9 +224,9 @@ func (r ContainerAppResource) Create() sdk.ResourceFunc {
 			}
 			containerApp.Identity = pointer.To(identity.LegacySystemAndUserAssignedMap(*ident))
 
-			containerApp.Properties.Configuration.ActiveRevisionsMode = pointer.To(containerapps.ActiveRevisionsMode(app.RevisionMode))
+			containerApp.Properties.Configuration.ActiveRevisionsMode = pointer.ToEnum[containerapps.ActiveRevisionsMode](app.RevisionMode)
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, containerApp); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, containerApp, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -274,11 +281,12 @@ func (r ContainerAppResource) Read() sdk.ResourceFunc {
 					state.Template = helpers.FlattenContainerAppTemplate(props.Template)
 					if config := props.Configuration; config != nil {
 						if config.ActiveRevisionsMode != nil {
-							state.RevisionMode = string(pointer.From(config.ActiveRevisionsMode))
+							state.RevisionMode = pointer.FromEnum(config.ActiveRevisionsMode)
 						}
 						state.Ingress = helpers.FlattenContainerAppIngress(config.Ingress, id.ContainerAppName)
 						state.Registries = helpers.FlattenContainerAppRegistries(config.Registries)
 						state.Dapr = helpers.FlattenContainerAppDapr(config.Dapr)
+						state.MaxInactiveRevisions = pointer.From(config.MaxInactiveRevisions)
 					}
 					state.LatestRevisionName = pointer.From(props.LatestRevisionName)
 					state.LatestRevisionFqdn = pointer.From(props.LatestRevisionFqdn)
@@ -344,7 +352,7 @@ func (r ContainerAppResource) Update() sdk.ResourceFunc {
 			model := existing.Model
 
 			if model.Properties == nil {
-				return fmt.Errorf("retreiving properties for %s for update: %+v", *id, err)
+				return fmt.Errorf("retrieving properties for %s for update: %+v", *id, err)
 			}
 
 			if model.Properties.Configuration == nil {
@@ -361,7 +369,7 @@ func (r ContainerAppResource) Update() sdk.ResourceFunc {
 			model.Properties.Configuration.Secrets = helpers.UnpackContainerSecretsCollection(secretsResp.Model)
 
 			if metadata.ResourceData.HasChange("revision_mode") {
-				model.Properties.Configuration.ActiveRevisionsMode = pointer.To(containerapps.ActiveRevisionsMode(state.RevisionMode))
+				model.Properties.Configuration.ActiveRevisionsMode = pointer.ToEnum[containerapps.ActiveRevisionsMode](state.RevisionMode)
 			}
 
 			if metadata.ResourceData.HasChange("ingress") {
@@ -375,9 +383,12 @@ func (r ContainerAppResource) Update() sdk.ResourceFunc {
 				}
 			}
 
+			if metadata.ResourceData.HasChange("max_inactive_revisions") {
+				model.Properties.Configuration.MaxInactiveRevisions = pointer.To(state.MaxInactiveRevisions)
+			}
+
 			if metadata.ResourceData.HasChange("dapr") {
 				model.Properties.Configuration.Dapr = helpers.ExpandContainerAppDapr(state.Dapr)
-
 			}
 
 			if metadata.ResourceData.HasChange("template") {
@@ -405,7 +416,6 @@ func (r ContainerAppResource) Update() sdk.ResourceFunc {
 					return err
 				}
 				model.Identity = pointer.To(identity.LegacySystemAndUserAssignedMap(*ident))
-
 			}
 
 			if metadata.ResourceData.HasChange("workload_profile_name") {

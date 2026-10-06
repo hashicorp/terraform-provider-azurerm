@@ -121,9 +121,9 @@ func (id NetworkSecurityPerimeterConfigurationId) Segments() []resourceids.Segme
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftHybridCompute", "Microsoft.HybridCompute", "Microsoft.HybridCompute"),
 		resourceids.StaticSegment("staticPrivateLinkScopes", "privateLinkScopes", "privateLinkScopes"),
-		resourceids.UserSpecifiedSegment("privateLinkScopeName", "scopeName"),
+		resourceids.UserSpecifiedSegment("privateLinkScopeName", "privateLinkScopeName"),
 		resourceids.StaticSegment("staticNetworkSecurityPerimeterConfigurations", "networkSecurityPerimeterConfigurations", "networkSecurityPerimeterConfigurations"),
-		resourceids.UserSpecifiedSegment("networkSecurityPerimeterConfigurationName", "perimeterName"),
+		resourceids.UserSpecifiedSegment("networkSecurityPerimeterConfigurationName", "networkSecurityPerimeterConfigurationName"),
 	}
 }
 

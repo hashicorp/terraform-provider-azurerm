@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := configurations.NewConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "configurationName")
+id := configurations.NewConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverGroupsv2Name", "configurationName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -40,7 +40,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := configurations.NewCoordinatorConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "configurationName")
+id := configurations.NewCoordinatorConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverGroupsv2Name", "coordinatorConfigurationName")
 
 read, err := client.GetCoordinator(ctx, id)
 if err != nil {
@@ -56,7 +56,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := configurations.NewNodeConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "configurationName")
+id := configurations.NewNodeConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverGroupsv2Name", "nodeConfigurationName")
 
 read, err := client.GetNode(ctx, id)
 if err != nil {
@@ -72,7 +72,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := configurations.NewServerGroupsv2ID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName")
+id := configurations.NewServerGroupsv2ID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverGroupsv2Name")
 
 // alternatively `client.ListByCluster(ctx, id)` can be used to do batched pagination
 items, err := client.ListByClusterComplete(ctx, id)
@@ -89,7 +89,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := configurations.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "serverName")
+id := configurations.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverGroupsv2Name", "serverName")
 
 // alternatively `client.ListByServer(ctx, id)` can be used to do batched pagination
 items, err := client.ListByServerComplete(ctx, id)
@@ -106,7 +106,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := configurations.NewCoordinatorConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "configurationName")
+id := configurations.NewCoordinatorConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverGroupsv2Name", "coordinatorConfigurationName")
 
 payload := configurations.ServerConfiguration{
 	// ...
@@ -123,7 +123,7 @@ if err := client.UpdateOnCoordinatorThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := configurations.NewNodeConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "configurationName")
+id := configurations.NewNodeConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverGroupsv2Name", "nodeConfigurationName")
 
 payload := configurations.ServerConfiguration{
 	// ...

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -40,7 +40,7 @@ func (s IoTHubRouteV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		},
 		"condition": {
 			// The condition is a string value representing device-to-cloud message routes query expression
-			// https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-query-language#device-to-cloud-message-routes-query-expressions
+			// https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language#device-to-cloud-message-routes-query-expressions
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			Default:  "true",
@@ -62,7 +62,7 @@ func (s IoTHubRouteV0ToV1) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (s IoTHubRouteV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		oldId := rawState["id"].(string)
 		newId, err := parse.RouteIDInsensitively(oldId)
 		if err != nil {

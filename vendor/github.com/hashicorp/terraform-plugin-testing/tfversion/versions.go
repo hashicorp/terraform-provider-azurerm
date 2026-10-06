@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package tfversion
@@ -30,10 +30,16 @@ var (
 	Version1_4_0  *version.Version = version.Must(version.NewVersion("1.4.0"))
 	// Version1_4_6 fixed inclusion of sensitive values in `terraform show -json` output.
 	// Reference: https://github.com/hashicorp/terraform/releases/tag/v1.4.6
-	Version1_4_6 *version.Version = version.Must(version.NewVersion("1.4.6"))
-	Version1_5_0 *version.Version = version.Must(version.NewVersion("1.5.0"))
-	Version1_6_0 *version.Version = version.Must(version.NewVersion("1.6.0"))
-	Version1_7_0 *version.Version = version.Must(version.NewVersion("1.7.0"))
-	Version1_8_0 *version.Version = version.Must(version.NewVersion("1.8.0"))
-	Version1_9_0 *version.Version = version.Must(version.NewVersion("1.9.0"))
+	Version1_4_6  *version.Version = version.Must(version.NewVersion("1.4.6"))
+	Version1_5_0  *version.Version = version.Must(version.NewVersion("1.5.0"))
+	Version1_6_0  *version.Version = version.Must(version.NewVersion("1.6.0"))
+	Version1_7_0  *version.Version = version.Must(version.NewVersion("1.7.0"))
+	Version1_8_0  *version.Version = version.Must(version.NewVersion("1.8.0"))
+	Version1_9_0  *version.Version = version.Must(version.NewVersion("1.9.0"))
+	Version1_10_0 *version.Version = version.Must(version.NewVersion("1.10.0"))
+	Version1_11_0 *version.Version = version.Must(version.NewVersion("1.11.0"))
+	Version1_12_0 *version.Version = version.Must(version.NewVersion("1.12.0"))
+	Version1_13_0 *version.Version = version.Must(version.NewVersion("1.13.0"))
+	Version1_14_0 *version.Version = version.Must(version.NewVersion("1.14.0"))
+	Version1_15_0 *version.Version = version.Must(version.NewVersion("1.15.0"))
 )

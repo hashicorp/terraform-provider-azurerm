@@ -129,9 +129,9 @@ func (id ProtectionContainerId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticVaults", "vaults", "vaults"),
 		resourceids.UserSpecifiedSegment("vaultName", "vaultName"),
 		resourceids.StaticSegment("staticBackupFabrics", "backupFabrics", "backupFabrics"),
-		resourceids.UserSpecifiedSegment("backupFabricName", "fabricName"),
+		resourceids.UserSpecifiedSegment("backupFabricName", "backupFabricName"),
 		resourceids.StaticSegment("staticProtectionContainers", "protectionContainers", "protectionContainers"),
-		resourceids.UserSpecifiedSegment("protectionContainerName", "containerName"),
+		resourceids.UserSpecifiedSegment("protectionContainerName", "protectionContainerName"),
 	}
 }
 

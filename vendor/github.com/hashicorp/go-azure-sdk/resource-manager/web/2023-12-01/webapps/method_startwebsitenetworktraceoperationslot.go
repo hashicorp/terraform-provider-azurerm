@@ -24,7 +24,7 @@ type StartWebSiteNetworkTraceOperationSlotOperationResponse struct {
 type StartWebSiteNetworkTraceOperationSlotOperationOptions struct {
 	DurationInSeconds *int64
 	MaxFrameLength    *int64
-	SasUrl            *string
+	SasURL            *string
 }
 
 func DefaultStartWebSiteNetworkTraceOperationSlotOperationOptions() StartWebSiteNetworkTraceOperationSlotOperationOptions {
@@ -51,8 +51,8 @@ func (o StartWebSiteNetworkTraceOperationSlotOperationOptions) ToQuery() *client
 	if o.MaxFrameLength != nil {
 		out.Append("maxFrameLength", fmt.Sprintf("%v", *o.MaxFrameLength))
 	}
-	if o.SasUrl != nil {
-		out.Append("sasUrl", fmt.Sprintf("%v", *o.SasUrl))
+	if o.SasURL != nil {
+		out.Append("sasUrl", fmt.Sprintf("%v", *o.SasURL))
 	}
 	return &out
 }
@@ -95,9 +95,20 @@ func (c WebAppsClient) StartWebSiteNetworkTraceOperationSlot(ctx context.Context
 
 // StartWebSiteNetworkTraceOperationSlotThenPoll performs StartWebSiteNetworkTraceOperationSlot then polls until it's completed
 func (c WebAppsClient) StartWebSiteNetworkTraceOperationSlotThenPoll(ctx context.Context, id SlotId, options StartWebSiteNetworkTraceOperationSlotOperationOptions) error {
+	return c.StartWebSiteNetworkTraceOperationSlotCallbackThenPoll(ctx, id, options, nil)
+}
+
+// StartWebSiteNetworkTraceOperationSlotCallbackThenPoll performs StartWebSiteNetworkTraceOperationSlot, runs the optional callback function, then polls until it's completed
+func (c WebAppsClient) StartWebSiteNetworkTraceOperationSlotCallbackThenPoll(ctx context.Context, id SlotId, options StartWebSiteNetworkTraceOperationSlotOperationOptions, callback func() error) error {
 	result, err := c.StartWebSiteNetworkTraceOperationSlot(ctx, id, options)
 	if err != nil {
 		return fmt.Errorf("performing StartWebSiteNetworkTraceOperationSlot: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -13,7 +13,7 @@ import (
 
 type AppGatewayDataSource struct{}
 
-func TestAccDataSourceAppGateway_basic(t *testing.T) {
+func TestAccApplicationGatewayDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_application_gateway", "test")
 	r := AppGatewayDataSource{}
 
@@ -27,7 +27,7 @@ func TestAccDataSourceAppGateway_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAppGateway_userAssignedIdentity(t *testing.T) {
+func TestAccApplicationGatewayDataSource_userAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_application_gateway", "test")
 	r := AppGatewayDataSource{}
 
@@ -42,7 +42,7 @@ func TestAccDataSourceAppGateway_userAssignedIdentity(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAppGateway_backendAddressPool(t *testing.T) {
+func TestAccApplicationGatewayDataSource_backendAddressPool(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_application_gateway", "test")
 	r := AppGatewayDataSource{}
 
@@ -57,7 +57,7 @@ func TestAccDataSourceAppGateway_backendAddressPool(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAppGateway_sslProfile(t *testing.T) {
+func TestAccApplicationGatewayDataSource_sslProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_application_gateway", "test")
 	r := AppGatewayDataSource{}
 
@@ -84,7 +84,7 @@ func TestAccDataSourceAppGateway_sslProfile(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAppGateway_sslProfileWithClientCertificateVerification(t *testing.T) {
+func TestAccApplicationGatewayDataSource_sslProfileWithClientCertificateVerification(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_application_gateway", "test")
 	r := AppGatewayDataSource{}
 

@@ -7,18 +7,21 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/helpers/validatordiag"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+
+	"github.com/hashicorp/terraform-plugin-framework-validators/helpers/validatordiag"
 )
 
 // This type of validator must satisfy all types.
 var (
 	_ validator.Bool    = ConflictsWithValidator{}
 	_ validator.Float64 = ConflictsWithValidator{}
+	_ validator.Float32 = ConflictsWithValidator{}
+	_ validator.Int32   = ConflictsWithValidator{}
 	_ validator.Int64   = ConflictsWithValidator{}
 	_ validator.List    = ConflictsWithValidator{}
 	_ validator.Map     = ConflictsWithValidator{}
@@ -26,6 +29,7 @@ var (
 	_ validator.Object  = ConflictsWithValidator{}
 	_ validator.Set     = ConflictsWithValidator{}
 	_ validator.String  = ConflictsWithValidator{}
+	_ validator.Dynamic = ConflictsWithValidator{}
 )
 
 // ConflictsWithValidator is the underlying struct implementing ConflictsWith.
@@ -54,7 +58,8 @@ func (av ConflictsWithValidator) MarkdownDescription(_ context.Context) string {
 
 func (av ConflictsWithValidator) Validate(ctx context.Context, req ConflictsWithValidatorRequest, res *ConflictsWithValidatorResponse) {
 	// If attribute configuration is null, it cannot conflict with others
-	if req.ConfigValue.IsNull() {
+	// If attribute configuration is unknown, delay the validation until it is known.
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		return
 	}
 
@@ -115,7 +120,35 @@ func (av ConflictsWithValidator) ValidateBool(ctx context.Context, req validator
 	resp.Diagnostics.Append(validateResp.Diagnostics...)
 }
 
+func (av ConflictsWithValidator) ValidateFloat32(ctx context.Context, req validator.Float32Request, resp *validator.Float32Response) {
+	validateReq := ConflictsWithValidatorRequest{
+		Config:         req.Config,
+		ConfigValue:    req.ConfigValue,
+		Path:           req.Path,
+		PathExpression: req.PathExpression,
+	}
+	validateResp := &ConflictsWithValidatorResponse{}
+
+	av.Validate(ctx, validateReq, validateResp)
+
+	resp.Diagnostics.Append(validateResp.Diagnostics...)
+}
+
 func (av ConflictsWithValidator) ValidateFloat64(ctx context.Context, req validator.Float64Request, resp *validator.Float64Response) {
+	validateReq := ConflictsWithValidatorRequest{
+		Config:         req.Config,
+		ConfigValue:    req.ConfigValue,
+		Path:           req.Path,
+		PathExpression: req.PathExpression,
+	}
+	validateResp := &ConflictsWithValidatorResponse{}
+
+	av.Validate(ctx, validateReq, validateResp)
+
+	resp.Diagnostics.Append(validateResp.Diagnostics...)
+}
+
+func (av ConflictsWithValidator) ValidateInt32(ctx context.Context, req validator.Int32Request, resp *validator.Int32Response) {
 	validateReq := ConflictsWithValidatorRequest{
 		Config:         req.Config,
 		ConfigValue:    req.ConfigValue,
@@ -214,6 +247,20 @@ func (av ConflictsWithValidator) ValidateSet(ctx context.Context, req validator.
 }
 
 func (av ConflictsWithValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	validateReq := ConflictsWithValidatorRequest{
+		Config:         req.Config,
+		ConfigValue:    req.ConfigValue,
+		Path:           req.Path,
+		PathExpression: req.PathExpression,
+	}
+	validateResp := &ConflictsWithValidatorResponse{}
+
+	av.Validate(ctx, validateReq, validateResp)
+
+	resp.Diagnostics.Append(validateResp.Diagnostics...)
+}
+
+func (av ConflictsWithValidator) ValidateDynamic(ctx context.Context, req validator.DynamicRequest, resp *validator.DynamicResponse) {
 	validateReq := ConflictsWithValidatorRequest{
 		Config:         req.Config,
 		ConfigValue:    req.ConfigValue,

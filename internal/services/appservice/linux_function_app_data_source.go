@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -59,21 +58,22 @@ type LinuxFunctionAppDataSourceModel struct {
 	StickySettings                   []helpers.StickySettings             `tfschema:"sticky_settings"`
 	Tags                             map[string]string                    `tfschema:"tags"`
 
-	VirtualNetworkSubnetID        string   `tfschema:"virtual_network_subnet_id"`
-	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
-	DefaultHostname               string   `tfschema:"default_hostname"`
-	HostingEnvId                  string   `tfschema:"hosting_environment_id"`
-	Kind                          string   `tfschema:"kind"`
-	OutboundIPAddresses           string   `tfschema:"outbound_ip_addresses"`
-	OutboundIPAddressList         []string `tfschema:"outbound_ip_address_list"`
-	PossibleOutboundIPAddresses   string   `tfschema:"possible_outbound_ip_addresses"`
-	PossibleOutboundIPAddressList []string `tfschema:"possible_outbound_ip_address_list"`
-	Usage                         string   `tfschema:"usage"`
+	VirtualNetworkBackupRestoreEnabled bool     `tfschema:"virtual_network_backup_restore_enabled"`
+	VirtualNetworkSubnetID             string   `tfschema:"virtual_network_subnet_id"`
+	CustomDomainVerificationId         string   `tfschema:"custom_domain_verification_id"`
+	DefaultHostname                    string   `tfschema:"default_hostname"`
+	HostingEnvId                       string   `tfschema:"hosting_environment_id"`
+	Kind                               string   `tfschema:"kind"`
+	OutboundIPAddresses                string   `tfschema:"outbound_ip_addresses"`
+	OutboundIPAddressList              []string `tfschema:"outbound_ip_address_list"`
+	PossibleOutboundIPAddresses        string   `tfschema:"possible_outbound_ip_addresses"`
+	PossibleOutboundIPAddressList      []string `tfschema:"possible_outbound_ip_address_list"`
+	Usage                              string   `tfschema:"usage"`
 
 	SiteCredentials []helpers.SiteCredential `tfschema:"site_credential"`
 }
 
-func (d LinuxFunctionAppDataSource) ModelObject() interface{} {
+func (d LinuxFunctionAppDataSource) ModelObject() any {
 	return &LinuxFunctionAppDataSourceModel{}
 }
 
@@ -199,7 +199,7 @@ func (d LinuxFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 
 		"site_config": helpers.SiteConfigSchemaLinuxFunctionAppComputed(),
 
-		"tags": tags.SchemaDataSource(),
+		"tags": commonschema.TagsDataSource(),
 
 		"custom_domain_verification_id": {
 			Type:      pluginsdk.TypeString,
@@ -272,6 +272,11 @@ func (d LinuxFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 
 		"sticky_settings": helpers.StickySettingsComputedSchema(),
 
+		"virtual_network_backup_restore_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
 		"virtual_network_subnet_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -296,7 +301,7 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 			functionApp, err := client.Get(ctx, id)
 			if err != nil {
 				if response.WasNotFound(functionApp.HttpResponse) {
-					return fmt.Errorf("Linux %s not found", id)
+					return fmt.Errorf("the Linux %s was not found", id)
 				}
 				return fmt.Errorf("reading Linux %s: %+v", id, err)
 			}
@@ -377,17 +382,18 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 				state.Kind = pointer.From(model.Kind)
 
 				if props := model.Properties; props != nil {
-					state.Availability = string(pointer.From(props.AvailabilityState))
+					state.Availability = pointer.FromEnum(props.AvailabilityState)
 					state.ServicePlanId = pointer.From(props.ServerFarmId)
 					state.Enabled = pointer.From(props.Enabled)
-					state.ClientCertMode = string(pointer.From(props.ClientCertMode))
+					state.ClientCertMode = pointer.FromEnum(props.ClientCertMode)
 					state.ClientCertExclusionPaths = pointer.From(props.ClientCertExclusionPaths)
 					state.DailyMemoryTimeQuota = pointer.From(props.DailyMemoryTimeQuota)
 					state.StickySettings = helpers.FlattenStickySettings(stickySettings.Model.Properties)
 					state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 					state.DefaultHostname = pointer.From(props.DefaultHostName)
-					state.Usage = string(pointer.From(props.UsageState))
+					state.Usage = pointer.FromEnum(props.UsageState)
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
+					state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetBackupRestoreEnabled)
 
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 						state.HostingEnvId = pointer.From(hostingEnv.Id)
@@ -481,7 +487,7 @@ func (m *LinuxFunctionAppDataSourceModel) unpackLinuxFunctionAppSettings(input *
 		case "DOCKER_REGISTRY_SERVER_PASSWORD":
 			dockerSettings.RegistryPassword = v
 
-		// case "WEBSITES_ENABLE_APP_SERVICE_STORAGE": // TODO - Support this as a configurable bool, default `false` - Ref: https://docs.microsoft.com/en-us/azure/app-service/faq-app-service-linux#i-m-using-my-own-custom-container--i-want-the-platform-to-mount-an-smb-share-to-the---home---directory-
+		// case "WEBSITES_ENABLE_APP_SERVICE_STORAGE": // TODO - Support this as a configurable bool, default `false` - Ref: https://docs.microsoft.com/azure/app-service/faq-app-service-linux#i-m-using-my-own-custom-container--i-want-the-platform-to-mount-an-smb-share-to-the---home---directory-
 
 		case "APPINSIGHTS_INSTRUMENTATIONKEY":
 			m.SiteConfig[0].AppInsightsInstrumentationKey = v
@@ -491,8 +497,7 @@ func (m *LinuxFunctionAppDataSourceModel) unpackLinuxFunctionAppSettings(input *
 
 		case "AzureWebJobsStorage":
 			if strings.HasPrefix(v, "@Microsoft.KeyVault") {
-				trimmed := strings.TrimPrefix(strings.TrimSuffix(v, ")"), "@Microsoft.KeyVault(")
-				m.StorageKeyVaultSecretID = trimmed
+				m.StorageKeyVaultSecretID = strings.TrimPrefix(strings.TrimSuffix(v, ")"), "@Microsoft.KeyVault(")
 			} else {
 				m.StorageAccountName, m.StorageAccountKey = helpers.ParseWebJobsStorageString(v)
 			}

@@ -139,7 +139,7 @@ func (id ScopeRepetitionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticActions", "actions", "actions"),
 		resourceids.UserSpecifiedSegment("actionName", "actionName"),
 		resourceids.StaticSegment("staticScopeRepetitions", "scopeRepetitions", "scopeRepetitions"),
-		resourceids.UserSpecifiedSegment("scopeRepetitionName", "repetitionName"),
+		resourceids.UserSpecifiedSegment("scopeRepetitionName", "scopeRepetitionName"),
 	}
 }
 

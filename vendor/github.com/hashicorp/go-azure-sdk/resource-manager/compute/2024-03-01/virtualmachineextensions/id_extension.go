@@ -123,7 +123,7 @@ func (id ExtensionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticVirtualMachines", "virtualMachines", "virtualMachines"),
 		resourceids.UserSpecifiedSegment("virtualMachineName", "virtualMachineName"),
 		resourceids.StaticSegment("staticExtensions", "extensions", "extensions"),
-		resourceids.UserSpecifiedSegment("extensionName", "vmExtensionName"),
+		resourceids.UserSpecifiedSegment("extensionName", "extensionName"),
 	}
 }
 

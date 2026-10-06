@@ -1,3 +1,4 @@
+
 AAD B2C
 API Management
 Active Directory Domain Services
@@ -48,9 +49,11 @@ Desktop Virtualization
 Dev Center
 Dev Test
 Digital Twins
+Dynatrace
 Elastic
 Elastic SAN
 Extended Location
+Fabric
 Fluid Relay
 Graph Services
 HDInsight
@@ -68,18 +71,19 @@ Logic App
 Machine Learning
 Maintenance
 Managed Applications
+Managed DevOps Pools
+Managed Redis
 Management
 Maps
 Messaging
-Mixed Reality
-Mobile Network
+Mongo Cluster
 Monitor
 NGINX
 NetApp
 Network
 Network Function
 New Relic
-Orbital
+Oracle
 Palo Alto
 Policy
 Portal
@@ -87,10 +91,10 @@ PowerBI
 Private DNS
 Private DNS Resolver
 Purview
+Qumulo
 Recovery Services
 Red Hat OpenShift
 Redis
-Redis Enterprise
 Search
 Security Center
 Sentinel
@@ -104,6 +108,7 @@ Stream Analytics
 Synapse
 System Center Virtual Machine Manager
 Template
-Voice Services
+Trusted Signing
+Video Indexer
 Web PubSub
 Workloads
