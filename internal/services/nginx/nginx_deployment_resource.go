@@ -101,10 +101,9 @@ func expandNetworkProfile(public []FrontendPublic, private []FrontendPrivate, ne
 	if len(private) > 0 {
 		var privateIPs []nginxdeployments.NginxPrivateIPAddress
 		for _, ip := range private {
-			alloc := nginxdeployments.NginxPrivateIPAllocationMethod(ip.AllocationMethod)
 			privateIPs = append(privateIPs, nginxdeployments.NginxPrivateIPAddress{
 				PrivateIPAddress:          pointer.To(ip.IpAddress),
-				PrivateIPAllocationMethod: &alloc,
+				PrivateIPAllocationMethod: pointer.ToEnum[nginxdeployments.NginxPrivateIPAllocationMethod](ip.AllocationMethod),
 				SubnetId:                  pointer.To(ip.SubnetId),
 			})
 		}
@@ -357,8 +356,7 @@ func expandCreateForNginxDeployment(model DeploymentModel) (nginxdeployments.Ngi
 	req.Tags = pointer.To(model.Tags)
 
 	if model.Sku != "" {
-		sku := nginxdeployments.ResourceSku{Name: model.Sku}
-		req.Sku = &sku
+		req.Sku = pointer.To(nginxdeployments.ResourceSku{Name: model.Sku})
 	}
 
 	prop := &nginxdeployments.NginxDeploymentProperties{}
