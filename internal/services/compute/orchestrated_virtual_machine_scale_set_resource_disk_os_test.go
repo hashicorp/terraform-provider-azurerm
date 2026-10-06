@@ -42,7 +42,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_disksOSDiskCachingWithResourceDis
 	})
 }
 
-func TestAccOrchestratedVirtualMachineScaleSet_nvmePlatform(t *testing.T) {
+func TestAccOrchestratedVirtualMachineScaleSet_nvmePlacement(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
