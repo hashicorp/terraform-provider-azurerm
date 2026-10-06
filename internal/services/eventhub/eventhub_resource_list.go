@@ -23,7 +23,7 @@ import (
 type EventHubListResource struct{}
 
 type EventHubListModel struct {
-	NamespaceId types.String `tfsdk:"namespace_id"`
+	NamespaceId types.String `tfsdk:"eventhub_namespace_id"`
 }
 
 var _ sdk.FrameworkListWrappedResource = new(EventHubListResource)

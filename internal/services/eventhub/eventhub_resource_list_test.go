@@ -19,7 +19,7 @@ import (
 )
 
 func TestAccEventhub_listByNamespaceID(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_eventhub", "testlist1")
+	data := acceptance.BuildTestData(t, "azurerm_eventhub", "list")
 	r := EventhubResource{}
 
 	resource.Test(t, resource.TestCase{
@@ -84,7 +84,7 @@ func (r EventhubResource) basicQuery() string {
 list "azurerm_eventhub" "list" {
   provider = azurerm
   config {
-    namespace_id = azurerm_eventhub_namespace.test.id
+    eventhub_namespace_id = azurerm_eventhub_namespace.test.id
   }
 }
 `

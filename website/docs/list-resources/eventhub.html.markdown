@@ -18,7 +18,7 @@ Lists Eventhub resources.
 list "azurerm_eventhub" "example" {
   provider = azurerm
   config {
-    namespace_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.EventHub/namespaces/example-namespace"
+    eventhub_namespace_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.EventHub/namespaces/example-namespace"
   }
 }
 ```
@@ -27,4 +27,4 @@ list "azurerm_eventhub" "example" {
 
 This list resource supports the following arguments:
 
-* `namespace_id` - (Required) The ID of the Namespace to query.
+* `eventhub_namespace_id` - (Required) The ID of the Namespace to query.
