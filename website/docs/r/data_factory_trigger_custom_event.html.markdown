@@ -60,7 +60,7 @@ resource "azurerm_data_factory_trigger_custom_event" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

@@ -25,7 +25,7 @@ output "id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `location` - (Required) Specifies the Location to pull information about this Platform Image from.
 

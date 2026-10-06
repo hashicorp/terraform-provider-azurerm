@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -6,16 +6,16 @@ package network_test
 import (
 	"context"
 	"fmt"
+	"slices"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/ipgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/ipgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type IPGroupCidrResource struct{}
@@ -95,7 +95,7 @@ func (t IPGroupCidrResource) Exists(ctx context.Context, clients *clients.Client
 		return nil, fmt.Errorf("retrieving %s: `properties` was nil", ipGroupId)
 	}
 
-	if !utils.SliceContainsValue(*resp.Model.Properties.IPAddresses, state.Attributes["cidr"]) {
+	if !slices.Contains(*resp.Model.Properties.IPAddresses, state.Attributes["cidr"]) {
 		return pointer.To(false), nil
 	}
 

@@ -29,7 +29,7 @@ resource "azurerm_dev_test_lab" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

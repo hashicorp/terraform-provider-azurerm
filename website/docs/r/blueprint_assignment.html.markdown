@@ -104,7 +104,7 @@ resource "azurerm_blueprint_assignment" "example" {
 
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Required) The name of the Blueprint Assignment. Changing this forces a new resource to be created.
 

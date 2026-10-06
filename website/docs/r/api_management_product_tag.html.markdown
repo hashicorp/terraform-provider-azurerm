@@ -51,7 +51,7 @@ resource "azurerm_api_management_product_tag" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

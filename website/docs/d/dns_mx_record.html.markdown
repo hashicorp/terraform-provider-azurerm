@@ -26,7 +26,7 @@ output "dns_mx_record_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the DNS MX Record.
 

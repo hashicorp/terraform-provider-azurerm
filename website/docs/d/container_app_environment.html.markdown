@@ -62,6 +62,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ~> **Note:** This will only be populated for Environments that have `internal_load_balancer_enabled` set to true.
 
+* `public_network_access` - The public network access setting for this Container App Environment.
+
 * `static_ip_address` - The Static IP address of the Environment.
 
 ~> **Note:** If `internal_load_balancer_enabled` is true, this will be a Private IP in the subnet, otherwise this will be allocated a Public IPv4 address.
@@ -78,6 +80,6 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.App` - 2025-01-01
+* `Microsoft.App` - 2025-07-01
 
 * `Microsoft.OperationalInsights` - 2020-08-01

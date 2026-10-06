@@ -24,7 +24,7 @@ output "pool_allocation_mode" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the Batch account.
 

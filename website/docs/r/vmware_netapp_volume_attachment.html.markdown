@@ -170,7 +170,13 @@ The following arguments are supported:
 
 * `vmware_cluster_id` - (Required) The vmware cluster for this Azure VMware Solution Private Cloud Netapp File Volume Attachment to associated to. Changing this forces a new Azure VMware Solution Private Cloud Netapp File Volume Attachment to be created.
 
-~> **Note:** please follow the prerequisites mentioned in this [article](https://learn.microsoft.com/en-us/azure/azure-vmware/attach-azure-netapp-files-to-azure-vmware-solution-hosts?tabs=azure-portal#prerequisites) before associating the netapp file volume to the Azure VMware Solution hosts.
+~> **Note:** please follow the prerequisites mentioned in this [article](https://learn.microsoft.com/azure/azure-vmware/attach-azure-netapp-files-to-azure-vmware-solution-hosts?tabs=azure-portal#prerequisites) before associating the netapp file volume to the Azure VMware Solution hosts.
+
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the VMware Solution Private Cloud NetApp File Volume Attachment.
 
 ## Timeouts
 

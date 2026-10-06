@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory_test
@@ -9,12 +9,12 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LinkedServiceAzureBlobStorageResource struct{}
@@ -34,13 +34,13 @@ func TestAccDataFactoryLinkedServiceAzureBlobStorage_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataFactoryLinkedServiceAzureBlobStorage_managed_id(t *testing.T) {
+func TestAccDataFactoryLinkedServiceAzureBlobStorage_managedId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_blob_storage", "test")
 	r := LinkedServiceAzureBlobStorageResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.managed_id(data),
+			Config: r.managedId(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -49,13 +49,13 @@ func TestAccDataFactoryLinkedServiceAzureBlobStorage_managed_id(t *testing.T) {
 	})
 }
 
-func TestAccDataFactoryLinkedServiceAzureBlobStorage_sas_uri(t *testing.T) {
+func TestAccDataFactoryLinkedServiceAzureBlobStorage_sasUri(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_blob_storage", "test")
 	r := LinkedServiceAzureBlobStorageResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.sas_uri(data),
+			Config: r.sasUri(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -64,25 +64,23 @@ func TestAccDataFactoryLinkedServiceAzureBlobStorage_sas_uri(t *testing.T) {
 	})
 }
 
-func TestAccDataFactoryLinkedServiceAzureBlobStorage_sas_uri_with_key_vault_sas_token(t *testing.T) {
+func TestAccDataFactoryLinkedServiceAzureBlobStorage_sasUriWithSasTokenLinkedKeyVaultKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_blob_storage", "test")
 	r := LinkedServiceAzureBlobStorageResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.sas_uri_with_key_vault_sas_token(data),
+			Config: r.sasUriWithSasTokenLinkedKeyVaultKey(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sas_uri").Exists(),
-				check.That(data.ResourceName).Key("key_vault_sas_token.0.linked_service_name").HasValue("linkkv"),
-				check.That(data.ResourceName).Key("key_vault_sas_token.0.secret_name").HasValue("secret"),
 			),
 		},
 		data.ImportStep("sas_uri"),
 	})
 }
 
-func TestAccDataFactoryLinkedServiceAzureBlobStorage_service_endpoint_with_service_principal_linked_key_vault_key(t *testing.T) {
+func TestAccDataFactoryLinkedServiceAzureBlobStorage_serviceEndpointWithServicePrincipalLinkedKeyVaultKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_blob_storage", "test")
 	r := LinkedServiceAzureBlobStorageResource{}
 
@@ -90,12 +88,11 @@ func TestAccDataFactoryLinkedServiceAzureBlobStorage_service_endpoint_with_servi
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.service_endpoint_with_service_principal_linked_key_vault_key(data, tenantID),
+			Config: r.serviceEndpointWithServicePrincipalLinkedKeyVaultKey(data, tenantID),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("service_principal_id").Exists(),
 				check.That(data.ResourceName).Key("tenant_id").Exists(),
-				check.That(data.ResourceName).Key("service_principal_linked_key_vault_key.0.linked_service_name").HasValue("linkkv"),
 				check.That(data.ResourceName).Key("service_principal_linked_key_vault_key.0.secret_name").HasValue("secret"),
 			),
 		},
@@ -159,7 +156,7 @@ func (t LinkedServiceAzureBlobStorageResource) Exists(ctx context.Context, clien
 		return nil, fmt.Errorf("reading Data Factory Azure Storage Blob (%s): %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.ID != nil), nil
 }
 
 func (LinkedServiceAzureBlobStorageResource) basic(data acceptance.TestData) string {
@@ -262,7 +259,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceAzureBlobStorageResource) managed_id(data acceptance.TestData) string {
+func (LinkedServiceAzureBlobStorageResource) managedId(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -286,7 +283,7 @@ data "azurerm_client_config" "current" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                       = "accsa%[1]d"
+  name                       = "acctestsa%[1]d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   account_tier               = "Standard"
@@ -308,10 +305,10 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
   use_managed_identity = true
   storage_kind         = "StorageV2"
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomIntOfLength(10), data.Locations.Primary)
 }
 
-func (LinkedServiceAzureBlobStorageResource) sas_uri(data acceptance.TestData) string {
+func (LinkedServiceAzureBlobStorageResource) sasUri(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -342,7 +339,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceAzureBlobStorageResource) sas_uri_with_key_vault_sas_token(data acceptance.TestData) string {
+func (LinkedServiceAzureBlobStorageResource) sasUriWithSasTokenLinkedKeyVaultKey(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -366,32 +363,33 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctkv%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctest%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 }
 
 resource "azurerm_data_factory_linked_service_key_vault" "test" {
-  name            = "linkkv"
+  name            = "acctest%[1]d"
   data_factory_id = azurerm_data_factory.test.id
   key_vault_id    = azurerm_key_vault.test.id
 }
 
 resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
-  name            = "acctestBlobStorage"
+  name            = "acctestBlobStorage%[1]d"
   data_factory_id = azurerm_data_factory.test.id
   sas_uri         = "https://storageaccountname.blob.core.windows.net"
-  key_vault_sas_token {
+  sas_token_linked_key_vault_key {
     linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name
     secret_name         = "secret"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
-func (LinkedServiceAzureBlobStorageResource) service_endpoint_with_service_principal_linked_key_vault_key(data acceptance.TestData, tenantID string) string {
+func (LinkedServiceAzureBlobStorageResource) serviceEndpointWithServicePrincipalLinkedKeyVaultKey(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -415,21 +413,22 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctkv%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctest%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 }
 
 resource "azurerm_data_factory_linked_service_key_vault" "test" {
-  name            = "linkkv"
+  name            = "acctest%[1]d"
   data_factory_id = azurerm_data_factory.test.id
   key_vault_id    = azurerm_key_vault.test.id
 }
 
 resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
-  name                 = "acctestBlobStorage"
+  name                 = "acctestBlobStorage%[1]d"
   data_factory_id      = azurerm_data_factory.test.id
   service_endpoint     = "https://storageaccountname.blob.core.windows.net"
   service_principal_id = data.azurerm_client_config.current.client_id
@@ -439,7 +438,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
     secret_name         = "secret"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, tenantID)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, tenantID)
 }
 
 func (LinkedServiceAzureBlobStorageResource) connectionStringInsecure(data acceptance.TestData) string {

@@ -74,7 +74,7 @@ resource "azurerm_signalr_service_network_acl" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

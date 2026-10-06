@@ -20,7 +20,7 @@ data "azurerm_cdn_frontdoor_endpoint" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -38,9 +38,9 @@ The following attributes are exported:
 
 * `enabled` - Specifies whether this Front Door Endpoint is enabled or not.
 
-* `host_name` - Specifies the host name of the Front Door Endpoint, in the format `{endpointName}.{dnsZone}` (for example, `contoso.azureedge.net`).
+* `domain_name_label_reuse_scope` - The scope level of the endpoint's domain reuse behaviour.
 
-* `domain_name_label_reuse_scope` - Specifies the scope level of the endpoint's domain reuse behavior.
+* `host_name` - Specifies the host name of the Front Door Endpoint, in the format `{endpointName}.{dnsZone}` (for example, `contoso.azureedge.net`).
 
 * `tags` - Specifies a mapping of Tags assigned to this Front Door Endpoint.
 
@@ -54,4 +54,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Cdn` - 2025-06-01
+* `Microsoft.Cdn` - 2025-12-01

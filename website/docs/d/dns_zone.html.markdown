@@ -24,7 +24,7 @@ output "dns_zone_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the DNS Zone.
 

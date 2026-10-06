@@ -23,11 +23,11 @@ data "azurerm_machine_learning_workspace" "existing" {
 }
 
 output "id" {
-  value = azurerm_machine_learning_workspace.existing.id
+  value = data.azurerm_machine_learning_workspace.existing.id
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -44,6 +44,8 @@ The following attributes are exported:
 * `location` - The location where the Machine Learning Workspace exists.
 
 * `identity` - An `identity` block as defined below.
+
+* `storage_account_access_type` - The access type for the system storage account.
 
 * `tags` - A mapping of tags assigned to the Machine Learning Workspace.
 

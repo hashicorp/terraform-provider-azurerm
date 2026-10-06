@@ -24,7 +24,7 @@ output "image_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Optional) The name of the Image.
 * `name_regex` - (Optional) Regex pattern of the image to match.

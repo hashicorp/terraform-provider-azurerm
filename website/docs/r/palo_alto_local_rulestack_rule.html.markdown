@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `rulestack_id` - (Required) The ID of the Local Rulestack in which to create this Rule. Changing this forces a new Palo Alto Local Rulestack Rule to be created.
 
-* `priority` - (Required) The Priority of this rule. Rules are executed in numerical order. Changing this forces a new Palo Alto Local Rulestack Rule to be created.
+* `priority` - (Required) The Priority of this rule. Rules are executed in numerical order. Possible values are between 1 and 1000000. Changing this forces a new Palo Alto Local Rulestack Rule to be created.
 
 ~> **Note:** This is the primary identifier of a rule, as such it is not possible to change the Priority of a rule once created.
 
@@ -84,7 +84,7 @@ The following arguments are supported:
 
 * `negate_source` - (Optional) Should the inverse of the Source configuration be used. Defaults to `false`.
 
-* `protocol` - (Optional) The Protocol and port to use in the form `[protocol]:[port_number]` e.g. `TCP:8080` or `UDP:53`. Conflicts with `protocol_ports`. Defaults to `application-default`.
+* `protocol` - (Optional) The Protocol and port to use in the form `[protocol]:[port_number]` e.g. `TCP:8080` or `UDP:53`. Conflicts with `protocol_ports`.
 
 ~> **Note:** In 4.0 or later versions, the default of `protocol` will no longer be set by provider, exactly one of `protocol` and `protocol_ports` must be specified. You need to explicitly specify `protocol="application-default"` to keep the the current default of the `protocol`.
  
@@ -164,4 +164,4 @@ terraform import azurerm_palo_alto_local_rulestack_rule.example /subscriptions/0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `PaloAltoNetworks.Cloudngfw` - 2022-08-29
+* `PaloAltoNetworks.Cloudngfw` - 2025-10-08

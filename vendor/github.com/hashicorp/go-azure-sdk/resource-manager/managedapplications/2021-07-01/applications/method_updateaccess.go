@@ -62,9 +62,20 @@ func (c ApplicationsClient) UpdateAccess(ctx context.Context, id ApplicationId, 
 
 // UpdateAccessThenPoll performs UpdateAccess then polls until it's completed
 func (c ApplicationsClient) UpdateAccessThenPoll(ctx context.Context, id ApplicationId, input UpdateAccessDefinition) error {
+	return c.UpdateAccessCallbackThenPoll(ctx, id, input, nil)
+}
+
+// UpdateAccessCallbackThenPoll performs UpdateAccess, runs the optional callback function, then polls until it's completed
+func (c ApplicationsClient) UpdateAccessCallbackThenPoll(ctx context.Context, id ApplicationId, input UpdateAccessDefinition, callback func() error) error {
 	result, err := c.UpdateAccess(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing UpdateAccess: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

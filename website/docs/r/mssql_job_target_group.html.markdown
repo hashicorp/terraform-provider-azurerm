@@ -86,7 +86,7 @@ A `job_target` block supports the following:
 
 * `job_credential_id` - (Optional) The ID of the job credential to use during execution of jobs.
 
-~> **Note:** This is required when `membership_type` is `Include`, unless `database_name` is set.
+~> **Note:** This is required when `membership_type` is `Include`, unless `database_name` is set or the target resource is configured to use a managed identity for authentication.
 
 * `membership_type` - (Optional) The membership type for this job target. Possible values are `Include` and `Exclude`. Defaults to `Include`.
 
@@ -125,4 +125,4 @@ terraform import azurerm_mssql_job_target_group.example /subscriptions/00000000-
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Sql` - 2023-08-01-preview
+* `Microsoft.Sql` - 2025-01-01

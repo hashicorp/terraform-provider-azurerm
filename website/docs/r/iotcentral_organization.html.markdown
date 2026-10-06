@@ -45,7 +45,7 @@ resource "azurerm_iotcentral_organization" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -61,7 +61,7 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID reference of the organization, formated as `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.IoTCentral/iotApps/{application}/organizations/{organizationId}`.
+* `id` - The ID reference of the organization, formatted as `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.IoTCentral/iotApps/{application}/organizations/{organizationId}`.
 
 ## Timeouts
 
