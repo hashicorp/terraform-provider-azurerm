@@ -92,7 +92,7 @@ resource "azurerm_subnet_network_security_group_association" "untrust" {
 resource "azurerm_palo_alto_local_rulestack" "example" {
   name                = "example-rulestack"
   resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.locatio
+  location            = azurerm_resource_group.example.location
 }
 
 resource "azurerm_palo_alto_local_rulestack_rule" "example" {
@@ -140,6 +140,10 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the Resource Group where the Palo Alto Next Generation Firewall Virtual Network Local Rulestack should exist. Changing this forces a new Palo Alto Next Generation Firewall Virtual Network Local Rulestack to be created.
 
 * `rulestack_id` - (Required) The ID of the Local Rulestack which will be used to configure this Firewall Resource.
+
+* `marketplace_offer_id` - (Optional) The marketplace offer ID. Defaults to `pan_swfw_cloud_ngfw`. Changing this forces a new resource to be created.
+
+* `plan_id` - (Optional) The billing plan ID as published by Liftr.PAN. Defaults to `panw-cngfw-payg`.
 
 ---
 
@@ -217,7 +221,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 3 hours) Used when creating the Palo Alto Next Generation Firewall Virtual Network Local Rulestack.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Palo Alto Next Generation Firewall Virtual Network Local Rulestack.
@@ -231,3 +235,9 @@ Palo Alto Next Generation Firewall Virtual Network Local Rulestacks can be impor
 ```shell
 terraform import azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/PaloAltoNetworks.Cloudngfw/firewalls/myVNetRulestackFW
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `PaloAltoNetworks.Cloudngfw` - 2025-10-08

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -39,7 +39,6 @@ func resourceApiManagementApiTagDescription() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-
 			"api_tag_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -66,7 +65,7 @@ func resourceApiManagementApiTagDescription() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementApiTagDescriptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementApiTagDescriptionCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ApiTagDescriptionClient
 
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -82,15 +81,17 @@ func resourceApiManagementApiTagDescriptionCreateUpdate(d *pluginsdk.ResourceDat
 	id := apitagdescription.NewTagDescriptionID(apiTagId.SubscriptionId, apiTagId.ResourceGroupName, apiTagId.ServiceName, apiName, apiTagId.TagId)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_api_tag_description", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_api_management_api_tag_description", id.ID())
+			}
 		}
 	}
 
@@ -116,7 +117,7 @@ func resourceApiManagementApiTagDescriptionCreateUpdate(d *pluginsdk.ResourceDat
 	return resourceApiManagementApiTagDescriptionRead(d, meta)
 }
 
-func resourceApiManagementApiTagDescriptionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementApiTagDescriptionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ApiTagDescriptionClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -153,7 +154,7 @@ func resourceApiManagementApiTagDescriptionRead(d *pluginsdk.ResourceData, meta 
 	return nil
 }
 
-func resourceApiManagementApiTagDescriptionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementApiTagDescriptionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ApiTagDescriptionClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

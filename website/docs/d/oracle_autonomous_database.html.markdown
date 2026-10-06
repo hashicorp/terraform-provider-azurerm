@@ -51,7 +51,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `compute_count` - The compute amount (CPUs) available to the database.
 
-* `cpu_core_count` - The number of CPU cores to be made available to the database. When the ECPU is selected, the value for cpuCoreCount is 0. For Autonomous Database on Dedicated Exadata infrastructure, the maximum number of cores is determined by the infrastructure shape. See [Characteristics of Infrastructure Shapes](https://www.oracle.com/pls/topic/lookup?ctx=en/cloud/paas/autonomous-database&id=ATPFG-GUID-B0F033C1-CC5A-42F0-B2E7-3CECFEDA1FD1) for shape details.
+* `cpu_core_count` - The number of CPU cores to be made available to the database. When the ECPU is selected, the value for cpuCoreCount is 0. For Autonomous Database on Dedicated Exadata infrastructure, the maximum number of cores is determined by the infrastructure shape. See [Characteristics of Infrastructure Shapes](https://docs.oracle.com/en/cloud/paas/autonomous-database/dedicated/adbaa/characteristics-of-infrastructure-shapes.html) for shape details.
 
 * `data_storage_size_in_gbs` - The quantity of data in the database, in gigabytes.
 
@@ -149,8 +149,28 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `allowed_ips` - The client IP access control list (ACL). This feature is available for [Autonomous Database Serverless] (https://docs.oracle.com/en/cloud/paas/autonomous-database/index.html) and on Exadata Cloud@Customer. Only clients connecting from an IP address included in the ACL may access the Autonomous Database instance. If `arePrimaryWhitelistedIpsUsed` is 'TRUE' then Autonomous Database uses this primary's IP access control list (ACL) for the disaster recovery peer called `standbywhitelistedips`.
 
+* `long_term_backup_schedule` - A `long_term_backup_schedule` block as defined below
+
+---
+
+A `long_term_backup_schedule` blocks exports the following:
+
+* `repeat_cadence` - The frequency for automated long-term backups.
+
+* `time_of_backup` - The date and time in which the backup would be made.
+
+* `retention_period_in_days` - The retention period in days for Autonomous database backup.
+
+* `enabled` -  A boolean value that indicates if long term backup is enabled/disabled.
+
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Autonomous Database.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Oracle.Database` - 2025-09-01

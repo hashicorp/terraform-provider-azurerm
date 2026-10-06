@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package containers
 
 // NOTE: this file is generated - manual changes will be overwritten.
@@ -17,28 +20,32 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var _ sdk.Resource = KubernetesFleetManagerResource{}
-var _ sdk.ResourceWithUpdate = KubernetesFleetManagerResource{}
+var (
+	_ sdk.Resource           = KubernetesFleetManagerResource{}
+	_ sdk.ResourceWithUpdate = KubernetesFleetManagerResource{}
+)
 
 type KubernetesFleetManagerResource struct{}
 
-func (r KubernetesFleetManagerResource) ModelObject() interface{} {
+func (r KubernetesFleetManagerResource) ModelObject() any {
 	return &KubernetesFleetManagerResourceSchema{}
 }
 
 type KubernetesFleetManagerResourceSchema struct {
-	Location          string                 `tfschema:"location"`
-	Name              string                 `tfschema:"name"`
-	ResourceGroupName string                 `tfschema:"resource_group_name"`
-	Tags              map[string]interface{} `tfschema:"tags"`
+	Location          string         `tfschema:"location"`
+	Name              string         `tfschema:"name"`
+	ResourceGroupName string         `tfschema:"resource_group_name"`
+	Tags              map[string]any `tfschema:"tags"`
 }
 
 func (r KubernetesFleetManagerResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return fleets.ValidateFleetID
 }
+
 func (r KubernetesFleetManagerResource) ResourceType() string {
 	return "azurerm_kubernetes_fleet_manager"
 }
+
 func (r KubernetesFleetManagerResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.Location(),
@@ -49,7 +56,7 @@ func (r KubernetesFleetManagerResource) Arguments() map[string]*pluginsdk.Schema
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
 		"hub_profile": {
-			Deprecated: "The service team has indicated this field is now deprecated and not to be used, as such we are marking it as such and no longer sending it to the API, please see url: https://learn.microsoft.com/en-us/azure/kubernetes-fleet/architectural-overview",
+			Deprecated: "The service team has indicated this field is now deprecated and not to be used, as such we are marking it as such and no longer sending it to the API, please see url: https://learn.microsoft.com/azure/kubernetes-fleet/architectural-overview",
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"dns_prefix": {
@@ -74,14 +81,16 @@ func (r KubernetesFleetManagerResource) Arguments() map[string]*pluginsdk.Schema
 		"tags": commonschema.Tags(),
 	}
 }
+
 func (r KubernetesFleetManagerResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
+
 func (r KubernetesFleetManagerResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ContainerService.V20231015.Fleets
+			client := metadata.Client.ContainerService.V20240401.Fleets
 
 			var config KubernetesFleetManagerResourceSchema
 			if err := metadata.Decode(&config); err != nil {
@@ -92,20 +101,22 @@ func (r KubernetesFleetManagerResource) Create() sdk.ResourceFunc {
 
 			id := fleets.NewFleetID(subscriptionId, config.ResourceGroupName, config.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			var payload fleets.Fleet
 			r.mapKubernetesFleetManagerResourceSchemaToFleet(config, &payload)
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, payload, fleets.DefaultCreateOrUpdateOperationOptions()); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, fleets.DefaultCreateOrUpdateOperationOptions(), metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -114,11 +125,12 @@ func (r KubernetesFleetManagerResource) Create() sdk.ResourceFunc {
 		},
 	}
 }
+
 func (r KubernetesFleetManagerResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ContainerService.V20231015.Fleets
+			client := metadata.Client.ContainerService.V20240401.Fleets
 			schema := KubernetesFleetManagerResourceSchema{}
 
 			id, err := fleets.ParseFleetID(metadata.ResourceData.Id())
@@ -144,11 +156,12 @@ func (r KubernetesFleetManagerResource) Read() sdk.ResourceFunc {
 		},
 	}
 }
+
 func (r KubernetesFleetManagerResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ContainerService.V20231015.Fleets
+			client := metadata.Client.ContainerService.V20240401.Fleets
 
 			id, err := fleets.ParseFleetID(metadata.ResourceData.Id())
 			if err != nil {
@@ -163,11 +176,12 @@ func (r KubernetesFleetManagerResource) Delete() sdk.ResourceFunc {
 		},
 	}
 }
+
 func (r KubernetesFleetManagerResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ContainerService.V20231015.Fleets
+			client := metadata.Client.ContainerService.V20240401.Fleets
 
 			id, err := fleets.ParseFleetID(metadata.ResourceData.Id())
 			if err != nil {

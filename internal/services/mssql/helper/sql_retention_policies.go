@@ -1,13 +1,12 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package helper
 
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/backupshorttermretentionpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/longtermretentionpolicies"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/backupshorttermretentionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/longtermretentionpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -20,7 +19,7 @@ func LongTermRetentionPolicySchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -28,8 +27,8 @@ func LongTermRetentionPolicySchema() *pluginsdk.Schema {
 				"weekly_retention": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					Computed:     true,
-					ValidateFunc: validate.ISO8601Duration,
+					Default:      "PT0S",
+					ValidateFunc: validation.ISO8601Duration,
 					AtLeastOneOf: atLeastOneOf,
 				},
 
@@ -37,8 +36,8 @@ func LongTermRetentionPolicySchema() *pluginsdk.Schema {
 				"monthly_retention": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					Computed:     true,
-					ValidateFunc: validate.ISO8601Duration,
+					Default:      "PT0S",
+					ValidateFunc: validation.ISO8601Duration,
 					AtLeastOneOf: atLeastOneOf,
 				},
 
@@ -46,8 +45,8 @@ func LongTermRetentionPolicySchema() *pluginsdk.Schema {
 				"yearly_retention": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					Computed:     true,
-					ValidateFunc: validate.ISO8601Duration,
+					Default:      "PT0S",
+					ValidateFunc: validation.ISO8601Duration,
 					AtLeastOneOf: atLeastOneOf,
 				},
 
@@ -55,7 +54,7 @@ func LongTermRetentionPolicySchema() *pluginsdk.Schema {
 				"week_of_year": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.IntBetween(0, 52),
 					AtLeastOneOf: atLeastOneOf,
 				},
@@ -68,7 +67,7 @@ func ShortTermRetentionPolicySchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -80,7 +79,7 @@ func ShortTermRetentionPolicySchema() *pluginsdk.Schema {
 				"backup_interval_in_hours": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.IntInSlice([]int{12, 24}),
 				},
 			},
@@ -88,14 +87,14 @@ func ShortTermRetentionPolicySchema() *pluginsdk.Schema {
 	}
 }
 
-func ExpandLongTermRetentionPolicy(input []interface{}) *longtermretentionpolicies.BaseLongTermRetentionPolicyProperties {
+func ExpandLongTermRetentionPolicy(input []any) *longtermretentionpolicies.LongTermRetentionPolicyProperties {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	policy := input[0].(map[string]interface{})
+	policy := input[0].(map[string]any)
 
-	output := longtermretentionpolicies.BaseLongTermRetentionPolicyProperties{
+	output := longtermretentionpolicies.LongTermRetentionPolicyProperties{
 		WeeklyRetention:  pointer.To("PT0S"),
 		MonthlyRetention: pointer.To("PT0S"),
 		YearlyRetention:  pointer.To("PT0S"),
@@ -120,9 +119,9 @@ func ExpandLongTermRetentionPolicy(input []interface{}) *longtermretentionpolici
 	return pointer.To(output)
 }
 
-func FlattenLongTermRetentionPolicy(input *longtermretentionpolicies.LongTermRetentionPolicy) []interface{} {
+func FlattenLongTermRetentionPolicy(input *longtermretentionpolicies.LongTermRetentionPolicy) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	monthlyRetention := "PT0S"
@@ -145,8 +144,8 @@ func FlattenLongTermRetentionPolicy(input *longtermretentionpolicies.LongTermRet
 		yearlyRetention = *input.Properties.YearlyRetention
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"monthly_retention": monthlyRetention,
 			"weekly_retention":  weeklyRetention,
 			"week_of_year":      weekOfYear,
@@ -155,12 +154,12 @@ func FlattenLongTermRetentionPolicy(input *longtermretentionpolicies.LongTermRet
 	}
 }
 
-func ExpandShortTermRetentionPolicy(input []interface{}) *backupshorttermretentionpolicies.BackupShortTermRetentionPolicyProperties {
+func ExpandShortTermRetentionPolicy(input []any) *backupshorttermretentionpolicies.BackupShortTermRetentionPolicyProperties {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	policy := input[0].(map[string]interface{})
+	policy := input[0].(map[string]any)
 
 	props := backupshorttermretentionpolicies.BackupShortTermRetentionPolicyProperties{
 		RetentionDays: pointer.To(int64(7)),
@@ -177,14 +176,14 @@ func ExpandShortTermRetentionPolicy(input []interface{}) *backupshorttermretenti
 	return &props
 }
 
-func FlattenShortTermRetentionPolicy(input *backupshorttermretentionpolicies.BackupShortTermRetentionPolicy) []interface{} {
-	result := make([]interface{}, 0)
+func FlattenShortTermRetentionPolicy(input *backupshorttermretentionpolicies.BackupShortTermRetentionPolicy) []any {
+	result := make([]any, 0)
 
 	if input == nil {
 		return result
 	}
 
-	output := map[string]interface{}{}
+	output := map[string]any{}
 
 	output["retention_days"] = int64(7)
 	if input.Properties.RetentionDays != nil {

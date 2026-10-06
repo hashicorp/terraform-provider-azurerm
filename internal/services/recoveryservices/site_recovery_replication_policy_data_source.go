@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices
@@ -18,7 +18,6 @@ import (
 
 func dataSourceSiteRecoveryReplicationPolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-
 		Read: dataSourceSiteRecoveryReplicationPolicyRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -49,7 +48,7 @@ func dataSourceSiteRecoveryReplicationPolicy() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceSiteRecoveryReplicationPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceSiteRecoveryReplicationPolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	id := replicationpolicies.NewReplicationPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("recovery_vault_name").(string), d.Get("name").(string))
 

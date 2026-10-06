@@ -1,10 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managedapplications
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -15,15 +16,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/managedapplications/2021-07-01/applicationdefinitions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/managedapplications/2021-07-01/applications"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications/validate"
-	resourcesParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -48,12 +49,25 @@ func resourceManagedApplication() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.CustomizeDiffShim(resourceManagedApplicationCustomizeDiff),
+		),
+
 		Schema: resourceManagedApplicationSchema(),
 	}
 }
 
+func resourceManagedApplicationCustomizeDiff(ctx context.Context, diff *pluginsdk.ResourceDiff, meta any) error {
+	oldVal, newVal := diff.GetChange("identity.#")
+	if oldVal.(int) == 1 && newVal.(int) == 0 {
+		return diff.ForceNew("identity")
+	}
+
+	return nil
+}
+
 func resourceManagedApplicationSchema() map[string]*pluginsdk.Schema {
-	schema := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -86,15 +100,9 @@ func resourceManagedApplicationSchema() map[string]*pluginsdk.Schema {
 		"parameter_values": {
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
-			Computed:         true,
+			Computed:         true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc:     validation.StringIsJSON,
 			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
-			ConflictsWith: func() []string {
-				if !features.FourPointOhBeta() {
-					return []string{"parameters"}
-				}
-				return []string{}
-			}(),
 		},
 
 		"plan": {
@@ -138,6 +146,8 @@ func resourceManagedApplicationSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
 		"tags": commonschema.Tags(),
 
 		"outputs": {
@@ -148,24 +158,9 @@ func resourceManagedApplicationSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		schema["parameters"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeMap,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"parameter_values"},
-			Deprecated:    "This property has been deprecated in favour of `parameter_values`",
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
-		}
-	}
-
-	return schema
 }
 
-func resourceManagedApplicationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagedApplicationCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ManagedApplication.ApplicationClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -173,7 +168,7 @@ func resourceManagedApplicationCreate(d *pluginsdk.ResourceData, meta interface{
 
 	id := applications.NewApplicationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -188,7 +183,7 @@ func resourceManagedApplicationCreate(d *pluginsdk.ResourceData, meta interface{
 	parameters := applications.Application{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Kind:     d.Get("kind").(string),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v, ok := d.GetOk("managed_resource_group_name"); ok {
@@ -203,29 +198,32 @@ func resourceManagedApplicationCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if v, ok := d.GetOk("plan"); ok {
-		parameters.Plan = expandManagedApplicationPlan(v.([]interface{}))
+		parameters.Plan = expandManagedApplicationPlan(v.([]any))
+	}
+
+	if _, ok := d.GetOk("identity"); ok {
+		managedApplicationIdentity, err := expandManagedApplicationIdentity(d.Get("identity").([]any))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		parameters.Identity = managedApplicationIdentity
 	}
 
 	params, err := expandManagedApplicationParameters(d)
 	if err != nil {
-		if !features.FourPointOhBeta() {
-			return fmt.Errorf("expanding `parameters` or `parameter_values`: %+v", err)
-		}
 		return fmt.Errorf("expanding `parameter_values`: %+v", err)
 	}
-	parameters.Properties.Parameters = pointer.To(interface{}(params))
+	parameters.Properties.Parameters = pointer.To(any(params))
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
-	if err != nil {
-		return fmt.Errorf("failed to create %s: %+v", id, err)
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-
 	d.SetId(id.ID())
 
 	return resourceManagedApplicationRead(d, meta)
 }
 
-func resourceManagedApplicationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagedApplicationUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ManagedApplication.ApplicationClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -246,28 +244,32 @@ func resourceManagedApplicationUpdate(d *pluginsdk.ResourceData, meta interface{
 		payload.Properties.ApplicationDefinitionId = pointer.To(d.Get("application_definition_id").(string))
 	}
 
+	if d.HasChange("identity") {
+		managedApplicationIdentity, err := expandManagedApplicationIdentity(d.Get("identity").([]any))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		payload.Identity = managedApplicationIdentity
+	}
+
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	params, err := expandManagedApplicationParameters(d)
 	if err != nil {
-		if !features.FourPointOhBeta() {
-			return fmt.Errorf("expanding `parameters` or `parameter_values`: %+v", err)
-		}
 		return fmt.Errorf("expanding `parameter_values`: %+v", err)
 	}
-	payload.Properties.Parameters = pointer.To(interface{}(params))
+	payload.Properties.Parameters = pointer.To(any(params))
 
-	err = client.CreateOrUpdateThenPoll(ctx, *id, *payload)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	return resourceManagedApplicationRead(d, meta)
 }
 
-func resourceManagedApplicationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagedApplicationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ManagedApplication.ApplicationClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -299,19 +301,16 @@ func resourceManagedApplicationRead(d *pluginsdk.ResourceData, meta interface{})
 			return fmt.Errorf("setting `plan`: %+v", err)
 		}
 
-		id, err := resourcesParse.ResourceGroupIDInsensitively(pointer.From(p.ManagedResourceGroupId))
+		id, err := commonids.ParseResourceGroupIDInsensitively(pointer.From(p.ManagedResourceGroupId))
 		if err != nil {
 			return err
 		}
 
-		d.Set("managed_resource_group_name", id.ResourceGroup)
+		d.Set("managed_resource_group_name", id.ResourceGroupName)
 		d.Set("application_definition_id", p.ApplicationDefinitionId)
 
 		expendedParams, err := expandManagedApplicationParameters(d)
 		if err != nil {
-			if !features.FourPointOhBeta() {
-				return fmt.Errorf("expanding `parameters` or `parameter_values`: %+v", err)
-			}
 			return fmt.Errorf("expanding `parameter_values`: %+v", err)
 		}
 
@@ -321,15 +320,11 @@ func resourceManagedApplicationRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 		d.Set("parameter_values", parameterValues)
 
-		if !features.FourPointOhBeta() {
-			parameters, err := flattenManagedApplicationParameters(p.Parameters, *expendedParams)
-			if err != nil {
-				return err
-			}
-			if err = d.Set("parameters", parameters); err != nil {
-				return err
-			}
+		managedApplicationIdentity, err := flattenManagedApplicationIdentity(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
 		}
+		d.Set("identity", managedApplicationIdentity)
 
 		outputs, err := flattenManagedApplicationOutputs(p.Outputs)
 		if err != nil {
@@ -347,7 +342,7 @@ func resourceManagedApplicationRead(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceManagedApplicationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagedApplicationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ManagedApplication.ApplicationClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -364,11 +359,11 @@ func resourceManagedApplicationDelete(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func expandManagedApplicationPlan(input []interface{}) *applications.Plan {
+func expandManagedApplicationPlan(input []any) *applications.Plan {
 	if len(input) == 0 {
 		return nil
 	}
-	plan := input[0].(map[string]interface{})
+	plan := input[0].(map[string]any)
 
 	return &applications.Plan{
 		Name:          plan["name"].(string),
@@ -379,8 +374,8 @@ func expandManagedApplicationPlan(input []interface{}) *applications.Plan {
 	}
 }
 
-func expandManagedApplicationParameters(d *pluginsdk.ResourceData) (*map[string]interface{}, error) {
-	newParams := make(map[string]interface{})
+func expandManagedApplicationParameters(d *pluginsdk.ResourceData) (*map[string]any, error) {
+	newParams := make(map[string]any)
 
 	if v, ok := d.GetOk("parameter_values"); ok {
 		if err := json.Unmarshal([]byte(v.(string)), &newParams); err != nil {
@@ -388,31 +383,16 @@ func expandManagedApplicationParameters(d *pluginsdk.ResourceData) (*map[string]
 		}
 	}
 
-	if !features.FourPointOhBeta() {
-		// `parameters` will be available in state as well after first apply when `parameter_values` is used, so getting its value only during creation or when it is changed
-		if d.IsNewResource() || d.HasChange("parameters") {
-			if v, ok := d.GetOk("parameters"); ok {
-				params := v.(map[string]interface{})
-
-				for key, val := range params {
-					newParamValue := make(map[string]interface{}, 1)
-					newParamValue["value"] = val
-					newParams[key] = newParamValue
-				}
-			}
-		}
-	}
-
 	return &newParams, nil
 }
 
-func flattenManagedApplicationPlan(input *applications.Plan) []interface{} {
-	results := make([]interface{}, 0)
+func flattenManagedApplicationPlan(input *applications.Plan) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
-	results = append(results, map[string]interface{}{
+	results = append(results, map[string]any{
 		"name":           input.Name,
 		"product":        input.Product,
 		"publisher":      input.Publisher,
@@ -423,55 +403,16 @@ func flattenManagedApplicationPlan(input *applications.Plan) []interface{} {
 	return results
 }
 
-func flattenManagedApplicationParameters(input *interface{}, localParameters map[string]interface{}) (map[string]interface{}, error) {
-	results := make(map[string]interface{})
+func flattenManagedApplicationOutputs(input *any) (map[string]any, error) {
+	results := make(map[string]any)
 	if input == nil {
 		return results, nil
 	}
 
 	attrs := *input
-	if _, ok := attrs.(map[string]interface{}); ok {
-		for k, val := range attrs.(map[string]interface{}) {
-			mapVal, ok := val.(map[string]interface{})
-			if !ok {
-				return nil, fmt.Errorf("unexpected managed application parameter type: %+v", mapVal)
-			}
-			if mapVal != nil {
-				v, ok := mapVal["value"]
-				if !ok {
-					// Secure values are not returned, thus settings it with local value
-					v = ""
-					if oldValueStruct, oldValueStructOK := localParameters[k]; oldValueStructOK {
-						if _, oldValueStructTypeOK := oldValueStruct.(map[string]interface{}); oldValueStructTypeOK {
-							if oldValue, oldValueOK := oldValueStruct.(map[string]interface{})["value"]; oldValueOK {
-								v = oldValue
-							}
-						}
-					}
-				}
-
-				value, err := extractParameterOrOutputValue(v)
-				if err != nil {
-					return nil, fmt.Errorf("extracting parameters: %+v", err)
-				}
-				results[k] = value
-			}
-		}
-	}
-
-	return results, nil
-}
-
-func flattenManagedApplicationOutputs(input *interface{}) (map[string]interface{}, error) {
-	results := make(map[string]interface{})
-	if input == nil {
-		return results, nil
-	}
-
-	attrs := *input
-	if _, ok := attrs.(map[string]interface{}); ok {
-		for k, val := range attrs.(map[string]interface{}) {
-			mapVal, ok := val.(map[string]interface{})
+	if _, ok := attrs.(map[string]any); ok {
+		for k, val := range attrs.(map[string]any) {
+			mapVal, ok := val.(map[string]any)
 			if !ok {
 				return nil, fmt.Errorf("unexpected managed application output type: %+v", mapVal)
 			}
@@ -493,24 +434,24 @@ func flattenManagedApplicationOutputs(input *interface{}) (map[string]interface{
 	return results, nil
 }
 
-func flattenManagedApplicationParameterValuesValueToString(input *interface{}, localParameters map[string]interface{}) (string, error) {
+func flattenManagedApplicationParameterValuesValueToString(input *any, localParameters map[string]any) (string, error) {
 	if input == nil {
 		return "", nil
 	}
 
 	attrs := *input
-	if _, ok := attrs.(map[string]interface{}); ok {
-		for k, v := range attrs.(map[string]interface{}) {
+	if _, ok := attrs.(map[string]any); ok {
+		for k, v := range attrs.(map[string]any) {
 			if v != nil {
-				delete(attrs.(map[string]interface{})[k].(map[string]interface{}), "type")
+				delete(attrs.(map[string]any)[k].(map[string]any), "type")
 
 				// Secure values are not returned, thus settings it with local value
-				value := attrs.(map[string]interface{})[k].(map[string]interface{})
+				value := attrs.(map[string]any)[k].(map[string]any)
 				if _, ok := value["value"]; !ok {
 					value["value"] = ""
 					if localParam, localParamOK := localParameters[k]; localParamOK {
-						if _, oldValueStructTypeOK := localParam.(map[string]interface{}); oldValueStructTypeOK {
-							if localParamValue, localParamValueOK := localParam.(map[string]interface{})["value"]; localParamValueOK {
+						if _, oldValueStructTypeOK := localParam.(map[string]any); oldValueStructTypeOK {
+							if localParamValue, localParamValueOK := localParam.(map[string]any)["value"]; localParamValueOK {
 								value["value"] = localParamValue
 							}
 						}
@@ -525,7 +466,7 @@ func flattenManagedApplicationParameterValuesValueToString(input *interface{}, l
 	return "", nil
 }
 
-func extractParameterOrOutputValue(v interface{}) (string, error) {
+func extractParameterOrOutputValue(v any) (string, error) {
 	switch t := v.(type) {
 	case bool:
 		return strconv.FormatBool(v.(bool)), nil
@@ -534,16 +475,16 @@ func extractParameterOrOutputValue(v interface{}) (string, error) {
 		return fmt.Sprintf("%.f", v.(float64)), nil
 	case string:
 		return v.(string), nil
-	case map[string]interface{}:
+	case map[string]any:
 		return compactParameterOrOutputValue(v)
-	case []interface{}:
+	case []any:
 		return compactParameterOrOutputValue(v)
 	default:
 		return "", fmt.Errorf("unexpected type %T", t)
 	}
 }
 
-func compactParameterOrOutputValue(v interface{}) (string, error) {
+func compactParameterOrOutputValue(v any) (string, error) {
 	result, err := json.Marshal(v)
 	if err != nil {
 		return "", err
@@ -554,4 +495,68 @@ func compactParameterOrOutputValue(v interface{}) (string, error) {
 		return "", err
 	}
 	return compactJson.String(), nil
+}
+
+func expandManagedApplicationIdentity(input []any) (*applications.Identity, error) {
+	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
+	if err != nil {
+		return nil, err
+	}
+
+	out := &applications.Identity{
+		Type: pointer.ToEnum[applications.ResourceIdentityType](string(expanded.Type)),
+	}
+
+	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
+		userAssignedIdentities := make(map[string]applications.UserAssignedResourceIdentity)
+		for k := range expanded.IdentityIds {
+			userAssignedIdentities[k] = applications.UserAssignedResourceIdentity{}
+		}
+
+		out.UserAssignedIdentities = &userAssignedIdentities
+	}
+
+	return out, nil
+}
+
+func flattenManagedApplicationIdentity(input *applications.Identity) ([]any, error) {
+	var config *identity.SystemAndUserAssignedMap
+
+	if input != nil {
+		identityType := identity.TypeNone
+		if input.Type != nil {
+			identityType = identity.Type(*input.Type)
+		}
+
+		config = &identity.SystemAndUserAssignedMap{
+			Type:        identityType,
+			IdentityIds: nil,
+		}
+
+		if input.PrincipalId != nil {
+			config.PrincipalId = *input.PrincipalId
+		}
+
+		if input.TenantId != nil {
+			config.TenantId = *input.TenantId
+		}
+
+		identityIds := make(map[string]identity.UserAssignedIdentityDetails)
+		if input.UserAssignedIdentities != nil {
+			for k, v := range *input.UserAssignedIdentities {
+				identityIds[k] = identity.UserAssignedIdentityDetails{
+					PrincipalId: v.PrincipalId,
+				}
+			}
+		}
+
+		config.IdentityIds = identityIds
+	}
+
+	result, err := identity.FlattenSystemAndUserAssignedMap(config)
+	if err != nil {
+		return nil, err
+	}
+
+	return *result, nil
 }

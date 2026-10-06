@@ -76,13 +76,14 @@ resource "azurerm_kusto_iothub_data_connection" "example" {
   shared_access_policy_name = azurerm_iothub_shared_access_policy.example.name
   event_system_properties   = ["message-id", "sequence-number", "to"]
 
-  table_name        = "my-table"
-  mapping_rule_name = "my-table-mapping"
-  data_format       = "JSON"
+  table_name           = "my-table"
+  mapping_rule_name    = "my-table-mapping"
+  data_format          = "JSON"
+  retrieval_start_date = "2023-06-26T12:00:00Z"
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -102,7 +103,7 @@ The following arguments are supported:
 
 * `shared_access_policy_name` - (Required) Specifies the IotHub Shared Access Policy this data connection will use for ingestion, which must have read permission. Changing this forces a new resource to be created.
 
-* `event_system_properties` - (Optional) Specifies the System Properties that each IoT Hub message should contain. Changing this forces a new resource to be created. Possible values are `message-id`, `sequence-number`, `to`, `absolute-expiry-time`, `iothub-enqueuedtime`, `correlation-id`, `user-id`, `iothub-ack`, `iothub-connection-device-id`, `iothub-connection-auth-generation-id` and `iothub-connection-auth-method`.
+* `event_system_properties` - (Optional) Specifies the System Properties that each IoT Hub message should contain. Changing this forces a new resource to be created.
 
 * `table_name` - (Optional) Specifies the target table name used for the message ingestion. Table must exist before resource is created. Changing this forces a new resource to be created.
 
@@ -112,6 +113,8 @@ The following arguments are supported:
 
 * `database_routing_type` - (Optional) Indication for database routing information from the data connection, by default only database routing information is allowed. Allowed values: `Single`, `Multi`. Changing this forces a new resource to be created. Defaults to `Single`.
 
+* `retrieval_start_date` - (Optional) Specifies the date after which data should be retrieved from IoT Hub. When defined, the data connection retrieves existing events created since the specified retrieval start date. It can only retrieve events retained by the IoT Hub, based on its retention period. The value should be in RFC3339 format (e.g., `2023-06-26T12:00:00Z`).
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -120,11 +123,12 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Kusto IotHub Data Connection.
+* `create` - (Defaults to 1 hour) Used when creating the Kusto IotHub Data Connection.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Kusto IotHub Data Connection.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Kusto IotHub Data Connection.
+* `update` - (Defaults to 1 hour) Used when updating the Kusto IotHub Data Connection.
+* `delete` - (Defaults to 1 hour) Used when deleting the Kusto IotHub Data Connection.
 
 ## Import
 
@@ -133,3 +137,9 @@ Kusto IotHub Data Connections can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_kusto_iothub_data_connection.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Kusto/clusters/cluster1/databases/database1/dataConnections/dataConnection1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Kusto` - 2024-04-13

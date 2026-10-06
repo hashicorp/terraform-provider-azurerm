@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automanage
@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/migration"
@@ -88,16 +89,25 @@ type SchedulePolicyConfiguration struct {
 	SchedulePolicyType   string   `tfschema:"schedule_policy_type"`
 }
 
+//go:generate go run ../../tools/generator-tests resourceidentity
+
 type AutoManageConfigurationResource struct{}
 
-var _ sdk.ResourceWithUpdate = AutoManageConfigurationResource{}
-var _ sdk.ResourceWithStateMigration = AutoManageConfigurationResource{}
+var (
+	_ sdk.ResourceWithUpdate         = AutoManageConfigurationResource{}
+	_ sdk.ResourceWithStateMigration = AutoManageConfigurationResource{}
+	_ sdk.ResourceWithIdentity       = AutoManageConfigurationResource{}
+)
+
+func (r AutoManageConfigurationResource) Identity() resourceids.ResourceId {
+	return &configurationprofiles.ConfigurationProfileId{}
+}
 
 func (r AutoManageConfigurationResource) ResourceType() string {
 	return "azurerm_automanage_configuration"
 }
 
-func (r AutoManageConfigurationResource) ModelObject() interface{} {
+func (r AutoManageConfigurationResource) ModelObject() any {
 	return &ConfigurationModel{}
 }
 
@@ -472,13 +482,16 @@ func (r AutoManageConfigurationResource) Create() sdk.ResourceFunc {
 			}
 
 			id := configurationprofiles.NewConfigurationProfileID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			properties := configurationprofiles.ConfigurationProfile{
@@ -495,6 +508,9 @@ func (r AutoManageConfigurationResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -561,7 +577,7 @@ func (r AutoManageConfigurationResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
 				if props := model.Properties; props != nil && props.Configuration != nil {
-					configMap := (*props.Configuration).(map[string]interface{})
+					configMap := (*props.Configuration).(map[string]any)
 
 					state.Antimalware = flattenAntiMalwareConfig(configMap)
 
@@ -596,6 +612,9 @@ func (r AutoManageConfigurationResource) Read() sdk.ResourceFunc {
 				state.Tags = pointer.From(model.Tags)
 			}
 
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
 			return metadata.Encode(&state)
 		},
 	}
@@ -629,9 +648,10 @@ func (r AutoManageConfigurationResource) StateUpgraders() sdk.StateUpgradeData {
 		},
 	}
 }
-func expandConfigurationProfile(model ConfigurationModel) *interface{} {
+
+func expandConfigurationProfile(model ConfigurationModel) *any {
 	// building configuration profile in json format
-	jsonConfig := make(map[string]interface{})
+	jsonConfig := make(map[string]any)
 
 	if len(model.Antimalware) > 0 {
 		antimalwareConfig := model.Antimalware[0]
@@ -727,13 +747,13 @@ func expandConfigurationProfile(model ConfigurationModel) *interface{} {
 		jsonConfig["Alerts/AutomanageStatusChanges/Enable"] = model.StatusChangeAlertEnabled
 	}
 
-	var out interface{} = jsonConfig
+	var out any = jsonConfig
 	return &out
 }
 
-func flattenAntiMalwareConfig(configMap map[string]interface{}) []AntimalwareConfiguration {
+func flattenAntiMalwareConfig(configMap map[string]any) []AntimalwareConfiguration {
 	if val, ok := configMap["Antimalware/Enable"]; !ok || (val == nil) {
-		return nil
+		return []AntimalwareConfiguration{}
 	}
 
 	antimalware := make([]AntimalwareConfiguration, 1)
@@ -784,9 +804,9 @@ func flattenAntiMalwareConfig(configMap map[string]interface{}) []AntimalwareCon
 	return antimalware
 }
 
-func flattenAzureSecurityBaselineConfig(configMap map[string]interface{}) []AzureSecurityBaselineConfiguration {
+func flattenAzureSecurityBaselineConfig(configMap map[string]any) []AzureSecurityBaselineConfiguration {
 	if val, ok := configMap["AzureSecurityBaseline/Enable"]; !ok || (val == nil) {
-		return nil
+		return []AzureSecurityBaselineConfiguration{}
 	}
 
 	azureSecurityBaseline := make([]AzureSecurityBaselineConfiguration, 1)
@@ -799,9 +819,9 @@ func flattenAzureSecurityBaselineConfig(configMap map[string]interface{}) []Azur
 	return azureSecurityBaseline
 }
 
-func flattenBackupConfig(configMap map[string]interface{}) []BackupConfiguration {
+func flattenBackupConfig(configMap map[string]any) []BackupConfiguration {
 	if val, ok := configMap["Backup/Enable"]; !ok || (val == nil) {
-		return nil
+		return []BackupConfiguration{}
 	}
 
 	backup := make([]BackupConfiguration, 1)
@@ -919,8 +939,8 @@ func flattenBackupConfig(configMap map[string]interface{}) []BackupConfiguration
 	return backup
 }
 
-func flattenToListOfString(val interface{}) []string {
-	lis := val.([]interface{})
+func flattenToListOfString(val any) []string {
+	lis := val.([]any)
 	strs := make([]string, len(lis))
 	for i, v := range lis {
 		strs[i] = v.(string)

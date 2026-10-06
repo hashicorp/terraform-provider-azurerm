@@ -30,9 +30,9 @@ resource "azurerm_databricks_workspace" "example" {
 }
 ```
 
--> You can use [the Databricks Terraform Provider](https://registry.terraform.io/providers/databrickslabs/databricks/latest/docs) to manage resources within the Databricks Workspace.
+-> **Note:** You can use [the Databricks Terraform Provider](https://registry.terraform.io/providers/databrickslabs/databricks/latest/docs) to manage resources within the Databricks Workspace.
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -50,15 +50,7 @@ The following arguments are supported:
 
 * `managed_services_cmk_key_vault_id` - (Optional) Resource ID of the Key Vault which contains the `managed_services_cmk_key_vault_key_id` key.
 
--> **Note:** The `managed_services_cmk_key_vault_id` field is only required if the Key Vault exists in a different subscription than the Databricks Workspace. If the `managed_services_cmk_key_vault_id` field is not specified it is assumed that the `managed_services_cmk_key_vault_key_id` is hosted in the same subscriptioin as the Databricks Workspace.
-
--> **Note:** If you are using multiple service principals to execute Terraform across subscriptions you will need to add an additional `azurerm_key_vault_access_policy` resource granting the service principal access to the key vault in that subscription.
-
 * `managed_disk_cmk_key_vault_id` - (Optional) Resource ID of the Key Vault which contains the `managed_disk_cmk_key_vault_key_id` key.
-
--> **Note:** The `managed_disk_cmk_key_vault_id` field is only required if the Key Vault exists in a different subscription than the Databricks Workspace. If the `managed_disk_cmk_key_vault_id` field is not specified it is assumed that the `managed_disk_cmk_key_vault_key_id` is hosted in the same subscriptioin as the Databricks Workspace.
-
--> **Note:** If you are using multiple service principals to execute Terraform across subscriptions you will need to add an additional `azurerm_key_vault_access_policy` resource granting the service principal access to the key vault in that subscription.
 
 * `managed_services_cmk_key_vault_key_id` - (Optional) Customer managed encryption properties for the Databricks Workspace managed resources(e.g. Notebooks and Artifacts).
 
@@ -85,6 +77,8 @@ The following arguments are supported:
 * `network_security_group_rules_required` - (Optional) Does the data plane (clusters) to control plane communication happen over private link endpoint only or publicly? Possible values `AllRules`, `NoAzureDatabricksRules` or `NoAzureServiceRules`. Required when `public_network_access_enabled` is set to `false`.
 
 * `custom_parameters` - (Optional) A `custom_parameters` block as documented below.
+
+* `enhanced_security_compliance` - (Optional) An `enhanced_security_compliance` block as documented below. This feature is only valid if `sku` is set to `premium`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -122,6 +116,26 @@ A `custom_parameters` block supports the following:
 
 ~> **Note:** Databricks requires that a network security group is associated with the `public` and `private` subnets when a `virtual_network_id` has been defined. Both `public` and `private` subnets must be delegated to `Microsoft.Databricks/workspaces`. For more information about subnet delegation see the [product documentation](https://docs.microsoft.com/azure/virtual-network/subnet-delegation-overview).
 
+---
+
+An `enhanced_security_compliance` block supports the following:
+
+* `automatic_cluster_update_enabled` - (Optional) Enables automatic cluster updates for this workspace. Defaults to `false`.
+
+* `compliance_security_profile_enabled` - (Optional) Enables compliance security profile for this workspace. Defaults to `false`.
+
+~> **Note:** Changing the value of `compliance_security_profile_enabled` from `true` to `false` forces a replacement of the Databricks workspace.
+
+~> **Note:** The attributes `automatic_cluster_update_enabled` and `enhanced_security_monitoring_enabled` must be set to `true` in order to set `compliance_security_profile_enabled` to `true`.
+
+* `compliance_security_profile_standards` - (Optional) A list of standards to enforce on this workspace. Possible values include `HIPAA`, `PCI_DSS`, `FEDRAMP_MODERATE`, `IRAP_PROTECTED`, `FEDRAMP_HIGH`, `FEDRAMP_IL5`, `ITAR_EAR`, `CYBER_ESSENTIAL_PLUS`, `CANADA_PROTECTED_B`, `ISMAP`, `HITRUST`, `K_FSI`, `GERMANY_C5`, and `GERMANY_TISAX`
+
+~> **Note:** `compliance_security_profile_enabled` must be set to `true` in order to use `compliance_security_profile_standards`.
+
+~> **Note:** Removing a standard from the `compliance_security_profile_standards` list forces a replacement of the Databricks workspace.
+
+* `enhanced_security_monitoring_enabled` - (Optional) Enables enhanced security monitoring for this workspace. Defaults to `false`.
+
 ## Example HCL Configurations
 
 * [Databricks Workspace Secure Connectivity Cluster with Load Balancer](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/databricks/secure-connectivity-cluster/with-load-balancer)
@@ -131,7 +145,6 @@ A `custom_parameters` block supports the following:
 * [Databricks Workspace with Root Databricks File System Customer Managed Keys](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/databricks/customer-managed-key/dbfs)
 * [Databricks Workspace with Root Databricks File System Customer Managed Keys in a Different Subscription](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/databricks/customer-managed-key/dbfs-cross-subscription)
 * [Databricks Workspace with Customer Managed Keys for Managed Services](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/databricks/customer-managed-key/managed-services)
-* [Databricks Workspace with Customer Managed Keys for Managed Services with Key Vault and Key in a Different Subscription](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/databricks/customer-managed-key/managed-services-cross-subscription)
 
 ## Attributes Reference
 
@@ -145,7 +158,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `managed_resource_group_id` - The ID of the Managed Resource Group created by the Databricks Workspace.
 
-* `workspace_url` - The workspace URL which is of the format 'adb-{workspaceId}.{random}.azuredatabricks.net'
+* `workspace_url` - The workspace URL which is of the format `adb-{workspaceId}.{random}.azuredatabricks.net`
 
 * `workspace_id` - The unique identifier of the databricks workspace in Databricks control plane.
 
@@ -173,11 +186,11 @@ A `storage_account_identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Databricks Workspace.
-* `update` - (Defaults to 30 minutes) Used when updating the Databricks Workspace.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Databricks Workspace.
+* `update` - (Defaults to 30 minutes) Used when updating the Databricks Workspace.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Databricks Workspace.
 
 ## Import
@@ -187,3 +200,11 @@ Databrick Workspaces can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_databricks_workspace.workspace1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Databricks/workspaces/workspace1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Databricks` - 2026-01-01
+
+* `Microsoft.Network` - 2025-07-01

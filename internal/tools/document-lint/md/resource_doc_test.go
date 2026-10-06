@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package md
@@ -56,7 +56,7 @@ func TestExtractListItem(t *testing.T) {
 }
 
 func TestExtractBlockNames(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		line  string
 		names []string
 	}{
@@ -104,7 +104,7 @@ func TestScanOrSplit(t *testing.T) {
 }
 
 func TestDefaultValueReg(t *testing.T) {
-	var lines = []string{
+	lines := []string{
 		"* `load_balancing_mode` - (Optional) The Site load balancing. Possible values include: `WeightedRoundRobin`, `LeastRequests`, `LeastResponseTime`, `WeightedTotalTraffic`, `RequestHash`, `PerSiteRoundRobin`. Defaults to `LeastRequests` if omitted.",
 		"* `local_mysql_enabled` - (Optional) Use Local MySQL. Defaults to `false`.",
 		"* `local_mysql_enabled` - (Optional) Use Local MySQL. Defaults to `\"\"`.",
@@ -135,8 +135,7 @@ func TestDefaultValueReg(t *testing.T) {
 func TestForceNewReg(t *testing.T) {
 	// str := "* `address` - (Required) The list of upto 3 lines for address information. Changing this forces a new Databox Edge Order to be created.\n"
 	str := "* `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group to which this Virtual Machine should be assigned. Changing this forces a new resource to be created"
-	res := ForceNewReg.MatchString(str)
-	t.Log(res)
+	t.Log(ForceNewReg.MatchString(str))
 	str = ForceNewReg.ReplaceAllString(str, "")
 	t.Log(str)
 }

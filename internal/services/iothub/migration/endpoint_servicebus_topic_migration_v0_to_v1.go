@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -28,7 +28,7 @@ func (s IoTHubEndpointServiceBusTopicV0ToV1) Schema() map[string]*pluginsdk.Sche
 			ForceNew: true,
 		},
 
-		//lintignore: S013
+		// lintignore: S013
 		"iothub_id": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -70,7 +70,7 @@ func (s IoTHubEndpointServiceBusTopicV0ToV1) Schema() map[string]*pluginsdk.Sche
 }
 
 func (s IoTHubEndpointServiceBusTopicV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		oldId := rawState["id"].(string)
 		newId, err := parse.EndpointServiceBusTopicIDInsensitively(oldId)
 		if err != nil {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managedhsm
@@ -6,6 +6,7 @@ package managedhsm
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"regexp"
 	"strings"
 	"time"
@@ -14,8 +15,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roledefinitions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/managedhsms"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/migration"
@@ -23,7 +24,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
@@ -34,9 +34,6 @@ type KeyVaultManagedHSMRoleAssignmentModel struct {
 	RoleDefinitionId string `tfschema:"role_definition_id"`
 	PrincipalId      string `tfschema:"principal_id"`
 	ResourceId       string `tfschema:"resource_id"`
-
-	// TODO: remove in v4.0
-	VaultBaseUrl string `tfschema:"vault_base_url,removedInNextMajorVersion"`
 }
 
 var _ sdk.ResourceWithStateMigration = KeyVaultManagedHSMRoleAssignmentResource{}
@@ -44,21 +41,13 @@ var _ sdk.ResourceWithStateMigration = KeyVaultManagedHSMRoleAssignmentResource{
 type KeyVaultManagedHSMRoleAssignmentResource struct{}
 
 func (r KeyVaultManagedHSMRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
-		"managed_hsm_id": func() *pluginsdk.Schema {
-			s := &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ForceNew:     true,
-				ValidateFunc: managedhsms.ValidateManagedHSMID,
-			}
-			if features.FourPointOhBeta() {
-				s.Required = true
-			} else {
-				s.Optional = true
-				s.Computed = true
-			}
-			return s
-		}(),
+	return map[string]*pluginsdk.Schema{
+		"managed_hsm_id": {
+			Type:         pluginsdk.TypeString,
+			ForceNew:     true,
+			ValidateFunc: managedhsms.ValidateManagedHSMID,
+			Required:     true,
+		},
 
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -88,17 +77,6 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Arguments() map[string]*plugin
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
-	if !features.FourPointOhBeta() {
-		s["vault_base_url"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ForceNew:     true,
-			Deprecated:   "The field `vault_base_url` has been deprecated in favour of `managed_hsm_id` and will be removed in 4.0 of the Azure Provider",
-			ValidateFunc: validation.StringIsNotEmpty,
-		}
-	}
-	return s
 }
 
 func (r KeyVaultManagedHSMRoleAssignmentResource) Attributes() map[string]*pluginsdk.Schema {
@@ -119,7 +97,7 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) StateUpgraders() sdk.StateUpgr
 	}
 }
 
-func (r KeyVaultManagedHSMRoleAssignmentResource) ModelObject() interface{} {
+func (r KeyVaultManagedHSMRoleAssignmentResource) ModelObject() any {
 	return &KeyVaultManagedHSMRoleAssignmentModel{}
 }
 
@@ -163,31 +141,19 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if managedHsmId == nil && !features.FourPointOhBeta() {
-				endpoint, err = parse.ManagedHSMEndpoint(config.VaultBaseUrl, domainSuffix)
-				if err != nil {
-					return fmt.Errorf("parsing the Data Plane Endpoint %q: %+v", pointer.From(endpoint), err)
-				}
-				subscriptionId := commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId)
-				managedHsmId, err = metadata.Client.ManagedHSMs.ManagedHSMIDFromBaseUrl(ctx, subscriptionId, endpoint.BaseURI(), domainSuffix)
-				if err != nil {
-					return fmt.Errorf("determining the Managed HSM ID for %q: %+v", endpoint.BaseURI(), err)
-				}
-				if managedHsmId == nil {
-					return fmt.Errorf("unable to determine the Resource Manager ID")
-				}
-			}
-
 			locks.ByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
 			defer locks.UnlockByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
 
 			id := parse.NewManagedHSMDataPlaneRoleAssignmentID(endpoint.ManagedHSMName, endpoint.DomainSuffix, config.Scope, config.Name)
-			existing, err := client.Get(ctx, endpoint.BaseURI(), config.Scope, config.Name)
-			if !utils.ResponseWasNotFound(existing.Response) {
-				if err != nil {
-					return fmt.Errorf("retrieving %s: %v", id.ID(), err)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, endpoint.BaseURI(), config.Scope, config.Name)
+				if !response.WasNotFound(existing.Response.Response) {
+					if err != nil {
+						return fmt.Errorf("retrieving %s: %v", id.ID(), err)
+					}
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
 				}
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
 			var param keyvault.RoleAssignmentCreateParameters
@@ -236,7 +202,7 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Read() sdk.ResourceFunc {
 
 			resp, err := client.Get(ctx, id.BaseURI(), id.Scope, id.RoleAssignmentName)
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
+				if response.WasNotFound(resp.Response.Response) {
 					return metadata.MarkAsGone(id)
 				}
 
@@ -247,10 +213,6 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Read() sdk.ResourceFunc {
 				ManagedHSMID: resourceManagerId.ID(),
 				Name:         id.RoleAssignmentName,
 				Scope:        id.Scope,
-			}
-
-			if !features.FourPointOhBeta() {
-				model.VaultBaseUrl = id.BaseURI()
 			}
 
 			if props := resp.Properties; props != nil {
@@ -304,30 +266,14 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %v", id.ID(), err)
 			}
 
-			deadline, ok := ctx.Deadline()
-			if !ok {
-				return fmt.Errorf("internal-error: context has no deadline")
-			}
-			stateConf := &pluginsdk.StateChangeConf{
-				Pending: []string{"InProgress"},
-				Target:  []string{"NotFound"},
-				Refresh: func() (interface{}, string, error) {
-					result, err := client.Get(ctx, id.BaseURI(), id.Scope, id.RoleAssignmentName)
-					if err != nil {
-						if response.WasNotFound(result.Response.Response) {
-							return result, "NotFound", nil
-						}
-
-						return nil, "Error", err
-					}
-
-					return result, "InProgress", nil
-				},
-				ContinuousTargetOccurence: 5,
-				PollInterval:              5 * time.Second,
-				Timeout:                   time.Until(deadline),
-			}
-			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+			poller := custompollers.NewEventualConsistencyPoller(5, func(pollerCtx context.Context) (*http.Response, error) {
+				result, err := client.Get(pollerCtx, id.BaseURI(), id.Scope, id.RoleAssignmentName)
+				return result.Response.Response, err
+			}, &custompollers.EventualConsistencyPollerOptions{
+				Interval:         5 * time.Second,
+				TargetStatusCode: pointer.To(http.StatusNotFound),
+			})
+			if err := poller.PollUntilDone(ctx); err != nil {
 				return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
 			}
 

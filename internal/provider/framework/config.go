@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package framework
@@ -78,14 +78,11 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 	enableOIDC := getEnvBoolIfValueAbsent(data.UseOIDC, "ARM_USE_OIDC") || getEnvBoolIfValueAbsent(data.UseAKSWorkloadIdentity, "ARM_USE_AKS_WORKLOAD_IDENTITY")
 	auxTenants := getEnvListOfStringsIfAbsent(data.AuxiliaryTenantIds, "ARM_AUXILIARY_TENANT_IDS", ";")
 
-	oidcReqURL := getEnvStringOrDefault(data.OIDCRequestURL, "ARM_OIDC_REQUEST_URL", "")
-	if oidcReqURL == "" {
-		oidcReqURL = getEnvStringOrDefault(data.OIDCRequestURL, "ACTIONS_ID_TOKEN_REQUEST_URL", "")
-	}
-	oidcReqToken := getEnvStringOrDefault(data.OIDCRequestToken, "ARM_OIDC_REQUEST_TOKEN", "")
-	if oidcReqToken == "" {
-		oidcReqToken = getEnvStringOrDefault(data.OIDCRequestToken, "ACTIONS_ID_TOKEN_REQUEST_TOKEN", "")
-	}
+	oidcReqURL := getEnvStringsOrDefault(data.OIDCRequestURL, []string{"ARM_OIDC_REQUEST_URL", "ACTIONS_ID_TOKEN_REQUEST_URL", "SYSTEM_OIDCREQUESTURI"}, "")
+	oidcReqToken := getEnvStringsOrDefault(data.OIDCRequestToken, []string{"ARM_OIDC_REQUEST_TOKEN", "ACTIONS_ID_TOKEN_REQUEST_TOKEN", "SYSTEM_ACCESSTOKEN"}, "")
+
+	// ARM_OIDC_AZURE_SERVICE_CONNECTION_ID is to be compatible with `azapi` provider.
+	adoPipelineServiceConnectionID := getEnvStringsOrDefault(data.ADOPipelineServiceConnectionID, []string{"ARM_ADO_PIPELINE_SERVICE_CONNECTION_ID", "ARM_OIDC_AZURE_SERVICE_CONNECTION_ID"}, "")
 
 	authConfig := &auth.Credentials{
 		Environment:        *env,
@@ -98,11 +95,14 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 		ClientCertificatePassword: getEnvStringOrDefault(data.ClientCertificatePassword, "ARM_CLIENT_CERTIFICATE_PASSWORD", ""),
 		ClientSecret:              *clientSecret,
 
-		OIDCAssertionToken:          *oidcToken,
-		GitHubOIDCTokenRequestURL:   oidcReqURL,
-		GitHubOIDCTokenRequestToken: oidcReqToken,
+		OIDCAssertionToken:    *oidcToken,
+		OIDCTokenRequestURL:   oidcReqURL,
+		OIDCTokenRequestToken: oidcReqToken,
 
-		CustomManagedIdentityEndpoint: getEnvStringOrDefault(data.MSIEndpoint, "ARM_MSI_ENDPOINT", ""),
+		ADOPipelineServiceConnectionID: adoPipelineServiceConnectionID,
+
+		CustomManagedIdentityEndpoint:   getEnvStringOrDefault(data.MSIEndpoint, "ARM_MSI_ENDPOINT", ""),
+		CustomManagedIdentityAPIVersion: getEnvStringOrDefault(data.MSIAPIVersion, "ARM_MSI_API_VERSION", ""),
 
 		AzureCliSubscriptionIDHint: subscriptionId,
 
@@ -110,6 +110,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 		EnableAuthenticatingUsingClientSecret:      true,
 		EnableAuthenticationUsingOIDC:              enableOIDC,
 		EnableAuthenticationUsingGitHubOIDC:        enableOIDC,
+		EnableAuthenticationUsingADOPipelineOIDC:   enableOIDC,
 		EnableAuthenticatingUsingAzureCLI:          getEnvBoolOrDefault(data.UseCLI, "ARM_USE_CLI", true),
 		EnableAuthenticatingUsingManagedIdentity:   getEnvBoolOrDefault(data.UseMSI, "ARM_USE_MSI", false),
 	}
@@ -126,13 +127,17 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 	p.clientBuilder.DisableTerraformPartnerID = getEnvBoolOrDefault(data.DisableTerraformPartnerId, "ARM_DISABLE_TERRAFORM_PARTNER_ID", false)
 	p.clientBuilder.StorageUseAzureAD = getEnvBoolOrDefault(data.StorageUseAzureAD, "ARM_STORAGE_USE_AZUREAD", false)
 
+	if os.Getenv("ARM_PROVIDER_ENHANCED_VALIDATION") != "" {
+		diags.Append(diag.NewErrorDiagnostic("unsupported environment variable", "the environment variable `ARM_PROVIDER_ENHANCED_VALIDATION` has been removed in v5.0 of the AzureRM Provider - please use the `enhanced_validation` block inside the `features` block or the replacement environment variables `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` and `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS` instead"))
+		return
+	}
+
 	f := providerfeatures.UserFeatures{}
 
 	// features is required, but we'll play safe here
 	if !data.Features.IsNull() && !data.Features.IsUnknown() {
 		var featuresList []Features
-		d := data.Features.ElementsAs(ctx, &featuresList, true)
-		diags.Append(d...)
+		diags.Append(data.Features.ElementsAs(ctx, &featuresList, true)...)
 		if diags.HasError() {
 			return
 		}
@@ -141,8 +146,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.APIManagement.IsNull() && !features.APIManagement.IsUnknown() {
 			var feature []APIManagement
-			d := features.APIManagement.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.APIManagement.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -163,8 +167,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.AppConfiguration.IsNull() && !features.AppConfiguration.IsUnknown() {
 			var feature []AppConfiguration
-			d := features.AppConfiguration.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.AppConfiguration.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -185,8 +188,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.ApplicationInsights.IsNull() && !features.ApplicationInsights.IsUnknown() {
 			var feature []ApplicationInsights
-			d := features.ApplicationInsights.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.ApplicationInsights.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -199,8 +201,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.CognitiveAccount.IsNull() && !features.CognitiveAccount.IsUnknown() {
 			var feature []CognitiveAccount
-			d := features.CognitiveAccount.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.CognitiveAccount.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -215,8 +216,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.KeyVault.IsNull() && !features.KeyVault.IsUnknown() {
 			var feature []KeyVault
-			d := features.KeyVault.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.KeyVault.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -291,24 +291,22 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.LogAnalyticsWorkspace.IsNull() && !features.LogAnalyticsWorkspace.IsUnknown() {
 			var feature []LogAnalyticsWorkspace
-			d := features.LogAnalyticsWorkspace.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.LogAnalyticsWorkspace.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
 
-			f.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy = !providerfeatures.FourPointOhBeta()
+			f.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy = false
 			if !feature[0].PermanentlyDeleteOnDestroy.IsNull() && !feature[0].PermanentlyDeleteOnDestroy.IsUnknown() {
 				f.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy = feature[0].PermanentlyDeleteOnDestroy.ValueBool()
 			}
 		} else {
-			f.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy = !providerfeatures.FourPointOhBeta()
+			f.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy = false
 		}
 
 		if !features.TemplateDeployment.IsNull() && !features.TemplateDeployment.IsUnknown() {
 			var feature []TemplateDeployment
-			d := features.TemplateDeployment.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.TemplateDeployment.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -323,8 +321,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.VirtualMachine.IsNull() && !features.VirtualMachine.IsUnknown() {
 			var feature []VirtualMachine
-			d := features.VirtualMachine.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.VirtualMachine.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -334,25 +331,18 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 				f.VirtualMachine.DeleteOSDiskOnDeletion = feature[0].DeleteOsDiskOnDeletion.ValueBool()
 			}
 
-			f.VirtualMachine.GracefulShutdown = false
-			if !feature[0].GracefulShutdown.IsNull() && !feature[0].GracefulShutdown.IsUnknown() {
-				f.VirtualMachine.GracefulShutdown = feature[0].GracefulShutdown.ValueBool()
-			}
-
 			f.VirtualMachine.SkipShutdownAndForceDelete = false
 			if !feature[0].SkipShutdownAndForceDelete.IsNull() && !feature[0].SkipShutdownAndForceDelete.IsUnknown() {
 				f.VirtualMachine.SkipShutdownAndForceDelete = feature[0].SkipShutdownAndForceDelete.ValueBool()
 			}
 		} else {
 			f.VirtualMachine.DeleteOSDiskOnDeletion = false
-			f.VirtualMachine.GracefulShutdown = false
 			f.VirtualMachine.SkipShutdownAndForceDelete = false
 		}
 
 		if !features.VirtualMachineScaleSet.IsNull() && !features.VirtualMachineScaleSet.IsUnknown() {
 			var feature []VirtualMachineScaleSet
-			d := features.VirtualMachineScaleSet.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.VirtualMachineScaleSet.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -385,8 +375,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.ResourceGroup.IsNull() && !features.ResourceGroup.IsUnknown() {
 			var feature []ResourceGroup
-			d := features.ResourceGroup.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.ResourceGroup.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -401,8 +390,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.ManagedDisk.IsNull() && !features.ManagedDisk.IsUnknown() {
 			var feature []ManagedDisk
-			d := features.ManagedDisk.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.ManagedDisk.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -417,8 +405,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.Storage.IsNull() && !features.Storage.IsUnknown() {
 			var feature []Storage
-			d := features.Storage.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.Storage.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -430,8 +417,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.Subscription.IsNull() && !features.Subscription.IsUnknown() {
 			var feature []Subscription
-			d := features.Subscription.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.Subscription.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -446,8 +432,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.PostgresqlFlexibleServer.IsNull() && !features.PostgresqlFlexibleServer.IsUnknown() {
 			var feature []PostgresqlFlexibleServer
-			d := features.PostgresqlFlexibleServer.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.PostgresqlFlexibleServer.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -462,8 +447,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.RecoveryService.IsNull() && !features.RecoveryService.IsUnknown() {
 			var feature []RecoveryService
-			d := features.RecoveryService.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.RecoveryService.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -473,6 +457,11 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 				f.RecoveryService.VMBackupStopProtectionAndRetainDataOnDestroy = feature[0].VMBackupStopProtectionAndRetainDataOnDestroy.ValueBool()
 			}
 
+			f.RecoveryService.VMBackupSuspendProtectionAndRetainDataOnDestroy = false
+			if !feature[0].VMBackupSuspendProtectionAndRetainDataOnDestroy.IsNull() && !feature[0].VMBackupSuspendProtectionAndRetainDataOnDestroy.IsUnknown() {
+				f.RecoveryService.VMBackupSuspendProtectionAndRetainDataOnDestroy = feature[0].VMBackupSuspendProtectionAndRetainDataOnDestroy.ValueBool()
+			}
+
 			f.RecoveryService.PurgeProtectedItemsFromVaultOnDestroy = false
 			if !feature[0].PurgeProtectedItemsFromVaultOnDestroy.IsNull() && !feature[0].PurgeProtectedItemsFromVaultOnDestroy.IsUnknown() {
 				f.RecoveryService.PurgeProtectedItemsFromVaultOnDestroy = feature[0].PurgeProtectedItemsFromVaultOnDestroy.ValueBool()
@@ -480,6 +469,84 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 		} else {
 			f.RecoveryService.VMBackupStopProtectionAndRetainDataOnDestroy = false
 			f.RecoveryService.PurgeProtectedItemsFromVaultOnDestroy = false
+		}
+
+		if !features.NetApp.IsNull() && !features.NetApp.IsUnknown() {
+			var feature []NetApp
+			diags.Append(features.NetApp.ElementsAs(ctx, &feature, true)...)
+			if diags.HasError() {
+				return
+			}
+
+			f.NetApp.DeleteBackupsOnBackupVaultDestroy = false
+			if !feature[0].DeleteBackupsOnBackupVaultDestroy.IsNull() && !feature[0].DeleteBackupsOnBackupVaultDestroy.IsUnknown() {
+				f.NetApp.DeleteBackupsOnBackupVaultDestroy = feature[0].DeleteBackupsOnBackupVaultDestroy.ValueBool()
+			}
+
+			f.NetApp.PreventVolumeDestruction = true
+			if !feature[0].PreventVolumeDestruction.IsNull() && !feature[0].PreventVolumeDestruction.IsUnknown() {
+				f.NetApp.PreventVolumeDestruction = feature[0].PreventVolumeDestruction.ValueBool()
+			}
+		} else {
+			f.NetApp.DeleteBackupsOnBackupVaultDestroy = false
+			f.NetApp.PreventVolumeDestruction = true
+		}
+
+		if !features.DatabricksWorkspace.IsNull() && !features.DatabricksWorkspace.IsUnknown() {
+			var feature []DatabricksWorkspace
+			diags.Append(features.DatabricksWorkspace.ElementsAs(ctx, &feature, true)...)
+			if diags.HasError() {
+				return
+			}
+
+			f.DatabricksWorkspace.ForceDelete = false
+			if !feature[0].ForceDelete.IsNull() && !feature[0].ForceDelete.IsUnknown() {
+				f.DatabricksWorkspace.ForceDelete = feature[0].ForceDelete.ValueBool()
+			}
+		} else {
+			f.DatabricksWorkspace.ForceDelete = false
+		}
+
+		if !features.ServiceBus.IsNull() && !features.ServiceBus.IsUnknown() {
+			var feature []ServiceBus
+			diags.Append(features.ServiceBus.ElementsAs(ctx, &feature, true)...)
+			if diags.HasError() {
+				return
+			}
+
+			f.ServiceBus.AutoDeleteSubscriptionDefaultRule = false
+			if !feature[0].AutoDeleteSubscriptionDefaultRule.IsNull() && !feature[0].AutoDeleteSubscriptionDefaultRule.IsUnknown() {
+				f.ServiceBus.AutoDeleteSubscriptionDefaultRule = feature[0].AutoDeleteSubscriptionDefaultRule.ValueBool()
+			}
+		} else {
+			f.ServiceBus.AutoDeleteSubscriptionDefaultRule = false
+		}
+
+		f.EnhancedValidation.Locations = providerfeatures.EnhancedValidationLocationsEnabled()
+		f.EnhancedValidation.ResourceProviders = providerfeatures.EnhancedValidationResourceProvidersEnabled()
+		f.EnhancedValidation.PreflightEnabled = providerfeatures.EnhancedValidationPreflightEnabled()
+		f.EnhancedValidation.LocationFallback = providerfeatures.EnhancedValidationLocationFallback()
+
+		if !features.EnhancedValidation.IsNull() && !features.EnhancedValidation.IsUnknown() {
+			var evList []EnhancedValidationModel
+			diags.Append(features.EnhancedValidation.ElementsAs(ctx, &evList, true)...)
+			if diags.HasError() {
+				return
+			}
+			if len(evList) > 0 {
+				if !evList[0].Locations.IsNull() && !evList[0].Locations.IsUnknown() {
+					f.EnhancedValidation.Locations = evList[0].Locations.ValueBool()
+				}
+				if !evList[0].ResourceProviders.IsNull() && !evList[0].ResourceProviders.IsUnknown() {
+					f.EnhancedValidation.ResourceProviders = evList[0].ResourceProviders.ValueBool()
+				}
+				if !evList[0].PreflightEnabled.IsNull() && !evList[0].PreflightEnabled.IsUnknown() {
+					f.EnhancedValidation.PreflightEnabled = evList[0].PreflightEnabled.ValueBool()
+				}
+				if !evList[0].LocationFallback.IsNull() && !evList[0].LocationFallback.IsUnknown() {
+					f.EnhancedValidation.LocationFallback = evList[0].LocationFallback.ValueStringPointer()
+				}
+			}
 		}
 	}
 
@@ -500,18 +567,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 	client.StopContext = ctx
 
-	resourceProviderRegistrationSet := getEnvStringOrDefault(data.ResourceProviderRegistrations, "ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsCore)
-	if !providerfeatures.FivePointOhBeta() {
-		resourceProviderRegistrationSet = getEnvStringOrDefault(data.ResourceProviderRegistrations, "ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsLegacy)
-	}
-
-	if !data.SkipProviderRegistration.ValueBool() {
-		if resourceProviderRegistrationSet != resourceproviders.ProviderRegistrationsLegacy {
-			diags.Append(diag.NewErrorDiagnostic("resource provider registration misconfiguration", "provider property `skip_provider_registration` cannot be set at the same time as `resource_provider_registrations`, please remove `skip_provider_registration` from your configuration or unset the `ARM_SKIP_PROVIDER_REGISTRATION` environment variable"))
-		}
-
-		resourceProviderRegistrationSet = resourceproviders.ProviderRegistrationsNone
-	}
+	resourceProviderRegistrationSet := getEnvStringOrDefault(data.ResourceProviderRegistrations, "ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsNone)
 
 	requiredResourceProviders, err := resourceproviders.GetResourceProvidersSet(resourceProviderRegistrationSet)
 	if err != nil {
@@ -534,9 +590,12 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 	ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
 	defer cancel()
 
-	if err = resourceproviders.EnsureRegistered(ctx2, client.Resource.ResourceProvidersClient, subId, requiredResourceProviders); err != nil {
-		diags.AddError("registering resource providers", err.Error())
-		return
+	// Ensure that we do not trigger the RP cache when running in VCR mode or the cassettes have a base size of 3.5MiB!
+	if os.Getenv("TC_TEST_VIA_VCR") == "" {
+		if err = resourceproviders.EnsureRegistered(ctx2, client.Resource.ResourceProvidersClient, subId, requiredResourceProviders, f.EnhancedValidation.ResourceProviders); err != nil {
+			diags.AddError("registering resource providers", err.Error())
+			return
+		}
 	}
 
 	p.Client = client

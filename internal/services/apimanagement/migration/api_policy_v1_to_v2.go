@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -18,7 +18,6 @@ type ApiManagementApiPolicyV1ToV2 struct{}
 
 func (ApiManagementApiPolicyV1ToV2) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-
 		"resource_group_name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -51,7 +50,7 @@ func (ApiManagementApiPolicyV1ToV2) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (ApiManagementApiPolicyV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		// old id : /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.ApiManagement/service/service1/apis/exampleId/policies/policy
 		// new id : /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.ApiManagement/service/service1/apis/exampleId
 		oldId := rawState["id"].(string)

@@ -1,32 +1,32 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package function_test
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
 func TestProviderFunctionParseResourceID_basic(t *testing.T) {
-	if !features.FourPointOhBeta() {
-		t.Skipf("skipping test due to missing feature flag")
-	}
 	t.Parallel()
 
 	resource.UnitTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(version.Must(version.NewVersion("1.8.0-beta1"))),
 		},
-		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		ProtoV5ProviderFactories: map[string]func() (tfprotov5.ProviderServer, error){
+			"azurerm": func() (tfprotov5.ProviderServer, error) {
+				return framework.V5ProviderWithoutPluginSDK()(), nil
+			},
+		},
 		Steps: []resource.TestStep{
 			{
 				Config: testParseResourceIdOutput("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/service1/gateways/gateway1/hostnameConfigurations/config1"),
@@ -47,16 +47,17 @@ func TestProviderFunctionParseResourceID_basic(t *testing.T) {
 }
 
 func TestProviderFunctionParseResourceID_scopedAtSubscription(t *testing.T) {
-	if !features.FourPointOhBeta() {
-		t.Skipf("skipping test due to missing feature flag")
-	}
 	t.Parallel()
 
 	resource.UnitTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(version.Must(version.NewVersion("1.8.0-beta1"))),
 		},
-		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		ProtoV5ProviderFactories: map[string]func() (tfprotov5.ProviderServer, error){
+			"azurerm": func() (tfprotov5.ProviderServer, error) {
+				return framework.V5ProviderWithoutPluginSDK()(), nil
+			},
+		},
 		Steps: []resource.TestStep{
 			{
 				Config: testParseScopedResourceIdOutput("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Chaos/targets/target1"),
@@ -73,16 +74,17 @@ func TestProviderFunctionParseResourceID_scopedAtSubscription(t *testing.T) {
 }
 
 func TestProviderFunctionParseResourceID_scopedAtResource(t *testing.T) {
-	if !features.FourPointOhBeta() {
-		t.Skipf("skipping test due to missing feature flag")
-	}
 	t.Parallel()
 
 	resource.UnitTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(version.Must(version.NewVersion("1.8.0-beta1"))),
 		},
-		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		ProtoV5ProviderFactories: map[string]func() (tfprotov5.ProviderServer, error){
+			"azurerm": func() (tfprotov5.ProviderServer, error) {
+				return framework.V5ProviderWithoutPluginSDK()(), nil
+			},
+		},
 		Steps: []resource.TestStep{
 			{
 				Config: testParseScopedResourceIdOutput("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Storage/storageAccounts/mystorageaccount/providers/Microsoft.EventGrid/eventSubscriptions/event1"),
