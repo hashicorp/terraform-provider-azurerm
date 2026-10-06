@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datashare
@@ -54,7 +54,7 @@ func dataSourceDataShareDatasetKustoDatabase() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceDataShareDatasetKustoDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceDataShareDatasetKustoDatabaseRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

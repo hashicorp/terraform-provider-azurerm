@@ -61,7 +61,7 @@ resource "azurerm_virtual_machine" "example" {
   location              = azurerm_resource_group.example.location
   resource_group_name   = azurerm_resource_group.example.name
   network_interface_ids = [azurerm_network_interface.main.id]
-  vm_size               = "Standard_F2"
+  vm_size               = "Standard_D4_v5"
 
   storage_image_reference {
     publisher = "Canonical"
@@ -105,7 +105,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

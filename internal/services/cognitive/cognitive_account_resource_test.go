@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cognitive_test
@@ -9,12 +9,12 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesaccounts"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/cognitiveservicesaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CognitiveAccountResource struct{}
@@ -295,24 +295,25 @@ func TestAccCognitiveAccount_networkAclsVirtualNetworkRulesWithBypass(t *testing
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
 	r := CognitiveAccountResource{}
 	kind := "OpenAI"
+	sku_name := "S0"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.networkAclsVirtualNetworkRulesWithBypassDefault(data, kind),
+			Config: r.networkAclsVirtualNetworkRulesWithBypassDefault(data, kind, sku_name),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.networkAclsVirtualNetworkRulesWithBypass(data, kind),
+			Config: r.networkAclsVirtualNetworkRulesWithBypass(data, kind, sku_name),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.networkAclsVirtualNetworkRulesWithBypassUpdated(data, kind),
+			Config: r.networkAclsVirtualNetworkRulesWithBypassUpdated(data, kind, sku_name),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -328,7 +329,7 @@ func TestAccCognitiveAccount_networkAclsVirtualNetworkRulesWithBypassKindNotSupp
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.networkAclsVirtualNetworkRulesWithBypassKindNotSupported(data),
-			ExpectError: regexp.MustCompile("the `network_acls.bypass` does not support Trusted Services when `kind` is set to `Face`"),
+			ExpectError: regexp.MustCompile("`network_acls.bypass` cannot be set when `kind` is set to `Face`"),
 		},
 	})
 }
@@ -419,13 +420,18 @@ func TestAccCognitiveAccount_customerManagedKey(t *testing.T) {
 			Config: r.customerManagedKey(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("customer_managed_key.0.key_vault_key_id").Exists(),
-				check.That(data.ResourceName).Key("customer_managed_key.0.identity_client_id").IsUUID(),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.customerManagedKeyUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.customerManagedKeyRemove(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -504,24 +510,100 @@ func TestAccCognitiveAccount_aiServices_networkAclsVirtualNetworkRulesWithBypass
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
 	r := CognitiveAccountResource{}
 	kind := "AIServices"
+	sku_name := "S0"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.networkAclsVirtualNetworkRulesWithBypassDefault(data, kind),
+			Config: r.networkAclsVirtualNetworkRulesWithBypassDefault(data, kind, sku_name),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.networkAclsVirtualNetworkRulesWithBypass(data, kind),
+			Config: r.networkAclsVirtualNetworkRulesWithBypass(data, kind, sku_name),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.networkAclsVirtualNetworkRulesWithBypassUpdated(data, kind),
+			Config: r.networkAclsVirtualNetworkRulesWithBypassUpdated(data, kind, sku_name),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCognitiveAccount_textAnalytics_networkAclsVirtualNetworkRulesWithBypass(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
+	r := CognitiveAccountResource{}
+	kind := "TextAnalytics"
+	sku_name := "F0"
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.networkAclsVirtualNetworkRulesWithBypassDefault(data, kind, sku_name),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.networkAclsVirtualNetworkRulesWithBypass(data, kind, sku_name),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.networkAclsVirtualNetworkRulesWithBypassUpdated(data, kind, sku_name),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCognitiveAccount_upgradeOpenAIToAIServicesAndRollback(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
+	r := CognitiveAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.openAI_basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.aiServices_fromOpenAI(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.openAI_basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCognitiveAccount_privateEndpoint(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
+	r := CognitiveAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.privateEndpoint(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -541,7 +623,7 @@ func (t CognitiveAccountResource) Exists(ctx context.Context, clients *clients.C
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (CognitiveAccountResource) basic(data acceptance.TestData) string {
@@ -688,7 +770,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                = "acctestrg%d"
+  name                = "acctest%d"
   resource_group_name = azurerm_resource_group.test.name
 
   location                 = azurerm_resource_group.test.location
@@ -1125,7 +1207,7 @@ resource "azurerm_cognitive_account" "test" {
 `, r.networkAclsTemplate(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (r CognitiveAccountResource) networkAclsVirtualNetworkRulesWithBypassDefault(data acceptance.TestData, kind string) string {
+func (r CognitiveAccountResource) networkAclsVirtualNetworkRulesWithBypassDefault(data acceptance.TestData, kind string, sku_name string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1134,7 +1216,7 @@ resource "azurerm_cognitive_account" "test" {
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   kind                  = "%s"
-  sku_name              = "S0"
+  sku_name              = "%s"
   custom_subdomain_name = "acctestcogacc-%d"
 
   network_acls {
@@ -1148,10 +1230,10 @@ resource "azurerm_cognitive_account" "test" {
     }
   }
 }
-`, r.networkAclsTemplate(data), data.RandomInteger, kind, data.RandomInteger)
+`, r.networkAclsTemplate(data), data.RandomInteger, kind, sku_name, data.RandomInteger)
 }
 
-func (r CognitiveAccountResource) networkAclsVirtualNetworkRulesWithBypass(data acceptance.TestData, kind string) string {
+func (r CognitiveAccountResource) networkAclsVirtualNetworkRulesWithBypass(data acceptance.TestData, kind string, sku_name string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1160,7 +1242,7 @@ resource "azurerm_cognitive_account" "test" {
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   kind                  = "%s"
-  sku_name              = "S0"
+  sku_name              = "%s"
   custom_subdomain_name = "acctestcogacc-%d"
 
   network_acls {
@@ -1175,10 +1257,10 @@ resource "azurerm_cognitive_account" "test" {
     }
   }
 }
-`, r.networkAclsTemplate(data), data.RandomInteger, kind, data.RandomInteger)
+`, r.networkAclsTemplate(data), data.RandomInteger, kind, sku_name, data.RandomInteger)
 }
 
-func (r CognitiveAccountResource) networkAclsVirtualNetworkRulesWithBypassUpdated(data acceptance.TestData, kind string) string {
+func (r CognitiveAccountResource) networkAclsVirtualNetworkRulesWithBypassUpdated(data acceptance.TestData, kind string, sku_name string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1187,7 +1269,7 @@ resource "azurerm_cognitive_account" "test" {
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   kind                  = "%s"
-  sku_name              = "S0"
+  sku_name              = "%s"
   custom_subdomain_name = "acctestcogacc-%d"
 
   network_acls {
@@ -1202,7 +1284,7 @@ resource "azurerm_cognitive_account" "test" {
     }
   }
 }
-`, r.networkAclsTemplate(data), data.RandomInteger, kind, data.RandomInteger)
+`, r.networkAclsTemplate(data), data.RandomInteger, kind, sku_name, data.RandomInteger)
 }
 
 func (r CognitiveAccountResource) networkAclsVirtualNetworkRulesWithBypassKindNotSupported(data acceptance.TestData) string {
@@ -1258,7 +1340,9 @@ resource "azurerm_subnet" "test_a" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
-  service_endpoints    = ["Microsoft.CognitiveServices"]
+  service_endpoint {
+    service = "Microsoft.CognitiveServices"
+  }
 }
 
 resource "azurerm_subnet" "test_b" {
@@ -1266,7 +1350,9 @@ resource "azurerm_subnet" "test_b" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.4.0/24"]
-  service_endpoints    = ["Microsoft.CognitiveServices"]
+  service_endpoint {
+    service = "Microsoft.CognitiveServices"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -1285,23 +1371,25 @@ provider "azurerm" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-cognitive-%d"
-  location = "%s"
+  name     = "acctestRG-cognitive-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  name                = "%s"
+  name                = "acctestUAI-%[3]s"
 }
 
 resource "azurerm_key_vault" "test" {
-  name                     = "acctestkv%s"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "acctestkv%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
@@ -1327,7 +1415,7 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_key" "test" {
-  name         = "acctestkvkey%s"
+  name         = "acctestkvkey%[3]s"
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
@@ -1335,12 +1423,12 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_cognitive_account" "test" {
-  name                  = "acctest-cogacc-%d"
+  name                  = "acctest-cogacc-%[1]d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   kind                  = "SpeechServices"
   sku_name              = "S0"
-  custom_subdomain_name = "acctest-cogacc-%d"
+  custom_subdomain_name = "acctest-cogacc-%[1]d"
 
   identity {
     type = "SystemAssigned, UserAssigned"
@@ -1354,10 +1442,106 @@ resource "azurerm_cognitive_account" "test" {
     identity_client_id = azurerm_user_assigned_identity.test.client_id
   }
 }
-`, data.RandomInteger, data.Locations.Secondary, data.RandomString, data.RandomString, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Secondary, data.RandomString)
 }
 
 func (CognitiveAccountResource) customerManagedKeyUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+  }
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cognitive-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "acctestUAI-%[3]s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "acctestkv%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+    key_permissions = [
+      "Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy"
+    ]
+    secret_permissions = [
+      "Get",
+    ]
+  }
+
+  access_policy {
+    tenant_id = azurerm_user_assigned_identity.test.tenant_id
+    object_id = azurerm_user_assigned_identity.test.principal_id
+    key_permissions = [
+      "Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy"
+    ]
+    secret_permissions = [
+      "Get",
+    ]
+  }
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "acctestkvkey%[3]s"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
+}
+
+resource "azurerm_key_vault_key" "test2" {
+  name         = "acctestkvkey2%[3]s"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
+}
+
+resource "azurerm_cognitive_account" "test" {
+  name                  = "acctest-cogacc-%[1]d"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  kind                  = "SpeechServices"
+  sku_name              = "S0"
+  custom_subdomain_name = "acctest-cogacc-%[1]d"
+
+  identity {
+    type = "SystemAssigned, UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+
+  customer_managed_key {
+    key_vault_key_id   = azurerm_key_vault_key.test2.id
+    identity_client_id = azurerm_user_assigned_identity.test.client_id
+  }
+}
+`, data.RandomInteger, data.Locations.Secondary, data.RandomString)
+}
+
+func (CognitiveAccountResource) customerManagedKeyRemove(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -1382,12 +1566,14 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                     = "acctestkv%s"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "acctestkv%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
@@ -1490,7 +1676,9 @@ resource "azurerm_subnet" "test_a" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
-  service_endpoints    = ["Microsoft.CognitiveServices"]
+  service_endpoint {
+    service = "Microsoft.CognitiveServices"
+  }
 }
 
 resource "azurerm_subnet" "test_b" {
@@ -1498,7 +1686,9 @@ resource "azurerm_subnet" "test_b" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.4.0/24"]
-  service_endpoints    = ["Microsoft.CognitiveServices"]
+  service_endpoint {
+    service = "Microsoft.CognitiveServices"
+  }
 }
 
 resource "azurerm_cognitive_account" "test" {
@@ -1597,6 +1787,149 @@ resource "azurerm_cognitive_account" "test" {
   network_injection {
     scenario  = "agent"
     subnet_id = azurerm_subnet.subnet_agent.id
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (CognitiveAccountResource) openAI_basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cognitive-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_cognitive_account" "test" {
+  name                       = "acctestopenai-%[1]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  kind                       = "OpenAI"
+  sku_name                   = "S0"
+  custom_subdomain_name      = "acctestopenai-%[1]d"
+  project_management_enabled = false
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (CognitiveAccountResource) aiServices_fromOpenAI(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cognitive-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_cognitive_account" "test" {
+  name                       = "acctestopenai-%[1]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  kind                       = "AIServices"
+  sku_name                   = "S0"
+  custom_subdomain_name      = "acctestopenai-%[1]d"
+  project_management_enabled = true
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (CognitiveAccountResource) privateEndpoint(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_subscription" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cognitive-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvnet-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  address_space       = ["10.5.0.0/16"]
+}
+
+resource "azurerm_subnet" "endpoint" {
+  name                 = "acctestsnetendpoint-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.5.2.0/24"]
+
+  private_endpoint_network_policies = "Disabled"
+}
+
+resource "azurerm_cognitive_account" "test" {
+  name                = "acctestcogacc-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  kind                = "AIServices"
+  sku_name            = "S0"
+
+  project_management_enabled         = true
+  custom_subdomain_name              = "testing-%[1]d"
+  public_network_access_enabled      = false
+  local_auth_enabled                 = false
+  outbound_network_access_restricted = true
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_acls {
+    default_action = "Deny"
+    bypass         = "None"
+  }
+}
+
+resource "azurerm_private_endpoint" "test" {
+  name                = "acctest-privatelink-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  subnet_id           = azurerm_subnet.endpoint.id
+
+  private_service_connection {
+    name                           = azurerm_cognitive_account.test.name
+    is_manual_connection           = false
+    private_connection_resource_id = azurerm_cognitive_account.test.id
+    subresource_names              = ["account"]
+  }
+}
+
+resource "azurerm_cognitive_account_project" "test" {
+  name                 = "acctest-%[1]d"
+  cognitive_account_id = azurerm_cognitive_account.test.id
+  location             = azurerm_resource_group.test.location
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_cognitive_deployment" "test" {
+  name                   = "acctest-cd-%[1]d"
+  cognitive_account_id   = azurerm_cognitive_account.test.id
+  version_upgrade_option = "OnceCurrentVersionExpired"
+
+  sku {
+    name     = "GlobalStandard"
+    capacity = 1
+  }
+
+  model {
+    format  = "OpenAI"
+    name    = "gpt-4.1"
+    version = "2025-04-14"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)

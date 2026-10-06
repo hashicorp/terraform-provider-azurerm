@@ -51,7 +51,7 @@ resource "azurerm_virtual_network_peering" "remote" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -110,4 +110,4 @@ terraform import azurerm_databricks_virtual_network_peering.example /subscriptio
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Databricks` - 2024-05-01
+* `Microsoft.Databricks` - 2026-01-01

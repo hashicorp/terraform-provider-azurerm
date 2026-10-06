@@ -36,12 +36,13 @@ resource "azurerm_storage_data_lake_gen2_filesystem" "example" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "example" {
-  name                     = "example"
-  location                 = azurerm_resource_group.example.location
-  resource_group_name      = azurerm_resource_group.example.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "example"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
 }
 
 resource "azurerm_key_vault_access_policy" "deployer" {
@@ -104,6 +105,12 @@ The following arguments are supported:
 * `object_id` - (Required) The object id of the Azure AD Administrator of this Synapse Workspace.
 
 * `tenant_id` - (Required) The tenant id of the Azure AD Administrator of this Synapse Workspace.
+
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Synapse Workspace Azure AD Administrator.
 
 ## Timeouts
 

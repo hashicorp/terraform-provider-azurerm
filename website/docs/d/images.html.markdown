@@ -19,7 +19,7 @@ data "azurerm_images" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

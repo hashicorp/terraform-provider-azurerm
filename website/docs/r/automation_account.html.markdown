@@ -30,7 +30,7 @@ resource "azurerm_automation_account" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -117,4 +117,4 @@ terraform import azurerm_automation_account.account1 /subscriptions/00000000-000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Automation` - 2023-11-01, 2019-06-01
+* `Microsoft.Automation` - 2024-10-23, 2019-06-01

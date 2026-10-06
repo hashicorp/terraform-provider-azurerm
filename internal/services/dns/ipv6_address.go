@@ -1,11 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dns
 
 import "net"
 
-func NormalizeIPv6Address(ipv6 interface{}) string {
+func NormalizeIPv6Address(ipv6 any) string {
 	if ipv6 == nil || ipv6.(string) == "" {
 		return ""
 	}

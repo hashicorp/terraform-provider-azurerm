@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package check
@@ -52,7 +52,8 @@ func (c propertyMissDiff) String() string {
 
 func (c propertyMissDiff) Fix(line string) (result string, err error) {
 	if c.MissType == Misspelling && c.correctName != "" {
-		return strings.ReplaceAll(line,
+		return strings.ReplaceAll(
+			line,
 			fmt.Sprintf("`%s`", c.mdField.Name),
 			fmt.Sprintf("`%s`", util.XPathBase(c.correctName)),
 		), nil

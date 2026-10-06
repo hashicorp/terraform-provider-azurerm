@@ -39,7 +39,7 @@ resource "azurerm_servicebus_namespace_authorization_rule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -94,4 +94,4 @@ terraform import azurerm_servicebus_namespace_authorization_rule.rule1 /subscrip
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ServiceBus` - 2024-01-01
+* `Microsoft.ServiceBus` - 2026-01-01

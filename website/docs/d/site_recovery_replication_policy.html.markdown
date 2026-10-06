@@ -20,13 +20,13 @@ data "azurerm_site_recovery_replication_policy" "policy" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Azure Site Recovery replication policy.
 
-* `recovery_vault_name` - (Required) The name of the Recovery Services Vault that the Azure Site Recovery replication policy is associated witth.
+* `recovery_vault_name` - (Required) The name of the Recovery Services Vault that the Azure Site Recovery replication policy is associated with.
 
 * `resource_group_name` - (Required) The name of the resource group in which the associated Azure Site Recovery replication policy resides.
 

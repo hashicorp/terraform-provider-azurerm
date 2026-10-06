@@ -23,7 +23,7 @@ output "log_analytics_workspace_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -47,6 +47,10 @@ The following attributes are exported:
 * `retention_in_days` - The workspace data retention in days.
 
 * `daily_quota_gb` - The workspace daily quota for ingestion in GB.
+
+* `internet_ingestion_access_type` - The public network access type for ingestion into the Log Analytics Workspace. Possible values are `Enabled`, `Disabled`, and `SecuredByPerimeter`.
+
+* `internet_query_access_type` - The public network access type for querying the Log Analytics Workspace. Possible values are `Enabled`, `Disabled`, and `SecuredByPerimeter`.
 
 * `tags` - A mapping of tags assigned to the resource.
 

@@ -20,7 +20,7 @@ resource "azurerm_healthcare_workspace" "test" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -80,7 +80,7 @@ func (MXRecordV0ToV1) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (MXRecordV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		oldId := rawState["id"].(string)
 		parsedId, err := recordsets.ParseRecordTypeIDInsensitively(oldId)
 		if err != nil {
@@ -93,12 +93,12 @@ func (MXRecordV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	}
 }
 
-func resourceDnsMxRecordHash(v interface{}) int {
+func resourceDnsMxRecordHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", m["preference"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["exchange"].(string)))
+	if m, ok := v.(map[string]any); ok {
+		fmt.Fprintf(&buf, "%s-", m["preference"].(string))
+		fmt.Fprintf(&buf, "%s-", m["exchange"].(string))
 	}
 
 	return pluginsdk.HashString(buf.String())

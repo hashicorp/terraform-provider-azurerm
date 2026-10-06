@@ -24,7 +24,7 @@ output "job_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Stream Analytics Job.
 

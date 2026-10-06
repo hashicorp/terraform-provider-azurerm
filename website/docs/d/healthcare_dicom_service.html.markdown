@@ -23,7 +23,7 @@ output "azurerm_healthcare_dicom_service" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the Healthcare DICOM Service
 

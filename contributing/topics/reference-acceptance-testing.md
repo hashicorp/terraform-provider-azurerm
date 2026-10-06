@@ -18,6 +18,62 @@ As a general rule, the more complex the resource the more tests there are - for 
 
 See [Running the Tests](running-the-tests.md).
 
+### PreCheck Helpers
+
+Acceptance tests frequently require additional prerequisites beyond the standard Azure credentials and test locations (for example, access to a real DNS zone, an existing Key Vault/certificate, or other shared infrastructure).
+
+To keep tests reliable (and to avoid creating resources that will inevitably fail), use a **pre-check** to either:
+
+* **Skip** a test when optional external prerequisites are not available (e.g. an environment variable pointing to shared infrastructure is not set).
+* **Fail fast** only when the prerequisite is considered mandatory for all acceptance tests in the suite.
+
+#### Global pre-check (mandatory)
+
+The acceptance test framework already includes a global pre-check (`acceptance.PreCheck(t)`) which validates the required Azure authentication and test location environment variables.
+
+This is intended for prerequisites that are required for *all* acceptance tests.
+
+#### Resource/service-specific pre-check (recommended pattern)
+
+For additional, test-specific prerequisites, the common convention in this repository is to implement a receiver method named `preCheck(t *testing.T)` on the test struct (for example `type ExampleResource struct {}`) and call it at the start of each `TestAcc...` that requires it.
+
+When the prerequisites are not met, these pre-checks should typically call `t.Skip(...)` / `t.Skipf(...)` (rather than `t.Fatalf(...)`) so that:
+
+* contributors without the optional infrastructure can still run unrelated tests successfully;
+* CI or scheduled runs can provide the prerequisites and run the full suite.
+
+Example:
+
+```go
+type ExampleResource struct{}
+
+func TestAccExampleResource_basic(t *testing.T) {
+        data := acceptance.BuildTestData(t, "azurerm_example_resource", "test")
+        r := ExampleResource{}
+        r.preCheck(t)
+
+        data.ResourceTest(t, r, []acceptance.TestStep{
+                {
+                        Config: r.basic(data),
+                        Check: acceptance.ComposeTestCheckFunc(
+                                check.That(data.ResourceName).ExistsInAzure(r),
+                        ),
+                },
+                data.ImportStep(),
+        })
+}
+
+func (ExampleResource) preCheck(t *testing.T) {
+        if os.Getenv("ARM_TEST_SOME_PREREQ") == "" {
+                t.Skip("Skipping as ARM_TEST_SOME_PREREQ is not set")
+        }
+}
+```
+
+#### Where to put `preCheck`
+
+Go does not require a specific function order, but for readability it is recommended to place `preCheck` close to the tests that call it (commonly after the `TestAcc...` functions and before the `Exists`/`Destroy` methods), following the pattern used throughout `internal/services/*/*_test.go`.
+
 ### Test Package
 
 While tests reside in the same folder as resource and data source .go files, they need to be in a separate test package to prevent circular references. i.e. for the file `./internal/services/aab2c/aadb2c_directory_data_source_test.go` the package should be:
@@ -107,7 +163,7 @@ func TestAccExampleResource_basic(t *testing.T) {
 
 At a minimum, a Data Source requires:
 
-* A `basic` test ([Example](#Example---Data-Source---Basic)) - this tests the minimum fields (e.g. all Required fields) for this Data Source.
+* A `basic` test ([Example](#example---data-source---basic)) - this tests the minimum fields (e.g. all Required fields) for this Data Source.
 
 However, more complex Data Sources can warrant additional acceptance tests - consideration should be given during the development of each Data Source to what's important to be tested.
 
@@ -115,13 +171,13 @@ However, more complex Data Sources can warrant additional acceptance tests - con
 
 At a minimum, a Resource requires:
 
-* A `basic` test ([Example](#Example---Resource---Basic)) - this tests the minimum fields (e.g. all Required fields) for this Resource.
+* A `basic` test ([Example](#example---resource---basic)) - this tests the minimum fields (e.g. all Required fields) for this Resource.
 
-* A `requiresImport` test ([Example](#Example---Resource---Requires-Import)) - this test exercises the logic in the `create` function of a resource that checks for the prior existence of the resource and being created and expects an error. The acceptance test package provides a helper function is provided to be used in the test, called `RequiresImportErrorStep` for this purpose.
+* A `requiresImport` test ([Example](#example---resource---requires-import)) - this test exercises the logic in the `create` function of a resource that checks for the prior existence of the resource and being created and expects an error. The acceptance test package provides a helper function is provided to be used in the test, called `RequiresImportErrorStep` for this purpose.
 
-* A `complete` test ([Example](#Example---Resource---Complete)) - this tests all possible fields (e.g. all Required/Optional fields) for this Resource.
+* A `complete` test ([Example](#example---resource---complete)) - this tests all possible fields (e.g. all Required/Optional fields) for this Resource.
 
-* A `update` test ([Example](#Example---Resource---Update)) - This test exercises a change of values for any properties that can be updated by executing consecutive configurations to change a resource in a predictable manner. Properties which are `ForceNew` should not be tested in this way.
+* A `update` test ([Example](#example---resource---update)) - This test exercises a change of values for any properties that can be updated by executing consecutive configurations to change a resource in a predictable manner. Properties which are `ForceNew` should not be tested in this way.
 
 However, more complex Resource generally warrant additional acceptance tests - consideration should be given during the development of each Resource to what's important to be tested.
 
@@ -131,36 +187,35 @@ A Data Source generally has one or two Required properties and a number of Compu
 
 Since the Data Source primarily exposes Computed-only fields which aren't specified in the Terraform Configuration, we typically assert that these computed fields have a/an expected value - which differs from the Acceptance Tests for the Resource where we'll use an Import step to confirm that the Terraform Configuration matches the imported state.
 
+When one config helper is only being threaded into `fmt.Sprintf` once, pass it directly as the argument instead of assigning a temporary variable first.
+
 ```go
-func TestAccExampleDataSource_complete(t *testing.T) {
+func TestAccExampleDataSource_basic(t *testing.T) {
         data := acceptance.BuildTestData(t, "data.azurerm_example_resource", "test")
         r := ExampleDataSource{}
 
-        data.ResourceTest(t, r, []acceptance.TestStep{
+        data.DataSourceTest(t, []acceptance.TestStep{
                 {
-                        Config: r.complete(data),
+                        Config: r.basic(data),
                         Check: acceptance.ComposeTestCheckFunc(
                             check.That(data.ResourceName).Key("example_property").HasValue("bar"),
                             check.That(data.ResourceName).Key("example_optional_bool").HasValue("false"),
                             check.That(data.ResourceName).Key("example_optional_string").HasValue("foo"),
                         ),
                 },
-                data.ImportStep(),
         })
 }
 
-func (ExampleDataSource) complete(data acceptance.TestData) string {
-	template := ExampleResource{}.basic(data)
+func (ExampleDataSource) basic(data acceptance.TestData) string {
     return fmt.Sprintf(`
 %[1]s
 
 data "azurerm_example_resource" "test" {
   name = azurerm_example_resource.test.name
 }
-`, template)
+`, ExampleResource{}.complete(data))
 }
 ```
-
 
 ---
 
@@ -269,8 +324,7 @@ func TestAccExampleResource_basic(t *testing.T) {
 }
 
 func (r ExampleResource) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data)  
-    return fmt.Sprintf(`
+        return fmt.Sprintf(`
 %[1]s
 
 resource "azurerm_example_resource" "import" {
@@ -278,7 +332,7 @@ resource "azurerm_example_resource" "import" {
   location         = azurerm_example_resource.example.location
   example_property = azurerm_example_resource.example.example_property
 }
-`, template)
+`, r.basic(data))
 }
 ```
 
@@ -320,7 +374,7 @@ However, this doesn't necessarily cover all use-cases for this resource - or may
 func TestAccExampleResource_someSetting(t *testing.T) {
     data := acceptance.BuildTestData(t, "azurerm_example_resource", "test")
     r := ExampleResource{}
-    
+
     data.ResourceTest(t, r, []acceptance.TestStep{
         {   // first provision the resource
             Config: r.someSetting(data, true),

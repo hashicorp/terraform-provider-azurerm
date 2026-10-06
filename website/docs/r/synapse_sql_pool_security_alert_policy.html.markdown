@@ -85,7 +85,7 @@ resource "azurerm_synapse_sql_pool_security_alert_policy" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
