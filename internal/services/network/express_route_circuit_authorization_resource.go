@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressroutecircuitauthorizations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/expressroutecircuits"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressroutecircuits"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -73,7 +73,7 @@ func resourceExpressRouteCircuitAuthorizationCreate(d *pluginsdk.ResourceData, m
 
 	id := expressroutecircuitauthorizations.NewAuthorizationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("express_route_circuit_name").(string), d.Get("name").(string))
 
-	expressRouteCircuitID := expressroutecircuits.NewExpressRouteCircuitID(id.SubscriptionId, id.ResourceGroupName, id.ExpressRouteCircuitName)
+	expressRouteCircuitID := expressroutecircuitauthorizations.NewExpressRouteCircuitID(id.SubscriptionId, id.ResourceGroupName, id.ExpressRouteCircuitName)
 	locks.ByID(expressRouteCircuitID.ID())
 	defer locks.UnlockByID(expressRouteCircuitID.ID())
 

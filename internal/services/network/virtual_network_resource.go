@@ -688,11 +688,11 @@ func resourceVirtualNetworkDelete(d *pluginsdk.ResourceData, meta any) error {
 	locks.ByID(id.ID())
 	defer locks.UnlockByID(id.ID())
 
-	locks.MultipleByID(&nsgNames)
-	defer locks.UnlockMultipleByID(&nsgNames)
+	locks.MultipleByID(&nsgIDs)
+	defer locks.UnlockMultipleByID(&nsgIDs)
 
-	locks.MultipleByID(&routeTableNames)
-	defer locks.UnlockMultipleByID(&routeTableNames)
+	locks.MultipleByID(&routeTableIDs)
+	defer locks.UnlockMultipleByID(&routeTableIDs)
 
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)

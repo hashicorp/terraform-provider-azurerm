@@ -89,7 +89,7 @@ func resourcePostgresqlFlexibleServerAdministratorCreate(d *pluginsdk.ResourceDa
 
 	id := administratormicrosoftentras.NewAdministratorID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("object_id").(string))
 
-	serverId := administratorsmicrosoftentra.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
+	serverId := administratormicrosoftentras.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
 	locks.ByID(serverId.ID())
 	defer locks.UnlockByID(serverId.ID())
 
@@ -169,7 +169,7 @@ func resourcePostgresqlFlexibleServerAdministratorDelete(d *pluginsdk.ResourceDa
 		return err
 	}
 
-	serverId := administratorsmicrosoftentra.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
+	serverId := administratormicrosoftentras.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
 	locks.ByID(serverId.ID())
 	defer locks.UnlockByID(serverId.ID())
 

@@ -105,7 +105,7 @@ func resourceSynapseWorkspaceKeysCreateUpdate(d *pluginsdk.ResourceData, meta an
 
 	locks.ByID(workspaceId.ID())
 	defer locks.UnlockByID(workspaceId.ID())
-	keyresult, err := client.CreateOrUpdate(ctx, workspaceId.ResourceGroup, workspaceId.Name, actualKeyName, synapseKey)
+	keyresult, err := client.CreateOrUpdate(ctx, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, actualKeyName, synapseKey)
 	if err != nil {
 		return fmt.Errorf("creating Synapse Workspace Key %q (Workspace %q): %+v", workspaceId.WorkspaceName, workspaceId.WorkspaceName, err)
 	}

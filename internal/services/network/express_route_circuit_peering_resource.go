@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressroutecircuitconnections"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/expressroutecircuits"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressroutecircuitpeerings"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/routefilters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -243,7 +242,7 @@ func resourceExpressRouteCircuitPeeringCreate(d *pluginsdk.ResourceData, meta an
 
 	id := commonids.NewExpressRouteCircuitPeeringID(subscriptionId, d.Get("resource_group_name").(string), d.Get("express_route_circuit_name").(string), d.Get("peering_type").(string))
 
-	expressRouteCircuitID := expressroutecircuits.NewExpressRouteCircuitID(id.SubscriptionId, id.ResourceGroupName, id.CircuitName)
+	expressRouteCircuitID := expressroutecircuitpeerings.NewExpressRouteCircuitID(id.SubscriptionId, id.ResourceGroupName, id.CircuitName)
 	locks.ByID(expressRouteCircuitID.ID())
 	defer locks.UnlockByID(expressRouteCircuitID.ID())
 
@@ -355,7 +354,7 @@ func resourceExpressRouteCircuitPeeringUpdate(d *pluginsdk.ResourceData, meta an
 		return err
 	}
 
-	expressRouteCircuitID := expressroutecircuits.NewExpressRouteCircuitID(id.SubscriptionId, id.ResourceGroupName, id.CircuitName)
+	expressRouteCircuitID := expressroutecircuitpeerings.NewExpressRouteCircuitID(id.SubscriptionId, id.ResourceGroupName, id.CircuitName)
 	locks.ByID(expressRouteCircuitID.ID())
 	defer locks.UnlockByID(expressRouteCircuitID.ID())
 
@@ -537,7 +536,7 @@ func resourceExpressRouteCircuitPeeringDelete(d *pluginsdk.ResourceData, meta an
 		return err
 	}
 
-	expressRouteCircuitID := expressroutecircuits.NewExpressRouteCircuitID(id.SubscriptionId, id.ResourceGroupName, id.CircuitName)
+	expressRouteCircuitID := expressroutecircuitpeerings.NewExpressRouteCircuitID(id.SubscriptionId, id.ResourceGroupName, id.CircuitName)
 	locks.ByID(expressRouteCircuitID.ID())
 	defer locks.UnlockByID(expressRouteCircuitID.ID())
 

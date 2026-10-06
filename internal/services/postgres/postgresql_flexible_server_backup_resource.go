@@ -150,7 +150,7 @@ func (r PostgresqlFlexibleServerBackupResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			serverId := backupsautomaticandondemand.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
+			serverId := backupautomaticandondemands.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
 			locks.ByID(serverId.ID())
 			defer locks.UnlockByID(serverId.ID())
 
