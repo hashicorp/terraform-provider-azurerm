@@ -35,6 +35,20 @@ func TestAccWindowsWebAppSlot_basic(t *testing.T) {
 	})
 }
 
+func TestAccWindowsWebAppSlot_regression(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	}, "")
+}
+
 func TestAccWindowsWebAppSlot_updateTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
 	r := WindowsWebAppSlotResource{}
@@ -959,6 +973,29 @@ func TestAccWindowsWebAppSlot_withNode22(t *testing.T) {
 	})
 }
 
+func TestAccWindowsWebAppSlot_withNode24(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.node(data, "~24"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.nodeWithAppSettings(data, "~24"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.application_stack.0.node_version").HasValue("~24"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 func TestAccWindowsWebAppSlot_withNodeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
 	r := WindowsWebAppSlotResource{}
@@ -1257,6 +1294,50 @@ func TestAccWindowsWebAppSlot_publicNetworkAccessUpdate(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccWindowsWebAppSlot_e2eEncryption(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.endToEndTLSEncryptionEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccWindowsWebAppSlot_e2eEncryptionUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.endToEndTLSEncryptionEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -2703,6 +2784,25 @@ resource "azurerm_windows_web_app_slot" "test" {
 `, r.baseTemplate(data), data.RandomInteger)
 }
 
+func (r WindowsWebAppSlotResource) endToEndTLSEncryptionEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_web_app_slot" "test" {
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_windows_web_app.test.id
+
+  end_to_end_tls_encryption_enabled = true
+
+  site_config {}
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
 func (r WindowsWebAppSlotResource) handlerMappingsNoArgs(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2908,9 +3008,9 @@ resource "azurerm_subnet" "test" {
     }
   }
 
-  service_endpoints = [
-    "Microsoft.Storage"
-  ]
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
 }
 
 resource "azurerm_storage_account" "test" {

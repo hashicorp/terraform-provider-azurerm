@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/eventhubsclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -72,7 +73,7 @@ func resourceEventHubCluster() *pluginsdk.Resource {
 	}
 }
 
-func resourceEventHubClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubClusterCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Eventhub.ClusterClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -80,37 +81,42 @@ func resourceEventHubClusterCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	id := eventhubsclusters.NewClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.ClustersGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.ClustersGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_eventhub_cluster", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_eventhub_cluster", id.ID())
+			}
 		}
 	}
 
 	sku := expandEventHubClusterSkuName(d.Get("sku_name").(string))
 	cluster := eventhubsclusters.Cluster{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 		Sku:      &sku,
 	}
 
-	if err := client.ClustersCreateOrUpdateThenPoll(ctx, id, cluster); err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
 	if d.IsNewResource() {
+		if err := client.ClustersCreateOrUpdateCallbackThenPoll(ctx, id, cluster, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
 		d.SetId(id.ID())
+	} else {
+		if err := client.ClustersCreateOrUpdateThenPoll(ctx, id, cluster); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
 	return resourceEventHubClusterRead(d, meta)
 }
 
-func resourceEventHubClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubClusterRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Eventhub.ClusterClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -143,7 +149,7 @@ func resourceEventHubClusterRead(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceEventHubClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubClusterDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Eventhub.ClusterClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

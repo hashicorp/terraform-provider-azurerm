@@ -62,9 +62,20 @@ func (c RestorablesClient) MongoDBResourcesRetrieveContinuousBackupInformation(c
 
 // MongoDBResourcesRetrieveContinuousBackupInformationThenPoll performs MongoDBResourcesRetrieveContinuousBackupInformation then polls until it's completed
 func (c RestorablesClient) MongoDBResourcesRetrieveContinuousBackupInformationThenPoll(ctx context.Context, id MongodbDatabaseCollectionId, input ContinuousBackupRestoreLocation) error {
+	return c.MongoDBResourcesRetrieveContinuousBackupInformationCallbackThenPoll(ctx, id, input, nil)
+}
+
+// MongoDBResourcesRetrieveContinuousBackupInformationCallbackThenPoll performs MongoDBResourcesRetrieveContinuousBackupInformation, runs the optional callback function, then polls until it's completed
+func (c RestorablesClient) MongoDBResourcesRetrieveContinuousBackupInformationCallbackThenPoll(ctx context.Context, id MongodbDatabaseCollectionId, input ContinuousBackupRestoreLocation, callback func() error) error {
 	result, err := c.MongoDBResourcesRetrieveContinuousBackupInformation(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing MongoDBResourcesRetrieveContinuousBackupInformation: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
-	networkpoller "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/custompollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -64,7 +64,7 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnection() *pluginsdk.Resource {
 	}
 }
 
-func resourceAppServiceSlotVirtualNetworkSwiftConnectionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceSlotVirtualNetworkSwiftConnectionCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.WebAppsClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -82,13 +82,15 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnectionCreate(d *pluginsdk.Reso
 
 	appSlotID := webapps.NewSlotID(appID.SubscriptionId, appID.ResourceGroupName, appID.SiteName, d.Get("slot_name").(string))
 
-	existing, err := client.GetSwiftVirtualNetworkConnectionSlot(ctx, appSlotID)
-	if err != nil {
-		return fmt.Errorf("checking for presence of Swift Network Connection for %s: %w", appSlotID, err)
-	}
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.GetSwiftVirtualNetworkConnectionSlot(ctx, appSlotID)
+		if err != nil {
+			return fmt.Errorf("checking for presence of Swift Network Connection for %s: %w", appSlotID, err)
+		}
 
-	if existing.Model != nil && existing.Model.Properties != nil && pointer.From(existing.Model.Properties.SubnetResourceId) != "" {
-		return tf.ImportAsExistsError("azurerm_app_service_slot_virtual_network_swift_connection", pointer.From(existing.Model.Id))
+		if existing.Model != nil && existing.Model.Properties != nil && pointer.From(existing.Model.Properties.SubnetResourceId) != "" {
+			return tf.ImportAsExistsError("azurerm_app_service_slot_virtual_network_swift_connection", pointer.From(existing.Model.Id))
+		}
 	}
 
 	if _, err := client.Get(ctx, *appID); err != nil {
@@ -115,7 +117,7 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnectionCreate(d *pluginsdk.Reso
 		return fmt.Errorf("creating association between %s and %s: %w", appSlotID, subnetID, err)
 	}
 
-	pollerType := networkpoller.NewVirtualNetworkAndSubnetProvisioningSucceededPoller(meta.(*clients.Client).Network, subnetID)
+	pollerType := custompollers.NewVirtualNetworkAndSubnetProvisioningSucceededPoller(meta.(*clients.Client).Network, subnetID)
 	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("polling for completion of association between %s and %s: %w", appSlotID, subnetID, err)
@@ -135,12 +137,13 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnectionCreate(d *pluginsdk.Reso
 		return err
 	}
 
+	// TODO: migrate to a typed resource ID
 	d.SetId(slotSwiftVirtualNetworkId.ID())
 
 	return resourceAppServiceSlotVirtualNetworkSwiftConnectionRead(d, meta)
 }
 
-func resourceAppServiceSlotVirtualNetworkSwiftConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceSlotVirtualNetworkSwiftConnectionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.WebAppsClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -181,7 +184,7 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnectionRead(d *pluginsdk.Resour
 	return nil
 }
 
-func resourceAppServiceSlotVirtualNetworkSwiftConnectionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceSlotVirtualNetworkSwiftConnectionUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.WebAppsClient
 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -217,7 +220,7 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnectionUpdate(d *pluginsdk.Reso
 		return fmt.Errorf("updating association between %s and %s: %w", appSlotID, subnetID, err)
 	}
 
-	pollerType := networkpoller.NewVirtualNetworkAndSubnetProvisioningSucceededPoller(meta.(*clients.Client).Network, subnetID)
+	pollerType := custompollers.NewVirtualNetworkAndSubnetProvisioningSucceededPoller(meta.(*clients.Client).Network, subnetID)
 	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("polling for completion of association between %s and %s: %w", appSlotID, subnetID, err)
@@ -226,7 +229,7 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnectionUpdate(d *pluginsdk.Reso
 	return resourceAppServiceSlotVirtualNetworkSwiftConnectionRead(d, meta)
 }
 
-func resourceAppServiceSlotVirtualNetworkSwiftConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceSlotVirtualNetworkSwiftConnectionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.WebAppsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

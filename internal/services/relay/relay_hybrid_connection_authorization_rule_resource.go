@@ -63,22 +63,25 @@ func resourceRelayHybridConnectionAuthorizationRule() *pluginsdk.Resource {
 	}
 }
 
-func resourceRelayHybridConnectionAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRelayHybridConnectionAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Relay.HybridConnectionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	resourceId := hybridconnections.NewHybridConnectionAuthorizationRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("hybrid_connection_name").(string), d.Get("name").(string))
+
 	if d.IsNewResource() {
-		existing, err := client.GetAuthorizationRule(ctx, resourceId)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", resourceId, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.GetAuthorizationRule(ctx, resourceId)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", resourceId, err)
+				}
 			}
-		}
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_relay_hybrid_connection_authorization_rule", resourceId.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_relay_hybrid_connection_authorization_rule", resourceId.ID())
+			}
 		}
 	}
 
@@ -93,12 +96,14 @@ func resourceRelayHybridConnectionAuthorizationRuleCreateUpdate(d *pluginsdk.Res
 		return fmt.Errorf("creating/updating %s: %+v", resourceId, err)
 	}
 
-	d.SetId(resourceId.ID())
+	if d.IsNewResource() {
+		d.SetId(resourceId.ID())
+	}
 
 	return resourceRelayHybridConnectionAuthorizationRuleRead(d, meta)
 }
 
-func resourceRelayHybridConnectionAuthorizationRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRelayHybridConnectionAuthorizationRuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Relay.HybridConnectionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -142,7 +147,7 @@ func resourceRelayHybridConnectionAuthorizationRuleRead(d *pluginsdk.ResourceDat
 	return nil
 }
 
-func resourceRelayHybridConnectionAuthorizationRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRelayHybridConnectionAuthorizationRuleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Relay.HybridConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

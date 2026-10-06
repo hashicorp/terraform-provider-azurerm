@@ -12,7 +12,7 @@ type (
 
 // NewSet is a convenience method for creating a new set with the given
 // items.
-func NewSet(f SchemaSetFunc, items []interface{}) *Set {
+func NewSet(f SchemaSetFunc, items []any) *Set {
 	return schema.NewSet(f, items)
 }
 

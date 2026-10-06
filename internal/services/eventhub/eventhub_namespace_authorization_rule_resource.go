@@ -67,7 +67,7 @@ func resourceEventHubNamespaceAuthorizationRule() *pluginsdk.Resource {
 	}
 }
 
-func resourceEventHubNamespaceAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Eventhub.NamespaceAuthorizationRulesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -75,15 +75,17 @@ func resourceEventHubNamespaceAuthorizationRuleCreateUpdate(d *pluginsdk.Resourc
 
 	id := authorizationrulesnamespaces.NewAuthorizationRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.NamespacesGetAuthorizationRule(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.NamespacesGetAuthorizationRule(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_eventhub_namespace_authorization_rule", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_eventhub_namespace_authorization_rule", id.ID())
+			}
 		}
 	}
 
@@ -101,11 +103,13 @@ func resourceEventHubNamespaceAuthorizationRuleCreateUpdate(d *pluginsdk.Resourc
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
 	return resourceEventHubNamespaceAuthorizationRuleRead(d, meta)
 }
 
-func resourceEventHubNamespaceAuthorizationRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceAuthorizationRuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Eventhub.NamespaceAuthorizationRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -154,7 +158,7 @@ func resourceEventHubNamespaceAuthorizationRuleRead(d *pluginsdk.ResourceData, m
 	return nil
 }
 
-func resourceEventHubNamespaceAuthorizationRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceAuthorizationRuleDelete(d *pluginsdk.ResourceData, meta any) error {
 	eventhubClient := meta.(*clients.Client).Eventhub.NamespaceAuthorizationRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
