@@ -335,8 +335,6 @@ resource "azurerm_app_configuration_feature" "test" {
     }
   }
 }
-
-
 `, t.template(data), data.RandomInteger)
 }
 
