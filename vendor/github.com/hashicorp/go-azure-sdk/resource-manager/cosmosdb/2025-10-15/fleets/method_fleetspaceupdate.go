@@ -62,9 +62,20 @@ func (c FleetsClient) FleetspaceUpdate(ctx context.Context, id FleetspaceId, inp
 
 // FleetspaceUpdateThenPoll performs FleetspaceUpdate then polls until it's completed
 func (c FleetsClient) FleetspaceUpdateThenPoll(ctx context.Context, id FleetspaceId, input FleetspaceUpdate) error {
+	return c.FleetspaceUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// FleetspaceUpdateCallbackThenPoll performs FleetspaceUpdate, runs the optional callback function, then polls until it's completed
+func (c FleetsClient) FleetspaceUpdateCallbackThenPoll(ctx context.Context, id FleetspaceId, input FleetspaceUpdate, callback func() error) error {
 	result, err := c.FleetspaceUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing FleetspaceUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

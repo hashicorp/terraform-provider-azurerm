@@ -62,9 +62,20 @@ func (c FleetsClient) FleetspaceAccountCreate(ctx context.Context, id Fleetspace
 
 // FleetspaceAccountCreateThenPoll performs FleetspaceAccountCreate then polls until it's completed
 func (c FleetsClient) FleetspaceAccountCreateThenPoll(ctx context.Context, id FleetspaceAccountId, input FleetspaceAccountResource) error {
+	return c.FleetspaceAccountCreateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// FleetspaceAccountCreateCallbackThenPoll performs FleetspaceAccountCreate, runs the optional callback function, then polls until it's completed
+func (c FleetsClient) FleetspaceAccountCreateCallbackThenPoll(ctx context.Context, id FleetspaceAccountId, input FleetspaceAccountResource, callback func() error) error {
 	result, err := c.FleetspaceAccountCreate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing FleetspaceAccountCreate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
