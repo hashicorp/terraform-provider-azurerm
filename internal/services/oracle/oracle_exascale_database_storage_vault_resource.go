@@ -66,9 +66,9 @@ func (ExascaleDatabaseStorageVaultResource) Arguments() map[string]*pluginsdk.Sc
 		},
 
 		"description": {
-			Type: pluginsdk.TypeString,
-			// Note: O+C API use display_name value if omitted
+			Type:     pluginsdk.TypeString,
 			Optional: true,
+			// Note: O+C API use `display_name` value if omitted
 			Computed: true,
 			ForceNew: true,
 		},
@@ -136,7 +136,7 @@ func (ExascaleDatabaseStorageVaultResource) Attributes() map[string]*pluginsdk.S
 	}
 }
 
-func (ExascaleDatabaseStorageVaultResource) ModelObject() interface{} {
+func (ExascaleDatabaseStorageVaultResource) ModelObject() any {
 	return &ExascaleDatabaseStorageVaultResource{}
 }
 
@@ -160,12 +160,14 @@ func (r ExascaleDatabaseStorageVaultResource) Create() sdk.ResourceFunc {
 				model.ResourceGroupName,
 				model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			param := exascaledbstoragevaults.ExascaleDbStorageVault{
@@ -191,11 +193,11 @@ func (r ExascaleDatabaseStorageVaultResource) Create() sdk.ResourceFunc {
 				param.Properties.ExadataInfrastructureId = pointer.To(model.ExadataInfrastructureId)
 			}
 
-			if err := client.CreateThenPoll(ctx, id, param); err != nil {
+			if err := client.CreateCallbackThenPoll(ctx, id, param, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}
@@ -224,8 +226,7 @@ func (r ExascaleDatabaseStorageVaultResource) Update() sdk.ResourceFunc {
 				Tags: pointer.To(model.Tags),
 			}
 
-			err = client.UpdateThenPoll(ctx, *id, *update)
-			if err != nil {
+			if err = client.UpdateThenPoll(ctx, *id, *update); err != nil {
 				return fmt.Errorf("updating %s: %v", id, err)
 			}
 

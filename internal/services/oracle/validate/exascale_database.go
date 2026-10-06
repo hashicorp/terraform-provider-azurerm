@@ -8,7 +8,7 @@ import (
 	"regexp"
 )
 
-func ExascaleDatabaseStorageVaultName(i interface{}, k string) (warnings []string, errors []error) {
+func ExascaleDatabaseStorageVaultName(i any, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		return nil, append(errors, fmt.Errorf("expected type of %s to be string", k))
@@ -24,7 +24,7 @@ func ExascaleDatabaseStorageVaultName(i interface{}, k string) (warnings []strin
 	return
 }
 
-func ExascaleDatabaseVirtualMachineClusterName(i interface{}, k string) (warnings []string, errors []error) {
+func ExascaleDatabaseVirtualMachineClusterName(i any, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		return nil, append(errors, fmt.Errorf("expected type of %s to be string", k))

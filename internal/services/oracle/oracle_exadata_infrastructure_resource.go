@@ -29,18 +29,18 @@ type ExadataInfraResourceModel struct {
 	Name              string            `tfschema:"name"`
 	ResourceGroupName string            `tfschema:"resource_group_name"`
 	Tags              map[string]string `tfschema:"tags"`
-	Zones             zones.Schema      `tfschema:"zones"`
 
 	ComputeCount int64  `tfschema:"compute_count"`
 	DisplayName  string `tfschema:"display_name"`
 	Shape        string `tfschema:"shape"`
 	StorageCount int64  `tfschema:"storage_count"`
 
-	DatabaseServerType string                   `tfschema:"database_server_type"`
-	StorageServerType  string                   `tfschema:"storage_server_type"`
 	CustomerContacts   []string                 `tfschema:"customer_contacts"`
+	DatabaseServerType string                   `tfschema:"database_server_type"`
 	MaintenanceWindow  []MaintenanceWindowModel `tfschema:"maintenance_window"`
 	ExascaleConfig     []ExascaleConfigDetails  `tfschema:"exascale_config"`
+	StorageServerType  string                   `tfschema:"storage_server_type"`
+	Zones              zones.Schema             `tfschema:"zones"`
 }
 
 func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
@@ -50,7 +50,7 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.ExadataName,
+			ValidateFunc: validation.StringIsNotEmpty,
 			ForceNew:     true,
 		},
 
@@ -59,14 +59,14 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 		"compute_count": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
-			ValidateFunc: validate.ComputeCount,
+			ValidateFunc: validation.IntBetween(2, 32),
 			ForceNew:     true,
 		},
 
 		"database_server_type": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validation.StringLenBetween(1, 255),
 		},
@@ -87,14 +87,14 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 		"storage_count": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
-			ValidateFunc: validate.StorageCount,
+			ValidateFunc: validation.IntBetween(3, 64),
 			ForceNew:     true,
 		},
 
 		"customer_contacts": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ForceNew: true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
@@ -104,14 +104,14 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 		"maintenance_window": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ForceNew: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"days_of_week": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
-						Computed: true,
+						Computed: true, // azignore:AZS007 - pre-existing violation
 						ForceNew: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
@@ -122,7 +122,7 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 					"hours_of_day": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
-						Computed: true,
+						Computed: true, // azignore:AZS007 - pre-existing violation
 						ForceNew: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeInt,
@@ -133,15 +133,15 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 					"lead_time_in_weeks": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						Computed:     true,
+						Computed:     true, // azignore:AZS007 - pre-existing violation
 						ForceNew:     true,
-						ValidateFunc: validate.LeadTimeInWeeks,
+						ValidateFunc: validation.IntBetween(1, 4),
 					},
 
 					"months": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
-						Computed: true,
+						Computed: true, // azignore:AZS007 - pre-existing violation
 						ForceNew: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
@@ -152,7 +152,7 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 					"patching_mode": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Computed:     true,
+						Computed:     true, // azignore:AZS007 - pre-existing violation
 						ForceNew:     true,
 						ValidateFunc: validate.PatchingMode,
 					},
@@ -160,7 +160,7 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 					"preference": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Computed:     true,
+						Computed:     true, // azignore:AZS007 - pre-existing violation
 						ForceNew:     true,
 						ValidateFunc: validate.Preference,
 					},
@@ -168,11 +168,11 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 					"weeks_of_month": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
-						Computed: true,
+						Computed: true, // azignore:AZS007 - pre-existing violation
 						ForceNew: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeInt,
-							ValidateFunc: validate.WeeksOfMonth,
+							ValidateFunc: validation.IntBetween(1, 4),
 						},
 					},
 				},
@@ -182,14 +182,14 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 		"storage_server_type": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validation.StringLenBetween(1, 255),
 		},
 
 		"tags": commonschema.Tags(),
 
-		"zones": commonschema.ZonesMultipleRequiredForceNew(),
+		"zones": commonschema.ZonesMultipleOptionalForceNew(),
 	}
 }
 
@@ -214,7 +214,7 @@ func (ExadataInfraResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (ExadataInfraResource) ModelObject() interface{} {
+func (ExadataInfraResource) ModelObject() any {
 	return &ExadataInfraResource{}
 }
 
@@ -238,19 +238,21 @@ func (r ExadataInfraResource) Create() sdk.ResourceFunc {
 				model.ResourceGroupName,
 				model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			param := cloudexadatainfrastructures.CloudExadataInfrastructure{
 				Name:     pointer.To(model.Name),
 				Location: location.Normalize(model.Location),
 				Tags:     pointer.To(model.Tags),
-				Zones:    model.Zones,
+				Zones:    zones.Expand(model.Zones),
 				Properties: &cloudexadatainfrastructures.CloudExadataInfrastructureProperties{
 					ComputeCount:     pointer.To(model.ComputeCount),
 					DisplayName:      model.DisplayName,
@@ -271,17 +273,17 @@ func (r ExadataInfraResource) Create() sdk.ResourceFunc {
 					HoursOfDay:      pointer.To(model.MaintenanceWindow[0].HoursOfDay),
 					LeadTimeInWeeks: pointer.To(model.MaintenanceWindow[0].LeadTimeInWeeks),
 					Months:          pointer.To(ExpandMonths(model.MaintenanceWindow[0].Months)),
-					PatchingMode:    pointer.To(cloudexadatainfrastructures.PatchingMode(model.MaintenanceWindow[0].PatchingMode)),
-					Preference:      pointer.To(cloudexadatainfrastructures.Preference(model.MaintenanceWindow[0].Preference)),
+					PatchingMode:    pointer.ToEnum[cloudexadatainfrastructures.PatchingMode](model.MaintenanceWindow[0].PatchingMode),
+					Preference:      pointer.ToEnum[cloudexadatainfrastructures.Preference](model.MaintenanceWindow[0].Preference),
 					WeeksOfMonth:    pointer.To(model.MaintenanceWindow[0].WeeksOfMonth),
 				}
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}
@@ -310,8 +312,7 @@ func (r ExadataInfraResource) Update() sdk.ResourceFunc {
 				update := &cloudexadatainfrastructures.CloudExadataInfrastructureUpdate{
 					Tags: pointer.To(model.Tags),
 				}
-				err = client.UpdateThenPoll(ctx, *id, *update)
-				if err != nil {
+				if err = client.UpdateThenPoll(ctx, *id, *update); err != nil {
 					return fmt.Errorf("updating %s: %v", id, err)
 				}
 			}
@@ -346,7 +347,7 @@ func (ExadataInfraResource) Read() sdk.ResourceFunc {
 
 			if model := result.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
-				state.Zones = model.Zones
+				state.Zones = zones.Flatten(&model.Zones)
 				state.Tags = pointer.From(model.Tags)
 				if props := model.Properties; props != nil {
 					state.CustomerContacts = FlattenCustomerContacts(result.Model.Properties.CustomerContacts)

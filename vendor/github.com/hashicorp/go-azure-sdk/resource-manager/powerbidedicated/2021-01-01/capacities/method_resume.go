@@ -57,9 +57,20 @@ func (c CapacitiesClient) Resume(ctx context.Context, id CapacityId) (result Res
 
 // ResumeThenPoll performs Resume then polls until it's completed
 func (c CapacitiesClient) ResumeThenPoll(ctx context.Context, id CapacityId) error {
+	return c.ResumeCallbackThenPoll(ctx, id, nil)
+}
+
+// ResumeCallbackThenPoll performs Resume, runs the optional callback function, then polls until it's completed
+func (c CapacitiesClient) ResumeCallbackThenPoll(ctx context.Context, id CapacityId, callback func() error) error {
 	result, err := c.Resume(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Resume: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package oracle
@@ -380,7 +380,7 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Attributes() map[string]*pl
 	}
 }
 
-func (ExascaleDatabaseVirtualMachineClusterResource) ModelObject() interface{} {
+func (ExascaleDatabaseVirtualMachineClusterResource) ModelObject() any {
 	return &ExascaleDatabaseVirtualMachineClusterResource{}
 }
 
@@ -455,7 +455,7 @@ func (r ExascaleDatabaseVirtualMachineClusterResource) Create() sdk.ResourceFunc
 				param.Properties.Domain = pointer.To(model.Domain)
 			}
 			if model.LicenseModel != "" {
-				param.Properties.LicenseModel = pointer.To(exadbvmclusters.LicenseModel(model.LicenseModel))
+				param.Properties.LicenseModel = pointer.ToEnum[exadbvmclusters.LicenseModel](model.LicenseModel)
 			}
 			if len(model.NetworkSecurityGroupCidr) > 0 {
 				param.Properties.NsgCidrs = pointer.To(expandNsgCidrs(model.NetworkSecurityGroupCidr))
@@ -464,7 +464,7 @@ func (r ExascaleDatabaseVirtualMachineClusterResource) Create() sdk.ResourceFunc
 				param.Properties.PrivateZoneOcid = pointer.To(model.PrivateZoneOcid)
 			}
 			if model.ShapeAttribute != "" {
-				param.Properties.ShapeAttribute = pointer.To(exadbvmclusters.ShapeAttribute(model.ShapeAttribute))
+				param.Properties.ShapeAttribute = pointer.ToEnum[exadbvmclusters.ShapeAttribute](model.ShapeAttribute)
 			}
 			if model.SystemVersion != "" {
 				param.Properties.SystemVersion = pointer.To(model.SystemVersion)
@@ -569,7 +569,7 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Read() sdk.ResourceFunc {
 					state.ClusterName = pointer.From(props.ClusterName)
 					state.DataCollection = flattenExadbDataCollectionOptionInterface(props.DataCollectionOptions)
 					state.Domain = pointer.From(props.Domain)
-					state.LicenseModel = string(pointer.From(props.LicenseModel))
+					state.LicenseModel = pointer.FromEnum(props.LicenseModel)
 					state.NetworkSecurityGroupCidr = FlattenNetworkSecurityGroupCidr(props.NsgCidrs)
 					state.Ocid = pointer.From(props.Ocid)
 					state.PrivateZoneOcid = pointer.From(props.PrivateZoneOcid)

@@ -22,7 +22,7 @@ type SqlResourcesCreateUpdateSqlRoleAssignmentOperationResponse struct {
 }
 
 // SqlResourcesCreateUpdateSqlRoleAssignment ...
-func (c RbacsClient) SqlResourcesCreateUpdateSqlRoleAssignment(ctx context.Context, id AccountId, input SqlRoleAssignmentCreateUpdateParameters) (result SqlResourcesCreateUpdateSqlRoleAssignmentOperationResponse, err error) {
+func (c RbacsClient) SqlResourcesCreateUpdateSqlRoleAssignment(ctx context.Context, id SqlRoleAssignmentId, input SqlRoleAssignmentCreateUpdateParameters) (result SqlResourcesCreateUpdateSqlRoleAssignmentOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -61,10 +61,21 @@ func (c RbacsClient) SqlResourcesCreateUpdateSqlRoleAssignment(ctx context.Conte
 }
 
 // SqlResourcesCreateUpdateSqlRoleAssignmentThenPoll performs SqlResourcesCreateUpdateSqlRoleAssignment then polls until it's completed
-func (c RbacsClient) SqlResourcesCreateUpdateSqlRoleAssignmentThenPoll(ctx context.Context, id AccountId, input SqlRoleAssignmentCreateUpdateParameters) error {
+func (c RbacsClient) SqlResourcesCreateUpdateSqlRoleAssignmentThenPoll(ctx context.Context, id SqlRoleAssignmentId, input SqlRoleAssignmentCreateUpdateParameters) error {
+	return c.SqlResourcesCreateUpdateSqlRoleAssignmentCallbackThenPoll(ctx, id, input, nil)
+}
+
+// SqlResourcesCreateUpdateSqlRoleAssignmentCallbackThenPoll performs SqlResourcesCreateUpdateSqlRoleAssignment, runs the optional callback function, then polls until it's completed
+func (c RbacsClient) SqlResourcesCreateUpdateSqlRoleAssignmentCallbackThenPoll(ctx context.Context, id SqlRoleAssignmentId, input SqlRoleAssignmentCreateUpdateParameters, callback func() error) error {
 	result, err := c.SqlResourcesCreateUpdateSqlRoleAssignment(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing SqlResourcesCreateUpdateSqlRoleAssignment: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
