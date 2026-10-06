@@ -37,7 +37,7 @@ type TimeSeriesDatabaseConnectionModel struct {
 type TimeSeriesDatabaseConnectionResource struct{}
 
 func (m TimeSeriesDatabaseConnectionResource) Arguments() map[string]*pluginsdk.Schema {
-	resource := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -110,15 +110,13 @@ func (m TimeSeriesDatabaseConnectionResource) Arguments() map[string]*pluginsdk.
 			ValidateFunc: kustoValidate.EntityName,
 		},
 	}
-
-	return resource
 }
 
 func (m TimeSeriesDatabaseConnectionResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (m TimeSeriesDatabaseConnectionResource) ModelObject() interface{} {
+func (m TimeSeriesDatabaseConnectionResource) ModelObject() any {
 	return &TimeSeriesDatabaseConnectionModel{}
 }
 

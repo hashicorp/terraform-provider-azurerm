@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -17,9 +18,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/fhirservices"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2024-03-31/workspaces"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/validate"
@@ -72,14 +73,11 @@ func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"kind": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(fhirservices.FhirServiceKindFhirNegativeRFour),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(fhirservices.FhirServiceKindFhirNegativeRFour),
-					string(fhirservices.FhirServiceKindFhirNegativeStuThree),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(fhirservices.FhirServiceKindFhirNegativeRFour),
+				ValidateFunc: validation.StringInSlice(fhirservices.PossibleValuesForFhirServiceKind(), false),
 			},
 
 			"access_policy_object_ids": {
@@ -230,7 +228,7 @@ func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 	}
 }
 
-func resourceHealthcareApisFhirServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceHealthcareApisFhirServiceCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceFhirServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -254,7 +252,7 @@ func resourceHealthcareApisFhirServiceCreate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	i, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+	i, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -263,10 +261,10 @@ func resourceHealthcareApisFhirServiceCreate(d *pluginsdk.ResourceData, meta int
 		Identity: i,
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Kind:     pointer.ToEnum[fhirservices.FhirServiceKind](d.Get("kind").(string)),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 		Properties: &fhirservices.FhirServiceProperties{
-			AuthenticationConfiguration: expandFhirAuthentication(d.Get("authentication").([]interface{})),
-			CorsConfiguration:           expandFhirCorsConfiguration(d.Get("cors").([]interface{})),
+			AuthenticationConfiguration: expandFhirAuthentication(d.Get("authentication").([]any)),
+			CorsConfiguration:           expandFhirCorsConfiguration(d.Get("cors").([]any)),
 		},
 	}
 
@@ -285,13 +283,11 @@ func resourceHealthcareApisFhirServiceCreate(d *pluginsdk.ResourceData, meta int
 	acrConfig := fhirservices.FhirServiceAcrConfiguration{}
 	ociArtifactsRaw, hasValues := d.GetOk("oci_artifact")
 	if hasValues {
-		ociArtifacts := expandOciArtifacts(ociArtifactsRaw.([]interface{}))
-		acrConfig.OciArtifacts = ociArtifacts
+		acrConfig.OciArtifacts = expandOciArtifacts(ociArtifactsRaw.([]any))
 	}
 	loginServersRaw, hasValues := d.GetOk("container_registry_login_server_url")
 	if hasValues {
-		loginServers := expandFhirAcrLoginServer(loginServersRaw.(*pluginsdk.Set).List())
-		acrConfig.LoginServers = loginServers
+		acrConfig.LoginServers = expandFhirAcrLoginServer(loginServersRaw.(*pluginsdk.Set).List())
 	}
 	parameters.Properties.AcrConfiguration = &acrConfig
 
@@ -303,7 +299,7 @@ func resourceHealthcareApisFhirServiceCreate(d *pluginsdk.ResourceData, meta int
 	return resourceHealthcareApisFhirServiceRead(d, meta)
 }
 
-func resourceHealthcareApisFhirServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceHealthcareApisFhirServiceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceFhirServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -337,7 +333,7 @@ func resourceHealthcareApisFhirServiceRead(d *pluginsdk.ResourceData, meta inter
 		if err := d.Set("identity", i); err != nil {
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
-		d.Set("kind", string(pointer.From(m.Kind)))
+		d.Set("kind", pointer.FromEnum(m.Kind))
 
 		if props := m.Properties; props != nil {
 			d.Set("access_policy_object_ids", flattenFhirAccessPolicy(props.AccessPolicies))
@@ -364,17 +360,14 @@ func resourceHealthcareApisFhirServiceRead(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func expandOciArtifacts(input []interface{}) *[]fhirservices.ServiceOciArtifactEntry {
+func expandOciArtifacts(input []any) *[]fhirservices.ServiceOciArtifactEntry {
 	output := make([]fhirservices.ServiceOciArtifactEntry, 0)
 
 	for _, artifactSet := range input {
-		artifactRaw := artifactSet.(map[string]interface{})
+		artifactRaw := artifactSet.(map[string]any)
 
-		loginServer := artifactRaw["login_server"].(string)
 		artifact := fhirservices.ServiceOciArtifactEntry{
-			LoginServer: &loginServer,
-			ImageName:   nil,
-			Digest:      nil,
+			LoginServer: pointer.To(artifactRaw["login_server"].(string)),
 		}
 		if image := artifactRaw["image_name"].(string); image != "" {
 			artifact.ImageName = &image
@@ -389,7 +382,7 @@ func expandOciArtifacts(input []interface{}) *[]fhirservices.ServiceOciArtifactE
 	return &output
 }
 
-func resourceHealthcareApisFhirServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceHealthcareApisFhirServiceUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceFhirServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -400,7 +393,7 @@ func resourceHealthcareApisFhirServiceUpdate(d *pluginsdk.ResourceData, meta int
 	}
 	id := fhirservices.NewFhirServiceID(workspace.SubscriptionId, workspace.ResourceGroupName, workspace.WorkspaceName, d.Get("name").(string))
 
-	i, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+	i, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -409,10 +402,10 @@ func resourceHealthcareApisFhirServiceUpdate(d *pluginsdk.ResourceData, meta int
 		Identity: i,
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Kind:     pointer.ToEnum[fhirservices.FhirServiceKind](d.Get("kind").(string)),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 		Properties: &fhirservices.FhirServiceProperties{
-			AuthenticationConfiguration: expandFhirAuthentication(d.Get("authentication").([]interface{})),
-			CorsConfiguration:           expandFhirCorsConfiguration(d.Get("cors").([]interface{})),
+			AuthenticationConfiguration: expandFhirAuthentication(d.Get("authentication").([]any)),
+			CorsConfiguration:           expandFhirCorsConfiguration(d.Get("cors").([]any)),
 			AccessPolicies:              expandAccessPolicy(d.Get("access_policy_object_ids").(*pluginsdk.Set).List()),
 		},
 	}
@@ -427,18 +420,15 @@ func resourceHealthcareApisFhirServiceUpdate(d *pluginsdk.ResourceData, meta int
 	acrConfig := fhirservices.FhirServiceAcrConfiguration{}
 	ociArtifactsRaw, hasValues := d.GetOk("oci_artifact")
 	if hasValues {
-		ociArtifacts := expandOciArtifacts(ociArtifactsRaw.([]interface{}))
-		acrConfig.OciArtifacts = ociArtifacts
+		acrConfig.OciArtifacts = expandOciArtifacts(ociArtifactsRaw.([]any))
 	}
 	loginServersRaw, hasValues := d.GetOk("container_registry_login_server_url")
 	if hasValues {
-		loginServers := expandFhirAcrLoginServer(loginServersRaw.(*pluginsdk.Set).List())
-		acrConfig.LoginServers = loginServers
+		acrConfig.LoginServers = expandFhirAcrLoginServer(loginServersRaw.(*pluginsdk.Set).List())
 	}
 	parameters.Properties.AcrConfiguration = &acrConfig
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -446,7 +436,7 @@ func resourceHealthcareApisFhirServiceUpdate(d *pluginsdk.ResourceData, meta int
 	return resourceHealthcareApisFhirServiceRead(d, meta)
 }
 
-func resourceHealthcareApisFhirServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceHealthcareApisFhirServiceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceFhirServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -456,57 +446,35 @@ func resourceHealthcareApisFhirServiceDelete(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	log.Printf("[DEBUG] Waiting for %s to be deleted..", id)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"Pending"},
-		Target:                    []string{"Deleted"},
-		Refresh:                   fhirServiceStateStatusCodeRefreshFunc(ctx, client, *id),
-		Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
-		ContinuousTargetOccurence: 3,
-		PollInterval:              10 * time.Second,
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	poller := custompollers.NewEventualConsistencyPoller(3, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.Get(pollerCtx, *id)
+		return resp.HttpResponse, err
+	}, custompollers.DefaultDeletionEventualConsistencyPollerOptions())
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to be deleted: %+v", id, err)
 	}
 	return nil
 }
 
-func fhirServiceStateStatusCodeRefreshFunc(ctx context.Context, client *fhirservices.FhirServicesClient, id fhirservices.FhirServiceId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id)
-		if err != nil {
-			if response.WasNotFound(res.HttpResponse) {
-				return res, "Deleted", nil
-			}
-			return nil, "Error", fmt.Errorf("polling for the status of %s: %+v", id, err)
-		}
-
-		return res, "Pending", nil
-	}
-}
-
-func expandFhirAuthentication(input []interface{}) *fhirservices.FhirServiceAuthenticationConfiguration {
-	authConfig := input[0].(map[string]interface{})
+func expandFhirAuthentication(input []any) *fhirservices.FhirServiceAuthenticationConfiguration {
+	authConfig := input[0].(map[string]any)
 	authority := authConfig["authority"].(string)
 	audience := authConfig["audience"].(string)
 	smartProxyEnabled := authConfig["smart_proxy_enabled"].(bool)
 
-	auth := &fhirservices.FhirServiceAuthenticationConfiguration{
+	return &fhirservices.FhirServiceAuthenticationConfiguration{
 		Authority:         pointer.To(authority),
 		Audience:          pointer.To(audience),
 		SmartProxyEnabled: pointer.To(smartProxyEnabled),
 	}
-
-	return auth
 }
 
-func expandAccessPolicy(input []interface{}) *[]fhirservices.FhirServiceAccessPolicyEntry {
+func expandAccessPolicy(input []any) *[]fhirservices.FhirServiceAccessPolicyEntry {
 	if len(input) == 0 {
 		return nil
 	}
@@ -523,7 +491,7 @@ func expandAccessPolicy(input []interface{}) *[]fhirservices.FhirServiceAccessPo
 	return &accessPolicySet
 }
 
-func expandFhirCorsConfiguration(input []interface{}) *fhirservices.FhirServiceCorsConfiguration {
+func expandFhirCorsConfiguration(input []any) *fhirservices.FhirServiceCorsConfiguration {
 	if len(input) == 0 {
 		return &fhirservices.FhirServiceCorsConfiguration{
 			Origins:          &[]string{},
@@ -533,29 +501,27 @@ func expandFhirCorsConfiguration(input []interface{}) *fhirservices.FhirServiceC
 		}
 	}
 
-	block := input[0].(map[string]interface{})
+	block := input[0].(map[string]any)
 
-	allowedOrigins := *helpers.ExpandStringSlice(block["allowed_origins"].(*pluginsdk.Set).List())
-	allowedHeaders := *helpers.ExpandStringSlice(block["allowed_headers"].(*pluginsdk.Set).List())
-	allowedMethods := *helpers.ExpandStringSlice(block["allowed_methods"].(*pluginsdk.Set).List())
-	allowCredentials := block["credentials_allowed"].(bool)
+	allowedOrigins := *pluginsdk.ExpandStringSlice(block["allowed_origins"].(*pluginsdk.Set).List())
+	allowedHeaders := *pluginsdk.ExpandStringSlice(block["allowed_headers"].(*pluginsdk.Set).List())
+	allowedMethods := *pluginsdk.ExpandStringSlice(block["allowed_methods"].(*pluginsdk.Set).List())
 
 	cors := &fhirservices.FhirServiceCorsConfiguration{
 		Origins:          &allowedOrigins,
 		Headers:          &allowedHeaders,
 		Methods:          &allowedMethods,
-		AllowCredentials: &allowCredentials,
+		AllowCredentials: pointer.To(block["credentials_allowed"].(bool)),
 	}
 
 	if v, ok := block["max_age_in_seconds"]; ok {
-		maxAgeInSeconds := int64(v.(int))
-		cors.MaxAge = &maxAgeInSeconds
+		cors.MaxAge = pointer.To(int64(v.(int)))
 	}
 
 	return cors
 }
 
-func expandFhirAcrLoginServer(input []interface{}) *[]string {
+func expandFhirAcrLoginServer(input []any) *[]string {
 	acrLoginServers := make([]string, 0)
 
 	if len(input) == 0 {
@@ -593,13 +559,13 @@ func flattenFhirAccessPolicy(policies *[]fhirservices.FhirServiceAccessPolicyEnt
 	return result
 }
 
-func flattenOciArtifacts(artifacts *[]fhirservices.ServiceOciArtifactEntry) []map[string]interface{} {
-	result := make([]map[string]interface{}, 0)
+func flattenOciArtifacts(artifacts *[]fhirservices.ServiceOciArtifactEntry) []map[string]any {
+	result := make([]map[string]any, 0)
 	if artifacts == nil {
 		return result
 	}
 	for _, artifact := range *artifacts {
-		artifactRaw := make(map[string]interface{})
+		artifactRaw := make(map[string]any)
 
 		if loginServer := artifact.LoginServer; loginServer != nil {
 			artifactRaw["login_server"] = *loginServer
@@ -616,16 +582,16 @@ func flattenOciArtifacts(artifacts *[]fhirservices.ServiceOciArtifactEntry) []ma
 	return result
 }
 
-func flattenFhirCorsConfiguration(corsConfig *fhirservices.FhirServiceCorsConfiguration) []interface{} {
+func flattenFhirCorsConfiguration(corsConfig *fhirservices.FhirServiceCorsConfiguration) []any {
 	if corsConfig == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	if corsConfig.Origins != nil && len(*corsConfig.Origins) == 0 &&
 		corsConfig.Methods != nil && len(*corsConfig.Methods) == 0 &&
 		corsConfig.Headers != nil && len(*corsConfig.Headers) == 0 &&
 		corsConfig.AllowCredentials != nil && !*corsConfig.AllowCredentials {
-		return []interface{}{}
+		return []any{}
 	}
 
 	var maxAge int
@@ -633,24 +599,24 @@ func flattenFhirCorsConfiguration(corsConfig *fhirservices.FhirServiceCorsConfig
 		maxAge = int(*corsConfig.MaxAge)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"credentials_allowed": pointer.From(corsConfig.AllowCredentials),
-			"allowed_headers":     helpers.FlattenStringSlice(corsConfig.Headers),
-			"allowed_methods":     helpers.FlattenStringSlice(corsConfig.Methods),
-			"allowed_origins":     helpers.FlattenStringSlice(corsConfig.Origins),
+			"allowed_headers":     pluginsdk.FlattenSlice(corsConfig.Headers),
+			"allowed_methods":     pluginsdk.FlattenSlice(corsConfig.Methods),
+			"allowed_origins":     pluginsdk.FlattenSlice(corsConfig.Origins),
 			"max_age_in_seconds":  maxAge,
 		},
 	}
 }
 
-func flattenFhirAuthentication(authConfig *fhirservices.FhirServiceAuthenticationConfiguration) []interface{} {
+func flattenFhirAuthentication(authConfig *fhirservices.FhirServiceAuthenticationConfiguration) []any {
 	if authConfig == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"audience":            pointer.From(authConfig.Audience),
 			"authority":           pointer.From(authConfig.Authority),
 			"smart_proxy_enabled": pointer.From(authConfig.SmartProxyEnabled),

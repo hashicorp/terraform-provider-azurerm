@@ -113,7 +113,7 @@ func TestManagedRedisDatabaseGeoreplicationGroupName_WrongType(t *testing.T) {
 	if len(errors) == 0 {
 		t.Error("Expected error for non-string input")
 	}
-	if !strings.Contains(errors[0].Error(), "expected type of \"test\" to be string") {
+	if !strings.Contains(errors[0].Error(), "expected type of test to be string") {
 		t.Errorf("Expected type error, got: %v", errors[0])
 	}
 }

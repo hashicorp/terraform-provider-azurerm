@@ -58,7 +58,7 @@ func (r EdgeDeviceResource) Identity() resourceids.ResourceId {
 	return &devices.DataBoxEdgeDeviceId{}
 }
 
-func (r EdgeDeviceResource) ModelObject() interface{} {
+func (r EdgeDeviceResource) ModelObject() any {
 	return &EdgeDeviceModel{}
 }
 
@@ -420,7 +420,5 @@ func flattenDeviceSku(input *devices.Sku) string {
 		tier = devices.SkuTierStandard
 	}
 
-	skuName := fmt.Sprintf("%s-%s", name, tier)
-
-	return skuName
+	return fmt.Sprintf("%s-%s", name, tier)
 }

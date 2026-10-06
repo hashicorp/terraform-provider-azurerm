@@ -157,7 +157,7 @@ func resourceKustoEventGridDataConnection() *pluginsdk.Resource {
 	}
 }
 
-func resourceKustoEventGridDataConnectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoEventGridDataConnectionCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -201,13 +201,11 @@ func resourceKustoEventGridDataConnectionCreateUpdate(d *pluginsdk.ResourceData,
 	}
 
 	if df, ok := d.GetOk("data_format"); ok {
-		dataFormat := dataconnections.EventGridDataFormat(df.(string))
-		dataConnection.Properties.DataFormat = &dataFormat
+		dataConnection.Properties.DataFormat = pointer.ToEnum[dataconnections.EventGridDataFormat](df.(string))
 	}
 
 	if databaseRouting, ok := d.GetOk("database_routing_type"); ok {
-		databaseRoutingType := dataconnections.DatabaseRouting(databaseRouting.(string))
-		dataConnection.Properties.DatabaseRouting = &databaseRoutingType
+		dataConnection.Properties.DatabaseRouting = pointer.ToEnum[dataconnections.DatabaseRouting](databaseRouting.(string))
 	}
 
 	if eventGridRID, ok := d.GetOk("eventgrid_event_subscription_id"); ok {
@@ -232,7 +230,7 @@ func resourceKustoEventGridDataConnectionCreateUpdate(d *pluginsdk.ResourceData,
 	return resourceKustoEventGridDataConnectionRead(d, meta)
 }
 
-func resourceKustoEventGridDataConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoEventGridDataConnectionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -264,11 +262,11 @@ func resourceKustoEventGridDataConnectionRead(d *pluginsdk.ResourceData, meta in
 				d.Set("eventhub_id", props.EventHubResourceId)
 				d.Set("eventhub_consumer_group_name", props.ConsumerGroup)
 				d.Set("skip_first_record", props.IgnoreFirstRecord)
-				d.Set("blob_storage_event_type", string(pointer.From(props.BlobStorageEventType)))
+				d.Set("blob_storage_event_type", pointer.FromEnum(props.BlobStorageEventType))
 				d.Set("table_name", props.TableName)
 				d.Set("mapping_rule_name", props.MappingRuleName)
-				d.Set("data_format", string(pointer.From(props.DataFormat)))
-				d.Set("database_routing_type", string(pointer.From(props.DatabaseRouting)))
+				d.Set("data_format", pointer.FromEnum(props.DataFormat))
+				d.Set("database_routing_type", pointer.FromEnum(props.DatabaseRouting))
 				d.Set("eventgrid_event_subscription_id", props.EventGridResourceId)
 
 				managedIdentityResourceId := ""
@@ -295,7 +293,7 @@ func resourceKustoEventGridDataConnectionRead(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func resourceKustoEventGridDataConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoEventGridDataConnectionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -305,8 +303,7 @@ func resourceKustoEventGridDataConnectionDelete(d *pluginsdk.ResourceData, meta 
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 

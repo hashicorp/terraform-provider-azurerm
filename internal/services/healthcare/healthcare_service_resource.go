@@ -15,8 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	service "github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/resource"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -40,7 +39,7 @@ func resourceHealthcareService() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := service.ParseServiceID(id)
+			_, err := resource.ParseServiceID(id)
 			return err
 		}),
 
@@ -57,14 +56,10 @@ func resourceHealthcareService() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"kind": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(service.KindFhir),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(service.KindFhir),
-					string(service.KindFhirNegativeRFour),
-					string(service.KindFhirNegativeStuThree),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(resource.KindFhir),
+				ValidateFunc: validation.StringInSlice(resource.PossibleValuesForKind(), false),
 			},
 
 			"identity": commonschema.SystemAssignedIdentityOptional(),
@@ -95,7 +90,7 @@ func resourceHealthcareService() *pluginsdk.Resource {
 			"authentication_configuration": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -121,7 +116,7 @@ func resourceHealthcareService() *pluginsdk.Resource {
 			"cors_configuration": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -216,13 +211,13 @@ func resourceHealthcareService() *pluginsdk.Resource {
 	}
 }
 
-func resourceHealthcareServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceHealthcareServiceCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareServiceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := service.NewServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := resource.NewServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			existing, err := client.ServicesGet(ctx, id)
@@ -243,16 +238,16 @@ func resourceHealthcareServiceCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		return fmt.Errorf("expanding cosmosdb_configuration: %+v", err)
 	}
 
-	publicNetworkAccess := service.PublicNetworkAccessEnabled
+	publicNetworkAccess := resource.PublicNetworkAccessEnabled
 	if !d.Get("public_network_access_enabled").(bool) {
-		publicNetworkAccess = service.PublicNetworkAccessDisabled
+		publicNetworkAccess = resource.PublicNetworkAccessDisabled
 	}
 
-	payload := service.ServicesDescription{
+	payload := resource.ServicesDescription{
 		Location: location.Normalize(d.Get("location").(string)),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
-		Kind:     service.Kind(d.Get("kind").(string)),
-		Properties: &service.ServicesProperties{
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
+		Kind:     resource.Kind(d.Get("kind").(string)),
+		Properties: &resource.ServicesProperties{
 			AccessPolicies:              expandAccessPolicyEntries(d),
 			CosmosDbConfiguration:       cosmosDbConfiguration,
 			CorsConfiguration:           expandCorsConfiguration(d),
@@ -263,12 +258,12 @@ func resourceHealthcareServiceCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 	storageAcc, ok := d.GetOk("configuration_export_storage_account_name")
 	if ok {
-		payload.Properties.ExportConfiguration = &service.ServiceExportConfigurationInfo{
+		payload.Properties.ExportConfiguration = &resource.ServiceExportConfigurationInfo{
 			StorageAccountName: pointer.To(storageAcc.(string)),
 		}
 	}
 
-	expandedIdentity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
+	expandedIdentity, err := identity.ExpandSystemAssigned(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -288,12 +283,12 @@ func resourceHealthcareServiceCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	return resourceHealthcareServiceRead(d, meta)
 }
 
-func resourceHealthcareServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceHealthcareServiceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := service.ParseServiceID(d.Id())
+	id, err := resource.ParseServiceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -319,8 +314,7 @@ func resourceHealthcareServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("kind", kind)
 		}
 
-		i := identity.FlattenSystemAssigned(m.Identity)
-		if err := d.Set("identity", i); err != nil {
+		if err := d.Set("identity", identity.FlattenSystemAssigned(m.Identity)); err != nil {
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
@@ -346,7 +340,7 @@ func resourceHealthcareServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 				d.Set("configuration_export_storage_account_name", props.ExportConfiguration.StorageAccountName)
 			}
 
-			if pointer.From(props.PublicNetworkAccess) == service.PublicNetworkAccessEnabled {
+			if pointer.From(props.PublicNetworkAccess) == resource.PublicNetworkAccessEnabled {
 				d.Set("public_network_access_enabled", true)
 			} else {
 				d.Set("public_network_access_enabled", false)
@@ -369,82 +363,74 @@ func resourceHealthcareServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceHealthcareServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceHealthcareServiceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := service.ParseServiceID(d.Id())
+	id, err := resource.ParseServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	err = client.ServicesDeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.ServicesDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting Healthcare Service %q (Resource Group %q): %+v", id.ServiceName, id.ResourceGroupName, err)
 	}
 	return nil
 }
 
-func expandAccessPolicyEntries(d *pluginsdk.ResourceData) *[]service.ServiceAccessPolicyEntry {
+func expandAccessPolicyEntries(d *pluginsdk.ResourceData) *[]resource.ServiceAccessPolicyEntry {
 	accessPolicyObjectIds := d.Get("access_policy_object_ids").(*pluginsdk.Set).List()
-	svcAccessPolicyArray := make([]service.ServiceAccessPolicyEntry, 0)
+	svcAccessPolicyArray := make([]resource.ServiceAccessPolicyEntry, 0)
 
 	for _, objectId := range accessPolicyObjectIds {
-		svcAccessPolicyObjectId := service.ServiceAccessPolicyEntry{ObjectId: objectId.(string)}
+		svcAccessPolicyObjectId := resource.ServiceAccessPolicyEntry{ObjectId: objectId.(string)}
 		svcAccessPolicyArray = append(svcAccessPolicyArray, svcAccessPolicyObjectId)
 	}
 
 	return &svcAccessPolicyArray
 }
 
-func expandCorsConfiguration(d *pluginsdk.ResourceData) *service.ServiceCorsConfigurationInfo {
-	corsConfigRaw := d.Get("cors_configuration").([]interface{})
+func expandCorsConfiguration(d *pluginsdk.ResourceData) *resource.ServiceCorsConfigurationInfo {
+	corsConfigRaw := d.Get("cors_configuration").([]any)
 
 	if len(corsConfigRaw) == 0 {
-		return &service.ServiceCorsConfigurationInfo{}
+		return &resource.ServiceCorsConfigurationInfo{}
 	}
 
-	corsConfigAttr := corsConfigRaw[0].(map[string]interface{})
+	corsConfigAttr := corsConfigRaw[0].(map[string]any)
 
-	allowedOrigins := *helpers.ExpandStringSlice(corsConfigAttr["allowed_origins"].(*pluginsdk.Set).List())
-	allowedHeaders := *helpers.ExpandStringSlice(corsConfigAttr["allowed_headers"].(*pluginsdk.Set).List())
-	allowedMethods := *helpers.ExpandStringSlice(corsConfigAttr["allowed_methods"].([]interface{}))
-	maxAgeInSeconds := int64(corsConfigAttr["max_age_in_seconds"].(int))
-	allowCredentials := corsConfigAttr["allow_credentials"].(bool)
+	allowedOrigins := *pluginsdk.ExpandStringSlice(corsConfigAttr["allowed_origins"].(*pluginsdk.Set).List())
+	allowedHeaders := *pluginsdk.ExpandStringSlice(corsConfigAttr["allowed_headers"].(*pluginsdk.Set).List())
+	allowedMethods := *pluginsdk.ExpandStringSlice(corsConfigAttr["allowed_methods"].([]any))
 
-	cors := &service.ServiceCorsConfigurationInfo{
+	return &resource.ServiceCorsConfigurationInfo{
 		Origins:          &allowedOrigins,
 		Headers:          &allowedHeaders,
 		Methods:          &allowedMethods,
-		MaxAge:           &maxAgeInSeconds,
-		AllowCredentials: &allowCredentials,
+		MaxAge:           pointer.To(int64(corsConfigAttr["max_age_in_seconds"].(int))),
+		AllowCredentials: pointer.To(corsConfigAttr["allow_credentials"].(bool)),
 	}
-	return cors
 }
 
-func expandAuthentication(d *pluginsdk.ResourceData) *service.ServiceAuthenticationConfigurationInfo {
-	authConfigRaw := d.Get("authentication_configuration").([]interface{})
+func expandAuthentication(d *pluginsdk.ResourceData) *resource.ServiceAuthenticationConfigurationInfo {
+	authConfigRaw := d.Get("authentication_configuration").([]any)
 
 	if len(authConfigRaw) == 0 {
-		return &service.ServiceAuthenticationConfigurationInfo{}
+		return &resource.ServiceAuthenticationConfigurationInfo{}
 	}
 
-	authConfigAttr := authConfigRaw[0].(map[string]interface{})
-	authority := authConfigAttr["authority"].(string)
-	audience := authConfigAttr["audience"].(string)
-	smartProxyEnabled := authConfigAttr["smart_proxy_enabled"].(bool)
+	authConfigAttr := authConfigRaw[0].(map[string]any)
 
-	auth := &service.ServiceAuthenticationConfigurationInfo{
-		Authority:         &authority,
-		Audience:          &audience,
-		SmartProxyEnabled: &smartProxyEnabled,
+	return &resource.ServiceAuthenticationConfigurationInfo{
+		Authority:         pointer.To(authConfigAttr["authority"].(string)),
+		Audience:          pointer.To(authConfigAttr["audience"].(string)),
+		SmartProxyEnabled: pointer.To(authConfigAttr["smart_proxy_enabled"].(bool)),
 	}
-	return auth
 }
 
-func expandsCosmosDBConfiguration(d *pluginsdk.ResourceData) (*service.ServiceCosmosDbConfigurationInfo, error) {
-	cosmosdb := &service.ServiceCosmosDbConfigurationInfo{
+func expandsCosmosDBConfiguration(d *pluginsdk.ResourceData) (*resource.ServiceCosmosDbConfigurationInfo, error) {
+	cosmosdb := &resource.ServiceCosmosDbConfigurationInfo{
 		OfferThroughput: pointer.To(int64(d.Get("cosmosdb_throughput").(int))),
 	}
 
@@ -459,7 +445,7 @@ func expandsCosmosDBConfiguration(d *pluginsdk.ResourceData) (*service.ServiceCo
 	return cosmosdb, nil
 }
 
-func flattenAccessPolicies(policies *[]service.ServiceAccessPolicyEntry) []string {
+func flattenAccessPolicies(policies *[]resource.ServiceAccessPolicyEntry) []string {
 	result := make([]string, 0)
 
 	if policies == nil {
@@ -473,13 +459,13 @@ func flattenAccessPolicies(policies *[]service.ServiceAccessPolicyEntry) []strin
 	return result
 }
 
-func flattenAuthentication(input *service.ServiceAuthenticationConfigurationInfo) []interface{} {
+func flattenAuthentication(input *resource.ServiceAuthenticationConfigurationInfo) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"audience":            pointer.From(input.Audience),
 			"authority":           pointer.From(input.Authority),
 			"smart_proxy_enabled": pointer.From(input.SmartProxyEnabled),
@@ -487,21 +473,21 @@ func flattenAuthentication(input *service.ServiceAuthenticationConfigurationInfo
 	}
 }
 
-func flattenCorsConfig(input *service.ServiceCorsConfigurationInfo) []interface{} {
+func flattenCorsConfig(input *resource.ServiceCorsConfigurationInfo) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	maxAge := 0
 	if input.MaxAge != nil {
 		maxAge = int(*input.MaxAge)
 	}
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"allow_credentials":  pointer.From(input.AllowCredentials),
-			"allowed_headers":    helpers.FlattenStringSlice(input.Headers),
-			"allowed_methods":    helpers.FlattenStringSlice(input.Methods),
-			"allowed_origins":    helpers.FlattenStringSlice(input.Origins),
+			"allowed_headers":    pluginsdk.FlattenSlice(input.Headers),
+			"allowed_methods":    pluginsdk.FlattenSlice(input.Methods),
+			"allowed_origins":    pluginsdk.FlattenSlice(input.Origins),
 			"max_age_in_seconds": maxAge,
 		},
 	}

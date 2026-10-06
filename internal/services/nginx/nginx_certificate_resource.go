@@ -70,7 +70,7 @@ func (m CertificateResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (m CertificateResource) ModelObject() interface{} {
+func (m CertificateResource) ModelObject() any {
 	return &CertificateModel{}
 }
 
@@ -98,7 +98,7 @@ func (m CertificateResource) Create() sdk.ResourceFunc {
 				existing, err := client.CertificatesGet(ctx, id)
 				if !response.WasNotFound(existing.HttpResponse) {
 					if err != nil {
-						return fmt.Errorf("retreiving %s: %v", id, err)
+						return fmt.Errorf("retrieving %s: %v", id, err)
 					}
 					return metadata.ResourceRequiresImport(m.ResourceType(), id)
 				}
@@ -160,8 +160,7 @@ func (m CertificateResource) Update() sdk.ResourceFunc {
 				upd.Properties.KeyVaultSecretId = pointer.To(model.KeyVaultSecretId)
 			}
 
-			err = client.CertificatesCreateOrUpdateThenPoll(ctx, *id, *upd)
-			if err != nil {
+			if err = client.CertificatesCreateOrUpdateThenPoll(ctx, *id, *upd); err != nil {
 				return fmt.Errorf("updating %s: %v", id, err)
 			}
 			return nil
@@ -212,7 +211,6 @@ func (m CertificateResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			meta.Logger.Infof("deleting %s", id)
 			client := meta.Client.Nginx.NginxCertificate
 
 			if err := client.CertificatesDeleteThenPoll(ctx, *id); err != nil {

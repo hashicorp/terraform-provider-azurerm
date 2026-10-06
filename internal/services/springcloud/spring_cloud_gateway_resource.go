@@ -94,7 +94,7 @@ func (s SpringCloudGatewayResource) ResourceType() string {
 	return "azurerm_spring_cloud_gateway"
 }
 
-func (s SpringCloudGatewayResource) ModelObject() interface{} {
+func (s SpringCloudGatewayResource) ModelObject() any {
 	return &SpringCloudGatewayModel{}
 }
 
@@ -173,14 +173,8 @@ func (s SpringCloudGatewayResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(appplatform.ApmTypeAppDynamics),
-					string(appplatform.ApmTypeApplicationInsights),
-					string(appplatform.ApmTypeDynatrace),
-					string(appplatform.ApmTypeElasticAPM),
-					string(appplatform.ApmTypeNewRelic),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringInSlice(appplatform.PossibleValuesForApmType(), false),
 			},
 		},
 
@@ -360,7 +354,7 @@ func (s SpringCloudGatewayResource) Arguments() map[string]*pluginsdk.Schema {
 		"quota": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -592,8 +586,7 @@ func (s SpringCloudGatewayResource) Update() sdk.ResourceFunc {
 				Sku:        sku,
 			}
 
-			err = client.GatewaysCreateOrUpdateThenPoll(ctx, *id, resource)
-			if err != nil {
+			if err = client.GatewaysCreateOrUpdateThenPoll(ctx, *id, resource); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -677,8 +670,7 @@ func (s SpringCloudGatewayResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			err = client.GatewaysDeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.GatewaysDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -882,7 +874,7 @@ func flattenGatewaySsoProperties(input *appplatform.SsoProperties, old []Gateway
 
 func flattenGatewayGatewayApmTypes(input *[]appplatform.ApmType) []string {
 	if input == nil {
-		return nil
+		return []string{}
 	}
 	out := make([]string, 0)
 	for _, v := range *input {

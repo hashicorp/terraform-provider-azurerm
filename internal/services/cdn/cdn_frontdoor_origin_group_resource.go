@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdorigingroups"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -18,6 +19,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "name" -compare-values "subscription_id:cdn_frontdoor_profile_id,resource_group_name:cdn_frontdoor_profile_id,profile_name:cdn_frontdoor_profile_id"
+
+const azureCdnFrontDoorOriginGroupResourceName = "azurerm_cdn_frontdoor_origin_group"
 
 func resourceCdnFrontDoorOriginGroup() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -33,10 +38,11 @@ func resourceCdnFrontDoorOriginGroup() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(6 * time.Hour),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := afdorigingroups.ParseOriginGroupID(id)
-			return err
-		}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&afdorigingroups.OriginGroupId{}),
+		},
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&afdorigingroups.OriginGroupId{}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -141,7 +147,7 @@ func resourceCdnFrontDoorOriginGroup() *pluginsdk.Resource {
 	}
 }
 
-func resourceCdnFrontDoorOriginGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorOriginGroupCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorOriginGroupsClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -163,7 +169,7 @@ func resourceCdnFrontDoorOriginGroupCreate(d *pluginsdk.ResourceData, meta inter
 		}
 
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_origin_group", id.ID())
+			return tf.ImportAsExistsError(azureCdnFrontDoorOriginGroupResourceName, id.ID())
 		}
 	}
 
@@ -174,22 +180,27 @@ func resourceCdnFrontDoorOriginGroupCreate(d *pluginsdk.ResourceData, meta inter
 
 	props := afdorigingroups.AFDOriginGroup{
 		Properties: &afdorigingroups.AFDOriginGroupProperties{
-			HealthProbeSettings:   expandCdnFrontDoorOriginGroupHealthProbeParameters(d.Get("health_probe").([]interface{})),
-			LoadBalancingSettings: expandCdnFrontDoorOriginGroupLoadBalancingSettingsParameters(d.Get("load_balancing").([]interface{})),
+			HealthProbeSettings:   expandCdnFrontDoorOriginGroupHealthProbeParameters(d.Get("health_probe").([]any)),
+			LoadBalancingSettings: expandCdnFrontDoorOriginGroupLoadBalancingSettingsParameters(d.Get("load_balancing").([]any)),
 			SessionAffinityState:  pointer.To(sessionAffinity),
 			TrafficRestorationTimeToHealedOrNewEndpointsInMinutes: pointer.To(int64(d.Get("restore_traffic_time_to_healed_or_new_endpoint_in_minutes").(int))),
 		},
 	}
 
-	if err := client.CreateCallbackThenPoll(ctx, id, props, sdk.SetIDCallback(meta, &id, d)); err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, id, props, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceCdnFrontDoorOriginGroupRead(d, meta)
 }
 
-func resourceCdnFrontDoorOriginGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorOriginGroupRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorOriginGroupsClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -209,10 +220,14 @@ func resourceCdnFrontDoorOriginGroupRead(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	return resourceCdnFrontDoorOriginGroupFlatten(d, id, resp.Model)
+}
+
+func resourceCdnFrontDoorOriginGroupFlatten(d *pluginsdk.ResourceData, id *afdorigingroups.OriginGroupId, model *afdorigingroups.AFDOriginGroup) error {
 	d.Set("name", id.OriginGroupName)
 	d.Set("cdn_frontdoor_profile_id", afdorigingroups.NewProfileID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName).ID())
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			if err := d.Set("health_probe", flattenCdnFrontDoorOriginGroupHealthProbeParameters(props.HealthProbeSettings)); err != nil {
 				return fmt.Errorf("setting 'health_probe': %+v", err)
@@ -227,10 +242,10 @@ func resourceCdnFrontDoorOriginGroupRead(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceCdnFrontDoorOriginGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorOriginGroupUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorOriginGroupsClient
 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -258,11 +273,11 @@ func resourceCdnFrontDoorOriginGroupUpdate(d *pluginsdk.ResourceData, meta inter
 	// The API requires that an explicit null be passed as the 'health_probe' value to disable the health probe
 	// e.g. {"properties":{"healthProbeSettings":null}}
 	if d.HasChange("health_probe") {
-		props.HealthProbeSettings = expandCdnFrontDoorOriginGroupHealthProbeParameters(d.Get("health_probe").([]interface{}))
+		props.HealthProbeSettings = expandCdnFrontDoorOriginGroupHealthProbeParameters(d.Get("health_probe").([]any))
 	}
 
 	if d.HasChange("load_balancing") {
-		props.LoadBalancingSettings = expandCdnFrontDoorOriginGroupLoadBalancingSettingsParameters(d.Get("load_balancing").([]interface{}))
+		props.LoadBalancingSettings = expandCdnFrontDoorOriginGroupLoadBalancingSettingsParameters(d.Get("load_balancing").([]any))
 	}
 
 	if d.HasChange("restore_traffic_time_to_healed_or_new_endpoint_in_minutes") {
@@ -283,7 +298,7 @@ func resourceCdnFrontDoorOriginGroupUpdate(d *pluginsdk.ResourceData, meta inter
 	return resourceCdnFrontDoorOriginGroupRead(d, meta)
 }
 
-func resourceCdnFrontDoorOriginGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorOriginGroupDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorOriginGroupsClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -301,12 +316,12 @@ func resourceCdnFrontDoorOriginGroupDelete(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func expandCdnFrontDoorOriginGroupHealthProbeParameters(input []interface{}) *afdorigingroups.HealthProbeParameters {
+func expandCdnFrontDoorOriginGroupHealthProbeParameters(input []any) *afdorigingroups.HealthProbeParameters {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	return &afdorigingroups.HealthProbeParameters{
 		ProbeIntervalInSeconds: pointer.To(int64(v["interval_in_seconds"].(int))),
@@ -316,12 +331,12 @@ func expandCdnFrontDoorOriginGroupHealthProbeParameters(input []interface{}) *af
 	}
 }
 
-func expandCdnFrontDoorOriginGroupLoadBalancingSettingsParameters(input []interface{}) *afdorigingroups.LoadBalancingSettingsParameters {
+func expandCdnFrontDoorOriginGroupLoadBalancingSettingsParameters(input []any) *afdorigingroups.LoadBalancingSettingsParameters {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	return &afdorigingroups.LoadBalancingSettingsParameters{
 		AdditionalLatencyInMilliseconds: pointer.To(int64(v["additional_latency_in_milliseconds"].(int))),
@@ -330,13 +345,13 @@ func expandCdnFrontDoorOriginGroupLoadBalancingSettingsParameters(input []interf
 	}
 }
 
-func flattenCdnFrontDoorOriginGroupLoadBalancingSettingsParameters(input *afdorigingroups.LoadBalancingSettingsParameters) []interface{} {
+func flattenCdnFrontDoorOriginGroupLoadBalancingSettingsParameters(input *afdorigingroups.LoadBalancingSettingsParameters) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"additional_latency_in_milliseconds": pointer.From(input.AdditionalLatencyInMilliseconds),
 			"sample_size":                        pointer.From(input.SampleSize),
 			"successful_samples_required":        pointer.From(input.SuccessfulSamplesRequired),
@@ -344,13 +359,13 @@ func flattenCdnFrontDoorOriginGroupLoadBalancingSettingsParameters(input *afdori
 	}
 }
 
-func flattenCdnFrontDoorOriginGroupHealthProbeParameters(input *afdorigingroups.HealthProbeParameters) []interface{} {
+func flattenCdnFrontDoorOriginGroupHealthProbeParameters(input *afdorigingroups.HealthProbeParameters) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"interval_in_seconds": pointer.From(input.ProbeIntervalInSeconds),
 			"path":                pointer.From(input.ProbePath),
 			"protocol":            pointer.FromEnum(input.ProbeProtocol),

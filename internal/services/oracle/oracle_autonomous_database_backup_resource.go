@@ -69,7 +69,7 @@ func (r AutonomousDatabaseBackupResource) Attributes() map[string]*pluginsdk.Sch
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r AutonomousDatabaseBackupResource) ModelObject() interface{} {
+func (r AutonomousDatabaseBackupResource) ModelObject() any {
 	return &AutonomousDatabaseBackupResourceModel{}
 }
 
@@ -161,8 +161,7 @@ func (r AutonomousDatabaseBackupResource) Read() sdk.ResourceFunc {
 			}
 
 			if backup == nil {
-				err := metadata.MarkAsGone(id)
-				if err != nil {
+				if err := metadata.MarkAsGone(id); err != nil {
 					return err
 				}
 				return nil
