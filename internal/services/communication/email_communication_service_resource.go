@@ -3,7 +3,7 @@
 
 package communication
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name email_communication_service -service-package-name communication -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/emailservices"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2026-03-18/emailservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -84,7 +84,7 @@ func (EmailCommunicationServiceResource) Attributes() map[string]*pluginsdk.Sche
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (EmailCommunicationServiceResource) ModelObject() interface{} {
+func (EmailCommunicationServiceResource) ModelObject() any {
 	return &EmailCommunicationServiceResourceModel{}
 }
 
@@ -106,12 +106,14 @@ func (r EmailCommunicationServiceResource) Create() sdk.ResourceFunc {
 
 			id := emailservices.NewEmailServiceID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			param := emailservices.EmailServiceResource{
@@ -123,7 +125,7 @@ func (r EmailCommunicationServiceResource) Create() sdk.ResourceFunc {
 				Tags: pointer.To(model.Tags),
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

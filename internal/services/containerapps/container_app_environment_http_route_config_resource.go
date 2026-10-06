@@ -63,7 +63,7 @@ type HttpRouteTargetModel struct {
 
 var _ sdk.ResourceWithUpdate = ContainerAppEnvironmentHttpRouteConfigResource{}
 
-func (r ContainerAppEnvironmentHttpRouteConfigResource) ModelObject() interface{} {
+func (r ContainerAppEnvironmentHttpRouteConfigResource) ModelObject() any {
 	return &ContainerAppEnvironmentHttpRouteConfigModel{}
 }
 

@@ -28,7 +28,7 @@ type ContainerAppEnvironmentHttpRouteConfigDataSourceModel struct {
 
 var _ sdk.DataSource = ContainerAppEnvironmentHttpRouteConfigDataSource{}
 
-func (r ContainerAppEnvironmentHttpRouteConfigDataSource) ModelObject() interface{} {
+func (r ContainerAppEnvironmentHttpRouteConfigDataSource) ModelObject() any {
 	return &ContainerAppEnvironmentHttpRouteConfigDataSourceModel{}
 }
 

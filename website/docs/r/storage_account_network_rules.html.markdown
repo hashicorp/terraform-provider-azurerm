@@ -36,7 +36,9 @@ resource "azurerm_subnet" "example" {
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
   address_prefixes     = ["10.0.2.0/24"]
-  service_endpoints    = ["Microsoft.Storage"]
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
 }
 
 resource "azurerm_storage_account" "example" {
@@ -122,4 +124,4 @@ terraform import azurerm_storage_account_network_rules.storageAcc1 /subscription
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Storage` - 2025-06-01
+* `Microsoft.Storage` - 2025-08-01
