@@ -8,6 +8,7 @@ import (
 	"maps"
 	"slices"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/dashboard"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/portal/2026-04-01/dashboards"
 )
@@ -32,8 +33,7 @@ func LegacyDashboardProperties(v string) (*dashboards.DashboardPropertiesWithPro
 				Order: lens.Order,
 			}
 			if lens.Metadata != nil {
-				m := any(*lens.Metadata)
-				newLens.Metadata = &m
+				newLens.Metadata = pointer.To(any(*lens.Metadata))
 			}
 			partKeys := slices.Sorted(maps.Keys(lens.Parts))
 			parts := make([]dashboards.DashboardParts, 0, len(lens.Parts))
@@ -48,8 +48,7 @@ func LegacyDashboardProperties(v string) (*dashboards.DashboardPropertiesWithPro
 					},
 				}
 				if part.Position.Metadata != nil {
-					m := any(*part.Position.Metadata)
-					p.Position.Metadata = &m
+					p.Position.Metadata = pointer.To(any(*part.Position.Metadata))
 				}
 				if part.Metadata != nil {
 					if metaData, ok := (*part.Metadata).(map[string]any); ok {
@@ -65,8 +64,7 @@ func LegacyDashboardProperties(v string) (*dashboards.DashboardPropertiesWithPro
 		dashboardPropertiesWithProvisioningState.Lenses = &lenses
 
 		if dashboardProperties.Metadata != nil {
-			m := any(*dashboardProperties.Metadata)
-			dashboardPropertiesWithProvisioningState.Metadata = &m
+			dashboardPropertiesWithProvisioningState.Metadata = pointer.To(any(*dashboardProperties.Metadata))
 		}
 
 		return &dashboardPropertiesWithProvisioningState, true
