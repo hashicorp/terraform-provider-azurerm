@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name databricks_access_connector -service-package-name databricks -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 type AccessConnectorResource struct{}
 
@@ -63,7 +63,7 @@ func (r AccessConnectorResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r AccessConnectorResource) ModelObject() interface{} {
+func (r AccessConnectorResource) ModelObject() any {
 	return &AccessConnectorResourceModel{}
 }
 
@@ -99,7 +99,7 @@ func (r AccessConnectorResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+			expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]any))
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
@@ -147,7 +147,7 @@ func (r AccessConnectorResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("identity") {
 				// TODO: Switch this to 'identity.ExpandSystemOrSingleUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))'
 				// once SDK Helpers PR #164 has been merged and integrated into the provider...
-				identityValue, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+				identityValue, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]any))
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}

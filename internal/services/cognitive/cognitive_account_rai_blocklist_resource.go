@@ -189,11 +189,11 @@ func (c CognitiveRaiBlocklistResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (c CognitiveRaiBlocklistResource) IDValidationFunc() func(interface{}, string) ([]string, []error) {
+func (c CognitiveRaiBlocklistResource) IDValidationFunc() func(any, string) ([]string, []error) {
 	return raiblocklists.ValidateRaiBlocklistID
 }
 
-func (c CognitiveRaiBlocklistResource) ModelObject() interface{} {
+func (c CognitiveRaiBlocklistResource) ModelObject() any {
 	return &cognitiveRaiBlocklistModel{}
 }
 

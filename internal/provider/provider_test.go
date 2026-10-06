@@ -83,10 +83,10 @@ func TestResourcesSupportCustomTimeouts(t *testing.T) {
 			// every Resource has to have a Create, Read & Destroy timeout
 
 			//lint:ignore SA1019 SDKv2 migration  - staticcheck's own linter directives are currently being ignored under golanci-lint
-			if (resource.Timeouts.Create == nil) != (resource.Create == nil && resource.CreateContext == nil) { //nolint:staticcheck
+			if (resource.Timeouts.Create == nil) != (resource.Create == nil && resource.CreateContext == nil) {
 				t.Fatalf("Resource %q should define/not define the Create(Context) method and the Create Timeout at the same time", resourceName)
 			}
-			if (resource.Timeouts.Delete == nil) != (resource.Delete == nil && resource.DeleteContext == nil) { //nolint:staticcheck
+			if (resource.Timeouts.Delete == nil) != (resource.Delete == nil && resource.DeleteContext == nil) {
 				t.Fatalf("Resource %q should define/not define the Delete(Context) method and the Delete Timeout at the same time", resourceName)
 			}
 			if resource.Timeouts.Read == nil {
@@ -107,7 +107,7 @@ func TestResourcesSupportCustomTimeouts(t *testing.T) {
 			}
 
 			// Optional
-			if (resource.Timeouts.Update == nil) != (resource.Update == nil && resource.UpdateContext == nil) { //nolint:staticcheck
+			if (resource.Timeouts.Update == nil) != (resource.Update == nil && resource.UpdateContext == nil) {
 				t.Fatalf("Resource %q should define/not define the Update(Context) method and the Update Timeout at the same time", resourceName)
 			}
 		})
@@ -128,95 +128,6 @@ func TestProvider_counts(t *testing.T) {
 	log.Printf("Total:        %d", len(provider.ResourcesMap)+len(provider.DataSourcesMap))
 }
 
-func TestAccProvider_resourceProviders_legacy(t *testing.T) {
-	if os.Getenv("TF_ACC") == "" {
-		t.Skip("TF_ACC not set")
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-	defer cancel()
-
-	logging.SetOutput(t)
-
-	provider := TestAzureProvider()
-
-	if diags := provider.Configure(ctx, terraform.NewResourceConfigRaw(nil)); diags != nil && diags.HasError() {
-		t.Fatalf("provider failed to configure: %v", diags)
-	}
-
-	expectedResourceProviders := resourceproviders.Legacy()
-	registeredResourceProviders := provider.Meta().(*clients.Client).Account.RegisteredResourceProviders
-
-	if !reflect.DeepEqual(registeredResourceProviders, expectedResourceProviders) {
-		t.Fatalf("unexpected value for RegisteredResourceProviders: %#v", registeredResourceProviders)
-	}
-}
-
-// TODO: Remove this test in v5.0
-func TestAccProvider_resourceProviders_deprecatedSkip(t *testing.T) {
-	if os.Getenv("TF_ACC") == "" {
-		t.Skip("TF_ACC not set")
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-	defer cancel()
-
-	logging.SetOutput(t)
-
-	provider := TestAzureProvider()
-	config := map[string]interface{}{
-		"skip_provider_registration": "true",
-	}
-
-	if diags := provider.Configure(ctx, terraform.NewResourceConfigRaw(config)); diags != nil && diags.HasError() {
-		t.Fatalf("provider failed to configure: %v", diags)
-	}
-
-	expectedResourceProviders := make(resourceproviders.ResourceProviders)
-	registeredResourceProviders := provider.Meta().(*clients.Client).Account.RegisteredResourceProviders
-
-	if !reflect.DeepEqual(registeredResourceProviders, expectedResourceProviders) {
-		t.Fatalf("unexpected value for RegisteredResourceProviders: %#v", registeredResourceProviders)
-	}
-}
-
-func TestAccProvider_resourceProviders_legacyWithAdditional(t *testing.T) {
-	if os.Getenv("TF_ACC") == "" {
-		t.Skip("TF_ACC not set")
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-	defer cancel()
-
-	logging.SetOutput(t)
-
-	provider := TestAzureProvider()
-	config := map[string]interface{}{
-		"resource_providers_to_register": []interface{}{
-			"Microsoft.ApiManagement",
-			"Microsoft.ContainerService",
-			"Microsoft.KeyVault",
-			"Microsoft.Kubernetes",
-		},
-	}
-
-	if diags := provider.Configure(ctx, terraform.NewResourceConfigRaw(config)); diags != nil && diags.HasError() {
-		t.Fatalf("provider failed to configure: %v", diags)
-	}
-
-	expectedResourceProviders := resourceproviders.Legacy().Merge(resourceproviders.ResourceProviders{
-		"Microsoft.ApiManagement":    {},
-		"Microsoft.ContainerService": {},
-		"Microsoft.KeyVault":         {},
-		"Microsoft.Kubernetes":       {},
-	})
-	registeredResourceProviders := provider.Meta().(*clients.Client).Account.RegisteredResourceProviders
-
-	if !reflect.DeepEqual(registeredResourceProviders, expectedResourceProviders) {
-		t.Fatalf("unexpected value for RegisteredResourceProviders: %#v", registeredResourceProviders)
-	}
-}
-
 func TestAccProvider_resourceProviders_core(t *testing.T) {
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("TF_ACC not set")
@@ -228,7 +139,7 @@ func TestAccProvider_resourceProviders_core(t *testing.T) {
 	logging.SetOutput(t)
 
 	provider := TestAzureProvider()
-	config := map[string]interface{}{
+	config := map[string]any{
 		"resource_provider_registrations": "core",
 	}
 
@@ -255,9 +166,9 @@ func TestAccProvider_resourceProviders_coreWithAdditional(t *testing.T) {
 	logging.SetOutput(t)
 
 	provider := TestAzureProvider()
-	config := map[string]interface{}{
+	config := map[string]any{
 		"resource_provider_registrations": "core",
-		"resource_providers_to_register": []interface{}{
+		"resource_providers_to_register": []any{
 			"Microsoft.ApiManagement",
 			"Microsoft.KeyVault",
 		},
@@ -289,9 +200,9 @@ func TestAccProvider_resourceProviders_explicit(t *testing.T) {
 	logging.SetOutput(t)
 
 	provider := TestAzureProvider()
-	config := map[string]interface{}{
+	config := map[string]any{
 		"resource_provider_registrations": "none",
-		"resource_providers_to_register": []interface{}{
+		"resource_providers_to_register": []any{
 			"Microsoft.Compute",
 			"Microsoft.Network",
 			"Microsoft.Storage",
@@ -324,227 +235,95 @@ func TestAccProvider_enhancedValidation(t *testing.T) {
 
 	logging.SetOutput(t)
 
-	var cases []struct {
+	cases := []struct {
 		name     string
 		setupEnv func(*testing.T)
 		config   map[string]any
 		expect   features.EnhancedValidationFeatures
-	}
-
-	if features.FivePointOh() {
-		cases = []struct {
-			name     string
-			setupEnv func(*testing.T)
-			config   map[string]any
-			expect   features.EnhancedValidationFeatures
-		}{
-			{
-				name: "default",
-				expect: features.EnhancedValidationFeatures{
-					Locations:         false,
-					ResourceProviders: false,
-				},
+	}{
+		{
+			name: "default",
+			expect: features.EnhancedValidationFeatures{
+				Locations:         false,
+				ResourceProviders: false,
+				PreflightEnabled:  false,
+				LocationFallback:  nil,
 			},
-			{
-				name: "New env vars enabled",
-				setupEnv: func(t *testing.T) {
-					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", "true")
-					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS", "true")
-				},
-				expect: features.EnhancedValidationFeatures{
-					Locations:         true,
-					ResourceProviders: true,
-				},
+		},
+		{
+			name: "Env vars enabled",
+			setupEnv: func(t *testing.T) {
+				t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", "true")
+				t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS", "true")
+				t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_PREFLIGHT_ENABLED", "true")
 			},
-			{
-				name: "New env vars disabled",
-				setupEnv: func(t *testing.T) {
-					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", "false")
-					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS", "false")
-				},
-				expect: features.EnhancedValidationFeatures{
-					Locations:         false,
-					ResourceProviders: false,
-				},
+			expect: features.EnhancedValidationFeatures{
+				Locations:         true,
+				ResourceProviders: true,
+				PreflightEnabled:  true,
+				LocationFallback:  nil,
 			},
-			{
-				name: "Provider config disabled",
-				config: map[string]any{
-					"enhanced_validation": []any{
-						map[string]any{
-							"locations":          false,
-							"resource_providers": false,
+		},
+		{
+			name: "Env vars disabled",
+			setupEnv: func(t *testing.T) {
+				t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", "false")
+				t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS", "false")
+				t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_PREFLIGHT_ENABLED", "false")
+			},
+			expect: features.EnhancedValidationFeatures{
+				Locations:         false,
+				ResourceProviders: false,
+				PreflightEnabled:  false,
+				LocationFallback:  nil,
+			},
+		},
+		{
+			name: "Provider config disabled",
+			config: map[string]any{
+				"features": []any{
+					map[string]any{
+						"enhanced_validation": []any{
+							map[string]any{
+								"locations":                   false,
+								"resource_providers":          false,
+								"preflight_enabled":           false,
+								"preflight_location_fallback": "",
+							},
 						},
 					},
 				},
-				expect: features.EnhancedValidationFeatures{
-					Locations:         false,
-					ResourceProviders: false,
-				},
 			},
-			{
-				name: "Provider config enabled",
-				config: map[string]any{
-					"enhanced_validation": []any{
-						map[string]any{
-							"locations":          true,
-							"resource_providers": true,
+			expect: features.EnhancedValidationFeatures{
+				Locations:         false,
+				ResourceProviders: false,
+				PreflightEnabled:  false,
+				LocationFallback:  nil,
+			},
+		},
+		{
+			name: "Provider config enabled",
+			config: map[string]any{
+				"features": []any{
+					map[string]any{
+						"enhanced_validation": []any{
+							map[string]any{
+								"locations":                   true,
+								"resource_providers":          true,
+								"preflight_enabled":           true,
+								"preflight_location_fallback": "",
+							},
 						},
 					},
 				},
-				expect: features.EnhancedValidationFeatures{
-					Locations:         true,
-					ResourceProviders: true,
-				},
 			},
-		}
-	} else {
-		cases = []struct {
-			name     string
-			setupEnv func(*testing.T)
-			config   map[string]any
-			expect   features.EnhancedValidationFeatures
-		}{
-			{
-				name: "default v4",
-				expect: features.EnhancedValidationFeatures{
-					Locations:         true,
-					ResourceProviders: true,
-				},
+			expect: features.EnhancedValidationFeatures{
+				Locations:         true,
+				ResourceProviders: true,
+				PreflightEnabled:  true,
+				LocationFallback:  nil,
 			},
-			{
-				name:     "default v5",
-				setupEnv: func(t *testing.T) { t.Setenv("ARM_FIVEPOINTZERO_BETA", "true") },
-				expect: features.EnhancedValidationFeatures{
-					Locations:         false,
-					ResourceProviders: false,
-				},
-			},
-			{
-				name:     "Legacy env var enabled v4",
-				setupEnv: func(t *testing.T) { t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION", "true") },
-				expect: features.EnhancedValidationFeatures{
-					Locations:         true,
-					ResourceProviders: true,
-				},
-			},
-			{
-				name:     "Legacy env var disabled v4",
-				setupEnv: func(t *testing.T) { t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION", "false") },
-				expect: features.EnhancedValidationFeatures{
-					Locations:         false,
-					ResourceProviders: false,
-				},
-			},
-			{
-				name: "New env vars enabled v4",
-				setupEnv: func(t *testing.T) {
-					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", "true")
-					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS", "true")
-				},
-				expect: features.EnhancedValidationFeatures{
-					Locations:         true,
-					ResourceProviders: true,
-				},
-			},
-			{
-				name: "New env vars enabled v5",
-				setupEnv: func(t *testing.T) {
-					t.Setenv("ARM_FIVEPOINTZERO_BETA", "true")
-					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", "true")
-					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS", "true")
-				},
-				expect: features.EnhancedValidationFeatures{
-					Locations:         true,
-					ResourceProviders: true,
-				},
-			},
-			{
-				name: "New env vars disabled v4",
-				setupEnv: func(t *testing.T) {
-					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", "false")
-					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS", "false")
-				},
-				expect: features.EnhancedValidationFeatures{
-					Locations:         false,
-					ResourceProviders: false,
-				},
-			},
-			{
-				name: "New env vars disabled v5",
-				setupEnv: func(t *testing.T) {
-					t.Setenv("ARM_FIVEPOINTZERO_BETA", "true")
-					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", "false")
-					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS", "false")
-				},
-				expect: features.EnhancedValidationFeatures{
-					Locations:         false,
-					ResourceProviders: false,
-				},
-			},
-			{
-				name: "Provider config disabled v4",
-				config: map[string]any{
-					"enhanced_validation": []any{
-						map[string]any{
-							"locations":          false,
-							"resource_providers": false,
-						},
-					},
-				},
-				expect: features.EnhancedValidationFeatures{
-					Locations:         false,
-					ResourceProviders: false,
-				},
-			},
-			{
-				name: "Provider config enabled v4",
-				config: map[string]any{
-					"enhanced_validation": []any{
-						map[string]any{
-							"locations":          true,
-							"resource_providers": true,
-						},
-					},
-				},
-				expect: features.EnhancedValidationFeatures{
-					Locations:         true,
-					ResourceProviders: true,
-				},
-			},
-			{
-				name:     "Provider config disabled v5",
-				setupEnv: func(t *testing.T) { t.Setenv("ARM_FIVEPOINTZERO_BETA", "true") },
-				config: map[string]any{
-					"enhanced_validation": []any{
-						map[string]any{
-							"locations":          false,
-							"resource_providers": false,
-						},
-					},
-				},
-				expect: features.EnhancedValidationFeatures{
-					Locations:         false,
-					ResourceProviders: false,
-				},
-			},
-			{
-				name:     "Provider config enabled v5",
-				setupEnv: func(t *testing.T) { t.Setenv("ARM_FIVEPOINTZERO_BETA", "true") },
-				config: map[string]any{
-					"enhanced_validation": []any{
-						map[string]any{
-							"locations":          true,
-							"resource_providers": true,
-						},
-					},
-				},
-				expect: features.EnhancedValidationFeatures{
-					Locations:         true,
-					ResourceProviders: true,
-				},
-			},
-		}
+		},
 	}
 
 	for _, tt := range cases {
@@ -575,7 +354,7 @@ func TestAccProvider_cliAuth(t *testing.T) {
 	defer cancel()
 
 	// Support only Azure CLI authentication
-	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 		envName := d.Get("environment").(string)
 		env, err := environments.FromName(envName)
 		if err != nil {
@@ -624,7 +403,7 @@ func TestAccProvider_clientCertificateAuth(t *testing.T) {
 	defer cancel()
 
 	// Support only Client Certificate authentication
-	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 		envName := d.Get("environment").(string)
 		env, err := environments.FromName(envName)
 		if err != nil {
@@ -703,7 +482,7 @@ func testAccProvider_clientSecretAuthFromEnvironment(t *testing.T) {
 	defer cancel()
 
 	// Support only Client Secret authentication
-	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 		envName := d.Get("environment").(string)
 		env, err := environments.FromName(envName)
 		if err != nil {
@@ -771,7 +550,7 @@ func testAccProvider_clientSecretAuthFromFiles(t *testing.T) {
 	defer cancel()
 
 	// Support only Client Secret authentication
-	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 		envName := d.Get("environment").(string)
 		env, err := environments.FromName(envName)
 		if err != nil {
@@ -831,7 +610,7 @@ func TestAccProvider_genericOidcAuth(t *testing.T) {
 	defer cancel()
 
 	// Support only OIDC authentication
-	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 		envName := d.Get("environment").(string)
 		env, err := environments.FromName(envName)
 		if err != nil {
@@ -894,7 +673,7 @@ func TestAccProvider_githubOidcAuth(t *testing.T) {
 	defer cancel()
 
 	// Support only GitHub OIDC authentication
-	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 		envName := d.Get("environment").(string)
 		env, err := environments.FromName(envName)
 		if err != nil {
@@ -956,7 +735,7 @@ func TestAccProvider_adoOidcAuth(t *testing.T) {
 	defer cancel()
 
 	// Support only ADO OIDC authentication
-	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 		envName := d.Get("environment").(string)
 		env, err := environments.FromName(envName)
 		if err != nil {
@@ -1019,7 +798,7 @@ func TestAccProvider_aksWorkloadIdentityAuth(t *testing.T) {
 	defer cancel()
 
 	// Support only AKS Workload Identity authentication
-	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 		envName := d.Get("environment").(string)
 		env, err := environments.FromName(envName)
 		if err != nil {
@@ -1053,7 +832,7 @@ func TestAccProvider_aksWorkloadIdentityAuth(t *testing.T) {
 	}
 
 	// Ensure we enable AKS Workload Identity else the configuration will not be detected
-	conf := map[string]interface{}{"use_aks_workload_identity": true}
+	conf := map[string]any{"use_aks_workload_identity": true}
 	d := provider.Configure(ctx, terraform.NewResourceConfigRaw(conf))
 	if d != nil && d.HasError() {
 		t.Fatalf("err: %+v", d)
@@ -1093,5 +872,5 @@ func testCheckProvider(provider *schema.Provider) (errs []error) {
 		errs = append(errs, fmt.Errorf("client.Account.TenantId was empty"))
 	}
 
-	return //nolint:nakedret
+	return
 }

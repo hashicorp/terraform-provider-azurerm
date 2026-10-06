@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/botservice/2022-09-15/channel"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -30,8 +30,15 @@ func resourceBotChannelEmail() *pluginsdk.Resource {
 		Update: resourceBotChannelEmailUpdate,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.BotChannelID(id)
+			_, err := commonids.ParseBotServiceChannelID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			// v0 -> v1 normalises the casing of IDs imported while this resource parsed them with the
+			// case-insensitive legacy parser, so they can be parsed with the case-sensitive SDK parser
+			0: migration.BotChannelEmailV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -78,7 +85,7 @@ func resourceBotChannelEmail() *pluginsdk.Resource {
 	}
 }
 
-func resourceBotChannelEmailCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelEmailCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.EmailChannelClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -129,7 +136,7 @@ func resourceBotChannelEmailCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	return resourceBotChannelEmailRead(d, meta)
 }
 
-func resourceBotChannelEmailRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelEmailRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.EmailChannelClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -168,7 +175,7 @@ func resourceBotChannelEmailRead(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceBotChannelEmailUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelEmailUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.EmailChannelClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -208,7 +215,7 @@ func resourceBotChannelEmailUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	return resourceBotChannelEmailRead(d, meta)
 }
 
-func resourceBotChannelEmailDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelEmailDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.EmailChannelClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

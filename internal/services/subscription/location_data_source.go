@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	resourcesSubscription "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-12-01/subscriptions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-12-01/subscriptions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -38,7 +38,7 @@ func (r LocationDataSource) ResourceType() string {
 	return "azurerm_location"
 }
 
-func (r LocationDataSource) ModelObject() interface{} {
+func (r LocationDataSource) ModelObject() any {
 	return &LocationDataSourceModel{}
 }
 
@@ -81,7 +81,7 @@ func (r LocationDataSource) Read() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := commonids.NewSubscriptionID(subscriptionId)
-			resp, err := client.ListLocations(ctx, id, resourcesSubscription.DefaultListLocationsOperationOptions())
+			resp, err := client.ListLocations(ctx, id, subscriptions.DefaultListLocationsOperationOptions())
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("%s was not found", id)
@@ -118,9 +118,9 @@ func (r LocationDataSource) Read() sdk.ResourceFunc {
 	}
 }
 
-func getLocation(location string, input *[]resourcesSubscription.Location) (*resourcesSubscription.Location, error) {
+func getLocation(location string, input *[]subscriptions.Location) (*subscriptions.Location, error) {
 	for _, item := range *input {
-		if pointer.From(item.Name) == location && strings.EqualFold(string(pointer.From(item.Metadata.RegionType)), "Physical") {
+		if pointer.From(item.Name) == location && strings.EqualFold(pointer.FromEnum(item.Metadata.RegionType), "Physical") {
 			return &item, nil
 		}
 	}
@@ -128,7 +128,7 @@ func getLocation(location string, input *[]resourcesSubscription.Location) (*res
 	return nil, fmt.Errorf("no location was found for %q", location)
 }
 
-func flattenZonesMapping(location *resourcesSubscription.Location) (zoneMappings []LocationZoneMapping) {
+func flattenZonesMapping(location *subscriptions.Location) (zoneMappings []LocationZoneMapping) {
 	zoneMappings = make([]LocationZoneMapping, 0)
 
 	if location == nil || location.AvailabilityZoneMappings == nil {
