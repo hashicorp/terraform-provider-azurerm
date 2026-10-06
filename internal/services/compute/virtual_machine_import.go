@@ -13,7 +13,7 @@ import (
 )
 
 func importVirtualMachine(osType virtualmachines.OperatingSystemTypes, resourceType string) pluginsdk.ImporterFunc {
-	return func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) (data []*pluginsdk.ResourceData, err error) {
+	return func(ctx context.Context, d *pluginsdk.ResourceData, meta any) (data []*pluginsdk.ResourceData, err error) {
 		id, err := virtualmachines.ParseVirtualMachineID(d.Id())
 		if err != nil {
 			return []*pluginsdk.ResourceData{}, err

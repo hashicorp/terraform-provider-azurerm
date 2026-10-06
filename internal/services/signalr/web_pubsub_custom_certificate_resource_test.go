@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type CustomCertWebPubsubResource struct{}
+type WebPubsubCustomCertificateResource struct{}
 
 func TestAccCustomCertWebPubsub_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_custom_certificate", "test")
-	r := CustomCertWebPubsubResource{}
+	r := WebPubsubCustomCertificateResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccCustomCertWebPubsub_basic(t *testing.T) {
 
 func TestAccCustomCertWebPubsub_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_custom_certificate", "test")
-	r := CustomCertWebPubsubResource{}
+	r := WebPubsubCustomCertificateResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -49,7 +49,7 @@ func TestAccCustomCertWebPubsub_requiresImport(t *testing.T) {
 	})
 }
 
-func (r CustomCertWebPubsubResource) basic(data acceptance.TestData) string {
+func (r WebPubsubCustomCertificateResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -81,6 +81,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctestkeyvault%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -164,7 +165,7 @@ resource "azurerm_web_pubsub_custom_certificate" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString)
 }
 
-func (r CustomCertWebPubsubResource) requiresImport(data acceptance.TestData) string {
+func (r WebPubsubCustomCertificateResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -176,7 +177,7 @@ resource "azurerm_web_pubsub_custom_certificate" "import" {
 `, r.basic(data))
 }
 
-func (r CustomCertWebPubsubResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r WebPubsubCustomCertificateResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := webpubsub.ParseCustomCertificateID(state.ID)
 	if err != nil {
 		return nil, err

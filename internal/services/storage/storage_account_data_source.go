@@ -24,7 +24,7 @@ import (
 )
 
 func dataSourceStorageAccount() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: dataSourceStorageAccountRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -99,6 +99,11 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 
 			"nfsv3_enabled": {
 				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"public_network_access": {
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -545,11 +550,9 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
-
-	return resource
 }
 
-func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.ResourceManager.StorageAccounts
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -585,7 +588,7 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(model.Location))
-		d.Set("account_kind", string(pointer.From(model.Kind)))
+		d.Set("account_kind", pointer.FromEnum(model.Kind))
 
 		// NOTE: we should expose EdgeZone in the future
 
@@ -617,6 +620,7 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			d.Set("nfsv3_enabled", pointer.From(props.IsNfsV3Enabled))
 			d.Set("primary_location", location.NormalizeNilable(props.PrimaryLocation))
 			d.Set("secondary_location", location.NormalizeNilable(props.SecondaryLocation))
+			d.Set("public_network_access", pointer.FromEnum(props.PublicNetworkAccess))
 
 			// Setting the encryption key type to "Service" in PUT. The following GET will not return the queue/table in the service list of its response.
 			// So defaults to setting the encryption key type to "Service" if it is absent in the GET response. Also, define the default value as "Service" in the schema.
