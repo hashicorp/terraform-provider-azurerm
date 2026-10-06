@@ -806,11 +806,7 @@ func flattenFirewallVirtualHubSetting(props *azurefirewalls.AzureFirewallPropert
 
 	vhubSetting := map[string]any{}
 
-	var vhubId string
-	if props.VirtualHub.Id != nil {
-		vhubId = *props.VirtualHub.Id
-	}
-	vhubSetting["virtual_hub_id"] = vhubId
+	vhubSetting["virtual_hub_id"] = pointer.From(props.VirtualHub.Id)
 
 	var (
 		publicIps []string
