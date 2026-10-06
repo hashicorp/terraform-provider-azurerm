@@ -37,9 +37,8 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Backup Vault should exist. Changing this forces a new Backup Vault to be created.
 
-* `datastore_type` - (Required) Specifies the type of the data store. Possible values are `ArchiveStore`, `OperationalStore`, `SnapshotStore` and `VaultStore`. Changing this forces a new resource to be created.
+* `datastore_type` - (Required) Specifies the type of the data store. Possible values are `ArchiveStore`, `OperationalStore` and `VaultStore`. Changing this forces a new resource to be created.
 
--> **Note:** The `SnapshotStore` will be removed in version 4.0 as it has been replaced by `OperationalStore`.
 
 * `redundancy` - (Required) Specifies the backup storage redundancy. Possible values are `GeoRedundant`, `LocallyRedundant` and `ZoneRedundant`. Changing this forces a new Backup Vault to be created.
 
@@ -110,4 +109,4 @@ terraform import azurerm_data_protection_backup_vault.example /subscriptions/000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DataProtection` - 2025-09-01
+* `Microsoft.DataProtection` - 2025-07-01

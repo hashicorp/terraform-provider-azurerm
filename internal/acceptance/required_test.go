@@ -7,6 +7,7 @@ import (
 	"context"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -17,7 +18,7 @@ import (
 // since this depends on GetAuthConfig which lives in this package
 // unfortunately this has to live in a different package to the other func
 
-func TestAccEnsureRequiredResourceProvidersAreRegistered(t *testing.T) {
+func TestEnsureRequiredResourceProvidersAreRegistered(t *testing.T) {
 	config := GetAuthConfig(t)
 	if config == nil {
 		return
@@ -37,12 +38,13 @@ func TestAccEnsureRequiredResourceProvidersAreRegistered(t *testing.T) {
 	}
 
 	client := armClient.Resource.ResourceProvidersClient
-	ctx := armClient.StopContext
+	ctx, cancel := context.WithTimeout(armClient.StopContext, time.Minute*10)
+	defer cancel()
 
 	requiredResourceProviders := resourceproviders.Legacy()
 	subscriptionId := commonids.NewSubscriptionID(armClient.Account.SubscriptionId)
 
-	if err = resourceproviders.EnsureRegistered(ctx, client, subscriptionId, requiredResourceProviders); err != nil {
+	if err = resourceproviders.EnsureRegistered(ctx, client, subscriptionId, requiredResourceProviders, true); err != nil {
 		t.Fatalf("Error registering Resource Providers: %+v", err)
 	}
 
