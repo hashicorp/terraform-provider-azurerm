@@ -277,7 +277,7 @@ The following arguments are supported:
 
 * `zone_redundant_enabled` - (Optional) Specifies whether the SQL Managed Instance is zone redundant. Defaults to `false`.
 
-~> **Note:** `zone_redundant_enabled` cannot be specified when `general_purpose_v2_enabled` is `true` because zone redundancy is not available for the [Next-gen General Purpose service tier]([https://learn.microsoft.com/azure/azure-sql/managed-instance/high-availability-sla-local-zone-redun.](https://learn.microsoft.com/azure/azure-sql/managed-instance/high-availability-sla-local-zone-redundancy#next-gen-general-purpose-service-tier).)
+~> **Note:** `zone_redundant_enabled` cannot be specified when `general_purpose_v2_enabled` is `true` because zone redundancy is not available for the [Next-gen General Purpose service tier](https://learn.microsoft.com/azure/azure-sql/managed-instance/high-availability-sla-local-zone-redundancy#next-gen-general-purpose-service-tier)
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -348,4 +348,4 @@ terraform import azurerm_mssql_managed_instance.example /subscriptions/00000000-
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Sql` - 2023-08-01-preview
+* `Microsoft.Sql` - 2025-01-01

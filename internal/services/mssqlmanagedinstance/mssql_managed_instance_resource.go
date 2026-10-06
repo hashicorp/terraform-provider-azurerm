@@ -19,9 +19,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/publicmaintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstanceadministrators"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstanceazureadonlyauthentications"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstanceadministrators"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstanceazureadonlyauthentications"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstances"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
@@ -89,7 +89,7 @@ func (r MsSqlManagedInstanceResource) ResourceType() string {
 	return "azurerm_mssql_managed_instance"
 }
 
-func (r MsSqlManagedInstanceResource) ModelObject() interface{} {
+func (r MsSqlManagedInstanceResource) ModelObject() any {
 	return &MsSqlManagedInstanceModel{}
 }
 
@@ -289,8 +289,8 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 		"pricing_model": {
 			Type:         schema.TypeString,
 			Optional:     true,
-			Default:      string(managedinstances.FreemiumTypeRegular),
-			ValidateFunc: validation.StringInSlice(managedinstances.PossibleValuesForFreemiumType(), false),
+			Default:      string(managedinstances.PricingModelRegular),
+			ValidateFunc: validation.StringInSlice(managedinstances.PossibleValuesForPricingModel(), false),
 		},
 
 		"proxy_override": {
@@ -428,13 +428,13 @@ func (r MsSqlManagedInstanceResource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			oldPricingModel, newPricingModel := rd.GetChange("pricing_model")
-			if oldPricingModel.(string) == string(managedinstances.FreemiumTypeRegular) && newPricingModel.(string) == string(managedinstances.FreemiumTypeFreemium) {
+			if oldPricingModel.(string) == string(managedinstances.PricingModelRegular) && newPricingModel.(string) == string(managedinstances.PricingModelFreemium) {
 				if err := rd.ForceNew("pricing_model"); err != nil {
 					return err
 				}
 			}
 
-			if newPricingModel.(string) == string(managedinstances.FreemiumTypeFreemium) {
+			if newPricingModel.(string) == string(managedinstances.PricingModelFreemium) {
 				if sku := rd.Get("sku_name").(string); sku != "GP_Gen5" {
 					return fmt.Errorf("`pricing_model` can only be set to `Freemium` when `sku_name` is `GP_Gen5`, got `%s`", sku)
 				}
@@ -546,7 +546,7 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.PricingModel != "" {
-				parameters.Properties.PricingModel = pointer.ToEnum[managedinstances.FreemiumType](model.PricingModel)
+				parameters.Properties.PricingModel = pointer.ToEnum[managedinstances.PricingModel](model.PricingModel)
 			}
 
 			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
@@ -612,7 +612,7 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("pricing_model") {
-				props.PricingModel = pointer.ToEnum[managedinstances.FreemiumType](state.PricingModel)
+				props.PricingModel = pointer.ToEnum[managedinstances.PricingModel](state.PricingModel)
 			}
 
 			if metadata.ResourceData.HasChange("storage_size_in_gb") {
@@ -704,7 +704,7 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 
 				if aadAdminExists {
 					// Before deleting an AAD admin, it is necessary to disable `AzureADOnlyAuthentication` first, as deleting an AAD admin when `AzureADOnlyAuthentication` feature is enabled is not supported.
-					// Use `CreateOrUpdateThenPoll` instead of `DeleteThenPoll`, because the actual deletion behavior of the API is not to really delete the record, but to update `AzureADOnlyAuthentication` to false. Therefore, using `DeleteThenPoll` will cause pull till done to never end until it times out.
+					// Use `CreateOrUpdateThenPoll` instead of `DeleteThenPoll`, because the actual deletion behaviour of the API is not to really delete the record, but to update `AzureADOnlyAuthentication` to false. Therefore, using `DeleteThenPoll` will cause pull till done to never end until it times out.
 					aadAuthOnlyParams := managedinstanceazureadonlyauthentications.ManagedInstanceAzureADOnlyAuthentication{
 						Properties: &managedinstanceazureadonlyauthentications.ManagedInstanceAzureADOnlyAuthProperties{},
 					}
@@ -813,9 +813,9 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 				}
 
 				if props := existing.Model.Properties; props != nil {
-					model.LicenseType = string(pointer.From(props.LicenseType))
-					model.PricingModel = string(pointer.From(props.PricingModel))
-					model.ProxyOverride = string(pointer.From(props.ProxyOverride))
+					model.LicenseType = pointer.FromEnum(props.LicenseType)
+					model.PricingModel = pointer.FromEnum(props.PricingModel)
+					model.ProxyOverride = pointer.FromEnum(props.ProxyOverride)
 					model.StorageAccountType = backupStorageRedundancyToStorageAccType(pointer.From(props.RequestedBackupStorageRedundancy))
 
 					model.AdministratorLogin = pointer.From(props.AdministratorLogin)
@@ -849,10 +849,10 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 
 					model.ServicePrincipalType = ""
 					if props.ServicePrincipal != nil {
-						model.ServicePrincipalType = string(pointer.From(props.ServicePrincipal.Type))
+						model.ServicePrincipalType = pointer.FromEnum(props.ServicePrincipal.Type)
 					}
-					model.DatabaseFormat = string(pointer.From(props.DatabaseFormat))
-					model.HybridSecondaryUsage = string(pointer.From(props.HybridSecondaryUsage))
+					model.DatabaseFormat = pointer.FromEnum(props.DatabaseFormat)
+					model.HybridSecondaryUsage = pointer.FromEnum(props.HybridSecondaryUsage)
 				}
 			}
 

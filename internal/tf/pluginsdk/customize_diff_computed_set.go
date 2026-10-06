@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package pluginsdk
 
 import (
@@ -27,17 +30,17 @@ func CustomDiffComputedSetCannotRemove(setKey string, hashFunc schema.SchemaSetF
 }
 
 func customDiffComputedSet(setKey string, forceNewOnRemoval bool, hashFunc schema.SchemaSetFunc, forceNewProps []string, inPlaceProps []string, caseInsensitiveProps []string) CustomizeDiffFunc {
-	return func(ctx context.Context, diff *ResourceDiff, meta interface{}) error {
+	return func(ctx context.Context, diff *ResourceDiff, meta any) error {
 		oldRaw, _ := diff.GetChange(setKey)
 		var oldSet *schema.Set
 		if oldRaw != nil {
 			oldSet = oldRaw.(*schema.Set)
 		}
 
-		oldMap := make(map[int]map[string]interface{})
+		oldMap := make(map[int]map[string]any)
 		if oldSet != nil {
 			for _, v := range oldSet.List() {
-				if m, ok := v.(map[string]interface{}); ok {
+				if m, ok := v.(map[string]any); ok {
 					hash := hashFunc(m)
 					oldMap[hash] = m
 				}
@@ -61,7 +64,7 @@ func customDiffComputedSet(setKey string, forceNewOnRemoval bool, hashFunc schem
 			itemMap := itemCty.AsValueMap()
 
 			// Convert cty.Value to map[string]interface{} for hashFunc
-			inputMap := make(map[string]interface{})
+			inputMap := make(map[string]any)
 			for k, v := range itemMap {
 				if v.IsNull() || !v.IsKnown() {
 					continue
