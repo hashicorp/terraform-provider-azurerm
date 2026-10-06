@@ -277,7 +277,7 @@ func (r LinuxWebAppResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r LinuxWebAppResource) ModelObject() interface{} {
+func (r LinuxWebAppResource) ModelObject() any {
 	return &LinuxWebAppModel{}
 }
 

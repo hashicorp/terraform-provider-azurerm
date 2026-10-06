@@ -8,6 +8,6 @@ import (
 )
 
 // Evaluates if the passed CIDR is a valid IPv4 or IPv6 CIDR.
-func CIDRIsIPv4OrIPv6(input interface{}, key string) ([]string, []error) {
+func CIDRIsIPv4OrIPv6(input any, key string) ([]string, []error) {
 	return validation.IsCIDR(input, key)
 }

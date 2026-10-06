@@ -155,7 +155,7 @@ func resourceKustoEventHubDataConnection() *pluginsdk.Resource {
 	}
 }
 
-func resourceKustoEventHubDataConnectionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoEventHubDataConnectionCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -198,7 +198,7 @@ func resourceKustoEventHubDataConnectionCreate(d *pluginsdk.ResourceData, meta i
 	return resourceKustoEventHubDataConnectionRead(d, meta)
 }
 
-func resourceKustoEventHubDataConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoEventHubDataConnectionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -262,7 +262,7 @@ func resourceKustoEventHubDataConnectionRead(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func resourceKustoEventHubDataConnectionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoEventHubDataConnectionUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -310,7 +310,7 @@ func resourceKustoEventHubDataConnectionUpdate(d *pluginsdk.ResourceData, meta i
 	return resourceKustoEventHubDataConnectionRead(d, meta)
 }
 
-func resourceKustoEventHubDataConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoEventHubDataConnectionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -356,7 +356,7 @@ func expandKustoEventHubDataConnectionProperties(d *pluginsdk.ResourceData) *dat
 
 	if eventSystemProperties, ok := d.GetOk("event_system_properties"); ok {
 		props := make([]string, 0)
-		for _, prop := range eventSystemProperties.([]interface{}) {
+		for _, prop := range eventSystemProperties.([]any) {
 			props = append(props, prop.(string))
 		}
 		eventHubConnectionProperties.EventSystemProperties = &props

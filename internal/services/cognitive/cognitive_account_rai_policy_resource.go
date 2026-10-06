@@ -62,13 +62,13 @@ func (r CognitiveAccountRaiPolicyResource) CustomizeDiff() sdk.ResourceFunc {
 				return nil
 			}
 
-			filters, ok := rawFilters.([]interface{})
+			filters, ok := rawFilters.([]any)
 			if !ok {
 				return nil
 			}
 
 			for i, rawFilter := range filters {
-				filter, ok := rawFilter.(map[string]interface{})
+				filter, ok := rawFilter.(map[string]any)
 				if !ok {
 					continue
 				}
@@ -159,7 +159,7 @@ func (r CognitiveAccountRaiPolicyResource) Attributes() map[string]*pluginsdk.Sc
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r CognitiveAccountRaiPolicyResource) ModelObject() interface{} {
+func (r CognitiveAccountRaiPolicyResource) ModelObject() any {
 	return &AccountRaiPolicyResourceModel{}
 }
 

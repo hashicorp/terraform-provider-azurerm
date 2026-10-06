@@ -65,7 +65,7 @@ func (AdvisorSuppressionResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (AdvisorSuppressionResource) ModelObject() interface{} {
+func (AdvisorSuppressionResource) ModelObject() any {
 	return &AdvisorSuppressionResourceModel{}
 }
 

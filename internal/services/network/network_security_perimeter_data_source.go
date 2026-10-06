@@ -53,7 +53,7 @@ func (NetworkSecurityPerimeterDataSource) Attributes() map[string]*pluginsdk.Sch
 	}
 }
 
-func (NetworkSecurityPerimeterDataSource) ModelObject() interface{} {
+func (NetworkSecurityPerimeterDataSource) ModelObject() any {
 	return &NetworkSecurityPerimeterDataSourceModel{}
 }
 

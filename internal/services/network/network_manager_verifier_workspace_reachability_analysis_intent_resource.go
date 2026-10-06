@@ -34,7 +34,7 @@ func (ManagerVerifierWorkspaceReachabilityAnalysisIntentResource) ResourceType()
 	return "azurerm_network_manager_verifier_workspace_reachability_analysis_intent"
 }
 
-func (ManagerVerifierWorkspaceReachabilityAnalysisIntentResource) ModelObject() interface{} {
+func (ManagerVerifierWorkspaceReachabilityAnalysisIntentResource) ModelObject() any {
 	return &ManagerVerifierWorkspaceReachabilityAnalysisIntentResourceModel{}
 }
 

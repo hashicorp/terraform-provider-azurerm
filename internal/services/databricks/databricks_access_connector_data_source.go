@@ -47,7 +47,7 @@ func (DatabricksAccessConnectorDataSource) Attributes() map[string]*pluginsdk.Sc
 	}
 }
 
-func (DatabricksAccessConnectorDataSource) ModelObject() interface{} {
+func (DatabricksAccessConnectorDataSource) ModelObject() any {
 	return &DatabricksAccessConnectorDataSourceModel{}
 }
 

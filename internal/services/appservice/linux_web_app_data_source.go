@@ -69,7 +69,7 @@ type LinuxWebAppDataSourceModel struct {
 
 var _ sdk.DataSource = LinuxWebAppDataSource{}
 
-func (r LinuxWebAppDataSource) ModelObject() interface{} {
+func (r LinuxWebAppDataSource) ModelObject() any {
 	return &LinuxWebAppDataSourceModel{}
 }
 

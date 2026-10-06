@@ -191,7 +191,7 @@ func (r AppServiceEnvironmentV3DataSource) Attributes() map[string]*pluginsdk.Sc
 	}
 }
 
-func (r AppServiceEnvironmentV3DataSource) ModelObject() interface{} {
+func (r AppServiceEnvironmentV3DataSource) ModelObject() any {
 	return &AppServiceEnvironmentV3Model{}
 }
 

@@ -30,7 +30,7 @@ var (
 	_ sdk.ResourceWithIdentity = SyncServerEndpointResource{}
 )
 
-func (r SyncServerEndpointResource) ModelObject() interface{} {
+func (r SyncServerEndpointResource) ModelObject() any {
 	return &StorageSyncServerEndpointResourceSchema{}
 }
 

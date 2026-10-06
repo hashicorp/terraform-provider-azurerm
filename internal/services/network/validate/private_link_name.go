@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func PrivateLinkName(i interface{}, k string) ([]string, []error) {
+func PrivateLinkName(i any, k string) ([]string, []error) {
 	// The name attribute rules per the Nat Gateway service team are (Friday, October 18, 2019 4:20 PM):
 	// 1. Must not be empty.
 	// 2. Must be between 1 and 80 characters.

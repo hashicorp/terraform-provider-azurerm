@@ -14,7 +14,7 @@ import (
 )
 
 func blueprintAssignmentCreateStateRefreshFunc(ctx context.Context, client *assignment.AssignmentClient, id assignment.ScopedBlueprintAssignmentId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		resp, err := client.Get(ctx, id)
 		if err != nil {
 			return nil, "", fmt.Errorf("unable to retrieve Blueprint Assignment %s: %+v", id.String(), err)
@@ -32,7 +32,7 @@ func blueprintAssignmentCreateStateRefreshFunc(ctx context.Context, client *assi
 	}
 }
 
-func normalizeAssignmentParameterValuesJSON(jsonString interface{}) string {
+func normalizeAssignmentParameterValuesJSON(jsonString any) string {
 	if jsonString == nil || jsonString == "" {
 		return ""
 	}
@@ -46,7 +46,7 @@ func normalizeAssignmentParameterValuesJSON(jsonString interface{}) string {
 	return string(b)
 }
 
-func normalizeAssignmentResourceGroupValuesJSON(jsonString interface{}) string {
+func normalizeAssignmentResourceGroupValuesJSON(jsonString any) string {
 	if jsonString == nil || jsonString == "" {
 		return ""
 	}

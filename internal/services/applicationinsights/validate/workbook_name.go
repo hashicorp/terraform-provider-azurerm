@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func StringDoesNotContainUpperCaseLetter(input interface{}, k string) ([]string, []error) {
+func StringDoesNotContainUpperCaseLetter(input any, k string) ([]string, []error) {
 	return validation.StringDoesNotMatch(regexp.MustCompile(`[\p{Lu}\p{Lt}]`), "expected value to not contain any uppercase letter")(input, k)
 }

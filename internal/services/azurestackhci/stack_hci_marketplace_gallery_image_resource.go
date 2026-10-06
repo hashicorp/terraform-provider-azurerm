@@ -37,7 +37,7 @@ func (StackHCIMarketplaceGalleryImageResource) ResourceType() string {
 	return "azurerm_stack_hci_marketplace_gallery_image"
 }
 
-func (StackHCIMarketplaceGalleryImageResource) ModelObject() interface{} {
+func (StackHCIMarketplaceGalleryImageResource) ModelObject() any {
 	return &StackHCIMarketplaceGalleryImageResourceModel{}
 }
 
@@ -51,7 +51,7 @@ type StackHCIMarketplaceGalleryImageResourceModel struct {
 	OsType            string                                      `tfschema:"os_type"`
 	Version           string                                      `tfschema:"version"`
 	StoragePathId     string                                      `tfschema:"storage_path_id"`
-	Tags              map[string]interface{}                      `tfschema:"tags"`
+	Tags              map[string]any                              `tfschema:"tags"`
 }
 
 type StackHCIMarketplaceGalleryImageIdentifier struct {
