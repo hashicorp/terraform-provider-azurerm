@@ -97,7 +97,7 @@ func resourceSpringCloudCertificate() *pluginsdk.Resource {
 	}
 }
 
-func resourceSpringCloudCertificateCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudCertificateCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.CertificatesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -153,7 +153,7 @@ func resourceSpringCloudCertificateCreate(d *pluginsdk.ResourceData, meta interf
 	return resourceSpringCloudCertificateRead(d, meta)
 }
 
-func resourceSpringCloudCertificateRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudCertificateRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.CertificatesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -189,7 +189,7 @@ func resourceSpringCloudCertificateRead(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func resourceSpringCloudCertificateDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudCertificateDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.CertificatesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -199,7 +199,7 @@ func (BackendAddressPoolAddressResourceTests) Destroy(ctx context.Context, clien
 	return pointer.To(true), nil
 }
 
-// nolint unused - for future use
+//nolint:unused // for future use
 func (BackendAddressPoolAddressResourceTests) backendAddressPoolHasAddresses(expected int) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 		id, err := loadbalancers.ParseLoadBalancerBackendAddressPoolID(state.ID)

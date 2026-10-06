@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/queues"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -29,7 +29,7 @@ func dataSourceServiceBusQueue() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: azValidate.QueueName(),
+				ValidateFunc: validate.QueueName(),
 			},
 
 			"namespace_id": {
@@ -121,7 +121,7 @@ func dataSourceServiceBusQueue() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceBus.QueuesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId

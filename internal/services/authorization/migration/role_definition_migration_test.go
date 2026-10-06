@@ -11,12 +11,12 @@ import (
 func TestRoleDefinitionMigrateState(t *testing.T) {
 	cases := map[string]struct {
 		StateVersion    int
-		InputAttributes map[string]interface{}
+		InputAttributes map[string]any
 		ExpectedNewID   string
 	}{
 		"subscription_scope": {
 			StateVersion: 0,
-			InputAttributes: map[string]interface{}{
+			InputAttributes: map[string]any{
 				"id":                 "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/roleDefinitions/11111111-1111-1111-1111-111111111111",
 				"name":               "roleName",
 				"role_definition_id": "11111111-1111-1111-1111-111111111111",
@@ -26,7 +26,7 @@ func TestRoleDefinitionMigrateState(t *testing.T) {
 		},
 		"managementGroup_scope": {
 			StateVersion: 0,
-			InputAttributes: map[string]interface{}{
+			InputAttributes: map[string]any{
 				"id":                 "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/roleDefinitions/11111111-1111-1111-1111-111111111111",
 				"name":               "roleName",
 				"role_definition_id": "11111111-1111-1111-1111-111111111111",

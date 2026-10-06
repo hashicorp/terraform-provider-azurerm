@@ -41,7 +41,7 @@ func (r LogAnalyticsQueryPackQueryResource) ResourceType() string {
 	return "azurerm_log_analytics_query_pack_query"
 }
 
-func (r LogAnalyticsQueryPackQueryResource) ModelObject() interface{} {
+func (r LogAnalyticsQueryPackQueryResource) ModelObject() any {
 	return &LogAnalyticsQueryPackQueryModel{}
 }
 
@@ -384,7 +384,7 @@ func (r LogAnalyticsQueryPackQueryResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.AdditionalSettingsJson != "" {
-				var additionalSettingsJson interface{}
+				var additionalSettingsJson any
 				if err := json.Unmarshal([]byte(model.AdditionalSettingsJson), &additionalSettingsJson); err != nil {
 					return fmt.Errorf("parsing JSON: %+v", err)
 				}
@@ -446,7 +446,7 @@ func (r LogAnalyticsQueryPackQueryResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("additional_settings_json") {
-				var additionalSettingsJson interface{}
+				var additionalSettingsJson any
 				if err := json.Unmarshal([]byte(model.AdditionalSettingsJson), &additionalSettingsJson); err != nil {
 					return fmt.Errorf("parsing JSON: %+v", err)
 				}

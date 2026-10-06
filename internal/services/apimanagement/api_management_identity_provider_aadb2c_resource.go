@@ -108,7 +108,7 @@ func resourceArmApiManagementIdentityProviderAADB2C() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmApiManagementIdentityProviderAADB2CCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmApiManagementIdentityProviderAADB2CCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -150,7 +150,7 @@ func resourceArmApiManagementIdentityProviderAADB2CCreateUpdate(d *pluginsdk.Res
 			ClientLibrary:            pointer.To(clientLibrary),
 			ClientSecret:             clientSecret,
 			Type:                     pointer.To(identityprovider.IdentityProviderTypeAadBTwoC),
-			AllowedTenants:           pluginsdk.ExpandStringSlice([]interface{}{allowedTenant}),
+			AllowedTenants:           pluginsdk.ExpandStringSlice([]any{allowedTenant}),
 			SigninTenant:             pointer.To(signinTenant),
 			Authority:                pointer.To(authority),
 			SignupPolicyName:         pointer.To(signupPolicy),
@@ -168,7 +168,7 @@ func resourceArmApiManagementIdentityProviderAADB2CCreateUpdate(d *pluginsdk.Res
 	return resourceArmApiManagementIdentityProviderAADB2CRead(d, meta)
 }
 
-func resourceArmApiManagementIdentityProviderAADB2CRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmApiManagementIdentityProviderAADB2CRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -215,7 +215,7 @@ func resourceArmApiManagementIdentityProviderAADB2CRead(d *pluginsdk.ResourceDat
 	return nil
 }
 
-func resourceArmApiManagementIdentityProviderAADB2CDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmApiManagementIdentityProviderAADB2CDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

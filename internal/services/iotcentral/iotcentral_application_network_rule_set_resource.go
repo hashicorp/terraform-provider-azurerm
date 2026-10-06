@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -65,7 +65,7 @@ func (r IotCentralApplicationNetworkRuleSetResource) Arguments() map[string]*plu
 					"name": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: iothubValidate.IoTHubIpRuleName,
+						ValidateFunc: validate.IoTHubIpRuleName,
 					},
 					"ip_mask": {
 						Type:         pluginsdk.TypeString,
@@ -86,7 +86,7 @@ func (r IotCentralApplicationNetworkRuleSetResource) ResourceType() string {
 	return "azurerm_iotcentral_application_network_rule_set"
 }
 
-func (r IotCentralApplicationNetworkRuleSetResource) ModelObject() interface{} {
+func (r IotCentralApplicationNetworkRuleSetResource) ModelObject() any {
 	return &IotCentralApplicationNetworkRuleSetModel{}
 }
 
