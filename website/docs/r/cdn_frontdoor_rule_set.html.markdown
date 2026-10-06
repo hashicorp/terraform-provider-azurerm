@@ -10,6 +10,8 @@ description: |-
 
 Manages a Front Door (standard/premium) Rule Set.
 
+~> **Note:** This resource creates the Front Door Rule Set in non-batch mode and individual rules are managed using `azurerm_cdn_frontdoor_rule`.
+
 ## Example Usage
 
 ```hcl

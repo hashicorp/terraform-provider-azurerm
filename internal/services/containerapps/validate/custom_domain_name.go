@@ -10,7 +10,7 @@ import (
 )
 
 // ContainerAppCustomDomainId checks that 'input' can be parsed as a Container App ID
-func ContainerAppCustomDomainId(input interface{}, key string) (warnings []string, errors []error) {
+func ContainerAppCustomDomainId(input any, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))

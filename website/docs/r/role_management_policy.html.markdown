@@ -130,7 +130,7 @@ An `activation_rules` block supports the following:
 * `require_approval` - (Optional) Is approval required for activation. If `true` an `approval_stage` block must be provided.
 * `require_justification` - (Optional) Is a justification required during activation of the role.
 * `require_multifactor_authentication` - (Optional) Is multi-factor authentication required to activate the role. Conflicts with `required_conditional_access_authentication_context`.
-* `require_ticket_info` - (Optional) Is ticket information requrired during activation of the role.
+* `require_ticket_info` - (Optional) Is ticket information required during activation of the role.
 * `required_conditional_access_authentication_context` - (Optional) The Entra ID Conditional Access context that must be present for activation. Conflicts with `require_multifactor_authentication`.
 
 ---
@@ -164,7 +164,7 @@ One of `expiration_required` or `expire_after` must be provided.
 
 A `notification_rules` block supports the following:
 
-* `active_assignments` - (Optional) A `notification_target` block as defined below to configure notfications on active role assignments.
+* `active_assignments` - (Optional) A `notification_target` block as defined below to configure notifications on active role assignments.
 * `eligible_activations` - (Optional) A `notification_target` block as defined below for configuring notifications on activation of eligible role.
 * `eligible_assignments` - (Optional) A `notification_target` block as defined below to configure notification on eligible role assignments.
 

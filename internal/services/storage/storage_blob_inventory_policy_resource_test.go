@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -137,36 +136,6 @@ func (r StorageBlobInventoryPolicyResource) Exists(ctx context.Context, client *
 }
 
 func (r StorageBlobInventoryPolicyResource) template(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-storage-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  blob_properties {
-    versioning_enabled = true
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-		`, data.RandomInteger, data.Locations.Primary, data.RandomString)
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -238,46 +207,6 @@ resource "azurerm_storage_blob_inventory_policy" "import" {
 
 func (r StorageBlobInventoryPolicyResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-		%s
-
-resource "azurerm_storage_container" "test2" {
-  name                  = "vhds2"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
-resource "azurerm_storage_blob_inventory_policy" "test" {
-  storage_account_id = azurerm_storage_account.test.id
-  rules {
-    name                   = "rule1"
-    storage_container_name = azurerm_storage_container.test2.name
-    format                 = "Parquet"
-    schedule               = "Weekly"
-    scope                  = "Blob"
-    schema_fields = [
-      "Name",
-      "Creation-Time",
-      "VersionId",
-      "IsCurrentVersion",
-      "Snapshot",
-      "BlobType",
-      "Deleted",
-      "RemainingRetentionDays",
-    ]
-    filter {
-      blob_types            = ["blockBlob", "pageBlob"]
-      include_blob_versions = true
-      include_deleted       = true
-      include_snapshots     = true
-      prefix_match          = ["*/test"]
-      exclude_prefixes      = ["syslog.log"]
-    }
-  }
-}
-		`, template)
-	}
 	return fmt.Sprintf(`
 	%s
 
