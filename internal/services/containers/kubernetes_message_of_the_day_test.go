@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	containersclient "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func TestKubernetesMessageOfTheDayExpand(t *testing.T) {
@@ -114,9 +115,10 @@ func TestKubernetesMessageOfTheDayResponse(t *testing.T) {
 				}
 			})
 			t.Run("standalone pool", func(t *testing.T) {
-				data := schema.TestResourceDataRaw(t, resourceKubernetesClusterNodePool().Schema, map[string]any{
-					"message_of_the_day": "Previous message",
-				})
+				data := schema.TestResourceDataWithIdentityRaw(t, resourceKubernetesClusterNodePool().Schema, pluginsdk.GenerateIdentitySchema(&agentpools.AgentPoolId{})(), nil)
+				if err := data.Set("message_of_the_day", "Previous message"); err != nil {
+					t.Fatal(err)
+				}
 				id := agentpools.NewAgentPoolID("00000000-0000-0000-0000-000000000000", "test", "test", "pool")
 				data.SetId(id.ID())
 				payload, err := json.Marshal(agentpools.AgentPool{Properties: &agentpools.ManagedClusterAgentPoolProfileProperties{MessageOfTheDay: test.encoded}})
