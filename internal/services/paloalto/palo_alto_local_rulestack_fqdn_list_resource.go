@@ -10,8 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/fqdnlistlocalrulestack"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrulestacks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/fqdnlistlocalrulestackresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulestackresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -32,12 +32,12 @@ type LocalRulestackFQDNListModel struct {
 	Description  string   `tfschema:"description"`
 }
 
-func (r LocalRulestackFQDNList) ModelObject() interface{} {
+func (r LocalRulestackFQDNList) ModelObject() any {
 	return &LocalRulestackFQDNListModel{}
 }
 
 func (r LocalRulestackFQDNList) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return fqdnlistlocalrulestack.ValidateLocalRulestackFqdnListID
+	return fqdnlistlocalrulestackresources.ValidateLocalRulestackFqdnListID
 }
 
 func (r LocalRulestackFQDNList) ResourceType() string {
@@ -56,7 +56,7 @@ func (r LocalRulestackFQDNList) Arguments() map[string]*schema.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: fqdnlistlocalrulestack.ValidateLocalRulestackID,
+			ValidateFunc: fqdnlistlocalrulestackresources.ValidateLocalRulestackID,
 		},
 
 		"fully_qualified_domain_names": {
@@ -89,8 +89,8 @@ func (r LocalRulestackFQDNList) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.FqdnListLocalRulestack
-			rulestackClient := metadata.Client.PaloAlto.LocalRulestacks
+			client := metadata.Client.PaloAlto.FqdnListLocalRulestackResources
+			rulestackClient := metadata.Client.PaloAlto.LocalRulestackResources
 
 			model := LocalRulestackFQDNListModel{}
 
@@ -98,27 +98,29 @@ func (r LocalRulestackFQDNList) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			rulestackId, err := localrulestacks.ParseLocalRulestackID(model.RuleStackID)
+			rulestackId, err := localrulestackresources.ParseLocalRulestackID(model.RuleStackID)
 			if err != nil {
 				return err
 			}
 			locks.ByID(rulestackId.ID())
 			defer locks.UnlockByID(rulestackId.ID())
 
-			id := fqdnlistlocalrulestack.NewLocalRulestackFqdnListID(rulestackId.SubscriptionId, rulestackId.ResourceGroupName, rulestackId.LocalRulestackName, model.Name)
+			id := fqdnlistlocalrulestackresources.NewLocalRulestackFqdnListID(rulestackId.SubscriptionId, rulestackId.ResourceGroupName, rulestackId.LocalRulestackName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.FqdnListLocalRulestackGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
+				}
+
 				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
 				}
 			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
-			}
-
-			props := fqdnlistlocalrulestack.FqdnObject{
+			props := fqdnlistlocalrulestackresources.FqdnObject{
 				FqdnList: model.FQDNList,
 			}
 
@@ -129,17 +131,17 @@ func (r LocalRulestackFQDNList) Create() sdk.ResourceFunc {
 				props.Description = pointer.To(model.Description)
 			}
 
-			fqdnList := fqdnlistlocalrulestack.FqdnListLocalRulestackResource{
+			fqdnList := fqdnlistlocalrulestackresources.FqdnListLocalRulestackResource{
 				Properties: props,
 			}
 
-			if _, err = client.CreateOrUpdate(ctx, id, fqdnList); err != nil {
+			if _, err = client.FqdnListLocalRulestackCreateOrUpdate(ctx, id, fqdnList); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
 
-			if err = rulestackClient.CommitThenPoll(ctx, *rulestackId); err != nil {
+			if err = rulestackClient.LocalRulestackscommitThenPoll(ctx, *rulestackId); err != nil {
 				return fmt.Errorf("committing Local Rulestack config for %s: %+v", id, err)
 			}
 
@@ -152,16 +154,16 @@ func (r LocalRulestackFQDNList) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.FqdnListLocalRulestack
+			client := metadata.Client.PaloAlto.FqdnListLocalRulestackResources
 
-			id, err := fqdnlistlocalrulestack.ParseLocalRulestackFqdnListID(metadata.ResourceData.Id())
+			id, err := fqdnlistlocalrulestackresources.ParseLocalRulestackFqdnListID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
 			var state LocalRulestackFQDNListModel
 
-			existing, err := client.Get(ctx, *id)
+			existing, err := client.FqdnListLocalRulestackGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -170,7 +172,7 @@ func (r LocalRulestackFQDNList) Read() sdk.ResourceFunc {
 			}
 
 			state.Name = id.FqdnListName
-			state.RuleStackID = fqdnlistlocalrulestack.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName).ID()
+			state.RuleStackID = fqdnlistlocalrulestackresources.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName).ID()
 
 			if model := existing.Model; model != nil {
 				props := model.Properties
@@ -189,23 +191,23 @@ func (r LocalRulestackFQDNList) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.FqdnListLocalRulestack
-			rulestackClient := metadata.Client.PaloAlto.LocalRulestacks
+			client := metadata.Client.PaloAlto.FqdnListLocalRulestackResources
+			rulestackClient := metadata.Client.PaloAlto.LocalRulestackResources
 
-			id, err := fqdnlistlocalrulestack.ParseLocalRulestackFqdnListID(metadata.ResourceData.Id())
+			id, err := fqdnlistlocalrulestackresources.ParseLocalRulestackFqdnListID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			rulestackId := localrulestacks.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName)
+			rulestackId := localrulestackresources.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName)
 			locks.ByID(rulestackId.ID())
 			defer locks.UnlockByID(rulestackId.ID())
 
-			if err = client.DeleteThenPoll(ctx, *id); err != nil {
+			if err = client.FqdnListLocalRulestackDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
-			if err = rulestackClient.CommitThenPoll(ctx, rulestackId); err != nil {
+			if err = rulestackClient.LocalRulestackscommitThenPoll(ctx, rulestackId); err != nil {
 				return fmt.Errorf("committing Local Rulestack config for %s: %+v", id, err)
 			}
 
@@ -218,8 +220,8 @@ func (r LocalRulestackFQDNList) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.FqdnListLocalRulestack
-			rulestackClient := metadata.Client.PaloAlto.LocalRulestacks
+			client := metadata.Client.PaloAlto.FqdnListLocalRulestackResources
+			rulestackClient := metadata.Client.PaloAlto.LocalRulestackResources
 
 			model := LocalRulestackFQDNListModel{}
 
@@ -227,18 +229,18 @@ func (r LocalRulestackFQDNList) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			id, err := fqdnlistlocalrulestack.ParseLocalRulestackFqdnListID(metadata.ResourceData.Id())
+			id, err := fqdnlistlocalrulestackresources.ParseLocalRulestackFqdnListID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			rulestackId := localrulestacks.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName)
+			rulestackId := localrulestackresources.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName)
 			locks.ByID(rulestackId.ID())
 			defer locks.UnlockByID(rulestackId.ID())
 
-			existing, err := client.Get(ctx, *id)
+			existing, err := client.FqdnListLocalRulestackGet(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("retreiving %s: %+v", *id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			fqdnList := *existing.Model
@@ -255,11 +257,11 @@ func (r LocalRulestackFQDNList) Update() sdk.ResourceFunc {
 				fqdnList.Properties.Description = pointer.To(model.Description)
 			}
 
-			if _, err = client.CreateOrUpdate(ctx, *id, fqdnList); err != nil {
+			if _, err = client.FqdnListLocalRulestackCreateOrUpdate(ctx, *id, fqdnList); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
-			if err = rulestackClient.CommitThenPoll(ctx, rulestackId); err != nil {
+			if err = rulestackClient.LocalRulestackscommitThenPoll(ctx, rulestackId); err != nil {
 				return fmt.Errorf("committing Local Rulestack config for %s: %+v", id, err)
 			}
 

@@ -10,10 +10,11 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -65,13 +66,9 @@ func resourceVPNServerConfigurationPolicyGroup() *pluginsdk.Resource {
 						},
 
 						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(virtualwans.VpnPolicyMemberAttributeTypeAADGroupId),
-								string(virtualwans.VpnPolicyMemberAttributeTypeCertificateGroupId),
-								string(virtualwans.VpnPolicyMemberAttributeTypeRadiusAzureGroupId),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForVpnPolicyMemberAttributeType(), false),
 						},
 
 						"value": {
@@ -100,7 +97,7 @@ func resourceVPNServerConfigurationPolicyGroup() *pluginsdk.Resource {
 	}
 }
 
-func resourceVPNServerConfigurationPolicyGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVPNServerConfigurationPolicyGroupCreate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -116,14 +113,16 @@ func resourceVPNServerConfigurationPolicyGroupCreate(d *pluginsdk.ResourceData, 
 
 	id := virtualwans.NewConfigurationPolicyGroupID(subscriptionId, vpnServerConfigurationId.ResourceGroupName, vpnServerConfigurationId.VpnServerConfigurationName, d.Get("name").(string))
 
-	existing, err := client.ConfigurationPolicyGroupsGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.ConfigurationPolicyGroupsGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_vpn_server_configuration_policy_group", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_vpn_server_configuration_policy_group", id.ID())
+		}
 	}
 
 	payload := virtualwans.VpnServerConfigurationPolicyGroup{
@@ -134,7 +133,7 @@ func resourceVPNServerConfigurationPolicyGroupCreate(d *pluginsdk.ResourceData, 
 		},
 	}
 
-	if err := client.ConfigurationPolicyGroupsCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+	if err := client.ConfigurationPolicyGroupsCreateOrUpdateCallbackThenPoll(ctx, id, payload, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -142,7 +141,7 @@ func resourceVPNServerConfigurationPolicyGroupCreate(d *pluginsdk.ResourceData, 
 	return resourceVPNServerConfigurationPolicyGroupRead(d, meta)
 }
 
-func resourceVPNServerConfigurationPolicyGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVPNServerConfigurationPolicyGroupRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -181,7 +180,7 @@ func resourceVPNServerConfigurationPolicyGroupRead(d *pluginsdk.ResourceData, me
 	return nil
 }
 
-func resourceVPNServerConfigurationPolicyGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVPNServerConfigurationPolicyGroupUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -227,7 +226,7 @@ func resourceVPNServerConfigurationPolicyGroupUpdate(d *pluginsdk.ResourceData, 
 	return resourceVPNServerConfigurationPolicyGroupRead(d, meta)
 }
 
-func resourceVPNServerConfigurationPolicyGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVPNServerConfigurationPolicyGroupDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -249,15 +248,15 @@ func resourceVPNServerConfigurationPolicyGroupDelete(d *pluginsdk.ResourceData, 
 	return nil
 }
 
-func expandVPNServerConfigurationPolicyGroupPolicyMembers(input []interface{}) *[]virtualwans.VpnServerConfigurationPolicyGroupMember {
+func expandVPNServerConfigurationPolicyGroupPolicyMembers(input []any) *[]virtualwans.VpnServerConfigurationPolicyGroupMember {
 	results := make([]virtualwans.VpnServerConfigurationPolicyGroupMember, 0)
 
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 
 		results = append(results, virtualwans.VpnServerConfigurationPolicyGroupMember{
 			Name:           pointer.To(v["name"].(string)),
-			AttributeType:  pointer.To(virtualwans.VpnPolicyMemberAttributeType(v["type"].(string))),
+			AttributeType:  pointer.ToEnum[virtualwans.VpnPolicyMemberAttributeType](v["type"].(string)),
 			AttributeValue: pointer.To(v["value"].(string)),
 		})
 	}
@@ -265,8 +264,8 @@ func expandVPNServerConfigurationPolicyGroupPolicyMembers(input []interface{}) *
 	return &results
 }
 
-func flattenVPNServerConfigurationPolicyGroupPolicyMembers(input *[]virtualwans.VpnServerConfigurationPolicyGroupMember) []interface{} {
-	results := make([]interface{}, 0)
+func flattenVPNServerConfigurationPolicyGroupPolicyMembers(input *[]virtualwans.VpnServerConfigurationPolicyGroupMember) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
@@ -277,7 +276,7 @@ func flattenVPNServerConfigurationPolicyGroupPolicyMembers(input *[]virtualwans.
 			attributeType = string(*item.AttributeType)
 		}
 
-		results = append(results, map[string]interface{}{
+		results = append(results, map[string]any{
 			"name":  pointer.From(item.Name),
 			"type":  attributeType,
 			"value": pointer.From(item.AttributeValue),

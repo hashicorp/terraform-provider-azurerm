@@ -1,5 +1,5 @@
-// // Copyright IBM Corp. 2014, 2025
-// // SPDX-License-Identifier: MPL-2.0
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
 
 package dashboard_test
 
@@ -107,7 +107,7 @@ resource "azurerm_dashboard_grafana" "test" {
   name                  = "a-dg-%d"
   resource_group_name   = azurerm_resource_group.test.name
   location              = azurerm_resource_group.test.location
-  grafana_major_version = "12"
+  grafana_major_version = "13"
 }
 
 resource "azurerm_monitor_workspace" "test" {

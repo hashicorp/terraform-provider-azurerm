@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2020, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package tfprotov6
@@ -82,4 +82,15 @@ type PlanActionClientCapabilities struct {
 // Maintainer Note: This is in the protocol in Terraform Core,
 // but currently they are not sending any capabilities for this RPC.
 type InvokeActionClientCapabilities struct {
+}
+
+// ConfigureStateStoreClientCapabilities allows Terraform to publish information
+// regarding optionally supported protocol features for the ConfigureStateStore RPC,
+// such as forward-compatible Terraform behavior changes.
+type ConfigureStateStoreClientCapabilities struct {
+	// ChunkSize is the client-requested size of state byte chunks that are sent between Terraform Core and
+	// the provider. The final value is determined by the provider and returned in [ConfigureStateStoreResponse.Capabilities]
+	//
+	// The default chunk size in Terraform core is 8 MB.
+	ChunkSize int64
 }
