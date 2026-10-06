@@ -7,21 +7,19 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/routefilters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/routefilters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity
@@ -60,7 +58,7 @@ func resourceRouteFilter() *pluginsdk.Resource {
 			"rule": {
 				Type:       pluginsdk.TypeList,
 				Optional:   true,
-				Computed:   true,
+				Computed:   true, // azignore:AZS007 - pre-existing violation
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				MaxItems:   1,
 				Elem: &pluginsdk.Resource{
@@ -105,7 +103,7 @@ func resourceRouteFilter() *pluginsdk.Resource {
 	}
 }
 
-func resourceRouteFilterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRouteFilterCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.RouteFilters
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -113,7 +111,7 @@ func resourceRouteFilterCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	id := routefilters.NewRouteFilterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	location := location.Normalize(d.Get("location").(string))
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id, routefilters.DefaultGetOperationOptions())
@@ -149,7 +147,7 @@ func resourceRouteFilterCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	return resourceRouteFilterRead(d, meta)
 }
 
-func resourceRouteFilterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRouteFilterUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.RouteFilters
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -178,7 +176,7 @@ func resourceRouteFilterUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
@@ -190,7 +188,7 @@ func resourceRouteFilterUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	return resourceRouteFilterRead(d, meta)
 }
 
-func resourceRouteFilterRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRouteFilterRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.RouteFilters
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -229,7 +227,7 @@ func resourceRouteFilterRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceRouteFilterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRouteFilterDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.RouteFilters
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -247,18 +245,18 @@ func resourceRouteFilterDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 }
 
 func expandRouteFilterRules(d *pluginsdk.ResourceData) *[]routefilters.RouteFilterRule {
-	configs := d.Get("rule").([]interface{})
+	configs := d.Get("rule").([]any)
 	rules := make([]routefilters.RouteFilterRule, 0, len(configs))
 
 	for _, configRaw := range configs {
-		data := configRaw.(map[string]interface{})
+		data := configRaw.(map[string]any)
 
 		rule := routefilters.RouteFilterRule{
 			Name: pointer.To(data["name"].(string)),
 			Properties: &routefilters.RouteFilterRulePropertiesFormat{
 				Access:              routefilters.Access(data["access"].(string)),
 				RouteFilterRuleType: routefilters.RouteFilterRuleType(data["rule_type"].(string)),
-				Communities:         *utils.ExpandStringSlice(data["communities"].([]interface{})),
+				Communities:         *pluginsdk.ExpandStringSlice(data["communities"].([]any)),
 			},
 		}
 
@@ -268,12 +266,12 @@ func expandRouteFilterRules(d *pluginsdk.ResourceData) *[]routefilters.RouteFilt
 	return &rules
 }
 
-func flattenRouteFilterRules(input *[]routefilters.RouteFilterRule) []interface{} {
-	results := make([]interface{}, 0)
+func flattenRouteFilterRules(input *[]routefilters.RouteFilterRule) []any {
+	results := make([]any, 0)
 
 	if rules := input; rules != nil {
 		for _, rule := range *rules {
-			r := make(map[string]interface{})
+			r := make(map[string]any)
 
 			r["name"] = *rule.Name
 			if props := rule.Properties; props != nil {

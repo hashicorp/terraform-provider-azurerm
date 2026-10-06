@@ -7,13 +7,14 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strconv"
+	"net/http"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -42,28 +43,7 @@ func resourceStorageShareDirectory() *pluginsdk.Resource {
 
 		"metadata": MetaDataSchema(),
 	}
-
-	if !features.FivePointOh() {
-		schema["storage_share_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.StorageShareDataPlaneID,
-			ExactlyOneOf: []string{"storage_share_id", "storage_share_url"},
-			Deprecated:   "This property has been deprecated in favour of `storage_share_url` and will be removed in version 5.0 of the Provider.",
-		}
-		schema["storage_share_url"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.StorageShareDataPlaneID,
-			ExactlyOneOf: []string{"storage_share_id", "storage_share_url"},
-		}
-	}
-
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceStorageShareDirectoryCreate,
 		Read:   resourceStorageShareDirectoryRead,
 		Update: resourceStorageShareDirectoryUpdate,
@@ -83,38 +63,25 @@ func resourceStorageShareDirectory() *pluginsdk.Resource {
 
 		Schema: schema,
 	}
-
-	return resource
 }
 
-func resourceStorageShareDirectoryCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageShareDirectoryCreate(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	directoryName := d.Get("name").(string)
-	metaDataRaw := d.Get("metadata").(map[string]interface{})
+	metaDataRaw := d.Get("metadata").(map[string]any)
 	metaData := ExpandMetaData(metaDataRaw)
 
 	var (
 		storageShareId *shares.ShareId
 		err            error
 	)
-	if !features.FivePointOh() {
-		storageShareURL := d.Get("storage_share_url")
-		if storageShareURL == "" {
-			storageShareURL = d.Get("storage_share_id")
-		}
-		storageShareId, err = shares.ParseShareID(storageShareURL.(string), storageClient.StorageDomainSuffix)
-		if err != nil {
-			return err
-		}
-	} else {
-		storageShareId, err = shares.ParseShareID(d.Get("storage_share_url").(string), storageClient.StorageDomainSuffix)
-		if err != nil {
-			return err
-		}
+	storageShareId, err = shares.ParseShareID(d.Get("storage_share_url").(string), storageClient.StorageDomainSuffix)
+	if err != nil {
+		return err
 	}
 
 	if storageShareId == nil {
@@ -163,24 +130,22 @@ func resourceStorageShareDirectoryCreate(d *pluginsdk.ResourceData, meta interfa
 	d.SetId(id.ID())
 
 	// Storage Share Directories are eventually consistent
-	log.Printf("[DEBUG] Waiting for %s to become available", id)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"404"},
-		Target:                    []string{"200"},
-		Refresh:                   storageShareDirectoryRefreshFunc(ctx, client, id),
-		MinTimeout:                10 * time.Second,
-		ContinuousTargetOccurence: 5,
-		Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
-	}
-
-	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+	poller := custompollers.NewEventualConsistencyPoller(5, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.Get(pollerCtx, id.ShareName, id.DirectoryPath)
+		return resp.HttpResponse, err
+	}, &custompollers.EventualConsistencyPollerOptions{
+		Interval:              10 * time.Second,
+		TargetStatusCode:      pointer.To(http.StatusOK),
+		RetryErrorStatusCodes: []int{http.StatusNotFound},
+	})
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to become available: %v", id, err)
 	}
 
 	return resourceStorageShareDirectoryRead(d, meta)
 }
 
-func resourceStorageShareDirectoryUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageShareDirectoryUpdate(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -191,7 +156,7 @@ func resourceStorageShareDirectoryUpdate(d *pluginsdk.ResourceData, meta interfa
 		return err
 	}
 
-	metaDataRaw := d.Get("metadata").(map[string]interface{})
+	metaDataRaw := d.Get("metadata").(map[string]any)
 	metaData := ExpandMetaData(metaDataRaw)
 
 	account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
@@ -214,7 +179,7 @@ func resourceStorageShareDirectoryUpdate(d *pluginsdk.ResourceData, meta interfa
 	return resourceStorageShareDirectoryRead(d, meta)
 }
 
-func resourceStorageShareDirectoryRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageShareDirectoryRead(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -261,9 +226,6 @@ func resourceStorageShareDirectoryRead(d *pluginsdk.ResourceData, meta interface
 
 	d.Set("name", id.DirectoryPath)
 	d.Set("storage_share_url", storageShareId.ID())
-	if !features.FivePointOh() {
-		d.Set("storage_share_id", storageShareId.ID())
-	}
 
 	if err = d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
 		return fmt.Errorf("setting `metadata`: %v", err)
@@ -272,7 +234,7 @@ func resourceStorageShareDirectoryRead(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func resourceStorageShareDirectoryDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageShareDirectoryDelete(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -301,19 +263,4 @@ func resourceStorageShareDirectoryDelete(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	return nil
-}
-
-func storageShareDirectoryRefreshFunc(ctx context.Context, client *directories.Client, id directories.DirectoryId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id.ShareName, id.DirectoryPath)
-		if err != nil && !response.WasNotFound(res.HttpResponse) {
-			state := "unknown"
-			if res.HttpResponse != nil {
-				state = strconv.Itoa(res.HttpResponse.StatusCode)
-			}
-			return nil, state, fmt.Errorf("retrieving %s: %v", id, err)
-		}
-
-		return res, strconv.Itoa(res.HttpResponse.StatusCode), nil
-	}
 }
