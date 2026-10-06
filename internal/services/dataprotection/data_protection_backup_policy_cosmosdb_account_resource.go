@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package dataprotection
@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/btubbs/datetime"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -48,8 +47,9 @@ type BackupPolicyCosmosdbAccountRetentionRule struct {
 type DataProtectionBackupPolicyCosmosdbAccountResource struct{}
 
 var (
-	_ sdk.Resource             = DataProtectionBackupPolicyCosmosdbAccountResource{}
-	_ sdk.ResourceWithIdentity = DataProtectionBackupPolicyCosmosdbAccountResource{}
+	_ sdk.Resource                  = DataProtectionBackupPolicyCosmosdbAccountResource{}
+	_ sdk.ResourceWithCustomizeDiff = DataProtectionBackupPolicyCosmosdbAccountResource{}
+	_ sdk.ResourceWithIdentity      = DataProtectionBackupPolicyCosmosdbAccountResource{}
 )
 
 func (r DataProtectionBackupPolicyCosmosdbAccountResource) Identity() resourceids.ResourceId {
@@ -87,16 +87,9 @@ func (r DataProtectionBackupPolicyCosmosdbAccountResource) Arguments() map[strin
 			Required: true,
 			ForceNew: true,
 			ValidateFunc: validation.All(
-				validation.ISO8601RepeatingTime,
 				validate.BackupPolicyCosmosdbAccountBackupSchedule(),
+				validation.ISO8601RepeatingTime,
 			),
-		},
-
-		"daily_backup_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-			ForceNew: true,
 		},
 
 		"default_retention_duration": {
@@ -106,24 +99,31 @@ func (r DataProtectionBackupPolicyCosmosdbAccountResource) Arguments() map[strin
 			ValidateFunc: validation.ISO8601Duration,
 		},
 
+		"daily_backup_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+			ForceNew: true,
+		},
+
 		"retention_rule": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			ForceNew: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
 					"duration": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
 						ValidateFunc: validation.ISO8601Duration,
+					},
+
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					// Only Week, Month and Year are supported for cosmosdb account backup policies
@@ -198,6 +198,42 @@ func (r DataProtectionBackupPolicyCosmosdbAccountResource) Attributes() map[stri
 	}
 }
 
+func (r DataProtectionBackupPolicyCosmosdbAccountResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			config := metadata.ResourceDiff.GetRawConfig()
+			if !config.IsKnown() || config.IsNull() {
+				return nil
+			}
+
+			rules := config.GetAttr("retention_rule")
+			if !rules.IsKnown() || rules.IsNull() {
+				return nil
+			}
+
+			for i, rule := range rules.AsValueSlice() {
+				if !rule.IsKnown() || rule.IsNull() {
+					continue
+				}
+
+				backupOccurrence := rule.GetAttr("backup_occurrence")
+				daysOfWeek := rule.GetAttr("days_of_week")
+				if !backupOccurrence.IsKnown() || !daysOfWeek.IsKnown() {
+					continue
+				}
+
+				hasBackupOccurrence := !backupOccurrence.IsNull() && backupOccurrence.AsString() != ""
+				hasDaysOfWeek := !daysOfWeek.IsNull() && daysOfWeek.LengthInt() > 0
+				if hasBackupOccurrence == hasDaysOfWeek {
+					return fmt.Errorf("`retention_rule.%d` requires exactly one of `backup_occurrence` and `days_of_week` to be specified", i)
+				}
+			}
+
+			return nil
+		},
+	}
+}
+
 func (r DataProtectionBackupPolicyCosmosdbAccountResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -208,14 +244,6 @@ func (r DataProtectionBackupPolicyCosmosdbAccountResource) Create() sdk.Resource
 			var model BackupPolicyCosmosdbAccountModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
-			}
-
-			for _, rule := range model.RetentionRules {
-				hasBackupOccurrence := rule.BackupOccurrence != ""
-				hasDaysOfWeek := len(rule.DaysOfWeek) > 0
-				if (hasBackupOccurrence && hasDaysOfWeek) || (!hasBackupOccurrence && !hasDaysOfWeek) {
-					return fmt.Errorf("`retention_rule` %q requires exactly one of `backup_occurrence` and `days_of_week` to be specified", rule.Name)
-				}
 			}
 
 			vaultId, err := basebackuppolicyresources.ParseBackupVaultID(model.DataProtectionBackupVaultId)
@@ -281,6 +309,14 @@ func (r DataProtectionBackupPolicyCosmosdbAccountResource) Read() sdk.ResourceFu
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
+			if resp.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", *id)
+			}
+			properties, ok := resp.Model.Properties.(basebackuppolicyresources.BackupPolicy)
+			if !ok || !backupPolicySupportsCosmosdbAccounts(properties) {
+				return fmt.Errorf("%s is not a backup policy for `Microsoft.DocumentDB/databaseAccounts`", *id)
+			}
+
 			return r.flatten(metadata, id, resp.Model)
 		},
 	}
@@ -314,6 +350,22 @@ func (r DataProtectionBackupPolicyCosmosdbAccountResource) Delete() sdk.Resource
 			if err != nil {
 				return err
 			}
+
+			resp, err := client.BackupPoliciesGet(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return nil
+				}
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+			if resp.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", *id)
+			}
+			properties, ok := resp.Model.Properties.(basebackuppolicyresources.BackupPolicy)
+			if !ok || !backupPolicySupportsCosmosdbAccounts(properties) {
+				return fmt.Errorf("%s is not a backup policy for `Microsoft.DocumentDB/databaseAccounts`", *id)
+			}
+
 			if _, err := client.BackupPoliciesDelete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
@@ -405,7 +457,7 @@ func generateBackupPolicyCosmosdbAccountIncrementalSchedules(fullBackupSchedule 
 	)
 
 	timestamp := strings.TrimSuffix(strings.TrimPrefix(fullBackupSchedule, recurrencePrefix), recurrenceSuffix)
-	fullBackupTime, err := datetime.Parse(timestamp, time.UTC)
+	fullBackupTime, err := time.Parse(time.RFC3339, timestamp)
 	if err != nil {
 		return nil, fmt.Errorf("parsing timestamp in `backup_schedule` value `%s`: %+v", fullBackupSchedule, err)
 	}

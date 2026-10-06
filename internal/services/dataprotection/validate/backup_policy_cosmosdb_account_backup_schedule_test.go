@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -12,6 +12,26 @@ func TestBackupPolicyCosmosdbAccountBackupSchedule(t *testing.T) {
 	}{
 		{
 			input:    "R/2026-02-08T10:00+00:00/P1W",
+			expected: false,
+		},
+		{
+			input:    "R/2026-02-08T10:00Z/P1W",
+			expected: false,
+		},
+		{
+			input:    "R/2026-02-08T10:00+05:30/P1W",
+			expected: false,
+		},
+		{
+			input:    "R/2026-02-08T10:00-08:00/P1W",
+			expected: false,
+		},
+		{
+			input:    "R/2026-02-08T10:00:00Z/P1W",
+			expected: true,
+		},
+		{
+			input:    "R/2026-02-08T10:00:00+05:30/P1W",
 			expected: true,
 		},
 		{
@@ -20,7 +40,19 @@ func TestBackupPolicyCosmosdbAccountBackupSchedule(t *testing.T) {
 		},
 		{
 			input:    "R/2026-02-08T10:00:00.123Z/P1W",
-			expected: true,
+			expected: false,
+		},
+		{
+			input:    "R/2026-02-08T10:00:00.123+05:30/P1W",
+			expected: false,
+		},
+		{
+			input:    "R/2026-02-08T10:00:00.123-08:00/P1W",
+			expected: false,
+		},
+		{
+			input:    "R/2026-02-08T10:00:00.000Z/P1W",
+			expected: false,
 		},
 		{
 			input:    "R/2026-02-08T10:00:00-07:00/P1W",

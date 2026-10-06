@@ -29,8 +29,8 @@ resource "azurerm_data_protection_backup_vault" "example" {
 resource "azurerm_data_protection_backup_policy_cosmosdb_account" "example" {
   name                            = "example-data-protection-backup-policy-cosmosdb-account"
   data_protection_backup_vault_id = azurerm_data_protection_backup_vault.example.id
-  default_retention_duration      = "P10Y"
   backup_schedule                 = "R/2026-02-08T10:00:00+00:00/P1W"
+  default_retention_duration      = "P10Y"
 }
 ```
 
@@ -44,17 +44,17 @@ The following arguments are supported:
 
 * `data_protection_backup_vault_id` - (Required) The ID of the Data Protection Backup Vault where the policy should exist. Changing this forces a new resource to be created.
 
+* `backup_schedule` - (Required) The repeating time interval that specifies the weekday and time when the weekly Full backup runs. Changing this forces a new resource to be created.
+
+-> **Note:** The interval must use `R/YYYY-MM-DDThh:mm:ssZ/P1W`, `R/YYYY-MM-DDThh:mm:ss+hh:mm/P1W`, or `R/YYYY-MM-DDThh:mm:ss-hh:mm/P1W`. Seconds and a time zone suffix are required; `Z` represents UTC. For example, `R/2026-02-08T10:00:00Z/P1W` schedules a weekly Full backup at 10:00 UTC on Sunday. Minute-only timestamps (`Thh:mm`), fractional seconds (`Thh:mm:ss.fff`), and other ISO 8601 variations are not accepted. The `YYYY-MM-DD` component is used to determine the weekday and does not specify the date when backups begin.
+
 * `default_retention_duration` - (Required) The duration for which the default retention rule retains backups. Changing this forces a new resource to be created.
 
 -> **Note:** The duration must use the ISO 8601 duration format.
 
-* `backup_schedule` - (Required) The repeating time interval that specifies the weekday and time when the weekly Full backup runs. Changing this forces a new resource to be created.
-
--> **Note:** The interval must use the format `R/YYYY-MM-DDThh:mm:ss[.fff][Z|(+/-)hh:mm]/P1W`. The `YYYY-MM-DD` component is used to determine the weekday and does not specify the date when backups begin. The supported time formats are exactly `Thh:mm`, `Thh:mm:ss`, and `Thh:mm:ss.fff`; other ISO 8601 variations are not accepted. A time zone suffix of `Z` or `(+/-)hh:mm` is required.
+* `daily_backup_enabled` - (Optional) Whether daily backups are enabled by scheduling Incremental backups between weekly Full backups. Defaults to `true`. Changing this forces a new resource to be created.
 
 ~> **Note:** When `daily_backup_enabled` is `true`, the weekly Full backup runs on the weekday and at the time represented by `backup_schedule`. Incremental backups then run at 24-hour intervals on the remaining six days of the week. Each Incremental backup captures only the changes since the previous backup, and together these backups provide a 1-day recovery point objective.
-
-* `daily_backup_enabled` - (Optional) Whether daily backups are enabled by scheduling Incremental backups between weekly Full backups. Defaults to `true`. Changing this forces a new resource to be created.
 
 * `retention_rule` - (Optional) One or more `retention_rule` blocks that select backups and specify how long they are retained, as defined below. Changing this forces a new resource to be created.
 
