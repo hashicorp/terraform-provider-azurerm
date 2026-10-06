@@ -1444,9 +1444,9 @@ resource "azurerm_virtual_network_gateway" "test" {
   location            = data.azurerm_virtual_network_gateway.existing.location
   resource_group_name = local.resource_group_name
 
-  type     = "ExpressRoute"
-  vpn_type = data.azurerm_virtual_network_gateway.existing.vpn_type
-  sku      = data.azurerm_virtual_network_gateway.existing.sku
+  type       = "ExpressRoute"
+  vpn_type   = data.azurerm_virtual_network_gateway.existing.vpn_type
+  sku        = data.azurerm_virtual_network_gateway.existing.sku
   generation = data.azurerm_virtual_network_gateway.existing.generation
 
   ip_configuration {
