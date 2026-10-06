@@ -393,9 +393,7 @@ locals {
     }
   }
 }
-
-%s 
-
+%s
 resource "azurerm_user_assigned_identity" "crawler" {
   name                = "acctest-crawler%[2]d"
   location            = azurerm_resource_group.test.location
@@ -498,6 +496,7 @@ resource "azurerm_container_app_job" "test" {
     }
   }
 }
+
 
 `, r.template(data), data.RandomInteger)
 }
