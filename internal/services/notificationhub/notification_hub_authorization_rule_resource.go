@@ -109,7 +109,7 @@ func resourceNotificationHubAuthorizationRule() *pluginsdk.Resource {
 	}
 }
 
-func resourceNotificationHubAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNotificationHubAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NotificationHubs.HubsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -154,7 +154,7 @@ func resourceNotificationHubAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceD
 	return resourceNotificationHubAuthorizationRuleRead(d, meta)
 }
 
-func resourceNotificationHubAuthorizationRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNotificationHubAuthorizationRuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NotificationHubs.HubsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -204,7 +204,7 @@ func resourceNotificationHubAuthorizationRuleRead(d *pluginsdk.ResourceData, met
 	return nil
 }
 
-func resourceNotificationHubAuthorizationRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNotificationHubAuthorizationRuleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NotificationHubs.HubsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -57,7 +57,7 @@ func resourceApiManagementIdentityProviderMicrosoft() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementIdentityProviderMicrosoftCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderMicrosoftCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -99,7 +99,7 @@ func resourceApiManagementIdentityProviderMicrosoftCreateUpdate(d *pluginsdk.Res
 	return resourceApiManagementIdentityProviderMicrosoftRead(d, meta)
 }
 
-func resourceApiManagementIdentityProviderMicrosoftRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderMicrosoftRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -132,7 +132,7 @@ func resourceApiManagementIdentityProviderMicrosoftRead(d *pluginsdk.ResourceDat
 	return nil
 }
 
-func resourceApiManagementIdentityProviderMicrosoftDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderMicrosoftDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

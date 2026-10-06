@@ -8,6 +8,8 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"maps"
+	"math"
 	"slices"
 	"strconv"
 	"strings"
@@ -149,7 +151,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true, // azignore:AZS007 - pre-existing violation
-				ValidateFunc: validation.IntInSlice([]int{32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4193280, 4194304, 8388608, 16777216, 33553408}),
+				ValidateFunc: validation.IntBetween(int(math.Exp2(15)), int(math.Exp2(26))),
 			},
 
 			"storage_tier": {
@@ -403,7 +405,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+			func(ctx context.Context, d *pluginsdk.ResourceDiff, v any) error {
 				if d.HasChange("version") {
 					oldVersionVal, newVersionVal := d.GetChange("version")
 					// `version` value has been validated already, ignore the parse errors is safe
@@ -416,13 +418,13 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 					return nil
 				}
 				return nil
-			}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v any) error {
 				oldLoginName, _ := diff.GetChange("administrator_login")
 				if oldLoginName != "" {
 					diff.ForceNew("administrator_login")
 				}
 				return nil
-			}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v any) error {
 				if diff.Get("storage_type").(string) == string(servers.StorageTypePremiumVTwoLRS) {
 					return nil
 				}
@@ -458,7 +460,10 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 
 				// get the valid mappings for the passed
 				// storage_mb size...
-				storageTiers := storageTierMappings[newMb]
+				storageTiers, ok := storageTierMappings[newMb]
+				if !ok {
+					return nil
+				}
 
 				if newTier == "" {
 					newTier = string(storageTiers.DefaultTier)
@@ -489,19 +494,19 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				}
 
 				return nil
-			}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v any) error {
 				oldIdentityRaw, newIdentityRaw := diff.GetChange("identity")
-				oldIdentity := oldIdentityRaw.([]interface{})
+				oldIdentity := oldIdentityRaw.([]any)
 				oldIdentityType := string(identity.TypeNone)
 				if len(oldIdentity) > 0 {
-					oldIdentityBlock := oldIdentity[0].(map[string]interface{})
+					oldIdentityBlock := oldIdentity[0].(map[string]any)
 					oldIdentityType = oldIdentityBlock["type"].(string)
 				}
 
-				newIdentity := newIdentityRaw.([]interface{})
+				newIdentity := newIdentityRaw.([]any)
 				newIdentityType := string(identity.TypeNone)
 				if len(newIdentity) > 0 {
-					newIdentityBlock := newIdentity[0].(map[string]interface{})
+					newIdentityBlock := newIdentity[0].(map[string]any)
 					newIdentityType = newIdentityBlock["type"].(string)
 				}
 
@@ -510,7 +515,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				}
 
 				return nil
-			}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v any) error {
 				configMap := diff.GetRawConfig().AsValueMap()
 				createMode := diff.Get("create_mode").(string)
 
@@ -562,7 +567,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				}
 
 				return nil
-			}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v any) error {
 				// only pg 17+ support cluster, and cluster does not support major version upgrade
 				if _, ok := diff.GetOk("cluster"); !ok {
 					return nil
@@ -571,14 +576,14 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				// can't downgrade cluster size
 				if diff.HasChange("cluster") {
 					oldCluster, newCluster := diff.GetChange("cluster")
-					oldClusterObj := oldCluster.([]interface{})
-					newClusterObj := newCluster.([]interface{})
+					oldClusterObj := oldCluster.([]any)
+					newClusterObj := newCluster.([]any)
 					if len(oldClusterObj) > 0 && len(newClusterObj) > 0 {
 						var oldClusterSize, newClusterSize int
-						if tmpObj, ok := oldClusterObj[0].(map[string]interface{}); ok {
+						if tmpObj, ok := oldClusterObj[0].(map[string]any); ok {
 							oldClusterSize, _ = tmpObj["size"].(int)
 						}
-						if tempObj, ok := newClusterObj[0].(map[string]interface{}); ok {
+						if tempObj, ok := newClusterObj[0].(map[string]any); ok {
 							newClusterSize, _ = tempObj["size"].(int)
 						}
 
@@ -607,20 +612,40 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				}
 
 				return nil
-			}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v any) error {
 				if diff.HasChange("sku_name") {
 					skuOld, skuNew := diff.GetChange("sku_name")
 					return validate.FlexibleServerSkuNameChange(skuOld.(string), skuNew.(string))
 				}
 
 				return nil
-			}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-				oldStorageMbRaw, newStorageMbRaw := diff.GetChange("storage_mb")
-				if newStorageMbRaw.(int) != 4194304 || oldStorageMbRaw.(int) == 4194304 {
+			}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v any) error {
+				rawStorageMb := diff.GetRawConfig().GetAttr("storage_mb")
+				if !rawStorageMb.IsKnown() || rawStorageMb.IsNull() {
 					return nil
 				}
 
-				// `4194304` disables host caching, so it is only supported for non-Default create modes (e.g. `Replica`) where Azure requires their storage to be greater than or equal to the source server's. For `Default` servers it is never supported, so reject it and recommend `4193280` instead.
+				storageMb := diff.Get("storage_mb").(int)
+
+				if diff.Get("storage_type").(string) == string(servers.StorageTypePremiumVTwoLRS) {
+					if storageMb%1024 != 0 {
+						return fmt.Errorf("`storage_mb` must be a multiple of `1024` when `storage_type` is `PremiumV2_LRS`, got `%d`", storageMb)
+					}
+
+					return nil
+				}
+
+				validStorageMb := slices.Sorted(maps.Keys(validate.InitializeFlexibleServerStorageTierDefaults()))
+				if !slices.Contains(validStorageMb, storageMb) {
+					return fmt.Errorf("`storage_mb` must be one of %v when `storage_type` is `Premium_LRS`, got `%d`", validStorageMb, storageMb)
+				}
+
+				oldStorageMbRaw, _ := diff.GetChange("storage_mb")
+				if storageMb != 4194304 || oldStorageMbRaw.(int) == 4194304 {
+					return nil
+				}
+
+				// `4194304` disables host caching, so Azure only supports it for non-Default create modes whose source server already uses that size.
 				if createMode := servers.CreateMode(diff.Get("create_mode").(string)); createMode == "" || createMode == servers.CreateModeDefault {
 					return errors.New("`storage_mb` value `4194304` is not supported because it disables host caching, use `4193280` instead")
 				}
@@ -631,7 +656,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 	}
 }
 
-func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Postgres.FlexibleServersClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -683,7 +708,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 
 		pwdEnabled := true // it defaults to true
 		if authRaw, authExist := d.GetOk("authentication"); authExist {
-			authConfig := expandFlexibleServerAuthConfig(authRaw.([]interface{}))
+			authConfig := expandFlexibleServerAuthConfig(authRaw.([]any))
 			if authConfig.PasswordAuth != nil {
 				pwdEnabled = *authConfig.PasswordAuth == servers.PasswordBasedAuthEnabled
 			}
@@ -739,13 +764,13 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		Properties: &servers.ServerProperties{
 			Network:          expandArmServerNetwork(d),
 			Storage:          storage,
-			HighAvailability: expandFlexibleServerHighAvailability(d.Get("high_availability").([]interface{}), true),
+			HighAvailability: expandFlexibleServerHighAvailability(d.Get("high_availability").([]any), true),
 			Backup:           expandArmServerBackup(d),
-			DataEncryption:   expandFlexibleServerDataEncryption(d.Get("customer_managed_key").([]interface{})),
-			Cluster:          expandFlexibleServerCluster(d.Get("cluster").([]interface{})),
+			DataEncryption:   expandFlexibleServerDataEncryption(d.Get("customer_managed_key").([]any)),
+			Cluster:          expandFlexibleServerCluster(d.Get("cluster").([]any)),
 		},
 		Sku:  sku,
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v, ok := d.GetOk("administrator_login"); ok && v.(string) != "" {
@@ -791,10 +816,10 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if authRaw, ok := d.GetOk("authentication"); ok {
-		parameters.Properties.AuthConfig = expandFlexibleServerAuthConfig(authRaw.([]interface{}))
+		parameters.Properties.AuthConfig = expandFlexibleServerAuthConfig(authRaw.([]any))
 	}
 
-	identity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+	identity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`")
 	}
@@ -810,7 +835,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 	// `maintenance_window` could only be updated with, could not be created with
 	if v, ok := d.GetOk("maintenance_window"); ok {
 		requireAdditionalUpdate = true
-		updateProperties.MaintenanceWindow = expandArmServerMaintenanceWindow(v.([]interface{}))
+		updateProperties.MaintenanceWindow = expandArmServerMaintenanceWindow(v.([]any))
 	}
 
 	if requireAdditionalUpdate {
@@ -825,7 +850,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 	return resourcePostgresqlFlexibleServerRead(d, meta)
 }
 
-func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Postgres.FlexibleServersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -929,8 +954,14 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 				return fmt.Errorf("setting `high_availability`: %+v", err)
 			}
 
-			if err := d.Set("cluster", flattenFlexibleServerCluster(props.Cluster)); err != nil {
-				return fmt.Errorf("setting `cluster`: %+v", err)
+			if pointer.From(props.SourceServerResourceId) == "" {
+				if err := d.Set("cluster", flattenFlexibleServerCluster(props.Cluster)); err != nil {
+					return fmt.Errorf("setting `cluster`: %+v", err)
+				}
+			} else {
+				if err := d.Set("cluster", []any{}); err != nil {
+					return fmt.Errorf("setting `cluster`: %+v", err)
+				}
 			}
 
 			if props.AuthConfig != nil {
@@ -969,7 +1000,7 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Postgres.FlexibleServersClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -997,7 +1028,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 
 		pwdEnabled := true // it defaults to true
 		if authRaw, authExist := d.GetOk("authentication"); authExist {
-			authConfig := expandFlexibleServerAuthConfig(authRaw.([]interface{}))
+			authConfig := expandFlexibleServerAuthConfig(authRaw.([]any))
 			if authConfig.PasswordAuth != nil {
 				pwdEnabled = *authConfig.PasswordAuth == servers.PasswordBasedAuthEnabled
 			}
@@ -1093,7 +1124,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("authentication") {
-		parameters.Properties.AuthConfig = expandFlexibleServerAuthConfigForPatch(d.Get("authentication").([]interface{}))
+		parameters.Properties.AuthConfig = expandFlexibleServerAuthConfigForPatch(d.Get("authentication").([]any))
 	}
 
 	if d.HasChanges("auto_grow_enabled", "storage_mb", "storage_tier", "storage_iops", "storage_throughput") {
@@ -1116,7 +1147,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("maintenance_window") {
-		parameters.Properties.MaintenanceWindow = expandArmServerMaintenanceWindow(d.Get("maintenance_window").([]interface{}))
+		parameters.Properties.MaintenanceWindow = expandArmServerMaintenanceWindow(d.Get("maintenance_window").([]any))
 	}
 
 	if d.HasChange("sku_name") {
@@ -1128,19 +1159,19 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("tags") {
-		parameters.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		parameters.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if d.HasChange("high_availability") {
-		parameters.Properties.HighAvailability = expandFlexibleServerHighAvailabilityForPatch(d.Get("high_availability").([]interface{}), false)
+		parameters.Properties.HighAvailability = expandFlexibleServerHighAvailabilityForPatch(d.Get("high_availability").([]any), false)
 	}
 
 	if d.HasChange("customer_managed_key") {
-		parameters.Properties.DataEncryption = expandFlexibleServerDataEncryption(d.Get("customer_managed_key").([]interface{}))
+		parameters.Properties.DataEncryption = expandFlexibleServerDataEncryption(d.Get("customer_managed_key").([]any))
 	}
 
 	if d.HasChange("identity") {
-		identity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		identity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity` for %s: %+v", *id, err)
 		}
@@ -1153,7 +1184,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("cluster") {
-		parameters.Properties.Cluster = expandFlexibleServerCluster(d.Get("cluster").([]interface{}))
+		parameters.Properties.Cluster = expandFlexibleServerCluster(d.Get("cluster").([]any))
 	}
 
 	if d.HasChange("version") {
@@ -1172,7 +1203,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 			Location: location.Normalize(d.Get("location").(string)),
 			Properties: &servers.ServerProperties{
 				CreateMode:                 pointer.To(servers.CreateModeUpdate),
-				AuthConfig:                 expandFlexibleServerAuthConfig(d.Get("authentication").([]interface{})),
+				AuthConfig:                 expandFlexibleServerAuthConfig(d.Get("authentication").([]any)),
 				AdministratorLogin:         pointer.To(d.Get("administrator_login").(string)),
 				AdministratorLoginPassword: &loginPassword,
 				Network:                    expandArmServerNetwork(d),
@@ -1201,7 +1232,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 	return resourcePostgresqlFlexibleServerRead(d, meta)
 }
 
-func resourcePostgresqlFlexibleServerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePostgresqlFlexibleServerDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Postgres.FlexibleServersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1238,13 +1269,13 @@ func expandArmServerNetwork(d *pluginsdk.ResourceData) *servers.Network {
 	return &network
 }
 
-func expandArmServerMaintenanceWindow(input []interface{}) *servers.MaintenanceWindowForPatch {
+func expandArmServerMaintenanceWindow(input []any) *servers.MaintenanceWindowForPatch {
 	if len(input) == 0 {
 		return &servers.MaintenanceWindowForPatch{
 			CustomWindow: pointer.To(ServerMaintenanceWindowDisabled),
 		}
 	}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	maintenanceWindow := servers.MaintenanceWindowForPatch{
 		CustomWindow: pointer.To(ServerMaintenanceWindowEnabled),
@@ -1388,16 +1419,16 @@ func flattenFlexibleServerSku(sku *servers.Sku) (string, error) {
 	return strings.Join([]string{tier, sku.Name}, "_"), nil
 }
 
-func flattenArmServerMaintenanceWindow(input *servers.MaintenanceWindow) []interface{} {
+func flattenArmServerMaintenanceWindow(input *servers.MaintenanceWindow) []any {
 	if input == nil || input.CustomWindow == nil || *input.CustomWindow == ServerMaintenanceWindowDisabled {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
 	dayOfWeek := pointer.From(input.DayOfWeek)
 	startHour := pointer.From(input.StartHour)
 	startMinute := pointer.From(input.StartMinute)
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"day_of_week":  dayOfWeek,
 			"start_hour":   startHour,
 			"start_minute": startMinute,
@@ -1405,14 +1436,14 @@ func flattenArmServerMaintenanceWindow(input *servers.MaintenanceWindow) []inter
 	}
 }
 
-func expandFlexibleServerHighAvailability(inputs []interface{}, isCreate bool) *servers.HighAvailability {
+func expandFlexibleServerHighAvailability(inputs []any, isCreate bool) *servers.HighAvailability {
 	if len(inputs) == 0 || inputs[0] == nil {
 		return &servers.HighAvailability{
 			Mode: pointer.To(servers.PostgreSqlFlexibleServerHighAvailabilityModeDisabled),
 		}
 	}
 
-	input := inputs[0].(map[string]interface{})
+	input := inputs[0].(map[string]any)
 
 	result := servers.HighAvailability{
 		Mode: pointer.ToEnum[servers.PostgreSqlFlexibleServerHighAvailabilityMode](input["mode"].(string)),
@@ -1428,14 +1459,14 @@ func expandFlexibleServerHighAvailability(inputs []interface{}, isCreate bool) *
 	return &result
 }
 
-func expandFlexibleServerHighAvailabilityForPatch(inputs []interface{}, isCreate bool) *servers.HighAvailabilityForPatch {
+func expandFlexibleServerHighAvailabilityForPatch(inputs []any, isCreate bool) *servers.HighAvailabilityForPatch {
 	if len(inputs) == 0 || inputs[0] == nil {
 		return &servers.HighAvailabilityForPatch{
 			Mode: pointer.To(servers.PostgreSqlFlexibleServerHighAvailabilityModeDisabled),
 		}
 	}
 
-	input := inputs[0].(map[string]interface{})
+	input := inputs[0].(map[string]any)
 
 	result := servers.HighAvailabilityForPatch{
 		Mode: pointer.ToEnum[servers.PostgreSqlFlexibleServerHighAvailabilityMode](input["mode"].(string)),
@@ -1451,27 +1482,27 @@ func expandFlexibleServerHighAvailabilityForPatch(inputs []interface{}, isCreate
 	return &result
 }
 
-func flattenFlexibleServerHighAvailability(ha *servers.HighAvailability) []interface{} {
+func flattenFlexibleServerHighAvailability(ha *servers.HighAvailability) []any {
 	if ha == nil || ha.Mode == nil || *ha.Mode == servers.PostgreSqlFlexibleServerHighAvailabilityModeDisabled {
-		return []interface{}{}
+		return []any{}
 	}
 
 	zone := pointer.From(ha.StandbyAvailabilityZone)
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"mode":                      string(*ha.Mode),
 			"standby_availability_zone": zone,
 		},
 	}
 }
 
-func expandFlexibleServerAuthConfig(authRaw []interface{}) *servers.AuthConfig {
+func expandFlexibleServerAuthConfig(authRaw []any) *servers.AuthConfig {
 	if len(authRaw) == 0 || authRaw[0] == nil {
 		return nil
 	}
 
-	authConfigs := authRaw[0].(map[string]interface{})
+	authConfigs := authRaw[0].(map[string]any)
 	out := servers.AuthConfig{}
 
 	activeDirectoryAuthEnabled := servers.MicrosoftEntraAuthDisabled
@@ -1493,12 +1524,12 @@ func expandFlexibleServerAuthConfig(authRaw []interface{}) *servers.AuthConfig {
 	return &out
 }
 
-func expandFlexibleServerAuthConfigForPatch(authRaw []interface{}) *servers.AuthConfigForPatch {
+func expandFlexibleServerAuthConfigForPatch(authRaw []any) *servers.AuthConfigForPatch {
 	if len(authRaw) == 0 || authRaw[0] == nil {
 		return nil
 	}
 
-	authConfigs := authRaw[0].(map[string]interface{})
+	authConfigs := authRaw[0].(map[string]any)
 	out := servers.AuthConfigForPatch{}
 
 	activeDirectoryAuthEnabled := servers.MicrosoftEntraAuthDisabled
@@ -1520,8 +1551,8 @@ func expandFlexibleServerAuthConfigForPatch(authRaw []interface{}) *servers.Auth
 	return &out
 }
 
-func flattenFlexibleServerAuthConfig(ac *servers.AuthConfig) interface{} {
-	out := make(map[string]interface{}, 0)
+func flattenFlexibleServerAuthConfig(ac *servers.AuthConfig) any {
+	out := make(map[string]any, 0)
 
 	if ac == nil {
 		return out
@@ -1544,16 +1575,16 @@ func flattenFlexibleServerAuthConfig(ac *servers.AuthConfig) interface{} {
 		out["tenant_id"] = *ac.TenantId
 	}
 
-	result := make([]interface{}, 0)
+	result := make([]any, 0)
 	result = append(result, out)
 	return result
 }
 
-func expandFlexibleServerDataEncryption(input []interface{}) *servers.DataEncryption {
+func expandFlexibleServerDataEncryption(input []any) *servers.DataEncryption {
 	if len(input) == 0 {
 		return nil
 	}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	dataEncryption := servers.DataEncryption{
 		Type: pointer.To(servers.DataEncryptionTypeAzureKeyVault),
@@ -1578,12 +1609,12 @@ func expandFlexibleServerDataEncryption(input []interface{}) *servers.DataEncryp
 	return &dataEncryption
 }
 
-func flattenFlexibleServerDataEncryption(de *servers.DataEncryption) ([]interface{}, error) {
+func flattenFlexibleServerDataEncryption(de *servers.DataEncryption) ([]any, error) {
 	if de == nil || *de.Type != servers.DataEncryptionTypeAzureKeyVault {
-		return []interface{}{}, nil
+		return []any{}, nil
 	}
 
-	item := map[string]interface{}{}
+	item := map[string]any{}
 	if de.PrimaryKeyURI != nil {
 		item["key_vault_key_id"] = *de.PrimaryKeyURI
 	}
@@ -1606,14 +1637,14 @@ func flattenFlexibleServerDataEncryption(de *servers.DataEncryption) ([]interfac
 		item["geo_backup_user_assigned_identity_id"] = parsed.ID()
 	}
 
-	return []interface{}{item}, nil
+	return []any{item}, nil
 }
 
-func expandFlexibleServerCluster(input []interface{}) *servers.Cluster {
+func expandFlexibleServerCluster(input []any) *servers.Cluster {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	cluster := servers.Cluster{}
 
@@ -1628,15 +1659,15 @@ func expandFlexibleServerCluster(input []interface{}) *servers.Cluster {
 	return &cluster
 }
 
-func flattenFlexibleServerCluster(cluster *servers.Cluster) []interface{} {
+func flattenFlexibleServerCluster(cluster *servers.Cluster) []any {
 	if cluster == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	item := map[string]interface{}{
+	item := map[string]any{
 		"size":                  pointer.From(cluster.ClusterSize),
 		"default_database_name": pointer.From(cluster.DefaultDatabaseName),
 	}
 
-	return []interface{}{item}
+	return []any{item}
 }

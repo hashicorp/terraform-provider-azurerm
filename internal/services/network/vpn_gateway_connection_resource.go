@@ -337,7 +337,7 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 	}
 }
 
-func resourceVpnGatewayConnectionResourceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVpnGatewayConnectionResourceCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -372,8 +372,8 @@ func resourceVpnGatewayConnectionResourceCreate(d *pluginsdk.ResourceData, meta 
 			RemoteVpnSite: &virtualwans.SubResource{
 				Id: pointer.To(d.Get("remote_vpn_site_id").(string)),
 			},
-			VpnLinkConnections:   expandVpnGatewayConnectionVpnSiteLinkConnections(d.Get("vpn_link").([]interface{})),
-			RoutingConfiguration: expandVpnGatewayConnectionRoutingConfiguration(d.Get("routing").([]interface{})),
+			VpnLinkConnections:   expandVpnGatewayConnectionVpnSiteLinkConnections(d.Get("vpn_link").([]any)),
+			RoutingConfiguration: expandVpnGatewayConnectionRoutingConfiguration(d.Get("routing").([]any)),
 		},
 	}
 
@@ -389,7 +389,7 @@ func resourceVpnGatewayConnectionResourceCreate(d *pluginsdk.ResourceData, meta 
 	return resourceVpnGatewayConnectionResourceRead(d, meta)
 }
 
-func resourceVpnGatewayConnectionResourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVpnGatewayConnectionResourceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -444,7 +444,7 @@ func resourceVpnGatewayConnectionResourceRead(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func resourceVpnGatewayConnectionResourceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVpnGatewayConnectionResourceUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -479,11 +479,11 @@ func resourceVpnGatewayConnectionResourceUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if d.HasChange("routing") {
-		payload.Properties.RoutingConfiguration = expandVpnGatewayConnectionRoutingConfiguration(d.Get("routing").([]interface{}))
+		payload.Properties.RoutingConfiguration = expandVpnGatewayConnectionRoutingConfiguration(d.Get("routing").([]any))
 	}
 
 	if d.HasChange("vpn_link") {
-		payload.Properties.VpnLinkConnections = expandVpnGatewayConnectionVpnSiteLinkConnections(d.Get("vpn_link").([]interface{}))
+		payload.Properties.VpnLinkConnections = expandVpnGatewayConnectionVpnSiteLinkConnections(d.Get("vpn_link").([]any))
 	}
 
 	if d.HasChange("traffic_selector_policy") {
@@ -498,7 +498,7 @@ func resourceVpnGatewayConnectionResourceUpdate(d *pluginsdk.ResourceData, meta 
 	return resourceVpnGatewayConnectionResourceRead(d, meta)
 }
 
-func resourceVpnGatewayConnectionResourceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVpnGatewayConnectionResourceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -518,14 +518,14 @@ func resourceVpnGatewayConnectionResourceDelete(d *pluginsdk.ResourceData, meta 
 	return nil
 }
 
-func expandVpnGatewayConnectionVpnSiteLinkConnections(input []interface{}) *[]virtualwans.VpnSiteLinkConnection {
+func expandVpnGatewayConnectionVpnSiteLinkConnections(input []any) *[]virtualwans.VpnSiteLinkConnection {
 	if len(input) == 0 {
 		return nil
 	}
 
 	result := make([]virtualwans.VpnSiteLinkConnection, 0)
 	for _, itemRaw := range input {
-		item := itemRaw.(map[string]interface{})
+		item := itemRaw.(map[string]any)
 		v := virtualwans.VpnSiteLinkConnection{
 			Name: pointer.To(item["name"].(string)),
 			Properties: &virtualwans.VpnSiteLinkConnectionProperties{
@@ -537,7 +537,7 @@ func expandVpnGatewayConnectionVpnSiteLinkConnections(input []interface{}) *[]vi
 				VpnLinkConnectionMode:          pointer.ToEnum[virtualwans.VpnLinkConnectionMode](item["connection_mode"].(string)),
 				ConnectionBandwidth:            pointer.To(int64(item["bandwidth_mbps"].(int))),
 				EnableBgp:                      pointer.To(item["bgp_enabled"].(bool)),
-				IPsecPolicies:                  expandVpnGatewayConnectionIpSecPolicies(item["ipsec_policy"].([]interface{})),
+				IPsecPolicies:                  expandVpnGatewayConnectionIpSecPolicies(item["ipsec_policy"].([]any)),
 				EnableRateLimiting:             pointer.To(item["ratelimit_enabled"].(bool)),
 				UseLocalAzureIPAddress:         pointer.To(item["local_azure_ip_address_enabled"].(bool)),
 				UsePolicyBasedTrafficSelectors: pointer.To(item["policy_based_traffic_selector_enabled"].(bool)),
@@ -566,12 +566,12 @@ func expandVpnGatewayConnectionVpnSiteLinkConnections(input []interface{}) *[]vi
 	return &result
 }
 
-func flattenVpnGatewayConnectionVpnSiteLinkConnections(input *[]virtualwans.VpnSiteLinkConnection) interface{} {
+func flattenVpnGatewayConnectionVpnSiteLinkConnections(input *[]virtualwans.VpnSiteLinkConnection) any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 
 	for _, item := range *input {
 		if item.Properties == nil {
@@ -595,7 +595,7 @@ func flattenVpnGatewayConnectionVpnSiteLinkConnections(input *[]virtualwans.VpnS
 			vpnSiteLinkId = *props.VpnSiteLink.Id
 		}
 
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"name":                                  pointer.From(item.Name),
 			"dpd_timeout_seconds":                   int(pointer.From(props.DpdTimeoutSeconds)),
 			"egress_nat_rule_ids":                   flattenVpnGatewayConnectionNatRuleIds(props.EgressNatRules),
@@ -618,14 +618,14 @@ func flattenVpnGatewayConnectionVpnSiteLinkConnections(input *[]virtualwans.VpnS
 	return output
 }
 
-func expandVpnGatewayConnectionIpSecPolicies(input []interface{}) *[]virtualwans.IPsecPolicy {
+func expandVpnGatewayConnectionIpSecPolicies(input []any) *[]virtualwans.IPsecPolicy {
 	if len(input) == 0 {
 		return nil
 	}
 
 	result := make([]virtualwans.IPsecPolicy, 0)
 	for _, itemRaw := range input {
-		item := itemRaw.(map[string]interface{})
+		item := itemRaw.(map[string]any)
 		result = append(result, virtualwans.IPsecPolicy{
 			SaLifeTimeSeconds:   int64(item["sa_lifetime_sec"].(int)),
 			SaDataSizeKilobytes: int64(item["sa_data_size_kb"].(int)),
@@ -641,14 +641,14 @@ func expandVpnGatewayConnectionIpSecPolicies(input []interface{}) *[]virtualwans
 	return &result
 }
 
-func flattenVpnGatewayConnectionIpSecPolicies(input *[]virtualwans.IPsecPolicy) []interface{} {
+func flattenVpnGatewayConnectionIpSecPolicies(input *[]virtualwans.IPsecPolicy) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 	for _, item := range *input {
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"sa_lifetime_sec":          int(item.SaLifeTimeSeconds),
 			"sa_data_size_kb":          int(item.SaDataSizeKilobytes),
 			"encryption_algorithm":     string(item.IPsecEncryption),
@@ -663,12 +663,12 @@ func flattenVpnGatewayConnectionIpSecPolicies(input *[]virtualwans.IPsecPolicy) 
 	return output
 }
 
-func expandVpnGatewayConnectionRoutingConfiguration(input []interface{}) *virtualwans.RoutingConfiguration {
+func expandVpnGatewayConnectionRoutingConfiguration(input []any) *virtualwans.RoutingConfiguration {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 
 	output := &virtualwans.RoutingConfiguration{
 		AssociatedRouteTable: &virtualwans.SubResource{
@@ -688,16 +688,16 @@ func expandVpnGatewayConnectionRoutingConfiguration(input []interface{}) *virtua
 		}
 	}
 
-	if v := raw["propagated_route_table"].([]interface{}); len(v) != 0 {
+	if v := raw["propagated_route_table"].([]any); len(v) != 0 {
 		output.PropagatedRouteTables = expandVpnGatewayConnectionPropagatedRouteTable(v)
 	}
 
 	return output
 }
 
-func flattenVpnGatewayConnectionRoutingConfiguration(input *virtualwans.RoutingConfiguration) []interface{} {
+func flattenVpnGatewayConnectionRoutingConfiguration(input *virtualwans.RoutingConfiguration) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	associateRouteTable := ""
@@ -715,8 +715,8 @@ func flattenVpnGatewayConnectionRoutingConfiguration(input *virtualwans.RoutingC
 		outboundRouteMapId = *input.OutboundRouteMap.Id
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"propagated_route_table": flattenVpnGatewayConnectionPropagatedRouteTable(input.PropagatedRouteTables),
 			"associated_route_table": associateRouteTable,
 			"inbound_route_map_id":   inboundRouteMapId,
@@ -725,17 +725,17 @@ func flattenVpnGatewayConnectionRoutingConfiguration(input *virtualwans.RoutingC
 	}
 }
 
-func flattenVpnGatewayConnectionPropagatedRouteTable(input *virtualwans.PropagatedRouteTable) []interface{} {
+func flattenVpnGatewayConnectionPropagatedRouteTable(input *virtualwans.PropagatedRouteTable) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	labels := make([]interface{}, 0)
+	labels := make([]any, 0)
 	if input.Labels != nil {
 		labels = pluginsdk.FlattenSlice(input.Labels)
 	}
 
-	routeTableIds := make([]interface{}, 0)
+	routeTableIds := make([]any, 0)
 	if input.Ids != nil {
 		for _, id := range *input.Ids {
 			if id.Id == nil {
@@ -745,19 +745,19 @@ func flattenVpnGatewayConnectionPropagatedRouteTable(input *virtualwans.Propagat
 		}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"labels":          labels,
 			"route_table_ids": routeTableIds,
 		},
 	}
 }
 
-func expandVpnGatewayConnectionTrafficSelectorPolicy(input []interface{}) *[]virtualwans.TrafficSelectorPolicy {
+func expandVpnGatewayConnectionTrafficSelectorPolicy(input []any) *[]virtualwans.TrafficSelectorPolicy {
 	results := make([]virtualwans.TrafficSelectorPolicy, 0)
 
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 
 		results = append(results, virtualwans.TrafficSelectorPolicy{
 			LocalAddressRanges:  pointer.From(pluginsdk.ExpandStringSlice(v["local_address_ranges"].(*pluginsdk.Set).List())),
@@ -768,14 +768,14 @@ func expandVpnGatewayConnectionTrafficSelectorPolicy(input []interface{}) *[]vir
 	return &results
 }
 
-func flattenVpnGatewayConnectionTrafficSelectorPolicy(input *[]virtualwans.TrafficSelectorPolicy) []interface{} {
-	results := make([]interface{}, 0)
+func flattenVpnGatewayConnectionTrafficSelectorPolicy(input *[]virtualwans.TrafficSelectorPolicy) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		results = append(results, map[string]interface{}{
+		results = append(results, map[string]any{
 			"local_address_ranges":  pluginsdk.FlattenSlice(&item.LocalAddressRanges),
 			"remote_address_ranges": pluginsdk.FlattenSlice(&item.RemoteAddressRanges),
 		})
@@ -784,15 +784,15 @@ func flattenVpnGatewayConnectionTrafficSelectorPolicy(input *[]virtualwans.Traff
 	return results
 }
 
-func expandVpnGatewayConnectionPropagatedRouteTable(input []interface{}) *virtualwans.PropagatedRouteTable {
+func expandVpnGatewayConnectionPropagatedRouteTable(input []any) *virtualwans.PropagatedRouteTable {
 	if len(input) == 0 {
 		return &virtualwans.PropagatedRouteTable{}
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	routeTableIds := make([]virtualwans.SubResource, 0)
-	for _, val := range v["route_table_ids"].([]interface{}) {
+	for _, val := range v["route_table_ids"].([]any) {
 		routeTableIds = append(routeTableIds, virtualwans.SubResource{
 			Id: pointer.To(val.(string)),
 		})
@@ -807,7 +807,7 @@ func expandVpnGatewayConnectionPropagatedRouteTable(input []interface{}) *virtua
 	return &result
 }
 
-func expandVpnGatewayConnectionNatRuleIds(input []interface{}) *[]virtualwans.SubResource {
+func expandVpnGatewayConnectionNatRuleIds(input []any) *[]virtualwans.SubResource {
 	results := make([]virtualwans.SubResource, 0)
 
 	for _, item := range input {
@@ -819,8 +819,8 @@ func expandVpnGatewayConnectionNatRuleIds(input []interface{}) *[]virtualwans.Su
 	return &results
 }
 
-func flattenVpnGatewayConnectionNatRuleIds(input *[]virtualwans.SubResource) []interface{} {
-	results := make([]interface{}, 0)
+func flattenVpnGatewayConnectionNatRuleIds(input *[]virtualwans.SubResource) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
@@ -834,11 +834,11 @@ func flattenVpnGatewayConnectionNatRuleIds(input *[]virtualwans.SubResource) []i
 	return results
 }
 
-func expandVpnGatewayConnectionCustomBgpAddresses(input []interface{}) *[]virtualwans.GatewayCustomBgpIPAddressIPConfiguration {
+func expandVpnGatewayConnectionCustomBgpAddresses(input []any) *[]virtualwans.GatewayCustomBgpIPAddressIPConfiguration {
 	results := make([]virtualwans.GatewayCustomBgpIPAddressIPConfiguration, 0)
 
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 
 		results = append(results, virtualwans.GatewayCustomBgpIPAddressIPConfiguration{
 			CustomBgpIPAddress: v["ip_address"].(string),
@@ -849,14 +849,14 @@ func expandVpnGatewayConnectionCustomBgpAddresses(input []interface{}) *[]virtua
 	return &results
 }
 
-func flattenVpnGatewayConnectionCustomBgpAddresses(input *[]virtualwans.GatewayCustomBgpIPAddressIPConfiguration) []interface{} {
-	results := make([]interface{}, 0)
+func flattenVpnGatewayConnectionCustomBgpAddresses(input *[]virtualwans.GatewayCustomBgpIPAddressIPConfiguration) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		results = append(results, map[string]interface{}{
+		results = append(results, map[string]any{
 			"ip_address":          item.CustomBgpIPAddress,
 			"ip_configuration_id": item.IPConfigurationId,
 		})
