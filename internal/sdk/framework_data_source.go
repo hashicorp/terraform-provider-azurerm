@@ -48,7 +48,7 @@ func (r *DataSourceMetadata) DecodeRead(ctx context.Context, req datasource.Read
 }
 
 type FrameworkWrappedDataSource interface {
-	ModelObject() interface{}
+	ModelObject() any
 
 	ResourceType() string
 

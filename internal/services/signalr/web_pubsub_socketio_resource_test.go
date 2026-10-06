@@ -17,15 +17,15 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type WebPubSubSocketIOTestResource struct{}
+type WebPubsubSocketioResource struct{}
 
 func TestAccWebPubSubSocketIO_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_socketio", "test")
-	r := WebPubSubSocketIOTestResource{}
+	r := WebPubsubSocketioResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "Standard_S1", 1),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -36,11 +36,11 @@ func TestAccWebPubSubSocketIO_basic(t *testing.T) {
 
 func TestAccWebPubSubSocketIO_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_socketio", "test")
-	r := WebPubSubSocketIOTestResource{}
+	r := WebPubsubSocketioResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "Standard_S1", 1),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -51,11 +51,11 @@ func TestAccWebPubSubSocketIO_requiresImport(t *testing.T) {
 
 func TestAccWebPubSubSocketIO_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_socketio", "test")
-	r := WebPubSubSocketIOTestResource{}
+	r := WebPubsubSocketioResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "Standard_S1", 1),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -69,7 +69,7 @@ func TestAccWebPubSubSocketIO_complete(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data, "Standard_S1", 1),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -80,7 +80,7 @@ func TestAccWebPubSubSocketIO_complete(t *testing.T) {
 
 func TestAccWebPubSubSocketIO_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_socketio", "test")
-	r := WebPubSubSocketIOTestResource{}
+	r := WebPubsubSocketioResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -109,32 +109,32 @@ func TestAccWebPubSubSocketIO_identity(t *testing.T) {
 
 func TestAccWebPubSubSocketIO_skus(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_socketio", "test")
-	r := WebPubSubSocketIOTestResource{}
+	r := WebPubsubSocketioResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "Free_F1", 1),
+			Config: r.basicWithSku(data, "Free_F1", 1),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data, "Standard_S1", 1),
+			Config: r.basicWithSku(data, "Standard_S1", 1),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data, "Premium_P1", 1),
+			Config: r.basicWithSku(data, "Premium_P1", 1),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data, "Premium_P2", 100),
+			Config: r.basicWithSku(data, "Premium_P2", 100),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -143,7 +143,7 @@ func TestAccWebPubSubSocketIO_skus(t *testing.T) {
 	})
 }
 
-func (WebPubSubSocketIOTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (WebPubsubSocketioResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := webpubsub.ParseWebPubSubID(state.ID)
 	if err != nil {
 		return nil, err
@@ -160,7 +160,11 @@ func (WebPubSubSocketIOTestResource) Exists(ctx context.Context, client *clients
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r WebPubSubSocketIOTestResource) basic(data acceptance.TestData, sku string, capacity int) string {
+func (r WebPubsubSocketioResource) basic(data acceptance.TestData) string {
+	return r.basicWithSku(data, "Standard_S1", 1)
+}
+
+func (r WebPubsubSocketioResource) basicWithSku(data acceptance.TestData, sku string, capacity int) string {
 	return fmt.Sprintf(`
 %s
 
@@ -177,7 +181,7 @@ resource "azurerm_web_pubsub_socketio" "test" {
 `, r.template(data), data.RandomInteger, sku, capacity)
 }
 
-func (r WebPubSubSocketIOTestResource) requiresImport(data acceptance.TestData) string {
+func (r WebPubsubSocketioResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -190,10 +194,10 @@ resource "azurerm_web_pubsub_socketio" "import" {
     name     = azurerm_web_pubsub_socketio.test.sku.0.name
     capacity = azurerm_web_pubsub_socketio.test.sku.0.capacity
   }
-}`, r.basic(data, "Standard_S1", 1))
+}`, r.basic(data))
 }
 
-func (r WebPubSubSocketIOTestResource) complete(data acceptance.TestData) string {
+func (r WebPubsubSocketioResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -230,7 +234,7 @@ resource "azurerm_web_pubsub_socketio" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r WebPubSubSocketIOTestResource) userAssignedIdentity(data acceptance.TestData) string {
+func (r WebPubsubSocketioResource) userAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -257,7 +261,7 @@ resource "azurerm_web_pubsub_socketio" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (WebPubSubSocketIOTestResource) template(data acceptance.TestData) string {
+func (WebPubsubSocketioResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

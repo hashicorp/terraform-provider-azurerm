@@ -10,15 +10,15 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var _ sdk.EphemeralResource = &KeyVaultSecretEphemeralResource{}
@@ -118,9 +118,9 @@ func (e *KeyVaultSecretEphemeralResource) Open(ctx context.Context, req ephemera
 		return
 	}
 
-	response, err := client.GetSecret(ctx, *keyVaultBaseUri, data.Name.ValueString(), data.Version.ValueString())
+	secretResp, err := client.GetSecret(ctx, *keyVaultBaseUri, data.Name.ValueString(), data.Version.ValueString())
 	if err != nil {
-		if utils.ResponseWasNotFound(response.Response) {
+		if response.WasNotFound(secretResp.Response.Response) {
 			sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("secret %s does not exist in %s", data.Name.ValueString(), keyVaultID), err)
 			return
 		}
@@ -128,9 +128,9 @@ func (e *KeyVaultSecretEphemeralResource) Open(ctx context.Context, req ephemera
 		return
 	}
 
-	data.Value = types.StringValue(pointer.From(response.Value))
+	data.Value = types.StringValue(pointer.From(secretResp.Value))
 
-	id, err := parse.ParseNestedItemID(*response.ID)
+	id, err := keyvault.ParseNestedItemID(pointer.From(secretResp.ID), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret)
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(resp, "", err)
 		return
@@ -138,7 +138,7 @@ func (e *KeyVaultSecretEphemeralResource) Open(ctx context.Context, req ephemera
 
 	data.Version = types.StringValue(id.Version)
 
-	if attributes := response.Attributes; attributes != nil {
+	if attributes := secretResp.Attributes; attributes != nil {
 		if expirationDate := attributes.Expires; expirationDate != nil {
 			data.ExpirationDate = types.StringValue(time.Time(*expirationDate).Format(time.RFC3339))
 		}
