@@ -98,9 +98,7 @@ The following arguments are supported:
 
 * `managed_disk_customer_key_uri` - (Optional) The key URI of the customer key to use for the encryption of the Managed Disk.
 
-* `sku_name` - (Optional) Determines the selected sku.
-
--> **Note:** In v4.0 of the provider the `sku_name` will have a default value of `Standard_E16s_v5`.
+* `sku_name` - (Optional) Determines the selected sku. Defaults to `Standard_E16s_v5`.
 
 * `disk_count` - (Optional) Determines the number of p30 disks that are attached to each node.
 

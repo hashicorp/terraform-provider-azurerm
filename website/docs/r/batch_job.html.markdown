@@ -32,7 +32,7 @@ resource "azurerm_batch_pool" "example" {
   name                = "examplepool"
   resource_group_name = azurerm_resource_group.example.name
   account_name        = azurerm_batch_account.example.name
-  node_agent_sku_id   = "batch.node.ubuntu 16.04"
+  node_agent_sku_id   = "batch.node.ubuntu 22.04"
   vm_size             = "STANDARD_A1_V2"
 
   fixed_scale {
@@ -57,9 +57,9 @@ resource "azurerm_batch_job" "example" {
 
 The following arguments are supported:
 
-* `batch_pool_id` - (Required) The ID of the Batch Pool. Changing this forces a new Batch Job to be created.
-
 * `name` - (Required) The name which should be used for this Batch Job. Changing this forces a new Batch Job to be created.
+
+* `batch_pool_id` - (Required) The ID of the Batch Pool. Changing this forces a new Batch Job to be created.
 
 ---
 
@@ -93,3 +93,9 @@ Batch Jobs can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_batch_job.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Batch/batchAccounts/account1/pools/pool1/jobs/job1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Batch` - 2024-07-01

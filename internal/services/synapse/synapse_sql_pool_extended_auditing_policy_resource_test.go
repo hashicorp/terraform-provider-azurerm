@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package synapse_test
@@ -8,12 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SynapseSqlPoolExtendedAuditingPolicyResource struct{}
@@ -173,13 +174,13 @@ func (SynapseSqlPoolExtendedAuditingPolicyResource) Exists(ctx context.Context, 
 
 	resp, err := client.Synapse.SqlPoolExtendedBlobAuditingPoliciesClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.SqlPoolName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+		if response.WasNotFound(resp.Response.Response) {
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (SynapseSqlPoolExtendedAuditingPolicyResource) template(data acceptance.TestData) string {
@@ -313,7 +314,9 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
-  service_endpoints    = ["Microsoft.Storage"]
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
 }
 
 resource "azurerm_storage_account_network_rules" "test" {
@@ -361,11 +364,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctest-EH-%[2]d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 2
-  message_retention   = 1
+  name              = "acctest-EH-%[2]d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 1
 }
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
@@ -390,19 +392,15 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   enabled_log {
     category = "SQLSecurityAuditEvents"
-
-    retention_policy {
-      enabled = false
-    }
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
   }
 
   // metric will return all disabled categories
   lifecycle {
-    ignore_changes = [metric]
+    ignore_changes = [enabled_metric]
   }
 }
 
@@ -424,19 +422,15 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   enabled_log {
     category = "SQLSecurityAuditEvents"
-
-    retention_policy {
-      enabled = false
-    }
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
   }
 
   // metric will return all disabled categories
   lifecycle {
-    ignore_changes = [metric]
+    ignore_changes = [enabled_metric]
   }
 }
 
@@ -459,22 +453,17 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
   eventhub_name                  = azurerm_eventhub.test.name
 
-
   enabled_log {
     category = "SQLSecurityAuditEvents"
-
-    retention_policy {
-      enabled = false
-    }
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
   }
 
   // metric will return all disabled categories
   lifecycle {
-    ignore_changes = [metric]
+    ignore_changes = [enabled_metric]
   }
 
 }
@@ -496,22 +485,17 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
   eventhub_name                  = azurerm_eventhub.test.name
 
-
   enabled_log {
     category = "SQLSecurityAuditEvents"
-
-    retention_policy {
-      enabled = false
-    }
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
   }
 
   // metric will return all disabled categories
   lifecycle {
-    ignore_changes = [metric]
+    ignore_changes = [enabled_metric]
   }
 
 }

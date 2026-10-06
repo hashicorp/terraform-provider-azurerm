@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Dev Center Network Connection should exist. Changing this forces a new resource to be created.
 
-* `domain_join_type` - (Required) The Azure Active Directory Join type. Possible values are `AzureADJoin` and `HybridAzureADJoin`. Changing this forces a new resource to be created.
+* `domain_join_type` - (Required) The Azure Active Directory Join type. Possible values are `AzureADJoin`, `HybridAzureADJoin` and `None`. Changing this forces a new resource to be created.
 
 * `subnet_id` - (Required) The ID of the Subnet that is used to attach Virtual Machines.
 
