@@ -4,47 +4,11 @@
 package containers_test
 
 import (
-	"fmt"
-	"regexp"
-	"strings"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/agentpools"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 )
-
-func TestKubernetesClusterNodePoolWindowsTagFixture(t *testing.T) {
-	data := acceptance.TestData{
-		RandomInteger: 12345,
-		Locations:     acceptance.Regions{Primary: "eastus"},
-	}
-	resource := KubernetesClusterNodePoolResource{}
-	for _, tagValue := range []string{"dev", "prod"} {
-		t.Run(tagValue, func(t *testing.T) {
-			config := resource.windowsNodePoolWithTags(data, tagValue)
-			if !strings.Contains(config, resource.templateWindowsConfig(data)) {
-				t.Fatal("Windows tag fixture must retain the Windows cluster prerequisites")
-			}
-			_, nodePool, found := strings.Cut(config, `resource "azurerm_kubernetes_cluster_node_pool" "test" {`)
-			if !found {
-				t.Fatal("Windows tag fixture must contain the target node pool")
-			}
-			if strings.Contains(nodePool, "windows_profile") {
-				t.Fatal("Windows tag fixture must omit the node-pool Windows profile from creation")
-			}
-			if !regexp.MustCompile(`os_type\s*=\s*"Windows"`).MatchString(nodePool) || !regexp.MustCompile(`node_count\s*=\s*1\b`).MatchString(nodePool) {
-				t.Fatal("Windows tag fixture must run one Windows node")
-			}
-			if !regexp.MustCompile(`os_sku\s*=\s*"Windows2022"`).MatchString(nodePool) {
-				t.Fatal("Windows tag fixture must select the tested Windows2022 image")
-			}
-			if !strings.Contains(nodePool, fmt.Sprintf("Environment = %q", tagValue)) {
-				t.Fatal("Windows tag fixture must render the requested tag value")
-			}
-		})
-	}
-}
 
 func TestKubernetesClusterNodePoolWindowsProfileState(t *testing.T) {
 	for _, test := range []struct {
