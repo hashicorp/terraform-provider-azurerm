@@ -1346,6 +1346,34 @@ func TestAccCosmosDBAccount_localAuthenticationDisabled(t *testing.T) {
 	})
 }
 
+func TestAccCosmosDBAccount_localAuthenticationDisabled_mongo(t *testing.T) {
+	testAccCosmosDBAccount_localAuthenticationDisabled(t, openapis.DatabaseAccountKindMongoDB)
+}
+
+func TestAccCosmosDBAccount_localAuthenticationDisabled_parse(t *testing.T) {
+	testAccCosmosDBAccount_localAuthenticationDisabled(t, openapis.DatabaseAccountKindParse)
+}
+
+func TestAccCosmosDBAccount_localAuthenticationDisabled_table(t *testing.T) {
+	testAccCosmosDBAccount_localAuthenticationDisabled(t, openapis.DatabaseAccountKindGlobalDocumentDB, "EnableTable")
+}
+
+func testAccCosmosDBAccount_localAuthenticationDisabled(t *testing.T, kind openapis.DatabaseAccountKind, capabilities ...string) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithLocalAuthenticationDisabled(data, kind, openapis.DefaultConsistencyLevelEventual, capabilities...),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccCosmosDBAccount_updateBurstCapacity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
@@ -4070,7 +4098,19 @@ resource "azurerm_cosmosdb_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, version, string(consistency))
 }
 
-func (CosmosDBAccountResource) basicWithLocalAuthenticationDisabled(data acceptance.TestData, kind openapis.DatabaseAccountKind, consistency openapis.DefaultConsistencyLevel) string {
+func (CosmosDBAccountResource) basicWithLocalAuthenticationDisabled(data acceptance.TestData, kind openapis.DatabaseAccountKind, consistency openapis.DefaultConsistencyLevel, additionalCapabilities ...string) string {
+	capabilityConfig := ""
+	if kind == openapis.DatabaseAccountKindMongoDB {
+		additionalCapabilities = append([]string{"EnableMongo"}, additionalCapabilities...)
+	}
+	for _, capability := range additionalCapabilities {
+		capabilityConfig += fmt.Sprintf(`
+  capabilities {
+    name = "%s"
+  }
+`, capability)
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4088,6 +4128,8 @@ resource "azurerm_cosmosdb_account" "test" {
   offer_type          = "Standard"
   kind                = "%[3]s"
 
+  %[5]s
+
   consistency_policy {
     consistency_level = "%[4]s"
   }
@@ -4099,7 +4141,7 @@ resource "azurerm_cosmosdb_account" "test" {
 
   local_authentication_enabled = false
 }
-`, data.RandomInteger, data.Locations.Primary, string(kind), string(consistency))
+`, data.RandomInteger, data.Locations.Primary, string(kind), string(consistency), capabilityConfig)
 }
 
 func (CosmosDBAccountResource) basicWithBurstCapacityEnabled(data acceptance.TestData, kind openapis.DatabaseAccountKind, consistency openapis.DefaultConsistencyLevel) string {
