@@ -252,11 +252,11 @@ func (r DataProtectionBackupVaultResource) crossSubscriptionRestore(data accepta
 %s
 
 resource "azurerm_data_protection_backup_vault" "test" {
-  name                              = "acctest-bv-%d"
-  resource_group_name               = azurerm_resource_group.test.name
-  location                          = azurerm_resource_group.test.location
-  datastore_type                    = "VaultStore"
-  redundancy                        = "LocallyRedundant"
+  name                               = "acctest-bv-%d"
+  resource_group_name                = azurerm_resource_group.test.name
+  location                           = azurerm_resource_group.test.location
+  datastore_type                     = "VaultStore"
+  redundancy                         = "LocallyRedundant"
   cross_subscription_restore_enabled = %t
 }
 `, template, data.RandomInteger, enabled)
