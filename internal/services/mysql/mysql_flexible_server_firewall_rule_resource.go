@@ -12,11 +12,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/firewallrules"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
@@ -63,19 +63,19 @@ func resourceMySqlFlexibleServerFirewallRule() *pluginsdk.Resource {
 			"start_ip_address": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: azValidate.IPv4Address,
+				ValidateFunc: validation.IsIPv4Address,
 			},
 
 			"end_ip_address": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: azValidate.IPv4Address,
+				ValidateFunc: validation.IsIPv4Address,
 			},
 		},
 	}
 }
 
-func resourceMySqlFlexibleServerFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMySqlFlexibleServerFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MySQL.FlexibleServers.FirewallRules
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -122,7 +122,7 @@ func resourceMySqlFlexibleServerFirewallRuleCreateUpdate(d *pluginsdk.ResourceDa
 	return resourceMySqlFlexibleServerFirewallRuleRead(d, meta)
 }
 
-func resourceMySqlFlexibleServerFirewallRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMySqlFlexibleServerFirewallRuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MySQL.FlexibleServers.FirewallRules
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -157,7 +157,7 @@ func resourceMySqlFlexibleServerFirewallRuleFlatten(d *pluginsdk.ResourceData, i
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceMySqlFlexibleServerFirewallRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMySqlFlexibleServerFirewallRuleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MySQL.FlexibleServers.FirewallRules
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

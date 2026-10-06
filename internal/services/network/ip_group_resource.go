@@ -13,11 +13,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/azurefirewalls"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/firewallpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/ipgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/azurefirewalls"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/firewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/ipgroups"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -96,7 +95,7 @@ func resourceIpGroup() *pluginsdk.Resource {
 	}
 }
 
-func resourceIpGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIpGroupCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.IPGroups
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -132,9 +131,9 @@ func resourceIpGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		Name:     &id.IpGroupName,
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &ipgroups.IPGroupPropertiesFormat{
-			IPAddresses: helpers.ExpandStringSlice(ipAddresses),
+			IPAddresses: pluginsdk.ExpandStringSlice(ipAddresses),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, sg, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
@@ -149,7 +148,7 @@ func resourceIpGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	return resourceIpGroupRead(d, meta)
 }
 
-func resourceIpGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIpGroupRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.IPGroups
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -213,7 +212,7 @@ func resourceIpGroupFlatten(d *pluginsdk.ResourceData, id *ipgroups.IPGroupId, m
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceIpGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIpGroupUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.IPGroups
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -251,11 +250,11 @@ func resourceIpGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	payload := existing.Model
 
 	if d.HasChange("cidrs") {
-		payload.Properties.IPAddresses = helpers.ExpandStringSlice(d.Get("cidrs").(*pluginsdk.Set).List())
+		payload.Properties.IPAddresses = pluginsdk.ExpandStringSlice(d.Get("cidrs").(*pluginsdk.Set).List())
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
@@ -284,7 +283,7 @@ func getIds(subResource *[]ipgroups.SubResource) []string {
 	return ids
 }
 
-func resourceIpGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIpGroupDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.IPGroups
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

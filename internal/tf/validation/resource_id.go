@@ -27,8 +27,8 @@ type resourceId interface {
 // non-canonical casing can therefore exist in configurations and in state (e.g. from older
 // imports), so switching to case-sensitive validation requires a state migration on the referenced
 // resources first.
-func AsGeneratedID[T resourceId](parser func(string) (T, error)) func(interface{}, string) ([]string, []error) {
-	return func(i interface{}, k string) ([]string, []error) {
+func AsGeneratedID[T resourceId](parser func(string) (T, error)) func(any, string) ([]string, []error) {
+	return func(i any, k string) ([]string, []error) {
 		v, ok := i.(string)
 		if !ok {
 			return nil, []error{fmt.Errorf("expected type of %q to be string", k)}

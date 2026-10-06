@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/workspaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/privateendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/privateendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -73,7 +73,7 @@ func dataSourceDatabricksWorkspacePrivateEndpointConnection() *pluginsdk.Resourc
 	}
 }
 
-func dataSourceDatabricksWorkspacePrivateEndpointConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceDatabricksWorkspacePrivateEndpointConnectionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataBricks.WorkspacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -107,8 +107,8 @@ func dataSourceDatabricksWorkspacePrivateEndpointConnectionRead(d *pluginsdk.Res
 	return nil
 }
 
-func flattenPrivateEndpointConnections(input *[]workspaces.PrivateEndpointConnection) []interface{} {
-	results := make([]interface{}, 0)
+func flattenPrivateEndpointConnections(input *[]workspaces.PrivateEndpointConnection) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
@@ -126,7 +126,7 @@ func flattenPrivateEndpointConnections(input *[]workspaces.PrivateEndpointConnec
 			status = string(connState.Status)
 		}
 
-		results = append(results, map[string]interface{}{
+		results = append(results, map[string]any{
 			"action_required":               actionRequired,
 			"description":                   description,
 			"name":                          name,
