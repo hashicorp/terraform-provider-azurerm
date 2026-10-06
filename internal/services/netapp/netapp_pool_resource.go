@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/capacitypools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/capacitypools"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -176,8 +176,7 @@ func resourceNetAppPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if qosType, ok := d.GetOk("qos_type"); ok {
-		qos := capacitypools.QosType(qosType.(string))
-		capacityPoolParameters.Properties.QosType = &qos
+		capacityPoolParameters.Properties.QosType = pointer.ToEnum[capacitypools.QosType](qosType.(string))
 	}
 
 	if customThroughputMibps, ok := d.GetOk("custom_throughput_mibps"); ok {

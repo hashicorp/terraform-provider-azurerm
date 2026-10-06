@@ -12,8 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworkgateways"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworkgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -294,13 +293,11 @@ func dataSourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interfa
 			return fmt.Errorf("setting `ip_configuration`: %+v", err)
 		}
 
-		vpnConfigFlat := flattenVirtualNetworkGatewayDataSourceVpnClientConfig(props.VpnClientConfiguration)
-		if err := d.Set("vpn_client_configuration", vpnConfigFlat); err != nil {
+		if err := d.Set("vpn_client_configuration", flattenVirtualNetworkGatewayDataSourceVpnClientConfig(props.VpnClientConfiguration)); err != nil {
 			return fmt.Errorf("setting `vpn_client_configuration`: %+v", err)
 		}
 
-		bgpSettingsFlat := flattenVirtualNetworkGatewayDataSourceBgpSettings(props.BgpSettings)
-		if err := d.Set("bgp_settings", bgpSettingsFlat); err != nil {
+		if err := d.Set("bgp_settings", flattenVirtualNetworkGatewayDataSourceBgpSettings(props.BgpSettings)); err != nil {
 			return fmt.Errorf("setting `bgp_settings`: %+v", err)
 		}
 
@@ -358,7 +355,7 @@ func flattenVirtualNetworkGatewayDataSourceVpnClientConfig(cfg *virtualnetworkga
 	flat := make(map[string]interface{})
 
 	if pool := cfg.VpnClientAddressPool; pool != nil {
-		flat["address_space"] = helpers.FlattenStringSlice(pool.AddressPrefixes)
+		flat["address_space"] = pluginsdk.FlattenSlice(pool.AddressPrefixes)
 	} else {
 		flat["address_space"] = []interface{}{}
 	}

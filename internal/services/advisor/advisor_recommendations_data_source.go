@@ -146,12 +146,12 @@ func dataSourceAdvisorRecommendationsRead(d *pluginsdk.ResourceData, meta interf
 		opts.Filter = pointer.To(strings.Join(filterList, " and "))
 	}
 
-	recomendations, err := client.RecommendationsListComplete(ctx, id, opts)
+	recommendations, err := client.RecommendationsListComplete(ctx, id, opts)
 	if err != nil {
 		return fmt.Errorf("loading Advisor Recommendation for %q: %+v", id, err)
 	}
 
-	if err := d.Set("recommendations", flattenAzureRmAdvisorRecommendations(recomendations.Items)); err != nil {
+	if err := d.Set("recommendations", flattenAzureRmAdvisorRecommendations(recommendations.Items)); err != nil {
 		return fmt.Errorf("setting `recommendations`: %+v", err)
 	}
 

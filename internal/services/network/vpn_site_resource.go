@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -144,14 +143,14 @@ func resourceVpnSite() *pluginsdk.Resource {
 			"o365_policy": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"traffic_category": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -395,7 +394,7 @@ func flattenVpnSiteAddressSpace(input *virtualwans.AddressSpace) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
-	return helpers.FlattenStringSlice(input.AddressPrefixes)
+	return pluginsdk.FlattenSlice(input.AddressPrefixes)
 }
 
 func expandVpnSiteLinks(input []interface{}) *[]virtualwans.VpnSiteLink {

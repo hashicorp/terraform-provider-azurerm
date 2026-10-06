@@ -13,7 +13,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-10-01/deploymentscripts"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	resourceValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -86,7 +85,7 @@ func getDeploymentScriptArguments(kind DeploymentScriptKind) map[string]*plugins
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ISO8601DurationBetween("PT1H", "P1DT2H"),
+			ValidateFunc: validation.ISO8601DurationBetween("PT1H", "P1DT2H"),
 		},
 
 		"command_line": {
@@ -210,7 +209,7 @@ func getDeploymentScriptArguments(kind DeploymentScriptKind) map[string]*plugins
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ISO8601DurationBetween("PT1S", "P1D"),
+			ValidateFunc: validation.ISO8601DurationBetween("PT1S", "P1D"),
 			Default:      "P1D",
 		},
 
@@ -360,7 +359,7 @@ func expandStorageAccountConfigurationModel(inputList []StorageAccountConfigurat
 func flattenContainerConfigurationModel(input *deploymentscripts.ContainerConfiguration) []ContainerConfigurationModel {
 	var outputList []ContainerConfigurationModel
 	if input == nil {
-		return outputList
+		return []ContainerConfigurationModel{}
 	}
 
 	if input.ContainerGroupName != nil {
@@ -410,7 +409,7 @@ func flattenEnvironmentVariableModelArray(inputList *[]deploymentscripts.Environ
 func flattenStorageAccountConfigurationModel(input *deploymentscripts.StorageAccountConfiguration, originalList []StorageAccountConfigurationModel) []StorageAccountConfigurationModel {
 	var outputList []StorageAccountConfigurationModel
 	if input == nil {
-		return outputList
+		return []StorageAccountConfigurationModel{}
 	}
 
 	output := StorageAccountConfigurationModel{}

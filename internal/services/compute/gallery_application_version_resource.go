@@ -497,7 +497,7 @@ func expandGalleryApplicationVersionManageAction(input []ManageAction) *gallerya
 
 func flattenGalleryApplicationVersionManageAction(input *galleryapplicationversions.UserArtifactManage) []ManageAction {
 	if input == nil {
-		return nil
+		return []ManageAction{}
 	}
 
 	output := make([]ManageAction, 0)
@@ -561,8 +561,7 @@ func flattenGalleryApplicationVersionTargetRegion(input *[]galleryapplicationver
 
 	for _, item := range *input {
 		obj := TargetRegion{
-			Name:              location.Normalize(item.Name),
-			ExcludeFromLatest: false,
+			Name: location.Normalize(item.Name),
 		}
 
 		if item.ExcludeFromLatest != nil {

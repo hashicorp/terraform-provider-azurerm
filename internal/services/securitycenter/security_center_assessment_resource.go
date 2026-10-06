@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2021-06-01/assessmentsmetadata"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -63,13 +62,9 @@ func resourceSecurityCenterAssessment() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"code": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(security.Healthy),
-								string(security.NotApplicable),
-								string(security.Unhealthy),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInEnumSlice(security.PossibleAssessmentStatusCodeValues(), false),
 						},
 
 						"cause": {
@@ -129,7 +124,7 @@ func resourceSecurityCenterAssessmentCreateUpdate(d *pluginsdk.ResourceData, met
 
 	assessment := security.Assessment{
 		AssessmentProperties: &security.AssessmentProperties{
-			AdditionalData: helpers.ExpandMapStringPtrString(d.Get("additional_data").(map[string]interface{})),
+			AdditionalData: pluginsdk.ExpandMapStringPtrString(d.Get("additional_data").(map[string]interface{})),
 			ResourceDetails: &security.AzureResourceDetails{
 				Source: security.SourceAzure,
 			},
@@ -170,7 +165,7 @@ func resourceSecurityCenterAssessmentRead(d *pluginsdk.ResourceData, meta interf
 	d.Set("assessment_policy_id", assessmentsmetadata.NewProviderAssessmentMetadataID(subscriptionID, id.Name).ID())
 	d.Set("target_resource_id", id.TargetResourceID)
 	if props := resp.AssessmentProperties; props != nil {
-		d.Set("additional_data", helpers.FlattenMapStringPtrString(props.AdditionalData))
+		d.Set("additional_data", pluginsdk.FlattenMapStringPtrString(props.AdditionalData))
 		if err := d.Set("status", flattenSecurityCenterAssessmentStatus(props.Status)); err != nil {
 			return fmt.Errorf("setting `status`: %s", err)
 		}

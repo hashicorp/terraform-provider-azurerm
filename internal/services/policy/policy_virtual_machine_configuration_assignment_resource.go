@@ -78,14 +78,14 @@ func resourcePolicyVirtualMachineConfigurationAssignmentSchema() map[string]*plu
 					"content_hash": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Computed:     true,
+						Computed:     true, // azignore:AZS007 - pre-existing violation
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"content_uri": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Computed:     true,
+						Computed:     true, // azignore:AZS007 - pre-existing violation
 						ValidateFunc: validation.IsURLWithScheme([]string{"http", "https"}),
 					},
 

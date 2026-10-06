@@ -3,7 +3,10 @@
 
 package validate
 
-import "fmt"
+import (
+	"fmt"
+	"slices"
+)
 
 var ISO3166_1_alpha2 = []string{
 	"AF",
@@ -267,10 +270,8 @@ func ISO3361CountryCode(input interface{}, k string) (warnings []string, errors 
 		return
 	}
 
-	for _, a := range ISO3166_1_alpha2 {
-		if a == v {
-			return
-		}
+	if slices.Contains(ISO3166_1_alpha2, v) {
+		return
 	}
 	errors = append(errors, fmt.Errorf("%s (%q) is not a valid ISO3361-1 Alpha-2 country code, see the official Palo Alto supported list at https://knowledgebase.paloaltonetworks.com/KCSArticleDetail?id=kA10g000000ClFFCA0 for more information", k, v))
 

@@ -204,7 +204,7 @@ func (m ConfigurationResource) Create() sdk.ResourceFunc {
 				existing, err := client.ConfigurationsGet(ctx, id)
 				if !response.WasNotFound(existing.HttpResponse) {
 					if err != nil {
-						return fmt.Errorf("retreiving %s: %v", id, err)
+						return fmt.Errorf("retrieving %s: %v", id, err)
 					}
 					return metadata.ResourceRequiresImport(m.ResourceType(), id)
 				}
@@ -382,7 +382,6 @@ func (m ConfigurationResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			meta.Logger.Infof("deleting %s", id)
 			client := meta.Client.Nginx.NginxConfiguration
 
 			if err := client.ConfigurationsDeleteThenPoll(ctx, *id); err != nil {

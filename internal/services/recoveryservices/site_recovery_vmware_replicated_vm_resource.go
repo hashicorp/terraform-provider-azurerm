@@ -840,11 +840,9 @@ func (r VMWareReplicatedVmResource) Delete() sdk.ResourceFunc {
 
 			client := metadata.Client.RecoveryServices.ReplicationProtectedItemsClient
 
-			disableProtectionReason := replicationprotecteditems.DisableProtectionReasonNotSpecified
-
 			disableProtectionInput := replicationprotecteditems.DisableProtectionInput{
 				Properties: replicationprotecteditems.DisableProtectionInputProperties{
-					DisableProtectionReason: &disableProtectionReason,
+					DisableProtectionReason: pointer.To(replicationprotecteditems.DisableProtectionReasonNotSpecified),
 					// It's a workaround for https://github.com/hashicorp/pandora/issues/1864
 					ReplicationProviderInput: replicationprotecteditems.BaseDisableProtectionProviderSpecificInputImpl{
 						InstanceType: string(siterecovery.InstanceTypeDisableProtectionProviderSpecificInput),

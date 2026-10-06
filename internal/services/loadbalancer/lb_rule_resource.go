@@ -10,9 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -303,9 +302,8 @@ func expandAzureRmLoadBalancerRule(d *pluginsdk.ResourceData, lb *loadbalancers.
 		if isGateway {
 			var baps []loadbalancers.SubResource
 			for _, p := range l {
-				p := p.(string)
 				baps = append(baps, loadbalancers.SubResource{
-					Id: &p,
+					Id: pointer.To(p.(string)),
 				})
 			}
 			properties.BackendAddressPools = &baps
@@ -383,13 +381,13 @@ func resourceArmLoadBalancerRuleSchema() map[string]*pluginsdk.Schema {
 		"frontend_port": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
-			ValidateFunc: validate.PortNumberOrZero,
+			ValidateFunc: validation.IsPortNumberOrZero,
 		},
 
 		"backend_port": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
-			ValidateFunc: validate.PortNumberOrZero,
+			ValidateFunc: validation.IsPortNumberOrZero,
 		},
 
 		"probe_id": {

@@ -15,8 +15,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/backups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/backupvaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/backups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/backupvaults"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -210,7 +210,7 @@ func (r NetAppBackupVaultResource) Delete() sdk.ResourceFunc {
 			}
 
 			// Attempt to delete backup vault with retries
-			for retries := 0; retries < 5; retries++ {
+			for range 5 {
 				// Delete backups
 				if err := deleteBackupsFromVault(ctx, id, backupClient, metadata.Client.Features.NetApp.DeleteBackupsOnBackupVaultDestroy); err != nil {
 					return err
@@ -329,7 +329,7 @@ func deleteBackupsFromVault(ctx context.Context, id *backupvaults.BackupVaultId,
 
 func retryBackupDelete(ctx context.Context, client *backups.BackupsClient, id backups.BackupId, retryAttempts, retryIntervalSec int) error {
 	var lastErr error
-	for attempt := 0; attempt < retryAttempts; attempt++ {
+	for range retryAttempts {
 		if err := client.DeleteThenPoll(ctx, id); err == nil {
 			if err := waitForBackupDeletion(ctx, client, id); err != nil {
 				return fmt.Errorf("waiting for deletion of %s: %w", id.ID(), err)

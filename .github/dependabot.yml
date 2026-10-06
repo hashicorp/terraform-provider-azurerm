@@ -1,10 +1,21 @@
 version: 2
 updates:
-- package-ecosystem: "github-actions"
-  directory: "/"
-  schedule:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
       interval: "weekly"
-  ignore:
-    - dependency-name: "*"
-      update-types:
-        - "version-update:semver-major"
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
+    cooldown:
+      default-days: 7
+
+  # go dev tools (golangci-lint, terrafmt, gofumpt, ...) pinned in .tools/go.mod, built by make
+  # into .tools/bin; tools should move slowly so only check quarterly
+  - package-ecosystem: "gomod"
+    directory: "/.tools"
+    schedule:
+      interval: "quarterly"
+    cooldown:
+      default-days: 7

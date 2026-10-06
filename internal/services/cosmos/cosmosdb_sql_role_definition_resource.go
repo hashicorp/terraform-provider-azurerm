@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/rbacs"
 	"github.com/hashicorp/go-uuid"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -46,7 +45,7 @@ func resourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
 			"role_definition_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
@@ -137,7 +136,7 @@ func resourceCosmosDbSQLRoleDefinitionCreate(d *pluginsdk.ResourceData, meta int
 	parameters := rbacs.SqlRoleDefinitionCreateUpdateParameters{
 		Properties: &rbacs.SqlRoleDefinitionResource{
 			RoleName:         pointer.To(d.Get("name").(string)),
-			AssignableScopes: helpers.ExpandStringSlice(d.Get("assignable_scopes").(*pluginsdk.Set).List()),
+			AssignableScopes: pluginsdk.ExpandStringSlice(d.Get("assignable_scopes").(*pluginsdk.Set).List()),
 			Permissions:      expandSqlRoleDefinitionPermissions(d.Get("permissions").(*pluginsdk.Set).List()),
 			Type:             pointer.ToEnum[rbacs.RoleDefinitionType](d.Get("type").(string)),
 		},
@@ -178,7 +177,7 @@ func resourceCosmosDbSQLRoleDefinitionRead(d *pluginsdk.ResourceData, meta inter
 
 	if resp.Model != nil {
 		if props := resp.Model.Properties; props != nil {
-			d.Set("assignable_scopes", helpers.FlattenStringSlice(props.AssignableScopes))
+			d.Set("assignable_scopes", pluginsdk.FlattenSlice(props.AssignableScopes))
 			d.Set("name", props.RoleName)
 			d.Set("type", pointer.FromEnum(props.Type))
 
@@ -223,7 +222,7 @@ func resourceCosmosDbSQLRoleDefinitionUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.HasChange("assignable_scopes") {
-		parameters.Properties.AssignableScopes = helpers.ExpandStringSlice(d.Get("assignable_scopes").(*pluginsdk.Set).List())
+		parameters.Properties.AssignableScopes = pluginsdk.ExpandStringSlice(d.Get("assignable_scopes").(*pluginsdk.Set).List())
 	}
 
 	if d.HasChange("name") {
@@ -269,7 +268,7 @@ func expandSqlRoleDefinitionPermissions(input []interface{}) *[]rbacs.Permission
 		v := item.(map[string]interface{})
 
 		results = append(results, rbacs.Permission{
-			DataActions: helpers.ExpandStringSlice(v["data_actions"].(*pluginsdk.Set).List()),
+			DataActions: pluginsdk.ExpandStringSlice(v["data_actions"].(*pluginsdk.Set).List()),
 		})
 	}
 
@@ -284,7 +283,7 @@ func flattenSqlRoleDefinitionPermissions(input *[]rbacs.Permission) []interface{
 
 	for _, item := range *input {
 		results = append(results, map[string]interface{}{
-			"data_actions": helpers.FlattenStringSlice(item.DataActions),
+			"data_actions": pluginsdk.FlattenSlice(item.DataActions),
 		})
 	}
 

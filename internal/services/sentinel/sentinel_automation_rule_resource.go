@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflows"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2024-09-01/automationrules"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/migration"
@@ -85,7 +84,7 @@ func resourceSentinelAutomationRule() *pluginsdk.Resource {
 			// We can't use the pluginsdk.SuppressJsonDiff here as the "condition_json" is always an array, while that function assume its input is an object.
 			// Once https://github.com/hashicorp/terraform-plugin-sdk/pull/1102 is merged, we can switch to pluginsdk.SuppressJsonDiff.
 			DiffSuppressFunc: func(_, old, new string, _ *pluginsdk.ResourceData) bool {
-				return helpers.NormalizeJson(old) == helpers.NormalizeJson(new)
+				return pluginsdk.NormalizeJson(old) == pluginsdk.NormalizeJson(new)
 			},
 			ValidateFunc: validation.StringIsJSON,
 		},
@@ -193,9 +192,9 @@ func resourceSentinelAutomationRule() *pluginsdk.Resource {
 					},
 
 					"tenant_id": {
-						Type: pluginsdk.TypeString,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
 						// NOTE: O+C We'll use the current tenant id if this property is absent.
-						Optional:     true,
 						Computed:     true,
 						ValidateFunc: validation.IsUUID,
 					},
@@ -458,7 +457,7 @@ func expandAutomationRuleActionIncident(input []interface{}) ([]automationrules.
 		}
 
 		var labelsPtr *[]automationrules.IncidentLabel
-		if labelStrsPtr := helpers.ExpandStringSlice(b["labels"].([]interface{})); labelStrsPtr != nil && len(*labelStrsPtr) > 0 {
+		if labelStrsPtr := pluginsdk.ExpandStringSlice(b["labels"].([]interface{})); labelStrsPtr != nil && len(*labelStrsPtr) > 0 {
 			labels := make([]automationrules.IncidentLabel, 0, len(*labelStrsPtr))
 			for _, label := range *labelStrsPtr {
 				labels = append(labels, automationrules.IncidentLabel{
@@ -482,19 +481,16 @@ func expandAutomationRuleActionIncident(input []interface{}) ([]automationrules.
 			return nil, fmt.Errorf("at least one of `severity`, `owner_id`, `labels` or `status` should be specified")
 		}
 
-		classificationPtr := automationrules.IncidentClassification(classification)
-		clrPtr := automationrules.IncidentClassificationReason(clr)
-		severityPtr := automationrules.IncidentSeverity(severity)
 		out = append(out, automationrules.AutomationRuleModifyPropertiesAction{
 			Order: int64(b["order"].(int)),
 			ActionConfiguration: &automationrules.IncidentPropertiesAction{
 				Status:                &status,
-				Classification:        &classificationPtr,
+				Classification:        pointer.ToEnum[automationrules.IncidentClassification](classification),
 				ClassificationComment: &classificationComment,
-				ClassificationReason:  &clrPtr,
+				ClassificationReason:  pointer.ToEnum[automationrules.IncidentClassificationReason](clr),
 				Labels:                labelsPtr,
 				Owner:                 ownerPtr,
-				Severity:              &severityPtr,
+				Severity:              pointer.ToEnum[automationrules.IncidentSeverity](severity),
 			},
 		})
 	}

@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecurityperimeteraccessrules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecurityperimeterprofiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networksecurityperimeteraccessrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networksecurityperimeterprofiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -336,7 +336,7 @@ func expandAccessRuleSubscriptionIDs(subscriptionIDs []string) *[]networksecurit
 
 func flattenAccessRuleSubscriptionIDs(subscriptions *[]networksecurityperimeteraccessrules.SubscriptionId) []string {
 	if subscriptions == nil || len(*subscriptions) == 0 {
-		return nil
+		return []string{}
 	}
 
 	result := make([]string, 0, len(*subscriptions))

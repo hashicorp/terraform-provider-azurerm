@@ -91,7 +91,6 @@ func (d WorkspaceDataSource) Read() sdk.ResourceFunc {
 			}
 
 			id := azuremonitorworkspaces.NewAccountID(subscriptionId, state.ResourceGroupName, state.Name)
-			metadata.Logger.Infof("retrieving %s", id)
 			resp, err := client.Get(ctx, id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {

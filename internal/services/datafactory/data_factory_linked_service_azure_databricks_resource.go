@@ -386,8 +386,7 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.Resourc
 			}
 		}
 
-		initScripts := newClusterMap["init_scripts"]
-		databricksProperties.NewClusterInitScripts = &initScripts
+		databricksProperties.NewClusterInitScripts = pointer.To(newClusterMap["init_scripts"])
 	}
 
 	databricksLinkedService := &datafactory.AzureDatabricksLinkedService{
@@ -409,8 +408,7 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.Resourc
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		databricksLinkedService.Annotations = &annotations
+		databricksLinkedService.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -556,13 +554,11 @@ func resourceDataFactoryLinkedServiceDatabricksRead(d *pluginsdk.ResourceData, m
 	d.Set("additional_properties", databricks.AdditionalProperties)
 	d.Set("description", databricks.Description)
 
-	annotations := flattenDataFactoryAnnotations(databricks.Annotations)
-	if err := d.Set("annotations", annotations); err != nil {
+	if err := d.Set("annotations", flattenDataFactoryAnnotations(databricks.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
-	parameters := flattenLinkedServiceParameters(databricks.Parameters)
-	if err := d.Set("parameters", parameters); err != nil {
+	if err := d.Set("parameters", flattenLinkedServiceParameters(databricks.Parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 

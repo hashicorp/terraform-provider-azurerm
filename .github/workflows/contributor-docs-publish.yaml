@@ -13,17 +13,21 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
-  deployments: write
-  pages: write
+  contents: read
 
 jobs:
   build:
     name: Publish Contributor GitHub Pages
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # mkdocs-deploy-gh-pages pushes the gh-pages branch
+      deployments: write
+      pages: write
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+        with:
+          persist-credentials: false
 
       - name: Publish
         uses: mhausenblas/mkdocs-deploy-gh-pages@d77dd03172e96abbcdb081d8c948224762033653 # 1.26

@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -192,6 +192,11 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"breakthrough_mode_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"accept_grow_capacity_pool_for_short_term_clone_split": {
 				Type:        pluginsdk.TypeString,
 				Computed:    true,
@@ -242,6 +247,7 @@ func dataSourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("encryption_key_source", string(pointer.From(props.EncryptionKeySource)))
 		d.Set("key_vault_private_endpoint_id", props.KeyVaultPrivateEndpointResourceId)
 		d.Set("large_volume_enabled", props.IsLargeVolume)
+		d.Set("breakthrough_mode_enabled", pointer.From(props.BreakthroughMode) == volumes.BreakthroughModeEnabled)
 		d.Set("accept_grow_capacity_pool_for_short_term_clone_split", pointer.FromEnum(props.AcceptGrowCapacityPoolForShortTermCloneSplit))
 
 		smbNonBrowsable := false

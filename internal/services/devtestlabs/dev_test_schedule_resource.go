@@ -329,10 +329,9 @@ func resourceDevTestLabSchedulesDelete(d *pluginsdk.ResourceData, meta interface
 func expandDevTestScheduleRecurrenceDaily(recurrence interface{}) *schedules.DayDetails {
 	dailyRecurrenceConfigs := recurrence.([]interface{})
 	dailyRecurrenceConfig := dailyRecurrenceConfigs[0].(map[string]interface{})
-	dailyTime := dailyRecurrenceConfig["time"].(string)
 
 	return &schedules.DayDetails{
-		Time: &dailyTime,
+		Time: pointer.To(dailyRecurrenceConfig["time"].(string)),
 	}
 }
 
@@ -353,7 +352,6 @@ func flattenAzureRmDevTestLabScheduleRecurrenceDaily(dailyRecurrence *schedules.
 func expandDevTestScheduleRecurrenceWeekly(recurrence interface{}) *schedules.WeekDetails {
 	weeklyRecurrenceConfigs := recurrence.([]interface{})
 	weeklyRecurrenceConfig := weeklyRecurrenceConfigs[0].(map[string]interface{})
-	weeklyTime := weeklyRecurrenceConfig["time"].(string)
 
 	weekDays := make([]string, 0)
 	for _, dayItem := range weeklyRecurrenceConfig["week_days"].([]interface{}) {
@@ -361,7 +359,7 @@ func expandDevTestScheduleRecurrenceWeekly(recurrence interface{}) *schedules.We
 	}
 
 	return &schedules.WeekDetails{
-		Time:     &weeklyTime,
+		Time:     pointer.To(weeklyRecurrenceConfig["time"].(string)),
 		Weekdays: &weekDays,
 	}
 }
@@ -389,10 +387,9 @@ func flattenAzureRmDevTestLabScheduleRecurrenceWeekly(weeklyRecurrence *schedule
 func expandDevTestScheduleRecurrenceHourly(recurrence interface{}) *schedules.HourDetails {
 	hourlyRecurrenceConfigs := recurrence.([]interface{})
 	hourlyRecurrenceConfig := hourlyRecurrenceConfigs[0].(map[string]interface{})
-	hourlyMinute := int64(hourlyRecurrenceConfig["minute"].(int))
 
 	return &schedules.HourDetails{
-		Minute: &hourlyMinute,
+		Minute: pointer.To(int64(hourlyRecurrenceConfig["minute"].(int))),
 	}
 }
 
@@ -413,15 +410,11 @@ func flattenAzureRmDevTestLabScheduleRecurrenceHourly(hourlyRecurrence *schedule
 func expandDevTestScheduleNotificationSettings(d *pluginsdk.ResourceData) *schedules.NotificationSettings {
 	notificationSettingsConfigs := d.Get("notification_settings").([]interface{})
 	notificationSettingsConfig := notificationSettingsConfigs[0].(map[string]interface{})
-	webhookUrl := notificationSettingsConfig["webhook_url"].(string)
-	timeInMinutes := int64(notificationSettingsConfig["time_in_minutes"].(int))
-
-	notificationStatus := schedules.EnableStatus(notificationSettingsConfig["status"].(string))
 
 	return &schedules.NotificationSettings{
-		WebhookURL:    &webhookUrl,
-		TimeInMinutes: &timeInMinutes,
-		Status:        &notificationStatus,
+		WebhookURL:    pointer.To(notificationSettingsConfig["webhook_url"].(string)),
+		TimeInMinutes: pointer.To(int64(notificationSettingsConfig["time_in_minutes"].(int))),
+		Status:        pointer.ToEnum[schedules.EnableStatus](notificationSettingsConfig["status"].(string)),
 	}
 }
 

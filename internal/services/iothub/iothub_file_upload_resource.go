@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
@@ -63,20 +62,17 @@ func (r IotHubFileUploadResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"authentication_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(devices.AuthenticationTypeKeyBased),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(devices.AuthenticationTypeKeyBased),
-				string(devices.AuthenticationTypeIdentityBased),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(devices.AuthenticationTypeKeyBased),
+			ValidateFunc: validation.StringInEnumSlice(devices.PossibleAuthenticationTypeValues(), false),
 		},
 
 		"default_ttl": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      "PT1H",
-			ValidateFunc: azValidate.ISO8601Duration,
+			ValidateFunc: validation.ISO8601Duration,
 		},
 
 		"identity_id": {
@@ -89,7 +85,7 @@ func (r IotHubFileUploadResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      "PT1M",
-			ValidateFunc: azValidate.ISO8601Duration,
+			ValidateFunc: validation.ISO8601Duration,
 		},
 
 		"max_delivery_count": {
@@ -109,7 +105,7 @@ func (r IotHubFileUploadResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      "PT1H",
-			ValidateFunc: azValidate.ISO8601Duration,
+			ValidateFunc: validation.ISO8601Duration,
 		},
 	}
 }
@@ -235,16 +231,12 @@ func (r IotHubFileUploadResource) Read() sdk.ResourceFunc {
 			}
 
 			state := IotHubFileUploadResourceModel{
-				AuthenticationType:   string(devices.AuthenticationTypeKeyBased),
-				ConnectionString:     "",
-				ContainerName:        "",
-				DefaultTTL:           "PT1H",
-				IdentityId:           "",
-				IotHubId:             id.ID(),
-				LockDuration:         "PT1M",
-				MaxDeliveryCount:     10,
-				NotificationsEnabled: false,
-				SasTTL:               "PT1H",
+				AuthenticationType: string(devices.AuthenticationTypeKeyBased),
+				DefaultTTL:         "PT1H",
+				IotHubId:           id.ID(),
+				LockDuration:       "PT1M",
+				MaxDeliveryCount:   10,
+				SasTTL:             "PT1H",
 			}
 
 			if props := iotHub.Properties; props != nil {

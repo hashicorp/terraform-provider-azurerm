@@ -52,7 +52,7 @@ func (r RoleDefinitionResource) Arguments() map[string]*pluginsdk.Schema {
 		"role_definition_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validation.IsUUID,
 		},
@@ -119,7 +119,7 @@ func (r RoleDefinitionResource) Arguments() map[string]*pluginsdk.Schema {
 		"assignable_scopes": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: commonids.ValidateScopeID,

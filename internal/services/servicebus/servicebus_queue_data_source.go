@@ -9,8 +9,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/queues"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/queues"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -93,6 +93,11 @@ func dataSourceServiceBusQueue() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"maximum_message_size_in_kb": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
+
 			"max_size_in_megabytes": {
 				Type:     pluginsdk.TypeInt,
 				Computed: true,
@@ -158,6 +163,7 @@ func dataSourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("forward_to", props.ForwardTo)
 			d.Set("lock_duration", props.LockDuration)
 			d.Set("max_delivery_count", props.MaxDeliveryCount)
+			d.Set("maximum_message_size_in_kb", props.MaxMessageSizeInKilobytes)
 			d.Set("requires_duplicate_detection", props.RequiresDuplicateDetection)
 			d.Set("requires_session", props.RequiresSession)
 			d.Set("status", string(pointer.From(props.Status)))

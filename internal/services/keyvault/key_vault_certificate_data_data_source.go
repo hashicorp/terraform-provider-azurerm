@@ -47,6 +47,7 @@ func dataSourceKeyVaultCertificateData() *pluginsdk.Resource {
 			"version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				// Note: O+C because Azure returns a version in the ID, which is set into state
 				Computed: true,
 			},
 
@@ -256,7 +257,7 @@ func dataSourceArmKeyVaultCertificateDataRead(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("encoding Key Vault Certificate Key: %+v", err)
 	}
 
-	certs := ""
+	var certs strings.Builder
 
 	for _, pemCert := range pemCerts {
 		certBlock := &pem.Block{
@@ -268,10 +269,10 @@ func dataSourceArmKeyVaultCertificateDataRead(d *pluginsdk.ResourceData, meta in
 		if err = pem.Encode(&certPEM, certBlock); err != nil {
 			return fmt.Errorf("encoding Key Vault Certificate PEM: %+v", err)
 		}
-		certs += certPEM.String()
+		certs.WriteString(certPEM.String())
 	}
 
-	d.Set("pem", certs)
+	d.Set("pem", certs.String())
 	d.Set("key", keyPEM.String())
 	d.Set("certificates_count", len(pemCerts))
 

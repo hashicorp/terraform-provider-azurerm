@@ -734,7 +734,7 @@ func expandBackupProtectionPolicyVMWorkloadSchedulePolicy(input ProtectionPolicy
 
 func flattenBackupProtectionPolicyVMWorkloadSchedulePolicy(input protectionpolicies.SchedulePolicy, policyType protectionpolicies.PolicyType) []Backup {
 	if input == nil {
-		return nil
+		return []Backup{}
 	}
 
 	backupBlock := Backup{}
@@ -884,7 +884,7 @@ func expandBackupProtectionPolicyVMWorkloadRetentionPolicy(input ProtectionPolic
 
 func flattenBackupProtectionPolicyVMWorkloadRetentionDaily(input *protectionpolicies.DailyRetentionSchedule) []RetentionDaily {
 	if input == nil {
-		return nil
+		return []RetentionDaily{}
 	}
 
 	retentionDailyBlock := RetentionDaily{}
@@ -900,7 +900,7 @@ func flattenBackupProtectionPolicyVMWorkloadRetentionDaily(input *protectionpoli
 
 func flattenBackupProtectionPolicyVMWorkloadRetentionWeekly(input *protectionpolicies.WeeklyRetentionSchedule) []RetentionWeekly {
 	if input == nil {
-		return nil
+		return []RetentionWeekly{}
 	}
 
 	retentionWeeklyBlock := RetentionWeekly{}
@@ -924,7 +924,7 @@ func flattenBackupProtectionPolicyVMWorkloadRetentionWeekly(input *protectionpol
 
 func flattenBackupProtectionPolicyVMWorkloadRetentionMonthly(input *protectionpolicies.MonthlyRetentionSchedule) []RetentionMonthly {
 	if input == nil {
-		return nil
+		return []RetentionMonthly{}
 	}
 
 	retentionMonthlyBlock := RetentionMonthly{}
@@ -952,7 +952,7 @@ func flattenBackupProtectionPolicyVMWorkloadRetentionMonthly(input *protectionpo
 
 func flattenBackupProtectionPolicyVMWorkloadRetentionYearly(input *protectionpolicies.YearlyRetentionSchedule) []RetentionYearly {
 	if input == nil {
-		return nil
+		return []RetentionYearly{}
 	}
 
 	retentionYearlyBlock := RetentionYearly{}
@@ -988,7 +988,7 @@ func flattenBackupProtectionPolicyVMWorkloadRetentionYearly(input *protectionpol
 
 func flattenBackupProtectionPolicyVMWorkloadSimpleRetention(input *protectionpolicies.RetentionDuration) []SimpleRetention {
 	if input == nil {
-		return nil
+		return []SimpleRetention{}
 	}
 
 	simpleRetentionBlock := SimpleRetention{}

@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2023-12-15-preview/namespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/topics"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -89,7 +88,7 @@ func (r EventGridNamespaceResource) Arguments() map[string]*pluginsdk.Schema {
 					"ip_mask": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validate.CIDR,
+						ValidateFunc: validation.IsCIDRIPv4,
 					},
 					"action": {
 						Type:         pluginsdk.TypeString,
@@ -575,7 +574,7 @@ func expandStaticRoutingEnrichments(input []RoutingEnrichmentModel) *[]namespace
 func flattenTopicSpacesConfiguration(topicSpacesConfig *namespaces.TopicSpacesConfiguration) ([]TopicSpacesConfigurationModel, error) {
 	var output TopicSpacesConfigurationModel
 	if topicSpacesConfig == nil {
-		return nil, nil
+		return []TopicSpacesConfigurationModel{}, nil
 	}
 
 	output.MaximumSessionExpiryInHours = pointer.From(topicSpacesConfig.MaximumSessionExpiryInHours)

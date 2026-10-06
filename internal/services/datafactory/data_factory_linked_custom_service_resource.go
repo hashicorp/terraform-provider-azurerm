@@ -6,12 +6,12 @@ package datafactory
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
@@ -65,7 +65,7 @@ func resourceDataFactoryLinkedCustomService() *pluginsdk.Resource {
 			"type_properties_json": {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
-				StateFunc:        helpers.NormalizeJson,
+				StateFunc:        pluginsdk.NormalizeJson,
 				DiffSuppressFunc: suppressJsonOrderingDifference,
 			},
 
@@ -174,9 +174,7 @@ func resourceDataFactoryLinkedCustomServiceCreateUpdate(d *pluginsdk.ResourceDat
 	}
 
 	additionalProperties := d.Get("additional_properties").(map[string]interface{})
-	for k, v := range additionalProperties {
-		props[k] = v
-	}
+	maps.Copy(props, additionalProperties)
 
 	jsonData, err := json.Marshal(map[string]interface{}{
 		"properties": props,

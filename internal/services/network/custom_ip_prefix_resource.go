@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"slices"
 	"strings"
 	"time"
 
@@ -17,7 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/customipprefixes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/customipprefixes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -202,10 +203,9 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 			}
 
 			payload := customipprefixes.CustomIPPrefix{
-				Name:             &model.Name,
-				Location:         pointer.To(location.Normalize(model.Location)),
-				Tags:             tags.Expand(model.Tags),
-				ExtendedLocation: nil,
+				Name:     &model.Name,
+				Location: pointer.To(location.Normalize(model.Location)),
+				Tags:     tags.Expand(model.Tags),
 				Properties: &customipprefixes.CustomIPPrefixPropertiesFormat{
 					Cidr:              &model.CIDR,
 					CommissionedState: pointer.To(customipprefixes.CommissionedStateProvisioning),
@@ -405,12 +405,7 @@ func (r CustomIpPrefixResource) Delete() sdk.ResourceFunc {
 type commissionedStates []customipprefixes.CommissionedState
 
 func (t commissionedStates) contains(i customipprefixes.CommissionedState) bool {
-	for _, s := range t {
-		if i == s {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(t, i)
 }
 
 func (t commissionedStates) strings() (out []string) {

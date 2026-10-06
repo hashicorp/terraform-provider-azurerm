@@ -14,8 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/expressrouteports"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/expressroutecircuits"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressroutecircuits"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressrouteports"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -366,8 +366,7 @@ func resourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface{}
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
-		sku := flattenExpressRouteCircuitSku(model.Sku)
-		if err := d.Set("sku", sku); err != nil {
+		if err := d.Set("sku", flattenExpressRouteCircuitSku(model.Sku)); err != nil {
 			return fmt.Errorf("setting `sku`: %+v", err)
 		}
 		if props := model.Properties; props != nil {

@@ -335,7 +335,7 @@ func TestAccPostgresqlFlexibleServer_disablePwdAuth(t *testing.T) {
 	r := PostgresqlFlexibleServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			// starts from pwdEnabled set to `false` to test add `admininistrator_login`
+			// starts from pwdEnabled set to `false` to test add `administrator_login`
 			Config: r.authConfig(data, true, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),

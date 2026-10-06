@@ -25,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications/validate"
-	resourcesParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -101,7 +100,7 @@ func resourceManagedApplicationSchema() map[string]*pluginsdk.Schema {
 		"parameter_values": {
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
-			Computed:         true,
+			Computed:         true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc:     validation.StringIsJSON,
 			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 		},
@@ -302,12 +301,12 @@ func resourceManagedApplicationRead(d *pluginsdk.ResourceData, meta interface{})
 			return fmt.Errorf("setting `plan`: %+v", err)
 		}
 
-		id, err := resourcesParse.ResourceGroupIDInsensitively(pointer.From(p.ManagedResourceGroupId))
+		id, err := commonids.ParseResourceGroupIDInsensitively(pointer.From(p.ManagedResourceGroupId))
 		if err != nil {
 			return err
 		}
 
-		d.Set("managed_resource_group_name", id.ResourceGroup)
+		d.Set("managed_resource_group_name", id.ResourceGroupName)
 		d.Set("application_definition_id", p.ApplicationDefinitionId)
 
 		expendedParams, err := expandManagedApplicationParameters(d)
@@ -504,9 +503,8 @@ func expandManagedApplicationIdentity(input []interface{}) (*applications.Identi
 		return nil, err
 	}
 
-	resourceType := applications.ResourceIdentityType(expanded.Type)
 	out := &applications.Identity{
-		Type: &resourceType,
+		Type: pointer.ToEnum[applications.ResourceIdentityType](string(expanded.Type)),
 	}
 
 	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {

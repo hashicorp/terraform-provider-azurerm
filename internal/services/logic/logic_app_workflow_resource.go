@@ -887,9 +887,8 @@ func expandLogicAppWorkflowOpenAuthenticationPolicy(input []interface{}) *map[st
 		v := item.(map[string]interface{})
 		policyName := v["name"].(string)
 
-		policyType := workflows.OpenAuthenticationProviderTypeAAD
 		results[policyName] = workflows.OpenAuthenticationAccessPolicy{
-			Type:   &policyType,
+			Type:   pointer.To(workflows.OpenAuthenticationProviderTypeAAD),
 			Claims: expandLogicAppWorkflowOpenAuthenticationPolicyClaim(v["claim"].(*pluginsdk.Set).List()),
 		}
 	}
@@ -913,7 +912,7 @@ func expandLogicAppWorkflowOpenAuthenticationPolicyClaim(input []interface{}) *[
 
 func flattenLogicAppWorkflowWorkflowParameters(input map[string]interface{}) (map[string]interface{}, error) {
 	if input == nil {
-		return nil, nil
+		return map[string]interface{}{}, nil
 	}
 	output := make(map[string]interface{})
 	for k, v := range input {

@@ -7,16 +7,16 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/capacitypools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/volumegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/volumes"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/capacitypools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -1053,7 +1053,7 @@ func netappVolumeReplicationMirrorStateRefreshFunc(ctx context.Context, client *
 		// Possible Mirror States to be used as desiredStates:
 		// mirrored, broken or uninitialized
 
-		if !helpers.SliceContainsValue(validStates, strings.ToLower(desiredState)) {
+		if !slices.Contains(validStates, strings.ToLower(desiredState)) {
 			return nil, "", fmt.Errorf("invalid desired mirror state was passed to check mirror replication state (%s), possible values: (%+v)", desiredState, volumes.PossibleValuesForMirrorState())
 		}
 

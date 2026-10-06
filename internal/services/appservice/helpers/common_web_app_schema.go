@@ -402,7 +402,7 @@ func BackupSchema() *pluginsdk.Schema {
 							"start_time": {
 								Type:         pluginsdk.TypeString,
 								Optional:     true,
-								Computed:     true,
+								Computed:     true, // azignore:AZS007 - pre-existing violation
 								Description:  "When the schedule should start working in RFC-3339 format.",
 								ValidateFunc: validation.IsRFC3339Time,
 							},
@@ -1177,7 +1177,7 @@ func FlattenLogsConfig(logsConfig *webapps.SiteLogsConfig) []LogsConfig {
 	}
 	props := *logsConfig.Properties
 	if onlyDefaultLoggingConfig(props) {
-		return nil
+		return []LogsConfig{}
 	}
 
 	logs := LogsConfig{}
@@ -1384,28 +1384,6 @@ func FilterManagedAppSettings(input map[string]string) map[string]string {
 		"DOCKER_REGISTRY_SERVER_URL",
 		"DOCKER_REGISTRY_SERVER_USERNAME",
 		"DOCKER_REGISTRY_SERVER_PASSWORD",
-		"DIAGNOSTICS_AZUREBLOBCONTAINERSASURL",
-		"DIAGNOSTICS_AZUREBLOBRETENTIONINDAYS",
-		"WEBSITE_HTTPLOGGING_CONTAINER_URL",
-		"WEBSITE_HTTPLOGGING_RETENTION_DAYS",
-		"WEBSITE_VNET_ROUTE_ALL",
-		"spring.datasource.password",
-		"spring.datasource.url",
-		"spring.datasource.username",
-		"WEBSITE_HEALTHCHECK_MAXPINGFAILURES",
-	}
-
-	for _, v := range unmanagedSettings { //nolint:typecheck
-		delete(input, v)
-	}
-
-	return input
-}
-
-// FilterManagedAppSettingsDeprecated removes app_settings values from the state that are controlled directly be
-// schema properties when the deprecated docker settings are used. This function should be removed in 4.0
-func FilterManagedAppSettingsDeprecated(input map[string]string) map[string]string {
-	unmanagedSettings := []string{
 		"DIAGNOSTICS_AZUREBLOBCONTAINERSASURL",
 		"DIAGNOSTICS_AZUREBLOBRETENTIONINDAYS",
 		"WEBSITE_HTTPLOGGING_CONTAINER_URL",
