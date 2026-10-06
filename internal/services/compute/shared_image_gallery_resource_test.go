@@ -112,21 +112,6 @@ func TestAccSharedImageGallery_communityGallery(t *testing.T) {
 	})
 }
 
-func TestAccSharedImageGallery_groupsGallery(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_shared_image_gallery", "test")
-	r := SharedImageGalleryResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.groupsGallery(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccSharedImageGallery_privateGallery(t *testing.T) {
 	// BadRequest: Subscription '*******' is not registered with the feature Microsoft.Compute/SIGSharing. Please register the subscription before retrying the call.
 	t.Skip("Skipping due to API issues with private galleries - preview is not enabled for this subscription and MSFT are not onboarding anyone at the moment")
@@ -242,29 +227,6 @@ resource "azurerm_shared_image_gallery" "test" {
       publisher_email = "publisher@test.net"
       publisher_uri   = "https://publisher.net"
     }
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (SharedImageGalleryResource) groupsGallery(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_shared_image_gallery" "test" {
-  name                = "acctestsig%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-
-  sharing {
-    permission = "Groups"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

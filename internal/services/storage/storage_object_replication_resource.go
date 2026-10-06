@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // TODO: @tombuildsstuff: this wants a state migration to move the ID to `{id1}|{id2}` to match other resources
@@ -101,6 +100,12 @@ func resourceStorageObjectReplication() *pluginsdk.Resource {
 				},
 			},
 
+			"metrics_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"source_object_replication_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -114,7 +119,7 @@ func resourceStorageObjectReplication() *pluginsdk.Resource {
 	}
 }
 
-func resourceStorageObjectReplicationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageObjectReplicationCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.ResourceManager.ObjectReplicationPolicyOperationGroup
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -160,6 +165,9 @@ func resourceStorageObjectReplicationCreate(d *pluginsdk.ResourceData, meta inte
 			SourceAccount:      srcAccount.ID(),
 			DestinationAccount: dstAccount.ID(),
 			Rules:              expandArmObjectReplicationRuleArray(d.Get("rules").(*pluginsdk.Set).List()),
+			Metrics: &objectreplicationpolicyoperationgroup.ObjectReplicationPolicyPropertiesMetrics{
+				Enabled: pointer.To(d.Get("metrics_enabled").(bool)),
+			},
 		},
 	}
 
@@ -197,7 +205,7 @@ func resourceStorageObjectReplicationCreate(d *pluginsdk.ResourceData, meta inte
 	return resourceStorageObjectReplicationRead(d, meta)
 }
 
-func resourceStorageObjectReplicationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageObjectReplicationUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.ResourceManager.ObjectReplicationPolicyOperationGroup
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -215,6 +223,9 @@ func resourceStorageObjectReplicationUpdate(d *pluginsdk.ResourceData, meta inte
 			SourceAccount:      srcAccount.ID(),
 			DestinationAccount: dstAccount.ID(),
 			Rules:              expandArmObjectReplicationRuleArray(d.Get("rules").(*pluginsdk.Set).List()),
+			Metrics: &objectreplicationpolicyoperationgroup.ObjectReplicationPolicyPropertiesMetrics{
+				Enabled: pointer.To(d.Get("metrics_enabled").(bool)),
+			},
 		},
 	}
 
@@ -239,7 +250,7 @@ func resourceStorageObjectReplicationUpdate(d *pluginsdk.ResourceData, meta inte
 	return resourceStorageObjectReplicationRead(d, meta)
 }
 
-func resourceStorageObjectReplicationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageObjectReplicationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.ResourceManager.ObjectReplicationPolicyOperationGroup
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -280,10 +291,17 @@ func resourceStorageObjectReplicationRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("destination_object_replication_id", id.Dst.ID())
 		}
 	}
+
+	if model := srcResp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("metrics_enabled", props.Metrics != nil && pointer.From(props.Metrics.Enabled))
+		}
+	}
+
 	return nil
 }
 
-func resourceStorageObjectReplicationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageObjectReplicationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.ResourceManager.ObjectReplicationPolicyOperationGroup
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -303,10 +321,10 @@ func resourceStorageObjectReplicationDelete(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func expandArmObjectReplicationRuleArray(input []interface{}) *[]objectreplicationpolicyoperationgroup.ObjectReplicationPolicyRule {
+func expandArmObjectReplicationRuleArray(input []any) *[]objectreplicationpolicyoperationgroup.ObjectReplicationPolicyRule {
 	results := make([]objectreplicationpolicyoperationgroup.ObjectReplicationPolicyRule, 0)
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 		result := objectreplicationpolicyoperationgroup.ObjectReplicationPolicyRule{
 			SourceContainer:      v["source_container_name"].(string),
 			DestinationContainer: v["destination_container_name"].(string),
@@ -320,7 +338,7 @@ func expandArmObjectReplicationRuleArray(input []interface{}) *[]objectreplicati
 		}
 
 		if f, ok := v["filter_out_blobs_with_prefix"]; ok {
-			result.Filters.PrefixMatch = utils.ExpandStringSlice(f.(*pluginsdk.Set).List())
+			result.Filters.PrefixMatch = pluginsdk.ExpandStringSlice(f.(*pluginsdk.Set).List())
 		}
 
 		results = append(results, result)
@@ -339,8 +357,8 @@ func expandArmObjectReplicationMinCreationTime(input string) string {
 	}
 }
 
-func flattenObjectReplicationRules(input *[]objectreplicationpolicyoperationgroup.ObjectReplicationPolicyRule) []interface{} {
-	results := make([]interface{}, 0)
+func flattenObjectReplicationRules(input *[]objectreplicationpolicyoperationgroup.ObjectReplicationPolicyRule) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
@@ -349,22 +367,19 @@ func flattenObjectReplicationRules(input *[]objectreplicationpolicyoperationgrou
 		destinationContainer := item.DestinationContainer
 		sourceContainer := item.SourceContainer
 
-		var ruleId string
-		if item.RuleId != nil {
-			ruleId = *item.RuleId
-		}
+		ruleId := pointer.From(item.RuleId)
 
 		var minCreationTime string
 		if item.Filters != nil && item.Filters.MinCreationTime != nil {
 			minCreationTime = *item.Filters.MinCreationTime
 		}
 
-		var prefix []interface{}
+		var prefix []any
 		if item.Filters != nil && item.Filters.PrefixMatch != nil {
-			prefix = utils.FlattenStringSlice(item.Filters.PrefixMatch)
+			prefix = pluginsdk.FlattenSlice(item.Filters.PrefixMatch)
 		}
 
-		v := map[string]interface{}{
+		v := map[string]any{
 			"destination_container_name":   destinationContainer,
 			"source_container_name":        sourceContainer,
 			"copy_blobs_created_after":     flattenArmObjectReplicationMinCreationTime(minCreationTime),

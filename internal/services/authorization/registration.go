@@ -57,14 +57,13 @@ func (r Registration) DataSources() []sdk.DataSource {
 }
 
 func (r Registration) Resources() []sdk.Resource {
-	resources := []sdk.Resource{
+	return []sdk.Resource{
 		PimActiveRoleAssignmentResource{},
 		PimEligibleRoleAssignmentResource{},
 		RoleAssignmentMarketplaceResource{},
 		RoleDefinitionResource{},
 		RoleManagementPolicyResource{},
 	}
-	return resources
 }
 
 func (r Registration) Actions() []func() action.Action {
