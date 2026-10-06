@@ -10,7 +10,7 @@ description: |-
 
 Manages a NetApp Account Encryption Resource.
 
-For more information about Azure NetApp Files Customer-Managed Keys feature, please refer to [Configure customer-managed keys for Azure NetApp Files volume encryption](https://learn.microsoft.com/en-us/azure/azure-netapp-files/configure-customer-managed-keys)
+For more information about Azure NetApp Files Customer-Managed Keys feature, please refer to [Configure customer-managed keys for Azure NetApp Files volume encryption](https://learn.microsoft.com/azure/azure-netapp-files/configure-customer-managed-keys)
 
 ## Example Usage
 
@@ -33,6 +33,7 @@ resource "azurerm_key_vault" "example" {
   name                            = "anfcmkakv"
   location                        = azurerm_resource_group.example.location
   resource_group_name             = azurerm_resource_group.example.name
+  rbac_authorization_enabled      = false
   enabled_for_disk_encryption     = true
   enabled_for_deployment          = true
   enabled_for_template_deployment = true
@@ -139,7 +140,7 @@ The following arguments are supported:
 
 ---
 
-* `system_assigned_identity_principal_id` - (Optional) The ID of the System Assigned Manged Identity. Conflicts with `user_assigned_identity_id`.
+* `system_assigned_identity_principal_id` - (Optional) The ID of the System Assigned Managed Identity. Conflicts with `user_assigned_identity_id`.
 
 * `user_assigned_identity_id` - (Optional) The ID of the User Assigned Managed Identity. Conflicts with `system_assigned_identity_principal_id`.
 
@@ -163,7 +164,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 90 minutes) Used when creating the Account Encryption Resource.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Account Encryption Resource.
@@ -182,4 +183,4 @@ terraform import azurerm_netapp_account_encryption.example /subscriptions/000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.NetApp` - 2025-06-01
+* `Microsoft.NetApp` - 2026-05-01

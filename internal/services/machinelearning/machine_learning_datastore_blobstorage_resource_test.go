@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package machinelearning_test
@@ -176,7 +176,7 @@ resource "azurerm_storage_container" "test" {
 resource "azurerm_machine_learning_datastore_blobstorage" "test" {
   name                 = "acctestds%[2]d"
   workspace_id         = azurerm_machine_learning_workspace.test.id
-  storage_container_id = azurerm_storage_container.test.resource_manager_id
+  storage_container_id = azurerm_storage_container.test.id
   account_key          = azurerm_storage_account.test.primary_access_key
 }
 `, template, data.RandomInteger)
@@ -196,7 +196,7 @@ resource "azurerm_storage_container" "test" {
 resource "azurerm_machine_learning_datastore_blobstorage" "test" {
   name                       = "acctestds%[2]d"
   workspace_id               = azurerm_machine_learning_workspace.test.id
-  storage_container_id       = azurerm_storage_container.test.resource_manager_id
+  storage_container_id       = azurerm_storage_container.test.id
   service_data_auth_identity = "WorkspaceSystemAssignedIdentity"
 }
 `, template, data.RandomInteger)
@@ -252,7 +252,7 @@ data "azurerm_storage_account_sas" "test" {
 resource "azurerm_machine_learning_datastore_blobstorage" "test" {
   name                       = "acctestds%[2]d"
   workspace_id               = azurerm_machine_learning_workspace.test.id
-  storage_container_id       = azurerm_storage_container.test.resource_manager_id
+  storage_container_id       = azurerm_storage_container.test.id
   service_data_auth_identity = "WorkspaceUserAssignedIdentity"
   shared_access_signature    = data.azurerm_storage_account_sas.test.sas
 }
@@ -308,7 +308,7 @@ data "azurerm_storage_account_sas" "test" {
 resource "azurerm_machine_learning_datastore_blobstorage" "test" {
   name                    = "acctestds%[2]d"
   workspace_id            = azurerm_machine_learning_workspace.test.id
-  storage_container_id    = azurerm_storage_container.test.resource_manager_id
+  storage_container_id    = azurerm_storage_container.test.id
   shared_access_signature = data.azurerm_storage_account_sas.test.sas
 }
 `, template, data.RandomInteger)
@@ -400,14 +400,16 @@ resource "azurerm_application_insights" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestvault%[3]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
+  name                       = "acctestvault%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
 
   sku_name = "standard"
 
-  purge_protection_enabled = true
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 }
 
 resource "azurerm_key_vault_access_policy" "test" {
@@ -424,7 +426,7 @@ resource "azurerm_key_vault_access_policy" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[4]d"
+  name                     = "acctestsa%[3]s"
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
@@ -443,5 +445,5 @@ resource "azurerm_machine_learning_workspace" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomIntOfLength(15))
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

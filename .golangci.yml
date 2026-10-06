@@ -1,95 +1,174 @@
-# Copyright (c) HashiCorp, Inc.
+# Copyright IBM Corp. 2014, 2026
 # SPDX-License-Identifier: MPL-2.0
 
+# NOTE: this config enables the azproviderlint and tfproviderlint module plugins, which only
+# exist in the custom-built binary produced by 'make golangci-with-modules' (see
+# .tools/.custom-gcl.yml) — run lints via 'make lint' / '.tools/bin/golangci-with-modules run',
+# not stock golangci-lint.
+version: "2"
 run:
-  timeout: 60m
-  go: "1.24"
   modules-download-mode: vendor
 
 issues:
   max-issues-per-linter: 0
   max-same-issues: 0
-  exclude-dirs:
-    - /sdk/ # Excluding sdk folders as these are externally generated
-  exclude-files:
-    - "internal/services/.*/.*_gen.go$"
 
 linters:
-  disable-all: true
+  default: none
   enable:
-    - asasalint # check for pass []any as any in variadic func(...any)
-    - asciicheck # ensure code does not contain non-ASCII identifiers
-    - bidichk # checks for dangerous unicode character sequences
-    - decorder # check declaration order and count of types, constants, variables and functions.
-    - durationcheck # check for common mistakes when working with time.Duration
-    - dupword # check for duplicated words in comments
-    - errcheck # checking for unchecked errors
-    - gocritic # linter for Go source code that specializes in simplifying code
-    - gofmt # checks whether code was gofmt-ed
-    - gofumpt # checks whether code was gofumpt-ed, a stricter gofmt
-    - goimports # check import statements are formatted according to the 'goimport' command
-    - gosimple # linter for Go source code that specializes in simplifying code.
-    - govet # reports suspicious constructs. It is roughly the same as 'go vet' (replaced vet and vetshadow)
-    - ineffassign # detects when assignments to existing variables are not used
-    - misspell # finds commonly misspelled English words.
-    - nilerr # Finds code that returns nil after it checks that the error is not nil.
-    - prealloc # finds slice declarations that could potentially be pre-allocated.
-    - predeclared # find code that shadows one of Go's predeclared identifiers.
-    - reassign # checks that package variables are not reassigned.
-    - tenv #detects using os.Setenv instead of t.Setenv since Go1.17.
-    - tagalign #  checks struct tags that do not align with the specified column in struct definitions.
-    - staticcheck # checks rules from staticcheck. It's not the same thing as the staticcheck binary.
-    - unused # checks Go code for unused constants, variables, functions and types.
-    - unconvert # checks for unnecessary type conversions.
-    - unparam # reports unused function parameters.
-    - wastedassign # finds wasted assignment statements
-    - whitespace # checks for unnecessary newlines at the start and end of functions, if, for, etc. (
+    - asasalint                 # check for pass []any as any in variadic func(...any)
+    - asciicheck                # ensure code does not contain non-ASCII identifiers
+    - azproviderlint            # custom azurerm provider checks (AZR/AZS/AZT), module plugin - see .tools/.custom-gcl.yml
+    - bidichk                   # checks for dangerous unicode character sequences
+    - copyloopvar               # detects redundant x := x copies of loop variables (unnecessary since Go 1.22)
+    - decorder                  # check declaration order and count of types, constants, variables and functions
+    - dupword                   # check for duplicated words in comments
+    - durationcheck             # check for common mistakes when working with time.Duration
+    - errcheck                  # checking for unchecked errors
+    - errname                   # checks sentinel errors are named ErrFoo and error types FooError
+    - fatcontext                # detects nested contexts accidentally rebuilt in loops and function literals
+    - gocheckcompilerdirectives # checks //go: compiler directive comments are valid
+    - gocritic                  # linter for Go source code that specializes in simplifying code
+    - govet                     # reports suspicious constructs, roughly the same as 'go vet'
+    - ineffassign               # detects when assignments to existing variables are not used
+    - makezero                  # finds slices created with non-zero length that are later appended to (leaving zero-value elements)
+    - mirror                    # reports mismatched bytes/strings function pairs causing needless conversions
+    - misspell                  # finds commonly misspelled English words
+    - modernize                 # suggests modern Go idioms (range-over-int, slices/maps/strings helpers), autofixable - see settings below
+    - nilerr                    # finds code that returns nil after it checks that the error is not nil
+    - nilnesserr                # finds code that checks one error but mistakenly returns a different nil error
+    - noctx                     # finds http requests and exec commands made without a context.Context
+    - nolintlint                # checks nolint comments are well formed, name a linter and still suppress something - see settings below
+    - nosprintfhostport         # checks for misuse of Sprintf to construct host:port in a URL
+    - predeclared               # find code that shadows one of Go's predeclared identifiers
+    - reassign                  # checks that package variables are not reassigned
+    - staticcheck               # checks rules from staticcheck (not the same thing as the staticcheck binary)
+    - tagalign                  # checks struct tags are aligned and sorted (json/tfschema/computed first, per settings below)
+    - tfproviderlint            # terraform provider checks (AT/R/S/V + extended X*), module plugin - see .tools/.custom-gcl.yml
+    - unconvert                 # checks for unnecessary type conversions
+    - unparam                   # reports unused function parameters
+    - unused                    # checks Go code for unused constants, variables, functions and types
+    - wastedassign              # finds wasted assignment statements
+    - whitespace                # checks for unnecessary newlines at the start and end of functions, if, for, etc.
 
-    ##### need to confirm these are valid and adding t.Parallel() to unit tests would be beneficial / integration tests would not be affected
-    #- paralleltest # detects missing usage of t.Parallel() method in your Go test.
-    #- tparallel # Tparallel detects inappropriate usage of t.Parallel() method in your Go test codes.
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - internal/services/.*/.*_gen.go$
+    rules:
+      # staticcheck 0.8 (golangci-lint v2.13) started reporting deprecated struct fields set in composite literals,
+      # which flags the legacy Create/Read/Update/Delete funcs on every untyped resource (~2900 sites). Migrating
+      # them to the *Context variants is a mechanical pr of its own; until then keep SA1019 quiet for just these.
+      - linters: [staticcheck]
+        text: '/(pluginsdk|schema)\.Resource\)\.(Create|Read|Update|Delete) is deprecated: Use'
+      # the sdk's own tests use int model fields on purpose, to check the encoder/decoder still handles them
+      - linters: [azproviderlint]
+        path: internal/sdk/.*_test\.go$
+        text: '^AZS001:'
 
-    ###### DISABLED because : the number of possible integer overflow conversions from int -> int32. it's not an incorrect callout?
-    # - gosec # Gosec is a security linter for Go source code
+  settings:
+    errcheck:
+      exclude-functions: # d.Set/SetNew/ForceNew only error on schema-key typos (caught by tests)
+        - (*github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema.ResourceDiff).ForceNew
+        - (*github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema.ResourceDiff).SetNew
+        - (*github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema.ResourceDiff).SetNewComputed
+        - (*github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema.ResourceData).Set
+        - io.Close
+    govet:
+      enable:
+        - nilness # reports impossible/redundant nil comparisons and nil pointer dereferences
+    misspell:
+      ignore-rules:
+        - hdinsight
+        - exportfs
+    modernize:
+      disable:
+        - newexpr # flags pointer.To(x) -> new(x), azurerm standardises on pointer.To (see AZG002 below)
+    nolintlint:
+      require-specific: true # a nolint that names no linter switches off every linter for the code below it
+    predeclared:
+      ignore: # widely used as ordinary variable/parameter names across the provider (old/new in diffs, min/max in validation)
+        - new
+        - min
+        - max
+    tagalign:
+      sort: true # fixed order below first, any remaining tags alphabetically after
+      order:
+        - json
+        - tfschema
+        - computed
 
-    ##### DISABLED as it (correctly) flags fmt.Errorf("constant") to be replaced with errors.New("constant") and there are ~1500 instances of this in the codebase
-    #- perfsprint # Checks that fmt.Sprintf can be replaced with a faster alternative.
+    custom:
+      azproviderlint:
+        type: module
+        settings:
+          disable:
+            - AZG008 # pointer dereferences (*props.Status) must have a reachable nil guard - ~1398 findings to fix later
+            - AZR002 # split create and update: ~350 todo over time
+            - AZT002 # tests should not obtain credentials via os.Getenv - investigate in a later pr
+            - AZR004 # Resource IDs should not be compared with == or != - to fix in a later commit
+            - AZR003 # d.Get should not be used within a Delete function as it does not work as expected during deletion - 9 findings to fix later
+            - AZR007 # StateChangeConf should be replaced with a custom poller implementing pollers.PollerType - 159 findings, being migrated over time (eventual consistency poller series was the start)
+            - AZS003 # TypeList blocks where every property is optional with no default allow empty blocks - 290 findings to fix later
+            - AZP002 # resources with no corresponding data source - 768 findings, to determine if to be fixed later
+            - AZP003 # data sources missing properties that exist on the resource - 185 findings, todo later
+            - AZR010 # callers nil-checking before flatten* functions that already handle nil - 244 findings, new in v0.8.0, to fix later
+          AZG002:
+            use: pointer.To # rather than the go1.26 new(<expr>) builtin
+          AZG006:
+            # only inline temporaries into calls whose other arguments are all basic literals
+            # (e.g. d.Set("key", x)) - among identifier/expression siblings the name adds context
+            only-when-literals: true
+          AZG010:
+            ignore:
+              - '^v\d{4}_\d{2}_\d{2}' # versioned SDK packages (v2021_03_01) keep their descriptive alias
+          AZS004:
+            # exact-match only: report hand-written lists that exactly match the enum (a pure
+            # PossibleValuesFor<Enum>() swap); deliberate subsets/supersets are left alone
+            allow-missing-values: true
+            allow-extra-values: true
+          AZS007:
+            exclude-packages: "migration"
+      tfproviderlint:
+        type: module
+        settings: # all checks run (including the tfproviderlintx X* checks, via extended) except those disabled below
+          extended: true
+          disable:
+            - AT002 # flags ImportState tests as extraneous, but azurerm intentionally has separate _requiresImport acceptance tests
+            - AT004 # flags TestStep Configs declaring provider blocks, but azurerm test configs intentionally declare provider "azurerm" { features {} }
+            - R009 # avoid panic() — 27 findings, mostly intentional panics in internal/tools generators and the internal/acceptance test framework
+            - R018 # prefer retry/wait helpers over time.Sleep() — 28 findings, many deliberate PreConfig waits in acceptance tests
+            - XR005 # resources should configure Description — azurerm does not use schema descriptions (docs are hand-written)
+            - XR008 # avoid os/exec.CommandContext() — intentional uses in the internal/tools generators, and noctx requires CommandContext over Command
+            - XS001 # schema attributes should configure Description — azurerm does not use schema descriptions (docs are hand-written)
+            - XS002 # schema attributes should be listed alphabetically — azurerm orders schemas required/optional/computed by convention
+          flags:
+            - check: AT001 # TestCases should define CheckDestroy, check only ignores the data_source_ prefix by default and azurerm suffixes their tests
+              flag: ignored-filename-suffixes
+              value: _data_source_test.go
+            - check: R006 # RetryFunc bodies should contain a RetryableError - teach the check azurerm's pluginsdk alias for helper/resource
+              flag: package-aliases
+              value: pluginsdk
 
-    #### DISABLED but valid as relying on output variable names is less than idea, have a lot of these in the codebase to switch over
-    #- nakedret # Checks that functions with naked returns are not longer than a maximum size
-
-    #### bunch of hits, need to confirm if errors or not #####
-    #- copyloopvar #Detects range loop variables that are overwritten in the loop body
-
-    #### DISABLED till %+v -> %w #####
-    #- err113 #Go linter to check the errors handling expressions. - disabled as it suggests (correctly?) to use %w in fmt.Errorf instead of %+v (1000s of usages in the codebase)
-    #- errorlint #### DISABLED till %+v -> %w ##### #Errorlint is a linter for that can be used to find code that will cause problems with the error wrapping scheme used in the github.com/pkg/errors package.
-
-    # disabled as it may be useful but there are a lot of switch statements in the codebase with unhandled inputs
-    #- exhaustive #Check for missing cases in select statements
-
-    ###### DISABLED because golang will put the space back into `//nolint: linter` -> `// nolint: linter` ######
-    #- nolintlint  #Reports ill-formed or insufficient nolint directives.
-
-linters-settings:
-  errcheck:
-    exclude-functions:
-      - (*github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema.ResourceDiff).ForceNew
-      - (*github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema.ResourceDiff).SetNew
-      - (*github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema.ResourceDiff).SetNewComputed
-      - (*github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema.ResourceData).Set
-      - io.Close
-  misspell:
-    ignore-words:
-      - hdinsight
-      - exportfs
-  nakedret:
-    max-func-lines: 30
-  tagalign:
-    sort: true
-    order:
-      - json
-      - tfschema
-      - computed
-  predeclared:
-    ignore: new,min,max # should we use newer, minimum, and maximum instead?
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+  settings:
+    gci: # gci enforces canonical import sections (goimports alone preserves existing groups)
+      sections:
+        - standard
+        - blank
+        - default
+      custom-order: true
+  exclusions:
+    generated: lax
+    paths:
+      - internal/services/.*/.*_gen.go$

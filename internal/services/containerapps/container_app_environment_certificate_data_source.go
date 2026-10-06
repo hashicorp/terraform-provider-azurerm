@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containerapps
@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/certificates"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/certificates"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -25,17 +25,17 @@ type ContainerAppEnvironmentCertificateDataSourceModel struct {
 	ManagedEnvironmentId string `tfschema:"container_app_environment_id"`
 
 	// Read Only
-	SubjectName    string                 `tfschema:"subject_name"`
-	Issuer         string                 `tfschema:"issuer"`
-	IssueDate      string                 `tfschema:"issue_date"`
-	ExpirationDate string                 `tfschema:"expiration_date"`
-	Thumbprint     string                 `tfschema:"thumbprint"`
-	Tags           map[string]interface{} `tfschema:"tags"`
+	SubjectName    string         `tfschema:"subject_name"`
+	Issuer         string         `tfschema:"issuer"`
+	IssueDate      string         `tfschema:"issue_date"`
+	ExpirationDate string         `tfschema:"expiration_date"`
+	Thumbprint     string         `tfschema:"thumbprint"`
+	Tags           map[string]any `tfschema:"tags"`
 }
 
 var _ sdk.DataSource = ContainerAppEnvironmentCertificateDataSource{}
 
-func (r ContainerAppEnvironmentCertificateDataSource) ModelObject() interface{} {
+func (r ContainerAppEnvironmentCertificateDataSource) ModelObject() any {
 	return &ContainerAppEnvironmentCertificateDataSourceModel{}
 }
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -8,9 +8,8 @@ import (
 	"testing"
 )
 
-func TestAccessConnectorName(t *testing.T) {
-	const errEmpty = "cannot be an empty string"
-	const errMaxLen = "must be no more than 64 characters"
+func TestValidateAccessConnectorName(t *testing.T) {
+	const errLen = "to be in the range (1 - 64)"
 	const errAllowList = "can contain only alphanumeric characters, underscores, and hyphens"
 
 	cases := []struct {
@@ -41,17 +40,17 @@ func TestAccessConnectorName(t *testing.T) {
 		{
 			Name:           "Above maximum character length",
 			Input:          "01234567890123456789012345678901234567890123456789012345678901234", // 65 chars
-			ExpectedErrors: []string{errMaxLen},
+			ExpectedErrors: []string{errLen},
 		},
 		{
 			Name:           "Specifically test for emptiness",
 			Input:          "",
-			ExpectedErrors: []string{errEmpty},
+			ExpectedErrors: []string{errLen},
 		},
 		{
 			Name:           "Too long and non-allowed char",
 			Input:          "0123456789012345678901234567890123456789012345678901234567890123ß",
-			ExpectedErrors: []string{errMaxLen, errAllowList},
+			ExpectedErrors: []string{errLen, errAllowList},
 		},
 	}
 

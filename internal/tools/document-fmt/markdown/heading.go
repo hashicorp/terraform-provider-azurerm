@@ -1,9 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package markdown
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 )
@@ -27,4 +28,8 @@ func NewHeading(line string) Heading {
 	}
 
 	return heading
+}
+
+func (h Heading) String() string {
+	return fmt.Sprintf("%s %s", strings.Repeat("#", h.Level), h.Text)
 }

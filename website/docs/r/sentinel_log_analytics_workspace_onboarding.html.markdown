@@ -39,7 +39,7 @@ The following arguments are supported:
 
 * `customer_managed_key_enabled` - (Optional) Specifies if the Workspace is using Customer managed key. Defaults to `false`. Changing this forces a new resource to be created.
 
--> **Note:** To set up Microsoft Sentinel customer-managed key it needs to enable CMK on the workspace and add access policy to your Azure Key Vault. Details could be found on [this document](https://learn.microsoft.com/en-us/azure/sentinel/customer-managed-keys)
+-> **Note:** To set up Microsoft Sentinel customer-managed key it needs to enable CMK on the workspace and add access policy to your Azure Key Vault. Details could be found on [this document](https://learn.microsoft.com/azure/sentinel/customer-managed-keys)
 
 -> **Note:** Once a workspace is onboarded to Microsoft Sentinel with `customer_managed_key_enabled` set to true, it will not be able to be onboarded again with `customer_managed_key_enabled` set to false.
 
@@ -51,7 +51,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Security Insights Sentinel Onboarding States.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Security Insights Sentinel Onboarding States.

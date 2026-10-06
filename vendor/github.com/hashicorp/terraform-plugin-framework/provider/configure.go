@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package provider
@@ -66,6 +66,24 @@ type ConfigureResponse struct {
 	// passed to [ephemeral.ConfigureRequest.ProviderData] for each
 	// EphemeralResource type that implements the Configure method.
 	EphemeralResourceData any
+
+	// ActionData is provider-defined data, clients, etc. that is
+	// passed to [action.ConfigureRequest.ProviderData] for each
+	// Action type that implements the Configure method.
+	ActionData any
+
+	// ListResourceData is provider-defined data, clients, etc. that is
+	// passed to [action.ConfigureRequest.ProviderData] for each
+	// Action type that implements the Configure method.
+	ListResourceData any
+
+	// StateStoreData is provider-defined data, clients, etc. that is
+	// passed to [statestore.InitializeRequest.ProviderData].
+	//
+	// As state stores have a dedicated ConfigureStateStore RPC with their own configuration to consume, this value
+	// is not automatically passed to [statestore.ConfigureRequest.StateStoreData] but must be explicitly set
+	// to [statestore.InitializeResponse.StateStoreData].
+	StateStoreData any
 
 	// Deferred indicates that Terraform should automatically defer
 	// all resources and data sources for this provider.

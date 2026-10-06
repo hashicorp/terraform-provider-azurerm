@@ -48,7 +48,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `host_group_id` - The ID of a Dedicated Host Group that this Node Pool should be run on. Changing this forces a new resource to be created.
 
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/DedicatedHostGroupPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/en-us/azure/aks/use-azure-dedicated-hosts#register-the-dedicatedhostgrouppreview-preview-feature) for more information.
+-> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/DedicatedHostGroupPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/azure/aks/use-azure-dedicated-hosts#register-the-dedicatedhostgrouppreview-preview-feature) for more information.
 
 * `max_count` - The maximum number of Nodes allowed when auto-scaling is enabled.
 
@@ -59,6 +59,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `mode` - The Mode for this Node Pool, specifying how these Nodes should be used (for either System or User resources).
 
 * `node_count` - The current number of Nodes in the Node Pool.
+
+* `node_image_version` - The current node image version running on this Node Pool.
 
 * `node_labels` - A map of Kubernetes Labels applied to each Node in this Node Pool.
 
@@ -94,15 +96,19 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 A `upgrade_settings` block exports the following:
 
-* `drain_timeout_in_minutes` - The amount of time in minutes to wait on eviction of pods and graceful termination per node. This eviction wait time honors waiting on pod disruption budgets. If this time is exceeded, the upgrade fails.
+* `drain_timeout_in_minutes` - The amount of time in minutes to wait on eviction of pods and graceful termination per node. This eviction wait time honours waiting on pod disruption budgets. If this time is exceeded, the upgrade fails.
 
 * `node_soak_duration_in_minutes` - The amount of time in minutes to wait after draining a node and before reimaging it and moving on to next node.
 
 * `max_surge` - The maximum number or percentage of nodes which will be added to the Node Pool size during an upgrade.
 
+* `max_unavailable` - The maximum number or percentage of nodes which can be unavailable during the upgrade.
+
+* `undrainable_node_behavior` - The action when a node is undrainable during upgrade. Possible values are `Cordon` and `Schedule`.
+
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Kubernetes Cluster Node Pool.
 
@@ -110,4 +116,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.ContainerService` - 2025-05-01
+* `Microsoft.ContainerService` - 2026-05-01
