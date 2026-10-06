@@ -120,13 +120,11 @@ func resourceKeyVaultSecret() *pluginsdk.Resource {
 	}
 }
 
-func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Print("[INFO] preparing arguments for AzureRM KeyVault Secret creation.")
 
 	name := d.Get("name").(string)
 	keyVaultId, err := commonids.ParseKeyVaultID(d.Get("key_vault_id").(string))
@@ -163,7 +161,7 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	contentType := d.Get("content_type").(string)
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
 	parameters := kv.SecretSetParameters{
 		Value:            pointer.To(value),
@@ -174,14 +172,12 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if v, ok := d.GetOk("not_before_date"); ok {
 		notBeforeDate, _ := time.Parse(time.RFC3339, v.(string)) // validated by schema
-		notBeforeUnixTime := date.UnixTime(notBeforeDate)
-		parameters.SecretAttributes.NotBefore = &notBeforeUnixTime
+		parameters.SecretAttributes.NotBefore = pointer.To(date.UnixTime(notBeforeDate))
 	}
 
 	if v, ok := d.GetOk("expiration_date"); ok {
 		expirationDate, _ := time.Parse(time.RFC3339, v.(string)) // validated by schema
-		expirationUnixTime := date.UnixTime(expirationDate)
-		parameters.SecretAttributes.Expires = &expirationUnixTime
+		parameters.SecretAttributes.Expires = pointer.To(date.UnixTime(expirationDate))
 	}
 
 	if resp, err := client.SetSecret(ctx, *keyVaultBaseUrl, name, parameters); err != nil {
@@ -198,7 +194,7 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) e
 				stateConf := &pluginsdk.StateChangeConf{
 					Pending:                   []string{"pending"},
 					Target:                    []string{"available"},
-					Refresh:                   keyVaultChildItemRefreshFunc(*secret),
+					Refresh:                   keyVaultChildItemRefreshFunc(ctx, *secret),
 					Delay:                     30 * time.Second,
 					PollInterval:              10 * time.Second,
 					ContinuousTargetOccurence: 10,
@@ -240,12 +236,11 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	return resourceKeyVaultSecretRead(d, meta)
 }
 
-func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Print("[INFO] preparing arguments for AzureRM KeyVault Secret update.")
 
 	id, err := keyvault.ParseNestedItemID(d.Id(), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret)
 	if err != nil {
@@ -271,20 +266,18 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	value := d.Get("value").(string)
 	contentType := d.Get("content_type").(string)
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
 	secretAttributes := &kv.SecretAttributes{}
 
 	if v, ok := d.GetOk("not_before_date"); ok {
 		notBeforeDate, _ := time.Parse(time.RFC3339, v.(string)) // validated by schema
-		notBeforeUnixTime := date.UnixTime(notBeforeDate)
-		secretAttributes.NotBefore = &notBeforeUnixTime
+		secretAttributes.NotBefore = pointer.To(date.UnixTime(notBeforeDate))
 	}
 
 	if v, ok := d.GetOk("expiration_date"); ok {
 		expirationDate, _ := time.Parse(time.RFC3339, v.(string)) // validated by schema
-		expirationUnixTime := date.UnixTime(expirationDate)
-		secretAttributes.Expires = &expirationUnixTime
+		secretAttributes.Expires = pointer.To(date.UnixTime(expirationDate))
 	}
 
 	if d.HasChanges("value", "value_wo_version") {
@@ -335,7 +328,7 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	return resourceKeyVaultSecretRead(d, meta)
 }
 
-func resourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -420,7 +413,7 @@ func resourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) err
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceKeyVaultSecretDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKeyVaultSecretDelete(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId

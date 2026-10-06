@@ -91,7 +91,7 @@ func (r DataConnectorThreatIntelligenceTAXIIResource) Arguments() map[string]*pl
 		"tenant_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validation.IsUUID,
 		},
@@ -106,7 +106,7 @@ func (r DataConnectorThreatIntelligenceTAXIIResource) ResourceType() string {
 	return "azurerm_sentinel_data_connector_threat_intelligence_taxii"
 }
 
-func (r DataConnectorThreatIntelligenceTAXIIResource) ModelObject() interface{} {
+func (r DataConnectorThreatIntelligenceTAXIIResource) ModelObject() any {
 	return &DataConnectorThreatIntelligenceTAXIIModel{}
 }
 
@@ -148,7 +148,6 @@ func (r DataConnectorThreatIntelligenceTAXIIResource) Create() sdk.ResourceFunc 
 			if wsp.Model.Properties.CustomerId == nil {
 				return fmt.Errorf("nil workspace id of the workspace %s", workspaceId)
 			}
-			wspId := *wsp.Model.Properties.CustomerId
 
 			id := dataconnectors.NewDataConnectorID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, plan.Name)
 
@@ -175,7 +174,7 @@ func (r DataConnectorThreatIntelligenceTAXIIResource) Create() sdk.ResourceFunc 
 			params := dataconnectors.TiTaxiiDataConnector{
 				Name: &plan.Name,
 				Properties: &dataconnectors.TiTaxiiDataConnectorProperties{
-					WorkspaceId:         &wspId,
+					WorkspaceId:         wsp.Model.Properties.CustomerId,
 					FriendlyName:        &plan.DisplayName,
 					TaxiiServer:         &plan.APIRootURL,
 					CollectionId:        &plan.CollectionID,

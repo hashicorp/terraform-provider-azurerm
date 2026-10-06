@@ -39,7 +39,7 @@ func SchemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -54,7 +54,7 @@ func SchemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 				"ftps_state": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForFtpsState(), false),
 				},
 
@@ -69,13 +69,13 @@ func SchemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 				"linux_fx_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 				},
 
 				"min_tls_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringInSlice([]string{
 						string(webapps.SupportedTlsVersionsOnePointTwo),
 						string(webapps.SupportedTlsVersionsOnePointThree),
@@ -85,7 +85,7 @@ func SchemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 				"pre_warmed_instance_count": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.IntBetween(0, 20),
 				},
 
@@ -106,7 +106,7 @@ func SchemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 				"scm_min_tls_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringInSlice([]string{
 						string(webapps.SupportedTlsVersionsOnePointTwo),
 						string(webapps.SupportedTlsVersionsOnePointThree),
@@ -116,7 +116,7 @@ func SchemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 				"scm_type": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForScmType(), false),
 				},
 
@@ -140,14 +140,14 @@ func SchemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 				"elastic_instance_minimum": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.IntBetween(0, 20),
 				},
 
 				"app_scale_limit": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.IntAtLeast(0),
 				},
 
@@ -173,7 +173,7 @@ func SchemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 				"vnet_route_all_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 				},
 
 				"ip_restriction_default_action": {

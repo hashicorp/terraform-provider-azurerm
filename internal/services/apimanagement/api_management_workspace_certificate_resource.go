@@ -42,7 +42,7 @@ func (r ApiManagementWorkspaceCertificateResource) ResourceType() string {
 	return "azurerm_api_management_workspace_certificate"
 }
 
-func (r ApiManagementWorkspaceCertificateResource) ModelObject() interface{} {
+func (r ApiManagementWorkspaceCertificateResource) ModelObject() any {
 	return &ApiManagementWorkspaceCertificateModel{}
 }
 

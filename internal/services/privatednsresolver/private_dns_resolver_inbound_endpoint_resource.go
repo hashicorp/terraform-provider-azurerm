@@ -44,7 +44,7 @@ func (r PrivateDNSResolverInboundEndpointResource) ResourceType() string {
 	return "azurerm_private_dns_resolver_inbound_endpoint"
 }
 
-func (r PrivateDNSResolverInboundEndpointResource) ModelObject() interface{} {
+func (r PrivateDNSResolverInboundEndpointResource) ModelObject() any {
 	return &PrivateDNSResolverInboundEndpointModel{}
 }
 
@@ -86,6 +86,7 @@ func (r PrivateDNSResolverInboundEndpointResource) Arguments() map[string]*plugi
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 						ForceNew: true,
+						// Note: O+C because Azure assigns a private IP from the subnet when not specified
 						Computed: true,
 					},
 

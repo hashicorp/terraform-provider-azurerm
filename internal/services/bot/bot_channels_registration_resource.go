@@ -50,7 +50,7 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := commonids.ParseBotServiceID(id)
 			return err
-		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
 			client := meta.(*clients.Client).Bot.BotClient
 
 			id, err := commonids.ParseBotServiceID(d.Id())
@@ -86,13 +86,10 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(botservice.SkuNameF0),
-					string(botservice.SkuNameS1),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInEnumSlice(botservice.PossibleSkuNameValues(), false),
 			},
 
 			"microsoft_app_id": {
@@ -103,14 +100,10 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 			},
 
 			"microsoft_app_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(botservice.MsaAppTypeMultiTenant),
-					string(botservice.MsaAppTypeSingleTenant),
-					string(botservice.MsaAppTypeUserAssignedMSI),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInEnumSlice(botservice.PossibleMsaAppTypeValues(), false),
 			},
 
 			"microsoft_app_tenant_id": {
@@ -142,7 +135,7 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 			"display_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -194,7 +187,7 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 	}
 }
 
-func resourceBotChannelsRegistrationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelsRegistrationCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.BotClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -239,7 +232,7 @@ func resourceBotChannelsRegistrationCreate(d *pluginsdk.ResourceData, meta inter
 			Name: botservice.SkuName(d.Get("sku").(string)),
 		},
 		Kind: botservice.KindBot,
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if _, ok := d.GetOk("cmk_key_vault_url"); ok {
@@ -269,7 +262,7 @@ func resourceBotChannelsRegistrationCreate(d *pluginsdk.ResourceData, meta inter
 	}
 }
 
-func resourceBotChannelsRegistrationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelsRegistrationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.BotClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -321,7 +314,7 @@ func resourceBotChannelsRegistrationRead(d *pluginsdk.ResourceData, meta interfa
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceBotChannelsRegistrationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelsRegistrationUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.BotClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -331,7 +324,7 @@ func resourceBotChannelsRegistrationUpdate(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 	displayName := d.Get("display_name").(string)
 	if displayName == "" {
 		displayName = id.BotServiceName
@@ -388,7 +381,7 @@ func resourceBotChannelsRegistrationUpdate(d *pluginsdk.ResourceData, meta inter
 	return resourceBotChannelsRegistrationRead(d, meta)
 }
 
-func resourceBotChannelsRegistrationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelsRegistrationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.BotClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

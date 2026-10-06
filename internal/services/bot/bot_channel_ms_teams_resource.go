@@ -61,11 +61,11 @@ func resourceBotChannelMsTeams() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			// issue: https://github.com/Azure/azure-rest-api-specs/issues/9809
-			// this field could not update to empty, so add `Computed: true` to avoid diff
 			"calling_web_hook": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// Note: O+C because this field could not update to empty, so add `Computed: true` to avoid diff
+				// issue: https://github.com/Azure/azure-rest-api-specs/issues/9809
 				Computed:     true,
 				ValidateFunc: validate.BotMSTeamsCallingWebHook(),
 			},
@@ -89,7 +89,7 @@ func resourceBotChannelMsTeams() *pluginsdk.Resource {
 	}
 }
 
-func resourceBotChannelMsTeamsCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelMsTeamsCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -136,7 +136,7 @@ func resourceBotChannelMsTeamsCreate(d *pluginsdk.ResourceData, meta interface{}
 	return resourceBotChannelMsTeamsRead(d, meta)
 }
 
-func resourceBotChannelMsTeamsRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelMsTeamsRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -174,7 +174,7 @@ func resourceBotChannelMsTeamsRead(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceBotChannelMsTeamsUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelMsTeamsUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -206,7 +206,7 @@ func resourceBotChannelMsTeamsUpdate(d *pluginsdk.ResourceData, meta interface{}
 	return resourceBotChannelMsTeamsRead(d, meta)
 }
 
-func resourceBotChannelMsTeamsDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelMsTeamsDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

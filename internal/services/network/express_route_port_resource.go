@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/expressrouteports"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressrouteports"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -27,10 +27,10 @@ import (
 )
 
 var expressRoutePortSchema = &pluginsdk.Schema{
-	Type: pluginsdk.TypeList,
-	// Service will always create a pair of links automatically. Users can't add or remove link, but only manipulate existing ones.
-	// This is because the link is actually a map to the physical pair of ports on the MS edge device.
+	Type:     pluginsdk.TypeList,
 	Optional: true,
+	// Note: O+C because the service will always create a pair of links automatically. Users can't add or remove link, but only manipulate existing ones.
+	// This is because the link is actually a map to the physical pair of ports on the MS edge device.
 	Computed: true,
 	MinItems: 1,
 	MaxItems: 1,
@@ -175,7 +175,7 @@ func resourceArmExpressRoutePort() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmExpressRoutePortCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmExpressRoutePortCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRoutePorts
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -196,7 +196,7 @@ func resourceArmExpressRoutePortCreate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -209,7 +209,7 @@ func resourceArmExpressRoutePortCreate(d *pluginsdk.ResourceData, meta interface
 			Encapsulation:   pointer.ToEnum[expressrouteports.ExpressRoutePortsEncapsulation](d.Get("encapsulation").(string)),
 		},
 		Identity: expandedIdentity,
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v, ok := d.GetOk("billing_type"); ok {
@@ -226,7 +226,7 @@ func resourceArmExpressRoutePortCreate(d *pluginsdk.ResourceData, meta interface
 	d.SetId(id.ID())
 
 	// The link properties can't be specified in first creation. It will result into either error (e.g. setting `adminState`) or being ignored (e.g. setting MACSec)
-	param.Properties.Links = expandExpressRoutePortLinks(d.Get("link1").([]interface{}), d.Get("link2").([]interface{}))
+	param.Properties.Links = expandExpressRoutePortLinks(d.Get("link1").([]any), d.Get("link2").([]any))
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
@@ -235,7 +235,7 @@ func resourceArmExpressRoutePortCreate(d *pluginsdk.ResourceData, meta interface
 	return resourceArmExpressRoutePortRead(d, meta)
 }
 
-func resourceArmExpressRoutePortUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmExpressRoutePortUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRoutePorts
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -278,7 +278,7 @@ func resourceArmExpressRoutePortUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("identity") {
-		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -292,11 +292,11 @@ func resourceArmExpressRoutePortUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChanges("link1", "link2") {
-		payload.Properties.Links = expandExpressRoutePortLinks(d.Get("link1").([]interface{}), d.Get("link2").([]interface{}))
+		payload.Properties.Links = expandExpressRoutePortLinks(d.Get("link1").([]any), d.Get("link2").([]any))
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	// a lock is needed here for subresource express_route_port_authorization needs a lock.
@@ -312,7 +312,7 @@ func resourceArmExpressRoutePortUpdate(d *pluginsdk.ResourceData, meta interface
 	return resourceArmExpressRoutePortRead(d, meta)
 }
 
-func resourceArmExpressRoutePortRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmExpressRoutePortRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRoutePorts
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -348,8 +348,8 @@ func resourceArmExpressRoutePortRead(d *pluginsdk.ResourceData, meta interface{}
 		if props := model.Properties; props != nil {
 			d.Set("peering_location", props.PeeringLocation)
 			d.Set("bandwidth_in_gbps", props.BandwidthInGbps)
-			d.Set("encapsulation", string(pointer.From(props.Encapsulation)))
-			d.Set("billing_type", string(pointer.From(props.BillingType)))
+			d.Set("encapsulation", pointer.FromEnum(props.Encapsulation))
+			d.Set("billing_type", pointer.FromEnum(props.BillingType))
 			link1, link2, err := flattenExpressRoutePortLinks(props.Links)
 			if err != nil {
 				return fmt.Errorf("flattening links: %v", err)
@@ -371,7 +371,7 @@ func resourceArmExpressRoutePortRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceArmExpressRoutePortDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmExpressRoutePortDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRoutePorts
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -392,7 +392,7 @@ func resourceArmExpressRoutePortDelete(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func expandExpressRoutePortLinks(link1, link2 []interface{}) *[]expressrouteports.ExpressRouteLink {
+func expandExpressRoutePortLinks(link1, link2 []any) *[]expressrouteports.ExpressRouteLink {
 	var out []expressrouteports.ExpressRouteLink
 	if link := expandExpressRoutePortLink(1, link1); link != nil {
 		out = append(out, *link)
@@ -406,12 +406,12 @@ func expandExpressRoutePortLinks(link1, link2 []interface{}) *[]expressrouteport
 	return &out
 }
 
-func expandExpressRoutePortLink(idx int, input []interface{}) *expressrouteports.ExpressRouteLink {
+func expandExpressRoutePortLink(idx int, input []any) *expressrouteports.ExpressRouteLink {
 	if len(input) == 0 {
 		return nil
 	}
 
-	b := input[0].(map[string]interface{})
+	b := input[0].(map[string]any)
 	adminState := expressrouteports.ExpressRouteLinkAdminStateDisabled
 	if b["admin_enabled"].(bool) {
 		adminState = expressrouteports.ExpressRouteLinkAdminStateEnabled
@@ -443,9 +443,9 @@ func expandExpressRoutePortLink(idx int, input []interface{}) *expressrouteports
 	return &link
 }
 
-func flattenExpressRoutePortLinks(links *[]expressrouteports.ExpressRouteLink) ([]interface{}, []interface{}, error) {
+func flattenExpressRoutePortLinks(links *[]expressrouteports.ExpressRouteLink) ([]any, []any, error) {
 	if links == nil {
-		return nil, nil, nil
+		return []any{}, []any{}, nil
 	}
 	length := len(*links)
 	if length != 2 {
@@ -455,7 +455,7 @@ func flattenExpressRoutePortLinks(links *[]expressrouteports.ExpressRouteLink) (
 	return flattenExpressRoutePortLink((*links)[0]), flattenExpressRoutePortLink((*links)[1]), nil
 }
 
-func flattenExpressRoutePortLink(link expressrouteports.ExpressRouteLink) []interface{} {
+func flattenExpressRoutePortLink(link expressrouteports.ExpressRouteLink) []any {
 	var (
 		routerName    string
 		interfaceName string
@@ -482,7 +482,7 @@ func flattenExpressRoutePortLink(link expressrouteports.ExpressRouteLink) []inte
 		if props.RackId != nil {
 			rackId = *props.RackId
 		}
-		connectorType = string(pointer.From(props.ConnectorType))
+		connectorType = pointer.FromEnum(props.ConnectorType)
 		adminState = pointer.From(props.AdminState) == expressrouteports.ExpressRouteLinkAdminStateEnabled
 		sciState = pointer.From(props.MacSecConfig.SciState) == expressrouteports.ExpressRouteLinkMacSecSciStateEnabled
 		if cfg := props.MacSecConfig; cfg != nil {
@@ -492,12 +492,12 @@ func flattenExpressRoutePortLink(link expressrouteports.ExpressRouteLink) []inte
 			if cfg.CakSecretIdentifier != nil {
 				cakSecretId = *cfg.CakSecretIdentifier
 			}
-			cipher = string(pointer.From(cfg.Cipher))
+			cipher = pointer.FromEnum(cfg.Cipher)
 		}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"id":                            pointer.From(link.Id),
 			"router_name":                   routerName,
 			"interface_name":                interfaceName,
