@@ -73,7 +73,7 @@ The following arguments are supported:
 
 * `advertised_gateway_prefixes` - (Optional) A set of CIDR prefixes that Azure gateways advertise to on-premises networks.
 
-~> **Note:** To use advertised gateway prefixes, your virtual network must have a gateway subnet. Please see the [official documentation](https://learn.microsoft.com/azure/virtual-network/advertised-gateway-prefixes-overview) for more info.
+~> **Note:** To use advertised gateway prefixes, your virtual network must have a gateway subnet and gateway. Please see the [official documentation](https://learn.microsoft.com/azure/virtual-network/advertised-gateway-prefixes-overview) for more info.
 
 * `bgp_community` - (Optional) The BGP community attribute in format `<as-number>:<community-value>`.
 

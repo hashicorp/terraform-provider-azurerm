@@ -120,7 +120,7 @@ func dataSourceVnetRead(d *pluginsdk.ResourceData, meta any) error {
 		if props := model.Properties; props != nil {
 			d.Set("guid", props.ResourceGuid)
 
-			advertisedGatewayPrefixes := []string{}
+			advertisedGatewayPrefixes := make([]string, 0)
 			if props.SummarizedGatewayPrefixes != nil {
 				advertisedGatewayPrefixes = pointer.From(props.SummarizedGatewayPrefixes.AddressPrefixes)
 			}

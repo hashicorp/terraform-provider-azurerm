@@ -471,7 +471,7 @@ func resourceVirtualNetworkFlatten(d *pluginsdk.ResourceData, id commonids.Virtu
 			d.Set("flow_timeout_in_minutes", props.FlowTimeoutInMinutes)
 			d.Set("private_endpoint_vnet_policies", pointer.FromEnum(props.PrivateEndpointVNetPolicies))
 
-			advertisedGatewayPrefixes := []string{}
+			advertisedGatewayPrefixes := make([]string, 0)
 			if props.SummarizedGatewayPrefixes != nil {
 				advertisedGatewayPrefixes = pointer.From(props.SummarizedGatewayPrefixes.AddressPrefixes)
 			}
