@@ -56,7 +56,7 @@ func dataSourceCdnFrontDoorEndpoint() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceCdnFrontDoorEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceCdnFrontDoorEndpointRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.AFDEndpointsClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

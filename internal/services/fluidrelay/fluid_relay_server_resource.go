@@ -161,7 +161,7 @@ func (s Server) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (s Server) ModelObject() interface{} {
+func (s Server) ModelObject() any {
 	return &ServerModel{}
 }
 

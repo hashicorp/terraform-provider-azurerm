@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestDataDiskID(t *testing.T) {
+func TestValidateDataDiskID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool

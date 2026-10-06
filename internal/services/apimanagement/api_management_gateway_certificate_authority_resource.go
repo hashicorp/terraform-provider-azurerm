@@ -58,7 +58,7 @@ func resourceApiManagementGatewayCertificateAuthority() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementGatewayCertificateAuthorityCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementGatewayCertificateAuthorityCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.GatewayCertificateAuthorityClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -100,7 +100,7 @@ func resourceApiManagementGatewayCertificateAuthorityCreateUpdate(d *pluginsdk.R
 	return resourceApiManagementGatewayCertificateAuthorityRead(d, meta)
 }
 
-func resourceApiManagementGatewayCertificateAuthorityRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementGatewayCertificateAuthorityRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.GatewayCertificateAuthorityClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -136,7 +136,7 @@ func resourceApiManagementGatewayCertificateAuthorityRead(d *pluginsdk.ResourceD
 	return nil
 }
 
-func resourceApiManagementGatewayCertificateAuthorityDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementGatewayCertificateAuthorityDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.GatewayCertificateAuthorityClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
