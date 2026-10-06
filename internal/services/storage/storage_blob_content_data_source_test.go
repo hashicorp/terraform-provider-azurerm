@@ -22,8 +22,7 @@ func TestAccDataSourceStorageBlobContent_basic(t *testing.T) {
 	}
 
 	testString := "This is the test string."
-	_, err = sourceBlob.WriteString(testString)
-	if err != nil {
+	if _, err = sourceBlob.WriteString(testString); err != nil {
 		t.Fatalf("Failed to write test string to source blob file")
 	}
 

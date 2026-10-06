@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -99,7 +98,6 @@ func (d StorageBlobContentDataSource) Read() sdk.ResourceFunc {
 			}
 
 			id := blobs.NewBlobID(*accountId, state.StorageContainerName, state.Name)
-			log.Printf("[INFO] Retrieving %s", id)
 			metadata.SetID(id)
 
 			blobsClient, err := client.BlobsDataPlaneClient(ctx, *account, client.DataPlaneOperationSupportingAnyAuthMethod())
