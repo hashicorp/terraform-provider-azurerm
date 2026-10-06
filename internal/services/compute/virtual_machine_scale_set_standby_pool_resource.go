@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/standbypool/2025-03-01/standbyvirtualmachinepools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -46,7 +46,7 @@ func (r VirtualMachineScaleSetStandbyPoolResource) ResourceType() string {
 	return "azurerm_virtual_machine_scale_set_standby_pool"
 }
 
-func (r VirtualMachineScaleSetStandbyPoolResource) ModelObject() interface{} {
+func (r VirtualMachineScaleSetStandbyPoolResource) ModelObject() any {
 	return &VirtualMachineScaleSetStandbyPoolModel{}
 }
 

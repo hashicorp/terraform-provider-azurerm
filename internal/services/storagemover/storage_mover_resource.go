@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_mover -service-package-name storagemover -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 type StorageMoverModel struct {
 	Name              string            `tfschema:"name"`
@@ -43,7 +43,7 @@ func (r StorageMoverResource) ResourceType() string {
 	return "azurerm_storage_mover"
 }
 
-func (r StorageMoverResource) ModelObject() interface{} {
+func (r StorageMoverResource) ModelObject() any {
 	return &StorageMoverModel{}
 }
 

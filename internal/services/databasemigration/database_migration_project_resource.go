@@ -23,7 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name database_migration_project -service-package-name databasemigration -properties "name,resource_group_name,service_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basicForResourceIdentity
+//go:generate go run ../../tools/generator-tests resourceidentity -test-name basicForResourceIdentity
 
 func resourceDatabaseMigrationProject() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -64,30 +64,17 @@ func resourceDatabaseMigrationProject() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"source_platform": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(projectresource.ProjectSourcePlatformMongoDb),
-					string(projectresource.ProjectSourcePlatformMySQL),
-					string(projectresource.ProjectSourcePlatformPostgreSql),
-					string(projectresource.ProjectSourcePlatformSQL),
-					string(projectresource.ProjectSourcePlatformUnknown),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(projectresource.PossibleValuesForProjectSourcePlatform(), false),
 			},
 
 			"target_platform": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(projectresource.ProjectTargetPlatformAzureDbForMySql),
-					string(projectresource.ProjectTargetPlatformAzureDbForPostgreSql),
-					string(projectresource.ProjectTargetPlatformMongoDb),
-					string(projectresource.ProjectTargetPlatformSQLDB),
-					string(projectresource.ProjectTargetPlatformSQLMI),
-					string(projectresource.ProjectTargetPlatformUnknown),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(projectresource.PossibleValuesForProjectTargetPlatform(), false),
 			},
 
 			"tags": commonschema.Tags(),
@@ -95,7 +82,7 @@ func resourceDatabaseMigrationProject() *pluginsdk.Resource {
 	}
 }
 
-func resourceDatabaseMigrationProjectCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatabaseMigrationProjectCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DatabaseMigration.ProjectsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -119,7 +106,7 @@ func resourceDatabaseMigrationProjectCreateUpdate(d *pluginsdk.ResourceData, met
 	location := location.Normalize(d.Get("location").(string))
 	sourcePlatform := d.Get("source_platform").(string)
 	targetPlatform := d.Get("target_platform").(string)
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
 	parameters := projectresource.Project{
 		Location: location,
@@ -141,7 +128,7 @@ func resourceDatabaseMigrationProjectCreateUpdate(d *pluginsdk.ResourceData, met
 	return resourceDatabaseMigrationProjectRead(d, meta)
 }
 
-func resourceDatabaseMigrationProjectRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatabaseMigrationProjectRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DatabaseMigration.ProjectsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -178,7 +165,7 @@ func resourceDatabaseMigrationProjectRead(d *pluginsdk.ResourceData, meta interf
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceDatabaseMigrationProjectDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatabaseMigrationProjectDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DatabaseMigration.ProjectsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

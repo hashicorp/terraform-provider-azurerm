@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 )
 
-func TestAccCassandraSequential(t *testing.T) {
+func TestAccCassandra_sequential(t *testing.T) {
 	if os.Getenv("CASSANDRA_VERY_EXPENSIVE_TEST_ENABLED") != "true" {
 		t.Skip("Skipping due to massive cost of this resource test.")
 	}
