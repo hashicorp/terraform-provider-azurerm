@@ -1,4 +1,4 @@
-// Copyright IBM Corp.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package privatedns
@@ -92,7 +92,7 @@ func (r PrivateDnsARecordListResource) List(ctx context.Context, request list.Li
 
 			id, err := privatedns.ParseRecordTypeID(pointer.From(arecord.Id))
 			if err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing PrivateDns ARecord ID", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Private DNS A Record ID", err)
 				return
 			}
 

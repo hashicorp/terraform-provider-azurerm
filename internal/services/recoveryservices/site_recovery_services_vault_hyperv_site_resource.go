@@ -47,7 +47,7 @@ func (r HyperVSiteResource) Attributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{}
 }
 
-func (r HyperVSiteResource) ModelObject() interface{} {
+func (r HyperVSiteResource) ModelObject() any {
 	return &HyperVSiteModel{}
 }
 
@@ -138,8 +138,7 @@ func (r HyperVSiteResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("parsing %s: %+v", metadata.ResourceData.Id(), err)
 			}
 
-			err = client.DeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
