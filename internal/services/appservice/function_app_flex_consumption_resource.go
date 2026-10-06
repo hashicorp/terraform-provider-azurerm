@@ -494,8 +494,7 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 				ScaleAndConcurrency: &scaleAndConcurrencyConfig,
 			}
 
-			storageAuthType := webapps.AuthenticationType(functionAppFlexConsumption.StorageAuthType)
-			siteConfig, err := helpers.ExpandSiteConfigFunctionFlexConsumptionApp(functionAppFlexConsumption.SiteConfig, nil, metadata, &storageAuthType, storageConnectionString, storageClientID, storageConnStringForFCApp)
+			siteConfig, err := helpers.ExpandSiteConfigFunctionFlexConsumptionApp(functionAppFlexConsumption.SiteConfig, nil, metadata, pointer.ToEnum[webapps.AuthenticationType](functionAppFlexConsumption.StorageAuthType), storageConnectionString, storageClientID, storageConnStringForFCApp)
 			if err != nil {
 				return fmt.Errorf("expanding `site_config` for %s: %+v", id, err)
 			}
