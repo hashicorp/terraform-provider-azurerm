@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-02-01/vaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/vaults"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -102,7 +102,7 @@ func resourceKeyVaultAccessPolicy() *pluginsdk.Resource {
 	}
 }
 
-func resourceKeyVaultAccessPolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKeyVaultAccessPolicyCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -134,29 +134,27 @@ func resourceKeyVaultAccessPolicyCreate(d *pluginsdk.ResourceData, meta interfac
 				tenantIdMatches := policy.TenantId == tenantId
 				objectIdMatches := policy.ObjectId == objectId
 
-				appId := ""
-				if policy.ApplicationId != nil {
-					appId = *policy.ApplicationId
-				}
-				applicationIdMatches := appId == applicationId
+				applicationIdMatches := pointer.From(policy.ApplicationId) == applicationId
 				if tenantIdMatches && objectIdMatches && applicationIdMatches {
-					return tf.ImportAsExistsError("azurerm_key_vault_access_policy", id.ID())
+					if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+						return tf.ImportAsExistsError("azurerm_key_vault_access_policy", id.ID())
+					}
 				}
 			}
 		}
 	}
 
 	var accessPolicy vaults.AccessPolicyEntry
-	certPermissionsRaw := d.Get("certificate_permissions").([]interface{})
+	certPermissionsRaw := d.Get("certificate_permissions").([]any)
 	certPermissions := expandCertificatePermissions(certPermissionsRaw)
 
-	keyPermissionsRaw := d.Get("key_permissions").([]interface{})
+	keyPermissionsRaw := d.Get("key_permissions").([]any)
 	keyPermissions := expandKeyPermissions(keyPermissionsRaw)
 
-	secretPermissionsRaw := d.Get("secret_permissions").([]interface{})
+	secretPermissionsRaw := d.Get("secret_permissions").([]any)
 	secretPermissions := expandSecretPermissions(secretPermissionsRaw)
 
-	storagePermissionsRaw := d.Get("storage_permissions").([]interface{})
+	storagePermissionsRaw := d.Get("storage_permissions").([]any)
 	storagePermissions := expandStoragePermissions(storagePermissionsRaw)
 
 	accessPolicy = vaults.AccessPolicyEntry{
@@ -210,7 +208,7 @@ func resourceKeyVaultAccessPolicyCreate(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func resourceKeyVaultAccessPolicyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKeyVaultAccessPolicyUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -225,16 +223,16 @@ func resourceKeyVaultAccessPolicyUpdate(d *pluginsdk.ResourceData, meta interfac
 	locks.ByName(keyVaultId.VaultName, keyVaultResourceName)
 	defer locks.UnlockByName(keyVaultId.VaultName, keyVaultResourceName)
 
-	certPermissionsRaw := d.Get("certificate_permissions").([]interface{})
+	certPermissionsRaw := d.Get("certificate_permissions").([]any)
 	certPermissions := expandCertificatePermissions(certPermissionsRaw)
 
-	keyPermissionsRaw := d.Get("key_permissions").([]interface{})
+	keyPermissionsRaw := d.Get("key_permissions").([]any)
 	keyPermissions := expandKeyPermissions(keyPermissionsRaw)
 
-	secretPermissionsRaw := d.Get("secret_permissions").([]interface{})
+	secretPermissionsRaw := d.Get("secret_permissions").([]any)
 	secretPermissions := expandSecretPermissions(secretPermissionsRaw)
 
-	storagePermissionsRaw := d.Get("storage_permissions").([]interface{})
+	storagePermissionsRaw := d.Get("storage_permissions").([]any)
 	storagePermissions := expandStoragePermissions(storagePermissionsRaw)
 
 	accessPolicy := vaults.AccessPolicyEntry{
@@ -283,7 +281,7 @@ func resourceKeyVaultAccessPolicyUpdate(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func resourceKeyVaultAccessPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKeyVaultAccessPolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -326,23 +324,19 @@ func resourceKeyVaultAccessPolicyFlatten(d *pluginsdk.ResourceData, id *parse.Ac
 	if accessPolicy != nil {
 		d.Set("tenant_id", accessPolicy.TenantId)
 
-		certificatePermissions := flattenCertificatePermissions(accessPolicy.Permissions.Certificates)
-		if err := d.Set("certificate_permissions", certificatePermissions); err != nil {
+		if err := d.Set("certificate_permissions", flattenCertificatePermissions(accessPolicy.Permissions.Certificates)); err != nil {
 			return fmt.Errorf("setting `certificate_permissions`: %+v", err)
 		}
 
-		keyPermissions := flattenKeyPermissions(accessPolicy.Permissions.Keys)
-		if err := d.Set("key_permissions", keyPermissions); err != nil {
+		if err := d.Set("key_permissions", flattenKeyPermissions(accessPolicy.Permissions.Keys)); err != nil {
 			return fmt.Errorf("setting `key_permissions`: %+v", err)
 		}
 
-		secretPermissions := flattenSecretPermissions(accessPolicy.Permissions.Secrets)
-		if err := d.Set("secret_permissions", secretPermissions); err != nil {
+		if err := d.Set("secret_permissions", flattenSecretPermissions(accessPolicy.Permissions.Secrets)); err != nil {
 			return fmt.Errorf("setting `secret_permissions`: %+v", err)
 		}
 
-		storagePermissions := flattenStoragePermissions(accessPolicy.Permissions.Storage)
-		if err := d.Set("storage_permissions", storagePermissions); err != nil {
+		if err := d.Set("storage_permissions", flattenStoragePermissions(accessPolicy.Permissions.Storage)); err != nil {
 			return fmt.Errorf("setting `storage_permissions`: %+v", err)
 		}
 	}
@@ -367,7 +361,7 @@ func setKeyVaultAccessPolicyIdentityData(d *pluginsdk.ResourceData, id *parse.Ac
 	return nil
 }
 
-func resourceKeyVaultAccessPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKeyVaultAccessPolicyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -441,10 +435,7 @@ func findKeyVaultAccessPolicy(policies *[]vaults.AccessPolicyEntry, objectId str
 
 	for _, policy := range *policies {
 		if strings.EqualFold(policy.ObjectId, objectId) {
-			aid := ""
-			if policy.ApplicationId != nil {
-				aid = *policy.ApplicationId
-			}
+			aid := pointer.From(policy.ApplicationId)
 
 			if strings.EqualFold(aid, applicationId) {
 				return &policy
@@ -456,7 +447,7 @@ func findKeyVaultAccessPolicy(policies *[]vaults.AccessPolicyEntry, objectId str
 }
 
 func accessPolicyRefreshFunc(ctx context.Context, client *vaults.VaultsClient, keyVaultId commonids.KeyVaultId, objectId string, applicationId string) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		log.Printf("[DEBUG] Checking for completion of Access Policy create/update")
 
 		read, err := client.Get(ctx, keyVaultId)

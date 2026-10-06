@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
@@ -64,7 +65,7 @@ func resourceCosmosDbMongoDatabase() *pluginsdk.Resource {
 			"throughput": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validate.CosmosThroughput,
 			},
 
@@ -73,7 +74,7 @@ func resourceCosmosDbMongoDatabase() *pluginsdk.Resource {
 	}
 }
 
-func resourceCosmosDbMongoDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbMongoDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -81,12 +82,14 @@ func resourceCosmosDbMongoDatabaseCreate(d *pluginsdk.ResourceData, meta interfa
 
 	id := cosmosdb.NewMongodbDatabaseID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
 
-	existing, err := client.MongoDBResourcesGetMongoDBDatabase(ctx, id)
-	if !response.WasNotFound(existing.HttpResponse) {
-		if err != nil {
-			return fmt.Errorf("checking for presence of %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.MongoDBResourcesGetMongoDBDatabase(ctx, id)
+		if !response.WasNotFound(existing.HttpResponse) {
+			if err != nil {
+				return fmt.Errorf("checking for presence of %s: %+v", id, err)
+			}
+			return tf.ImportAsExistsError("azurerm_cosmosdb_mongo_database", id.ID())
 		}
-		return tf.ImportAsExistsError("azurerm_cosmosdb_mongo_database", id.ID())
 	}
 
 	db := cosmosdb.MongoDBDatabaseCreateUpdateParameters{
@@ -108,7 +111,7 @@ func resourceCosmosDbMongoDatabaseCreate(d *pluginsdk.ResourceData, meta interfa
 		db.Properties.Options.AutoScaleSettings = common.ExpandCosmosDbAutoscaleSettings(d)
 	}
 
-	if err := client.MongoDBResourcesCreateUpdateMongoDBDatabaseThenPoll(ctx, id, db); err != nil {
+	if err := client.MongoDBResourcesCreateUpdateMongoDBDatabaseCallbackThenPoll(ctx, id, db, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -117,7 +120,7 @@ func resourceCosmosDbMongoDatabaseCreate(d *pluginsdk.ResourceData, meta interfa
 	return resourceCosmosDbMongoDatabaseRead(d, meta)
 }
 
-func resourceCosmosDbMongoDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbMongoDatabaseUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -145,7 +148,7 @@ func resourceCosmosDbMongoDatabaseUpdate(d *pluginsdk.ResourceData, meta interfa
 	return resourceCosmosDbMongoDatabaseRead(d, meta)
 }
 
-func resourceCosmosDbMongoDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbMongoDatabaseRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -194,7 +197,7 @@ func resourceCosmosDbMongoDatabaseRead(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func resourceCosmosDbMongoDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbMongoDatabaseDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
