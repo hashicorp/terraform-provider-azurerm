@@ -85,6 +85,7 @@ func TestAccFunctionAppSlotHybridConnection_sendRule(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func TestAccFunctionAppSlotHybridConnection_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_slot_hybrid_connection", "test")
 	r := FunctionAppSlotHybridConnectionResource{}
