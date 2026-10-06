@@ -69,7 +69,7 @@ func (CdnFrontDoorBatchRuleSetResource) ResourceType() string {
 	return "azurerm_cdn_frontdoor_batch_rule_set"
 }
 
-func (CdnFrontDoorBatchRuleSetResource) ModelObject() interface{} {
+func (CdnFrontDoorBatchRuleSetResource) ModelObject() any {
 	return &CdnFrontDoorBatchRuleSetModel{}
 }
 
@@ -696,19 +696,19 @@ type cdnFrontDoorBatchRuleSetRule struct {
 	usesCache bool
 }
 
-func cdnFrontDoorBatchRuleSetRules(input interface{}, hash pluginsdk.SchemaSetFunc) map[string]cdnFrontDoorBatchRuleSetRule {
+func cdnFrontDoorBatchRuleSetRules(input any, hash pluginsdk.SchemaSetFunc) map[string]cdnFrontDoorBatchRuleSetRule {
 	results := make(map[string]cdnFrontDoorBatchRuleSetRule)
 	if input == nil {
 		return results
 	}
 
-	rulesList, ok := input.([]interface{})
+	rulesList, ok := input.([]any)
 	if !ok {
 		return results
 	}
 
 	for _, rule := range rulesList {
-		r, ok := rule.(map[string]interface{})
+		r, ok := rule.(map[string]any)
 		if !ok {
 			continue
 		}
@@ -722,33 +722,33 @@ func cdnFrontDoorBatchRuleSetRules(input interface{}, hash pluginsdk.SchemaSetFu
 	return results
 }
 
-func cdnFrontDoorBatchRuleSetRuleUsesCache(input map[string]interface{}) bool {
-	actionsRaw, ok := input["actions"].([]interface{})
+func cdnFrontDoorBatchRuleSetRuleUsesCache(input map[string]any) bool {
+	actionsRaw, ok := input["actions"].([]any)
 	if !ok || len(actionsRaw) == 0 || actionsRaw[0] == nil {
 		return false
 	}
 
-	actions, ok := actionsRaw[0].(map[string]interface{})
+	actions, ok := actionsRaw[0].(map[string]any)
 	if !ok {
 		return false
 	}
 
-	routeOverrides, ok := actions["route_configuration_override"].([]interface{})
+	routeOverrides, ok := actions["route_configuration_override"].([]any)
 	if !ok || len(routeOverrides) == 0 || routeOverrides[0] == nil {
 		return false
 	}
 
-	routeOverride, ok := routeOverrides[0].(map[string]interface{})
+	routeOverride, ok := routeOverrides[0].(map[string]any)
 	if !ok {
 		return false
 	}
 
-	cachingList, ok := routeOverride["caching"].([]interface{})
+	cachingList, ok := routeOverride["caching"].([]any)
 	if !ok {
 		return false
 	}
 
-	caching, ok := cachingList[0].(map[string]interface{})
+	caching, ok := cachingList[0].(map[string]any)
 	if !ok {
 		return false
 	}

@@ -248,7 +248,7 @@ func (s AccountTablePropertiesResource) Attributes() map[string]*pluginsdk.Schem
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (s AccountTablePropertiesResource) ModelObject() interface{} {
+func (s AccountTablePropertiesResource) ModelObject() any {
 	return &AccountTablePropertiesModel{}
 }
 

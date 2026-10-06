@@ -44,6 +44,8 @@ func TestAccContainerAppJob_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("event_stream_endpoint").IsNotEmpty(),
+				check.That(data.ResourceName).Key("outbound_ip_addresses.#").IsSet(),
 			),
 		},
 		data.ImportStep(),

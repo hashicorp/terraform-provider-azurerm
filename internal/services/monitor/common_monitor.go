@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func flattenAzureRmScheduledQueryRulesAlertAction(input *scheduledqueryrules.AzNsActionGroup) []interface{} {
-	v := make(map[string]interface{})
+func flattenAzureRmScheduledQueryRulesAlertAction(input *scheduledqueryrules.AzNsActionGroup) []any {
+	v := make(map[string]any)
 
 	if input != nil {
 		if input.ActionGroup != nil {
@@ -19,7 +19,7 @@ func flattenAzureRmScheduledQueryRulesAlertAction(input *scheduledqueryrules.AzN
 		v["email_subject"] = input.EmailSubject
 		v["custom_webhook_payload"] = input.CustomWebhookPayload
 	}
-	return []interface{}{v}
+	return []any{v}
 }
 
 func expandMonitorScheduledQueryRulesCommonSource(d *pluginsdk.ResourceData) scheduledqueryrules.Source {
@@ -41,11 +41,11 @@ func expandMonitorScheduledQueryRulesCommonSource(d *pluginsdk.ResourceData) sch
 	return source
 }
 
-func flattenAzureRmScheduledQueryRulesAlertMetricTrigger(input *scheduledqueryrules.LogMetricTrigger) []interface{} {
-	result := make(map[string]interface{})
+func flattenAzureRmScheduledQueryRulesAlertMetricTrigger(input *scheduledqueryrules.LogMetricTrigger) []any {
+	result := make(map[string]any)
 
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	result["operator"] = input.ThresholdOperator
@@ -59,11 +59,11 @@ func flattenAzureRmScheduledQueryRulesAlertMetricTrigger(input *scheduledqueryru
 	if input.MetricColumn != nil {
 		result["metric_column"] = *input.MetricColumn
 	}
-	return []interface{}{result}
+	return []any{result}
 }
 
-func flattenAzureRmScheduledQueryRulesAlertTrigger(input scheduledqueryrules.TriggerCondition) []interface{} {
-	result := make(map[string]interface{})
+func flattenAzureRmScheduledQueryRulesAlertTrigger(input scheduledqueryrules.TriggerCondition) []any {
+	result := make(map[string]any)
 
 	result["operator"] = string(input.ThresholdOperator)
 	result["threshold"] = input.Threshold
@@ -72,13 +72,13 @@ func flattenAzureRmScheduledQueryRulesAlertTrigger(input scheduledqueryrules.Tri
 		result["metric_trigger"] = flattenAzureRmScheduledQueryRulesAlertMetricTrigger(input.MetricTrigger)
 	}
 
-	return []interface{}{result}
+	return []any{result}
 }
 
-func flattenAzureRmScheduledQueryRulesLogCriteria(input []scheduledqueryrules.Criteria) []interface{} {
-	result := make([]interface{}, 0)
+func flattenAzureRmScheduledQueryRulesLogCriteria(input []scheduledqueryrules.Criteria) []any {
+	result := make([]any, 0)
 	for _, criteria := range input {
-		v := make(map[string]interface{})
+		v := make(map[string]any)
 
 		v["dimension"] = flattenAzureRmScheduledQueryRulesLogDimension(criteria.Dimensions)
 		v["metric_name"] = criteria.MetricName
@@ -88,12 +88,12 @@ func flattenAzureRmScheduledQueryRulesLogCriteria(input []scheduledqueryrules.Cr
 	return result
 }
 
-func flattenAzureRmScheduledQueryRulesLogDimension(input *[]scheduledqueryrules.Dimension) []interface{} {
-	result := make([]interface{}, 0)
+func flattenAzureRmScheduledQueryRulesLogDimension(input *[]scheduledqueryrules.Dimension) []any {
+	result := make([]any, 0)
 
 	if input != nil {
 		for _, dimension := range *input {
-			v := make(map[string]interface{})
+			v := make(map[string]any)
 
 			v["name"] = dimension.Name
 			v["operator"] = dimension.Operator
@@ -104,7 +104,7 @@ func flattenAzureRmScheduledQueryRulesLogDimension(input *[]scheduledqueryrules.
 	return result
 }
 
-func expandStringValues(input []interface{}) []string {
+func expandStringValues(input []any) []string {
 	result := make([]string, 0)
 	for _, item := range input {
 		if item != nil {

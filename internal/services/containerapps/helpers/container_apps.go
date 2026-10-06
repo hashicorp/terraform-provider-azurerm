@@ -2981,21 +2981,21 @@ func ContainerAppProbesRemoved(metadata sdk.ResourceMetaData) bool {
 
 	if metadata.ResourceData.HasChange("template.0.container.0.liveness_probe") {
 		newLivenessRaw := metadata.ResourceData.Get("template.0.container.0.liveness_probe")
-		if newLiveness, ok := newLivenessRaw.([]interface{}); ok && len(newLiveness) > 0 {
+		if newLiveness, ok := newLivenessRaw.([]any); ok && len(newLiveness) > 0 {
 			hasLiveness = true
 		}
 	}
 
 	if metadata.ResourceData.HasChange("template.0.container.0.readiness_probe") {
 		newReadinessRaw := metadata.ResourceData.Get("template.0.container.0.readiness_probe")
-		if newReadiness, ok := newReadinessRaw.([]interface{}); ok && len(newReadiness) > 0 {
+		if newReadiness, ok := newReadinessRaw.([]any); ok && len(newReadiness) > 0 {
 			hasReadiness = true
 		}
 	}
 
 	if metadata.ResourceData.HasChange("template.0.container.0.startup_probe") {
 		newStartupRaw := metadata.ResourceData.Get("template.0.container.0.startup_probe")
-		if newStartup, ok := newStartupRaw.([]interface{}); ok && len(newStartup) > 0 {
+		if newStartup, ok := newStartupRaw.([]any); ok && len(newStartup) > 0 {
 			hasStartup = true
 		}
 	}
