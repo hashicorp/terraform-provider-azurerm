@@ -81,7 +81,7 @@ func (r DataCollectionRuleAssociationResource) IDValidationFunc() pluginsdk.Sche
 	return datacollectionruleassociations.ValidateScopedDataCollectionRuleAssociationID
 }
 
-func (r DataCollectionRuleAssociationResource) ModelObject() interface{} {
+func (r DataCollectionRuleAssociationResource) ModelObject() any {
 	return &DataCollectionRuleAssociationModel{}
 }
 

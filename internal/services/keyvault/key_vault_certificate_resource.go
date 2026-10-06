@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
@@ -392,7 +391,7 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 	}
 }
 
-func createCertificate(d *pluginsdk.ResourceData, meta interface{}) (kv.CertificateBundle, error) {
+func createCertificate(d *pluginsdk.ResourceData, meta any) (kv.CertificateBundle, error) {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -409,7 +408,7 @@ func createCertificate(d *pluginsdk.ResourceData, meta interface{}) (kv.Certific
 		return kv.CertificateBundle{}, fmt.Errorf("looking up Base URI for Certificate %q in %s: %+v", name, *keyVaultId, err)
 	}
 
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
 	policy, err := expandKeyVaultCertificatePolicy(d)
 	if err != nil {
@@ -450,7 +449,7 @@ func createCertificate(d *pluginsdk.ResourceData, meta interface{}) (kv.Certific
 	return client.GetCertificate(ctx, *keyVaultBaseUrl, name, "")
 }
 
-func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -480,7 +479,7 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 	policy, err := expandKeyVaultCertificatePolicy(d)
 	if err != nil {
 		return fmt.Errorf("expanding certificate policy: %s", err)
@@ -538,7 +537,7 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 	return resourceKeyVaultCertificateRead(d, meta)
 }
 
-func recoverDeletedCertificate(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}, keyVaultBaseUrl string, name string) error {
+func recoverDeletedCertificate(ctx context.Context, d *pluginsdk.ResourceData, meta any, keyVaultBaseUrl string, name string) error {
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	recoveredCertificate, err := client.RecoverDeletedCertificate(ctx, keyVaultBaseUrl, name)
 	if err != nil {
@@ -564,7 +563,7 @@ func recoverDeletedCertificate(ctx context.Context, d *pluginsdk.ResourceData, m
 	return nil
 }
 
-func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta any) error {
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -607,19 +606,19 @@ func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta interface{})
 	}
 
 	// update lifetime_action only should not recreate a certificate
-	var lifeTimeOld, lifeTimeNew interface{}
-	var policyOld, policyNew map[string]interface{}
+	var lifeTimeOld, lifeTimeNew any
+	var policyOld, policyNew map[string]any
 
 	policyOldRaw, policyNewRaw := d.GetChange("certificate_policy")
-	policyOldList, policyNewList := policyOldRaw.([]interface{}), policyNewRaw.([]interface{})
+	policyOldList, policyNewList := policyOldRaw.([]any), policyNewRaw.([]any)
 
 	if len(policyOldList) > 0 {
-		policyOld = policyOldList[0].(map[string]interface{})
+		policyOld = policyOldList[0].(map[string]any)
 		lifeTimeOld = policyOld["lifetime_action"]
 		delete(policyOld, "lifetime_action")
 	}
 	if len(policyNewList) > 0 {
-		policyNew = policyNewList[0].(map[string]interface{})
+		policyNew = policyNewList[0].(map[string]any)
 		lifeTimeNew = policyNew["lifetime_action"]
 		delete(policyNew, "lifetime_action")
 	}
@@ -642,7 +641,7 @@ func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta interface{})
 		patch := kv.CertificateUpdateParameters{}
 		if d.HasChange("tags") {
 			if t, ok := d.GetOk("tags"); ok {
-				patch.Tags = tags.Expand(t.(map[string]interface{}))
+				patch.Tags = tags.Expand(t.(map[string]any))
 			}
 		}
 
@@ -660,7 +659,7 @@ func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func keyVaultCertificateCreationRefreshFunc(ctx context.Context, client *kv.BaseClient, keyVaultBaseUrl string, name string) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		operation, err := client.GetCertificateOperation(ctx, keyVaultBaseUrl, name)
 		if err != nil {
 			return nil, "", fmt.Errorf("failed to read CertificateOperation in keyVaultCertificateCreationRefreshFunc for Certificate %q in Vault %q: %s", name, keyVaultBaseUrl, err)
@@ -687,7 +686,7 @@ func keyVaultCertificateCreationRefreshFunc(ctx context.Context, client *kv.Base
 	}
 }
 
-func resourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -788,7 +787,7 @@ func resourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface{}
 	return tags.FlattenAndSet(d, cert.Tags)
 }
 
-func resourceKeyVaultCertificateDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKeyVaultCertificateDelete(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -870,22 +869,22 @@ func (d deleteAndPurgeCertificate) NestedItemHasBeenPurged(ctx context.Context) 
 }
 
 func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*kv.CertificatePolicy, error) {
-	policies := d.Get("certificate_policy").([]interface{})
+	policies := d.Get("certificate_policy").([]any)
 	if len(policies) == 0 || policies[0] == nil {
 		return nil, nil
 	}
 
-	policyRaw := policies[0].(map[string]interface{})
+	policyRaw := policies[0].(map[string]any)
 	policy := kv.CertificatePolicy{}
 
-	issuers := policyRaw["issuer_parameters"].([]interface{})
-	issuer := issuers[0].(map[string]interface{})
+	issuers := policyRaw["issuer_parameters"].([]any)
+	issuer := issuers[0].(map[string]any)
 	policy.IssuerParameters = &kv.IssuerParameters{
 		Name: pointer.To(issuer["name"].(string)),
 	}
 
-	properties := policyRaw["key_properties"].([]interface{})
-	props := properties[0].(map[string]interface{})
+	properties := policyRaw["key_properties"].([]any)
+	props := properties[0].(map[string]any)
 
 	curve := props["curve"].(string)
 	keyType := props["key_type"].(string)
@@ -922,18 +921,18 @@ func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*kv.Certificate
 
 	policy.LifetimeActions = expandKeyVaultCertificatePolicyLifetimeAction(policyRaw["lifetime_action"])
 
-	secrets := policyRaw["secret_properties"].([]interface{})
-	secret := secrets[0].(map[string]interface{})
+	secrets := policyRaw["secret_properties"].([]any)
+	secret := secrets[0].(map[string]any)
 	policy.SecretProperties = &kv.SecretProperties{
 		ContentType: pointer.To(secret["content_type"].(string)),
 	}
 
-	certificateProperties := policyRaw["x509_certificate_properties"].([]interface{})
+	certificateProperties := policyRaw["x509_certificate_properties"].([]any)
 	for _, v := range certificateProperties {
-		cert := v.(map[string]interface{})
+		cert := v.(map[string]any)
 
-		ekus := cert["extended_key_usage"].([]interface{})
-		extendedKeyUsage := helpers.ExpandStringSlice(ekus)
+		ekus := cert["extended_key_usage"].([]any)
+		extendedKeyUsage := pluginsdk.ExpandStringSlice(ekus)
 
 		keyUsage := make([]kv.KeyUsageType, 0)
 		keys := cert["key_usage"].(*pluginsdk.Set).List()
@@ -943,23 +942,23 @@ func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*kv.Certificate
 
 		subjectAlternativeNames := &kv.SubjectAlternativeNames{}
 		if v, ok := cert["subject_alternative_names"]; ok {
-			if sans := v.([]interface{}); len(sans) > 0 {
+			if sans := v.([]any); len(sans) > 0 {
 				if sans[0] != nil {
-					san := sans[0].(map[string]interface{})
+					san := sans[0].(map[string]any)
 
 					emails := san["emails"].(*pluginsdk.Set).List()
 					if len(emails) > 0 {
-						subjectAlternativeNames.Emails = helpers.ExpandStringSlice(emails)
+						subjectAlternativeNames.Emails = pluginsdk.ExpandStringSlice(emails)
 					}
 
 					dnsNames := san["dns_names"].(*pluginsdk.Set).List()
 					if len(dnsNames) > 0 {
-						subjectAlternativeNames.DNSNames = helpers.ExpandStringSlice(dnsNames)
+						subjectAlternativeNames.DNSNames = pluginsdk.ExpandStringSlice(dnsNames)
 					}
 
 					upns := san["upns"].(*pluginsdk.Set).List()
 					if len(upns) > 0 {
-						subjectAlternativeNames.Upns = helpers.ExpandStringSlice(upns)
+						subjectAlternativeNames.Upns = pluginsdk.ExpandStringSlice(upns)
 					}
 				}
 			}
@@ -977,28 +976,28 @@ func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*kv.Certificate
 	return &policy, nil
 }
 
-func expandKeyVaultCertificatePolicyLifetimeAction(actions interface{}) *[]kv.LifetimeAction {
+func expandKeyVaultCertificatePolicyLifetimeAction(actions any) *[]kv.LifetimeAction {
 	lifetimeActions := make([]kv.LifetimeAction, 0)
 	if actions == nil {
 		return &lifetimeActions
 	}
 
-	for _, v := range actions.([]interface{}) {
-		action := v.(map[string]interface{})
+	for _, v := range actions.([]any) {
+		action := v.(map[string]any)
 		lifetimeAction := kv.LifetimeAction{}
 
 		if v, ok := action["action"]; ok {
-			as := v.([]interface{})
-			a := as[0].(map[string]interface{})
+			as := v.([]any)
+			a := as[0].(map[string]any)
 			lifetimeAction.Action = &kv.Action{
 				ActionType: kv.CertificatePolicyAction(a["action_type"].(string)),
 			}
 		}
 
 		if v, ok := action["trigger"]; ok {
-			triggers := v.([]interface{})
+			triggers := v.([]any)
 			if triggers[0] != nil {
-				trigger := triggers[0].(map[string]interface{})
+				trigger := triggers[0].(map[string]any)
 				lifetimeAction.Trigger = &kv.Trigger{}
 
 				d := trigger["days_before_expiry"].(int)
@@ -1018,44 +1017,44 @@ func expandKeyVaultCertificatePolicyLifetimeAction(actions interface{}) *[]kv.Li
 	return &lifetimeActions
 }
 
-func flattenKeyVaultCertificatePolicy(input *kv.CertificatePolicy, certData *[]byte) []interface{} {
+func flattenKeyVaultCertificatePolicy(input *kv.CertificatePolicy, certData *[]byte) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	policy := make(map[string]interface{})
+	policy := make(map[string]any)
 
 	if params := input.IssuerParameters; params != nil {
-		issuerParams := make(map[string]interface{})
+		issuerParams := make(map[string]any)
 		issuerParams["name"] = *params.Name
-		policy["issuer_parameters"] = []interface{}{issuerParams}
+		policy["issuer_parameters"] = []any{issuerParams}
 	}
 
 	// key properties
 	if props := input.KeyProperties; props != nil {
-		keyProps := make(map[string]interface{})
+		keyProps := make(map[string]any)
 		keyProps["curve"] = string(props.Curve)
 		keyProps["exportable"] = *props.Exportable
 		keyProps["key_size"] = int(*props.KeySize)
 		keyProps["key_type"] = string(props.KeyType)
 		keyProps["reuse_key"] = *props.ReuseKey
 
-		policy["key_properties"] = []interface{}{keyProps}
+		policy["key_properties"] = []any{keyProps}
 	}
 
 	// lifetime actions
-	lifetimeActions := make([]interface{}, 0)
+	lifetimeActions := make([]any, 0)
 	if actions := input.LifetimeActions; actions != nil {
 		for _, action := range *actions {
-			lifetimeAction := make(map[string]interface{})
+			lifetimeAction := make(map[string]any)
 
-			actionOutput := make(map[string]interface{})
+			actionOutput := make(map[string]any)
 			if act := action.Action; act != nil {
 				actionOutput["action_type"] = string(act.ActionType)
 			}
-			lifetimeAction["action"] = []interface{}{actionOutput}
+			lifetimeAction["action"] = []any{actionOutput}
 
-			triggerOutput := make(map[string]interface{})
+			triggerOutput := make(map[string]any)
 			if trigger := action.Trigger; trigger != nil {
 				if days := trigger.DaysBeforeExpiry; days != nil {
 					triggerOutput["days_before_expiry"] = int(*trigger.DaysBeforeExpiry)
@@ -1065,7 +1064,7 @@ func flattenKeyVaultCertificatePolicy(input *kv.CertificatePolicy, certData *[]b
 					triggerOutput["lifetime_percentage"] = int(*trigger.LifetimePercentage)
 				}
 			}
-			lifetimeAction["trigger"] = []interface{}{triggerOutput}
+			lifetimeAction["trigger"] = []any{triggerOutput}
 			lifetimeActions = append(lifetimeActions, lifetimeAction)
 		}
 	}
@@ -1073,24 +1072,24 @@ func flattenKeyVaultCertificatePolicy(input *kv.CertificatePolicy, certData *[]b
 
 	// secret properties
 	if props := input.SecretProperties; props != nil {
-		keyProps := make(map[string]interface{})
+		keyProps := make(map[string]any)
 		keyProps["content_type"] = *props.ContentType
 
-		policy["secret_properties"] = []interface{}{keyProps}
+		policy["secret_properties"] = []any{keyProps}
 	}
 
 	// x509 Certificate Properties
 	if props := input.X509CertificateProperties; props != nil {
-		certProps := make(map[string]interface{})
+		certProps := make(map[string]any)
 
 		usages := make([]string, 0)
 		for _, usage := range *props.KeyUsage {
 			usages = append(usages, string(usage))
 		}
 
-		sanOutputs := make([]interface{}, 0)
+		sanOutputs := make([]any, 0)
 		if san := props.SubjectAlternativeNames; san != nil {
-			sanOutput := make(map[string]interface{})
+			sanOutput := make(map[string]any)
 			if emails := san.Emails; emails != nil {
 				sanOutput["emails"] = set.FromStringSlice(*emails)
 			}
@@ -1103,7 +1102,7 @@ func flattenKeyVaultCertificatePolicy(input *kv.CertificatePolicy, certData *[]b
 
 			sanOutputs = append(sanOutputs, sanOutput)
 		} else if certData != nil && len(*certData) > 0 {
-			sanOutput := make(map[string]interface{})
+			sanOutput := make(map[string]any)
 			cert, err := x509.ParseCertificate(*certData)
 			if err != nil {
 				log.Printf("[DEBUG] Unable to read certificate data: %v", err)
@@ -1125,15 +1124,15 @@ func flattenKeyVaultCertificatePolicy(input *kv.CertificatePolicy, certData *[]b
 			certProps["extended_key_usage"] = props.Ekus
 		}
 		certProps["subject_alternative_names"] = sanOutputs
-		policy["x509_certificate_properties"] = []interface{}{certProps}
+		policy["x509_certificate_properties"] = []any{certProps}
 	}
 
-	return []interface{}{policy}
+	return []any{policy}
 }
 
-func flattenKeyVaultCertificateAttribute(input *kv.CertificateAttributes) []interface{} {
+func flattenKeyVaultCertificateAttribute(input *kv.CertificateAttributes) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	enabled := false
@@ -1156,8 +1155,8 @@ func flattenKeyVaultCertificateAttribute(input *kv.CertificateAttributes) []inte
 	if input.Updated != nil {
 		updated = time.Time(*input.Updated).Format(time.RFC3339)
 	}
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"created":        created,
 			"enabled":        enabled,
 			"expires":        expires,
@@ -1173,9 +1172,9 @@ type KeyVaultCertificateImportParameters struct {
 	CertificatePassword string
 }
 
-func expandKeyVaultCertificate(v interface{}) KeyVaultCertificateImportParameters {
-	certs := v.([]interface{})
-	cert := certs[0].(map[string]interface{})
+func expandKeyVaultCertificate(v any) KeyVaultCertificateImportParameters {
+	certs := v.([]any)
+	cert := certs[0].(map[string]any)
 
 	return KeyVaultCertificateImportParameters{
 		CertificateData:     cert["contents"].(string),

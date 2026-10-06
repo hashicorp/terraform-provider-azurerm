@@ -55,7 +55,7 @@ func (ResourceAnchorResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (ResourceAnchorResource) ModelObject() interface{} {
+func (ResourceAnchorResource) ModelObject() any {
 	return &ResourceAnchorResourceModel{}
 }
 
