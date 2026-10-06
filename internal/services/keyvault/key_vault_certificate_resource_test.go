@@ -128,7 +128,7 @@ func TestAccKeyVaultCertificate_certificateTypeRequiresValidDigiCertValue(t *tes
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.certificateTypeInvalidForDigiCert(data),
-			ExpectError: regexp.MustCompile("expected certificate_policy\\.0\\.issuer_parameters\\.0\\.certificate_type to be one of"),
+			ExpectError: regexp.MustCompile(`expected certificate_policy\.0\.issuer_parameters\.0\.certificate_type to be one of`),
 		},
 	})
 }
