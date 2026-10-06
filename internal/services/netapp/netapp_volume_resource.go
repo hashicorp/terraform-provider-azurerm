@@ -1357,8 +1357,7 @@ func expandNetAppVolumeExportPolicyRule(input []any) *volumes.VolumePropertiesEx
 
 			var chownMode *volumes.ChownMode
 			if chownModeRaw, ok := v["chown_mode"]; ok && chownModeRaw.(string) != "" {
-				chownModeValue := volumes.ChownMode(chownModeRaw.(string))
-				chownMode = &chownModeValue
+				chownMode = pointer.ToEnum[volumes.ChownMode](chownModeRaw.(string))
 			}
 
 			result := volumes.ExportPolicyRule{
@@ -1440,8 +1439,7 @@ func expandNetAppVolumeExportPolicyRulePatch(input []any, overrideProtocols []st
 
 			var chownMode *volumes.ChownMode
 			if chownModeRaw, ok := v["chown_mode"]; ok && chownModeRaw.(string) != "" {
-				chownModeValue := volumes.ChownMode(chownModeRaw.(string))
-				chownMode = &chownModeValue
+				chownMode = pointer.ToEnum[volumes.ChownMode](chownModeRaw.(string))
 			}
 
 			result := volumes.ExportPolicyRule{
