@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestSqlPoolWorkloadClassifierID(t *testing.T) {
+func TestValidateSqlPoolWorkloadClassifierID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
