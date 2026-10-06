@@ -19,7 +19,7 @@ import (
 )
 
 func TestAccLbBackendAddressPool_listByLoadBalancerID(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "testlist1")
+	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "list")
 	r := LbBackendAddressPoolResource{}
 
 	resource.Test(t, resource.TestCase{
@@ -35,7 +35,7 @@ func TestAccLbBackendAddressPool_listByLoadBalancerID(t *testing.T) {
 				Query:  true,
 				Config: r.basicQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast("azurerm_lb_backend_address_pool.list", 1),
+					querycheck.ExpectLengthAtLeast("azurerm_lb_backend_address_pool.list", 3),
 					querycheck.ExpectIdentity(
 						"azurerm_lb_backend_address_pool.list",
 						map[string]knownvalue.Check{
@@ -61,7 +61,7 @@ provider "azurerm" {
 
 resource "azurerm_lb_backend_address_pool" "test" {
   count           = 3
-  name            = "pool${count.index}"
+  name            = "acctestpool${count.index}"
   loadbalancer_id = azurerm_lb.test.id
 }
 `, r.template(data))
