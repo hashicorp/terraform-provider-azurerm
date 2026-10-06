@@ -19,7 +19,7 @@ func ApplicationInsightsAuthenticationString(input any, key string) (warnings []
 		return warnings, errors
 	}
 
-	var matched bool = false
+	matched := false
 
 	if !strings.HasPrefix(v, authorizationAAD) {
 		errors = append(errors, fmt.Errorf("%q must always begin with %q, got: %q", key, authorizationAAD, v))
