@@ -163,7 +163,7 @@ func (r ApiCenterEnvironmentResource) Create() sdk.ResourceFunc {
 			apiCenterEnvironmentProps.Server = &environments.EnvironmentServer{}
 
 			if model.ServerType != "" {
-				apiCenterEnvironmentProps.Server.Type = pointer.To(environments.EnvironmentServerType(model.ServerType))
+				apiCenterEnvironmentProps.Server.Type = pointer.ToEnum[environments.EnvironmentServerType](model.ServerType)
 			}
 
 			if model.MgmtPortalUri != "" {
@@ -224,7 +224,7 @@ func (r ApiCenterEnvironmentResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("server_type") {
-				model.Properties.Server.Type = pointer.To(environments.EnvironmentServerType(state.ServerType))
+				model.Properties.Server.Type = pointer.ToEnum[environments.EnvironmentServerType](state.ServerType)
 			}
 
 			if metadata.ResourceData.HasChange("management_portal_uri") {
@@ -277,7 +277,7 @@ func (r ApiCenterEnvironmentResource) Read() sdk.ResourceFunc {
 						if pointer.From(server.ManagementPortalUri) != nil && len(pointer.From(server.ManagementPortalUri)) != 0 {
 							state.MgmtPortalUri = pointer.From(server.ManagementPortalUri)[0]
 						}
-						state.ServerType = string(pointer.From(server.Type))
+						state.ServerType = pointer.FromEnum(server.Type)
 					}
 
 					if onboarding := props.Onboarding; onboarding != nil {
