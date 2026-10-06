@@ -84,7 +84,7 @@ func resourcePrivateDnsZone() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				MaxItems: 1,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ForceNew: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -160,7 +160,7 @@ func resourcePrivateDnsZone() *pluginsdk.Resource {
 	}
 }
 
-func resourcePrivateDnsZoneCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePrivateDnsZoneCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).PrivateDns.PrivateZonesClient
 	recordSetsClient := meta.(*clients.Client).PrivateDns.RecordSetsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -185,7 +185,7 @@ func resourcePrivateDnsZoneCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	parameters := privatezones.PrivateZone{
 		Location: pointer.To("global"),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	options := privatezones.CreateOrUpdateOperationOptions{
@@ -208,12 +208,12 @@ func resourcePrivateDnsZoneCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if v, ok := d.GetOk("soa_record"); ok {
-		soaRecordRaw := v.([]interface{})[0].(map[string]interface{})
+		soaRecordRaw := v.([]any)[0].(map[string]any)
 		soaRecord := expandPrivateDNSZoneSOARecord(soaRecordRaw)
 		rsParameters := privatedns.RecordSet{
 			Properties: &privatedns.RecordSetProperties{
 				Ttl:       pointer.To(int64(soaRecordRaw["ttl"].(int))),
-				Metadata:  tags.Expand(soaRecordRaw["tags"].(map[string]interface{})),
+				Metadata:  tags.Expand(soaRecordRaw["tags"].(map[string]any)),
 				SoaRecord: soaRecord,
 			},
 		}
@@ -238,7 +238,7 @@ func resourcePrivateDnsZoneCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	return resourcePrivateDnsZoneRead(d, meta)
 }
 
-func resourcePrivateDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePrivateDnsZoneRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).PrivateDns.PrivateZonesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -294,7 +294,7 @@ func resourcePrivateDnsZoneFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourcePrivateDnsZoneDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePrivateDnsZoneDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).PrivateDns.PrivateZonesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -313,7 +313,7 @@ func resourcePrivateDnsZoneDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func expandPrivateDNSZoneSOARecord(input map[string]interface{}) *privatedns.SoaRecord {
+func expandPrivateDNSZoneSOARecord(input map[string]any) *privatedns.SoaRecord {
 	return &privatedns.SoaRecord{
 		Email:       pointer.To(input["email"].(string)),
 		ExpireTime:  pointer.To(int64(input["expire_time"].(int))),
@@ -323,9 +323,9 @@ func expandPrivateDNSZoneSOARecord(input map[string]interface{}) *privatedns.Soa
 	}
 }
 
-func flattenPrivateDNSZoneSOARecord(input *privatedns.RecordSet) []interface{} {
+func flattenPrivateDNSZoneSOARecord(input *privatedns.RecordSet) []any {
 	if input == nil || input.Properties == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
 	ttl := 0
@@ -333,7 +333,7 @@ func flattenPrivateDNSZoneSOARecord(input *privatedns.RecordSet) []interface{} {
 		ttl = int(*input.Properties.Ttl)
 	}
 
-	metaData := make(map[string]interface{})
+	metaData := make(map[string]any)
 	if input.Properties.Metadata != nil {
 		metaData = tags.Flatten(input.Properties.Metadata)
 	}
@@ -377,8 +377,8 @@ func flattenPrivateDNSZoneSOARecord(input *privatedns.RecordSet) []interface{} {
 		}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"email":         email,
 			"host_name":     hostName,
 			"expire_time":   expireTime,

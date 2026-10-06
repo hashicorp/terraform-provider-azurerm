@@ -139,7 +139,7 @@ func PublishZipDeployLocalFileKuduPush(ctx context.Context, host string, user st
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusAccepted {
 		if resp.StatusCode == http.StatusConflict {
-			return fmt.Errorf("publising Zip Deployment failed with %s - Another operation is in progress or your application is not configured for Zip deployments", resp.Status)
+			return fmt.Errorf("publishing Zip Deployment failed with %s - Another operation is in progress or your application is not configured for Zip deployments", resp.Status)
 		}
 		return fmt.Errorf("publishing failed with status code %s", resp.Status)
 	}
@@ -172,7 +172,7 @@ func PublishZipDeployLocalFileKuduPush(ctx context.Context, host string, user st
 }
 
 func checkZipDeploymentStatusRefresh(r *http.Request) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		resp, err := http.DefaultClient.Do(r)
 		if err != nil {
 			return nil, "", err
@@ -186,7 +186,7 @@ func checkZipDeploymentStatusRefresh(r *http.Request) pluginsdk.StateRefreshFunc
 			return nil, "", fmt.Errorf("reading status response body for Zip Deploy")
 		}
 
-		body := make(map[string]interface{})
+		body := make(map[string]any)
 		if err = json.Unmarshal(respBody, &body); err != nil {
 			return nil, "", fmt.Errorf("could not parse status response for Zip Deploy")
 		}

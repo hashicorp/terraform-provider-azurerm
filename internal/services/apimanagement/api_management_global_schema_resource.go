@@ -69,7 +69,7 @@ func resourceApiManagementGlobalSchema() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementGlobalSchemaCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementGlobalSchemaCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.GlobalSchemaClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -101,7 +101,7 @@ func resourceApiManagementGlobalSchemaCreateUpdate(d *pluginsdk.ResourceData, me
 	// value for type=xml, document for type=json
 	value := d.Get("value")
 	if d.Get("type").(string) == string(schema.SchemaTypeJson) {
-		var document interface{}
+		var document any
 		if err := json.Unmarshal([]byte(value.(string)), &document); err != nil {
 			return fmt.Errorf(" error preparing value data to send %s: %s", id, err)
 		}
@@ -125,7 +125,7 @@ func resourceApiManagementGlobalSchemaCreateUpdate(d *pluginsdk.ResourceData, me
 	return resourceApiManagementGlobalSchemaRead(d, meta)
 }
 
-func resourceApiManagementGlobalSchemaRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementGlobalSchemaRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.GlobalSchemaClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -155,7 +155,7 @@ func resourceApiManagementGlobalSchemaRead(d *pluginsdk.ResourceData, meta inter
 			d.Set("description", props.Description)
 			d.Set("type", props.SchemaType)
 
-			var value interface{}
+			var value any
 			// value for type=xml, document for type=json
 			if props.SchemaType == schema.SchemaTypeJson && props.Document != nil {
 				var document []byte
@@ -174,7 +174,7 @@ func resourceApiManagementGlobalSchemaRead(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func resourceApiManagementGlobalSchemaDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementGlobalSchemaDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.GlobalSchemaClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

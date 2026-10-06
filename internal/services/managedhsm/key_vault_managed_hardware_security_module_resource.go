@@ -22,12 +22,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/deletedmanagedhsms"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/managedhsms"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/custompollers"
-	managedHSMValidation "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -60,7 +59,7 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: managedHSMValidation.ManagedHardwareSecurityModuleName,
+				ValidateFunc: validate.ManagedHardwareSecurityModuleName,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -121,25 +120,19 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 			"network_acls": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"default_action": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(managedhsms.NetworkRuleActionAllow),
-								string(managedhsms.NetworkRuleActionDeny),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(managedhsms.PossibleValuesForNetworkRuleAction(), false),
 						},
 						"bypass": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(managedhsms.NetworkRuleBypassOptionsNone),
-								string(managedhsms.NetworkRuleBypassOptionsAzureServices),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(managedhsms.PossibleValuesForNetworkRuleBypassOptions(), false),
 						},
 					},
 				},
@@ -176,7 +169,7 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ManagedHSMs
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -203,19 +196,19 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 	hsm := managedhsms.ManagedHsm{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &managedhsms.ManagedHsmProperties{
-			InitialAdminObjectIds:     helpers.ExpandStringSlice(d.Get("admin_object_ids").(*pluginsdk.Set).List()),
+			InitialAdminObjectIds:     pluginsdk.ExpandStringSlice(d.Get("admin_object_ids").(*pluginsdk.Set).List()),
 			CreateMode:                pointer.To(managedhsms.CreateModeDefault),
 			EnableSoftDelete:          pointer.To(true),
 			SoftDeleteRetentionInDays: pointer.To(int64(d.Get("soft_delete_retention_days").(int))),
 			EnablePurgeProtection:     pointer.To(d.Get("purge_protection_enabled").(bool)),
 			PublicNetworkAccess:       pointer.To(publicNetworkAccessEnabled),
-			NetworkAcls:               expandMHSMNetworkAcls(d.Get("network_acls").([]interface{})),
+			NetworkAcls:               expandMHSMNetworkAcls(d.Get("network_acls").([]any)),
 		},
 		Sku: &managedhsms.ManagedHsmSku{
 			Family: managedhsms.ManagedHsmSkuFamilyB,
 			Name:   managedhsms.ManagedHsmSkuName(d.Get("sku_name").(string)),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 	if tenantId := d.Get("tenant_id").(string); tenantId != "" {
 		hsm.Properties.TenantId = pointer.To(tenantId)
@@ -248,7 +241,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 		}
 
 		keyVaultClient := meta.(*clients.Client).KeyVault.ManagementClient
-		encData, err := securityDomainDownload(ctx, client.DataPlaneSecurityDomainsClient, *keyVaultClient, *resp.Model.Properties.HsmUri, d.Get("security_domain_key_vault_certificate_ids").([]interface{}), d.Get("security_domain_quorum").(int))
+		encData, err := securityDomainDownload(ctx, client.DataPlaneSecurityDomainsClient, *keyVaultClient, *resp.Model.Properties.HsmUri, d.Get("security_domain_key_vault_certificate_ids").([]any), d.Get("security_domain_quorum").(int))
 		if err != nil {
 			return fmt.Errorf("downloading security domain for %q: %+v", id, err)
 		}
@@ -259,7 +252,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 }
 
 // update to re-activate the security module
-func resourceArmKeyVaultManagedHardwareSecurityModuleUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmKeyVaultManagedHardwareSecurityModuleUpdate(d *pluginsdk.ResourceData, meta any) error {
 	kvClient := meta.(*clients.Client).ManagedHSMs
 	hsmClient := kvClient.ManagedHsmClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -279,11 +272,11 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleUpdate(d *pluginsdk.Resourc
 	hasUpdate := false
 	if d.HasChange("tags") {
 		hasUpdate = true
-		model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		model.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 	if d.HasChange("network_acls") {
 		hasUpdate = true
-		model.Properties.NetworkAcls = expandMHSMNetworkAcls(d.Get("network_acls").([]interface{}))
+		model.Properties.NetworkAcls = expandMHSMNetworkAcls(d.Get("network_acls").([]any))
 	}
 	if d.HasChange("public_network_access_enabled") {
 		hasUpdate = true
@@ -308,7 +301,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleUpdate(d *pluginsdk.Resourc
 		}
 
 		keyVaultClient := meta.(*clients.Client).KeyVault.ManagementClient
-		encData, err := securityDomainDownload(ctx, kvClient.DataPlaneSecurityDomainsClient, *keyVaultClient, *resp.Model.Properties.HsmUri, d.Get("security_domain_key_vault_certificate_ids").([]interface{}), d.Get("security_domain_quorum").(int))
+		encData, err := securityDomainDownload(ctx, kvClient.DataPlaneSecurityDomainsClient, *keyVaultClient, *resp.Model.Properties.HsmUri, d.Get("security_domain_key_vault_certificate_ids").([]any), d.Get("security_domain_quorum").(int))
 		if err != nil {
 			return fmt.Errorf("downloading security domain for %q: %+v", id, err)
 		}
@@ -318,7 +311,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleUpdate(d *pluginsdk.Resourc
 	return nil
 }
 
-func resourceArmKeyVaultManagedHardwareSecurityModuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmKeyVaultManagedHardwareSecurityModuleRead(d *pluginsdk.ResourceData, meta any) error {
 	hsmClient := meta.(*clients.Client).ManagedHSMs.ManagedHsmClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -347,7 +340,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleRead(d *pluginsdk.ResourceD
 
 		if props := model.Properties; props != nil {
 			d.Set("tenant_id", pointer.From(props.TenantId))
-			d.Set("admin_object_ids", helpers.FlattenStringSlice(props.InitialAdminObjectIds))
+			d.Set("admin_object_ids", pluginsdk.FlattenSlice(props.InitialAdminObjectIds))
 			d.Set("hsm_uri", props.HsmUri)
 			d.Set("soft_delete_retention_days", props.SoftDeleteRetentionInDays)
 			d.Set("purge_protection_enabled", props.EnablePurgeProtection)
@@ -377,7 +370,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleRead(d *pluginsdk.ResourceD
 	return nil
 }
 
-func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ManagedHSMs
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -432,18 +425,18 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *pluginsdk.Resourc
 	return nil
 }
 
-func expandMHSMNetworkAcls(input []interface{}) *managedhsms.MHSMNetworkRuleSet {
+func expandMHSMNetworkAcls(input []any) *managedhsms.MHSMNetworkRuleSet {
 	if len(input) == 0 {
 		return nil
 	}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	return &managedhsms.MHSMNetworkRuleSet{
 		Bypass:        pointer.ToEnum[managedhsms.NetworkRuleBypassOptions](v["bypass"].(string)),
 		DefaultAction: pointer.ToEnum[managedhsms.NetworkRuleAction](v["default_action"].(string)),
 	}
 }
 
-func flattenMHSMNetworkAcls(acl *managedhsms.MHSMNetworkRuleSet) []interface{} {
+func flattenMHSMNetworkAcls(acl *managedhsms.MHSMNetworkRuleSet) []any {
 	bypass := string(managedhsms.NetworkRuleBypassOptionsAzureServices)
 	defaultAction := string(managedhsms.NetworkRuleActionAllow)
 
@@ -456,15 +449,15 @@ func flattenMHSMNetworkAcls(acl *managedhsms.MHSMNetworkRuleSet) []interface{} {
 		}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"bypass":         bypass,
 			"default_action": defaultAction,
 		},
 	}
 }
 
-func securityDomainDownload(ctx context.Context, sdClient *kv74.HSMSecurityDomainClient, keyClient kv74.BaseClient, vaultBaseUrl string, certIds []interface{}, quorum int) (encDataStr string, err error) {
+func securityDomainDownload(ctx context.Context, sdClient *kv74.HSMSecurityDomainClient, keyClient kv74.BaseClient, vaultBaseUrl string, certIds []any, quorum int) (encDataStr string, err error) {
 	var param kv74.CertificateInfoObject
 
 	param.Required = pointer.To(int32(quorum))
@@ -535,8 +528,8 @@ func securityDomainDownload(ctx context.Context, sdClient *kv74.HSMSecurityDomai
 	return encData.Value, err
 }
 
-func keyVaultHSMCustomizeDiff(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
-	if oldVal, newVal := d.GetChange("security_domain_key_vault_certificate_ids"); len(oldVal.([]interface{})) != 0 && len(newVal.([]interface{})) == 0 {
+func keyVaultHSMCustomizeDiff(_ context.Context, d *pluginsdk.ResourceDiff, _ any) error {
+	if oldVal, newVal := d.GetChange("security_domain_key_vault_certificate_ids"); len(oldVal.([]any)) != 0 && len(newVal.([]any)) == 0 {
 		if err := d.ForceNew("security_domain_key_vault_certificate_ids"); err != nil {
 			return err
 		}
