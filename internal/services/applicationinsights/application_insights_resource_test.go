@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -172,7 +172,7 @@ func TestAccApplicationInsights_basicWorkspaceMode(t *testing.T) {
 }
 
 func (t ApplicationInsightsResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := components.ParseComponentID(state.ID)
+	id, err := componentsapis.ParseComponentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -198,8 +198,8 @@ func TestAccApplicationInsights_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("retention_in_days").HasValue("120"),
 				check.That(data.ResourceName).Key("sampling_percentage").HasValue("50"),
 				check.That(data.ResourceName).Key("daily_data_cap_in_gb").HasValue("50"),
-				check.That(data.ResourceName).Key("daily_data_cap_notifications_disabled").HasValue("true"),
-				check.That(data.ResourceName).Key("local_authentication_disabled").HasValue("true"),
+				check.That(data.ResourceName).Key("daily_data_cap_notifications_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.Hello").HasValue("World"),
 			),
@@ -406,17 +406,17 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_application_insights" "test" {
-  name                                  = "acctestappinsights-%d"
-  location                              = azurerm_resource_group.test.location
-  resource_group_name                   = azurerm_resource_group.test.name
-  application_type                      = "%s"
-  retention_in_days                     = 120
-  sampling_percentage                   = 50
-  daily_data_cap_in_gb                  = 50
-  daily_data_cap_notifications_disabled = true
-  disable_ip_masking                    = true
-  force_customer_storage_for_profiler   = true
-  local_authentication_disabled         = true
+  name                                 = "acctestappinsights-%d"
+  location                             = azurerm_resource_group.test.location
+  resource_group_name                  = azurerm_resource_group.test.name
+  application_type                     = "%s"
+  retention_in_days                    = 120
+  sampling_percentage                  = 50
+  daily_data_cap_in_gb                 = 50
+  daily_data_cap_notifications_enabled = false
+  ip_masking_enabled                   = false
+  force_customer_storage_for_profiler  = true
+  local_authentication_enabled         = false
 
   tags = {
     Hello = "World"
@@ -437,17 +437,17 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_application_insights" "test" {
-  name                                  = "acctestappinsights-%d"
-  location                              = azurerm_resource_group.test.location
-  resource_group_name                   = azurerm_resource_group.test.name
-  application_type                      = "%s"
-  retention_in_days                     = 60
-  sampling_percentage                   = 60
-  daily_data_cap_in_gb                  = 60
-  daily_data_cap_notifications_disabled = false
-  disable_ip_masking                    = false
-  force_customer_storage_for_profiler   = false
-  local_authentication_disabled         = false
+  name                                 = "acctestappinsights-%d"
+  location                             = azurerm_resource_group.test.location
+  resource_group_name                  = azurerm_resource_group.test.name
+  application_type                     = "%s"
+  retention_in_days                    = 60
+  sampling_percentage                  = 60
+  daily_data_cap_in_gb                 = 60
+  daily_data_cap_notifications_enabled = true
+  ip_masking_enabled                   = true
+  force_customer_storage_for_profiler  = false
+  local_authentication_enabled         = true
 
   tags = {
     Hello = "World"

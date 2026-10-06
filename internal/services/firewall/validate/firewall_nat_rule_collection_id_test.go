@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestFirewallNatRuleCollectionID(t *testing.T) {
+func TestValidateFirewallNatRuleCollectionID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
