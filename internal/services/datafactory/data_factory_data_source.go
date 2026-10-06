@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -111,7 +112,7 @@ func dataSourceDataFactory() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceDataFactoryRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.Factories
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -140,13 +141,11 @@ func dataSourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 
 		if props := model.Properties; props != nil {
-			githubConfiguration := flattenGitHubRepoConfigurationDataSource(props.RepoConfiguration)
-			if err := d.Set("github_configuration", githubConfiguration); err != nil {
+			if err := d.Set("github_configuration", flattenGitHubRepoConfigurationDataSource(props.RepoConfiguration)); err != nil {
 				return fmt.Errorf("setting `github_configuration`: %+v", err)
 			}
 
-			vstsConfiguration := flattenVSTSRepoConfigurationDataSource(props.RepoConfiguration)
-			if err := d.Set("vsts_configuration", vstsConfiguration); err != nil {
+			if err := d.Set("vsts_configuration", flattenVSTSRepoConfigurationDataSource(props.RepoConfiguration)); err != nil {
 				return fmt.Errorf("setting `vsts_configuration`: %+v", err)
 			}
 		}
@@ -159,18 +158,14 @@ func dataSourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func flattenGitHubRepoConfigurationDataSource(input factories.FactoryRepoConfiguration) []interface{} {
-	output := make([]interface{}, 0)
+func flattenGitHubRepoConfigurationDataSource(input factories.FactoryRepoConfiguration) []any {
+	output := make([]any, 0)
 
 	if v, ok := input.(factories.FactoryGitHubConfiguration); ok {
-		gitUrl := ""
-		if v.HostName != nil {
-			gitUrl = *v.HostName
-		}
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"account_name":    v.AccountName,
 			"branch_name":     v.CollaborationBranch,
-			"git_url":         gitUrl,
+			"git_url":         pointer.From(v.HostName),
 			"repository_name": v.RepositoryName,
 			"root_folder":     v.RootFolder,
 		})
@@ -179,21 +174,17 @@ func flattenGitHubRepoConfigurationDataSource(input factories.FactoryRepoConfigu
 	return output
 }
 
-func flattenVSTSRepoConfigurationDataSource(input factories.FactoryRepoConfiguration) []interface{} {
-	output := make([]interface{}, 0)
+func flattenVSTSRepoConfigurationDataSource(input factories.FactoryRepoConfiguration) []any {
+	output := make([]any, 0)
 
 	if v, ok := input.(factories.FactoryVSTSConfiguration); ok {
-		tenantId := ""
-		if v.TenantId != nil {
-			tenantId = *v.TenantId
-		}
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"account_name":    v.AccountName,
 			"branch_name":     v.CollaborationBranch,
 			"project_name":    v.ProjectName,
 			"repository_name": v.RepositoryName,
 			"root_folder":     v.RootFolder,
-			"tenant_id":       tenantId,
+			"tenant_id":       pointer.From(v.TenantId),
 		})
 	}
 

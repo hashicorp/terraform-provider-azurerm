@@ -62,9 +62,20 @@ func (c AutonomousDatabasesClient) Failover(ctx context.Context, id AutonomousDa
 
 // FailoverThenPoll performs Failover then polls until it's completed
 func (c AutonomousDatabasesClient) FailoverThenPoll(ctx context.Context, id AutonomousDatabaseId, input PeerDbDetails) error {
+	return c.FailoverCallbackThenPoll(ctx, id, input, nil)
+}
+
+// FailoverCallbackThenPoll performs Failover, runs the optional callback function, then polls until it's completed
+func (c AutonomousDatabasesClient) FailoverCallbackThenPoll(ctx context.Context, id AutonomousDatabaseId, input PeerDbDetails, callback func() error) error {
 	result, err := c.Failover(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Failover: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
