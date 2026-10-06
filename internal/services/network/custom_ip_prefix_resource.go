@@ -212,7 +212,7 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.PrefixType != "" {
-				payload.Properties.PrefixType = pointer.To(customipprefixes.CustomIPPrefixType(model.PrefixType))
+				payload.Properties.PrefixType = pointer.ToEnum[customipprefixes.CustomIPPrefixType](model.PrefixType)
 			}
 
 			if model.ParentCustomIPPrefixID != "" {
@@ -350,7 +350,7 @@ func (r CustomIpPrefixResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					state.CIDR = pointer.From(props.Cidr)
 					state.InternetAdvertisingDisabled = pointer.From(props.NoInternetAdvertise)
-					state.PrefixType = string(pointer.From(props.PrefixType))
+					state.PrefixType = pointer.FromEnum(props.PrefixType)
 					state.WANValidationSignedMessage = pointer.From(props.SignedMessage)
 
 					if parent := props.CustomIPPrefixParent; parent != nil {
