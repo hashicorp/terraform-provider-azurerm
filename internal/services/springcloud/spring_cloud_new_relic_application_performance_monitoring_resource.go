@@ -52,7 +52,7 @@ func (s SpringCloudNewRelicApplicationPerformanceMonitoringResource) ResourceTyp
 	return "azurerm_spring_cloud_new_relic_application_performance_monitoring"
 }
 
-func (s SpringCloudNewRelicApplicationPerformanceMonitoringResource) ModelObject() interface{} {
+func (s SpringCloudNewRelicApplicationPerformanceMonitoringResource) ModelObject() any {
 	return &SpringCloudNewRelicApplicationPerformanceMonitoringModel{}
 }
 
@@ -421,7 +421,7 @@ func flattenNewRelicLabels(input string) map[string]string {
 	if input == "" {
 		return labels
 	}
-	for _, label := range strings.Split(input, ";") {
+	for label := range strings.SplitSeq(input, ";") {
 		parts := strings.Split(label, ":")
 		if len(parts) == 2 {
 			labels[parts[0]] = parts[1]

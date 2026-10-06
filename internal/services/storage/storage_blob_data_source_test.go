@@ -30,6 +30,7 @@ func TestAccDataSourceStorageBlob_basic(t *testing.T) {
 		{
 			Config: StorageBlobDataSource{}.basicWithDataSource(data, sourceBlob.Name()),
 			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("cache_control").HasValue("no-cache"),
 				check.That(data.ResourceName).Key("encryption_scope").HasValue(fmt.Sprintf("acctestEScontainer%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("type").HasValue("Block"),
 				check.That(data.ResourceName).Key("metadata.%").HasValue("2"),
@@ -77,6 +78,7 @@ resource "azurerm_storage_blob" "test" {
   storage_container_id = azurerm_storage_container.test.id
   encryption_scope     = azurerm_storage_encryption_scope.test.name
   type                 = "Block"
+  cache_control        = "no-cache"
   source               = "%[4]s"
 
   metadata = {

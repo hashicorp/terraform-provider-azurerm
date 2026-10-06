@@ -47,7 +47,7 @@ func resourceApiManagementProductTag() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementProductTagCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementProductTagCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ProductTagClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -81,7 +81,7 @@ func resourceApiManagementProductTagCreate(d *pluginsdk.ResourceData, meta inter
 	return resourceApiManagementProductTagRead(d, meta)
 }
 
-func resourceApiManagementProductTagRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementProductTagRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ProductTagClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -116,7 +116,7 @@ func resourceApiManagementProductTagRead(d *pluginsdk.ResourceData, meta interfa
 	return nil
 }
 
-func resourceApiManagementProductTagDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementProductTagDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ProductTagClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -218,7 +218,7 @@ func (r GalleryApplicationVersionResource) ResourceType() string {
 	return "azurerm_gallery_application_version"
 }
 
-func (r GalleryApplicationVersionResource) ModelObject() interface{} {
+func (r GalleryApplicationVersionResource) ModelObject() any {
 	return &GalleryApplicationVersionModel{}
 }
 
@@ -561,8 +561,7 @@ func flattenGalleryApplicationVersionTargetRegion(input *[]galleryapplicationver
 
 	for _, item := range *input {
 		obj := TargetRegion{
-			Name:              location.Normalize(item.Name),
-			ExcludeFromLatest: false,
+			Name: location.Normalize(item.Name),
 		}
 
 		if item.ExcludeFromLatest != nil {

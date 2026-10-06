@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/communicationservices"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/domains"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2026-03-18/communicationservices"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2026-03-18/domains"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -50,7 +50,7 @@ func (EmailDomainAssociationResource) Attributes() map[string]*pluginsdk.Schema 
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (EmailDomainAssociationResource) ModelObject() interface{} {
+func (EmailDomainAssociationResource) ModelObject() any {
 	return &EmailDomainAssociationResourceModel{}
 }
 
@@ -330,7 +330,7 @@ func (EmailDomainAssociationResource) Delete() sdk.ResourceFunc {
 }
 
 func (EmailDomainAssociationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return func(input interface{}, key string) (warnings []string, errors []error) {
+	return func(input any, key string) (warnings []string, errors []error) {
 		v, ok := input.(string)
 		if !ok {
 			errors = append(errors, fmt.Errorf("expected %q to be a string", key))

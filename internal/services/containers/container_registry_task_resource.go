@@ -18,9 +18,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/tasks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -88,8 +88,6 @@ type Auth struct {
 	ExpireInSec  int64  `tfschema:"expire_in_seconds"`
 }
 
-type SourceSetting struct{}
-
 type SourceTrigger struct {
 	Name          string   `tfschema:"name"`
 	Enabled       bool     `tfschema:"enabled"`
@@ -142,10 +140,10 @@ type ContainerRegistryTaskModel struct {
 	Tags                map[string]string    `tfschema:"tags"`
 }
 
-func userDataStateFunc(v interface{}) string {
+func userDataStateFunc(v any) string {
 	switch s := v.(type) {
 	case string:
-		return helpers.Base64EncodeIfNot(s)
+		return base64.EncodeIfNot(s)
 	default:
 		return ""
 	}
@@ -595,18 +593,18 @@ func (r ContainerRegistryTaskResource) CustomizeDiff() sdk.ResourceFunc {
 			if isSystemTask {
 				invalidProps := []string{"platform", "docker_step", "file_step", "encoded_step", "base_image_trigger", "source_trigger", "timer_trigger"}
 				for _, prop := range invalidProps {
-					if v := rd.Get(prop).([]interface{}); len(v) != 0 {
+					if v := rd.Get(prop).([]any); len(v) != 0 {
 						return fmt.Errorf("system task can't specify `%s`", prop)
 					}
 				}
 			} else {
-				if v := rd.Get("platform").([]interface{}); len(v) == 0 {
+				if v := rd.Get("platform").([]any); len(v) == 0 {
 					return fmt.Errorf("non-system task have to specify `platform`")
 				}
 
-				dockerStep := rd.Get("docker_step").([]interface{})
-				fileTaskStep := rd.Get("file_step").([]interface{})
-				encodedTaskStep := rd.Get("encoded_step").([]interface{})
+				dockerStep := rd.Get("docker_step").([]any)
+				fileTaskStep := rd.Get("file_step").([]any)
+				encodedTaskStep := rd.Get("encoded_step").([]any)
 				if len(dockerStep)+len(fileTaskStep)+len(encodedTaskStep) == 0 {
 					return fmt.Errorf("non-system task have to specify one of `docker_step`, `file_step` and `encoded_step`")
 				}
@@ -625,7 +623,7 @@ func (r ContainerRegistryTaskResource) ResourceType() string {
 	return "azurerm_container_registry_task"
 }
 
-func (r ContainerRegistryTaskResource) ModelObject() interface{} {
+func (r ContainerRegistryTaskResource) ModelObject() any {
 	return &ContainerRegistryTaskModel{}
 }
 
@@ -674,7 +672,7 @@ func (r ContainerRegistryTaskResource) Create() sdk.ResourceFunc {
 				status = tasks.TaskStatusEnabled
 			}
 
-			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]any))
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
@@ -890,7 +888,7 @@ func (r ContainerRegistryTaskResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
-				expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+				expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]any))
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
@@ -923,7 +921,7 @@ func (r ContainerRegistryTaskResource) Update() sdk.ResourceFunc {
 				existing.Model.Tags = &model.Tags
 			}
 
-			// Due to the fact that the service doesn't honor explicitly set to null fields in the PATCH request,
+			// Due to the fact that the service doesn't honour explicitly set to null fields in the PATCH request,
 			// we can not use PATCH (i.e. the Update) here.
 			if err := client.CreateThenPoll(ctx, *id, *existing.Model); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
@@ -1252,7 +1250,7 @@ func flattenRegistryTaskFileTaskStep(step tasks.TaskStepProperties, model Contai
 
 func expandRegistryTaskEncodedTaskStep(step EncodedTaskStep) tasks.EncodedTaskStep {
 	out := tasks.EncodedTaskStep{
-		EncodedTaskContent: helpers.Base64EncodeIfNot(step.TaskContent),
+		EncodedTaskContent: base64.EncodeIfNot(step.TaskContent),
 		Values:             expandRegistryTaskValues(step.Values, step.SecretValues),
 	}
 	if step.ContextPath != "" {
@@ -1262,7 +1260,7 @@ func expandRegistryTaskEncodedTaskStep(step EncodedTaskStep) tasks.EncodedTaskSt
 		out.ContextAccessToken = &step.ContextAccessToken
 	}
 	if step.ValueContent != "" {
-		out.EncodedValuesContent = pointer.To(helpers.Base64EncodeIfNot(step.ValueContent))
+		out.EncodedValuesContent = pointer.To(base64.EncodeIfNot(step.ValueContent))
 	}
 	return out
 }
