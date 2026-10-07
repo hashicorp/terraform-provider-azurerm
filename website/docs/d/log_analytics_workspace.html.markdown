@@ -48,6 +48,10 @@ The following attributes are exported:
 
 * `daily_quota_gb` - The workspace daily quota for ingestion in GB.
 
+* `internet_ingestion_access_type` - The public network access type for ingestion into the Log Analytics Workspace. Possible values are `Enabled`, `Disabled`, and `SecuredByPerimeter`.
+
+* `internet_query_access_type` - The public network access type for querying the Log Analytics Workspace. Possible values are `Enabled`, `Disabled`, and `SecuredByPerimeter`.
+
 * `tags` - A mapping of tags assigned to the resource.
 
 ## Timeouts

@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworkpeerings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworkpeerings"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -20,12 +20,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name virtual_network_peering -service-package-name network -properties "name,resource_group_name,virtual_network_name"
-
-const virtualNetworkPeeringResourceType = "azurerm_virtual_network_peering"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceVirtualNetworkPeering() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -134,7 +131,7 @@ func resourceVirtualNetworkPeering() *pluginsdk.Resource {
 	}
 }
 
-func resourceVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualNetworkPeerings
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -173,15 +170,22 @@ func resourceVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if v, ok := d.GetOk("local_subnet_names"); ok {
-		peer.Properties.LocalSubnetNames = utils.ExpandStringSlice(v.([]interface{}))
+		peer.Properties.LocalSubnetNames = pluginsdk.ExpandStringSlice(v.([]any))
 	}
 
 	if v, ok := d.GetOk("remote_subnet_names"); ok {
-		peer.Properties.RemoteSubnetNames = utils.ExpandStringSlice(v.([]interface{}))
+		peer.Properties.RemoteSubnetNames = pluginsdk.ExpandStringSlice(v.([]any))
 	}
 
-	locks.ByID(virtualNetworkPeeringResourceType)
-	defer locks.UnlockByID(virtualNetworkPeeringResourceType)
+	vnetId := commonids.NewVirtualNetworkID(subscriptionId, d.Get("resource_group_name").(string), d.Get("virtual_network_name").(string))
+	remoteVnetId, err := commonids.ParseVirtualNetworkID(d.Get("remote_virtual_network_id").(string))
+	if err != nil {
+		return err
+	}
+
+	vnetIDsToLock := []string{vnetId.ID(), remoteVnetId.ID()}
+	locks.MultipleByID(&vnetIDsToLock)
+	defer locks.UnlockMultipleByID(&vnetIDsToLock)
 
 	// TODO: implement `CallbackThenPoll`, rework to remove StateChangeConf
 	deadline, ok := ctx.Deadline()
@@ -191,16 +195,12 @@ func resourceVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, meta interfa
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending: []string{"Pending"},
 		Target:  []string{"Created"},
-		Refresh: func() (interface{}, string, error) {
+		Refresh: func() (any, string, error) {
 			future, err := client.CreateOrUpdate(ctx, id, peer, virtualnetworkpeerings.CreateOrUpdateOperationOptions{SyncRemoteAddressSpace: pointer.To(virtualnetworkpeerings.SyncRemoteAddressSpaceTrue)})
 			if err != nil {
-				if utils.ResponseErrorIsRetryable(err) {
+				if resp := future.HttpResponse; resp != nil && response.WasBadRequest(resp) && strings.Contains(err.Error(), "ReferencedResourceNotProvisioned") {
+					// Resource is not yet ready, this may be the case if the Vnet was just created or another peering was just initiated.
 					return future.HttpResponse, "Pending", err
-				} else {
-					if resp := future.HttpResponse; resp != nil && response.WasBadRequest(resp) && strings.Contains(err.Error(), "ReferencedResourceNotProvisioned") {
-						// Resource is not yet ready, this may be the case if the Vnet was just created or another peering was just initiated.
-						return future.HttpResponse, "Pending", err
-					}
 				}
 
 				return future.HttpResponse, "", err
@@ -227,7 +227,7 @@ func resourceVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, meta interfa
 	return resourceVirtualNetworkPeeringRead(d, meta)
 }
 
-func resourceVirtualNetworkPeeringUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualNetworkPeeringUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualNetworkPeerings
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -237,8 +237,15 @@ func resourceVirtualNetworkPeeringUpdate(d *pluginsdk.ResourceData, meta interfa
 		return err
 	}
 
-	locks.ByID(virtualNetworkPeeringResourceType)
-	defer locks.UnlockByID(virtualNetworkPeeringResourceType)
+	vnetId := commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, id.VirtualNetworkName)
+	remoteVnetId, err := commonids.ParseVirtualNetworkID(d.Get("remote_virtual_network_id").(string))
+	if err != nil {
+		return err
+	}
+
+	vnetIDsToLock := []string{vnetId.ID(), remoteVnetId.ID()}
+	locks.MultipleByID(&vnetIDsToLock)
+	defer locks.UnlockMultipleByID(&vnetIDsToLock)
 
 	existing, err := client.Get(ctx, *id)
 	if err != nil {
@@ -259,10 +266,10 @@ func resourceVirtualNetworkPeeringUpdate(d *pluginsdk.ResourceData, meta interfa
 		existing.Model.Properties.AllowVirtualNetworkAccess = pointer.To(d.Get("allow_virtual_network_access").(bool))
 	}
 	if d.HasChange("local_subnet_names") {
-		existing.Model.Properties.LocalSubnetNames = utils.ExpandStringSlice(d.Get("local_subnet_names").([]interface{}))
+		existing.Model.Properties.LocalSubnetNames = pluginsdk.ExpandStringSlice(d.Get("local_subnet_names").([]any))
 	}
 	if d.HasChange("remote_subnet_names") {
-		existing.Model.Properties.RemoteSubnetNames = utils.ExpandStringSlice(d.Get("remote_subnet_names").([]interface{}))
+		existing.Model.Properties.RemoteSubnetNames = pluginsdk.ExpandStringSlice(d.Get("remote_subnet_names").([]any))
 	}
 	if d.HasChange("use_remote_gateways") {
 		existing.Model.Properties.UseRemoteGateways = pointer.To(d.Get("use_remote_gateways").(bool))
@@ -280,7 +287,7 @@ func resourceVirtualNetworkPeeringUpdate(d *pluginsdk.ResourceData, meta interfa
 	return resourceVirtualNetworkPeeringRead(d, meta)
 }
 
-func resourceVirtualNetworkPeeringRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualNetworkPeeringRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualNetworkPeerings
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -332,7 +339,7 @@ func resourceVirtualNetworkPeeringFlatten(d *pluginsdk.ResourceData, id *virtual
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceVirtualNetworkPeeringDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualNetworkPeeringDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualNetworkPeerings
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -342,8 +349,15 @@ func resourceVirtualNetworkPeeringDelete(d *pluginsdk.ResourceData, meta interfa
 		return err
 	}
 
-	locks.ByID(virtualNetworkPeeringResourceType)
-	defer locks.UnlockByID(virtualNetworkPeeringResourceType)
+	vnetId := commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, id.VirtualNetworkName)
+	remoteVnetId, err := commonids.ParseVirtualNetworkID(d.Get("remote_virtual_network_id").(string))
+	if err != nil {
+		return err
+	}
+
+	vnetIDsToLock := []string{vnetId.ID(), remoteVnetId.ID()}
+	locks.MultipleByID(&vnetIDsToLock)
+	defer locks.UnlockMultipleByID(&vnetIDsToLock)
 
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
