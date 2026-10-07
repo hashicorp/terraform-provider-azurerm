@@ -6,6 +6,7 @@ package loadbalancer_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -14,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -46,6 +48,22 @@ func TestAccAzureRMLoadBalancer_requiresImport(t *testing.T) {
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccAzureRMLoadBalancer_basicSkuDeprecated(t *testing.T) {
+	if features.SixPointOh() {
+		t.Skip("Skipping since `Basic` SKU is no longer supported in 6.0")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
+	r := LoadBalancer{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.basicSkuDeprecated(data),
+			ExpectError: regexp.MustCompile("creation of new `Basic` SKU load balancers is no longer permitted"),
+		},
 	})
 }
 
@@ -304,6 +322,26 @@ resource "azurerm_lb" "import" {
   }
 }
 `, template)
+}
+
+func (r LoadBalancer) basicSkuDeprecated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-lb-%d"
+  location = "%s"
+}
+
+resource "azurerm_lb" "test" {
+  name                = "acctestlb-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Basic"
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r LoadBalancer) updatedTags(data acceptance.TestData) string {
