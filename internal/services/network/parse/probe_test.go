@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = ProbeId{}
 
-func TestProbeIDFormatter(t *testing.T) {
+func TestParseProbeIDFormatter(t *testing.T) {
 	actual := NewProbeID("12345678-1234-9876-4563-123456789012", "group1", "applicationGateway1", "probe1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/probes/probe1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestProbeIDFormatter(t *testing.T) {
 	}
 }
 
-func TestProbeID(t *testing.T) {
+func TestParseProbeID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -129,7 +129,7 @@ func TestProbeID(t *testing.T) {
 	}
 }
 
-func TestProbeIDInsensitively(t *testing.T) {
+func TestParseProbeIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

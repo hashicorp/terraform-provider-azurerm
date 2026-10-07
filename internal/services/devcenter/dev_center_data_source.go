@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package devcenter
@@ -30,7 +30,7 @@ type DevCenterDataSourceModel struct {
 	Location          string                                     `tfschema:"location"`
 	Name              string                                     `tfschema:"name"`
 	ResourceGroupName string                                     `tfschema:"resource_group_name"`
-	Tags              map[string]interface{}                     `tfschema:"tags"`
+	Tags              map[string]any                             `tfschema:"tags"`
 }
 
 func (DevCenterDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -60,7 +60,7 @@ func (DevCenterDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (DevCenterDataSource) ModelObject() interface{} {
+func (DevCenterDataSource) ModelObject() any {
 	return &DevCenterDataSourceModel{}
 }
 

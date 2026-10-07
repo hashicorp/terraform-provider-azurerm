@@ -67,6 +67,7 @@ resource "azurerm_key_vault" "kv" {
   name                       = "kv"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "premium"
   soft_delete_retention_days = 7
@@ -115,7 +116,7 @@ resource "azurerm_app_configuration_key" "test" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -155,7 +156,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 45 minutes) Used when creating the App Configuration Key.
 * `read` - (Defaults to 5 minutes) Used when retrieving the App Configuration Key.

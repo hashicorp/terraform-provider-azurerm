@@ -13,13 +13,13 @@ var _ CopySource = LakeHouseTableSource{}
 type LakeHouseTableSource struct {
 	AdditionalColumns *interface{} `json:"additionalColumns,omitempty"`
 	TimestampAsOf     *interface{} `json:"timestampAsOf,omitempty"`
-	VersionAsOf       *int64       `json:"versionAsOf,omitempty"`
+	VersionAsOf       *interface{} `json:"versionAsOf,omitempty"`
 
 	// Fields inherited from CopySource
 
-	DisableMetricsCollection *bool        `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64       `json:"maxConcurrentConnections,omitempty"`
-	SourceRetryCount         *int64       `json:"sourceRetryCount,omitempty"`
+	DisableMetricsCollection *interface{} `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *interface{} `json:"maxConcurrentConnections,omitempty"`
+	SourceRetryCount         *interface{} `json:"sourceRetryCount,omitempty"`
 	SourceRetryWait          *interface{} `json:"sourceRetryWait,omitempty"`
 	Type                     string       `json:"type"`
 }

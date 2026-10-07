@@ -84,7 +84,7 @@ resource "azurerm_site_recovery_vmware_replicated_vm" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -92,7 +92,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the replicated VM. Changing this forces a new resource to be created.
 
-* `physical_server_credential_name` - (Required) The name of the credential to access the source VM. Changing this forces a new resource to be created. More information about the credentials could be found [here](https://learn.microsoft.com/en-us/azure/site-recovery/deploy-vmware-azure-replication-appliance-modernized).
+* `physical_server_credential_name` - (Required) The name of the credential to access the source VM. Changing this forces a new resource to be created. More information about the credentials could be found [here](https://learn.microsoft.com/azure/site-recovery/deploy-vmware-azure-replication-appliance-modernized).
 
 * `recovery_vault_id` - (Required) The ID of the Recovery Services Vault where the replicated VM is created.
 
@@ -108,7 +108,7 @@ The following arguments are supported:
 
 ~> **Note:** `target_network_id` is required when `network_interface` is specified.
 
-* `default_log_storage_account_id` - (Optional) The ID of the stroage account that should be used for logging during replication. 
+* `default_log_storage_account_id` - (Optional) The ID of the storage account that should be used for logging during replication. 
 
 ~> **Note:** Only standard types of storage accounts are allowed.
 
@@ -124,7 +124,7 @@ The following arguments are supported:
 
 ~> **Note:** When `default_target_disk_encryption_set_id` co-exist with `managed_disk`, the value of `default_target_disk_encryption_set_id` must be as same as `target_disk_encryption_set_id` of every `managed_disk` or it forces a new resource to be created.
 
-* `default_recovery_disk_type` - (Optional) The type of storage account that should be used for recovery disks when a failover is done. Possible values are `Premium_LRS`, `Standard_LRS` and `StandardSSD_LRS`.
+* `default_recovery_disk_type` - (Optional) The type of storage account that should be used for recovery disks when a failover is done. Possible values are `Premium_LRS`, `PremiumV2_LRS`, `Premium_ZRS`, `Standard_LRS`, `StandardSSD_LRS`, `StandardSSD_ZRS` and `UltraSSD_LRS`.
 
 ~> **Note:** Only one of `default_recovery_disk_type` or `managed_disk` must be specified.
 
@@ -161,7 +161,7 @@ A `managed_disk` block supports the following:
 
 * `disk_id` - (Required) The ID of the disk to be replicated.
 
-* `target_disk_type` - (Required) The disk type of the disk to be created when a failover is done. Possible values are `Premium_LRS`, `Standard_LRS` and `StandardSSD_LRS`.
+* `target_disk_type` - (Required) The disk type of the disk to be created when a failover is done. Possible values are `Premium_LRS`, `PremiumV2_LRS`, `Premium_ZRS`, `Standard_LRS`, `StandardSSD_LRS`, `StandardSSD_ZRS` and `UltraSSD_LRS`.
 
 * `log_storage_account_id` - (Optional) The ID of the storage account that should be used for logging during replication.
 
@@ -189,7 +189,7 @@ In addition to the arguments above, the following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 2 hours) Used when creating the Site Recovery HyperV Replicated VM.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Site Recovery HyperV Replicated VM.

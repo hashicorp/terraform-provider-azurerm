@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func NestedItemId(i interface{}, k string) (warnings []string, errors []error) {
+func NestedItemId(i any, k string) (warnings []string, errors []error) {
 	if warnings, errors = validation.StringIsNotEmpty(i, k); len(errors) > 0 {
 		return warnings, errors
 	}

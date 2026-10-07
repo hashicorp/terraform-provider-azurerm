@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = WorkspaceExtendedAuditingPolicyId{}
 
-func TestWorkspaceExtendedAuditingPolicyIDFormatter(t *testing.T) {
+func TestParseWorkspaceExtendedAuditingPolicyIDFormatter(t *testing.T) {
 	actual := NewWorkspaceExtendedAuditingPolicyID("12345678-1234-9876-4563-123456789012", "resGroup1", "workspace1", "default").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Synapse/workspaces/workspace1/extendedAuditingSettings/default"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestWorkspaceExtendedAuditingPolicyIDFormatter(t *testing.T) {
 	}
 }
 
-func TestWorkspaceExtendedAuditingPolicyID(t *testing.T) {
+func TestParseWorkspaceExtendedAuditingPolicyID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

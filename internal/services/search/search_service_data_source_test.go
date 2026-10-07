@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package search_test
@@ -21,6 +21,7 @@ func TestAccDataSourceSearchService_basic(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("endpoint").Exists(),
 				check.That(data.ResourceName).Key("customer_managed_key_encryption_compliance_status").Exists(),
 				check.That(data.ResourceName).Key("replica_count").Exists(),
 				check.That(data.ResourceName).Key("partition_count").Exists(),

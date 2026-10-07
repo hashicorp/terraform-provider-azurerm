@@ -30,7 +30,7 @@ resource "azurerm_availability_set" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -42,11 +42,11 @@ The following arguments are supported:
 
 * `platform_update_domain_count` - (Optional) Specifies the number of update domains that are used. Defaults to `5`. Changing this forces a new resource to be created.
 
-~> **Note:** The number of Update Domains varies depending on which Azure Region you're using. More information about update and fault domains and how they work can be found [here](https://learn.microsoft.com/en-us/azure/virtual-machines/availability-set-overview).
+~> **Note:** The number of Update Domains varies depending on which Azure Region you're using. More information about update and fault domains and how they work can be found [here](https://learn.microsoft.com/azure/virtual-machines/availability-set-overview).
 
 * `platform_fault_domain_count` - (Optional) Specifies the number of fault domains that are used. Defaults to `3`. Changing this forces a new resource to be created.
 
-~> **Note:** The number of Fault Domains varies depending on which Azure Region you're using. More information about update and fault domains and how they work can be found [here](https://learn.microsoft.com/en-us/azure/virtual-machines/availability-set-overview).
+~> **Note:** The number of Fault Domains varies depending on which Azure Region you're using. More information about update and fault domains and how they work can be found [here](https://learn.microsoft.com/azure/virtual-machines/availability-set-overview).
 
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group to which this Virtual Machine should be assigned. Changing this forces a new resource to be created.
 
@@ -62,7 +62,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Availability Set.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Availability Set.

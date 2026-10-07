@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -12,10 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-04-16/scheduledqueryrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceMonitorScheduledQueryRulesLog() *pluginsdk.Resource {
@@ -91,12 +89,12 @@ func dataSourceMonitorScheduledQueryRulesLog() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
 
-func dataSourceMonitorScheduledQueryRulesLogRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceMonitorScheduledQueryRulesLogRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.ScheduledQueryRulesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -143,11 +141,11 @@ func dataSourceMonitorScheduledQueryRulesLogRead(d *pluginsdk.ResourceData, meta
 		}
 
 		if props.Source.AuthorizedResources != nil {
-			d.Set("authorized_resource_ids", utils.FlattenStringSlice(props.Source.AuthorizedResources))
+			d.Set("authorized_resource_ids", pluginsdk.FlattenSlice(props.Source.AuthorizedResources))
 			d.Set("data_source_id", props.Source.DataSourceId)
 		}
 
-		if err = d.Set("tags", utils.FlattenPtrMapStringString(model.Tags)); err != nil {
+		if err = d.Set("tags", pluginsdk.FlattenPtrMapStringString(model.Tags)); err != nil {
 			return err
 		}
 	}

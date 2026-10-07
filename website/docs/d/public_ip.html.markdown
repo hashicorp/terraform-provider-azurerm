@@ -94,7 +94,7 @@ output "public_ip_address" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the public IP address.
 * `resource_group_name` - Specifies the name of the resource group.
@@ -104,6 +104,8 @@ output "public_ip_address" {
 * `id` - The ID of the Public IP address.
 * `allocation_method` - The allocation method for this IP address. Possible values are `Static` or `Dynamic`.
 * `domain_name_label` - The label for the Domain Name.
+* `domain_name_label_scope` - Scope for the domain name label.
+* `edge_zone` - The Edge Zone within the Azure Region where this Public IP exists.
 * `idle_timeout_in_minutes` - Specifies the timeout for the TCP idle connection.
 * `ddos_protection_mode` - The DDoS protection mode of the public IP.
 * `ddos_protection_plan_id` - The ID of DDoS protection plan associated with the public IP. 
@@ -111,15 +113,17 @@ output "public_ip_address" {
 * `ip_address` - The IP address value that was allocated.
 * `ip_version` - The IP version being used, for example `IPv4` or `IPv6`.
 * `location` - The region that this public ip exists.
+* `public_ip_prefix_id` - If specified then public IP address allocated will be provided from the public IP prefix resource. 
 * `reverse_fqdn` - The fully qualified domain name that resolves to this public IP address.
 * `sku` - The SKU of the Public IP.
+* `sku_tier` - The SKU Tier that is used for the Public IP. 
 * `ip_tags` - A mapping of tags to assigned to the resource.
 * `tags` - A mapping of tags to assigned to the resource.
 * `zones` - A list of Availability Zones in which this Public IP is located.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Public IP Address.
 
@@ -127,4 +131,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2024-05-01
+* `Microsoft.Network` - 2025-07-01

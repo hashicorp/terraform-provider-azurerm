@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute_test
@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -68,7 +68,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherBootDiagnostics(t *testing.T) {
 	})
 }
 
-func TestAccWindowsVirtualMachineScaleSet_otherBootDiagnosticsMananged(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherBootDiagnosticsManaged(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
@@ -270,7 +270,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherPrioritySpotDeallocate(t *testing
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherPrioritySpot(data, "Deallocate"),
+			Config: r.otherPrioritySpot(data, "Deallocate", 1),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -285,7 +285,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherPrioritySpotDelete(t *testing.T) 
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherPrioritySpot(data, "Delete"),
+			Config: r.otherPrioritySpot(data, "Delete", 0),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -548,7 +548,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherUpgradeMode(t *testing.T) {
 		},
 		data.ImportStep(
 			"admin_password",
-			"enable_automatic_updates",
+			"automatic_updates_enabled",
 		),
 	})
 }
@@ -796,7 +796,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherHealthProbeUpdate(t *testing.T) {
 		},
 		data.ImportStep(
 			"admin_password",
-			"enable_automatic_updates",
+			"automatic_updates_enabled",
 		),
 		{
 			Config: r.otherHealthProbeUpdated(data),
@@ -806,7 +806,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherHealthProbeUpdate(t *testing.T) {
 		},
 		data.ImportStep(
 			"admin_password",
-			"enable_automatic_updates",
+			"automatic_updates_enabled",
 		),
 	})
 }
@@ -1013,11 +1013,12 @@ func (r WindowsVirtualMachineScaleSetResource) otherBootDiagnostics(data accepta
 %s
 
 resource "azurerm_storage_account" "test" {
-  name                     = "accsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "accsa%s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 }
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
@@ -1064,11 +1065,12 @@ func (r WindowsVirtualMachineScaleSetResource) otherBootDiagnosticsManaged(data 
 %s
 
 resource "azurerm_storage_account" "test" {
-  name                     = "accsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "accsa%s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 }
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
@@ -1113,11 +1115,12 @@ func (r WindowsVirtualMachineScaleSetResource) otherBootDiagnosticsDisabled(data
 %s
 
 resource "azurerm_storage_account" "test" {
-  name                     = "accsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "accsa%s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 }
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
@@ -1507,14 +1510,14 @@ func (r WindowsVirtualMachineScaleSetResource) otherEnableAutomaticUpdatesDisabl
 %s
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                     = local.vm_name
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  sku                      = "Standard_F2"
-  instances                = 1
-  admin_username           = "adminuser"
-  admin_password           = "P@ssword1234!"
-  enable_automatic_updates = false
+  name                      = local.vm_name
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = azurerm_resource_group.test.location
+  sku                       = "Standard_F2"
+  instances                 = 1
+  admin_username            = "adminuser"
+  admin_password            = "P@ssword1234!"
+  automatic_updates_enabled = false
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
@@ -1542,7 +1545,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 `, r.template(data))
 }
 
-func (r WindowsVirtualMachineScaleSetResource) otherPrioritySpot(data acceptance.TestData, evictionPolicy string) string {
+func (r WindowsVirtualMachineScaleSetResource) otherPrioritySpot(data acceptance.TestData, evictionPolicy string, instances int) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1551,7 +1554,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Standard_F2"
-  instances           = 1
+  instances           = %d
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
   eviction_policy     = %q
@@ -1580,7 +1583,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, r.template(data), evictionPolicy)
+`, r.template(data), instances, evictionPolicy)
 }
 
 func (r WindowsVirtualMachineScaleSetResource) otherPrioritySpotMaxBidPrice(data acceptance.TestData, maxBid string) string {
@@ -1851,10 +1854,11 @@ func (r WindowsVirtualMachineScaleSetResource) otherSecretTemplate(data acceptan
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestkeyvault%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
+  name                       = "acctestkeyvault%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
 
   sku_name                        = "standard"
   enabled_for_template_deployment = true
@@ -2334,11 +2338,12 @@ func (r WindowsVirtualMachineScaleSetResource) otherWinRMHTTPS(data acceptance.T
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestkv%s"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku_name            = "standard"
-  tenant_id           = data.azurerm_client_config.current.tenant_id
+  name                       = "acctestkv%s"
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  location                   = azurerm_resource_group.test.location
+  sku_name                   = "standard"
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
@@ -2620,6 +2625,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   termination_notification {
     enabled = %t
   }
+
 }
 `, r.template(data), enabled)
 }
@@ -2632,8 +2638,8 @@ resource "azurerm_public_ip" "test" {
   name                    = "acctestpip-%[2]d"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
-  allocation_method       = "Dynamic"
-  sku                     = "Basic"
+  allocation_method       = "Static"
+  sku                     = "Standard"
   idle_timeout_in_minutes = 4
 }
 
@@ -2641,7 +2647,7 @@ resource "azurerm_lb" "test" {
   name                = "acctestlb-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
+  sku                 = "Standard"
 
   frontend_ip_configuration {
     name                 = "internal"
@@ -2741,8 +2747,8 @@ resource "azurerm_public_ip" "test" {
   name                    = "acctestpip-%[2]d"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
-  allocation_method       = "Dynamic"
-  sku                     = "Basic"
+  allocation_method       = "Static"
+  sku                     = "Standard"
   idle_timeout_in_minutes = 4
 }
 
@@ -2750,7 +2756,7 @@ resource "azurerm_lb" "test" {
   name                = "acctestlb-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
+  sku                 = "Standard"
 
   frontend_ip_configuration {
     name                 = "internal"
@@ -2852,8 +2858,8 @@ resource "azurerm_public_ip" "test" {
   name                    = "acctestpip-%[2]d"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
-  allocation_method       = "Dynamic"
-  sku                     = "Basic"
+  allocation_method       = "Static"
+  sku                     = "Standard"
   idle_timeout_in_minutes = 4
 }
 
@@ -2861,7 +2867,7 @@ resource "azurerm_lb" "test" {
   name                = "acctestlb-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
+  sku                 = "Standard"
   frontend_ip_configuration {
     name                 = "internal"
     public_ip_address_id = azurerm_public_ip.test.id
@@ -3449,13 +3455,24 @@ resource "azurerm_lb_probe" "test2" {
 
 resource "azurerm_lb_rule" "test" {
   loadbalancer_id                = azurerm_lb.test.id
-  probe_id                       = azurerm_lb_probe.test2.id
+  probe_id                       = azurerm_lb_probe.test.id
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
   frontend_ip_configuration_name = local.frontend_ip_configuration_name
   name                           = "LBRule"
   protocol                       = "Tcp"
   frontend_port                  = 22
   backend_port                   = 22
+}
+
+resource "azurerm_lb_rule" "test2" {
+  loadbalancer_id                = azurerm_lb.test.id
+  probe_id                       = azurerm_lb_probe.test2.id
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
+  frontend_ip_configuration_name = local.frontend_ip_configuration_name
+  name                           = "LBRule2"
+  protocol                       = "Tcp"
+  frontend_port                  = 23
+  backend_port                   = 23
 }
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
@@ -3494,7 +3511,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 
-  depends_on = [azurerm_lb_rule.test]
+  depends_on = [azurerm_lb_rule.test2]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -3740,33 +3757,32 @@ func (r WindowsVirtualMachineScaleSetResource) otherGalleryApplicationTemplate(d
 %[1]s
 
 resource "azurerm_storage_account" "test" {
-  name                     = "accteststr%[2]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "accteststr%[2]s"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 }
 
 resource "azurerm_storage_container" "test" {
   name                  = "test"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "blob"
 }
 
 resource "azurerm_storage_blob" "test" {
-  name                   = "script"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Page"
-  size                   = 512
+  name                 = "script"
+  storage_container_id = azurerm_storage_container.test.id
+  type                 = "Page"
+  size                 = 512
 }
 
 resource "azurerm_storage_blob" "test2" {
-  name                   = "script2"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Page"
-  size                   = 512
+  name                 = "script2"
+  storage_container_id = azurerm_storage_container.test.id
+  type                 = "Page"
+  size                 = 512
 }
 
 resource "azurerm_shared_image_gallery" "test" {
@@ -3803,6 +3819,5 @@ resource "azurerm_gallery_application_version" "test" {
     storage_account_type   = "Premium_LRS"
   }
 }
-
 `, r.template(data), data.RandomString, data.RandomInteger)
 }

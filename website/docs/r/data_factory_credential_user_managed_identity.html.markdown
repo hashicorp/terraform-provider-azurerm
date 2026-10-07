@@ -45,13 +45,13 @@ resource "azurerm_data_factory_credential_user_managed_identity" "test" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Required) Specifies the name of the Credential. Changing this forces a new resource to be created.
 
 * `data_factory_id` - (Required) The Data Factory ID in which to associate the Credential with. Changing this forces a new resource.
 
-* `identity_id` - (Required) The Resouce ID of an existing User Assigned Managed Identity. This can be changed without recreating the resource. Changing this forces a new resource to be created.
+* `identity_id` - (Required) The Resource ID of an existing User Assigned Managed Identity. This can be changed without recreating the resource. Changing this forces a new resource to be created.
 
 ~> **Note:** Attempting to create a Credential resource without first assigning the identity to the parent Data Factory will result in an Azure API error.
 
@@ -71,7 +71,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 5 minutes) Used when creating the Data Factory Credential.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory Credential.

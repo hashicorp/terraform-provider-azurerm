@@ -20,7 +20,7 @@ data "azurerm_eventgrid_system_topic" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -36,9 +36,11 @@ The following attributes are exported:
 
 * `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this Event Grid System Topic.
 
-* `metric_arm_resource_id` - The Metric ARM Resource ID of the Event Grid System Topic.
+* `metric_resource_id` - The Metric Resource ID of the Event Grid System Topic.
 
-* `source_arm_resource_id` - The ID of the Event Grid System Topic ARM Source.
+-> **Note:** This is **not** an Azure RM ID ("/subscription/..."), but rather an Azure-internal identifier for this metric in the form of a GUID. For consumption in Azure Monitor resources, generally the system topic's Azure RM ID is used.
+
+* `source_resource_id` - The ID of the Event Grid System Topic ARM Source.
 
 * `topic_type` - The Topic Type of the Event Grid System Topic.
 
@@ -60,7 +62,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Event Grid System Topic.
 
@@ -68,4 +70,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.EventGrid` - 2022-06-15
+* `Microsoft.EventGrid` - 2025-02-15
