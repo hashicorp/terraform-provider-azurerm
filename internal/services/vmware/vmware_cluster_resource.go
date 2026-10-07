@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceVmwareCluster() *pluginsdk.Resource {
@@ -96,7 +95,7 @@ func resourceVmwareCluster() *pluginsdk.Resource {
 	}
 }
 
-func resourceVmwareClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVmwareClusterCreate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Vmware.ClusterClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -139,7 +138,7 @@ func resourceVmwareClusterCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceVmwareClusterRead(d, meta)
 }
 
-func resourceVmwareClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVmwareClusterRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Vmware.ClusterClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -165,14 +164,14 @@ func resourceVmwareClusterRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	if model := resp.Model; model != nil {
 		d.Set("cluster_node_count", model.Properties.ClusterSize)
 		d.Set("cluster_number", model.Properties.ClusterId)
-		d.Set("hosts", utils.FlattenStringSlice(model.Properties.Hosts))
+		d.Set("hosts", pluginsdk.FlattenSlice(model.Properties.Hosts))
 		d.Set("sku_name", model.Sku.Name)
 	}
 
 	return nil
 }
 
-func resourceVmwareClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVmwareClusterUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Vmware.ClusterClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -195,7 +194,7 @@ func resourceVmwareClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceVmwareClusterRead(d, meta)
 }
 
-func resourceVmwareClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVmwareClusterDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Vmware.ClusterClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

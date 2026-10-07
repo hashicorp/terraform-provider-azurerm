@@ -77,7 +77,7 @@ func (EventGridPartnerConfigurationResource) Attributes() map[string]*pluginsdk.
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (EventGridPartnerConfigurationResource) ModelObject() interface{} {
+func (EventGridPartnerConfigurationResource) ModelObject() any {
 	return &EventGridPartnerConfigurationResourceModel{}
 }
 
