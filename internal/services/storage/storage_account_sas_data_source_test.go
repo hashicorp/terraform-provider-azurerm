@@ -167,13 +167,13 @@ data "azurerm_storage_account_sas" "test" {
 
 func TestAccDataSourceStorageAccountSas_resourceTypesString(t *testing.T) {
 	testCases := []struct {
-		input    map[string]interface{}
+		input    map[string]any
 		expected string
 	}{
-		{map[string]interface{}{"service": true}, "s"},
-		{map[string]interface{}{"container": true}, "c"},
-		{map[string]interface{}{"object": true}, "o"},
-		{map[string]interface{}{"service": true, "container": true, "object": true}, "sco"},
+		{map[string]any{"service": true}, "s"},
+		{map[string]any{"container": true}, "c"},
+		{map[string]any{"object": true}, "o"},
+		{map[string]any{"service": true, "container": true, "object": true}, "sco"},
 	}
 
 	for _, test := range testCases {
@@ -186,14 +186,14 @@ func TestAccDataSourceStorageAccountSas_resourceTypesString(t *testing.T) {
 
 func TestAccDataSourceStorageAccountSas_servicesString(t *testing.T) {
 	testCases := []struct {
-		input    map[string]interface{}
+		input    map[string]any
 		expected string
 	}{
-		{map[string]interface{}{"blob": true}, "b"},
-		{map[string]interface{}{"queue": true}, "q"},
-		{map[string]interface{}{"table": true}, "t"},
-		{map[string]interface{}{"file": true}, "f"},
-		{map[string]interface{}{"blob": true, "queue": true, "table": true, "file": true}, "bqtf"},
+		{map[string]any{"blob": true}, "b"},
+		{map[string]any{"queue": true}, "q"},
+		{map[string]any{"table": true}, "t"},
+		{map[string]any{"file": true}, "f"},
+		{map[string]any{"blob": true, "queue": true, "table": true, "file": true}, "bqtf"},
 	}
 
 	for _, test := range testCases {
@@ -206,20 +206,20 @@ func TestAccDataSourceStorageAccountSas_servicesString(t *testing.T) {
 
 func TestAccDataSourceStorageAccountSas_permissionsString(t *testing.T) {
 	testCases := []struct {
-		input    map[string]interface{}
+		input    map[string]any
 		expected string
 	}{
-		{map[string]interface{}{"read": true}, "r"},
-		{map[string]interface{}{"write": true}, "w"},
-		{map[string]interface{}{"delete": true}, "d"},
-		{map[string]interface{}{"list": true}, "l"},
-		{map[string]interface{}{"add": true}, "a"},
-		{map[string]interface{}{"create": true}, "c"},
-		{map[string]interface{}{"update": true}, "u"},
-		{map[string]interface{}{"process": true}, "p"},
-		{map[string]interface{}{"tag": true}, "t"},
-		{map[string]interface{}{"filter": true}, "f"},
-		{map[string]interface{}{"read": true, "write": true, "add": true, "create": true}, "rwac"},
+		{map[string]any{"read": true}, "r"},
+		{map[string]any{"write": true}, "w"},
+		{map[string]any{"delete": true}, "d"},
+		{map[string]any{"list": true}, "l"},
+		{map[string]any{"add": true}, "a"},
+		{map[string]any{"create": true}, "c"},
+		{map[string]any{"update": true}, "u"},
+		{map[string]any{"process": true}, "p"},
+		{map[string]any{"tag": true}, "t"},
+		{map[string]any{"filter": true}, "f"},
+		{map[string]any{"read": true, "write": true, "add": true, "create": true}, "rwac"},
 	}
 
 	for _, test := range testCases {

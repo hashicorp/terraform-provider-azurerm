@@ -16,17 +16,16 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/namedvalue"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceApiManagementNamedValue() *pluginsdk.Resource {
-	r := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceApiManagementNamedValueCreateUpdate,
 		Read:   resourceApiManagementNamedValueRead,
 		Update: resourceApiManagementNamedValueCreateUpdate,
@@ -101,15 +100,9 @@ func resourceApiManagementNamedValue() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		r.Schema["value_from_key_vault"].Elem.(*pluginsdk.Resource).Schema["secret_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
-	}
-
-	return r
 }
 
-func resourceApiManagementNamedValueCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementNamedValueCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.NamedValueClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -118,15 +111,17 @@ func resourceApiManagementNamedValueCreateUpdate(d *pluginsdk.ResourceData, meta
 	id := namedvalue.NewNamedValueID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf(" checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf(" checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_property", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_api_management_property", id.ID())
+			}
 		}
 	}
 
@@ -134,7 +129,7 @@ func resourceApiManagementNamedValueCreateUpdate(d *pluginsdk.ResourceData, meta
 		Properties: &namedvalue.NamedValueCreateContractProperties{
 			DisplayName: d.Get("display_name").(string),
 			Secret:      pointer.To(d.Get("secret").(bool)),
-			KeyVault:    expandApiManagementNamedValueKeyVault(d.Get("value_from_key_vault").([]interface{})),
+			KeyVault:    expandApiManagementNamedValueKeyVault(d.Get("value_from_key_vault").([]any)),
 		},
 	}
 
@@ -147,20 +142,24 @@ func resourceApiManagementNamedValueCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if tags, ok := d.GetOk("tags"); ok {
-		parameters.Properties.Tags = utils.ExpandStringSlice(tags.([]interface{}))
+		parameters.Properties.Tags = pluginsdk.ExpandStringSlice(tags.([]any))
 	}
 
-	err := client.CreateOrUpdateThenPoll(ctx, id, parameters, namedvalue.CreateOrUpdateOperationOptions{})
-	if err != nil {
-		return fmt.Errorf("creating or updating %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, namedvalue.CreateOrUpdateOperationOptions{}, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, parameters, namedvalue.CreateOrUpdateOperationOptions{}); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
-
-	d.SetId(id.ID())
 
 	return resourceApiManagementNamedValueRead(d, meta)
 }
 
-func resourceApiManagementNamedValueRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementNamedValueRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.NamedValueClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -203,7 +202,7 @@ func resourceApiManagementNamedValueRead(d *pluginsdk.ResourceData, meta interfa
 	return nil
 }
 
-func resourceApiManagementNamedValueDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementNamedValueDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.NamedValueClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -222,11 +221,11 @@ func resourceApiManagementNamedValueDelete(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func expandApiManagementNamedValueKeyVault(inputs []interface{}) *namedvalue.KeyVaultContractCreateProperties {
+func expandApiManagementNamedValueKeyVault(inputs []any) *namedvalue.KeyVaultContractCreateProperties {
 	if len(inputs) == 0 {
 		return nil
 	}
-	input := inputs[0].(map[string]interface{})
+	input := inputs[0].(map[string]any)
 
 	result := namedvalue.KeyVaultContractCreateProperties{
 		SecretIdentifier: pointer.To(input["secret_id"].(string)),
@@ -239,13 +238,13 @@ func expandApiManagementNamedValueKeyVault(inputs []interface{}) *namedvalue.Key
 	return &result
 }
 
-func flattenApiManagementNamedValueKeyVault(input *namedvalue.KeyVaultContractProperties) []interface{} {
+func flattenApiManagementNamedValueKeyVault(input *namedvalue.KeyVaultContractProperties) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"secret_id":          pointer.From(input.SecretIdentifier),
 			"identity_client_id": pointer.From(input.IdentityClientId),
 		},

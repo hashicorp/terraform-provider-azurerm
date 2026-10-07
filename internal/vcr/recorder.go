@@ -179,7 +179,8 @@ func GetRecorder(testName string, subscriptionId string) (*recorder.Recorder, er
 		MaxIdleConnsPerHost:   runtime.GOMAXPROCS(0) + 1,
 	}
 
-	r, err := recorder.New(cassettePath,
+	r, err := recorder.New(
+		cassettePath,
 		recorder.WithMode(mode),
 		recorder.WithSkipRequestLatency(true),
 		recorder.WithRealTransport(defaultTransport),
