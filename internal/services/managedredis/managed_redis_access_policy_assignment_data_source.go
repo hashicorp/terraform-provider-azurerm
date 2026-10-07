@@ -49,7 +49,7 @@ func (r ManagedRedisAccessPolicyAssignmentDataSource) Attributes() map[string]*p
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r ManagedRedisAccessPolicyAssignmentDataSource) ModelObject() interface{} {
+func (r ManagedRedisAccessPolicyAssignmentDataSource) ModelObject() any {
 	return &ManagedRedisAccessPolicyAssignmentDataSourceModel{}
 }
 

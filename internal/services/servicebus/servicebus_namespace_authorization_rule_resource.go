@@ -9,8 +9,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespacesauthorizationrule"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespacesauthorizationrule"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/migration"
@@ -68,7 +68,7 @@ func resourceServiceBusNamespaceAuthorizationRuleSchema() map[string]*pluginsdk.
 	})
 }
 
-func resourceServiceBusNamespaceAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceServiceBusNamespaceAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceBus.NamespacesAuthClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -116,7 +116,7 @@ func resourceServiceBusNamespaceAuthorizationRuleCreateUpdate(d *pluginsdk.Resou
 	return resourceServiceBusNamespaceAuthorizationRuleRead(d, meta)
 }
 
-func resourceServiceBusNamespaceAuthorizationRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceServiceBusNamespaceAuthorizationRuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceBus.NamespacesAuthClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -164,7 +164,7 @@ func resourceServiceBusNamespaceAuthorizationRuleRead(d *pluginsdk.ResourceData,
 	return nil
 }
 
-func resourceServiceBusNamespaceAuthorizationRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceServiceBusNamespaceAuthorizationRuleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceBus.NamespacesAuthClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

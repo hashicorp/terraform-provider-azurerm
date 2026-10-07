@@ -54,9 +54,9 @@ The following arguments are supported:
 
 * `type` - (Required) The type of the Virtual Desktop Host Pool. Valid options are `Personal` or `Pooled`. Changing the type forces a new resource to be created.
 
-* `load_balancer_type` - (Required) `BreadthFirst` load balancing distributes new user sessions across all available session hosts in the host pool. Possible values are `BreadthFirst`, `DepthFirst` and `Persistent`.
-    `DepthFirst` load balancing distributes new user sessions to an available session host with the highest number of connections but has not reached its maximum session limit threshold.
-    `Persistent` should be used if the host pool type is `Personal`
+* `load_balancer_type` - (Required) The type of the load balancer. Possible values are `BreadthFirst`, `DepthFirst`, `MultiplePersistent` and `Persistent`. Refer to the [Azure documentation](https://learn.microsoft.com/azure/virtual-desktop/host-pool-load-balancing) for more information.
+
+~> **Note:** `load_balancer_type` must be set to `Persistent` or `MultiplePersistent` if the `type` of your Virtual Desktop Host Pool is `Personal`.
 
 * `friendly_name` - (Optional) A friendly name for the Virtual Desktop Host Pool.
 
@@ -133,4 +133,4 @@ terraform import azurerm_virtual_desktop_host_pool.example /subscriptions/000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DesktopVirtualization` - 2024-04-03
+* `Microsoft.DesktopVirtualization` - 2025-10-10

@@ -6,6 +6,7 @@ package compute
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -20,10 +21,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name proximity_placement_group -service-package-name compute -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceProximityPlacementGroup() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -79,14 +79,14 @@ func resourceProximityPlacementGroup() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			pluginsdk.ForceNewIfChange("allowed_vm_sizes", func(ctx context.Context, old, new, meta interface{}) bool {
+			pluginsdk.ForceNewIfChange("allowed_vm_sizes", func(ctx context.Context, old, new, meta any) bool {
 				return len(old.(*pluginsdk.Set).List()) > 0 && len(new.(*pluginsdk.Set).List()) == 0
 			}),
 		),
 	}
 }
 
-func resourceProximityPlacementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceProximityPlacementGroupCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.ProximityPlacementGroupsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -112,14 +112,14 @@ func resourceProximityPlacementGroupCreateUpdate(d *pluginsdk.ResourceData, meta
 	payload := proximityplacementgroups.ProximityPlacementGroup{
 		Location:   location.Normalize(d.Get("location").(string)),
 		Properties: &proximityplacementgroups.ProximityPlacementGroupProperties{},
-		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:       tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v, ok := d.GetOk("allowed_vm_sizes"); ok {
 		if payload.Properties.Intent == nil {
 			payload.Properties.Intent = &proximityplacementgroups.ProximityPlacementGroupPropertiesIntent{}
 		}
-		payload.Properties.Intent.VMSizes = utils.ExpandStringSlice(v.(*pluginsdk.Set).List())
+		payload.Properties.Intent.VMSizes = pluginsdk.ExpandStringSlice(v.(*pluginsdk.Set).List())
 	}
 
 	if v, ok := d.GetOk("zone"); ok {
@@ -141,7 +141,7 @@ func resourceProximityPlacementGroupCreateUpdate(d *pluginsdk.ResourceData, meta
 	return resourceProximityPlacementGroupRead(d, meta)
 }
 
-func resourceProximityPlacementGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceProximityPlacementGroupRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.ProximityPlacementGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -190,7 +190,7 @@ func resourceProximityPlacementGroupRead(d *pluginsdk.ResourceData, meta interfa
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceProximityPlacementGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceProximityPlacementGroupDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.ProximityPlacementGroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -200,7 +200,10 @@ func resourceProximityPlacementGroupDelete(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	if _, err = client.Delete(ctx, *id); err != nil {
+	if resp, err := client.Delete(ctx, *id); err != nil {
+		if response.WasNotFound(resp.HttpResponse) || response.WasStatusCode(resp.HttpResponse, http.StatusNoContent) { // API quirk that delete on non-existent resource returns 204 ¯\_(ツ)_/¯
+			return nil
+		}
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
