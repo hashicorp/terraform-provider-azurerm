@@ -5,34 +5,42 @@ package mysql
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/databases"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name mysql_flexible_database -service-package-name mysql -properties "name,resource_group_name,flexible_server_name:server_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
+var mysqlFlexibleDatabaseResourceName = "azurerm_mysql_flexible_database"
+
 func resourceMySqlFlexibleDatabase() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMySqlFlexibleDatabaseCreate,
-		Read:   resourceMySqlFlexibleDatabaseRead,
-		Delete: resourceMySqlFlexibleDatabaseDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := databases.ParseDatabaseID(id)
-			return err
-		}),
+		Create:   resourceMySqlFlexibleDatabaseCreate,
+		Read:     resourceMySqlFlexibleDatabaseRead,
+		Delete:   resourceMySqlFlexibleDatabaseDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&databases.DatabaseId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
+		},
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&databases.DatabaseId{}),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -55,26 +63,36 @@ func resourceMySqlFlexibleDatabase() *pluginsdk.Resource {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: resourceMysqlFlexibleDatabaseAliasDiffSuppress("utf8", "utf8mb3"),
 			},
 
 			"collation": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:             pluginsdk.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: resourceMysqlFlexibleDatabaseAliasDiffSuppress("utf8_unicode_ci", "utf8mb3_unicode_ci"),
 			},
 		},
 	}
 }
 
-func resourceMySqlFlexibleDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+// `utf8` is a deprecated alias for `utf8mb3`, see http://dev.mysql.com/doc/refman/8.4/en/charset-unicode-utf8.html
+func resourceMysqlFlexibleDatabaseAliasDiffSuppress(firstAlias, secondAlias string) pluginsdk.SchemaDiffSuppressFunc {
+	return func(key, oldValue, newValue string, d *pluginsdk.ResourceData) bool {
+		return suppress.CaseDifference(key, oldValue, newValue, d) ||
+			strings.EqualFold(oldValue, firstAlias) && strings.EqualFold(newValue, secondAlias) ||
+			strings.EqualFold(oldValue, secondAlias) && strings.EqualFold(newValue, firstAlias)
+	}
+}
+
+func resourceMySqlFlexibleDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MySQL.FlexibleServers.Databases
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := databases.NewDatabaseID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -94,15 +112,19 @@ func resourceMySqlFlexibleDatabaseCreate(d *pluginsdk.ResourceData, meta interfa
 		},
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %v", id, err)
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceMySqlFlexibleDatabaseRead(d, meta)
 }
 
-func resourceMySqlFlexibleDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMySqlFlexibleDatabaseRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MySQL.FlexibleServers.Databases
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -121,21 +143,25 @@ func resourceMySqlFlexibleDatabaseRead(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	return resourceMySqlFlexibleDatabaseFlatten(d, id, resp.Model)
+}
+
+func resourceMySqlFlexibleDatabaseFlatten(d *pluginsdk.ResourceData, id *databases.DatabaseId, database *databases.Database) error {
 	d.Set("name", id.DatabaseName)
 	d.Set("server_name", id.FlexibleServerName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
-		if props := model.Properties; props != nil {
+	if database != nil {
+		if props := database.Properties; props != nil {
 			d.Set("charset", props.Charset)
 			d.Set("collation", props.Collation)
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceMySqlFlexibleDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMySqlFlexibleDatabaseDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MySQL.FlexibleServers.Databases
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

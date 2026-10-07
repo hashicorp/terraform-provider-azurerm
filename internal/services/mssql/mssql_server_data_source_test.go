@@ -54,7 +54,7 @@ data "azurerm_mssql_server" "test" {
   name                = azurerm_mssql_server.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, MsSqlServerResource{}.basic(data))
+`, MssqlServerResource{}.basic(data))
 }
 
 func (MsSqlServerDataSource) complete(data acceptance.TestData) string {
@@ -65,5 +65,5 @@ data "azurerm_mssql_server" "test" {
   name                = azurerm_mssql_server.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, MsSqlServerResource{}.complete(data))
+`, MssqlServerResource{}.complete(data))
 }
