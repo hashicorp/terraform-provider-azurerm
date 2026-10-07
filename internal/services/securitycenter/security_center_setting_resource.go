@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -29,7 +28,7 @@ func resourceSecurityCenterSetting() *pluginsdk.Resource {
 		Delete: resourceSecurityCenterSettingDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.SettingID(id)
+			_, err := settings.ParseSettingID(id)
 			return err
 		}),
 
@@ -60,7 +59,7 @@ func resourceSecurityCenterSetting() *pluginsdk.Resource {
 	}
 }
 
-func resourceSecurityCenterSettingUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSecurityCenterSettingUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.SettingClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -100,7 +99,7 @@ func resourceSecurityCenterSettingUpdate(d *pluginsdk.ResourceData, meta interfa
 	return resourceSecurityCenterSettingRead(d, meta)
 }
 
-func resourceSecurityCenterSettingRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSecurityCenterSettingRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.SettingClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -129,7 +128,7 @@ func resourceSecurityCenterSettingRead(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func resourceSecurityCenterSettingDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSecurityCenterSettingDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.SettingClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

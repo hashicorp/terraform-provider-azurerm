@@ -34,18 +34,18 @@ func resourceAutomationVariableDateTime() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationVariableDateTimeCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationVariableDateTimeCreate(d *pluginsdk.ResourceData, meta any) error {
 	return resourceAutomationVariableCreate(d, meta, "Datetime")
 }
 
-func resourceAutomationVariableDateTimeUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationVariableDateTimeUpdate(d *pluginsdk.ResourceData, meta any) error {
 	return resourceAutomationVariableUpdate(d, meta, "Datetime")
 }
 
-func resourceAutomationVariableDateTimeRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationVariableDateTimeRead(d *pluginsdk.ResourceData, meta any) error {
 	return resourceAutomationVariableRead(d, meta, "Datetime")
 }
 
-func resourceAutomationVariableDateTimeDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationVariableDateTimeDelete(d *pluginsdk.ResourceData, meta any) error {
 	return resourceAutomationVariableDelete(d, meta, "Datetime")
 }

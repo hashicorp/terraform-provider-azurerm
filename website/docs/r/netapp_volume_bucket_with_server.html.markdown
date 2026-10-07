@@ -14,7 +14,7 @@ Use this resource to create the **first** bucket on a volume. The first bucket e
 
 ~> **Note:** Declaring a `server` block on more than one bucket of the same volume overwrites the shared server configuration. Only the first bucket should manage the server, via this resource.
 
-~> **Note:** The Object REST API feature is in preview and must be registered on the subscription via `Microsoft.NetApp / ANFEnableObjectRESTAPI` before buckets can be created. See [Configure access to the Azure NetApp Files Object REST API](https://learn.microsoft.com/en-us/azure/azure-netapp-files/object-rest-api-access-configure) for the registration command and Key Vault prerequisites.
+~> **Note:** The Object REST API feature is in preview and must be registered on the subscription via `Microsoft.NetApp / ANFEnableObjectRESTAPI` before buckets can be created. See [Configure access to the Azure NetApp Files Object REST API](https://learn.microsoft.com/azure/azure-netapp-files/object-rest-api-access-configure) for the registration command and Key Vault prerequisites.
 
 ~> **Note:** Buckets are supported on cool-access and large NetApp volumes. Buckets are not supported on cache volumes. Deleting the parent volume cascade-deletes its buckets.
 
@@ -201,6 +201,7 @@ resource "azurerm_key_vault" "certificate" {
   name                       = "example-cert-kv"
   location                   = azurerm_resource_group.example.location
   resource_group_name        = azurerm_resource_group.example.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -210,6 +211,7 @@ resource "azurerm_key_vault" "credentials" {
   name                       = "example-creds-kv"
   location                   = azurerm_resource_group.example.location
   resource_group_name        = azurerm_resource_group.example.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -393,4 +395,4 @@ terraform import azurerm_netapp_volume_bucket_with_server.example /subscriptions
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.NetApp` - 2026-01-01
+* `Microsoft.NetApp` - 2026-05-01
