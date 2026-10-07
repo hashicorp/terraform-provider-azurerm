@@ -80,4 +80,4 @@ terraform import azurerm_nat_gateway.test /subscriptions/00000000-0000-0000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2025-01-01
+* `Microsoft.Network` - 2025-07-01

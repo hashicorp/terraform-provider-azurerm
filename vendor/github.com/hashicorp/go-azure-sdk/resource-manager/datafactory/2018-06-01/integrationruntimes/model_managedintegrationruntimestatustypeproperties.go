@@ -10,10 +10,11 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ManagedIntegrationRuntimeStatusTypeProperties struct {
-	CreateTime    *string                                   `json:"createTime,omitempty"`
-	LastOperation *ManagedIntegrationRuntimeOperationResult `json:"lastOperation,omitempty"`
-	Nodes         *[]ManagedIntegrationRuntimeNode          `json:"nodes,omitempty"`
-	OtherErrors   *[]ManagedIntegrationRuntimeError         `json:"otherErrors,omitempty"`
+	CreateTime       *string                                   `json:"createTime,omitempty"`
+	InteractiveQuery *InteractiveQueryProperties               `json:"interactiveQuery,omitempty"`
+	LastOperation    *ManagedIntegrationRuntimeOperationResult `json:"lastOperation,omitempty"`
+	Nodes            *[]ManagedIntegrationRuntimeNode          `json:"nodes,omitempty"`
+	OtherErrors      *[]ManagedIntegrationRuntimeError         `json:"otherErrors,omitempty"`
 }
 
 func (o *ManagedIntegrationRuntimeStatusTypeProperties) GetCreateTimeAsTime() (*time.Time, error) {
