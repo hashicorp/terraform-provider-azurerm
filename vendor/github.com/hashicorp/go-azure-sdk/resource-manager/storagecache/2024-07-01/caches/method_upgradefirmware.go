@@ -58,9 +58,20 @@ func (c CachesClient) UpgradeFirmware(ctx context.Context, id CacheId) (result U
 
 // UpgradeFirmwareThenPoll performs UpgradeFirmware then polls until it's completed
 func (c CachesClient) UpgradeFirmwareThenPoll(ctx context.Context, id CacheId) error {
+	return c.UpgradeFirmwareCallbackThenPoll(ctx, id, nil)
+}
+
+// UpgradeFirmwareCallbackThenPoll performs UpgradeFirmware, runs the optional callback function, then polls until it's completed
+func (c CachesClient) UpgradeFirmwareCallbackThenPoll(ctx context.Context, id CacheId, callback func() error) error {
 	result, err := c.UpgradeFirmware(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing UpgradeFirmware: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -62,9 +62,20 @@ func (c ReplicationProtectedItemsClient) ApplyRecoveryPoint(ctx context.Context,
 
 // ApplyRecoveryPointThenPoll performs ApplyRecoveryPoint then polls until it's completed
 func (c ReplicationProtectedItemsClient) ApplyRecoveryPointThenPoll(ctx context.Context, id ReplicationProtectedItemId, input ApplyRecoveryPointInput) error {
+	return c.ApplyRecoveryPointCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ApplyRecoveryPointCallbackThenPoll performs ApplyRecoveryPoint, runs the optional callback function, then polls until it's completed
+func (c ReplicationProtectedItemsClient) ApplyRecoveryPointCallbackThenPoll(ctx context.Context, id ReplicationProtectedItemId, input ApplyRecoveryPointInput, callback func() error) error {
 	result, err := c.ApplyRecoveryPoint(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ApplyRecoveryPoint: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
