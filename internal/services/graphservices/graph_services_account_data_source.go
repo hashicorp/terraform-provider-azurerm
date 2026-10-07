@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package graphservices
@@ -23,14 +23,14 @@ var _ sdk.DataSource = AccountDataSource{}
 type AccountDataSource struct{}
 
 type AccountDataSourceModel struct {
-	ApplicationId     string                 `tfschema:"application_id"`
-	BillingPlanId     string                 `tfschema:"billing_plan_id"`
-	Name              string                 `tfschema:"name"`
-	ResourceGroupName string                 `tfschema:"resource_group_name"`
-	Tags              map[string]interface{} `tfschema:"tags"`
+	ApplicationId     string         `tfschema:"application_id"`
+	BillingPlanId     string         `tfschema:"billing_plan_id"`
+	Name              string         `tfschema:"name"`
+	ResourceGroupName string         `tfschema:"resource_group_name"`
+	Tags              map[string]any `tfschema:"tags"`
 }
 
-func (r AccountDataSource) ModelObject() interface{} {
+func (r AccountDataSource) ModelObject() any {
 	return &AccountDataSourceModel{}
 }
 

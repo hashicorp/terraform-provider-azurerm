@@ -1,10 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
 
 import (
-	s "strings"
+	"strings"
 	"testing"
 )
 
@@ -142,7 +142,7 @@ func TestAzureRMApiManagementApiPath_validation(t *testing.T) {
 			ErrCount: 0,
 		},
 		{
-			Value:    s.Repeat("x", 401),
+			Value:    strings.Repeat("x", 401),
 			ErrCount: 1,
 		},
 	}

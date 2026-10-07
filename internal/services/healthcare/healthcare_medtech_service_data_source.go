@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package healthcare
@@ -67,7 +67,7 @@ func dataSourceHealthcareIotConnector() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceHealthcareIotConnectorRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceHealthcareIotConnectorRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceIotConnectorsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	domainSuffix, ok := meta.(*clients.Client).Account.Environment.ServiceBus.DomainSuffix()
