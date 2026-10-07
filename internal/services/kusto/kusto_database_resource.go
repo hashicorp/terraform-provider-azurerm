@@ -14,12 +14,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
-	kustoValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
@@ -52,7 +52,7 @@ func resourceKustoDatabase() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: kustoValidate.DatabaseName,
+				ValidateFunc: validate.DatabaseName,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -63,19 +63,19 @@ func resourceKustoDatabase() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: kustoValidate.ClusterName,
+				ValidateFunc: validate.ClusterName,
 			},
 
 			"soft_delete_period": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.ISO8601Duration,
+				ValidateFunc: validation.ISO8601Duration,
 			},
 
 			"hot_cache_period": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.ISO8601Duration,
+				ValidateFunc: validation.ISO8601Duration,
 			},
 
 			"size": {
@@ -86,7 +86,7 @@ func resourceKustoDatabase() *pluginsdk.Resource {
 	}
 }
 
-func resourceKustoDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.DatabasesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -129,7 +129,7 @@ func resourceKustoDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	return resourceKustoDatabaseRead(d, meta)
 }
 
-func resourceKustoDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoDatabaseRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.DatabasesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -174,7 +174,7 @@ func resourceKustoDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceKustoDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoDatabaseDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.DatabasesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -184,8 +184,7 @@ func resourceKustoDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) er
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 

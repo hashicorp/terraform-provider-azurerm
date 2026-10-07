@@ -117,7 +117,7 @@ line. A brand new resource is linted in full; a new child added to a pre-existin
 block is linted while its siblings are not.
 
 ```bash
-GITHUB_BASE_REF=main bash ./scripts/run-pr-guide-suggestions-diff.sh
+GITHUB_BASE_REF=main bash ./scripts/checks/pr-guide-suggestions.sh
 ```
 
 ## Applying fixes

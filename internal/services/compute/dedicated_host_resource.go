@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -19,7 +20,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -30,7 +31,7 @@ import (
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name dedicated_host -service-package-name compute -properties "name" -compare-values "subscription_id:dedicated_host_group_id,resource_group_name:dedicated_host_group_id,host_group_name:dedicated_host_group_id"
 
 func resourceDedicatedHost() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceDedicatedHostCreate,
 		Read:   resourceDedicatedHostRead,
 		Update: resourceDedicatedHostUpdate,
@@ -143,24 +144,9 @@ func resourceDedicatedHost() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["license_type"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(dedicatedhosts.DedicatedHostLicenseTypesNone),
-				string(dedicatedhosts.DedicatedHostLicenseTypesWindowsServerHybrid),
-				string(dedicatedhosts.DedicatedHostLicenseTypesWindowsServerPerpetual),
-			}, false),
-			Default: string(dedicatedhosts.DedicatedHostLicenseTypesNone),
-		}
-	}
-
-	return resource
 }
 
-func resourceDedicatedHostCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDedicatedHostCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.DedicatedHostsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -193,7 +179,7 @@ func resourceDedicatedHostCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		Sku: dedicatedhosts.Sku{
 			Name: pointer.To(d.Get("sku_name").(string)),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v := d.Get("license_type").(string); v != "" {
@@ -212,7 +198,7 @@ func resourceDedicatedHostCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceDedicatedHostRead(d, meta)
 }
 
-func resourceDedicatedHostRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDedicatedHostRead(d *pluginsdk.ResourceData, meta any) error {
 	hostsClient := meta.(*clients.Client).Compute.DedicatedHostsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -242,15 +228,11 @@ func resourceDedicatedHostRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		if props := model.Properties; props != nil {
 			d.Set("auto_replace_on_failure", props.AutoReplaceOnFailure)
 
-			if !features.FivePointOh() {
-				d.Set("license_type", pointer.FromEnum(props.LicenseType))
-			} else {
-				licenseType := pointer.FromEnum(props.LicenseType)
-				if licenseType == string(dedicatedhosts.DedicatedHostLicenseTypesNone) {
-					licenseType = ""
-				}
-				d.Set("license_type", licenseType)
+			licenseType := pointer.FromEnum(props.LicenseType)
+			if licenseType == string(dedicatedhosts.DedicatedHostLicenseTypesNone) {
+				licenseType = ""
 			}
+			d.Set("license_type", licenseType)
 
 			platformFaultDomain := 0
 			if props.PlatformFaultDomain != nil {
@@ -267,7 +249,7 @@ func resourceDedicatedHostRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceDedicatedHostUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDedicatedHostUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.DedicatedHostsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -294,7 +276,7 @@ func resourceDedicatedHostUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
@@ -304,7 +286,7 @@ func resourceDedicatedHostUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceDedicatedHostRead(d, meta)
 }
 
-func resourceDedicatedHostDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDedicatedHostDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.DedicatedHostsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -319,34 +301,13 @@ func resourceDedicatedHostDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	// API has bug, which appears to be eventually consistent. Tracked by this issue: https://github.com/Azure/azure-rest-api-specs/issues/8137
-	log.Printf("[DEBUG] Waiting for %s to be fully deleted..", *id)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"Exists"},
-		Target:                    []string{"NotFound"},
-		Refresh:                   dedicatedHostDeletedRefreshFunc(ctx, client, *id),
-		MinTimeout:                10 * time.Second,
-		ContinuousTargetOccurence: 20,
-		Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
-	}
-
-	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for %s to be fully deleted: %+v", *id, err)
+	poller := custompollers.NewEventualConsistencyPoller(20, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.Get(pollerCtx, *id, dedicatedhosts.DefaultGetOperationOptions())
+		return resp.HttpResponse, err
+	}, custompollers.DefaultDeletionEventualConsistencyPollerOptions())
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("polling for deletion of %s: %+v", id, err)
 	}
 
 	return nil
-}
-
-func dedicatedHostDeletedRefreshFunc(ctx context.Context, client *dedicatedhosts.DedicatedHostsClient, id commonids.DedicatedHostId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id, dedicatedhosts.DefaultGetOperationOptions())
-		if err != nil {
-			if response.WasNotFound(res.HttpResponse) {
-				return "NotFound", "NotFound", nil
-			}
-
-			return nil, "", fmt.Errorf("checking if %s has been deleted: %+v", id, err)
-		}
-
-		return res, "Exists", nil
-	}
 }

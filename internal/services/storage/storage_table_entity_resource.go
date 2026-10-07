@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -41,6 +42,11 @@ func resourceStorageTableEntity() *pluginsdk.Resource {
 			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.StorageTableEntityV0ToV1{},
+		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"storage_table_id": {
@@ -74,7 +80,7 @@ func resourceStorageTableEntity() *pluginsdk.Resource {
 	}
 }
 
-func resourceStorageTableEntityCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageTableEntityCreate(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -150,7 +156,7 @@ func resourceStorageTableEntityCreate(d *pluginsdk.ResourceData, meta interface{
 	input := entities.InsertOrMergeEntityInput{
 		PartitionKey: partitionKey,
 		RowKey:       rowKey,
-		Entity:       d.Get("entity").(map[string]interface{}),
+		Entity:       d.Get("entity").(map[string]any),
 	}
 
 	if _, err = client.InsertOrMerge(ctx, tableName, input); err != nil {
@@ -162,7 +168,7 @@ func resourceStorageTableEntityCreate(d *pluginsdk.ResourceData, meta interface{
 	return resourceStorageTableEntityRead(d, meta)
 }
 
-func resourceStorageTableEntityUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageTableEntityUpdate(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -209,7 +215,7 @@ func resourceStorageTableEntityUpdate(d *pluginsdk.ResourceData, meta interface{
 	input := entities.InsertOrMergeEntityInput{
 		PartitionKey: d.Get("partition_key").(string),
 		RowKey:       d.Get("row_key").(string),
-		Entity:       d.Get("entity").(map[string]interface{}),
+		Entity:       d.Get("entity").(map[string]any),
 	}
 
 	if _, err = client.InsertOrMerge(ctx, tableName, input); err != nil {
@@ -221,7 +227,7 @@ func resourceStorageTableEntityUpdate(d *pluginsdk.ResourceData, meta interface{
 	return resourceStorageTableEntityRead(d, meta)
 }
 
-func resourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -306,7 +312,7 @@ func resourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceStorageTableEntityDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageTableEntityDelete(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -361,12 +367,12 @@ func resourceStorageTableEntityDelete(d *pluginsdk.ResourceData, meta interface{
 }
 
 // The api returns extra information that we already have. We'll remove it here before setting it in state.
-func flattenEntity(entity map[string]interface{}) map[string]interface{} {
+func flattenEntity(entity map[string]any) map[string]any {
 	delete(entity, "PartitionKey")
 	delete(entity, "RowKey")
 	delete(entity, "Timestamp")
 
-	result := map[string]interface{}{}
+	result := map[string]any{}
 	for k, v := range entity {
 		// skip ODATA annotation returned with fullmetadata
 		if strings.HasPrefix(k, "odata.") || strings.HasSuffix(k, "@odata.type") {
@@ -391,7 +397,7 @@ func flattenEntity(entity map[string]interface{}) map[string]interface{} {
 			result[k+"@odata.type"] = dtype
 		} else {
 			// special handling for property types that do not require the annotation to be present
-			// https://docs.microsoft.com/en-us/rest/api/storageservices/payload-format-for-table-service-operations#property-types-in-a-json-feed
+			// https://docs.microsoft.com/rest/api/storageservices/payload-format-for-table-service-operations#property-types-in-a-json-feed
 			switch c := v.(type) {
 			case bool:
 				result[k] = fmt.Sprint(v)
