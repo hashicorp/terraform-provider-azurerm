@@ -37,7 +37,7 @@ type SkuModel struct {
 	Tier string `tfschema:"tier"`
 }
 
-func (r FabricCapacityResource) ModelObject() interface{} {
+func (r FabricCapacityResource) ModelObject() any {
 	return &FabricCapacityResource{}
 }
 
@@ -89,11 +89,9 @@ func (r FabricCapacityResource) Arguments() map[string]*pluginsdk.Schema {
 						}, false),
 					},
 					"tier": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(fabriccapacities.RpSkuTierFabric),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(fabriccapacities.PossibleValuesForRpSkuTier(), false),
 					},
 				},
 			},
