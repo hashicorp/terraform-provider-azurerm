@@ -57,7 +57,7 @@ while read -r source version; do
     touch "$MIRROR_DIR/$source/$version"
   fi
 done <<< "$NEEDED"
-find "$MIRROR_DIR" -mindepth 4 -maxdepth 4 -type d -mtime +"$RETENTION_DAYS" -exec rm -rf {} +
+find "$MIRROR_DIR" -mindepth 4 -maxdepth 4 -type d -atime +"$RETENTION_DAYS" -exec rm -rf {} +
 
 # left behind by interrupted builds
 rm -rf "$CACHE_DIR"/.staging.*
