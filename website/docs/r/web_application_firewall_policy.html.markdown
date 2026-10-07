@@ -79,6 +79,21 @@ resource "azurerm_web_application_firewall_policy" "example" {
   }
 
   managed_rules {
+    exception {
+      match_variable       = "RequestURI"
+      value_match_operator = "EndsWith"
+      values               = ["/login.php", "/logout.php"]
+
+      exception_rule_set {
+        type    = "OWASP"
+        version = "3.2"
+
+        exception_rule_group {
+          rule_group_name = "REQUEST-942-APPLICATION-ATTACK-SQLI"
+        }
+      }
+    }
+
     exclusion {
       match_variable          = "RequestHeaderNames"
       selector                = "x-company-secret-header"
@@ -204,9 +219,47 @@ The `policy_settings` block supports the following:
 
 The `managed_rules` block supports the following:
 
+* `managed_rule_set` - (Required) One or more `managed_rule_set` blocks as defined below.
+
+* `exception` - (Optional) One or more `exception` blocks as defined below. A maximum of 60 exceptions is supported per policy.
+
+~> **Note:** WAF Exceptions are currently in Preview and require CRS `3.2`, DRS `2.1`, or later. For more information, see the [Azure Application Gateway WAF Exceptions documentation](https://learn.microsoft.com/azure/web-application-firewall/ag/application-gateway-exceptions).
+
 * `exclusion` - (Optional) One or more `exclusion` block defined below.
 
-* `managed_rule_set` - (Required) One or more `managed_rule_set` block defined below.
+---
+
+An `exception` block supports the following:
+
+* `exception_rule_set` - (Required) One or more `exception_rule_set` blocks as defined below.
+
+* `match_variable` - (Required) The request attribute to match. Possible values are `RemoteAddr`, `RequestHeader`, and `RequestURI`.
+
+* `value_match_operator` - (Required) The operator used to match `values`. Possible values are `Contains`, `EndsWith`, `Equals`, `IPMatch`, and `StartsWith`.
+
+* `values` - (Required) A non-empty list of values to match. Each value must be between 1 and 256 characters in length.
+
+* `selector` - (Optional) The request header selector to match.
+
+* `selector_match_operator` - (Optional) The operator used to match `selector`. Possible values are `Contains`, `EndsWith`, `Equals`, and `StartsWith`.
+
+---
+
+An `exception_rule_group` block supports the following:
+
+* `rule_group_name` - (Required) The name of the managed rule group. Possible values are `BadBots`, `crs_20_protocol_violations`, `crs_21_protocol_anomalies`, `crs_23_request_limits`, `crs_30_http_policy`, `crs_35_bad_robots`, `crs_40_generic_attacks`, `crs_41_sql_injection_attacks`, `crs_41_xss_attacks`, `crs_42_tight_security`, `crs_45_trojans`, `crs_49_inbound_blocking`, `FIX`, `General`, `GoodBots`, `JAVA`, `Known-CVEs`, `KnownBadBots`, `LFI`, `METHOD-ENFORCEMENT`, `MS-ThreatIntel-AppSec`, `MS-ThreatIntel-CVEs`, `MS-ThreatIntel-SQLI`, `MS-ThreatIntel-WebShells`, `MS-ThreatIntel-XSS`, `NODEJS`, `PHP`, `PROTOCOL-ATTACK`, `PROTOCOL-ENFORCEMENT`, `RCE`, `REQUEST-911-METHOD-ENFORCEMENT`, `REQUEST-913-SCANNER-DETECTION`, `REQUEST-920-PROTOCOL-ENFORCEMENT`, `REQUEST-921-PROTOCOL-ATTACK`, `REQUEST-930-APPLICATION-ATTACK-LFI`, `REQUEST-931-APPLICATION-ATTACK-RFI`, `REQUEST-932-APPLICATION-ATTACK-RCE`, `REQUEST-933-APPLICATION-ATTACK-PHP`, `REQUEST-941-APPLICATION-ATTACK-XSS`, `REQUEST-942-APPLICATION-ATTACK-SQLI`, `REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION`, `REQUEST-944-APPLICATION-ATTACK-JAVA`, `RFI`, `SQLI`, `UnknownBots`, and `XSS`.
+
+* `rules` - (Optional) A list of managed Rule IDs for the exception.
+
+---
+
+An `exception_rule_set` block supports the following:
+
+* `type` - (Required) The rule set type. Possible values are `Microsoft_BotManagerRuleSet`, `Microsoft_DefaultRuleSet`, and `OWASP`.
+
+* `version` - (Required) The rule set version. Possible values are `1.0`, `1.1`, `2.1`, `2.2`, and `3.2`.
+
+* `exception_rule_group` - (Optional) One or more `exception_rule_group` blocks as defined above.
 
 ---
 
@@ -232,7 +285,7 @@ The `excluded_rule_set` block supports the following:
 
 ---
 
-The `rule_group` block supports the following:
+The `rule_group` block within `excluded_rule_set` supports the following:
 
 * `rule_group_name` - (Required) The name of rule group for exclusion. Possible values are `BadBots`, `crs_20_protocol_violations`, `crs_21_protocol_anomalies`, `crs_23_request_limits`, `crs_30_http_policy`, `crs_35_bad_robots`, `crs_40_generic_attacks`, `crs_41_sql_injection_attacks`, `crs_41_xss_attacks`, `crs_42_tight_security`, `crs_45_trojans`, `crs_49_inbound_blocking`, `General`, `GoodBots`, `KnownBadBots`, `Known-CVEs`, `REQUEST-911-METHOD-ENFORCEMENT`, `REQUEST-913-SCANNER-DETECTION`, `REQUEST-920-PROTOCOL-ENFORCEMENT`, `REQUEST-921-PROTOCOL-ATTACK`, `REQUEST-930-APPLICATION-ATTACK-LFI`, `REQUEST-931-APPLICATION-ATTACK-RFI`, `REQUEST-932-APPLICATION-ATTACK-RCE`, `REQUEST-933-APPLICATION-ATTACK-PHP`, `REQUEST-941-APPLICATION-ATTACK-XSS`, `REQUEST-942-APPLICATION-ATTACK-SQLI`, `REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION`, `REQUEST-944-APPLICATION-ATTACK-JAVA`, `UnknownBots`, `METHOD-ENFORCEMENT`, `PROTOCOL-ENFORCEMENT`, `PROTOCOL-ATTACK`, `LFI`, `RFI`, `RCE`, `PHP`, `NODEJS`, `XSS`, `SQLI`, `FIX`, `JAVA`, `MS-ThreatIntel-WebShells`, `MS-ThreatIntel-AppSec`, `MS-ThreatIntel-SQLI`, `MS-ThreatIntel-CVEs` and `MS-ThreatIntel-XSS`.
 
