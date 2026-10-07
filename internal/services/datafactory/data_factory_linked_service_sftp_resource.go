@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory
@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/linkedservices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -19,8 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
@@ -222,7 +222,7 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 			},
 		},
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v any) error {
 				authCombinations := map[string]string{
 					"private_key_content_base64":           string(datafactory.SftpAuthenticationTypeSSHPublicKey),
 					"key_vault_private_key_content_base64": string(datafactory.SftpAuthenticationTypeSSHPublicKey),
@@ -246,7 +246,7 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryLinkedServiceSFTPCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceSFTPCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	subscriptionId := meta.(*clients.Client).DataFactory.LinkedServiceClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -259,15 +259,17 @@ func resourceDataFactoryLinkedServiceSFTPCreate(d *pluginsdk.ResourceData, meta 
 
 	id := parse.NewLinkedServiceID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Data Factory SFTP %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
+		if err != nil {
+			if !response.WasNotFound(existing.Response.Response) {
+				return fmt.Errorf("checking for presence of existing Data Factory SFTP %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_data_factory_linked_service_sftp", id.ID())
+		if !response.WasNotFound(existing.Response.Response) {
+			return tf.ImportAsExistsError("azurerm_data_factory_linked_service_sftp", id.ID())
+		}
 	}
 
 	sftpProperties := &datafactory.SftpServerLinkedServiceTypeProperties{
@@ -285,7 +287,7 @@ func resourceDataFactoryLinkedServiceSFTPCreate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if v, ok := d.GetOk("key_vault_password"); ok {
-		sftpProperties.Password = expandAzureKeyVaultSecretReference(v.([]interface{}))
+		sftpProperties.Password = expandAzureKeyVaultSecretReference(v.([]any))
 	}
 
 	if v, ok := d.GetOk("private_key_content_base64"); ok {
@@ -296,7 +298,7 @@ func resourceDataFactoryLinkedServiceSFTPCreate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if v, ok := d.GetOk("key_vault_private_key_content_base64"); ok {
-		sftpProperties.PrivateKeyContent = expandAzureKeyVaultSecretReference(v.([]interface{}))
+		sftpProperties.PrivateKeyContent = expandAzureKeyVaultSecretReference(v.([]any))
 	}
 
 	if v, ok := d.GetOk("private_key_passphrase"); ok {
@@ -307,7 +309,7 @@ func resourceDataFactoryLinkedServiceSFTPCreate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if v, ok := d.GetOk("key_vault_private_key_passphrase"); ok {
-		sftpProperties.PassPhrase = expandAzureKeyVaultSecretReference(v.([]interface{}))
+		sftpProperties.PassPhrase = expandAzureKeyVaultSecretReference(v.([]any))
 	}
 
 	if v, ok := d.GetOk("private_key_path"); ok {
@@ -332,7 +334,7 @@ func resourceDataFactoryLinkedServiceSFTPCreate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		sftpLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]interface{}))
+		sftpLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
@@ -340,11 +342,11 @@ func resourceDataFactoryLinkedServiceSFTPCreate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		sftpLinkedService.AdditionalProperties = v.(map[string]interface{})
+		sftpLinkedService.AdditionalProperties = v.(map[string]any)
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		sftpLinkedService.Annotations = pointer.To(v.([]interface{}))
+		sftpLinkedService.Annotations = pointer.To(v.([]any))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -360,7 +362,7 @@ func resourceDataFactoryLinkedServiceSFTPCreate(d *pluginsdk.ResourceData, meta 
 	return resourceDataFactoryLinkedServiceSFTPRead(d, meta)
 }
 
-func resourceDataFactoryLinkedServiceSFTPRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceSFTPRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -374,7 +376,7 @@ func resourceDataFactoryLinkedServiceSFTPRead(d *pluginsdk.ResourceData, meta in
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -445,7 +447,7 @@ func resourceDataFactoryLinkedServiceSFTPRead(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func resourceDataFactoryLinkedServiceSFTPUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceSFTPUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -493,15 +495,15 @@ func resourceDataFactoryLinkedServiceSFTPUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if d.HasChange("key_vault_password") {
-		sftp.Password = expandAzureKeyVaultSecretReference(d.Get("key_vault_password").([]interface{}))
+		sftp.Password = expandAzureKeyVaultSecretReference(d.Get("key_vault_password").([]any))
 	}
 
 	if d.HasChange("key_vault_private_key_content_base64") {
-		sftp.PrivateKeyContent = expandAzureKeyVaultSecretReference(d.Get("key_vault_private_key_content_base64").([]interface{}))
+		sftp.PrivateKeyContent = expandAzureKeyVaultSecretReference(d.Get("key_vault_private_key_content_base64").([]any))
 	}
 
 	if d.HasChange("key_vault_private_key_passphrase") {
-		sftp.PassPhrase = expandAzureKeyVaultSecretReference(d.Get("key_vault_private_key_passphrase").([]interface{}))
+		sftp.PassPhrase = expandAzureKeyVaultSecretReference(d.Get("key_vault_private_key_passphrase").([]any))
 	}
 
 	if d.HasChange("skip_host_key_validation") {
@@ -517,7 +519,7 @@ func resourceDataFactoryLinkedServiceSFTPUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if d.HasChange("parameters") {
-		sftp.Parameters = expandLinkedServiceParameters(d.Get("parameters").(map[string]interface{}))
+		sftp.Parameters = expandLinkedServiceParameters(d.Get("parameters").(map[string]any))
 	}
 
 	if d.HasChange("integration_runtime_name") {
@@ -525,11 +527,11 @@ func resourceDataFactoryLinkedServiceSFTPUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if d.HasChange("additional_properties") {
-		sftp.AdditionalProperties = d.Get("additional_properties").(map[string]interface{})
+		sftp.AdditionalProperties = d.Get("additional_properties").(map[string]any)
 	}
 
 	if d.HasChange("annotations") {
-		sftp.Annotations = pointer.To(d.Get("annotations").([]interface{}))
+		sftp.Annotations = pointer.To(d.Get("annotations").([]any))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -543,7 +545,7 @@ func resourceDataFactoryLinkedServiceSFTPUpdate(d *pluginsdk.ResourceData, meta 
 	return resourceDataFactoryLinkedServiceSFTPRead(d, meta)
 }
 
-func resourceDataFactoryLinkedServiceSFTPDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceSFTPDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -553,9 +555,9 @@ func resourceDataFactoryLinkedServiceSFTPDelete(d *pluginsdk.ResourceData, meta 
 		return err
 	}
 
-	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
-		if !utils.ResponseWasNotFound(response) {
+		if !response.WasNotFound(resp.Response) {
 			return fmt.Errorf("deleting Data Factory SFTP %s: %+v", *id, err)
 		}
 	}

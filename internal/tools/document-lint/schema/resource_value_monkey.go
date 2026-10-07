@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package schema
@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"strings"
 
-	gomonkey "github.com/agiledragon/gomonkey/v2"
+	"github.com/agiledragon/gomonkey/v2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -16,7 +16,7 @@ import (
 func patchPossibleValuesFn() {
 	gomonkey.ApplyFunc(validation.StringInSlice,
 		func(valid []string, ignoreCase bool) schema.SchemaValidateFunc { //nolint:staticcheck
-			return func(i interface{}, k string) (warnings []string, errors []error) {
+			return func(i any, k string) (warnings []string, errors []error) {
 				var res []string // must have a copy
 				res = append(res, valid...)
 				return res, nil

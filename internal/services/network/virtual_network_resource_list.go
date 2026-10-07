@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/terraform-plugin-framework/list"
-	listschema "github.com/hashicorp/terraform-plugin-framework/list/schema"
+	"github.com/hashicorp/terraform-plugin-framework/list/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -38,9 +38,9 @@ func (r VirtualNetworkListResource) Metadata(_ context.Context, _ resource.Metad
 }
 
 func (r VirtualNetworkListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
-	response.Schema = listschema.Schema{
-		Attributes: map[string]listschema.Attribute{
-			"resource_group_name": listschema.StringAttribute{
+	response.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"resource_group_name": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
 					typehelpers.WrappedStringValidator{
@@ -79,7 +79,7 @@ func (r VirtualNetworkListResource) List(ctx context.Context, request list.ListR
 
 			id, err := commonids.ParseVirtualNetworkID(*vnet.Id)
 			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "parsing Virtual Network ID", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Virtual Network ID", err)
 				return
 			}
 
@@ -89,31 +89,30 @@ func (r VirtualNetworkListResource) List(ctx context.Context, request list.ListR
 
 			rd.SetId(id.ID())
 
-			err = resourceVirtualNetworkFlatten(rd, *id, &vnet)
-			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "encoding Resource data", err)
+			if err = resourceVirtualNetworkFlatten(rd, *id, &vnet); err != nil {
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "encoding Resource data", err)
 				return
 			}
 
 			tfTypeIdentity, err := rd.TfTypeIdentityState()
 			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "converting Identity State", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "converting Identity State", err)
 				return
 			}
 
 			if err := result.Identity.Set(ctx, *tfTypeIdentity); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "setting Identity data", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "setting Identity data", err)
 				return
 			}
 
 			tfTypeResource, err := rd.TfTypeResourceState()
 			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "converting Resource State data", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "converting Resource State data", err)
 				return
 			}
 
 			if err := result.Resource.Set(ctx, *tfTypeResource); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "setting Resource data", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "setting Resource data", err)
 				return
 			}
 
