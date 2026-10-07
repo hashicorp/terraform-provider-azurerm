@@ -84,7 +84,7 @@ func resourceDigitalTwinsEndpointServiceBus() *pluginsdk.Resource {
 	}
 }
 
-func resourceDigitalTwinsEndpointServiceBusCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDigitalTwinsEndpointServiceBusCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DigitalTwins.EndpointClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -133,7 +133,7 @@ func resourceDigitalTwinsEndpointServiceBusCreateUpdate(d *pluginsdk.ResourceDat
 	return resourceDigitalTwinsEndpointServiceBusRead(d, meta)
 }
 
-func resourceDigitalTwinsEndpointServiceBusRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDigitalTwinsEndpointServiceBusRead(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DigitalTwins.EndpointClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -165,7 +165,7 @@ func resourceDigitalTwinsEndpointServiceBusRead(d *pluginsdk.ResourceData, meta 
 	return nil
 }
 
-func resourceDigitalTwinsEndpointServiceBusDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDigitalTwinsEndpointServiceBusDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DigitalTwins.EndpointClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

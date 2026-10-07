@@ -12,10 +12,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkmanagers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkmanagers"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -41,7 +43,7 @@ func (r ManagerDeploymentResource) IDValidationFunc() pluginsdk.SchemaValidateFu
 	return validate.NetworkManagerDeploymentID
 }
 
-func (r ManagerDeploymentResource) ModelObject() interface{} {
+func (r ManagerDeploymentResource) ModelObject() any {
 	return &ManagerDeploymentModel{}
 }
 
@@ -76,7 +78,7 @@ func (r ManagerDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		// TODO: look at removing this workaround in v4.0, see https://github.com/hashicorp/terraform-provider-azurerm/pull/20451#discussion_r1179646861 (manicminer)
+		// TODO: look at removing this workaround for v6.0, see https://github.com/hashicorp/terraform-provider-azurerm/pull/20451#discussion_r1179646861 (manicminer)
 		"triggers": {
 			Type:     pluginsdk.TypeMap,
 			Optional: true,
@@ -116,7 +118,7 @@ func (r ManagerDeploymentResource) Create() sdk.ResourceFunc {
 				Regions:         &[]string{normalizedLocation},
 				DeploymentTypes: &[]networkmanagers.ConfigurationType{networkmanagers.ConfigurationType(state.ScopeAccess)},
 			}
-			resp, err := client.NetworkManagerDeploymentStatusList(ctx, *networkManagerId, listParam)
+			resp, err := client.NetworkManagerDeploymentStatusList(ctx, *networkManagerId, listParam, networkmanagers.DefaultNetworkManagerDeploymentStatusListOperationOptions())
 
 			if err != nil && !response.WasNotFound(resp.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", *id, err)
@@ -138,8 +140,17 @@ func (r ManagerDeploymentResource) Create() sdk.ResourceFunc {
 				CommitType:       networkmanagers.ConfigurationType(state.ScopeAccess),
 			}
 
-			// TODO: implement callback, requires migrating to an ID implementing `resourceids.ResourceId`
-			if err := client.NetworkManagerCommitsPostThenPoll(ctx, *networkManagerId, input); err != nil {
+			// The API has an issue where it may return an async operation URL that is invalid, breaking the default LRO poller
+			if _, err := client.NetworkManagerCommitsPost(ctx, *networkManagerId, input); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			if metadata.Client.Features.PersistIDOnCreateBeforePollingForCompletion {
+				metadata.SetID(id)
+			}
+
+			poller := pollers.NewPoller(custompollers.NewNetworkManagerDeploymentPoller(client, *id), time.Second*10, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -166,7 +177,7 @@ func (r ManagerDeploymentResource) Read() sdk.ResourceFunc {
 
 			networkManagerId := networkmanagers.NewNetworkManagerID(id.SubscriptionId, id.ResourceGroup, id.NetworkManagerName)
 
-			resp, err := client.NetworkManagerDeploymentStatusList(ctx, networkManagerId, listParam)
+			resp, err := client.NetworkManagerDeploymentStatusList(ctx, networkManagerId, listParam, networkmanagers.DefaultNetworkManagerDeploymentStatusListOperationOptions())
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -218,7 +229,7 @@ func (r ManagerDeploymentResource) Update() sdk.ResourceFunc {
 
 			networkManagerId := networkmanagers.NewNetworkManagerID(id.SubscriptionId, id.ResourceGroup, id.NetworkManagerName)
 
-			resp, err := client.NetworkManagerDeploymentStatusList(ctx, networkManagerId, listParam)
+			resp, err := client.NetworkManagerDeploymentStatusList(ctx, networkManagerId, listParam, networkmanagers.DefaultNetworkManagerDeploymentStatusListOperationOptions())
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -342,7 +353,7 @@ func resourceManagerDeploymentWaitForFinished(ctx context.Context, client *netwo
 		Target:         []string{"Deployed"},
 		NotFoundChecks: 20,
 		Timeout:        d,
-		Refresh: func() (interface{}, string, error) {
+		Refresh: func() (any, string, error) {
 			result, state, err := resourceManagerDeploymentResultRefreshFunc(ctx, client, managerDeploymentId)()
 			if state == "NotFound" {
 				// the deployment might not found after initial commit, https://github.com/Azure/azure-rest-api-specs/issues/27327
@@ -361,7 +372,7 @@ func resourceManagerDeploymentWaitForFinished(ctx context.Context, client *netwo
 }
 
 func resourceManagerDeploymentResultRefreshFunc(ctx context.Context, client *networkmanagers.NetworkManagersClient, id *parse.ManagerDeploymentId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		listParam := networkmanagers.NetworkManagerDeploymentStatusParameter{
 			Regions:         &[]string{location.Normalize(id.Location)},
 			DeploymentTypes: &[]networkmanagers.ConfigurationType{networkmanagers.ConfigurationType(id.ScopeAccess)},
@@ -369,7 +380,7 @@ func resourceManagerDeploymentResultRefreshFunc(ctx context.Context, client *net
 
 		networkManagerId := networkmanagers.NewNetworkManagerID(id.SubscriptionId, id.ResourceGroup, id.NetworkManagerName)
 
-		resp, err := client.NetworkManagerDeploymentStatusList(ctx, networkManagerId, listParam)
+		resp, err := client.NetworkManagerDeploymentStatusList(ctx, networkManagerId, listParam, networkmanagers.DefaultNetworkManagerDeploymentStatusListOperationOptions())
 		if err != nil {
 			if response.WasNotFound(resp.HttpResponse) {
 				return resp, "NotFound", nil

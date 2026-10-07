@@ -43,7 +43,7 @@ func (r ApiManagementStandaloneGatewayResource) ResourceType() string {
 	return "azurerm_api_management_standalone_gateway"
 }
 
-func (r ApiManagementStandaloneGatewayResource) ModelObject() interface{} {
+func (r ApiManagementStandaloneGatewayResource) ModelObject() any {
 	return &ApiManagementStandaloneGatewayModel{}
 }
 
@@ -153,7 +153,7 @@ func (r ApiManagementStandaloneGatewayResource) Create() sdk.ResourceFunc {
 			properties := &apigateway.ApiManagementGatewayResource{
 				Location: location.Normalize(model.Location),
 				Properties: apigateway.ApiManagementGatewayBaseProperties{
-					VirtualNetworkType: pointer.To(apigateway.VirtualNetworkType(virtualNetworkType)),
+					VirtualNetworkType: pointer.ToEnum[apigateway.VirtualNetworkType](virtualNetworkType),
 				},
 				Sku:  pointer.From(expandGatewaySkuModel(model.Sku)),
 				Tags: pointer.To(model.Tags),

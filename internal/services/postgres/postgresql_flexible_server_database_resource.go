@@ -72,7 +72,7 @@ func resourcePostgresqlFlexibleServerDatabase() *pluginsdk.Resource {
 	}
 }
 
-func resourcePostgresqlFlexibleServerDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePostgresqlFlexibleServerDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Postgres.FlexibleServerDatabaseClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -115,7 +115,7 @@ func resourcePostgresqlFlexibleServerDatabaseCreate(d *pluginsdk.ResourceData, m
 	return resourcePostgresqlFlexibleServerDatabaseRead(d, meta)
 }
 
-func resourcePostgresqlFlexibleServerDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePostgresqlFlexibleServerDatabaseRead(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Postgres.FlexibleServerDatabaseClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -148,7 +148,7 @@ func resourcePostgresqlFlexibleServerDatabaseRead(d *pluginsdk.ResourceData, met
 	return nil
 }
 
-func resourcePostgresqlFlexibleServerDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePostgresqlFlexibleServerDatabaseDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Postgres.FlexibleServerDatabaseClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

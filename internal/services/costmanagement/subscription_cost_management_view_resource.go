@@ -60,7 +60,7 @@ func (r SubscriptionCostManagementViewResource) Attributes() map[string]*plugins
 	return r.base.attributes()
 }
 
-func (r SubscriptionCostManagementViewResource) ModelObject() interface{} {
+func (r SubscriptionCostManagementViewResource) ModelObject() any {
 	return &SubscriptionCostManagementViewModel{}
 }
 
@@ -107,7 +107,7 @@ func (r SubscriptionCostManagementViewResource) Create() sdk.ResourceFunc {
 				Properties: &views.ViewProperties{
 					Accumulated: pointer.To(accumulated),
 					DisplayName: pointer.To(config.DisplayName),
-					Chart:       pointer.To(views.ChartType(config.ChartType)),
+					Chart:       pointer.ToEnum[views.ChartType](config.ChartType),
 					Query: &views.ReportConfigDefinition{
 						DataSet:   expandDatasetFromModel(config.Dataset),
 						Timeframe: views.ReportTimeframeType(config.Timeframe),
@@ -219,7 +219,7 @@ func (r SubscriptionCostManagementViewResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("chart_type") {
-				model.Properties.Chart = pointer.To(views.ChartType(config.ChartType))
+				model.Properties.Chart = pointer.ToEnum[views.ChartType](config.ChartType)
 			}
 
 			if metadata.ResourceData.HasChange("dataset") {

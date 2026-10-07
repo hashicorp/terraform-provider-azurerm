@@ -33,7 +33,7 @@ func (r ElasticSANVolumeSnapshotDataSource) ResourceType() string {
 	return "azurerm_elastic_san_volume_snapshot"
 }
 
-func (r ElasticSANVolumeSnapshotDataSource) ModelObject() interface{} {
+func (r ElasticSANVolumeSnapshotDataSource) ModelObject() any {
 	return &ElasticSANVolumeSnapshotDataSourceModel{}
 }
 

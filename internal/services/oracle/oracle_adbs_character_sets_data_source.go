@@ -49,7 +49,7 @@ func (d AdbsCharSetsDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (d AdbsCharSetsDataSource) ModelObject() interface{} {
+func (d AdbsCharSetsDataSource) ModelObject() any {
 	return &AdbsCharSetsModel{}
 }
 

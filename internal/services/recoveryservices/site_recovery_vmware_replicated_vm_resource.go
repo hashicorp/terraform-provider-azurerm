@@ -12,14 +12,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	vmwaremachines "github.com/hashicorp/go-azure-sdk/resource-manager/migrate/2020-01-01/machines"
-	vmwarerunasaccounts "github.com/hashicorp/go-azure-sdk/resource-manager/migrate/2020-01-01/runasaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/migrate/2020-01-01/machines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/migrate/2020-01-01/runasaccounts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2025-08-01/vaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationfabrics"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationpolicies"
@@ -75,7 +75,7 @@ type SiteRecoveryReplicatedVmVMwareModel struct {
 
 type VMWareReplicatedVmResource struct{}
 
-func (r VMWareReplicatedVmResource) ModelObject() interface{} {
+func (r VMWareReplicatedVmResource) ModelObject() any {
 	return &SiteRecoveryReplicatedVmVMwareModel{}
 }
 
@@ -291,8 +291,8 @@ func (r VMWareReplicatedVmResource) CustomizeDiff() sdk.ResourceFunc {
 			_, newDiskType := diff.GetChange("default_recovery_disk_type")
 			_, newDes := diff.GetChange("default_target_disk_encryption_set_id")
 			oldDisks, newDisks := diff.GetChange("managed_disk")
-			for _, disk := range oldDisks.([]interface{}) {
-				disk := disk.(map[string]interface{})
+			for _, disk := range oldDisks.([]any) {
+				disk := disk.(map[string]any)
 				if newStorageAcc.(string) != "" && disk["log_storage_account_id"] != newStorageAcc.(string) {
 					metadata.ResourceDiff.ForceNew("default_log_storage_account_id")
 				}
@@ -307,7 +307,7 @@ func (r VMWareReplicatedVmResource) CustomizeDiff() sdk.ResourceFunc {
 			if diff.HasChanges("managed_disk") {
 				// if user has specified `managed_disk`, it forces new.
 				// or it acts as an optional field.
-				if len(newDisks.([]interface{})) != 0 {
+				if len(newDisks.([]any)) != 0 {
 					metadata.ResourceDiff.ForceNew("managed_disk")
 				}
 			}
@@ -386,7 +386,7 @@ func (r VMWareReplicatedVmResource) Create() sdk.ResourceFunc {
 			}
 
 			providerSpecificDetail := replicationprotecteditems.InMageRcmEnableProtectionInput{
-				LicenseType:              pointer.To(replicationprotecteditems.LicenseType(model.LicenseType)),
+				LicenseType:              pointer.ToEnum[replicationprotecteditems.LicenseType](model.LicenseType),
 				TargetVMName:             &model.TargetVmName,
 				TargetResourceGroupId:    model.TargetResourceGroupId,
 				FabricDiscoveryMachineId: discoveryMachineId,
@@ -484,7 +484,7 @@ func (r VMWareReplicatedVmResource) Create() sdk.ResourceFunc {
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending: []string{"Pending"},
 				Target:  []string{"Protected"},
-				Refresh: func() (result interface{}, state string, err error) {
+				Refresh: func() (result any, state string, err error) {
 					resp, err := client.Get(ctx, id)
 					if err != nil {
 						return nil, "error", fmt.Errorf("retrieving %s: %+v", id, err)
@@ -612,9 +612,9 @@ func (r VMWareReplicatedVmResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("license_type") {
-				updateInput.LicenseType = pointer.To(replicationprotecteditems.LicenseType(model.LicenseType))
+				updateInput.LicenseType = pointer.ToEnum[replicationprotecteditems.LicenseType](model.LicenseType)
 			} else if existingDetails.LicenseType != nil {
-				updateInput.LicenseType = pointer.To(replicationprotecteditems.LicenseType(*existingDetails.LicenseType))
+				updateInput.LicenseType = pointer.ToEnum[replicationprotecteditems.LicenseType](*existingDetails.LicenseType)
 			}
 
 			if metadata.ResourceData.HasChange("target_vm_name") {
@@ -699,8 +699,7 @@ func (r VMWareReplicatedVmResource) Update() sdk.ResourceFunc {
 				Properties: &props,
 			}
 
-			err = client.UpdateThenPoll(ctx, *id, parameters)
-			if err != nil {
+			if err = client.UpdateThenPoll(ctx, *id, parameters); err != nil {
 				return fmt.Errorf("updating %q: %+v", id, err)
 			}
 
@@ -841,11 +840,9 @@ func (r VMWareReplicatedVmResource) Delete() sdk.ResourceFunc {
 
 			client := metadata.Client.RecoveryServices.ReplicationProtectedItemsClient
 
-			disableProtectionReason := replicationprotecteditems.DisableProtectionReasonNotSpecified
-
 			disableProtectionInput := replicationprotecteditems.DisableProtectionInput{
 				Properties: replicationprotecteditems.DisableProtectionInputProperties{
-					DisableProtectionReason: &disableProtectionReason,
+					DisableProtectionReason: pointer.To(replicationprotecteditems.DisableProtectionReasonNotSpecified),
 					// It's a workaround for https://github.com/hashicorp/pandora/issues/1864
 					ReplicationProviderInput: replicationprotecteditems.BaseDisableProtectionProviderSpecificInputImpl{
 						InstanceType: string(siterecovery.InstanceTypeDisableProtectionProviderSpecificInput),
@@ -853,8 +850,7 @@ func (r VMWareReplicatedVmResource) Delete() sdk.ResourceFunc {
 				},
 			}
 
-			err = client.DeleteThenPoll(ctx, *id, disableProtectionInput)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, *id, disableProtectionInput); err != nil {
 				return fmt.Errorf("deleting %s : %+v", id.String(), err)
 			}
 
@@ -886,8 +882,8 @@ func fetchSiteRecoveryContainerId(ctx context.Context, containerClient *replicat
 	return parsedID.ID(), nil
 }
 
-func fetchRunAsAccountsIdBySite(ctx context.Context, runAsAccountClient *vmwarerunasaccounts.RunAsAccountsClient, siteId string, displayName string, applianceName string) (string, error) {
-	parsedSiteId, err := vmwarerunasaccounts.ParseVMwareSiteIDInsensitively(siteId)
+func fetchRunAsAccountsIdBySite(ctx context.Context, runAsAccountClient *runasaccounts.RunAsAccountsClient, siteId string, displayName string, applianceName string) (string, error) {
+	parsedSiteId, err := runasaccounts.ParseVMwareSiteIDInsensitively(siteId)
 	if err != nil {
 		return "", fmt.Errorf("parse %s: %+v", siteId, err)
 	}
@@ -953,14 +949,14 @@ func fetchProcessServerIdByName(ctx context.Context, fabricClient *replicationfa
 	return "", fmt.Errorf("retrieving %q: Detail Type mismatch", fabricId)
 }
 
-func fetchDiscoveryMachineIdBySite(ctx context.Context, machinesClient *vmwaremachines.MachinesClient, siteId string, machineName string) (string, error) {
-	parsedSiteId, err := vmwaremachines.ParseVMwareSiteIDInsensitively(siteId)
+func fetchDiscoveryMachineIdBySite(ctx context.Context, machinesClient *machines.MachinesClient, siteId string, machineName string) (string, error) {
+	parsedSiteId, err := machines.ParseVMwareSiteIDInsensitively(siteId)
 	if err != nil {
 		return "", fmt.Errorf("parse %s: %+v", siteId, err)
 	}
 
 	hackedClient := azuresdkhacks.MachinesClient{Client: machinesClient.Client}
-	resp, err := hackedClient.GetAllVMWareMachinesInSite(ctx, *parsedSiteId, vmwaremachines.DefaultGetAllMachinesInSiteOperationOptions())
+	resp, err := hackedClient.GetAllVMWareMachinesInSite(ctx, *parsedSiteId, machines.DefaultGetAllMachinesInSiteOperationOptions())
 	if err != nil {
 		return "", err
 	}
@@ -986,7 +982,7 @@ func fetchDiscoveryMachineIdBySite(ctx context.Context, machinesClient *vmwarema
 	return "", fmt.Errorf("retrieving %q: machine %s not found", siteId, machineName)
 }
 
-func fetchCredentialByRunAsAccountId(ctx context.Context, client *vmwarerunasaccounts.RunAsAccountsClient, id string) (string, error) {
+func fetchCredentialByRunAsAccountId(ctx context.Context, client *runasaccounts.RunAsAccountsClient, id string) (string, error) {
 	parsedRunAsAccountId, err := commonids.ParseVMwareSiteRunAsAccountIDInsensitively(id)
 	if err != nil {
 		return "", fmt.Errorf("parse %s: %+v", id, err)
@@ -1038,6 +1034,7 @@ func expandVMWareReplicatedVMNics(input []NetworkInterfaceModel) []replicationpr
 		vmNic := replicationprotecteditems.InMageRcmNicInput{
 			NicId:            nic.SourceMacAddress,
 			TargetSubnetName: &nic.TargetSubnetName,
+			TestSubnetName:   &nic.TestSubnetName,
 		}
 		if nic.TargetStaticIp != "" {
 			vmNic.TargetStaticIPAddress = &nic.TargetStaticIp
