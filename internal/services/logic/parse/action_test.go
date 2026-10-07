@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = ActionId{}
 
-func TestActionIDFormatter(t *testing.T) {
+func TestParseActionIDFormatter(t *testing.T) {
 	actual := NewActionID("12345678-1234-9876-4563-123456789012", "group1", "workflow1", "action1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Logic/workflows/workflow1/actions/action1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestActionIDFormatter(t *testing.T) {
 	}
 }
 
-func TestActionID(t *testing.T) {
+func TestParseActionID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

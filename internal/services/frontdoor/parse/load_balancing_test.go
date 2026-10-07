@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = LoadBalancingId{}
 
-func TestLoadBalancingIDFormatter(t *testing.T) {
+func TestParseLoadBalancingIDFormatter(t *testing.T) {
 	actual := NewLoadBalancingID("12345678-1234-9876-4563-123456789012", "resGroup1", "frontdoor1", "setting1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoors/frontdoor1/loadBalancingSettings/setting1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestLoadBalancingIDFormatter(t *testing.T) {
 	}
 }
 
-func TestLoadBalancingID(t *testing.T) {
+func TestParseLoadBalancingID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -129,7 +129,7 @@ func TestLoadBalancingID(t *testing.T) {
 	}
 }
 
-func TestLoadBalancingIDInsensitively(t *testing.T) {
+func TestParseLoadBalancingIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
