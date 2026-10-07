@@ -35,33 +35,6 @@ resource "azurerm_container_app_environment" "example" {
 }
 ```
 
-## Example Usage (with Premium Ingress)
-
-```hcl
-resource "azurerm_resource_group" "example" {
-  name     = "example-resources"
-  location = "West Europe"
-}
-
-resource "azurerm_log_analytics_workspace" "example" {
-  name                = "example-workspace"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  sku                 = "PerGB2018"
-  retention_in_days   = 30
-}
-
-resource "azurerm_container_app_environment" "example" {
-  name                       = "my-environment"
-  location                   = azurerm_resource_group.example.location
-  resource_group_name        = azurerm_resource_group.example.name
-  logs_destination           = "log-analytics"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.example.id
-
-  ingress_configuration {}
-}
-```
-
 ## Arguments Reference
 
 The following arguments are supported:
@@ -80,7 +53,7 @@ The following arguments are supported:
 
 * `ingress_configuration` - (Optional) An `ingress_configuration` block as defined below. Configures [Premium Ingress](https://learn.microsoft.com/azure/container-apps/premium-ingress) with a dedicated workload profile for ingress proxies.
 
-~> **Note:** When `ingress_configuration` is set, a dedicated workload profile is automatically created and managed for the ingress proxies. Do not define a separate `workload_profile` block for it.
+  ~> **Note:** When `ingress_configuration` is set, a dedicated workload profile is automatically created and managed for the ingress proxies. Do not define a separate `workload_profile` block for it.
 
 * `infrastructure_resource_group_name` - (Optional) Name of the platform-managed resource group created for the Managed Environment to host infrastructure resources. Changing this forces a new resource to be created.
 
