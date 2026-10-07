@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package logic
@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountschemas"
@@ -17,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceLogicAppIntegrationAccountSchema() *pluginsdk.Resource {
@@ -78,7 +78,7 @@ func resourceLogicAppIntegrationAccountSchema() *pluginsdk.Resource {
 	}
 }
 
-func resourceLogicAppIntegrationAccountSchemaCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppIntegrationAccountSchemaCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Logic.IntegrationAccountSchemaClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -87,27 +87,29 @@ func resourceLogicAppIntegrationAccountSchemaCreateUpdate(d *pluginsdk.ResourceD
 	id := integrationaccountschemas.NewSchemaID(subscriptionId, d.Get("resource_group_name").(string), d.Get("integration_account_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_logic_app_integration_account_schema", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_logic_app_integration_account_schema", id.ID())
+			}
 		}
 	}
 
 	parameters := integrationaccountschemas.IntegrationAccountSchema{
 		Properties: integrationaccountschemas.IntegrationAccountSchemaProperties{
 			SchemaType:  integrationaccountschemas.SchemaTypeXml,
-			Content:     utils.String(d.Get("content").(string)),
-			ContentType: utils.String("application/xml"),
+			Content:     pointer.To(d.Get("content").(string)),
+			ContentType: pointer.To("application/xml"),
 		},
 	}
 
 	if v, ok := d.GetOk("file_name"); ok {
-		parameters.Properties.FileName = utils.String(v.(string))
+		parameters.Properties.FileName = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("metadata"); ok {
@@ -122,7 +124,7 @@ func resourceLogicAppIntegrationAccountSchemaCreateUpdate(d *pluginsdk.ResourceD
 	return resourceLogicAppIntegrationAccountSchemaRead(d, meta)
 }
 
-func resourceLogicAppIntegrationAccountSchemaRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppIntegrationAccountSchemaRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Logic.IntegrationAccountSchemaClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -159,7 +161,7 @@ func resourceLogicAppIntegrationAccountSchemaRead(d *pluginsdk.ResourceData, met
 	return nil
 }
 
-func resourceLogicAppIntegrationAccountSchemaDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppIntegrationAccountSchemaDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Logic.IntegrationAccountSchemaClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

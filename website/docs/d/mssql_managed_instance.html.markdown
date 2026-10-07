@@ -43,6 +43,8 @@ The following attributes are exported:
 
 * `fqdn` - The fully qualified domain name of the Azure Managed SQL Instance.
 
+* `general_purpose_v2_enabled` - Whether the SQL Managed Instance is using the Next-gen General Purpose service tier
+
 * `id` - The SQL Managed Instance ID.
 
 * `identity` - An `identity` block as defined below.
@@ -93,4 +95,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Sql` - 2023-08-01-preview
+* `Microsoft.Sql` - 2025-01-01

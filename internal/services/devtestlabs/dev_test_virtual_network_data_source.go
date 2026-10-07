@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package devtestlabs
@@ -98,7 +98,7 @@ func dataSourceArmDevTestVirtualNetwork() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceArmDevTestVnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceArmDevTestVnetRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DevTestLabs.VirtualNetworksClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -137,15 +137,15 @@ func dataSourceArmDevTestVnetRead(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func flattenDevTestVirtualNetworkAllowedSubnets(input *[]virtualnetworks.Subnet) []interface{} {
-	result := make([]interface{}, 0)
+func flattenDevTestVirtualNetworkAllowedSubnets(input *[]virtualnetworks.Subnet) []any {
+	result := make([]any, 0)
 
 	if input == nil {
 		return result
 	}
 
 	for _, v := range *input {
-		allowedSubnet := make(map[string]interface{})
+		allowedSubnet := make(map[string]any)
 
 		allowedSubnet["allow_public_ip"] = v.AllowPublicIP
 
@@ -163,15 +163,15 @@ func flattenDevTestVirtualNetworkAllowedSubnets(input *[]virtualnetworks.Subnet)
 	return result
 }
 
-func flattenDevTestVirtualNetworkSubnetOverrides(input *[]virtualnetworks.SubnetOverride) []interface{} {
-	result := make([]interface{}, 0)
+func flattenDevTestVirtualNetworkSubnetOverrides(input *[]virtualnetworks.SubnetOverride) []any {
+	result := make([]any, 0)
 
 	if input == nil {
 		return result
 	}
 
 	for _, v := range *input {
-		subnetOverride := make(map[string]interface{})
+		subnetOverride := make(map[string]any)
 		if v.LabSubnetName != nil {
 			subnetOverride["lab_subnet_name"] = *v.LabSubnetName
 		}

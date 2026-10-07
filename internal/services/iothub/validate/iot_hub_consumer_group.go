@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -8,7 +8,7 @@ import (
 	"regexp"
 )
 
-func IoTHubConsumerGroupName(v interface{}, k string) (warnings []string, errors []error) {
+func IoTHubConsumerGroupName(v any, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	// Portal: The value must contain only alphanumeric characters or the following: - . _

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package custompollers
@@ -7,10 +7,9 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/redisenterprise"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/redisenterprise"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 )
 
@@ -24,18 +23,6 @@ type clusterStatePoller struct {
 	client RedisEnterpriseClientInterface
 	id     redisenterprise.RedisEnterpriseId
 }
-
-var (
-	pollingSuccess = pollers.PollResult{
-		PollInterval: 15 * time.Second,
-		Status:       pollers.PollingStatusSucceeded,
-	}
-	pollingInProgress = pollers.PollResult{
-		HttpResponse: nil,
-		PollInterval: 15 * time.Second,
-		Status:       pollers.PollingStatusInProgress,
-	}
-)
 
 // Poll for cluster properties "resourceState" == "Running" as the LRO only polls for "provisioningState" and can
 // complete prematurely
