@@ -19,7 +19,7 @@ import (
 
 type SystemCenterVirtualMachineManagerAvailabilitySetResource struct{}
 
-func TestAccSystemCenterVirtualMachineManagerAvailabilitySetSequential(t *testing.T) {
+func TestAccSystemCenterVirtualMachineManagerAvailabilitySet_sequential(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests because only one System Center Virtual Machine Manager Server can be onboarded at a time on a given Custom Location
 
 	if os.Getenv("ARM_TEST_CUSTOM_LOCATION_ID") == "" || os.Getenv("ARM_TEST_FQDN") == "" || os.Getenv("ARM_TEST_USERNAME") == "" || os.Getenv("ARM_TEST_PASSWORD") == "" {
@@ -28,10 +28,11 @@ func TestAccSystemCenterVirtualMachineManagerAvailabilitySetSequential(t *testin
 
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"scvmmAvailabilitySet": {
-			"basic":          testAccSystemCenterVirtualMachineManagerAvailabilitySet_basic,
-			"requiresImport": testAccSystemCenterVirtualMachineManagerAvailabilitySet_requiresImport,
-			"complete":       testAccSystemCenterVirtualMachineManagerAvailabilitySet_complete,
-			"update":         testAccSystemCenterVirtualMachineManagerAvailabilitySet_update,
+			"basic":            testAccSystemCenterVirtualMachineManagerAvailabilitySet_basic,
+			"requiresImport":   testAccSystemCenterVirtualMachineManagerAvailabilitySet_requiresImport,
+			"complete":         testAccSystemCenterVirtualMachineManagerAvailabilitySet_complete,
+			"update":           testAccSystemCenterVirtualMachineManagerAvailabilitySet_update,
+			"resourceIdentity": testAccSystemCenterVirtualMachineManagerAvailabilitySet_resourceIdentity,
 		},
 	})
 }

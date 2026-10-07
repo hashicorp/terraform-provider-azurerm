@@ -62,9 +62,20 @@ func (c RegistriesClient) GenerateCredentials(ctx context.Context, id RegistryId
 
 // GenerateCredentialsThenPoll performs GenerateCredentials then polls until it's completed
 func (c RegistriesClient) GenerateCredentialsThenPoll(ctx context.Context, id RegistryId, input GenerateCredentialsParameters) error {
+	return c.GenerateCredentialsCallbackThenPoll(ctx, id, input, nil)
+}
+
+// GenerateCredentialsCallbackThenPoll performs GenerateCredentials, runs the optional callback function, then polls until it's completed
+func (c RegistriesClient) GenerateCredentialsCallbackThenPoll(ctx context.Context, id RegistryId, input GenerateCredentialsParameters, callback func() error) error {
 	result, err := c.GenerateCredentials(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing GenerateCredentials: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -39,17 +39,17 @@ func dataSourceSentinelAlertRule() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceSentinelAlertRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceSentinelAlertRuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
 	workspaceID, err := alertrules.ParseWorkspaceID(d.Get("log_analytics_workspace_id").(string))
 	if err != nil {
 		return err
 	}
-	id := alertrules.NewAlertRuleID(workspaceID.SubscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, name)
+
+	id := alertrules.NewAlertRuleID(workspaceID.SubscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, d.Get("name").(string))
 
 	resp, err := client.Get(ctx, id)
 	if err != nil {
