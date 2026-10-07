@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = SecretVersionlessId{}
 
-func TestSecretVersionlessIDFormatter(t *testing.T) {
+func TestParseSecretVersionlessIDFormatter(t *testing.T) {
 	actual := NewSecretVersionlessID("12345678-1234-9876-4563-123456789012", "resGroup1", "vault1", "secret1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.KeyVault/vaults/vault1/secrets/secret1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestSecretVersionlessIDFormatter(t *testing.T) {
 	}
 }
 
-func TestSecretVersionlessID(t *testing.T) {
+func TestParseSecretVersionlessID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

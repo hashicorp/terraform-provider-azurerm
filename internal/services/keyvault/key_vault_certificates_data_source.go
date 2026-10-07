@@ -10,13 +10,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
+	kv "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 func dataSourceKeyVaultCertificates() *pluginsdk.Resource {
@@ -72,7 +72,7 @@ func dataSourceKeyVaultCertificates() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceKeyVaultCertificatesRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceKeyVaultCertificatesRead(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -98,18 +98,18 @@ func dataSourceKeyVaultCertificatesRead(d *pluginsdk.ResourceData, meta interfac
 	d.SetId(keyVaultId.ID())
 
 	var names []string
-	var certs []map[string]interface{}
+	var certs []map[string]any
 	if certificateList.Response().Value != nil {
 		for certificateList.NotDone() {
 			for _, v := range *certificateList.Response().Value {
-				nestedItem, err := parse.ParseOptionallyVersionedNestedItemID(*v.ID)
+				nestedItem, err := keyvault.ParseNestedItemID(pointer.From(v.ID), keyvault.VersionTypeAny, keyvault.NestedItemTypeCertificate)
 				if err != nil {
 					return err
 				}
+
 				names = append(names, nestedItem.Name)
 				certs = append(certs, expandCertificate(nestedItem.Name, v))
-				err = certificateList.NextWithContext(ctx)
-				if err != nil {
+				if err = certificateList.NextWithContext(ctx); err != nil {
 					return fmt.Errorf("retrieving next page of Certificates from %s: %+v", *keyVaultId, err)
 				}
 			}
@@ -123,8 +123,8 @@ func dataSourceKeyVaultCertificatesRead(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func expandCertificate(name string, item keyvault.CertificateItem) map[string]interface{} {
-	cert := map[string]interface{}{
+func expandCertificate(name string, item kv.CertificateItem) map[string]any {
+	cert := map[string]any{
 		"name": name,
 		"id":   *item.ID,
 	}
