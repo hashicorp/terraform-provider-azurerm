@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
@@ -10,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/ipampools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/ipampools"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/custompollers"
@@ -30,7 +33,7 @@ func (ManagerIpamPoolResource) ResourceType() string {
 	return "azurerm_network_manager_ipam_pool"
 }
 
-func (ManagerIpamPoolResource) ModelObject() interface{} {
+func (ManagerIpamPoolResource) ModelObject() any {
 	return &ManagerIpamPoolResourceModel{}
 }
 
@@ -61,15 +64,6 @@ func (ManagerIpamPoolResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"location": commonschema.Location(),
 
-		"display_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringMatch(
-				regexp.MustCompile(`^[a-zA-Z0-9\_\.\-]{1,64}$`),
-				"`display_name` must be between 1 and 64 characters long and can only contain letters, numbers, underscores(_), periods(.), and hyphens(-).",
-			),
-		},
-
 		"address_prefixes": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
@@ -78,6 +72,15 @@ func (ManagerIpamPoolResource) Arguments() map[string]*pluginsdk.Schema {
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.IsCIDR,
 			},
+		},
+
+		"display_name": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile(`^[a-zA-Z0-9\_\.\-]{1,64}$`),
+				"`display_name` must be between 1 and 64 characters long and can only contain letters, numbers, underscores(_), periods(.), and hyphens(-).",
+			),
 		},
 
 		"parent_pool_name": {
@@ -123,12 +126,14 @@ func (r ManagerIpamPoolResource) Create() sdk.ResourceFunc {
 
 			id := ipampools.NewIPamPoolID(subscriptionId, networkManagerId.ResourceGroupName, networkManagerId.NetworkManagerName, config.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			payload := ipampools.IPamPool{
@@ -143,7 +148,7 @@ func (r ManagerIpamPoolResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.CreateThenPoll(ctx, id, payload); err != nil {
+			if err := client.CreateCallbackThenPoll(ctx, id, payload, ipampools.DefaultCreateOperationOptions(), metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -228,7 +233,7 @@ func (r ManagerIpamPoolResource) Update() sdk.ResourceFunc {
 				parameters.Properties.DisplayName = pointer.To(model.DisplayName)
 			}
 
-			if _, err := client.Update(ctx, *id, parameters); err != nil {
+			if _, err := client.Update(ctx, *id, parameters, ipampools.DefaultUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 			return nil
@@ -247,7 +252,7 @@ func (r ManagerIpamPoolResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			if err := client.DeleteThenPoll(ctx, *id); err != nil {
+			if err := client.DeleteThenPoll(ctx, *id, ipampools.DefaultDeleteOperationOptions()); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 

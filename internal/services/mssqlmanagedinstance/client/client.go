@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package client
@@ -6,18 +6,19 @@ package client
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/instancefailovergroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedbackupshorttermretentionpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/manageddatabases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstanceadministrators"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstanceazureadonlyauthentications"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstanceencryptionprotectors"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstancekeys"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstancelongtermretentionpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstances"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstancevulnerabilityassessments"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedserversecurityalertpolicies"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" //nolint:staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/instancefailovergroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedbackupshorttermretentionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/manageddatabases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstanceadministrators"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstanceazureadonlyauthentications"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstanceencryptionprotectors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstancekeys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstancelongtermretentionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstancevulnerabilityassessments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedserversecurityalertpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/startstopmanagedinstanceschedules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -33,6 +34,7 @@ type Client struct {
 	ManagedInstanceEncryptionProtectorClient         *managedinstanceencryptionprotectors.ManagedInstanceEncryptionProtectorsClient
 	ManagedInstanceFailoverGroupsClient              *instancefailovergroups.InstanceFailoverGroupsClient
 	ManagedInstanceKeysClient                        *managedinstancekeys.ManagedInstanceKeysClient
+	ManagedInstanceStartStopSchedulesClient          *startstopmanagedinstanceschedules.StartStopManagedInstanceSchedulesClient
 
 	options *common.ClientOptions
 }
@@ -104,6 +106,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(managedInstanceServerSecurityAlertPoliciesClient.Client, o.Authorizers.ResourceManager)
 
+	managedInstanceStartStopSchedulesClient, err := startstopmanagedinstanceschedules.NewStartStopManagedInstanceSchedulesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Managed Instance Start Stop Schedules Client: %+v", err)
+	}
+	o.Configure(managedInstanceStartStopSchedulesClient.Client, o.Authorizers.ResourceManager)
+
 	return &Client{
 		ManagedDatabasesClient:                           managedDatabasesClient,
 		ManagedInstanceAdministratorsClient:              managedInstancesAdministratorsClient,
@@ -116,6 +124,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		ManagedInstancesShortTermRetentionPoliciesClient: managedInstancesShortTermRetentionPoliciesClient,
 		ManagedInstanceVulnerabilityAssessmentsClient:    managedInstanceVulnerabilityAssessmentsClient,
 		ManagedInstancesClient:                           managedInstancesClient,
+		ManagedInstanceStartStopSchedulesClient:          managedInstanceStartStopSchedulesClient,
 
 		options: o,
 	}, nil

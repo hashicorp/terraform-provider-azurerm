@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory
@@ -10,14 +10,14 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 var _ sdk.Resource = DataFactoryDatasetAzureSQLTableResource{}
@@ -25,17 +25,17 @@ var _ sdk.Resource = DataFactoryDatasetAzureSQLTableResource{}
 type DataFactoryDatasetAzureSQLTableResource struct{}
 
 type DataFactoryDatasetAzureSQLTableResourceSchema struct {
-	Name                 string                 `tfschema:"name"`
-	DataFactoryId        string                 `tfschema:"data_factory_id"`
-	LinkedServiceId      string                 `tfschema:"linked_service_id"`
-	Schema               string                 `tfschema:"schema"`
-	Table                string                 `tfschema:"table"`
-	Parameters           map[string]interface{} `tfschema:"parameters"`
-	Description          string                 `tfschema:"description"`
-	Annotations          []string               `tfschema:"annotations"`
-	Folder               string                 `tfschema:"folder"`
-	AdditionalProperties map[string]interface{} `tfschema:"additional_properties"`
-	SchemaColumn         []DatasetColumn        `tfschema:"schema_column"`
+	Name                 string          `tfschema:"name"`
+	DataFactoryId        string          `tfschema:"data_factory_id"`
+	LinkedServiceId      string          `tfschema:"linked_service_id"`
+	Schema               string          `tfschema:"schema"`
+	Table                string          `tfschema:"table"`
+	Parameters           map[string]any  `tfschema:"parameters"`
+	Description          string          `tfschema:"description"`
+	Annotations          []string        `tfschema:"annotations"`
+	Folder               string          `tfschema:"folder"`
+	AdditionalProperties map[string]any  `tfschema:"additional_properties"`
+	SchemaColumn         []DatasetColumn `tfschema:"schema_column"`
 }
 
 func (DataFactoryDatasetAzureSQLTableResource) Arguments() map[string]*pluginsdk.Schema {
@@ -154,7 +154,7 @@ func (DataFactoryDatasetAzureSQLTableResource) Attributes() map[string]*pluginsd
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (DataFactoryDatasetAzureSQLTableResource) ModelObject() interface{} {
+func (DataFactoryDatasetAzureSQLTableResource) ModelObject() any {
 	return &DataFactoryDatasetAzureSQLTableResourceSchema{}
 }
 
@@ -180,14 +180,16 @@ func (r DataFactoryDatasetAzureSQLTableResource) Create() sdk.ResourceFunc {
 
 			id := parse.NewDataSetID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, data.Name)
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
-			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
+				if err != nil {
+					if !response.WasNotFound(existing.Response.Response) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.Response.Response) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			azureSqlDatasetProperties := datafactory.AzureSQLTableDatasetTypeProperties{
@@ -207,11 +209,10 @@ func (r DataFactoryDatasetAzureSQLTableResource) Create() sdk.ResourceFunc {
 				ReferenceName: pointer.To(linkedServiceId.Name),
 			}
 
-			description := data.Description
 			azureSqlTableset := datafactory.AzureSQLTableDataset{
 				AzureSQLTableDatasetTypeProperties: &azureSqlDatasetProperties,
 				LinkedServiceName:                  linkedService,
-				Description:                        &description,
+				Description:                        pointer.To(data.Description),
 			}
 
 			if data.Folder != "" {
@@ -225,7 +226,7 @@ func (r DataFactoryDatasetAzureSQLTableResource) Create() sdk.ResourceFunc {
 			}
 
 			if len(data.Annotations) > 0 {
-				annotations := make([]interface{}, len(data.Annotations))
+				annotations := make([]any, len(data.Annotations))
 				for i, v := range data.Annotations {
 					annotations[i] = v
 				}
@@ -240,10 +241,9 @@ func (r DataFactoryDatasetAzureSQLTableResource) Create() sdk.ResourceFunc {
 				azureSqlTableset.Structure = data.SchemaColumn
 			}
 
-			datasetType := string(datafactory.TypeBasicDatasetTypeAzureSQLTable)
 			dataset := datafactory.DatasetResource{
 				Properties: &azureSqlTableset,
-				Type:       &datasetType,
+				Type:       pointer.To(string(datafactory.TypeBasicDatasetTypeAzureSQLTable)),
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, id.Name, dataset, ""); err != nil {
@@ -290,7 +290,7 @@ func (r DataFactoryDatasetAzureSQLTableResource) Update() sdk.ResourceFunc {
 				}
 
 				if metadata.ResourceData.HasChange("table") {
-					azureSqlTable.AzureSQLTableDatasetTypeProperties.Table = data.Table
+					azureSqlTable.Table = data.Table
 				}
 			}
 
@@ -328,7 +328,7 @@ func (r DataFactoryDatasetAzureSQLTableResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("annotations") {
 				if len(data.Annotations) > 0 {
-					annotations := make([]interface{}, len(data.Annotations))
+					annotations := make([]any, len(data.Annotations))
 					for i, v := range data.Annotations {
 						annotations[i] = v
 					}
@@ -377,7 +377,7 @@ func (DataFactoryDatasetAzureSQLTableResource) Read() sdk.ResourceFunc {
 
 			resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
+				if response.WasNotFound(resp.Response.Response) {
 					return metadata.MarkAsGone(id)
 				}
 
@@ -442,9 +442,9 @@ func (DataFactoryDatasetAzureSQLTableResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
+			resp, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 			if err != nil {
-				if !utils.ResponseWasNotFound(response) {
+				if !response.WasNotFound(resp.Response) {
 					return fmt.Errorf("deleting %s: %+v", *id, err)
 				}
 			}
