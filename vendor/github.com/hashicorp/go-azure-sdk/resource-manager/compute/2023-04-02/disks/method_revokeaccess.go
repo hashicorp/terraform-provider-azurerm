@@ -58,9 +58,20 @@ func (c DisksClient) RevokeAccess(ctx context.Context, id commonids.ManagedDiskI
 
 // RevokeAccessThenPoll performs RevokeAccess then polls until it's completed
 func (c DisksClient) RevokeAccessThenPoll(ctx context.Context, id commonids.ManagedDiskId) error {
+	return c.RevokeAccessCallbackThenPoll(ctx, id, nil)
+}
+
+// RevokeAccessCallbackThenPoll performs RevokeAccess, runs the optional callback function, then polls until it's completed
+func (c DisksClient) RevokeAccessCallbackThenPoll(ctx context.Context, id commonids.ManagedDiskId, callback func() error) error {
 	result, err := c.RevokeAccess(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing RevokeAccess: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
