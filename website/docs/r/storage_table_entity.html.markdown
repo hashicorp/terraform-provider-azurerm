@@ -47,7 +47,7 @@ resource "azurerm_storage_table_entity" "example" {
 
 The following arguments are supported:
 
-* `storage_table_id` - (Required) The Storage Share ID in which this file will be placed into.
+* `storage_table_id` - (Required) The ID of the storage table in which this entity will be placed. Changing this forces a new resource to be created.
 
 * `partition_key` - (Required) The key for the partition where the entity will be inserted/merged. Changing this forces a new resource to be created.
 

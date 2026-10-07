@@ -9,6 +9,7 @@ resource "azurerm_key_vault" "example" {
   resource_group_name = azurerm_resource_group.example.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
 
+  rbac_authorization_enabled      = false
   enabled_for_deployment          = true
   enabled_for_template_deployment = true
 
