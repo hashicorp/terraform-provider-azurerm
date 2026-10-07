@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = EndpointServiceBusQueueId{}
 
-func TestEndpointServiceBusQueueIDFormatter(t *testing.T) {
+func TestParseEndpointServiceBusQueueIDFormatter(t *testing.T) {
 	actual := NewEndpointServiceBusQueueID("12345678-1234-9876-4563-123456789012", "resGroup1", "hub1", "serviceBusQueueEndpoint1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Devices/iotHubs/hub1/endpoints/serviceBusQueueEndpoint1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestEndpointServiceBusQueueIDFormatter(t *testing.T) {
 	}
 }
 
-func TestEndpointServiceBusQueueID(t *testing.T) {
+func TestParseEndpointServiceBusQueueID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -129,7 +129,7 @@ func TestEndpointServiceBusQueueID(t *testing.T) {
 	}
 }
 
-func TestEndpointServiceBusQueueIDInsensitively(t *testing.T) {
+func TestParseEndpointServiceBusQueueIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

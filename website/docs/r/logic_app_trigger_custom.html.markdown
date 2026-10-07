@@ -41,7 +41,7 @@ BODY
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -63,11 +63,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `callback_url` - The URL of the Trigger within the Logic App Workflow. For use with certain resources like [monitor_action_group](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_action_group) and [security_center_automation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/security_center_automation).
 
--> **Note:** `callback_url` is populated for [Triggers with a type of](https://learn.microsoft.com/en-us/azure/logic-apps/logic-apps-workflow-actions-triggers#trigger-types-list) HTTPWebhook, Request, or ApiConnectionWebhook. For all other Trigger types, `callback_url` will be empty and should not be referenced.
+-> **Note:** `callback_url` is populated for [Triggers with a type of](https://learn.microsoft.com/azure/logic-apps/logic-apps-workflow-actions-triggers#trigger-types-list) HTTPWebhook, Request, or ApiConnectionWebhook. For all other Trigger types, `callback_url` will be empty and should not be referenced.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Logic App Custom Trigger.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Logic App Custom Trigger.

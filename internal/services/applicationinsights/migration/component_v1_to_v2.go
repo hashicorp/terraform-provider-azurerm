@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -8,8 +8,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -22,11 +21,11 @@ func (ComponentUpgradeV1ToV2) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (ComponentUpgradeV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		// This state migration is identical to v0 -> v1, however we need to apply it again because application insights
 		// resources with the incorrect casing could still be imported and exist within some user's state
 		oldIdRaw := rawState["id"].(string)
-		id, err := components.ParseComponentIDInsensitively(oldIdRaw)
+		id, err := componentsapis.ParseComponentIDInsensitively(oldIdRaw)
 		if err != nil {
 			return rawState, err
 		}
@@ -76,7 +75,7 @@ func componentSchemaForV1AndV2() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 
 		"daily_data_cap_in_gb": {
 			Type:     pluginsdk.TypeFloat,
