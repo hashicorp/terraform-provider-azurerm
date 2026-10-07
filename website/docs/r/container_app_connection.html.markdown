@@ -72,7 +72,7 @@ resource "azurerm_container_app_connection" "example" {
   name               = "example-serviceconnector"
   container_app_id   = azurerm_container_app.example.id
   target_resource_id = azurerm_cosmosdb_sql_database.example.id
-  scope              = "container"
+  scope              = azurerm_container_app.example.template[0].container[0].name
 
   authentication {
     type = "systemAssignedIdentity"
@@ -122,7 +122,7 @@ resource "azurerm_container_app_connection" "example" {
   name               = "example-serviceconnector"
   container_app_id   = azurerm_container_app.example.id
   target_resource_id = azurerm_storage_account.example.id
-  scope              = "container"
+  scope              = azurerm_container_app.example.template[0].container[0].name
 
   authentication {
     type   = "secret"
@@ -220,7 +220,7 @@ The following arguments are supported:
 
 * `target_resource_id` - (Required) The ID of the target resource. Changing this forces a new resource to be created.
 
-* `scope` - (Required) The scope of the connection. Changing this forces a new resource to be created.
+* `scope` - (Required) The name of the container within the Container App to which the connection applies. Changing this forces a new resource to be created.
 
 * `authentication` - (Required) The authentication info. An `authentication` block as defined below.
 
@@ -262,7 +262,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Container App Service Connector.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container App Service Connector.

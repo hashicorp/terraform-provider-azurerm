@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package serviceconnector_test
@@ -35,7 +35,7 @@ func (r ServiceConnectorContainerAppResource) Exists(ctx context.Context, client
 	return pointer.To(true), nil
 }
 
-func TestAccServiceConnectorContainerAppCosmosdb_basic(t *testing.T) {
+func TestAccServiceConnectorContainerApp_cosmosdbBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_connection", "test")
 	r := ServiceConnectorContainerAppResource{}
 
@@ -50,7 +50,7 @@ func TestAccServiceConnectorContainerAppCosmosdb_basic(t *testing.T) {
 	})
 }
 
-func TestAccServiceConnectorContainerAppCosmosdb_secretAuth(t *testing.T) {
+func TestAccServiceConnectorContainerApp_cosmosdbSecretAuth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_connection", "test")
 	r := ServiceConnectorContainerAppResource{}
 
@@ -65,7 +65,7 @@ func TestAccServiceConnectorContainerAppCosmosdb_secretAuth(t *testing.T) {
 	})
 }
 
-func TestAccServiceConnectorContainerAppCosmosdb_servicePrincipalSecretAuth(t *testing.T) {
+func TestAccServiceConnectorContainerApp_cosmosdbServicePrincipalSecretAuth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_connection", "test")
 	r := ServiceConnectorContainerAppResource{}
 
@@ -80,7 +80,7 @@ func TestAccServiceConnectorContainerAppCosmosdb_servicePrincipalSecretAuth(t *t
 	})
 }
 
-func TestAccServiceConnectorContainerAppCosmosdb_userAssignedIdentity(t *testing.T) {
+func TestAccServiceConnectorContainerApp_cosmosdbUserAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_connection", "test")
 	r := ServiceConnectorContainerAppResource{}
 
@@ -95,7 +95,7 @@ func TestAccServiceConnectorContainerAppCosmosdb_userAssignedIdentity(t *testing
 	})
 }
 
-func TestAccServiceConnectorContainerAppStorageBlob_basic(t *testing.T) {
+func TestAccServiceConnectorContainerApp_storageBlobBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_connection", "test")
 	r := ServiceConnectorContainerAppResource{}
 
@@ -110,7 +110,7 @@ func TestAccServiceConnectorContainerAppStorageBlob_basic(t *testing.T) {
 	})
 }
 
-func TestAccServiceConnectorContainerAppStorageBlob_secretStore(t *testing.T) {
+func TestAccServiceConnectorContainerApp_storageBlobSecretStore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_connection", "test")
 	r := ServiceConnectorContainerAppResource{}
 
