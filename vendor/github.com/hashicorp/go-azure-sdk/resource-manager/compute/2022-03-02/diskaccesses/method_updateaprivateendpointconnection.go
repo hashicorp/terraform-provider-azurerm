@@ -62,9 +62,20 @@ func (c DiskAccessesClient) UpdateAPrivateEndpointConnection(ctx context.Context
 
 // UpdateAPrivateEndpointConnectionThenPoll performs UpdateAPrivateEndpointConnection then polls until it's completed
 func (c DiskAccessesClient) UpdateAPrivateEndpointConnectionThenPoll(ctx context.Context, id PrivateEndpointConnectionId, input PrivateEndpointConnection) error {
+	return c.UpdateAPrivateEndpointConnectionCallbackThenPoll(ctx, id, input, nil)
+}
+
+// UpdateAPrivateEndpointConnectionCallbackThenPoll performs UpdateAPrivateEndpointConnection, runs the optional callback function, then polls until it's completed
+func (c DiskAccessesClient) UpdateAPrivateEndpointConnectionCallbackThenPoll(ctx context.Context, id PrivateEndpointConnectionId, input PrivateEndpointConnection, callback func() error) error {
 	result, err := c.UpdateAPrivateEndpointConnection(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing UpdateAPrivateEndpointConnection: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = SqlPoolRecoverableDatabaseId{}
 
-func TestSqlPoolRecoverableDatabaseIDFormatter(t *testing.T) {
+func TestParseSqlPoolRecoverableDatabaseIDFormatter(t *testing.T) {
 	actual := NewSqlPoolRecoverableDatabaseID("12345678-1234-9876-4563-123456789012", "resGroup1", "workspace1", "database").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Synapse/workspaces/workspace1/recoverableDatabases/database"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestSqlPoolRecoverableDatabaseIDFormatter(t *testing.T) {
 	}
 }
 
-func TestSqlPoolRecoverableDatabaseID(t *testing.T) {
+func TestParseSqlPoolRecoverableDatabaseID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

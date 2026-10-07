@@ -20,11 +20,11 @@ The remote tenant administrators must:
 - Create/configure the key vault with appropriate encryption keys
 
 #### 2. Managed Identity, Multi-tenant Entra ID Application and permissions
-Please see this document [Configure cross-tenant customer-managed keys for Azure NetApp Files volume encryption](https://learn.microsoft.com/en-us/azure/azure-netapp-files/customer-managed-keys-cross-tenant), but only the parts described below since some of the items described on it are already being deployed with this example configuration file:
+Please see this document [Configure cross-tenant customer-managed keys for Azure NetApp Files volume encryption](https://learn.microsoft.com/azure/azure-netapp-files/customer-managed-keys-cross-tenant), but only the parts described below since some of the items described on it are already being deployed with this example configuration file:
 
-- [Understand cross-tenant customer-managed keys](https://learn.microsoft.com/en-us/azure/azure-netapp-files/customer-managed-keys-cross-tenant) for overview.
-- [Configure cross-tenant customer-managed keys for Azure NetApp Files](https://learn.microsoft.com/en-us/azure/azure-netapp-files/customer-managed-keys-cross-tenant#understand-cross-tenant-customer-managed-keys), up to step 3, step 4 is deployed through this Terraform config example.
-- [Authorize access to the key vault](https://learn.microsoft.com/en-us/azure/azure-netapp-files/customer-managed-keys-cross-tenant#authorize-access-to-the-key-vault), to allow access to the remote tenant's Azure Key Vault. **Note** that step 3 of this section is needed only during the `terraform apply` phase when it start to wait for the user to authorize the private endpoint connection in the remote tenant Azure Key Vault.
+- [Understand cross-tenant customer-managed keys](https://learn.microsoft.com/azure/azure-netapp-files/customer-managed-keys-cross-tenant) for overview.
+- [Configure cross-tenant customer-managed keys for Azure NetApp Files](https://learn.microsoft.com/azure/azure-netapp-files/customer-managed-keys-cross-tenant#understand-cross-tenant-customer-managed-keys), up to step 3, step 4 is deployed through this Terraform config example.
+- [Authorize access to the key vault](https://learn.microsoft.com/azure/azure-netapp-files/customer-managed-keys-cross-tenant#authorize-access-to-the-key-vault), to allow access to the remote tenant's Azure Key Vault. **Note** that step 3 of this section is needed only during the `terraform apply` phase when it start to wait for the user to authorize the private endpoint connection in the remote tenant Azure Key Vault.
 
 ### Required Variables
 

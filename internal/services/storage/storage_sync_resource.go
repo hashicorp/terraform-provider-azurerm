@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -27,7 +28,7 @@ import (
 
 const storageSyncResourceName = "azurerm_storage_sync"
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_sync -service-package-name storage -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceStorageSync() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -62,13 +63,10 @@ func resourceStorageSync() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"incoming_traffic_policy": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(storagesyncservicesresource.IncomingTrafficPolicyAllowAllTraffic),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(storagesyncservicesresource.IncomingTrafficPolicyAllowAllTraffic),
-					string(storagesyncservicesresource.IncomingTrafficPolicyAllowVirtualNetworksOnly),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(storagesyncservicesresource.IncomingTrafficPolicyAllowAllTraffic),
+				ValidateFunc: validation.StringInSlice(storagesyncservicesresource.PossibleValuesForIncomingTrafficPolicy(), false),
 			},
 
 			"registered_servers": {
@@ -84,44 +82,46 @@ func resourceStorageSync() *pluginsdk.Resource {
 	}
 }
 
-func resourceStorageSyncCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageSyncCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.SyncServiceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := storagesyncservicesresource.NewStorageSyncServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.StorageSyncServicesGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.StorageSyncServicesGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError(storageSyncResourceName, id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError(storageSyncResourceName, id.ID())
+		}
 	}
 
 	parameters := storagesyncservicesresource.StorageSyncServiceCreateParameters{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &storagesyncservicesresource.StorageSyncServiceCreateParametersProperties{
-			IncomingTrafficPolicy: pointer.To(storagesyncservicesresource.IncomingTrafficPolicy(d.Get("incoming_traffic_policy").(string))),
+			IncomingTrafficPolicy: pointer.ToEnum[storagesyncservicesresource.IncomingTrafficPolicy](d.Get("incoming_traffic_policy").(string)),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
-	if err = client.StorageSyncServicesCreateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.StorageSyncServicesCreateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-
 	d.SetId(id.ID())
-	if err = pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
 		return err
 	}
 
 	return resourceStorageSyncRead(d, meta)
 }
 
-func resourceStorageSyncRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageSyncRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.SyncServiceClient
 	registeredServerClient := meta.(*clients.Client).Storage.SyncRegisteredServerClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -153,7 +153,7 @@ func resourceStorageSyncFlatten(ctx context.Context, d *pluginsdk.ResourceData, 
 		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
-			d.Set("incoming_traffic_policy", string(pointer.From(props.IncomingTrafficPolicy)))
+			d.Set("incoming_traffic_policy", pointer.FromEnum(props.IncomingTrafficPolicy))
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
@@ -171,7 +171,7 @@ func resourceStorageSyncFlatten(ctx context.Context, d *pluginsdk.ResourceData, 
 		}
 
 		if serverModel := registeredServersResp.Model; serverModel != nil && serverModel.Value != nil {
-			registeredServers := make([]interface{}, 0, len(*serverModel.Value))
+			registeredServers := make([]any, 0, len(*serverModel.Value))
 			for _, registeredServer := range *serverModel.Value {
 				if registeredServer.Id != nil {
 					registeredServers = append(registeredServers, *registeredServer.Id)
@@ -186,7 +186,7 @@ func resourceStorageSyncFlatten(ctx context.Context, d *pluginsdk.ResourceData, 
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceStorageSyncUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageSyncUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.SyncServiceClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -199,12 +199,12 @@ func resourceStorageSyncUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	update := storagesyncservicesresource.StorageSyncServiceUpdateParameters{}
 
 	if d.HasChange("tags") {
-		update.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		update.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if d.HasChange("incoming_traffic_policy") {
 		update.Properties = &storagesyncservicesresource.StorageSyncServiceUpdateProperties{
-			IncomingTrafficPolicy: pointer.To(storagesyncservicesresource.IncomingTrafficPolicy(d.Get("incoming_traffic_policy").(string))),
+			IncomingTrafficPolicy: pointer.ToEnum[storagesyncservicesresource.IncomingTrafficPolicy](d.Get("incoming_traffic_policy").(string)),
 		}
 	}
 
@@ -215,7 +215,7 @@ func resourceStorageSyncUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	return resourceStorageSyncRead(d, meta)
 }
 
-func resourceStorageSyncDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageSyncDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.SyncServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

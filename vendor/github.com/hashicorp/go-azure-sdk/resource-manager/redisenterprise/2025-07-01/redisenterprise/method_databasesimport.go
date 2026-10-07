@@ -61,9 +61,20 @@ func (c RedisEnterpriseClient) DatabasesImport(ctx context.Context, id DatabaseI
 
 // DatabasesImportThenPoll performs DatabasesImport then polls until it's completed
 func (c RedisEnterpriseClient) DatabasesImportThenPoll(ctx context.Context, id DatabaseId, input ImportClusterParameters) error {
+	return c.DatabasesImportCallbackThenPoll(ctx, id, input, nil)
+}
+
+// DatabasesImportCallbackThenPoll performs DatabasesImport, runs the optional callback function, then polls until it's completed
+func (c RedisEnterpriseClient) DatabasesImportCallbackThenPoll(ctx context.Context, id DatabaseId, input ImportClusterParameters, callback func() error) error {
 	result, err := c.DatabasesImport(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing DatabasesImport: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
