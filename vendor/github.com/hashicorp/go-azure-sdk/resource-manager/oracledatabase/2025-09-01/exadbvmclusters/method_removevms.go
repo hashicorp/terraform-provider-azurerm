@@ -62,9 +62,20 @@ func (c ExadbVMClustersClient) RemoveVMs(ctx context.Context, id ExadbVMClusterI
 
 // RemoveVMsThenPoll performs RemoveVMs then polls until it's completed
 func (c ExadbVMClustersClient) RemoveVMsThenPoll(ctx context.Context, id ExadbVMClusterId, input RemoveVirtualMachineFromExadbVMClusterDetails) error {
+	return c.RemoveVMsCallbackThenPoll(ctx, id, input, nil)
+}
+
+// RemoveVMsCallbackThenPoll performs RemoveVMs, runs the optional callback function, then polls until it's completed
+func (c ExadbVMClustersClient) RemoveVMsCallbackThenPoll(ctx context.Context, id ExadbVMClusterId, input RemoveVirtualMachineFromExadbVMClusterDetails, callback func() error) error {
 	result, err := c.RemoveVMs(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing RemoveVMs: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

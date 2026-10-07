@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package check
@@ -67,7 +67,7 @@ type thatWithKeyType struct {
 }
 
 // JsonAssertionFunc is a function which takes a deserialized JSON object and asserts on it
-type JsonAssertionFunc func(input []interface{}) (*bool, error)
+type JsonAssertionFunc func(input []any) (*bool, error)
 
 // ContainsKeyValue returns a TestCheckFunc which asserts upon a given JSON string set into
 // the State by deserializing it and then asserting on it via the JsonAssertionFunc
@@ -87,7 +87,7 @@ func (t thatWithKeyType) ContainsJsonValue(assertion JsonAssertionFunc) pluginsd
 			return fmt.Errorf("the value for %q was empty", t.key)
 		}
 
-		var out []interface{}
+		var out []any
 		if err := json.Unmarshal([]byte(value), &out); err != nil {
 			return fmt.Errorf("deserializing the value for %q (%q) to json: %+v", t.key, value, err)
 		}

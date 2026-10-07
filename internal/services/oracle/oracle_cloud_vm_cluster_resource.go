@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package oracle
@@ -91,13 +91,13 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.CpuCoreCount,
+			ValidateFunc: validation.IntAtLeast(2),
 		},
 
 		"data_storage_size_in_tbs": {
 			Type:         pluginsdk.TypeFloat,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validate.DataStorageSizeInTbs,
 		},
@@ -105,7 +105,7 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"db_node_storage_size_in_gbs": {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ForceNew: true,
 		},
 
@@ -150,7 +150,7 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"memory_size_in_gbs": {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ForceNew: true,
 		},
 
@@ -188,14 +188,14 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"cluster_name": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ForceNew: true,
 		},
 
 		"data_collection_options": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ForceNew: true,
 			MaxItems: 1,
 			MinItems: 1,
@@ -204,21 +204,21 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 					"diagnostics_events_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						Computed: true,
+						Computed: true, // azignore:AZS007 - pre-existing violation
 						ForceNew: true,
 					},
 
 					"health_monitoring_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						Computed: true,
+						Computed: true, // azignore:AZS007 - pre-existing violation
 						ForceNew: true,
 					},
 
 					"incident_logs_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						Computed: true,
+						Computed: true, // azignore:AZS007 - pre-existing violation
 						ForceNew: true,
 					},
 				},
@@ -228,29 +228,29 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"data_storage_percentage": {
 			Type:         schema.TypeInt,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
-			ValidateFunc: validate.DataStoragePercentage,
+			ValidateFunc: validation.IntInSlice([]int{35, 40, 60, 80}),
 		},
 
 		"domain": {
 			Type:     schema.TypeString,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ForceNew: true,
 		},
 
 		"local_backup_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ForceNew: true,
 		},
 
 		"sparse_diskgroup_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ForceNew: true,
 		},
 
@@ -273,7 +273,7 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"system_version": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validate.SystemVersion,
 		},
@@ -281,14 +281,14 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"time_zone": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ForceNew: true,
 		},
 
 		"zone_id": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ForceNew: true,
 		},
 
@@ -327,7 +327,7 @@ func (CloudVmClusterResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (CloudVmClusterResource) ModelObject() interface{} {
+func (CloudVmClusterResource) ModelObject() any {
 	return &CloudVmClusterResource{}
 }
 
@@ -349,12 +349,14 @@ func (r CloudVmClusterResource) Create() sdk.ResourceFunc {
 
 			id := cloudvmclusters.NewCloudVMClusterID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			param := cloudvmclusters.CloudVMCluster{
@@ -370,7 +372,7 @@ func (r CloudVmClusterResource) Create() sdk.ResourceFunc {
 					DisplayName:                  model.DisplayName,
 					GiVersion:                    model.GiVersion,
 					Hostname:                     model.Hostname,
-					LicenseModel:                 pointer.To(cloudvmclusters.LicenseModel(model.LicenseModel)),
+					LicenseModel:                 pointer.ToEnum[cloudvmclusters.LicenseModel](model.LicenseModel),
 					SshPublicKeys:                model.SshPublicKeys,
 					SubnetId:                     model.SubnetId,
 					VnetId:                       model.VnetId,
@@ -427,11 +429,11 @@ func (r CloudVmClusterResource) Create() sdk.ResourceFunc {
 				param.Properties.MemorySizeInGbs = pointer.To(model.MemorySizeInGbs)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}
@@ -452,8 +454,7 @@ func (r CloudVmClusterResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding err: %+v", err)
 			}
 
-			_, err = client.Get(ctx, *id)
-			if err != nil {
+			if _, err = client.Get(ctx, *id); err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
@@ -515,7 +516,7 @@ func (CloudVmClusterResource) Read() sdk.ResourceFunc {
 					state.GiVersion = props.GiVersion
 					state.Hostname = removeHostnameSuffix(props.Hostname)
 					state.HostnameActual = props.Hostname
-					state.LicenseModel = string(pointer.From(props.LicenseModel))
+					state.LicenseModel = pointer.FromEnum(props.LicenseModel)
 					state.MemorySizeInGbs = pointer.From(props.MemorySizeInGbs)
 					state.SshPublicKeys = props.SshPublicKeys
 					tmp := make([]string, 0)
