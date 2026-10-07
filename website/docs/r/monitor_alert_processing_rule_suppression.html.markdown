@@ -189,7 +189,7 @@ A `schedule` block supports the following:
 
 * `recurrence` - (Optional) A `recurrence` block as defined above.
 
-* `time_zone` - (Optional) The time zone (e.g. Pacific Standard time, Eastern Standard Time). Defaults to `UTC`. [possible values are defined here](https://docs.microsoft.com/en-us/previous-versions/windows/embedded/ms912391(v=winembedded.11)).
+* `time_zone` - (Optional) The time zone (e.g. Pacific Standard time, Eastern Standard Time). Defaults to `UTC`. [possible values are defined here](https://docs.microsoft.com/previous-versions/windows/embedded/ms912391(v=winembedded.11)).
 
 ---
 
@@ -249,7 +249,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Alert Processing Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Alert Processing Rule.

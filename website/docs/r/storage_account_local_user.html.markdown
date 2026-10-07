@@ -122,13 +122,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `password` - The value of the password, which is only available when `ssh_password_enabled` is set to `true`.
 
-~> **Note:** The `password` will be updated everytime when `ssh_password_enabled` got updated. If `ssh_password_enabled` is updated from `false` to `true`, the `password` is updated to be the value of the SSH password. If `ssh_password_enabled` is updated from `true` to `false`, the `password` is reset to empty string.
+~> **Note:** The `password` will be updated every time when `ssh_password_enabled` got updated. If `ssh_password_enabled` is updated from `false` to `true`, the `password` is updated to be the value of the SSH password. If `ssh_password_enabled` is updated from `true` to `false`, the `password` is reset to empty string.
 
 * `sid` - The unique Security Identifier of this Storage Account Local User.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Storage Account Local User.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Account Local User.
@@ -147,4 +147,4 @@ terraform import azurerm_storage_account_local_user.example /subscriptions/12345
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Storage` - 2023-05-01
+* `Microsoft.Storage` - 2025-08-01

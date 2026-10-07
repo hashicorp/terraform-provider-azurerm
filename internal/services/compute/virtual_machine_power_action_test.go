@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package compute_test
 
 import (
@@ -136,7 +139,7 @@ resource "azurerm_windows_virtual_machine" "test" {
   }
 
   tags = {
-    triggerme = %[3]s
+    triggerme = "%[3]s"
   }
 
   lifecycle {

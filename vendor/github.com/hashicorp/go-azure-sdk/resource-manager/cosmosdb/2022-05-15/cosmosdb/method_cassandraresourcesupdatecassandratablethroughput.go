@@ -62,9 +62,20 @@ func (c CosmosDBClient) CassandraResourcesUpdateCassandraTableThroughput(ctx con
 
 // CassandraResourcesUpdateCassandraTableThroughputThenPoll performs CassandraResourcesUpdateCassandraTableThroughput then polls until it's completed
 func (c CosmosDBClient) CassandraResourcesUpdateCassandraTableThroughputThenPoll(ctx context.Context, id CassandraKeyspaceTableId, input ThroughputSettingsUpdateParameters) error {
+	return c.CassandraResourcesUpdateCassandraTableThroughputCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CassandraResourcesUpdateCassandraTableThroughputCallbackThenPoll performs CassandraResourcesUpdateCassandraTableThroughput, runs the optional callback function, then polls until it's completed
+func (c CosmosDBClient) CassandraResourcesUpdateCassandraTableThroughputCallbackThenPoll(ctx context.Context, id CassandraKeyspaceTableId, input ThroughputSettingsUpdateParameters, callback func() error) error {
 	result, err := c.CassandraResourcesUpdateCassandraTableThroughput(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CassandraResourcesUpdateCassandraTableThroughput: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -8,7 +8,7 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AccountUpdateParameters struct {
-	Identity   *identity.SystemOrUserAssignedMap `json:"identity,omitempty"`
-	Properties *AccountProperties                `json:"properties,omitempty"`
-	Tags       *map[string]string                `json:"tags,omitempty"`
+	Identity   *identity.SystemAndUserAssignedMap `json:"identity,omitempty"`
+	Properties *AccountProperties                 `json:"properties,omitempty"`
+	Tags       *map[string]string                 `json:"tags,omitempty"`
 }

@@ -45,7 +45,7 @@ resource "azurerm_notification_hub_authorization_rule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -75,13 +75,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `secondary_access_key` - The Secondary Access Key associated with this Authorization Rule.
 
-* `primary_connection_string` - The Primary Connetion String associated with this Authorization Rule.
+* `primary_connection_string` - The Primary Connection String associated with this Authorization Rule.
 
-* `secondary_connection_string` - The Secondary Connetion String associated with this Authorization Rule.
+* `secondary_connection_string` - The Secondary Connection String associated with this Authorization Rule.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Notification Hub Authorization Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Notification Hub Authorization Rule.

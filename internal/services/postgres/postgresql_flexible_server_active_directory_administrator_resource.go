@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package postgres
@@ -11,10 +11,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/administrators"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/administratormicrosoftentras"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -26,7 +27,7 @@ func resourcePostgresqlFlexibleServerAdministrator() *pluginsdk.Resource {
 		Read:   resourcePostgresqlFlexibleServerAdministratorRead,
 		Delete: resourcePostgresqlFlexibleServerAdministratorDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := administrators.ParseAdministratorID(id)
+			_, err := administratormicrosoftentras.ParseAdministratorID(id)
 			return err
 		}),
 
@@ -64,9 +65,9 @@ func resourcePostgresqlFlexibleServerAdministrator() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(administrators.PrincipalTypeGroup),
-					string(administrators.PrincipalTypeServicePrincipal),
-					string(administrators.PrincipalTypeUser),
+					string(administratormicrosoftentras.PrincipalTypeGroup),
+					string(administratormicrosoftentras.PrincipalTypeServicePrincipal),
+					string(administratormicrosoftentras.PrincipalTypeUser),
 				}, false),
 			},
 
@@ -80,19 +81,19 @@ func resourcePostgresqlFlexibleServerAdministrator() *pluginsdk.Resource {
 	}
 }
 
-func resourcePostgresqlFlexibleServerAdministratorCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePostgresqlFlexibleServerAdministratorCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Postgres.FlexibleServerAdministratorsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := administrators.NewAdministratorID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("object_id").(string))
+	id := administratormicrosoftentras.NewAdministratorID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("object_id").(string))
 
 	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 	defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.AdministratorsMicrosoftEntraGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -105,35 +106,35 @@ func resourcePostgresqlFlexibleServerAdministratorCreate(d *pluginsdk.ResourceDa
 	}
 
 	principalName := d.Get("principal_name").(string)
-	principalType := administrators.PrincipalType(d.Get("principal_type").(string))
+	principalType := administratormicrosoftentras.PrincipalType(d.Get("principal_type").(string))
 	tenantId := d.Get("tenant_id").(string)
-	parameters := administrators.ActiveDirectoryAdministratorAdd{
-		Properties: &administrators.AdministratorPropertiesForAdd{
+	parameters := administratormicrosoftentras.AdministratorMicrosoftEntraAdd{
+		Properties: &administratormicrosoftentras.AdministratorMicrosoftEntraPropertiesForAdd{
 			PrincipalName: &principalName,
 			PrincipalType: &principalType,
 			TenantId:      &tenantId,
 		},
 	}
 
-	if err := client.CreateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.AdministratorsMicrosoftEntraCreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-
 	d.SetId(id.ID())
+
 	return nil
 }
 
-func resourcePostgresqlFlexibleServerAdministratorRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePostgresqlFlexibleServerAdministratorRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Postgres.FlexibleServerAdministratorsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := administrators.ParseAdministratorID(d.Id())
+	id, err := administratormicrosoftentras.ParseAdministratorID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.AdministratorsMicrosoftEntraGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s was not found - removing from state", *id)
@@ -150,19 +151,19 @@ func resourcePostgresqlFlexibleServerAdministratorRead(d *pluginsdk.ResourceData
 		props := model.Properties
 		d.Set("object_id", props.ObjectId)
 		d.Set("principal_name", props.PrincipalName)
-		d.Set("principal_type", string(pointer.From(props.PrincipalType)))
+		d.Set("principal_type", pointer.FromEnum(props.PrincipalType))
 		d.Set("tenant_id", props.TenantId)
 	}
 
 	return nil
 }
 
-func resourcePostgresqlFlexibleServerAdministratorDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePostgresqlFlexibleServerAdministratorDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Postgres.FlexibleServerAdministratorsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := administrators.ParseAdministratorID(d.Id())
+	id, err := administratormicrosoftentras.ParseAdministratorID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -170,7 +171,7 @@ func resourcePostgresqlFlexibleServerAdministratorDelete(d *pluginsdk.ResourceDa
 	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 	defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 
-	if err := client.DeleteThenPoll(ctx, *id); err != nil {
+	if err := client.AdministratorsMicrosoftEntraDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
