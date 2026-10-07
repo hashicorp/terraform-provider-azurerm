@@ -72,7 +72,7 @@ func resourceApiManagementApiOperation() *pluginsdk.Resource {
 			"request": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -115,7 +115,7 @@ func resourceApiManagementApiOperation() *pluginsdk.Resource {
 			"template_parameter": schemaz.SchemaApiManagementOperationParameterContract(),
 		},
 
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v any) error {
 			// Get the parameters used in url_template
 			urlTemplate := diff.Get("url_template").(string)
 			re := regexp.MustCompile(`\{([^}]+)\}`)
@@ -129,10 +129,10 @@ func resourceApiManagementApiOperation() *pluginsdk.Resource {
 			}
 
 			// Get the parameters defined in template_parameter
-			templateParametersRaw := diff.Get("template_parameter").([]interface{})
+			templateParametersRaw := diff.Get("template_parameter").([]any)
 			templateParameterSet := make(map[string]struct{})
 			for _, p := range templateParametersRaw {
-				paramValue := p.(map[string]interface{})
+				paramValue := p.(map[string]any)
 				templateParameterSet[paramValue["name"].(string)] = struct{}{}
 			}
 
@@ -153,7 +153,7 @@ func resourceApiManagementApiOperation() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementApiOperationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementApiOperationCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ApiOperationsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -181,19 +181,19 @@ func resourceApiManagementApiOperationCreateUpdate(d *pluginsdk.ResourceData, me
 	method := d.Get("method").(string)
 	urlTemplate := d.Get("url_template").(string)
 
-	requestContractRaw := d.Get("request").([]interface{})
+	requestContractRaw := d.Get("request").([]any)
 	requestContract, err := expandApiManagementOperationRequestContract(d, "request", requestContractRaw)
 	if err != nil {
 		return err
 	}
 
-	responseContractsRaw := d.Get("response").([]interface{})
+	responseContractsRaw := d.Get("response").([]any)
 	responseContracts, err := expandApiManagementOperationResponseContract(d, "response", responseContractsRaw)
 	if err != nil {
 		return err
 	}
 
-	templateParametersRaw := d.Get("template_parameter").([]interface{})
+	templateParametersRaw := d.Get("template_parameter").([]any)
 	templateParameters := schemaz.ExpandApiManagementOperationParameterContract(d, "template_parameter", templateParametersRaw)
 
 	parameters := apioperation.OperationContract{
@@ -217,7 +217,7 @@ func resourceApiManagementApiOperationCreateUpdate(d *pluginsdk.ResourceData, me
 	return resourceApiManagementApiOperationRead(d, meta)
 }
 
-func resourceApiManagementApiOperationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementApiOperationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ApiOperationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -282,7 +282,7 @@ func resourceApiManagementApiOperationRead(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func resourceApiManagementApiOperationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementApiOperationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ApiOperationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -305,32 +305,32 @@ func resourceApiManagementApiOperationDelete(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func expandApiManagementOperationRequestContract(d *pluginsdk.ResourceData, schemaPath string, input []interface{}) (*apioperation.RequestContract, error) {
+func expandApiManagementOperationRequestContract(d *pluginsdk.ResourceData, schemaPath string, input []any) (*apioperation.RequestContract, error) {
 	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
 
-	vs := input[0].(map[string]interface{})
+	vs := input[0].(map[string]any)
 	if vs == nil {
 		return nil, nil
 	}
 	description := vs["description"].(string)
 
-	headersRaw := vs["header"].([]interface{})
+	headersRaw := vs["header"].([]any)
 	if headersRaw == nil {
-		headersRaw = []interface{}{}
+		headersRaw = []any{}
 	}
 	headers := schemaz.ExpandApiManagementOperationParameterContract(d, fmt.Sprintf("%s.0.header", schemaPath), headersRaw)
 
-	queryParametersRaw := vs["query_parameter"].([]interface{})
+	queryParametersRaw := vs["query_parameter"].([]any)
 	if queryParametersRaw == nil {
-		queryParametersRaw = []interface{}{}
+		queryParametersRaw = []any{}
 	}
 	queryParameters := schemaz.ExpandApiManagementOperationParameterContract(d, fmt.Sprintf("%s.0.query_parameter", schemaPath), queryParametersRaw)
 
-	representationsRaw := vs["representation"].([]interface{})
+	representationsRaw := vs["representation"].([]any)
 	if representationsRaw == nil {
-		representationsRaw = []interface{}{}
+		representationsRaw = []any{}
 	}
 	representations, err := schemaz.ExpandApiManagementOperationRepresentation(d, fmt.Sprintf("%s.0.representation", schemaPath), representationsRaw)
 	if err != nil {
@@ -345,12 +345,12 @@ func expandApiManagementOperationRequestContract(d *pluginsdk.ResourceData, sche
 	}, nil
 }
 
-func flattenApiManagementOperationRequestContract(input *apioperation.RequestContract) ([]interface{}, error) {
+func flattenApiManagementOperationRequestContract(input *apioperation.RequestContract) ([]any, error) {
 	if input == nil {
-		return []interface{}{}, nil
+		return []any{}, nil
 	}
 
-	output := make(map[string]interface{})
+	output := make(map[string]any)
 
 	output["description"] = pointer.From(input.Description)
 
@@ -372,10 +372,10 @@ func flattenApiManagementOperationRequestContract(input *apioperation.RequestCon
 	}
 	output["representation"] = representation
 
-	return []interface{}{output}, nil
+	return []any{output}, nil
 }
 
-func expandApiManagementOperationResponseContract(d *pluginsdk.ResourceData, schemaPath string, input []interface{}) (*[]apioperation.ResponseContract, error) {
+func expandApiManagementOperationResponseContract(d *pluginsdk.ResourceData, schemaPath string, input []any) (*[]apioperation.ResponseContract, error) {
 	if len(input) == 0 {
 		return &[]apioperation.ResponseContract{}, nil
 	}
@@ -383,15 +383,15 @@ func expandApiManagementOperationResponseContract(d *pluginsdk.ResourceData, sch
 	outputs := make([]apioperation.ResponseContract, 0)
 
 	for i, v := range input {
-		vs := v.(map[string]interface{})
+		vs := v.(map[string]any)
 
 		description := vs["description"].(string)
 		statusCode := vs["status_code"].(int)
 
-		headersRaw := vs["header"].([]interface{})
+		headersRaw := vs["header"].([]any)
 		headers := schemaz.ExpandApiManagementOperationParameterContract(d, fmt.Sprintf("%s.%d.header", schemaPath, i), headersRaw)
 
-		representationsRaw := vs["representation"].([]interface{})
+		representationsRaw := vs["representation"].([]any)
 		representations, err := schemaz.ExpandApiManagementOperationRepresentation(d, fmt.Sprintf("%s.%d.representation", schemaPath, i), representationsRaw)
 		if err != nil {
 			return nil, err
@@ -410,15 +410,15 @@ func expandApiManagementOperationResponseContract(d *pluginsdk.ResourceData, sch
 	return &outputs, nil
 }
 
-func flattenApiManagementOperationResponseContract(input *[]apioperation.ResponseContract) ([]interface{}, error) {
+func flattenApiManagementOperationResponseContract(input *[]apioperation.ResponseContract) ([]any, error) {
 	if input == nil {
-		return []interface{}{}, nil
+		return []any{}, nil
 	}
 
-	outputs := make([]interface{}, 0)
+	outputs := make([]any, 0)
 
 	for _, v := range *input {
-		output := make(map[string]interface{})
+		output := make(map[string]any)
 
 		if v.Description != nil {
 			output["description"] = *v.Description

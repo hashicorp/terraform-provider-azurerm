@@ -191,22 +191,25 @@ resource "azurerm_subnet" "test2" {
   }
 }
 
-resource "azurerm_app_service_plan" "test" {
+resource "azurerm_service_plan" "test" {
   name                = "acctest-ASP-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
+  os_type             = "Windows"
+  sku_name            = "S1"
 }
 
-resource "azurerm_app_service" "test" {
+resource "azurerm_windows_web_app" "test" {
   name                = "acctest-AS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  app_service_plan_id = azurerm_app_service_plan.test.id
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
+
+  lifecycle {
+    ignore_changes = [virtual_network_subnet_id]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -216,7 +219,7 @@ func (r AppServiceVirtualNetworkSwiftConnectionResource) basic(data acceptance.T
 %s
 
 resource "azurerm_app_service_virtual_network_swift_connection" "test" {
-  app_service_id = azurerm_app_service.test.id
+  app_service_id = azurerm_windows_web_app.test.id
   subnet_id      = azurerm_subnet.test1.id
 
   depends_on = [
@@ -231,7 +234,7 @@ func (r AppServiceVirtualNetworkSwiftConnectionResource) update(data acceptance.
 %s
 
 resource "azurerm_app_service_virtual_network_swift_connection" "test" {
-  app_service_id = azurerm_app_service.test.id
+  app_service_id = azurerm_windows_web_app.test.id
   subnet_id      = azurerm_subnet.test2.id
 }
 `, r.base(data))
@@ -293,28 +296,31 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 }
 
-resource "azurerm_app_service_plan" "test" {
+resource "azurerm_service_plan" "test" {
   name                = "acctest-ASP-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
+  os_type             = "Windows"
+  sku_name            = "S1"
 }
 
-resource "azurerm_function_app" "test" {
+resource "azurerm_windows_function_app" "test" {
   name                       = "acctest-FA-%[1]d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  service_plan_id            = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
+
+  lifecycle {
+    ignore_changes = [virtual_network_subnet_id]
+  }
 }
 
 resource "azurerm_app_service_virtual_network_swift_connection" "test" {
-  app_service_id = azurerm_function_app.test.id
+  app_service_id = azurerm_windows_function_app.test.id
   subnet_id      = azurerm_subnet.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)

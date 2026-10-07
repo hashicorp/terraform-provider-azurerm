@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = VirtualNetworkDnsServersId{}
 
-func TestVirtualNetworkDnsServersIDFormatter(t *testing.T) {
+func TestParseVirtualNetworkDnsServersIDFormatter(t *testing.T) {
 	actual := NewVirtualNetworkDnsServersID("12345678-1234-9876-4563-123456789012", "resGroup1", "network1", "default").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/virtualNetworks/network1/dnsServers/default"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestVirtualNetworkDnsServersIDFormatter(t *testing.T) {
 	}
 }
 
-func TestVirtualNetworkDnsServersID(t *testing.T) {
+func TestParseVirtualNetworkDnsServersID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -129,7 +129,7 @@ func TestVirtualNetworkDnsServersID(t *testing.T) {
 	}
 }
 
-func TestVirtualNetworkDnsServersIDInsensitively(t *testing.T) {
+func TestParseVirtualNetworkDnsServersIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
