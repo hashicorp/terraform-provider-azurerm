@@ -106,41 +106,41 @@ The following attributes are exported:
 
 An `agent_pools` block exports the following:
 
-* `name` - The name assigned to this pool of agents.
-
-* `type` - The type of the Agent Pool.
+* `auto_scaling_enabled` - If the auto-scaler is enabled.
 
 * `count` - The number of Agents (VMs) in the Pool.
 
 * `max_count` - Maximum number of nodes for auto-scaling.
 
-* `min_count` - Minimum number of nodes for auto-scaling.
-
-* `auto_scaling_enabled` - If the auto-scaler is enabled.
-
-* `vm_size` - The size of each VM in the Agent Pool (e.g. `Standard_F1`).
-
-* `tags` - A mapping of tags assigned to the Agent Pool.
-
-* `os_disk_size_gb` - The size of the Agent VM's Operating System Disk in GB.
-
-* `vnet_subnet_id` - The ID of the Subnet where the Agents in the Pool are provisioned.
-
-* `os_type` - The Operating System used for the Agents.
-
-* `orchestrator_version` - Kubernetes version used for the Agents.
-
 * `max_pods` - The maximum number of pods that can run on each agent.
 
-* `node_labels` - A map of Kubernetes labels applied to the nodes in this Agent Pool.
+* `min_count` - Minimum number of nodes for auto-scaling.
 
-* `node_taints` - A list of Kubernetes taints applied to the nodes in this Agent Pool.
+* `name` - The name assigned to this pool of agents.
+
+* `node_labels` - A map of Kubernetes labels applied to the nodes in this Agent Pool.
 
 * `node_public_ip_enabled` - If the Public IPs for the nodes in this Agent Pool are enabled.
 
 * `node_public_ip_prefix_id` - Resource ID for the Public IP Addresses Prefix for the nodes in this Agent Pool.
 
+* `node_taints` - A list of Kubernetes taints applied to the nodes in this Agent Pool.
+
+* `orchestrator_version` - Kubernetes version used for the Agents.
+
+* `os_disk_size_gb` - The size of the Agent VM's Operating System Disk in GB.
+
+* `os_type` - The Operating System used for the Agents.
+
+* `tags` - A mapping of tags assigned to the Agent Pool.
+
+* `type` - The type of the Agent Pool.
+
 * `upgrade_settings` - An `upgrade_settings` block as documented below.
+
+* `vm_size` - The size of each VM in the Agent Pool (e.g. `Standard_F1`).
+
+* `vnet_subnet_id` - The ID of the Subnet where the Agents in the Pool are provisioned.
 
 * `zones` - A list of Availability Zones in which the nodes in this Agent Pool are located.
 
@@ -170,11 +170,11 @@ An `api_server_access` block exports the following:
 
 An `azure_active_directory_role_based_access_control` block exports the following:
 
-* `tenant_id` - The Tenant ID used for Azure Active Directory Application.
-
 * `admin_group_object_ids` - A list of Object IDs of Azure Active Directory Groups which should have Admin Role on the Cluster.
 
 * `azure_rbac_enabled` - Is Role Based Access Control based on Azure AD enabled?
+
+* `tenant_id` - The Tenant ID used for Azure Active Directory Application.
 
 ---
 
@@ -216,11 +216,11 @@ A `key_management_service` block exports the following:
 
 A `key_vault_secrets_provider` block exports the following:
 
+* `secret_identity` - A `secret_identity` block as documented below.
+
 * `secret_rotation_enabled` - Is secret rotation enabled?
 
 * `secret_rotation_interval` - The interval to poll for secret rotation.
-
-* `secret_identity` - A `secret_identity` block as documented below.
 
 ---
 
@@ -303,9 +303,9 @@ An `oms_agent` block exports the following:
 
 * `msi_auth_for_monitoring_enabled` - Is managed identity authentication for monitoring enabled?
 
-* `retina_flow_logs_enabled` - Is Retina Flow Logs collection enabled?
-
 * `oms_agent_identity` - An `oms_agent_identity` block as documented below.
+
+* `retina_flow_logs_enabled` - Is Retina Flow Logs collection enabled?
 
 ---
 
