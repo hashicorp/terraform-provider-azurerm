@@ -94,7 +94,7 @@ The following arguments are supported:
 
 A `container` block supports the following:
 
-* `container_group_name` - (Optional) Container group name, if not specified then the name will get auto-generated. For more information, please refer to the [Container Configuration](https://learn.microsoft.com/en-us/rest/api/resources/deployment-scripts/create?tabs=HTTP#containerconfiguration) documentation.
+* `container_group_name` - (Optional) Container group name, if not specified then the name will get auto-generated. For more information, please refer to the [Container Configuration](https://learn.microsoft.com/rest/api/resources/deployment-scripts/create?tabs=HTTP#containerconfiguration) documentation.
 
 ---
 

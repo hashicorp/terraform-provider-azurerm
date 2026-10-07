@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = SqlPoolSecurityAlertPolicyId{}
 
-func TestSqlPoolSecurityAlertPolicyIDFormatter(t *testing.T) {
+func TestParseSqlPoolSecurityAlertPolicyIDFormatter(t *testing.T) {
 	actual := NewSqlPoolSecurityAlertPolicyID("12345678-1234-9876-4563-123456789012", "resGroup1", "workspace1", "sqlPool1", "Default").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Synapse/workspaces/workspace1/sqlPools/sqlPool1/securityAlertPolicies/Default"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestSqlPoolSecurityAlertPolicyIDFormatter(t *testing.T) {
 	}
 }
 
-func TestSqlPoolSecurityAlertPolicyID(t *testing.T) {
+func TestParseSqlPoolSecurityAlertPolicyID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
