@@ -90,7 +90,7 @@ func (r CosmosDBDataConnectionResource) Attributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{}
 }
 
-func (r CosmosDBDataConnectionResource) ModelObject() interface{} {
+func (r CosmosDBDataConnectionResource) ModelObject() any {
 	return &CosmosDBDataConnectionModel{}
 }
 
