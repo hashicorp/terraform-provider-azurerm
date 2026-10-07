@@ -197,17 +197,17 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Palo Alto Next Generation Firewall Metrics.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Palo Alto Next Generation Firewall Metrics.
-* `update` - (Defaults to 30 minutes) Used when updating the Palo Alto Next Generation Firewall Metrics.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Palo Alto Next Generation Firewall Metrics.
+* `create` - (Defaults to 30 minutes) Used when creating the Palo Alto Next Generation Firewall Metrics configuration.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Palo Alto Next Generation Firewall Metrics configuration.
+* `update` - (Defaults to 30 minutes) Used when updating the Palo Alto Next Generation Firewall Metrics configuration.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Palo Alto Next Generation Firewall Metrics configuration.
 
 ## Import
 
-Palo Alto Next Generation Firewall Metrics can be imported using the `resource id`, e.g.
+A Palo Alto Next Generation Firewall Metrics configuration can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_palo_alto_next_generation_firewall_metrics.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/PaloAltoNetworks.Cloudngfw/firewalls/firewall1
+terraform import azurerm_palo_alto_next_generation_firewall_metrics.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/PaloAltoNetworks.Cloudngfw/firewalls/firewall1
 ```
 
 ## API Providers
