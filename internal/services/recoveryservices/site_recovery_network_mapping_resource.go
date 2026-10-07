@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationfabrics"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationnetworkmappings"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -84,7 +84,7 @@ func resourceSiteRecoveryNetworkMapping() *pluginsdk.Resource {
 	}
 }
 
-func resourceSiteRecoveryNetworkMappingCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryNetworkMappingCreate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
@@ -137,7 +137,7 @@ func resourceSiteRecoveryNetworkMappingCreate(d *pluginsdk.ResourceData, meta in
 	return resourceSiteRecoveryNetworkMappingRead(d, meta)
 }
 
-func resourceSiteRecoveryNetworkMappingRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryNetworkMappingRead(d *pluginsdk.ResourceData, meta any) error {
 	id, err := replicationnetworkmappings.ParseReplicationNetworkMappingID(d.Id())
 	if err != nil {
 		return err
@@ -169,17 +169,17 @@ func resourceSiteRecoveryNetworkMappingRead(d *pluginsdk.ResourceData, meta inte
 		d.Set("source_network_id", props.PrimaryNetworkId)
 		d.Set("target_network_id", props.RecoveryNetworkId)
 
-		targetFabricId, err := parse.ReplicationFabricID(handleAzureSdkForGoBug2824(*props.RecoveryFabricArmId))
+		targetFabricId, err := replicationfabrics.ParseReplicationFabricIDInsensitively(*props.RecoveryFabricArmId)
 		if err != nil {
 			return err
 		}
-		d.Set("target_recovery_fabric_name", targetFabricId.Name)
+		d.Set("target_recovery_fabric_name", targetFabricId.ReplicationFabricName)
 	}
 
 	return nil
 }
 
-func resourceSiteRecoveryNetworkMappingDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryNetworkMappingDelete(d *pluginsdk.ResourceData, meta any) error {
 	id, err := replicationnetworkmappings.ParseReplicationNetworkMappingID(d.Id())
 	if err != nil {
 		return err
@@ -189,8 +189,7 @@ func resourceSiteRecoveryNetworkMappingDelete(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting site recovery network mapping %q: %+v", id, err)
 	}
 
