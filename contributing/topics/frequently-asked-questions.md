@@ -46,4 +46,3 @@ Whilst we thank you for reaching out, unfortunately we're unable to assist with 
 We've closed your issue because we believe it's an issue with the Terraform Configuration being used (or, that the credentials being used to interact with Azure may not have permission to the resources in question), rather than a bug in the Azure Provider.
 
 We instead ask that configuration issues/usage questions related to the Provider are opened [on the Community Discuss forum](https://discuss.hashicorp.com) so that we can keep this repository focused on bugs/feature enhancements related to the Azure Provider.
-
