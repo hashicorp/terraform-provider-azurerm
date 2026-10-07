@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package desktopvirtualization
@@ -9,15 +9,15 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/hostpool"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/hostpool"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceVirtualDesktopHostPoolRegistrationInfo() *pluginsdk.Resource {
@@ -65,7 +65,7 @@ func resourceVirtualDesktopHostPoolRegistrationInfo() *pluginsdk.Resource {
 	}
 }
 
-func hostpoolRegistrationInfoCustomDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+func hostpoolRegistrationInfoCustomDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ any) error {
 	if d.HasChange("expiration_date") {
 		if err := d.SetNewComputed("token"); err != nil {
 			return err
@@ -75,7 +75,7 @@ func hostpoolRegistrationInfoCustomDiff(ctx context.Context, d *pluginsdk.Resour
 	return nil
 }
 
-func resourceVirtualDesktopHostPoolRegistrationInfoCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopHostPoolRegistrationInfoCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DesktopVirtualization.HostPoolsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -99,12 +99,11 @@ func resourceVirtualDesktopHostPoolRegistrationInfoCreateUpdate(d *pluginsdk.Res
 		return fmt.Errorf("reading %s: %s", hostPoolId, err)
 	}
 
-	tokenOperation := hostpool.RegistrationTokenOperationUpdate
 	payload := hostpool.HostPoolPatch{
 		Properties: &hostpool.HostPoolPatchProperties{
 			RegistrationInfo: &hostpool.RegistrationInfoPatch{
-				ExpirationTime:             utils.String(d.Get("expiration_date").(string)),
-				RegistrationTokenOperation: &tokenOperation,
+				ExpirationTime:             pointer.To(d.Get("expiration_date").(string)),
+				RegistrationTokenOperation: pointer.To(hostpool.RegistrationTokenOperationUpdate),
 			},
 		},
 	}
@@ -112,12 +111,14 @@ func resourceVirtualDesktopHostPoolRegistrationInfoCreateUpdate(d *pluginsdk.Res
 		return fmt.Errorf("updating registration token for %s: %+v", hostPoolId, err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
 
 	return resourceVirtualDesktopHostPoolRegistrationInfoRead(d, meta)
 }
 
-func resourceVirtualDesktopHostPoolRegistrationInfoRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopHostPoolRegistrationInfoRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DesktopVirtualization.HostPoolsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -152,7 +153,7 @@ func resourceVirtualDesktopHostPoolRegistrationInfoRead(d *pluginsdk.ResourceDat
 	return nil
 }
 
-func resourceVirtualDesktopHostPoolRegistrationInfoDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopHostPoolRegistrationInfoDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DesktopVirtualization.HostPoolsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -193,11 +194,10 @@ func resourceVirtualDesktopHostPoolRegistrationInfoDelete(d *pluginsdk.ResourceD
 		return nil
 	}
 
-	tokenOperation := hostpool.RegistrationTokenOperationDelete
 	payload := hostpool.HostPoolPatch{
 		Properties: &hostpool.HostPoolPatchProperties{
 			RegistrationInfo: &hostpool.RegistrationInfoPatch{
-				RegistrationTokenOperation: &tokenOperation,
+				RegistrationTokenOperation: pointer.To(hostpool.RegistrationTokenOperationDelete),
 			},
 		},
 	}

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package state
@@ -7,6 +7,6 @@ import "strings"
 
 // IgnoreCase is a StateFunc from helper/schema that converts the
 // supplied value to lower before saving to state for consistency.
-func IgnoreCase(val interface{}) string {
+func IgnoreCase(val any) string {
 	return strings.ToLower(val.(string))
 }

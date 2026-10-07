@@ -2,7 +2,13 @@ bug:
   - '- \[\s?(x|X)\s?\] Bug Fix'
 
 enhancement:
- - '- \[\s?(x|X)\s?\] Enhancement'
+  - '- \[\s?(x|X)\s?\] Enhancement'
 
 breaking-change:
- - '- \[\s?(x|X)\s?\] Breaking Change'
+  - '- \[\s?(x|X)\s?\] Breaking Change'
+
+ai-assisted:
+  - '- \[\s?(x|X)\s?\] AI Assisted.*'
+
+no-changelog-needed:
+  - '- \[\s?(x|X)\s?\] This change does not require a changelog entry.*'

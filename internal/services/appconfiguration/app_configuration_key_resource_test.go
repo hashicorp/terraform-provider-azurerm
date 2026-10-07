@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appconfiguration_test
@@ -9,12 +9,12 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/appconfiguration/1.0/appconfiguration"
 )
 
@@ -157,7 +157,7 @@ func TestAccAppConfigurationKey_basicNoValue(t *testing.T) {
 	r := AppConfigurationKeyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basicNoLabel(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -238,7 +238,7 @@ func (t AppConfigurationKeyResource) Exists(ctx context.Context, clients *client
 		return nil, fmt.Errorf("while checking for key's %q existence: %+v", nestedItemId.Key, err)
 	}
 
-	return utils.Bool(res.Response.StatusCode == 200), nil
+	return pointer.To(res.StatusCode == 200), nil
 }
 
 func (t AppConfigurationKeyResource) base(data acceptance.TestData) string {
@@ -391,6 +391,7 @@ resource "azurerm_key_vault" "example" {
   name                       = "a-v-%d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.test.tenant_id
   sku_name                   = "premium"
   soft_delete_retention_days = 7
@@ -426,6 +427,11 @@ resource "azurerm_app_configuration_key" "test" {
   type                   = "vault"
   label                  = "acctest-ackeylabel-%d"
   vault_key_reference    = azurerm_key_vault_secret.example.id
+
+  tags = {
+    environment = "development"
+    hello       = "world"
+  }
 }
 `, t.base(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -452,6 +458,7 @@ resource "azurerm_key_vault" "example" {
   name                       = "a-v2-%d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.test.tenant_id
   sku_name                   = "premium"
   soft_delete_retention_days = 7

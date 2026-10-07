@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package schema
@@ -26,7 +26,7 @@ func ValidateResourceIDPriorToImport(idParser ResourceIDValidator) *schema.Resou
 // Resource ID's to be caught prior to Import and subsequent crashes
 func ValidateResourceIDPriorToImportThen(idParser ResourceIDValidator, importer schema.StateContextFunc) *schema.ResourceImporter {
 	return &schema.ResourceImporter{
-		StateContext: func(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+		StateContext: func(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 			log.Printf("[DEBUG] Importing Resource - parsing %q", d.Id())
 
 			if err := idParser(d.Id()); err != nil {

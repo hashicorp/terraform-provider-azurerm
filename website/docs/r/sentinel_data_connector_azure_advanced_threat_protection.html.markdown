@@ -10,7 +10,7 @@ description: |-
 
 Manages a Azure Advanced Threat Protection Data Connector.
 
-!> **NOTE:** This resource requires that [Enterprise Mobility + Security E5](https://www.microsoft.com/en-us/microsoft-365/enterprise-mobility-security) is enabled on the tenant being connected to.
+!> **Note:** This resource requires that [Enterprise Mobility + Security E5](https://www.microsoft.com/en-us/microsoft-365/enterprise-mobility-security) is enabled on the tenant being connected to.
 
 ## Example Usage
 
@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `tenant_id` - (Optional) The ID of the tenant that this Azure Advanced Threat Protection Data Connector connects to. Changing this forces a new Azure Advanced Threat Protection Data Connector to be created.
 
--> **NOTE** Currently, only the same tenant as the running account is allowed. Cross-tenant scenario is not supported yet.
+-> **Note:** Currently, only the same tenant as the running account is allowed. Cross-tenant scenario is not supported yet.
 
 ## Attributes Reference
 
@@ -59,7 +59,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Azure Advanced Threat Protection Data Connector.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure Advanced Threat Protection Data Connector.
@@ -72,3 +72,9 @@ Azure Advanced Threat Protection Data Connectors can be imported using the `reso
 ```shell
 terraform import azurerm_sentinel_data_connector_azure_advanced_threat_protection.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.OperationalInsights/workspaces/workspace1/providers/Microsoft.SecurityInsights/dataConnectors/dc1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.OperationalInsights` - 2022-10-01-preview
