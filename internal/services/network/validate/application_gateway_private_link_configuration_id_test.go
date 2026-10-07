@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestApplicationGatewayPrivateLinkConfigurationID(t *testing.T) {
+func TestValidateApplicationGatewayPrivateLinkConfigurationID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool

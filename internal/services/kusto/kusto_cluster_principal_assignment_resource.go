@@ -101,7 +101,7 @@ func resourceKustoClusterPrincipalAssignment() *pluginsdk.Resource {
 	}
 }
 
-func resourceKustoClusterPrincipalAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoClusterPrincipalAssignmentCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.ClusterPrincipalAssignmentsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -143,7 +143,7 @@ func resourceKustoClusterPrincipalAssignmentCreate(d *pluginsdk.ResourceData, me
 	return resourceKustoClusterPrincipalAssignmentRead(d, meta)
 }
 
-func resourceKustoClusterPrincipalAssignmentRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoClusterPrincipalAssignmentRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.ClusterPrincipalAssignmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -172,33 +172,21 @@ func resourceKustoClusterPrincipalAssignmentRead(d *pluginsdk.ResourceData, meta
 		if props != nil {
 			d.Set("principal_id", props.PrincipalId)
 
-			principalName := ""
-			if props.PrincipalName != nil {
-				principalName = *props.PrincipalName
-			}
-			d.Set("principal_name", principalName)
+			d.Set("principal_name", pointer.From(props.PrincipalName))
 
 			d.Set("principal_type", string(props.PrincipalType))
 			d.Set("role", string(props.Role))
 
-			tenantID := ""
-			if props.TenantId != nil {
-				tenantID = *props.TenantId
-			}
-			d.Set("tenant_id", tenantID)
+			d.Set("tenant_id", pointer.From(props.TenantId))
 
-			tenantName := ""
-			if props.TenantName != nil {
-				tenantName = *props.TenantName
-			}
-			d.Set("tenant_name", tenantName)
+			d.Set("tenant_name", pointer.From(props.TenantName))
 		}
 	}
 
 	return nil
 }
 
-func resourceKustoClusterPrincipalAssignmentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoClusterPrincipalAssignmentDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.ClusterPrincipalAssignmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -208,8 +196,7 @@ func resourceKustoClusterPrincipalAssignmentDelete(d *pluginsdk.ResourceData, me
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
