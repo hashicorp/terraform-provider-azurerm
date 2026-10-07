@@ -1176,6 +1176,11 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 							Computed: true,
 						},
 
+						"client_authentication_mode": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
 						"trusted_client_certificate_names": {
 							Type:     pluginsdk.TypeList,
 							Computed: true,
