@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	schedule "github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/startstopmanagedinstanceschedules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/startstopmanagedinstanceschedules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
@@ -29,10 +29,10 @@ type SqlManagedInstanceStartStopScheduleModel struct {
 }
 
 type ScheduleItemModel struct {
-	StartDay  schedule.DayOfWeek `tfschema:"start_day"`
-	StartTime string             `tfschema:"start_time"`
-	StopDay   schedule.DayOfWeek `tfschema:"stop_day"`
-	StopTime  string             `tfschema:"stop_time"`
+	StartDay  startstopmanagedinstanceschedules.DayOfWeek `tfschema:"start_day"`
+	StartTime string                                      `tfschema:"start_time"`
+	StopDay   startstopmanagedinstanceschedules.DayOfWeek `tfschema:"stop_day"`
+	StopTime  string                                      `tfschema:"stop_time"`
 }
 
 type MsSqlManagedInstanceStartStopScheduleResource struct{}
@@ -43,7 +43,7 @@ func (r MsSqlManagedInstanceStartStopScheduleResource) ResourceType() string {
 	return "azurerm_mssql_managed_instance_start_stop_schedule"
 }
 
-func (r MsSqlManagedInstanceStartStopScheduleResource) ModelObject() interface{} {
+func (r MsSqlManagedInstanceStartStopScheduleResource) ModelObject() any {
 	return &SqlManagedInstanceStartStopScheduleModel{}
 }
 
@@ -74,7 +74,7 @@ func (r MsSqlManagedInstanceStartStopScheduleResource) Arguments() map[string]*p
 					"start_day": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validation.StringInSlice(schedule.PossibleValuesForDayOfWeek(), false),
+						ValidateFunc: validation.StringInSlice(startstopmanagedinstanceschedules.PossibleValuesForDayOfWeek(), false),
 					},
 
 					"start_time": {
@@ -86,7 +86,7 @@ func (r MsSqlManagedInstanceStartStopScheduleResource) Arguments() map[string]*p
 					"stop_day": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validation.StringInSlice(schedule.PossibleValuesForDayOfWeek(), false),
+						ValidateFunc: validation.StringInSlice(startstopmanagedinstanceschedules.PossibleValuesForDayOfWeek(), false),
 					},
 
 					"stop_time": {
@@ -139,17 +139,19 @@ func (r MsSqlManagedInstanceStartStopScheduleResource) Create() sdk.ResourceFunc
 
 			id := *managedInstanceId
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
-			}
-
-			properties := &schedule.StartStopManagedInstanceSchedule{
-				Properties: &schedule.StartStopManagedInstanceScheduleProperties{},
+			properties := &startstopmanagedinstanceschedules.StartStopManagedInstanceSchedule{
+				Properties: &startstopmanagedinstanceschedules.StartStopManagedInstanceScheduleProperties{},
 			}
 
 			if model.Description != "" {
@@ -166,8 +168,7 @@ func (r MsSqlManagedInstanceStartStopScheduleResource) Create() sdk.ResourceFunc
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			scheduleID := parse.NewManagedInstanceStartStopScheduleID(id.SubscriptionId, id.ResourceGroupName, id.ManagedInstanceName, "default")
-			metadata.SetID(scheduleID)
+			metadata.SetID(parse.NewManagedInstanceStartStopScheduleID(id.SubscriptionId, id.ResourceGroupName, id.ManagedInstanceName, "default"))
 
 			return nil
 		},
@@ -296,11 +297,11 @@ func (r MsSqlManagedInstanceStartStopScheduleResource) Delete() sdk.ResourceFunc
 	}
 }
 
-func expandScheduleItemModelArray(inputList []ScheduleItemModel) []schedule.ScheduleItem {
-	outputList := make([]schedule.ScheduleItem, 0, len(inputList))
+func expandScheduleItemModelArray(inputList []ScheduleItemModel) []startstopmanagedinstanceschedules.ScheduleItem {
+	outputList := make([]startstopmanagedinstanceschedules.ScheduleItem, 0, len(inputList))
 
 	for _, input := range inputList {
-		output := schedule.ScheduleItem{
+		output := startstopmanagedinstanceschedules.ScheduleItem{
 			StartDay:  input.StartDay,
 			StartTime: input.StartTime,
 			StopDay:   input.StopDay,
@@ -312,7 +313,7 @@ func expandScheduleItemModelArray(inputList []ScheduleItemModel) []schedule.Sche
 	return outputList
 }
 
-func flattenScheduleItemModelArray(inputList []schedule.ScheduleItem) []ScheduleItemModel {
+func flattenScheduleItemModelArray(inputList []startstopmanagedinstanceschedules.ScheduleItem) []ScheduleItemModel {
 	outputList := make([]ScheduleItemModel, 0, len(inputList))
 
 	if inputList == nil {
