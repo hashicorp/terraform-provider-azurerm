@@ -88,7 +88,7 @@ type FunctionAppAlwaysReady struct {
 
 var _ sdk.ResourceWithUpdate = FunctionAppFlexConsumptionResource{}
 
-func (r FunctionAppFlexConsumptionResource) ModelObject() interface{} {
+func (r FunctionAppFlexConsumptionResource) ModelObject() any {
 	return &FunctionAppFlexConsumptionModel{}
 }
 
@@ -216,7 +216,7 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			Description: "A map of key-value pairs for [App Settings](https://docs.microsoft.com/en-us/azure/azure-functions/functions-app-settings) and custom values.",
+			Description: "A map of key-value pairs for [App Settings](https://docs.microsoft.com/azure/azure-functions/functions-app-settings) and custom values.",
 		},
 
 		"auth_settings": helpers.AuthSettingsSchema(),
@@ -661,7 +661,7 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 
 			if props := model.Properties; props != nil {
 				state.Enabled = pointer.From(props.Enabled)
-				state.ClientCertMode = string(pointer.From(props.ClientCertMode))
+				state.ClientCertMode = pointer.FromEnum(props.ClientCertMode)
 				state.ClientCertExclusionPaths = pointer.From(props.ClientCertExclusionPaths)
 				state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 				state.DefaultHostname = pointer.From(props.DefaultHostName)
@@ -697,10 +697,10 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 				if functionAppConfig := props.FunctionAppConfig; functionAppConfig != nil {
 					if faConfigDeployment := functionAppConfig.Deployment; faConfigDeployment != nil && faConfigDeployment.Storage != nil {
 						storageConfig := *faConfigDeployment.Storage
-						state.StorageContainerType = string(pointer.From(storageConfig.Type))
+						state.StorageContainerType = pointer.FromEnum(storageConfig.Type)
 						state.StorageContainerEndpoint = pointer.From(storageConfig.Value)
 						if storageConfig.Authentication != nil && storageConfig.Authentication.Type != nil {
-							state.StorageAuthType = string(pointer.From(storageConfig.Authentication.Type))
+							state.StorageAuthType = pointer.FromEnum(storageConfig.Authentication.Type)
 							if storageConfig.Authentication.UserAssignedIdentityResourceId != nil {
 								state.StorageUserAssignedIdentityID = pointer.From(storageConfig.Authentication.UserAssignedIdentityResourceId)
 							}
@@ -708,7 +708,7 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 					}
 
 					if faConfigRuntime := functionAppConfig.Runtime; faConfigRuntime != nil {
-						state.RuntimeName = string(pointer.From(faConfigRuntime.Name))
+						state.RuntimeName = pointer.FromEnum(faConfigRuntime.Name)
 						state.RuntimeVersion = pointer.From(faConfigRuntime.Version)
 					}
 

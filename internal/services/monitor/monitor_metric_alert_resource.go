@@ -17,11 +17,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
-	webtests "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-03-01/metricalerts"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -178,7 +177,7 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MinItems: 1,
-				// Curently, it allows to define only one dynamic criteria in one metric alert.
+				// Currently, it allows to define only one dynamic criteria in one metric alert.
 				MaxItems:     1,
 				ExactlyOneOf: []string{"criteria", "dynamic_criteria", "application_insights_web_test_location_availability_criteria"},
 				Elem: &pluginsdk.Resource{
@@ -283,12 +282,12 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 						"web_test_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: webtests.ValidateWebTestID,
+							ValidateFunc: webtestsapis.ValidateWebTestID,
 						},
 						"component_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: components.ValidateComponentID,
+							ValidateFunc: componentsapis.ValidateComponentID,
 						},
 						"failed_location_count": {
 							Type:         pluginsdk.TypeInt,
@@ -379,7 +378,7 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 	}
 }
 
-func resourceMonitorMetricAlertCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorMetricAlertCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.MetricAlertsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -413,7 +412,7 @@ func resourceMonitorMetricAlertCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	targetResourceType := d.Get("target_resource_type").(string)
 	targetResourceLocation := d.Get("target_resource_location").(string)
 
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
 	// The criteria type of "old" resource is `MetricAlertSingleResourceMultipleMetricCriteria` (rather than `MetricAlertMultipleResourceMultipleMetricCriteria`).
 	// We need to keep using that type in order to keep backward compatibility. Otherwise, changing the criteria type will cause error as reported in issue:
@@ -450,7 +449,7 @@ func resourceMonitorMetricAlertCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			TargetResourceType:   pointer.To(targetResourceType),
 			TargetResourceRegion: pointer.To(targetResourceLocation),
 		},
-		Tags: helpers.ExpandPtrMapStringString(t),
+		Tags: pluginsdk.ExpandPtrMapStringString(t),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
@@ -481,7 +480,7 @@ func resourceMonitorMetricAlertCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	return resourceMonitorMetricAlertRead(d, meta)
 }
 
-func resourceMonitorMetricAlertRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorMetricAlertRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.MetricAlertsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -558,7 +557,7 @@ func resourceMonitorMetricAlertFlatten(d *pluginsdk.ResourceData, id *metricaler
 		d.Set("target_resource_type", props.TargetResourceType)
 		d.Set("target_resource_location", props.TargetResourceRegion)
 
-		if err := d.Set("tags", helpers.FlattenPtrMapStringString(model.Tags)); err != nil {
+		if err := d.Set("tags", pluginsdk.FlattenPtrMapStringString(model.Tags)); err != nil {
 			return err
 		}
 	}
@@ -566,7 +565,7 @@ func resourceMonitorMetricAlertFlatten(d *pluginsdk.ResourceData, id *metricaler
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceMonitorMetricAlertDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorMetricAlertDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.MetricAlertsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -587,26 +586,26 @@ func resourceMonitorMetricAlertDelete(d *pluginsdk.ResourceData, meta interface{
 
 func expandMonitorMetricAlertCriteria(d *pluginsdk.ResourceData, isLegacy bool) (metricalerts.MetricAlertCriteria, error) {
 	switch {
-	case len(d.Get("criteria").([]interface{})) != 0:
+	case len(d.Get("criteria").([]any)) != 0:
 		if isLegacy {
-			return expandMonitorMetricAlertSingleResourceMultiMetricCriteria(d.Get("criteria").([]interface{})), nil
+			return expandMonitorMetricAlertSingleResourceMultiMetricCriteria(d.Get("criteria").([]any)), nil
 		}
-		return expandMonitorMetricAlertMultiResourceMultiMetricForStaticMetricCriteria(d.Get("criteria").([]interface{})), nil
-	case len(d.Get("dynamic_criteria").([]interface{})) != 0:
-		return expandMonitorMetricAlertMultiResourceMultiMetricForDynamicMetricCriteria(d.Get("dynamic_criteria").([]interface{})), nil
-	case len(d.Get("application_insights_web_test_location_availability_criteria").([]interface{})) != 0:
-		return expandMonitorMetricAlertWebtestLocAvailCriteria(d.Get("application_insights_web_test_location_availability_criteria").([]interface{})), nil
+		return expandMonitorMetricAlertMultiResourceMultiMetricForStaticMetricCriteria(d.Get("criteria").([]any)), nil
+	case len(d.Get("dynamic_criteria").([]any)) != 0:
+		return expandMonitorMetricAlertMultiResourceMultiMetricForDynamicMetricCriteria(d.Get("dynamic_criteria").([]any)), nil
+	case len(d.Get("application_insights_web_test_location_availability_criteria").([]any)) != 0:
+		return expandMonitorMetricAlertWebtestLocAvailCriteria(d.Get("application_insights_web_test_location_availability_criteria").([]any)), nil
 	default:
 		// Guaranteed by schema `AtLeastOne` constraint
 		return nil, fmt.Errorf("unknown criteria type")
 	}
 }
 
-func expandMonitorMetricAlertSingleResourceMultiMetricCriteria(input []interface{}) metricalerts.MetricAlertCriteria {
+func expandMonitorMetricAlertSingleResourceMultiMetricCriteria(input []any) metricalerts.MetricAlertCriteria {
 	criteria := make([]metricalerts.MetricCriteria, 0)
 	for i, item := range input {
-		v := item.(map[string]interface{})
-		dimensions := expandMonitorMetricDimension(v["dimension"].([]interface{}))
+		v := item.(map[string]any)
+		dimensions := expandMonitorMetricDimension(v["dimension"].([]any))
 		criteria = append(criteria, metricalerts.MetricCriteria{
 			Name:                 fmt.Sprintf("Metric%d", i+1),
 			MetricNamespace:      pointer.To(v["metric_namespace"].(string)),
@@ -623,11 +622,11 @@ func expandMonitorMetricAlertSingleResourceMultiMetricCriteria(input []interface
 	}
 }
 
-func expandMonitorMetricAlertMultiResourceMultiMetricForStaticMetricCriteria(input []interface{}) metricalerts.MetricAlertCriteria {
+func expandMonitorMetricAlertMultiResourceMultiMetricForStaticMetricCriteria(input []any) metricalerts.MetricAlertCriteria {
 	criteria := make([]metricalerts.MultiMetricCriteria, 0)
 	for i, item := range input {
-		v := item.(map[string]interface{})
-		dimensions := expandMonitorMetricDimension(v["dimension"].([]interface{}))
+		v := item.(map[string]any)
+		dimensions := expandMonitorMetricDimension(v["dimension"].([]any))
 		criteria = append(criteria, metricalerts.MetricCriteria{
 			Name:                 fmt.Sprintf("Metric%d", i+1),
 			MetricNamespace:      pointer.To(v["metric_namespace"].(string)),
@@ -644,11 +643,11 @@ func expandMonitorMetricAlertMultiResourceMultiMetricForStaticMetricCriteria(inp
 	}
 }
 
-func expandMonitorMetricAlertMultiResourceMultiMetricForDynamicMetricCriteria(input []interface{}) metricalerts.MetricAlertCriteria {
+func expandMonitorMetricAlertMultiResourceMultiMetricForDynamicMetricCriteria(input []any) metricalerts.MetricAlertCriteria {
 	criteria := make([]metricalerts.MultiMetricCriteria, 0)
 	for i, item := range input {
-		v := item.(map[string]interface{})
-		dimensions := expandMonitorMetricDimension(v["dimension"].([]interface{}))
+		v := item.(map[string]any)
+		dimensions := expandMonitorMetricDimension(v["dimension"].([]any))
 
 		dynamicMetricCriteria := metricalerts.DynamicMetricCriteria{
 			Name:             fmt.Sprintf("Metric%d", i+1),
@@ -679,11 +678,11 @@ func expandMonitorMetricAlertMultiResourceMultiMetricForDynamicMetricCriteria(in
 	}
 }
 
-func expandMonitorMetricAlertWebtestLocAvailCriteria(input []interface{}) metricalerts.MetricAlertCriteria {
+func expandMonitorMetricAlertWebtestLocAvailCriteria(input []any) metricalerts.MetricAlertCriteria {
 	if len(input) == 0 {
 		return nil
 	}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	return &metricalerts.WebtestLocationAvailabilityCriteria{
 		WebTestId:           v["web_test_id"].(string),
 		ComponentId:         v["component_id"].(string),
@@ -691,27 +690,27 @@ func expandMonitorMetricAlertWebtestLocAvailCriteria(input []interface{}) metric
 	}
 }
 
-func expandMonitorMetricDimension(input []interface{}) []metricalerts.MetricDimension {
+func expandMonitorMetricDimension(input []any) []metricalerts.MetricDimension {
 	result := make([]metricalerts.MetricDimension, 0)
 	for _, dimension := range input {
-		dVal := dimension.(map[string]interface{})
+		dVal := dimension.(map[string]any)
 		result = append(result, metricalerts.MetricDimension{
 			Name:     dVal["name"].(string),
 			Operator: dVal["operator"].(string),
-			Values:   expandStringValues(dVal["values"].([]interface{})),
+			Values:   expandStringValues(dVal["values"].([]any)),
 		})
 	}
 	return result
 }
 
-func expandMonitorMetricAlertAction(input []interface{}) *[]metricalerts.MetricAlertAction {
+func expandMonitorMetricAlertAction(input []any) *[]metricalerts.MetricAlertAction {
 	actions := make([]metricalerts.MetricAlertAction, 0)
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 		if agID := v["action_group_id"].(string); agID != "" {
 			props := make(map[string]string)
 			if pVal, ok := v["webhook_properties"]; ok {
-				for pk, pv := range pVal.(map[string]interface{}) {
+				for pk, pv := range pVal.(map[string]any) {
 					props[pk] = pv.(string)
 				}
 			}
@@ -725,7 +724,7 @@ func expandMonitorMetricAlertAction(input []interface{}) *[]metricalerts.MetricA
 	return &actions
 }
 
-func flattenMonitorMetricAlertCriteria(input metricalerts.MetricAlertCriteria) []interface{} {
+func flattenMonitorMetricAlertCriteria(input metricalerts.MetricAlertCriteria) []any {
 	switch criteria := input.(type) {
 	case metricalerts.MetricAlertSingleResourceMultipleMetricCriteria:
 		return flattenMonitorMetricAlertSingleResourceMultiMetricCriteria(criteria.AllOf)
@@ -734,23 +733,23 @@ func flattenMonitorMetricAlertCriteria(input metricalerts.MetricAlertCriteria) [
 	case metricalerts.WebtestLocationAvailabilityCriteria:
 		return flattenMonitorMetricAlertWebtestLocAvailCriteria(&criteria)
 	default:
-		return []interface{}{}
+		return []any{}
 	}
 }
 
-func flattenMonitorMetricAlertSingleResourceMultiMetricCriteria(input *[]metricalerts.MetricCriteria) []interface{} {
+func flattenMonitorMetricAlertSingleResourceMultiMetricCriteria(input *[]metricalerts.MetricCriteria) []any {
 	if input == nil || len(*input) == 0 {
-		return []interface{}{}
+		return []any{}
 	}
 	criteria := (*input)[0]
 	metricName := criteria.MetricName
 	metricNamespace := criteria.MetricNamespace
 	timeAggregation := criteria.TimeAggregation
 
-	dimResult := make([]map[string]interface{}, 0)
+	dimResult := make([]map[string]any, 0)
 	if criteria.Dimensions != nil {
 		for _, dimension := range *criteria.Dimensions {
-			dVal := make(map[string]interface{})
+			dVal := make(map[string]any)
 			dVal["name"] = dimension.Name
 			dVal["operator"] = dimension.Operator
 			dVal["values"] = dimension.Values
@@ -763,8 +762,8 @@ func flattenMonitorMetricAlertSingleResourceMultiMetricCriteria(input *[]metrica
 
 	skipMetricValidation := pointer.From(criteria.SkipMetricValidation)
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"metric_namespace":       metricNamespace,
 			"metric_name":            metricName,
 			"aggregation":            timeAggregation,
@@ -776,18 +775,18 @@ func flattenMonitorMetricAlertSingleResourceMultiMetricCriteria(input *[]metrica
 	}
 }
 
-func flattenMonitorMetricAlertMultiResourceMultiMetricCriteria(input *[]metricalerts.MultiMetricCriteria) []interface{} {
+func flattenMonitorMetricAlertMultiResourceMultiMetricCriteria(input *[]metricalerts.MultiMetricCriteria) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
-	result := make([]interface{}, 0)
+	result := make([]any, 0)
 
 	for _, criteria := range *input {
-		v := make(map[string]interface{})
+		v := make(map[string]any)
 		var (
 			metricName           string
 			metricNamespace      string
-			timeAggregation      interface{}
+			timeAggregation      any
 			dimensions           []metricalerts.MetricDimension
 			skipMetricValidation bool
 		)
@@ -839,9 +838,9 @@ func flattenMonitorMetricAlertMultiResourceMultiMetricCriteria(input *[]metrical
 		v["aggregation"] = timeAggregation
 		v["skip_metric_validation"] = skipMetricValidation
 		if dimensions != nil {
-			dimResult := make([]map[string]interface{}, 0)
+			dimResult := make([]map[string]any, 0)
 			for _, dimension := range dimensions {
-				dVal := make(map[string]interface{})
+				dVal := make(map[string]any)
 				dVal["name"] = dimension.Name
 				dVal["operator"] = dimension.Operator
 				dVal["values"] = dimension.Values
@@ -855,13 +854,13 @@ func flattenMonitorMetricAlertMultiResourceMultiMetricCriteria(input *[]metrical
 	return result
 }
 
-func flattenMonitorMetricAlertWebtestLocAvailCriteria(input *metricalerts.WebtestLocationAvailabilityCriteria) []interface{} {
+func flattenMonitorMetricAlertWebtestLocAvailCriteria(input *metricalerts.WebtestLocationAvailabilityCriteria) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"web_test_id":           input.WebTestId,
 			"component_id":          input.ComponentId,
 			"failed_location_count": int(input.FailedLocationCount),
@@ -869,13 +868,13 @@ func flattenMonitorMetricAlertWebtestLocAvailCriteria(input *metricalerts.Webtes
 	}
 }
 
-func flattenMonitorMetricAlertAction(input *[]metricalerts.MetricAlertAction) (result []interface{}) {
-	result = make([]interface{}, 0)
+func flattenMonitorMetricAlertAction(input *[]metricalerts.MetricAlertAction) (result []any) {
+	result = make([]any, 0)
 	if input == nil {
 		return
 	}
 	for _, action := range *input {
-		v := make(map[string]interface{})
+		v := make(map[string]any)
 
 		if action.ActionGroupId != nil {
 			v["action_group_id"] = *action.ActionGroupId
@@ -893,11 +892,11 @@ func flattenMonitorMetricAlertAction(input *[]metricalerts.MetricAlertAction) (r
 	return result
 }
 
-func resourceMonitorMetricAlertActionHash(input interface{}) int {
+func resourceMonitorMetricAlertActionHash(input any) int {
 	var buf bytes.Buffer
-	if v, ok := input.(map[string]interface{}); ok {
+	if v, ok := input.(map[string]any); ok {
 		fmt.Fprintf(&buf, "%s-", v["action_group_id"].(string))
-		if m, ok := v["webhook_properties"].(map[string]interface{}); ok && m != nil {
+		if m, ok := v["webhook_properties"].(map[string]any); ok && m != nil {
 			fmt.Fprintf(&buf, "%v-", m)
 		}
 	}

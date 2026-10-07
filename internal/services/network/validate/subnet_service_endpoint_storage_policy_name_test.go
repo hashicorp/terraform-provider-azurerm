@@ -50,7 +50,7 @@ func TestServiceEndpointPolicyName(t *testing.T) {
 			Error: true,
 		},
 		{
-			Name:  "Valid weired name",
+			Name:  "Valid weird name",
 			Input: "1.-_",
 			Error: false,
 		},
