@@ -35,6 +35,10 @@ The following arguments are supported:
 
 * `filter_by_resource_groups` - (Optional) Specifies a list of resource groups about which the Advisor Recommendations will be listed.
 
+* `filter_by_resource_ids` - (Optional) Specifies a list of resource about which the Advisor Recommendations will be listed.
+
+* `filter_by_recommendation_type_guids` - (Optional) Specifies a list of recommendation types about which the Advisor Recommendations will be listed.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -50,6 +54,8 @@ A `recommendations` block exports the following:
 * `category` - The category of the recommendation.
 
 * `description` - The description of the issue or the opportunity identified by the recommendation.
+
+* `id` - The name of the Advisor Recommendation.
 
 * `impact` - The business impact of the recommendation.
 

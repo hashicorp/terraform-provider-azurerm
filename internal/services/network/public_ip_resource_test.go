@@ -12,7 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/publicipaddresses"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/publicipaddresses"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -114,7 +114,7 @@ func TestAccPublicIp_standard_withDNSLabel(t *testing.T) {
 	})
 }
 
-func TestAccPublicIpStatic_withReverseFqdn(t *testing.T) {
+func TestAccPublicIp_staticWithReverseFqdn(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	r := PublicIpResource{}
 	dnl := fmt.Sprintf("acctestdnl-%d", data.RandomInteger)

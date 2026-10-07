@@ -62,9 +62,20 @@ func (c DeploymentsClient) CreateOrUpdateAtScope(ctx context.Context, id ScopedD
 
 // CreateOrUpdateAtScopeThenPoll performs CreateOrUpdateAtScope then polls until it's completed
 func (c DeploymentsClient) CreateOrUpdateAtScopeThenPoll(ctx context.Context, id ScopedDeploymentId, input Deployment) error {
+	return c.CreateOrUpdateAtScopeCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CreateOrUpdateAtScopeCallbackThenPoll performs CreateOrUpdateAtScope, runs the optional callback function, then polls until it's completed
+func (c DeploymentsClient) CreateOrUpdateAtScopeCallbackThenPoll(ctx context.Context, id ScopedDeploymentId, input Deployment, callback func() error) error {
 	result, err := c.CreateOrUpdateAtScope(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdateAtScope: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
