@@ -8,7 +8,7 @@ description: |-
     
 # List resource: azurerm_cognitive_account
 
-Lists Cognitive Account resources. 
+Lists Cognitive Account resources.
 
 ## Example Usage
 

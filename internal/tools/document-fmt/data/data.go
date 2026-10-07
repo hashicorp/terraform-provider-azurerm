@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/markdown"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/util"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 )
 
@@ -87,7 +87,7 @@ func GetAllTerraformNodeData(fs afero.Fs, providerDir string, serviceName string
 	for _, s := range provider.SupportedTypedServices() {
 		service, err := NewService(fs, providerDir, s, s.Name())
 		if err != nil {
-			log.WithFields(log.Fields{
+			logrus.WithFields(logrus.Fields{
 				"service": s.Name(),
 				"error":   err,
 			}).Warn("Skipping service...")
@@ -115,7 +115,7 @@ func GetAllTerraformNodeData(fs afero.Fs, providerDir string, serviceName string
 
 			rd, err := newTerraformNodeData(fs, providerDir, *service, name, ResourceTypeData, r)
 			if err != nil {
-				log.Error(err)
+				logrus.Error(err)
 				continue
 			}
 
@@ -136,7 +136,7 @@ func GetAllTerraformNodeData(fs afero.Fs, providerDir string, serviceName string
 
 			rd, err := newTerraformNodeData(fs, providerDir, *service, name, ResourceTypeResource, r)
 			if err != nil {
-				log.Error(err)
+				logrus.Error(err)
 				continue
 			}
 
@@ -148,7 +148,7 @@ func GetAllTerraformNodeData(fs afero.Fs, providerDir string, serviceName string
 	for _, s := range provider.SupportedUntypedServices() {
 		service, err := NewService(fs, providerDir, s, s.Name())
 		if err != nil {
-			log.WithFields(log.Fields{
+			logrus.WithFields(logrus.Fields{
 				"service": s.Name(),
 				"error":   err,
 			}).Warn("Skipping Service")
@@ -167,7 +167,7 @@ func GetAllTerraformNodeData(fs afero.Fs, providerDir string, serviceName string
 		for name, r := range s.SupportedDataSources() {
 			rd, err := newTerraformNodeData(fs, providerDir, *service, name, ResourceTypeData, r)
 			if err != nil {
-				log.Error(err)
+				logrus.Error(err)
 				continue
 			}
 
@@ -186,7 +186,7 @@ func GetAllTerraformNodeData(fs afero.Fs, providerDir string, serviceName string
 		for name, r := range s.SupportedResources() {
 			rd, err := newTerraformNodeData(fs, providerDir, *service, name, ResourceTypeResource, r)
 			if err != nil {
-				log.Error(err)
+				logrus.Error(err)
 				continue
 			}
 

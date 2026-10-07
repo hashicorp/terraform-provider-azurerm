@@ -18,7 +18,7 @@ import (
 
 type SecurityCenterContactResource struct{}
 
-func TestAccSecurityCenterContact(t *testing.T) {
+func TestAccSecurityCenterContact_sequential(t *testing.T) {
 	// there is only *one* read contact, if tests will conflict if run at the same time
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"contact": {

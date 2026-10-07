@@ -21,7 +21,7 @@ var _ sdk.DataSource = DnsZoneDataResource{}
 
 type DnsZoneDataResource struct{}
 
-func (DnsZoneDataResource) ModelObject() interface{} {
+func (DnsZoneDataResource) ModelObject() any {
 	return &DnsZoneDataResourceModel{}
 }
 
@@ -44,7 +44,7 @@ func (DnsZoneDataResource) Arguments() map[string]*pluginsdk.Schema {
 			// TODO: we need a CommonSchema type for this which doesn't have ForceNew
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 		},
 	}
 }
