@@ -42,6 +42,8 @@ output "elasticpool_id" {
 
 * `location` - Specifies the supported Azure location where the resource exists.
 
+* `high_availability_replica_count` - Specifies the number of high availability replicas for the elastic pool.
+
 * `max_size_gb` - The max data size of the elastic pool in gigabytes.
 
 * `max_size_bytes` - The max data size of the elastic pool in bytes.
@@ -78,4 +80,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Sql` - 2023-08-01-preview
+* `Microsoft.Sql` - 2025-01-01

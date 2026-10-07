@@ -10,8 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	certificates "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/certificateobjectlocalrulestack"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrulestacks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/certificateobjectlocalrulestackresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulestackresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -27,10 +27,10 @@ type LocalRulestackOutboundUnTrustCertificateResourceModel struct {
 var _ sdk.Resource = LocalRulestackOutboundUnTrustCertificateAssociationResource{}
 
 func (l LocalRulestackOutboundUnTrustCertificateAssociationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return certificates.ValidateLocalRulestackCertificateID
+	return certificateobjectlocalrulestackresources.ValidateLocalRulestackCertificateID
 }
 
-func (l LocalRulestackOutboundUnTrustCertificateAssociationResource) ModelObject() interface{} {
+func (l LocalRulestackOutboundUnTrustCertificateAssociationResource) ModelObject() any {
 	return &LocalRulestackOutboundUnTrustCertificateResourceModel{}
 }
 
@@ -44,7 +44,7 @@ func (l LocalRulestackOutboundUnTrustCertificateAssociationResource) Arguments()
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: certificates.ValidateLocalRulestackCertificateID,
+			ValidateFunc: certificateobjectlocalrulestackresources.ValidateLocalRulestackCertificateID,
 		},
 	}
 }
@@ -57,7 +57,7 @@ func (l LocalRulestackOutboundUnTrustCertificateAssociationResource) Create() sd
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.LocalRulestacks
+			client := metadata.Client.PaloAlto.LocalRulestackResources
 
 			model := LocalRulestackOutboundUnTrustCertificateResourceModel{}
 
@@ -65,19 +65,19 @@ func (l LocalRulestackOutboundUnTrustCertificateAssociationResource) Create() sd
 				return err
 			}
 
-			certificateId, err := certificates.ParseLocalRulestackCertificateID(model.CertificateID)
+			certificateId, err := certificateobjectlocalrulestackresources.ParseLocalRulestackCertificateID(model.CertificateID)
 			if err != nil {
 				return err
 			}
 			locks.ByID(certificateId.ID())
 			defer locks.UnlockByID(certificateId.ID())
 
-			rulestackId := localrulestacks.NewLocalRulestackID(certificateId.SubscriptionId, certificateId.ResourceGroupName, certificateId.LocalRulestackName)
+			rulestackId := localrulestackresources.NewLocalRulestackID(certificateId.SubscriptionId, certificateId.ResourceGroupName, certificateId.LocalRulestackName)
 
 			locks.ByID(rulestackId.ID())
 			defer locks.UnlockByID(rulestackId.ID())
 
-			existing, err := client.Get(ctx, rulestackId)
+			existing, err := client.LocalRulestacksGet(ctx, rulestackId)
 			if err != nil {
 				return fmt.Errorf("retrieving the local Rulestack to associate the Outbound UnTrust Certificate on %s: %+v", rulestackId, err)
 			}
@@ -92,15 +92,15 @@ func (l LocalRulestackOutboundUnTrustCertificateAssociationResource) Create() sd
 
 			rulestack.Properties = props
 
-			if err = client.CreateOrUpdateThenPoll(ctx, rulestackId, rulestack); err != nil {
+			if err := client.LocalRulestacksCreateOrUpdateCallbackThenPoll(ctx, rulestackId, rulestack, metadata.SetIDCallback(certificateId)); err != nil {
 				return fmt.Errorf("creating Outbound UnTrust association for %s: %+v", rulestackId, err)
 			}
 
-			if err = client.CommitThenPoll(ctx, rulestackId); err != nil {
+			metadata.SetID(certificateId)
+
+			if err := client.LocalRulestackscommitThenPoll(ctx, rulestackId); err != nil {
 				return fmt.Errorf("committing rulestack configuration for Outbound UnTrust Certificate for %s: %+v", rulestackId, err)
 			}
-
-			metadata.SetID(certificateId)
 
 			return nil
 		},
@@ -111,18 +111,18 @@ func (l LocalRulestackOutboundUnTrustCertificateAssociationResource) Read() sdk.
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.LocalRulestacks
+			client := metadata.Client.PaloAlto.LocalRulestackResources
 
-			certificateId, err := certificates.ParseLocalRulestackCertificateID(metadata.ResourceData.Id())
+			certificateId, err := certificateobjectlocalrulestackresources.ParseLocalRulestackCertificateID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			rulestackId := localrulestacks.NewLocalRulestackID(certificateId.SubscriptionId, certificateId.ResourceGroupName, certificateId.LocalRulestackName)
+			rulestackId := localrulestackresources.NewLocalRulestackID(certificateId.SubscriptionId, certificateId.ResourceGroupName, certificateId.LocalRulestackName)
 
 			var state LocalRulestackOutboundUnTrustCertificateResourceModel
 
-			existing, err := client.Get(ctx, rulestackId)
+			existing, err := client.LocalRulestacksGet(ctx, rulestackId)
 			if err != nil {
 				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(rulestackId)
@@ -133,7 +133,7 @@ func (l LocalRulestackOutboundUnTrustCertificateAssociationResource) Read() sdk.
 				props := model.Properties
 				secServices := pointer.From(props.SecurityServices)
 
-				state.CertificateID = certificates.NewLocalRulestackCertificateID(certificateId.SubscriptionId, certificateId.ResourceGroupName, certificateId.LocalRulestackName, pointer.From(secServices.OutboundUnTrustCertificate)).ID()
+				state.CertificateID = certificateobjectlocalrulestackresources.NewLocalRulestackCertificateID(certificateId.SubscriptionId, certificateId.ResourceGroupName, certificateId.LocalRulestackName, pointer.From(secServices.OutboundUnTrustCertificate)).ID()
 			}
 
 			return metadata.Encode(&state)
@@ -145,20 +145,20 @@ func (l LocalRulestackOutboundUnTrustCertificateAssociationResource) Delete() sd
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.LocalRulestacks
+			client := metadata.Client.PaloAlto.LocalRulestackResources
 
-			certId, err := certificates.ParseLocalRulestackCertificateID(metadata.ResourceData.Id())
+			certId, err := certificateobjectlocalrulestackresources.ParseLocalRulestackCertificateID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 			locks.ByID(certId.ID())
 			defer locks.UnlockByID(certId.ID())
 
-			rulestackId := localrulestacks.NewLocalRulestackID(certId.SubscriptionId, certId.ResourceGroupName, certId.LocalRulestackName)
+			rulestackId := localrulestackresources.NewLocalRulestackID(certId.SubscriptionId, certId.ResourceGroupName, certId.LocalRulestackName)
 			locks.ByID(rulestackId.ID())
 			defer locks.UnlockByID(rulestackId.ID())
 
-			existing, err := client.Get(ctx, rulestackId)
+			existing, err := client.LocalRulestacksGet(ctx, rulestackId)
 			if err != nil {
 				return fmt.Errorf("retrieving the local Rulestack to disassociate the Outbound UnTrust Certificate on %s: %+v", rulestackId, err)
 			}
@@ -171,11 +171,11 @@ func (l LocalRulestackOutboundUnTrustCertificateAssociationResource) Delete() sd
 			props.SecurityServices = pointer.To(secServices)
 			rulestack.Properties = props
 
-			if err = client.CreateOrUpdateThenPoll(ctx, rulestackId, rulestack); err != nil {
+			if err = client.LocalRulestacksCreateOrUpdateThenPoll(ctx, rulestackId, rulestack); err != nil {
 				return fmt.Errorf("deleting Local Rulestack Outbound UnTrust Certificate Association for %s: %+v", rulestackId, err)
 			}
 
-			if err = client.CommitThenPoll(ctx, rulestackId); err != nil {
+			if err = client.LocalRulestackscommitThenPoll(ctx, rulestackId); err != nil {
 				return fmt.Errorf("committing rulestack configuration for removing Outbound UnTrust Certificate for %s: %+v", rulestackId, err)
 			}
 

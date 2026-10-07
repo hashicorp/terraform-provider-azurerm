@@ -14,13 +14,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-10-01-preview/accessconnector"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/accessconnector"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name databricks_access_connector -service-package-name databricks -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 type AccessConnectorResource struct{}
 
@@ -63,7 +63,7 @@ func (r AccessConnectorResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r AccessConnectorResource) ModelObject() interface{} {
+func (r AccessConnectorResource) ModelObject() any {
 	return &AccessConnectorResourceModel{}
 }
 
@@ -87,16 +87,19 @@ func (r AccessConnectorResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := accessconnector.NewAccessConnectorID(subscriptionId, model.ResourceGroup, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing Databricks %s: %+v", id, err)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing Databricks %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
-			}
-
-			expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+			expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]any))
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
@@ -108,7 +111,7 @@ func (r AccessConnectorResource) Create() sdk.ResourceFunc {
 				Identity: expandedIdentity,
 			}
 
-			if err = client.CreateOrUpdateThenPoll(ctx, id, accessConnector); err != nil {
+			if err = client.CreateOrUpdateCallbackThenPoll(ctx, id, accessConnector, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating Databricks %s: %+v", id, err)
 			}
 
@@ -144,7 +147,7 @@ func (r AccessConnectorResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("identity") {
 				// TODO: Switch this to 'identity.ExpandSystemOrSingleUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))'
 				// once SDK Helpers PR #164 has been merged and integrated into the provider...
-				identityValue, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+				identityValue, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]any))
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
