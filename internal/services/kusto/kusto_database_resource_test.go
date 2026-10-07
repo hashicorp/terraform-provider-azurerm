@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package kusto_test
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -351,9 +352,7 @@ func (KustoDatabaseResource) Exists(ctx context.Context, clients *clients.Client
 			return nil, fmt.Errorf("%s is not a ReadWriteDatabase", id.String())
 		}
 
-		exists := value.Properties != nil
-
-		return &exists, nil
+		return pointer.To(value.Properties != nil), nil
 	} else {
 		return nil, fmt.Errorf("response model is empty")
 	}

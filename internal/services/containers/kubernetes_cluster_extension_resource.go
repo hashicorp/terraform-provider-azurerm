@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
@@ -50,12 +50,12 @@ func (r KubernetesClusterExtensionResource) ResourceType() string {
 	return "azurerm_kubernetes_cluster_extension"
 }
 
-func (r KubernetesClusterExtensionResource) ModelObject() interface{} {
+func (r KubernetesClusterExtensionResource) ModelObject() any {
 	return &KubernetesClusterExtensionModel{}
 }
 
 func (r KubernetesClusterExtensionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return func(val interface{}, key string) (warns []string, errs []error) {
+	return func(val any, key string) (warns []string, errs []error) {
 		idRaw, ok := val.(string)
 		if !ok {
 			errs = append(errs, fmt.Errorf("expected `id` to be a string but got %+v", val))
@@ -171,7 +171,7 @@ func (r KubernetesClusterExtensionResource) Arguments() map[string]*pluginsdk.Sc
 		"release_train": {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
-			Computed:      true,
+			Computed:      true, // azignore:AZS007 - pre-existing violation
 			ForceNew:      true,
 			ConflictsWith: []string{"version"},
 			ValidateFunc:  validation.StringIsNotEmpty,
@@ -180,7 +180,7 @@ func (r KubernetesClusterExtensionResource) Arguments() map[string]*pluginsdk.Sc
 		"release_namespace": {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
-			Computed:      true,
+			Computed:      true, // azignore:AZS007 - pre-existing violation
 			ForceNew:      true,
 			ConflictsWith: []string{"target_namespace"},
 			ValidateFunc:  validation.StringIsNotEmpty,
@@ -189,7 +189,7 @@ func (r KubernetesClusterExtensionResource) Arguments() map[string]*pluginsdk.Sc
 		"target_namespace": {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
-			Computed:      true,
+			Computed:      true, // azignore:AZS007 - pre-existing violation
 			ForceNew:      true,
 			ConflictsWith: []string{"release_namespace"},
 			ValidateFunc:  validation.StringIsNotEmpty,
@@ -233,24 +233,22 @@ func (r KubernetesClusterExtensionResource) Create() sdk.ResourceFunc {
 
 			// defined as strings because they're not enums in the swagger https://github.com/Azure/azure-rest-api-specs/pull/23545
 			id := extensions.NewScopedExtensionID(clusterID.ID(), model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
 
-			autoUpgradeMinorVersion := false
-			if model.Version == "" {
-				autoUpgradeMinorVersion = true
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			properties := &extensions.Extension{
 				Plan: expandPlanModel(model.Plan),
 				Properties: &extensions.ExtensionProperties{
-					AutoUpgradeMinorVersion:        &autoUpgradeMinorVersion,
+					AutoUpgradeMinorVersion:        pointer.To(model.Version == ""),
 					ConfigurationProtectedSettings: &model.ConfigurationProtectedSettings,
 					ConfigurationSettings:          &model.ConfigurationSettings,
 				},
@@ -284,7 +282,7 @@ func (r KubernetesClusterExtensionResource) Create() sdk.ResourceFunc {
 				properties.Properties.Version = &model.Version
 			}
 
-			if err = client.CreateThenPoll(ctx, id, *properties); err != nil {
+			if err = client.CreateCallbackThenPoll(ctx, id, *properties, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -441,7 +439,7 @@ func expandPlanModel(inputList []PlanModel) *extensions.Plan {
 func flattenPlanModel(input *extensions.Plan) []PlanModel {
 	var outputList []PlanModel
 	if input == nil {
-		return outputList
+		return []PlanModel{}
 	}
 	output := PlanModel{
 		Name:      input.Name,
@@ -455,9 +453,9 @@ func flattenPlanModel(input *extensions.Plan) []PlanModel {
 	return append(outputList, output)
 }
 
-func flattenAksAssignedIdentity(input *extensions.ExtensionPropertiesAksAssignedIdentity) []interface{} {
+func flattenAksAssignedIdentity(input *extensions.ExtensionPropertiesAksAssignedIdentity) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	output := identity.SystemAssigned{

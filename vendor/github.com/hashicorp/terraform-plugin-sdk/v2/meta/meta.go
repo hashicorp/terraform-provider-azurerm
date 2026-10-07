@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2019, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 // The meta package provides a location to set the release version
@@ -17,7 +17,7 @@ import (
 //
 // Deprecated: Use Go standard library [runtime/debug] package build information
 // instead.
-var SDKVersion = "2.37.0"
+var SDKVersion = "2.40.1"
 
 // A pre-release marker for the version. If this is "" (empty string)
 // then it means that it is a final release. Otherwise, this is a pre-release

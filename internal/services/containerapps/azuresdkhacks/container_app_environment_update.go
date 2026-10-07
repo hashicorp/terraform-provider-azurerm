@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package azuresdkhacks
@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/systemdata"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/managedenvironments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironments"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 )
@@ -101,10 +101,13 @@ type ManagedEnvironmentProperties struct {
 	DeploymentErrors            *string                                                                   `json:"deploymentErrors,omitempty"`
 	EventStreamEndpoint         *string                                                                   `json:"eventStreamEndpoint,omitempty"`
 	InfrastructureResourceGroup *string                                                                   `json:"infrastructureResourceGroup,omitempty"`
+	IngressConfiguration        *managedenvironments.IngressConfiguration                                 `json:"ingressConfiguration,omitempty"`
 	KedaConfiguration           *managedenvironments.KedaConfiguration                                    `json:"kedaConfiguration,omitempty"`
 	PeerAuthentication          *managedenvironments.ManagedEnvironmentPropertiesPeerAuthentication       `json:"peerAuthentication,omitempty"`
 	PeerTrafficConfiguration    *managedenvironments.ManagedEnvironmentPropertiesPeerTrafficConfiguration `json:"peerTrafficConfiguration,omitempty"`
+	PrivateEndpointConnections  *[]managedenvironments.PrivateEndpointConnection                          `json:"privateEndpointConnections,omitempty"`
 	ProvisioningState           *managedenvironments.EnvironmentProvisioningState                         `json:"provisioningState,omitempty"`
+	PublicNetworkAccess         *managedenvironments.PublicNetworkAccess                                  `json:"publicNetworkAccess,omitempty"`
 	StaticIP                    *string                                                                   `json:"staticIp,omitempty"`
 	VnetConfiguration           *managedenvironments.VnetConfiguration                                    `json:"vnetConfiguration,omitempty"`
 	WorkloadProfiles            *[]managedenvironments.WorkloadProfile                                    `json:"workloadProfiles,omitempty"`

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package devcenter_test
@@ -191,6 +191,7 @@ resource "azurerm_dev_center_project_pool" "test" {
   dev_box_definition_name                 = azurerm_dev_center_dev_box_definition.test.name
   local_administrator_enabled             = true
   dev_center_attached_network_name        = azurerm_dev_center_attached_network.test.name
+  single_sign_on_enabled                  = true
   stop_on_disconnect_grace_period_minutes = 60
 
   tags = {
@@ -215,6 +216,7 @@ resource "azurerm_dev_center_project_pool" "test" {
   dev_box_definition_name                 = azurerm_dev_center_dev_box_definition.test2.name
   local_administrator_enabled             = false
   dev_center_attached_network_name        = azurerm_dev_center_attached_network.test2.name
+  single_sign_on_enabled                  = false
   stop_on_disconnect_grace_period_minutes = 80
 
   tags = {
