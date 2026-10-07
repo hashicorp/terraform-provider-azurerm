@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices
@@ -44,7 +44,7 @@ func dataSourceSiteRecoveryFabric() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceSiteRecoveryFabricRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceSiteRecoveryFabricRead(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	id := replicationfabrics.NewReplicationFabricID(subscriptionId, d.Get("resource_group_name").(string), d.Get("recovery_vault_name").(string), d.Get("name").(string))
 

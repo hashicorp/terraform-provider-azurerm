@@ -11,7 +11,7 @@ description: |-
 
 Manages a Network Watcher Flow Log.
 
-~> **Note:** The `azurerm_network_watcher_flow_log` creates a new storage lifecyle management rule that overwrites existing rules. Please make sure to use a `storage_account` with no existing management rules, until the [issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/6935) is fixed.
+~> **Note:** The `azurerm_network_watcher_flow_log` creates a new storage lifecycle management rule that overwrites existing rules. Please make sure to use a `storage_account` with no existing management rules, until the [issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/6935) is fixed.
 
 ## Example Usage
 
@@ -85,7 +85,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which the Network Watcher was deployed. Changing this forces a new resource to be created.
 
-* `target_resource_id` - (Required) The ID of the Resource for which to enable flow logs for.
+* `target_resource_id` - (Optional) The ID of the Resource for which to enable flow logs for.
 
 ~> **Note:** As of July 30, 2025, it is no longer possible to create new flow logs for Network Security Groups.
 
@@ -154,4 +154,4 @@ terraform import azurerm_network_watcher_flow_log.watcher1 /subscriptions/000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2025-01-01
+* `Microsoft.Network` - 2025-07-01

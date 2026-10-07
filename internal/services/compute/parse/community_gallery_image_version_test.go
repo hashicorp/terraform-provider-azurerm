@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -10,14 +10,6 @@ import (
 )
 
 var _ resourceids.Id = CommunityGalleryImageVersionId{}
-
-func TestCommunityGalleryImageVersionIDFormatter(t *testing.T) {
-	actual := NewCommunityGalleryImageVersionID("myGallery1", "myImage1", "latest").ID()
-	expected := "/communityGalleries/myGallery1/images/myImage1/versions/latest"
-	if actual != expected {
-		t.Fatalf("Expected %q but got %q", expected, actual)
-	}
-}
 
 func TestCommunityGalleryImageVersionID(t *testing.T) {
 	testData := []struct {

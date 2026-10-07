@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -7,7 +7,7 @@ import (
 	"context"
 	"log"
 
-	apikeys "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentapikeysapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentapikeysapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -20,12 +20,12 @@ func (ApiKeyUpgradeV1ToV2) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (ApiKeyUpgradeV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		// This state migration is identical to v0 -> v1, however we need to apply it again because the resource
 		// previously only normalised the `apiKeys` segment instead of all the static segments, so IDs with incorrect
 		// casing were still present and being created in a user's state
 		oldIdRaw := rawState["id"].(string)
-		id, err := apikeys.ParseApiKeyIDInsensitively(oldIdRaw)
+		id, err := componentapikeysapis.ParseApiKeyIDInsensitively(oldIdRaw)
 		if err != nil {
 			return rawState, err
 		}

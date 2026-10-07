@@ -20,7 +20,7 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_palo_alto_local_rulestack" "example" {
   name                = "example"
-  resource_group_name = azurerm_resrouce_group.example.name
+  resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
 }
 
@@ -75,4 +75,4 @@ terraform import azurerm_palo_alto_local_rulestack_fqdn_list.example /subscripti
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `PaloAltoNetworks.Cloudngfw` - 2022-08-29
+* `PaloAltoNetworks.Cloudngfw` - 2025-10-08
