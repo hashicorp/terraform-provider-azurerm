@@ -34,7 +34,7 @@ resource "azurerm_dedicated_host" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `auto_replace_on_failure` - (Optional) Should the Dedicated Host automatically be replaced in case of a Hardware Failure? Defaults to `true`.
 
-* `license_type` - (Optional) Specifies the software license type that will be applied to the VMs deployed on the Dedicated Host. Possible values are `None`, `Windows_Server_Hybrid` and `Windows_Server_Perpetual`. Defaults to `None`.
+* `license_type` - (Optional) Specifies the software license type that will be applied to the VMs deployed on the Dedicated Host. Possible values are `Windows_Server_Hybrid` and `Windows_Server_Perpetual`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -64,11 +64,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Dedicated Host.
-* `update` - (Defaults to 30 minutes) Used when updating the Dedicated Host.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Dedicated Host.
+* `update` - (Defaults to 30 minutes) Used when updating the Dedicated Host.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Dedicated Host.
 
 ## Import
@@ -78,3 +78,9 @@ Dedicated Hosts can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_dedicated_host.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/hostGroups/group1/hosts/host1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Compute` - 2024-03-01

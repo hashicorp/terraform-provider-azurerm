@@ -150,6 +150,50 @@ func parseAzureFunctionActivityMethod(input string) (*AzureFunctionActivityMetho
 	return &out, nil
 }
 
+type AzurePostgreSqlWriteMethodEnum string
+
+const (
+	AzurePostgreSqlWriteMethodEnumBulkInsert  AzurePostgreSqlWriteMethodEnum = "BulkInsert"
+	AzurePostgreSqlWriteMethodEnumCopyCommand AzurePostgreSqlWriteMethodEnum = "CopyCommand"
+	AzurePostgreSqlWriteMethodEnumUpsert      AzurePostgreSqlWriteMethodEnum = "Upsert"
+)
+
+func PossibleValuesForAzurePostgreSqlWriteMethodEnum() []string {
+	return []string{
+		string(AzurePostgreSqlWriteMethodEnumBulkInsert),
+		string(AzurePostgreSqlWriteMethodEnumCopyCommand),
+		string(AzurePostgreSqlWriteMethodEnumUpsert),
+	}
+}
+
+func (s *AzurePostgreSqlWriteMethodEnum) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAzurePostgreSqlWriteMethodEnum(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseAzurePostgreSqlWriteMethodEnum(input string) (*AzurePostgreSqlWriteMethodEnum, error) {
+	vals := map[string]AzurePostgreSqlWriteMethodEnum{
+		"bulkinsert":  AzurePostgreSqlWriteMethodEnumBulkInsert,
+		"copycommand": AzurePostgreSqlWriteMethodEnumCopyCommand,
+		"upsert":      AzurePostgreSqlWriteMethodEnumUpsert,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := AzurePostgreSqlWriteMethodEnum(input)
+	return &out, nil
+}
+
 type AzureSearchIndexWriteBehaviorType string
 
 const (

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/routetables"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/routetables"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type RouteTableResource struct{}
@@ -40,7 +40,7 @@ func TestAccRouteTable_basicNilNextHopIPAddress(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.nilNextHopIPAddess(data),
+			Config: r.nilNextHopIPAddress(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("route.#").HasValue("1"),
@@ -225,7 +225,7 @@ func TestAccRouteTable_multipleRoutes(t *testing.T) {
 	})
 }
 
-func (t RouteTableResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r RouteTableResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := routetables.ParseRouteTableID(state.ID)
 	if err != nil {
 		return nil, err
@@ -236,7 +236,7 @@ func (t RouteTableResource) Exists(ctx context.Context, clients *clients.Client,
 		return nil, fmt.Errorf("reading Route Table (%s): %+v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (RouteTableResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -249,7 +249,7 @@ func (RouteTableResource) Destroy(ctx context.Context, client *clients.Client, s
 		return nil, fmt.Errorf("deleting Route Table %q: %+v", id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (RouteTableResource) basic(data acceptance.TestData) string {
@@ -271,7 +271,7 @@ resource "azurerm_route_table" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (RouteTableResource) nilNextHopIPAddess(data acceptance.TestData) string {
+func (RouteTableResource) nilNextHopIPAddress(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

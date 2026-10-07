@@ -3,18 +3,20 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_endpoint"
 description: |-
-  Manages a CDN Endpoint.
+  Manages a CDN (classic) Endpoint.
 ---
 
 # azurerm_cdn_endpoint
 
-A CDN Endpoint is the entity within a CDN Profile containing configuration information regarding caching behaviours and origins. The CDN Endpoint is exposed using the URL format `<endpointname>.azureedge.net`.
+A CDN (classic) Endpoint is the entity within a CDN Profile containing configuration information regarding caching behaviours and origins. The CDN Endpoint is exposed using the URL format `<endpointname>.azureedge.net`.
 
-!> **Note:** Azure rolled out a breaking change on Friday 9th April 2021 which may cause issues with the CDN/FrontDoor resources. [More information is available in this GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) - unfortunately this may necessitate a breaking change to the CDN and FrontDoor resources, more information will be posted [in the GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) as the necessary changes are identified.
+!> **Note:** Azure rolled out a breaking change on Friday 9th April 2021 which may cause issues with the CDN/FrontDoor resources. [More information is available in this GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) - unfortunately this may necessitate a breaking change to the CDN (classic) and FrontDoor (classic) resources, more information will be posted [in the GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) as the necessary changes are identified.
 
-!> **Note:** The CDN services from Edgio(formerly Verizon) was shut down on 15 January 2025 and is no longer available.
+!> **Note:** Support for the CDN (classic) `sku` `Standard_Akamai` was deprecated from Azure on `October 31, 2023` and is no longer available.
 
-!> **Note:** Support for CDN services from Akamai was removed on 31 October 2023.
+!> **Note:** Support for the CDN (classic) `sku` `Standard_Verizon` and `Premium_Verizon` was deprecated from Azure on `January 15, 2025` and is no longer available.
+
+!> **Note:** Support for the CDN (classic) `sku` `Standard_Microsoft` and `Standard_ChinaCdn` will be deprecated from Azure on `October 1, 2025` and will no longer be available, however modifications to existing CDN (classic) resources will continue to be supported until the API reaches full retirement on `September 30, 2027`.
 
 ## Example Usage
 
@@ -60,13 +62,13 @@ The following arguments are supported:
 
 * `is_https_allowed` - (Optional) Specifies if https allowed. Defaults to `true`.
 
-* `content_types_to_compress` - (Optional) An array of strings that indicates a content types on which compression will be applied. The value for the elements should be MIME types.
+* `content_types_to_compress` - (Optional) An array of strings that indicates a content types on which compression will be applied. The value for the elements should be MIME types. Required if `is_compression_enabled` is `true`.
 
 * `geo_filter` - (Optional) A set of Geo Filters for this CDN Endpoint. Each `geo_filter` block supports fields documented below.
 
 * `is_compression_enabled` - (Optional) Indicates whether compression is to be enabled.
 
-* `querystring_caching_behaviour` - (Optional) Sets query string caching behavior. Allowed values are `IgnoreQueryString`, `BypassCaching` and `UseQueryString`. `NotSet` value can be used for `Premium Verizon` CDN profile. Defaults to `IgnoreQueryString`.
+* `querystring_caching_behaviour` - (Optional) Sets query string caching behaviour. Allowed values are `IgnoreQueryString`, `BypassCaching` and `UseQueryString`. `NotSet` value can be used for `Premium Verizon` CDN profile. Defaults to `IgnoreQueryString`.
 
 * `optimization_type` - (Optional) What types of optimization should this CDN Endpoint optimize for? Possible values include `DynamicSiteAcceleration`, `GeneralMediaStreaming`, `GeneralWebDelivery`, `LargeFileDownload` and `VideoOnDemandMediaStreaming`.
 
@@ -78,7 +80,7 @@ The following arguments are supported:
 
 * `probe_path` - (Optional) the path to a file hosted on the origin which helps accelerate delivery of the dynamic content and calculate the most optimal routes for the CDN. This is relative to the `origin_path`.
 
--> **NOTE:** `global_delivery_rule` and `delivery_rule` are currently only available for `Microsoft_Standard` CDN profiles.
+-> **Note:** `global_delivery_rule` and `delivery_rule` are currently only available for `Microsoft_Standard` CDN profiles.
 
 * `global_delivery_rule` - (Optional) Actions that are valid for all resources regardless of any conditions. A `global_delivery_rule` block as defined below.
 
@@ -176,7 +178,7 @@ A `delivery_rule` block supports the following:
 
 A `cache_expiration_action` block supports the following:
 
-* `behavior` - (Required) The behavior of the cache. Valid values are `BypassCache`, `Override` and `SetIfMissing`.
+* `behavior` - (Required) The behaviour of the cache. Valid values are `BypassCache`, `Override` and `SetIfMissing`.
 
 * `duration` - (Optional) Duration of the cache. Only allowed when `behavior` is set to `Override` or `SetIfMissing`. Format: `[d.]hh:mm:ss`
 
@@ -184,7 +186,7 @@ A `cache_expiration_action` block supports the following:
 
 A `cache_key_query_string_action` block supports the following:
 
-* `behavior` - (Required) The behavior of the cache key for query strings. Valid values are `Exclude`, `ExcludeAll`, `Include` and `IncludeAll`.
+* `behavior` - (Required) The behaviour of the cache key for query strings. Valid values are `Exclude`, `ExcludeAll`, `Include` and `IncludeAll`.
 
 * `parameters` - (Optional) Comma separated list of parameter values.
 
@@ -410,11 +412,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the CDN Endpoint.
-* `update` - (Defaults to 30 minutes) Used when updating the CDN Endpoint.
 * `read` - (Defaults to 5 minutes) Used when retrieving the CDN Endpoint.
+* `update` - (Defaults to 30 minutes) Used when updating the CDN Endpoint.
 * `delete` - (Defaults to 30 minutes) Used when deleting the CDN Endpoint.
 
 ## Import

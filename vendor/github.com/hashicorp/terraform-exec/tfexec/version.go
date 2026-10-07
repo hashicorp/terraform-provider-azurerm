@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2020, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package tfexec
@@ -22,6 +22,7 @@ var (
 	tf0_6_13 = version.Must(version.NewVersion("0.6.13"))
 	tf0_7_7  = version.Must(version.NewVersion("0.7.7"))
 	tf0_8_0  = version.Must(version.NewVersion("0.8.0"))
+	tf0_9_2  = version.Must(version.NewVersion("0.9.2"))
 	tf0_10_0 = version.Must(version.NewVersion("0.10.0"))
 	tf0_12_0 = version.Must(version.NewVersion("0.12.0"))
 	tf0_13_0 = version.Must(version.NewVersion("0.13.0"))
@@ -32,8 +33,12 @@ var (
 	tf0_15_4 = version.Must(version.NewVersion("0.15.4"))
 	tf1_1_0  = version.Must(version.NewVersion("1.1.0"))
 	tf1_4_0  = version.Must(version.NewVersion("1.4.0"))
+	tf1_5_0  = version.Must(version.NewVersion("1.5.0"))
 	tf1_6_0  = version.Must(version.NewVersion("1.6.0"))
 	tf1_9_0  = version.Must(version.NewVersion("1.9.0"))
+	tf1_10_0 = version.Must(version.NewVersion("1.10.0"))
+	tf1_13_0 = version.Must(version.NewVersion("1.13.0"))
+	tf1_14_0 = version.Must(version.NewVersion("1.14.0"))
 )
 
 // Version returns structured output from the terraform version command including both the Terraform CLI version
@@ -164,7 +169,14 @@ func errorVersionString(v *version.Version) string {
 	return v.String()
 }
 
-// compatible asserts compatibility of the cached terraform version with the executable, and returns a well known error if not.
+// compatible asserts compatibility of the cached Terraform version with a set of constraints, and returns a well known error if not.
+//
+// Each command implementation with compatibility constraints will use this method to check that the available version of Terraform
+// is compatible with a given command, e.g. detect if a project consuming this library is attempting to use a flag that isn't present
+// in the Terraform binary it supplied. A common example is checking whether the version is sufficient to use the `-json` flag.
+//
+// Remember, terraform-exec is invoked with a path to an executable and has no way to know which version of Terraform it represents
+// until the executable is used.
 func (tf *Terraform) compatible(ctx context.Context, minInclusive *version.Version, maxExclusive *version.Version) error {
 	tfv, _, err := tf.Version(ctx, false)
 	if err != nil {
