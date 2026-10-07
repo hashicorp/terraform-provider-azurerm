@@ -43,7 +43,7 @@ func (r ArcMachineExtensionResource) ResourceType() string {
 	return "azurerm_arc_machine_extension"
 }
 
-func (r ArcMachineExtensionResource) ModelObject() interface{} {
+func (r ArcMachineExtensionResource) ModelObject() any {
 	return &MachineExtensionModel{}
 }
 
@@ -179,9 +179,8 @@ func (r ArcMachineExtensionResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.ProtectedSettings != "" {
-				protectedSettingsValue := make(map[string]interface{})
-				err = json.Unmarshal([]byte(model.ProtectedSettings), &protectedSettingsValue)
-				if err != nil {
+				protectedSettingsValue := make(map[string]any)
+				if err = json.Unmarshal([]byte(model.ProtectedSettings), &protectedSettingsValue); err != nil {
 					return err
 				}
 				properties.Properties.ProtectedSettings = &protectedSettingsValue
@@ -192,9 +191,8 @@ func (r ArcMachineExtensionResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.Settings != "" {
-				settingsValue := make(map[string]interface{})
-				err = json.Unmarshal([]byte(model.Settings), &settingsValue)
-				if err != nil {
+				settingsValue := make(map[string]any)
+				if err = json.Unmarshal([]byte(model.Settings), &settingsValue); err != nil {
 					return err
 				}
 				properties.Properties.Settings = &settingsValue
@@ -257,9 +255,8 @@ func (r ArcMachineExtensionResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("protected_settings") {
-				protectedSettingsValue := make(map[string]interface{})
-				err := json.Unmarshal([]byte(model.ProtectedSettings), &protectedSettingsValue)
-				if err != nil {
+				protectedSettingsValue := make(map[string]any)
+				if err := json.Unmarshal([]byte(model.ProtectedSettings), &protectedSettingsValue); err != nil {
 					return err
 				}
 
@@ -275,9 +272,8 @@ func (r ArcMachineExtensionResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("settings") {
-				settingsValue := make(map[string]interface{})
-				err := json.Unmarshal([]byte(model.Settings), &settingsValue)
-				if err != nil {
+				settingsValue := make(map[string]any)
+				if err := json.Unmarshal([]byte(model.Settings), &settingsValue); err != nil {
 					return err
 				}
 
@@ -359,8 +355,7 @@ func (r ArcMachineExtensionResource) Read() sdk.ResourceFunc {
 					}
 
 					var extModel MachineExtensionModel
-					err := metadata.Decode(&extModel)
-					if err != nil {
+					if err := metadata.Decode(&extModel); err != nil {
 						return err
 					}
 

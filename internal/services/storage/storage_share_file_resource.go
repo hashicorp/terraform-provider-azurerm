@@ -13,9 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -36,7 +35,7 @@ func resourceStorageShareFile() *pluginsdk.Resource {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: storageValidate.StorageShareDataPlaneID,
+			ValidateFunc: validate.StorageShareDataPlaneID,
 		},
 
 		"path": {
@@ -44,7 +43,7 @@ func resourceStorageShareFile() *pluginsdk.Resource {
 			ForceNew:     true,
 			Optional:     true,
 			Default:      "",
-			ValidateFunc: storageValidate.StorageShareDirectoryName,
+			ValidateFunc: validate.StorageShareDirectoryName,
 		},
 
 		"content_type": {
@@ -95,27 +94,6 @@ func resourceStorageShareFile() *pluginsdk.Resource {
 
 		"metadata": MetaDataSchema(),
 	}
-
-	if !features.FivePointOh() {
-		schema["storage_share_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ForceNew:     true,
-			ValidateFunc: storageValidate.StorageShareDataPlaneID,
-			ExactlyOneOf: []string{"storage_share_id", "storage_share_url"},
-			Deprecated:   "This property has been deprecated in favour of `storage_share_url` and will be removed in version 5.0 of the Provider.",
-		}
-		schema["storage_share_url"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ForceNew:     true,
-			ValidateFunc: storageValidate.StorageShareDataPlaneID,
-			ExactlyOneOf: []string{"storage_share_id", "storage_share_url"},
-		}
-	}
-
 	return &pluginsdk.Resource{
 		Create: resourceStorageShareFileCreate,
 		Read:   resourceStorageShareFileRead,
@@ -138,7 +116,7 @@ func resourceStorageShareFile() *pluginsdk.Resource {
 	}
 }
 
-func resourceStorageShareFileCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageShareFileCreate(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -148,20 +126,9 @@ func resourceStorageShareFileCreate(d *pluginsdk.ResourceData, meta interface{})
 		storageShareId *shares.ShareId
 		err            error
 	)
-	if !features.FivePointOh() {
-		storageShareURL := d.Get("storage_share_url")
-		if storageShareURL == "" {
-			storageShareURL = d.Get("storage_share_id")
-		}
-		storageShareId, err = shares.ParseShareID(storageShareURL.(string), storageClient.StorageDomainSuffix)
-		if err != nil {
-			return err
-		}
-	} else {
-		storageShareId, err = shares.ParseShareID(d.Get("storage_share_url").(string), storageClient.StorageDomainSuffix)
-		if err != nil {
-			return err
-		}
+	storageShareId, err = shares.ParseShareID(d.Get("storage_share_url").(string), storageClient.StorageDomainSuffix)
+	if err != nil {
+		return err
 	}
 
 	fileName := d.Get("name").(string)
@@ -201,7 +168,7 @@ func resourceStorageShareFileCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	input := files.CreateInput{
-		MetaData:           ExpandMetaData(d.Get("metadata").(map[string]interface{})),
+		MetaData:           ExpandMetaData(d.Get("metadata").(map[string]any)),
 		ContentType:        pointer.To(d.Get("content_type").(string)),
 		ContentEncoding:    pointer.To(d.Get("content_encoding").(string)),
 		ContentDisposition: pointer.To(d.Get("content_disposition").(string)),
@@ -264,7 +231,7 @@ func resourceStorageShareFileCreate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceStorageShareFileRead(d, meta)
 }
 
-func resourceStorageShareFileUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageShareFileUpdate(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -295,13 +262,13 @@ func resourceStorageShareFileUpdate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	if d.HasChange("content_type") || d.HasChange("content_encoding") || d.HasChange("content_disposition") {
+	if d.HasChanges("content_type", "content_encoding", "content_disposition") {
 		input := files.SetPropertiesInput{
 			ContentType:        pointer.To(d.Get("content_type").(string)),
 			ContentEncoding:    pointer.To(d.Get("content_encoding").(string)),
 			ContentDisposition: pointer.To(d.Get("content_disposition").(string)),
 			ContentLength:      int64(d.Get("content_length").(int)),
-			MetaData:           ExpandMetaData(d.Get("metadata").(map[string]interface{})),
+			MetaData:           ExpandMetaData(d.Get("metadata").(map[string]any)),
 		}
 
 		if v, ok := d.GetOk("content_md5"); ok {
@@ -321,7 +288,7 @@ func resourceStorageShareFileUpdate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceStorageShareFileRead(d, meta)
 }
 
-func resourceStorageShareFileRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageShareFileRead(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -356,9 +323,6 @@ func resourceStorageShareFileRead(d *pluginsdk.ResourceData, meta interface{}) e
 	d.Set("name", id.FileName)
 	d.Set("path", id.DirectoryPath)
 	d.Set("storage_share_url", shares.NewShareID(id.AccountId, id.ShareName).ID())
-	if !features.FivePointOh() {
-		d.Set("storage_share_id", shares.NewShareID(id.AccountId, id.ShareName).ID())
-	}
 
 	if err = d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
 		return fmt.Errorf("setting `metadata`: %s", err)
@@ -387,7 +351,7 @@ func resourceStorageShareFileRead(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceStorageShareFileDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageShareFileDelete(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)

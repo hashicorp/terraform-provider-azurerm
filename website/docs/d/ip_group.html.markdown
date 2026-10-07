@@ -37,6 +37,10 @@ output "cidrs" {
 
 * `cidrs` - A list of CIDRs or IP addresses.
 
+* `firewall_ids` - A list of ID of Firewall.
+
+* `firewall_policy_ids` - A list of ID of Firewall Policy`.
+
 * `tags` - A mapping of tags assigned to the resource.
 
 ## Timeouts
@@ -49,4 +53,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2025-01-01
+* `Microsoft.Network` - 2025-07-01
