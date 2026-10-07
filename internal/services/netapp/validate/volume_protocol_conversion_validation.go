@@ -9,7 +9,7 @@ import (
 )
 
 // ValidateNetAppVolumeProtocolConversion validates protocol conversion requirements
-func ValidateNetAppVolumeProtocolConversion(oldProtocols, newProtocols []string, kerberosEnabled bool, dataReplication []interface{}, exportPolicyRules []interface{}) []error {
+func ValidateNetAppVolumeProtocolConversion(oldProtocols, newProtocols []string, kerberosEnabled bool, dataReplication []any, exportPolicyRules []any) []error {
 	var errors []error
 
 	// Only validate if this is a protocol change and not initial creation
@@ -33,7 +33,7 @@ func ValidateNetAppVolumeProtocolConversion(oldProtocols, newProtocols []string,
 
 	// Validate that destination volumes in cross-region replication cannot be converted
 	for _, replication := range dataReplication {
-		if replicationMap, ok := replication.(map[string]interface{}); ok {
+		if replicationMap, ok := replication.(map[string]any); ok {
 			if endpointType, exists := replicationMap["endpoint_type"]; exists {
 				if endpointTypeStr, ok := endpointType.(string); ok {
 					if endpointTypeStr == "dst" {

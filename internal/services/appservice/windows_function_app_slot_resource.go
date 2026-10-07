@@ -81,7 +81,7 @@ var _ sdk.ResourceWithUpdate = WindowsFunctionAppSlotResource{}
 
 var _ sdk.ResourceWithStateMigration = WindowsFunctionAppSlotResource{}
 
-func (r WindowsFunctionAppSlotResource) ModelObject() interface{} {
+func (r WindowsFunctionAppSlotResource) ModelObject() any {
 	return &WindowsFunctionAppSlotModel{}
 }
 

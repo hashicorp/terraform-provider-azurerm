@@ -58,7 +58,7 @@ func resourceVirtualNetworkDnsServers() *pluginsdk.Resource {
 	}
 }
 
-func resourceVirtualNetworkDnsServersCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualNetworkDnsServersCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualNetworks
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -93,7 +93,7 @@ func resourceVirtualNetworkDnsServersCreate(d *pluginsdk.ResourceData, meta inte
 		vnet.Model.Properties.DhcpOptions = &virtualnetworks.DhcpOptions{}
 	}
 
-	vnet.Model.Properties.DhcpOptions.DnsServers = pluginsdk.ExpandStringSlice(d.Get("dns_servers").([]interface{}))
+	vnet.Model.Properties.DhcpOptions.DnsServers = pluginsdk.ExpandStringSlice(d.Get("dns_servers").([]any))
 
 	// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
 	if err := client.CreateOrUpdateThenPoll(ctx, *vnetId, *vnet.Model); err != nil {
@@ -117,7 +117,7 @@ func resourceVirtualNetworkDnsServersCreate(d *pluginsdk.ResourceData, meta inte
 	return resourceVirtualNetworkDnsServersRead(d, meta)
 }
 
-func resourceVirtualNetworkDnsServersRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualNetworkDnsServersRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualNetworks
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -151,7 +151,7 @@ func resourceVirtualNetworkDnsServersRead(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func resourceVirtualNetworkDnsServersUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualNetworkDnsServersUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualNetworks
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -187,7 +187,7 @@ func resourceVirtualNetworkDnsServersUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("dns_servers") {
-		vnet.Model.Properties.DhcpOptions.DnsServers = pluginsdk.ExpandStringSlice(d.Get("dns_servers").([]interface{}))
+		vnet.Model.Properties.DhcpOptions.DnsServers = pluginsdk.ExpandStringSlice(d.Get("dns_servers").([]any))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *vnetId, *vnet.Model); err != nil {
@@ -211,7 +211,7 @@ func resourceVirtualNetworkDnsServersUpdate(d *pluginsdk.ResourceData, meta inte
 	return resourceVirtualNetworkDnsServersRead(d, meta)
 }
 
-func resourceVirtualNetworkDnsServersDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualNetworkDnsServersDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualNetworks
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -247,7 +247,7 @@ func resourceVirtualNetworkDnsServersDelete(d *pluginsdk.ResourceData, meta inte
 		return nil
 	}
 
-	vnet.Model.Properties.DhcpOptions.DnsServers = pluginsdk.ExpandStringSlice(make([]interface{}, 0))
+	vnet.Model.Properties.DhcpOptions.DnsServers = pluginsdk.ExpandStringSlice(make([]any, 0))
 
 	if err := client.CreateOrUpdateThenPoll(ctx, vnetId, *vnet.Model); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)

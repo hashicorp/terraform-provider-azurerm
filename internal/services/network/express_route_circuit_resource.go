@@ -41,7 +41,7 @@ func resourceExpressRouteCircuit() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomDiffInSequence(
 			// If bandwidth is reduced force a new resource
-			pluginsdk.ForceNewIfChange("bandwidth_in_mbps", func(ctx context.Context, old, new, meta interface{}) bool {
+			pluginsdk.ForceNewIfChange("bandwidth_in_mbps", func(ctx context.Context, old, new, meta any) bool {
 				return new.(int) < old.(int)
 			}),
 		),
@@ -160,7 +160,7 @@ func resourceExpressRouteCircuit() *pluginsdk.Resource {
 	}
 }
 
-func resourceExpressRouteCircuitCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRouteCircuits
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -187,8 +187,8 @@ func resourceExpressRouteCircuitCreate(d *pluginsdk.ResourceData, meta interface
 	erc := expressroutecircuits.ExpressRouteCircuit{
 		Name:     &id.ExpressRouteCircuitName,
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
-		Sku:      expandExpressRouteCircuitSku(d.Get("sku").([]interface{})),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Sku:      expandExpressRouteCircuitSku(d.Get("sku").([]any)),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	erc.Properties = &expressroutecircuits.ExpressRouteCircuitPropertiesFormat{
@@ -249,7 +249,7 @@ func resourceExpressRouteCircuitCreate(d *pluginsdk.ResourceData, meta interface
 	return resourceExpressRouteCircuitRead(d, meta)
 }
 
-func resourceExpressRouteCircuitUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRouteCircuits
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -286,11 +286,11 @@ func resourceExpressRouteCircuitUpdate(d *pluginsdk.ResourceData, meta interface
 	payload := *existing.Model
 
 	if d.HasChange("sku") {
-		payload.Sku = expandExpressRouteCircuitSku(d.Get("sku").([]interface{}))
+		payload.Sku = expandExpressRouteCircuitSku(d.Get("sku").([]any))
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if d.HasChange("allow_classic_operations") {
@@ -340,7 +340,7 @@ func resourceExpressRouteCircuitUpdate(d *pluginsdk.ResourceData, meta interface
 	return resourceExpressRouteCircuitRead(d, meta)
 }
 
-func resourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRouteCircuits
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -398,7 +398,7 @@ func resourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceExpressRouteCircuitDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRouteCircuits
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -418,8 +418,8 @@ func resourceExpressRouteCircuitDelete(d *pluginsdk.ResourceData, meta interface
 	return err
 }
 
-func expandExpressRouteCircuitSku(input []interface{}) *expressroutecircuits.ExpressRouteCircuitSku {
-	v := input[0].(map[string]interface{}) // [0] is guarded by MinItems in pluginsdk.
+func expandExpressRouteCircuitSku(input []any) *expressroutecircuits.ExpressRouteCircuitSku {
+	v := input[0].(map[string]any) // [0] is guarded by MinItems in pluginsdk.
 	tier := v["tier"].(string)
 	family := v["family"].(string)
 
@@ -430,13 +430,13 @@ func expandExpressRouteCircuitSku(input []interface{}) *expressroutecircuits.Exp
 	}
 }
 
-func flattenExpressRouteCircuitSku(sku *expressroutecircuits.ExpressRouteCircuitSku) []interface{} {
+func flattenExpressRouteCircuitSku(sku *expressroutecircuits.ExpressRouteCircuitSku) []any {
 	if sku == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"tier":   pointer.FromEnum(sku.Tier),
 			"family": pointer.FromEnum(sku.Family),
 		},
@@ -444,7 +444,7 @@ func flattenExpressRouteCircuitSku(sku *expressroutecircuits.ExpressRouteCircuit
 }
 
 func expressRouteCircuitCreationRefreshFunc(ctx context.Context, client *expressroutecircuits.ExpressRouteCircuitsClient, id expressroutecircuits.ExpressRouteCircuitId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		res, err := client.Get(ctx, id)
 		if err != nil {
 			if response.WasNotFound(res.HttpResponse) {

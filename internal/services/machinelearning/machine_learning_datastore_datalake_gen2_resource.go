@@ -49,7 +49,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Attributes() map[string]*schema.Sc
 	}
 }
 
-func (r MachineLearningDataStoreDataLakeGen2) ModelObject() interface{} {
+func (r MachineLearningDataStoreDataLakeGen2) ModelObject() any {
 	return &MachineLearningDataStoreDataLakeGen2Model{}
 }
 

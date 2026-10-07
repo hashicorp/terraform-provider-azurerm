@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func ContainerRegistryScopeMapName(v interface{}, k string) ([]string, []error) {
+func ContainerRegistryScopeMapName(v any, k string) ([]string, []error) {
 	return validation.All(
 		validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9\-]+$`), "alpha numeric characters and hyphens only are allowed"),
 		validation.StringLenBetween(5, 49),

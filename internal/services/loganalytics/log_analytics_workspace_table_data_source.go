@@ -56,7 +56,7 @@ func (LogAnalyticsWorkspaceTableDataSource) Attributes() map[string]*pluginsdk.S
 	}
 }
 
-func (LogAnalyticsWorkspaceTableDataSource) ModelObject() interface{} {
+func (LogAnalyticsWorkspaceTableDataSource) ModelObject() any {
 	return &LogAnalyticsWorkspaceTableDataSourceModel{}
 }
 

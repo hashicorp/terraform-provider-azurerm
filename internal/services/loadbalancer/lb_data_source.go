@@ -107,7 +107,7 @@ func dataSourceArmLoadBalancer() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceArmLoadBalancerRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceArmLoadBalancerRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -134,7 +134,7 @@ func dataSourceArmLoadBalancerRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 		privateIpAddress := ""
 		privateIpAddresses := make([]string, 0)
-		frontendIpConfigurations := make([]interface{}, 0)
+		frontendIpConfigurations := make([]any, 0)
 
 		if props := model.Properties; props != nil {
 			if feipConfigs := props.FrontendIPConfigurations; feipConfigs != nil {
@@ -165,8 +165,8 @@ func dataSourceArmLoadBalancerRead(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func flattenLoadBalancerDataSourceFrontendIpConfiguration(ipConfigs *[]loadbalancers.FrontendIPConfiguration) []interface{} {
-	result := make([]interface{}, 0)
+func flattenLoadBalancerDataSourceFrontendIpConfiguration(ipConfigs *[]loadbalancers.FrontendIPConfiguration) []any {
+	result := make([]any, 0)
 	if ipConfigs == nil {
 		return result
 	}
@@ -196,7 +196,7 @@ func flattenLoadBalancerDataSourceFrontendIpConfiguration(ipConfigs *[]loadbalan
 			}
 		}
 
-		result = append(result, map[string]interface{}{
+		result = append(result, map[string]any{
 			"id":                            id,
 			"name":                          name,
 			"private_ip_address":            privateIpAddress,

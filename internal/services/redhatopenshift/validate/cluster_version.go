@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func ClusterVersion(i interface{}, k string) ([]string, []error) {
+func ClusterVersion(i any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile(`^\d+\.\d+\.\d+$`), "should be in the format `X.Y.Z` (e.g. `4.13.23`)")(i, k)
 }

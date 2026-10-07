@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	arckubernetes "github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2024-01-01/connectedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2024-01-01/connectedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2025-04-01/fluxconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
@@ -104,12 +104,12 @@ func (r ArcKubernetesFluxConfigurationResource) ResourceType() string {
 	return "azurerm_arc_kubernetes_flux_configuration"
 }
 
-func (r ArcKubernetesFluxConfigurationResource) ModelObject() interface{} {
+func (r ArcKubernetesFluxConfigurationResource) ModelObject() any {
 	return &ArcKubernetesFluxConfigurationModel{}
 }
 
 func (r ArcKubernetesFluxConfigurationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return func(val interface{}, key string) (warns []string, errs []error) {
+	return func(val any, key string) (warns []string, errs []error) {
 		idRaw, ok := val.(string)
 		if !ok {
 			errs = append(errs, fmt.Errorf("expected `id` to be a string but got %+v", val))
@@ -123,7 +123,7 @@ func (r ArcKubernetesFluxConfigurationResource) IDValidationFunc() pluginsdk.Sch
 		}
 
 		// validate the scope is a connected cluster id
-		if _, err := arckubernetes.ParseConnectedClusterID(id.Scope); err != nil {
+		if _, err := connectedclusters.ParseConnectedClusterID(id.Scope); err != nil {
 			errs = append(errs, fmt.Errorf("parsing %q as a Connected Cluster ID: %+v", idRaw, err))
 			return
 		}
@@ -148,7 +148,7 @@ func (r ArcKubernetesFluxConfigurationResource) Arguments() map[string]*pluginsd
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: arckubernetes.ValidateConnectedClusterID,
+			ValidateFunc: connectedclusters.ValidateConnectedClusterID,
 		},
 
 		"kustomizations": {
@@ -525,13 +525,13 @@ func (r ArcKubernetesFluxConfigurationResource) Create() sdk.ResourceFunc {
 
 			client := metadata.Client.ArcKubernetes.FluxConfigurationClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
-			clusterID, err := arckubernetes.ParseConnectedClusterID(model.ClusterID)
+			clusterID, err := connectedclusters.ParseConnectedClusterID(model.ClusterID)
 			if err != nil {
 				return err
 			}
 
 			// defined as strings because they're not enums in the swagger https://github.com/Azure/azure-rest-api-specs/pull/23545
-			connectedClusterId := arckubernetes.NewConnectedClusterID(subscriptionId, clusterID.ResourceGroupName, clusterID.ConnectedClusterName)
+			connectedClusterId := connectedclusters.NewConnectedClusterID(subscriptionId, clusterID.ResourceGroupName, clusterID.ConnectedClusterName)
 			id := fluxconfiguration.NewScopedFluxConfigurationID(connectedClusterId.ID(), model.Name)
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
@@ -702,7 +702,7 @@ func (r ArcKubernetesFluxConfigurationResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			connectedClusterId, err := arckubernetes.ParseConnectedClusterID(id.Scope)
+			connectedClusterId, err := connectedclusters.ParseConnectedClusterID(id.Scope)
 			if err != nil {
 				return fmt.Errorf("parsing %q as a Connected Cluster ID: %+v", id.Scope, err)
 			}

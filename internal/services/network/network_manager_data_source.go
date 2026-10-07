@@ -26,7 +26,7 @@ func (r ManagerDataSource) ResourceType() string {
 	return "azurerm_network_manager"
 }
 
-func (r ManagerDataSource) ModelObject() interface{} {
+func (r ManagerDataSource) ModelObject() any {
 	return &ManagerModel{}
 }
 

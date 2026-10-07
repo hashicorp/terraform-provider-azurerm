@@ -53,7 +53,7 @@ func dataSourceContainerRegistryToken() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceContainerRegistryTokenRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceContainerRegistryTokenRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Containers.ContainerRegistryClient.Tokens
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
