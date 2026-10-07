@@ -234,5 +234,4 @@ func (r MaintenanceAssignmentArcMachineResource) IDValidationFunc() pluginsdk.Sc
 
 		return
 	}
-
 }
