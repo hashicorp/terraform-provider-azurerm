@@ -14,7 +14,7 @@ Use this data source to access information about an existing Logic App Standard 
 
 ```hcl
 data "azurerm_logic_app_standard" "example" {
-  name                = "logicappstd"
+  name                = "example-logic-app"
   resource_group_name = "example-rg"
 }
 
@@ -27,9 +27,9 @@ output "id" {
 
 The following arguments are supported:
 
-* `name` - The name of this Logic App.
+* `name` - (Required) The name of the Logic App.
 
-* `resource_group_name` - The name of the Resource Group where the Logic App exists.
+* `resource_group_name` - (Required) The name of the Resource Group where the Logic App exists.
 
 ## Attributes Reference
 
@@ -61,6 +61,8 @@ The following attributes are exported:
 
 * `enabled` - Whether the Logic App is enabled.
 
+* `ftp_publish_basic_authentication_enabled` - Whether the default FTP basic authentication publishing profile is enabled.
+
 * `https_only` - Whether the Logic App can only be accessed via HTTPS.
 
 * `kind` - The kind of the Logic App.
@@ -71,6 +73,8 @@ The following attributes are exported:
 
 * `public_network_access` - Whether Public Network Access should be enabled or not.
 
+* `scm_publish_basic_authentication_enabled` - Whether the default SCM basic authentication publishing profile is enabled.
+
 * `site_config` - A `site_config` object as defined below.
 
 * `site_credential` - A `site_credential` block as defined below, which contains the site-level credentials used to publish to this Logic App.
@@ -78,6 +82,8 @@ The following attributes are exported:
 * `storage_account_name` - The backend storage account name which will be used by this Logic App (e.g. for Stateful workflows data).
 
 * `storage_account_access_key` - The access key which will be used to access the backend storage account for the Logic App.
+
+* `storage_key_vault_secret_id` - The Key Vault Secret ID, optionally including version, that contains the connection string to the backend storage account for the Logic App.
 
 * `storage_account_share_name` - The name of the share used by the logic app.
 
@@ -129,7 +135,11 @@ The `site_config` block exports the following:
 
 * `ip_restriction` - A list of `ip_restriction` objects representing IP restrictions as defined below.
 
+* `ip_restriction_default_action` - The default action taken when no `ip_restriction` rules match. 
+
 * `scm_ip_restriction` - A list of `scm_ip_restriction` objects representing SCM IP restrictions as defined below.
+  
+* `scm_ip_restriction_default_action` - The default action taken when no `scm_ip_restriction` rules match.
 
 * `scm_use_main_ip_restriction` - Should the Logic App `ip_restriction` configuration be used for the SCM too.
 
@@ -209,6 +219,12 @@ A `headers` block supports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Logic App Workflow.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Web` - 2023-12-01

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation
@@ -6,16 +6,16 @@ package automation
 import (
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/variable"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/variable"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 func resourceAutomationVariableDateTime() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationVariableDateTimeCreateUpdate,
+		Create: resourceAutomationVariableDateTimeCreate,
 		Read:   resourceAutomationVariableDateTimeRead,
-		Update: resourceAutomationVariableDateTimeCreateUpdate,
+		Update: resourceAutomationVariableDateTimeUpdate,
 		Delete: resourceAutomationVariableDateTimeDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -34,14 +34,18 @@ func resourceAutomationVariableDateTime() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationVariableDateTimeCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	return resourceAutomationVariableCreateUpdate(d, meta, "Datetime")
+func resourceAutomationVariableDateTimeCreate(d *pluginsdk.ResourceData, meta any) error {
+	return resourceAutomationVariableCreate(d, meta, "Datetime")
 }
 
-func resourceAutomationVariableDateTimeRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationVariableDateTimeUpdate(d *pluginsdk.ResourceData, meta any) error {
+	return resourceAutomationVariableUpdate(d, meta, "Datetime")
+}
+
+func resourceAutomationVariableDateTimeRead(d *pluginsdk.ResourceData, meta any) error {
 	return resourceAutomationVariableRead(d, meta, "Datetime")
 }
 
-func resourceAutomationVariableDateTimeDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationVariableDateTimeDelete(d *pluginsdk.ResourceData, meta any) error {
 	return resourceAutomationVariableDelete(d, meta, "Datetime")
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -6,14 +6,17 @@ package network
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkmanagers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/networkmanagerconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkmanagerconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkmanagers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	managementParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
-	managementValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -34,7 +37,7 @@ func (r ManagerManagementGroupConnectionResource) ResourceType() string {
 	return "azurerm_network_manager_management_group_connection"
 }
 
-func (r ManagerManagementGroupConnectionResource) ModelObject() interface{} {
+func (r ManagerManagementGroupConnectionResource) ModelObject() any {
 	return &ManagerManagementGroupConnectionModel{}
 }
 
@@ -55,7 +58,7 @@ func (r ManagerManagementGroupConnectionResource) Arguments() map[string]*plugin
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: managementValidate.ManagementGroupID,
+			ValidateFunc: validate.ManagementGroupID,
 		},
 
 		"network_manager_id": {
@@ -92,19 +95,22 @@ func (r ManagerManagementGroupConnectionResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.Network.NetworkManagerConnections
-			managementGroupId, err := managementParse.ManagementGroupID(model.ManagementGroupId)
+			managementGroupId, err := parse.ManagementGroupID(model.ManagementGroupId)
 			if err != nil {
 				return err
 			}
 
 			id := networkmanagerconnections.NewProviders2NetworkManagerConnectionID(managementGroupId.Name, model.Name)
-			existing, err := client.ManagementGroupNetworkManagerConnectionsGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.ManagementGroupNetworkManagerConnectionsGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			managerConnection := networkmanagerconnections.NetworkManagerConnection{
@@ -207,7 +213,7 @@ func (r ManagerManagementGroupConnectionResource) Read() sdk.ResourceFunc {
 			properties := existing.Model.Properties
 			state := ManagerManagementGroupConnectionModel{
 				Name:              id.NetworkManagerConnectionName,
-				ManagementGroupId: managementParse.NewManagementGroupId(id.ManagementGroupId).ID(),
+				ManagementGroupId: parse.NewManagementGroupId(id.ManagementGroupId).ID(),
 			}
 
 			if properties.ConnectionState != nil {
@@ -242,32 +248,16 @@ func (r ManagerManagementGroupConnectionResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
-			deadline, ok := ctx.Deadline()
-			if !ok {
-				return fmt.Errorf("internal-error: context had no deadline")
-			}
-
 			// https://github.com/Azure/azure-rest-api-specs/issues/23188
 			// confirm the connection is fully deleted
-			stateChangeConf := &pluginsdk.StateChangeConf{
-				Pending: []string{"Exists"},
-				Target:  []string{"NotFound"},
-				Refresh: func() (result interface{}, state string, err error) {
-					resp, err := client.ManagementGroupNetworkManagerConnectionsGet(ctx, *id)
-					if err != nil {
-						if response.WasNotFound(resp.HttpResponse) {
-							return "NotFound", "NotFound", nil
-						}
-						return "Error", "Error", err
-					}
-					return resp, "Exists", nil
-				},
-				PollInterval:              3 * time.Second,
-				ContinuousTargetOccurence: 3,
-				Timeout:                   time.Until(deadline),
-			}
-
-			if _, err = stateChangeConf.WaitForStateContext(ctx); err != nil {
+			poller := custompollers.NewEventualConsistencyPoller(3, func(pollerCtx context.Context) (*http.Response, error) {
+				resp, err := client.ManagementGroupNetworkManagerConnectionsGet(pollerCtx, *id)
+				return resp.HttpResponse, err
+			}, &custompollers.EventualConsistencyPollerOptions{
+				Interval:         3 * time.Second,
+				TargetStatusCode: pointer.To(http.StatusNotFound),
+			})
+			if err := poller.PollUntilDone(ctx); err != nil {
 				return fmt.Errorf("waiting for %s to be deleted: %+v", id, err)
 			}
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package azurestackhci
@@ -38,7 +38,7 @@ func (StackHCIMarketplaceGalleryImageResource) ResourceType() string {
 	return "azurerm_stack_hci_marketplace_gallery_image"
 }
 
-func (StackHCIMarketplaceGalleryImageResource) ModelObject() interface{} {
+func (StackHCIMarketplaceGalleryImageResource) ModelObject() any {
 	return &StackHCIMarketplaceGalleryImageResourceModel{}
 }
 
@@ -52,7 +52,7 @@ type StackHCIMarketplaceGalleryImageResourceModel struct {
 	OsType            string                                      `tfschema:"os_type"`
 	Version           string                                      `tfschema:"version"`
 	StoragePathId     string                                      `tfschema:"storage_path_id"`
-	Tags              map[string]interface{}                      `tfschema:"tags"`
+	Tags              map[string]any                              `tfschema:"tags"`
 }
 
 type StackHCIMarketplaceGalleryImageIdentifier struct {
@@ -160,12 +160,14 @@ func (r StackHCIMarketplaceGalleryImageResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := marketplacegalleryimages.NewMarketplaceGalleryImageID(subscriptionId, config.ResourceGroupName, config.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			payload := marketplacegalleryimages.MarketplaceGalleryImages{
@@ -179,7 +181,7 @@ func (r StackHCIMarketplaceGalleryImageResource) Create() sdk.ResourceFunc {
 				Properties: &marketplacegalleryimages.MarketplaceGalleryImageProperties{
 					Identifier:       expandStackHCIMarketplaceGalleryImageIdentifier(config.Identifier),
 					OsType:           marketplacegalleryimages.OperatingSystemTypes(config.OsType),
-					HyperVGeneration: pointer.To(marketplacegalleryimages.HyperVGeneration(config.HypervGeneration)),
+					HyperVGeneration: pointer.ToEnum[marketplacegalleryimages.HyperVGeneration](config.HypervGeneration),
 					Version: &marketplacegalleryimages.GalleryImageVersion{
 						Name: pointer.To(config.Version),
 					},
@@ -190,7 +192,7 @@ func (r StackHCIMarketplaceGalleryImageResource) Create() sdk.ResourceFunc {
 				payload.Properties.ContainerId = pointer.To(config.StoragePathId)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("performing create %s: %+v", id, err)
 			}
 
@@ -247,7 +249,7 @@ func (r StackHCIMarketplaceGalleryImageResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					schema.StoragePathId = pointer.From(props.ContainerId)
 					schema.OsType = string(props.OsType)
-					schema.HypervGeneration = string(pointer.From(props.HyperVGeneration))
+					schema.HypervGeneration = pointer.FromEnum(props.HyperVGeneration)
 					schema.Identifier = flattenStackHCIMarketplaceGalleryImageIdentifier(props.Identifier)
 
 					if props.Version != nil {

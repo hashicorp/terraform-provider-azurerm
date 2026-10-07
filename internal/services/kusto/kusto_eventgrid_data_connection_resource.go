@@ -1,11 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package kusto
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -13,19 +12,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/eventsubscriptions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/eventsubscriptions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/dataconnections"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/dataconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceKustoEventGridDataConnection() *pluginsdk.Resource {
@@ -93,10 +91,13 @@ func resourceKustoEventGridDataConnection() *pluginsdk.Resource {
 			},
 
 			"eventhub_consumer_group_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: eventhubValidate.ValidateEventHubConsumerName(),
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.Any(
+					eventhubValidate.ValidateEventHubConsumerName(),
+					validation.StringInSlice([]string{"$Default"}, false),
+				),
 			},
 
 			"blob_storage_event_type": {
@@ -138,15 +139,13 @@ func resourceKustoEventGridDataConnection() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice(dataconnections.PossibleValuesForDatabaseRouting(), false),
 			},
 
-			// TODO: rename this to `eventgrid_event_subscription_id` in 4.0
-			"eventgrid_resource_id": {
+			"eventgrid_event_subscription_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: eventsubscriptions.ValidateScopedEventSubscriptionID,
 			},
 
-			// TODO: rename this to `managed_identity_id` in 4.0
-			"managed_identity_resource_id": {
+			"managed_identity_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.Any(
@@ -158,35 +157,35 @@ func resourceKustoEventGridDataConnection() *pluginsdk.Resource {
 	}
 }
 
-func resourceKustoEventGridDataConnectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoEventGridDataConnectionCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure Kusto Event Grid Data Connection creation.")
-
 	id := dataconnections.NewDataConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("cluster_name").(string), d.Get("database_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			resp, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(resp.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(resp.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_kusto_eventgrid_data_connection", id.ID())
+			if !response.WasNotFound(resp.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_kusto_eventgrid_data_connection", id.ID())
+			}
 		}
 	}
 
 	dataConnection := dataconnections.EventGridDataConnection{
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &dataconnections.EventGridConnectionProperties{
 			StorageAccountResourceId: d.Get("storage_account_id").(string),
 			EventHubResourceId:       d.Get("eventhub_id").(string),
 			ConsumerGroup:            d.Get("eventhub_consumer_group_name").(string),
-			IgnoreFirstRecord:        utils.Bool(d.Get("skip_first_record").(bool)),
+			IgnoreFirstRecord:        pointer.To(d.Get("skip_first_record").(bool)),
 		},
 	}
 
@@ -194,42 +193,44 @@ func resourceKustoEventGridDataConnectionCreateUpdate(d *pluginsdk.ResourceData,
 	dataConnection.Properties.BlobStorageEventType = &blobStorageEventType
 
 	if tableName, ok := d.GetOk("table_name"); ok {
-		dataConnection.Properties.TableName = utils.String(tableName.(string))
+		dataConnection.Properties.TableName = pointer.To(tableName.(string))
 	}
 
 	if mappingRuleName, ok := d.GetOk("mapping_rule_name"); ok {
-		dataConnection.Properties.MappingRuleName = utils.String(mappingRuleName.(string))
+		dataConnection.Properties.MappingRuleName = pointer.To(mappingRuleName.(string))
 	}
 
 	if df, ok := d.GetOk("data_format"); ok {
-		dataFormat := dataconnections.EventGridDataFormat(df.(string))
-		dataConnection.Properties.DataFormat = &dataFormat
+		dataConnection.Properties.DataFormat = pointer.ToEnum[dataconnections.EventGridDataFormat](df.(string))
 	}
 
 	if databaseRouting, ok := d.GetOk("database_routing_type"); ok {
-		databaseRoutingType := dataconnections.DatabaseRouting(databaseRouting.(string))
-		dataConnection.Properties.DatabaseRouting = &databaseRoutingType
+		dataConnection.Properties.DatabaseRouting = pointer.ToEnum[dataconnections.DatabaseRouting](databaseRouting.(string))
 	}
 
-	if eventGridRID, ok := d.GetOk("eventgrid_resource_id"); ok {
-		dataConnection.Properties.EventGridResourceId = utils.String(eventGridRID.(string))
+	if eventGridRID, ok := d.GetOk("eventgrid_event_subscription_id"); ok {
+		dataConnection.Properties.EventGridResourceId = pointer.To(eventGridRID.(string))
 	}
 
-	if managedIdentityRID, ok := d.GetOk("managed_identity_resource_id"); ok {
-		dataConnection.Properties.ManagedIdentityResourceId = utils.String(managedIdentityRID.(string))
+	if managedIdentityRID, ok := d.GetOk("managed_identity_id"); ok {
+		dataConnection.Properties.ManagedIdentityResourceId = pointer.To(managedIdentityRID.(string))
 	}
 
-	err := client.CreateOrUpdateThenPoll(ctx, id, dataConnection)
-	if err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, dataConnection, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, dataConnection); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
-
-	d.SetId(id.ID())
 
 	return resourceKustoEventGridDataConnectionRead(d, meta)
 }
 
-func resourceKustoEventGridDataConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoEventGridDataConnectionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -261,12 +262,12 @@ func resourceKustoEventGridDataConnectionRead(d *pluginsdk.ResourceData, meta in
 				d.Set("eventhub_id", props.EventHubResourceId)
 				d.Set("eventhub_consumer_group_name", props.ConsumerGroup)
 				d.Set("skip_first_record", props.IgnoreFirstRecord)
-				d.Set("blob_storage_event_type", string(pointer.From(props.BlobStorageEventType)))
+				d.Set("blob_storage_event_type", pointer.FromEnum(props.BlobStorageEventType))
 				d.Set("table_name", props.TableName)
 				d.Set("mapping_rule_name", props.MappingRuleName)
-				d.Set("data_format", string(pointer.From(props.DataFormat)))
-				d.Set("database_routing_type", string(pointer.From(props.DatabaseRouting)))
-				d.Set("eventgrid_resource_id", props.EventGridResourceId)
+				d.Set("data_format", pointer.FromEnum(props.DataFormat))
+				d.Set("database_routing_type", pointer.FromEnum(props.DatabaseRouting))
+				d.Set("eventgrid_event_subscription_id", props.EventGridResourceId)
 
 				managedIdentityResourceId := ""
 				if props.ManagedIdentityResourceId != nil && *props.ManagedIdentityResourceId != "" {
@@ -279,11 +280,12 @@ func resourceKustoEventGridDataConnectionRead(d *pluginsdk.ResourceData, meta in
 						if userAssignedIdentityIdErr == nil {
 							managedIdentityResourceId = userAssignedIdentityId.ID()
 						} else {
-							return fmt.Errorf("parsing `managed_identity_resource_id`: %+v; %+v", clusterIdErr, userAssignedIdentityIdErr)
+							return fmt.Errorf("parsing `managed_identity_id`: %+v; %+v", clusterIdErr, userAssignedIdentityIdErr)
 						}
 					}
 				}
-				d.Set("managed_identity_resource_id", managedIdentityResourceId)
+
+				d.Set("managed_identity_id", managedIdentityResourceId)
 			}
 		}
 	}
@@ -291,7 +293,7 @@ func resourceKustoEventGridDataConnectionRead(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func resourceKustoEventGridDataConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoEventGridDataConnectionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -301,8 +303,7 @@ func resourceKustoEventGridDataConnectionDelete(d *pluginsdk.ResourceData, meta 
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 

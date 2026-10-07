@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package azurestackhci
@@ -38,7 +38,7 @@ func (StackHCINetworkInterfaceResource) ResourceType() string {
 	return "azurerm_stack_hci_network_interface"
 }
 
-func (StackHCINetworkInterfaceResource) ModelObject() interface{} {
+func (StackHCINetworkInterfaceResource) ModelObject() any {
 	return &StackHCINetworkInterfaceResourceModel{}
 }
 
@@ -50,7 +50,7 @@ type StackHCINetworkInterfaceResourceModel struct {
 	DNSServers        []string                       `tfschema:"dns_servers"`
 	IPConfiguration   []StackHCIIPConfigurationModel `tfschema:"ip_configuration"`
 	MACAddress        string                         `tfschema:"mac_address"`
-	Tags              map[string]interface{}         `tfschema:"tags"`
+	Tags              map[string]any                 `tfschema:"tags"`
 }
 
 type StackHCIIPConfigurationModel struct {
@@ -147,12 +147,14 @@ func (r StackHCINetworkInterfaceResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := networkinterfaces.NewNetworkInterfaceID(subscriptionId, config.ResourceGroupName, config.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			payload := networkinterfaces.NetworkInterfaces{
@@ -178,7 +180,7 @@ func (r StackHCINetworkInterfaceResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("performing create %s: %+v", id, err)
 			}
 

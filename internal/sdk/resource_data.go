@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sdk
@@ -11,17 +11,17 @@ type ResourceData interface {
 	// in Create and Update functions this will return from the config
 	// in Read, Exists and Import functions this will return from the state
 	// NOTE: this should not be called from Delete functions.
-	Get(key string) interface{}
+	Get(key string) any
 
-	GetOk(key string) (interface{}, bool)
+	GetOk(key string) (any, bool)
 
-	GetOkExists(key string) (interface{}, bool)
+	GetOkExists(key string) (any, bool)
 
 	// GetFromConfig(key string) interface{} // TODO - Should we support this?
 	//
 	// GetFromState(key string) interface{} // TODO - Should we support this?
 
-	GetChange(key string) (interface{}, interface{})
+	GetChange(key string) (any, any)
 
 	HasChange(key string) bool
 
@@ -31,7 +31,7 @@ type ResourceData interface {
 
 	Id() string
 
-	Set(key string, value interface{}) error
+	Set(key string, value any) error
 
 	SetConnInfo(v map[string]string)
 

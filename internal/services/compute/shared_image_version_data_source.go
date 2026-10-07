@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimageversions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-07-03/galleryimageversions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -105,7 +105,7 @@ func dataSourceSharedImageVersion() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.GalleryImageVersionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -119,10 +119,7 @@ func dataSourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{
 		return err
 	}
 
-	name := ""
-	if image.Name != nil {
-		name = *image.Name
-	}
+	name := pointer.From(image.Name)
 
 	exactId := galleryimageversions.NewImageVersionID(subscriptionId, id.ResourceGroupName, id.GalleryName, id.ImageName, name)
 	d.SetId(exactId.ID())
@@ -191,7 +188,7 @@ func obtainImage(client *galleryimageversions.GalleryImageVersionsClient, ctx co
 
 			for i := len(images) - 1; i >= 0; i-- {
 				if prop := images[i].Properties; prop == nil || prop.PublishingProfile == nil || prop.PublishingProfile.ExcludeFromLatest == nil || !*prop.PublishingProfile.ExcludeFromLatest {
-					return &(images[i]), nil
+					return &images[i], nil
 				}
 			}
 		}
@@ -246,12 +243,12 @@ func obtainImage(client *galleryimageversions.GalleryImageVersionsClient, ctx co
 	}
 }
 
-func flattenSharedImageVersionDataSourceTargetRegions(input *[]galleryimageversions.TargetRegion) []interface{} {
-	results := make([]interface{}, 0)
+func flattenSharedImageVersionDataSourceTargetRegions(input *[]galleryimageversions.TargetRegion) []any {
+	results := make([]any, 0)
 
 	if input != nil {
 		for _, v := range *input {
-			output := make(map[string]interface{})
+			output := make(map[string]any)
 
 			output["name"] = location.Normalize(v.Name)
 

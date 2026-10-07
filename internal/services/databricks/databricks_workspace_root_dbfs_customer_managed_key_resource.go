@@ -1,0 +1,304 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
+package databricks
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"strings"
+	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/workspaces"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+)
+
+//go:generate go run ../../tools/generator-tests resourceidentity -parent-id "workspace_id"
+
+func resourceDatabricksWorkspaceRootDbfsCustomerManagedKey() *pluginsdk.Resource {
+	r := &pluginsdk.Resource{
+		Create: databricksWorkspaceRootDbfsCustomerManagedKeyCreate,
+		Read:   databricksWorkspaceRootDbfsCustomerManagedKeyRead,
+		Update: databricksWorkspaceRootDbfsCustomerManagedKeyUpdate,
+		Delete: databricksWorkspaceRootDbfsCustomerManagedKeyDelete,
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+		},
+
+		Importer: pluginsdk.ImporterValidatingIdentityThen(&workspaces.WorkspaceId{}, func(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
+			// validate that the passed ID is a valid CMK configuration ID
+			id, err := workspaces.ParseWorkspaceID(d.Id())
+			if err != nil {
+				return []*pluginsdk.ResourceData{d}, err
+			}
+
+			// set the new values for the CMK resource
+			d.SetId(id.ID())
+			d.Set("workspace_id", id.ID())
+
+			return []*pluginsdk.ResourceData{d}, nil
+		}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&workspaces.WorkspaceId{}),
+		},
+
+		Schema: map[string]*pluginsdk.Schema{
+			"workspace_id": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: workspaces.ValidateWorkspaceID,
+			},
+
+			"key_vault_key_id": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
+			},
+		},
+	}
+
+	if !features.SixPointOh() {
+		r.Schema["key_vault_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: commonids.ValidateKeyVaultID,
+			DiffSuppressFunc: func(_, o, n string, _ *pluginsdk.ResourceData) bool {
+				// Suppress removal diff for 5.x since that does not require an update
+				return o != "" && n == ""
+			},
+			Deprecated: "`key_vault_id` has been deprecated and will be removed in v6.0 of the AzureRM provider. This property is no longer required for cross-subscription scenarios.",
+		}
+	}
+
+	return r
+}
+
+func databricksWorkspaceRootDbfsCustomerManagedKeyCreate(d *pluginsdk.ResourceData, meta any) error {
+	workspaceClient := meta.(*clients.Client).DataBricks.WorkspacesClient
+
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := workspaces.ParseWorkspaceID(d.Get("workspace_id").(string))
+	if err != nil {
+		return err
+	}
+
+	locks.ByName(id.WorkspaceName, "azurerm_databricks_workspace")
+	defer locks.UnlockByName(id.WorkspaceName, "azurerm_databricks_workspace")
+
+	existing, err := workspaceClient.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `Model` was nil", id)
+	}
+
+	if existing.Model.Properties.Parameters == nil {
+		return fmt.Errorf("retrieving %s: `Parameters` was nil", id)
+	}
+	params := existing.Model.Properties.Parameters
+
+	var encryptionEnabled bool
+	if prepEncryption := params.PrepareEncryption; prepEncryption != nil {
+		encryptionEnabled = prepEncryption.Value
+	}
+
+	if !encryptionEnabled {
+		// TODO: consider removing this check and simply enabling this if it's not already?
+		return fmt.Errorf("%s: `customer_managed_key_enabled` must be set to `true`", *id)
+	}
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		if params.Encryption != nil && params.Encryption.Value != nil && pointer.From(params.Encryption.Value.KeySource) != workspaces.KeySourceDefault {
+			return tf.ImportAsExistsError("azurerm_databricks_workspace_root_dbfs_customer_managed_key", id.ID())
+		}
+	}
+
+	key, err := keyvault.ParseNestedItemID(d.Get("key_vault_key_id").(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
+	if err != nil {
+		return err
+	}
+
+	params.Encryption = &workspaces.WorkspaceEncryptionParameter{
+		Value: &workspaces.Encryption{
+			KeySource:   pointer.To(workspaces.KeySourceMicrosoftPointKeyvault),
+			KeyName:     pointer.To(key.Name),
+			Keyversion:  pointer.To(key.Version),
+			Keyvaulturi: pointer.To(key.KeyVaultBaseURL),
+		},
+	}
+
+	if err = workspaceClient.CreateOrUpdateCallbackThenPoll(ctx, *id, *existing.Model, sdk.SetIDAndIdentityCallback(meta, id, d)); err != nil {
+		return fmt.Errorf("creating Root DBFS Customer Managed Key for %s: %+v", *id, err)
+	}
+
+	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, id); err != nil {
+		return err
+	}
+
+	return databricksWorkspaceRootDbfsCustomerManagedKeyRead(d, meta)
+}
+
+func databricksWorkspaceRootDbfsCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).DataBricks.WorkspacesClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := workspaces.ParseWorkspaceID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.Get(ctx, *id)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] %s was not found - removing from state", *id)
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	if model := resp.Model; model != nil {
+		if params := model.Properties.Parameters; params != nil {
+			if encryption := params.Encryption; encryption != nil {
+				if value := encryption.Value; value != nil {
+					if strings.EqualFold(pointer.FromEnum(value.KeySource), string(workspaces.KeySourceDefault)) && value.Keyvaulturi == nil && value.KeyName == nil {
+						d.SetId("")
+						return nil
+					}
+
+					key, err := keyvault.NewNestedItemID(pointer.From(value.Keyvaulturi), keyvault.NestedItemTypeKey, pointer.From(value.KeyName), pointer.From(value.Keyversion))
+					if err != nil {
+						return err
+					}
+					d.Set("key_vault_key_id", key.ID())
+				}
+			}
+		}
+	}
+
+	d.Set("workspace_id", id.ID())
+	if !features.SixPointOh() {
+		d.Set("key_vault_id", d.Get("key_vault_id").(string))
+	}
+
+	return pluginsdk.SetResourceIdentityData(d, id)
+}
+
+func databricksWorkspaceRootDbfsCustomerManagedKeyUpdate(d *pluginsdk.ResourceData, meta any) error {
+	workspaceClient := meta.(*clients.Client).DataBricks.WorkspacesClient
+
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := workspaces.ParseWorkspaceID(d.Get("workspace_id").(string))
+	if err != nil {
+		return err
+	}
+
+	locks.ByName(id.WorkspaceName, "azurerm_databricks_workspace")
+	defer locks.UnlockByName(id.WorkspaceName, "azurerm_databricks_workspace")
+
+	existing, err := workspaceClient.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `Model` was nil", id)
+	}
+
+	if existing.Model.Properties.Parameters == nil {
+		return fmt.Errorf("retrieving %s: `Parameters` was nil", id)
+	}
+
+	var encryptionEnabled bool
+	if prepEncryption := existing.Model.Properties.Parameters.PrepareEncryption; prepEncryption != nil {
+		encryptionEnabled = prepEncryption.Value
+	}
+
+	if !encryptionEnabled {
+		return fmt.Errorf("%s: `customer_managed_key_enabled` must be set to `true`", *id)
+	}
+
+	key, err := keyvault.ParseNestedItemID(d.Get("key_vault_key_id").(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
+	if err != nil {
+		return err
+	}
+
+	existing.Model.Properties.Parameters.Encryption = &workspaces.WorkspaceEncryptionParameter{
+		Value: &workspaces.Encryption{
+			KeySource:   pointer.To(workspaces.KeySourceMicrosoftPointKeyvault),
+			KeyName:     pointer.To(key.Name),
+			Keyversion:  pointer.To(key.Version),
+			Keyvaulturi: pointer.To(key.KeyVaultBaseURL),
+		},
+	}
+
+	if err = workspaceClient.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
+		return fmt.Errorf("updating Root DBFS Customer Managed Key for %s: %+v", *id, err)
+	}
+
+	return databricksWorkspaceRootDbfsCustomerManagedKeyRead(d, meta)
+}
+
+func databricksWorkspaceRootDbfsCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).DataBricks.WorkspacesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := workspaces.ParseWorkspaceID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	locks.ByName(id.WorkspaceName, "azurerm_databricks_workspace")
+	defer locks.UnlockByName(id.WorkspaceName, "azurerm_databricks_workspace")
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `Model` was nil", id)
+	}
+
+	if existing.Model.Properties.Parameters == nil {
+		return fmt.Errorf("retrieving %s: `Parameters` was nil", id)
+	}
+
+	existing.Model.Properties.Parameters.Encryption = &workspaces.WorkspaceEncryptionParameter{
+		Value: &workspaces.Encryption{
+			KeySource: pointer.To(workspaces.KeySourceDefault),
+		},
+	}
+
+	if err = client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
+		return fmt.Errorf("removing Root DBFS Customer Managed Key from %s: %+v", *id, err)
+	}
+
+	return nil
+}
