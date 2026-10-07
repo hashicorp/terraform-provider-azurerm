@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation_test
@@ -10,21 +10,21 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/variable"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/variable"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func TestParseAzureRmAutomationVariableValue(t *testing.T) {
-	type ExpectFunc func(interface{}) bool
+	type ExpectFunc func(any) bool
 	cases := []struct {
 		Name        string
 		Resource    string
 		IsNil       bool
 		Value       string
 		HasError    bool
-		ExpectValue interface{}
+		ExpectValue any
 		Expect      ExpectFunc
 	}{
 		{
@@ -33,7 +33,7 @@ func TestParseAzureRmAutomationVariableValue(t *testing.T) {
 			Value:       "\"Test String\"",
 			HasError:    false,
 			ExpectValue: "Test String",
-			Expect:      func(v interface{}) bool { return v.(string) == "Test String" },
+			Expect:      func(v any) bool { return v.(string) == "Test String" },
 		},
 		{
 			Name:        "integer variable 135",
@@ -41,7 +41,7 @@ func TestParseAzureRmAutomationVariableValue(t *testing.T) {
 			Value:       "135",
 			HasError:    false,
 			ExpectValue: 135,
-			Expect:      func(v interface{}) bool { return v.(int32) == 135 },
+			Expect:      func(v any) bool { return v.(int32) == 135 },
 		},
 		{
 			Name:        "integer variable 0",
@@ -49,7 +49,7 @@ func TestParseAzureRmAutomationVariableValue(t *testing.T) {
 			Value:       "0",
 			HasError:    false,
 			ExpectValue: 0,
-			Expect:      func(v interface{}) bool { return v.(int32) == 0 },
+			Expect:      func(v any) bool { return v.(int32) == 0 },
 		},
 		{
 			Name:        "integer variable 1",
@@ -57,7 +57,7 @@ func TestParseAzureRmAutomationVariableValue(t *testing.T) {
 			Value:       "1",
 			HasError:    false,
 			ExpectValue: 1,
-			Expect:      func(v interface{}) bool { return v.(int32) == 1 },
+			Expect:      func(v any) bool { return v.(int32) == 1 },
 		},
 		{
 			Name:        "integer variable 2",
@@ -65,7 +65,7 @@ func TestParseAzureRmAutomationVariableValue(t *testing.T) {
 			Value:       "2",
 			HasError:    false,
 			ExpectValue: 2,
-			Expect:      func(v interface{}) bool { return v.(int32) == 2 },
+			Expect:      func(v any) bool { return v.(int32) == 2 },
 		},
 		{
 			Name:        "boolean variable true",
@@ -73,7 +73,7 @@ func TestParseAzureRmAutomationVariableValue(t *testing.T) {
 			Value:       "true",
 			HasError:    false,
 			ExpectValue: true,
-			Expect:      func(v interface{}) bool { return v.(bool) },
+			Expect:      func(v any) bool { return v.(bool) },
 		},
 		{
 			Name:        "boolean variable false",
@@ -81,7 +81,7 @@ func TestParseAzureRmAutomationVariableValue(t *testing.T) {
 			Value:       "false",
 			HasError:    false,
 			ExpectValue: false,
-			Expect:      func(v interface{}) bool { return !v.(bool) },
+			Expect:      func(v any) bool { return !v.(bool) },
 		},
 		{
 			Name:        "datetime variable",
@@ -89,8 +89,8 @@ func TestParseAzureRmAutomationVariableValue(t *testing.T) {
 			Value:       "\"\\/Date(1556142054074)\\/\"",
 			HasError:    false,
 			ExpectValue: time.Date(2019, time.April, 24, 21, 40, 54, 74000000, time.UTC),
-			Expect: func(v interface{}) bool {
-				return v.(time.Time) == time.Date(2019, time.April, 24, 21, 40, 54, 74000000, time.UTC)
+			Expect: func(v any) bool {
+				return v.(time.Time).Equal(time.Date(2019, time.April, 24, 21, 40, 54, 74000000, time.UTC))
 			},
 		},
 	}

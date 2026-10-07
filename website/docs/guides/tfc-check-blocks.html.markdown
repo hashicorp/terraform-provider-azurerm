@@ -39,7 +39,7 @@ check "check_vm_state" {
 }
 ```
 
-The full example can be found in the provider's [examples](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/tfc-checks/vm-power-state) folder. 
+The full example can be found in the provider's [examples](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/tfc-checks/vm-power-state) folder.
 
 ## Example - Check if a Container App certificate will expire within a certain timeframe (`azurerm_app_service_certificate`)
 
@@ -70,27 +70,26 @@ check "check_certificate_state" {
 
 ```
 
-The full example can be found in the provider's [examples](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/tfc-checks/app-service-certificate-expiry) folder. 
+The full example can be found in the provider's [examples](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/tfc-checks/app-service-certificate-expiry) folder.
 
 ## Example - Check if an App Service Function or Web App has exceeded its usage limit (`azurerm_linux_function_app`, `azurerm_linux_web_app`)
 
 App Service Function and Web Apps can exceed their usage limit. The example below shows how a check block can be used to assert that a Function or Web App has not exceeded its usage limit.
 
 ```hcl
-data "azurerm_virtual_machine" "example" {
-  name                = azurerm_linux_virtual_machine.example.name
-  resource_group_name = azurerm_resource_group.example.name
+data "azurerm_linux_function_app" "example" {
+  name                = azurerm_linux_function_app.example.name
+  resource_group_name = azurerm_linux_function_app.example.resource_group_name
 }
 
-check "check_vm_state" {
+check "check_function_app_usage" {
   assert {
-    condition = data.azurerm_virtual_machine.example.power_state == "running"
-    error_message = format("Virtual Machine (%s) should be in a 'running' status, instead state is '%s'",
-      data.azurerm_virtual_machine.example.id,
-      data.azurerm_virtual_machine.example.power_state
+    condition = data.azurerm_linux_function_app.example.usage == "Exceeded"
+    error_message = format("Function App (%s) usage has been exceeded!",
+      data.azurerm_linux_function_app.example.id,
     )
   }
 }
 ```
 
-The full example can be found in the provider's [examples](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/tfc-checks/app-service-app-usage) folder. 
+The full example can be found in the provider's [examples](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/tfc-checks/app-service-app-usage) folder.

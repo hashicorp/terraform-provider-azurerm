@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -188,11 +187,11 @@ func (r AppServiceEnvironmentV3DataSource) Attributes() map[string]*pluginsdk.Sc
 			Computed: true,
 		},
 
-		"tags": tags.SchemaDataSource(),
+		"tags": commonschema.TagsDataSource(),
 	}
 }
 
-func (r AppServiceEnvironmentV3DataSource) ModelObject() interface{} {
+func (r AppServiceEnvironmentV3DataSource) ModelObject() any {
 	return &AppServiceEnvironmentV3Model{}
 }
 
@@ -227,7 +226,7 @@ func (r AppServiceEnvironmentV3DataSource) Read() sdk.ResourceFunc {
 				state.Location = location.Normalize(model.Location)
 				if props := model.Properties; props != nil {
 					state.SubnetId = props.VirtualNetwork.Id
-					state.InternalLoadBalancingMode = string(pointer.From(props.InternalLoadBalancingMode))
+					state.InternalLoadBalancingMode = pointer.FromEnum(props.InternalLoadBalancingMode)
 					state.DedicatedHostCount = pointer.From(props.DedicatedHostCount)
 					state.PricingTier = pointer.From(props.MultiSize)
 					state.ClusterSetting = flattenClusterSettingsModel(props.ClusterSettings)

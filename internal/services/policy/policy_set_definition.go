@@ -1,21 +1,18 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package policy
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"reflect"
 	"regexp"
-	"strconv"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2025-01-01/policysetdefinitions"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -59,7 +56,7 @@ func policyDefinitionReferenceSchema() *pluginsdk.Schema {
 				"reference_id": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 				},
 
 				"policy_group_names": {
@@ -127,10 +124,10 @@ func policyDefinitionGroupSchema() *pluginsdk.Schema {
 	}
 }
 
-func policySetDefinitionPolicyDefinitionGroupHash(v interface{}) int {
+func policySetDefinitionPolicyDefinitionGroupHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
+	if m, ok := v.(map[string]any); ok {
 		buf.WriteString(m["name"].(string))
 	}
 
@@ -138,13 +135,13 @@ func policySetDefinitionPolicyDefinitionGroupHash(v interface{}) int {
 }
 
 func policySetDefinitionsMetadataDiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) bool {
-	var oldPolicySetDefinitionsMetadata map[string]interface{}
+	var oldPolicySetDefinitionsMetadata map[string]any
 	errOld := json.Unmarshal([]byte(old), &oldPolicySetDefinitionsMetadata)
 	if errOld != nil {
 		return false
 	}
 
-	var newPolicySetDefinitionsMetadata map[string]interface{}
+	var newPolicySetDefinitionsMetadata map[string]any
 	errNew := json.Unmarshal([]byte(new), &newPolicySetDefinitionsMetadata)
 	if errNew != nil {
 		return false
@@ -160,10 +157,10 @@ func policySetDefinitionsMetadataDiffSuppressFunc(_, old, new string, _ *plugins
 	return reflect.DeepEqual(oldPolicySetDefinitionsMetadata, newPolicySetDefinitionsMetadata)
 }
 
-func expandPolicyDefinitionReference(input []PolicyDefinitionReferenceModel) ([]policysetdefinitions.PolicyDefinitionReference, error) {
+func expandPolicyDefinitionReference(input []PolicyDefinitionReferenceModel, metadata sdk.ResourceMetaData) ([]policysetdefinitions.PolicyDefinitionReference, error) {
 	result := make([]policysetdefinitions.PolicyDefinitionReference, 0)
 
-	for _, v := range input {
+	for idx, v := range input {
 		expandedParameters, err := expandPolicyDefinitionReferenceParameterValues(v.ParameterValues)
 		if err != nil {
 			return nil, fmt.Errorf("expanding `parameter_values`: %+v", err)
@@ -178,7 +175,19 @@ func expandPolicyDefinitionReference(input []PolicyDefinitionReferenceModel) ([]
 
 		// The API returns an error if we send an empty string
 		if v.Version != "" {
-			reference.DefinitionVersion = pointer.To(v.Version)
+			// We need to check the version value using RawConfig due to how Terraform manages blocks with computed nested items.
+			// E.g. in a list of 3 `policy_definition_reference` blocks, if the middle (index 1) block is removed
+			// the `version` argument contains the value from state as it's considered unchanged. However, due to the "shifted"
+			// indexes, the `version` previously computed/returned by Azure may be incorrect for the `policy_definition_id`
+			// it is now associated with, leading to a 400 Bad Request error from Azure.
+			rawVersion, err := metadata.GetRawConfigAt(fmt.Sprintf("policy_definition_reference.%d.version", idx))
+			if err != nil {
+				return nil, err
+			}
+
+			if !rawVersion.IsNull() {
+				reference.DefinitionVersion = pointer.To(v.Version)
+			}
 		}
 		result = append(result, reference)
 	}
@@ -299,29 +308,4 @@ func expandParameterDefinitionsValue(input string) (*map[string]policysetdefinit
 	err := json.Unmarshal([]byte(input), &result)
 
 	return &result, err
-}
-
-func getPolicySetDefinitionByID(ctx context.Context, client *policysetdefinitions.PolicySetDefinitionsClient, id any) (*http.Response, *policysetdefinitions.PolicySetDefinition, error) {
-	// TODO: Remove post 5.0
-	switch id := id.(type) {
-	case policysetdefinitions.ProviderPolicySetDefinitionId:
-		return getPolicySetDefinition(ctx, client, id)
-	case policysetdefinitions.Providers2PolicySetDefinitionId:
-		resp, err := client.GetAtManagementGroup(ctx, id, policysetdefinitions.DefaultGetAtManagementGroupOperationOptions())
-		return resp.HttpResponse, resp.Model, err
-	default:
-		return nil, nil, fmt.Errorf("`id` was not one of the expected types: %T", id)
-	}
-}
-
-func policySetDefinitionRefreshFunc(ctx context.Context, client *policysetdefinitions.PolicySetDefinitionsClient, id any) pluginsdk.StateRefreshFunc {
-	// TODO: Remove post 5.0
-	return func() (interface{}, string, error) {
-		resp, _, err := getPolicySetDefinitionByID(ctx, client, id)
-		if err != nil && !response.WasNotFound(resp) {
-			return nil, strconv.Itoa(resp.StatusCode), fmt.Errorf("retrieving %s: %+v", id, err)
-		}
-
-		return resp, strconv.Itoa(resp.StatusCode), nil
-	}
 }

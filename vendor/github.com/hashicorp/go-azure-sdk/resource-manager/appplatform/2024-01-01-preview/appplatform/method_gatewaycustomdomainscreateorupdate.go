@@ -62,9 +62,20 @@ func (c AppPlatformClient) GatewayCustomDomainsCreateOrUpdate(ctx context.Contex
 
 // GatewayCustomDomainsCreateOrUpdateThenPoll performs GatewayCustomDomainsCreateOrUpdate then polls until it's completed
 func (c AppPlatformClient) GatewayCustomDomainsCreateOrUpdateThenPoll(ctx context.Context, id GatewayDomainId, input GatewayCustomDomainResource) error {
+	return c.GatewayCustomDomainsCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// GatewayCustomDomainsCreateOrUpdateCallbackThenPoll performs GatewayCustomDomainsCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) GatewayCustomDomainsCreateOrUpdateCallbackThenPoll(ctx context.Context, id GatewayDomainId, input GatewayCustomDomainResource, callback func() error) error {
 	result, err := c.GatewayCustomDomainsCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing GatewayCustomDomainsCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

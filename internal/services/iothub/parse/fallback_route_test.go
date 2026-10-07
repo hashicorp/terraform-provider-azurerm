@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = FallbackRouteId{}
 
-func TestFallbackRouteIDFormatter(t *testing.T) {
+func TestParseFallbackRouteIDFormatter(t *testing.T) {
 	actual := NewFallbackRouteID("12345678-1234-9876-4563-123456789012", "resGroup1", "hub1", "default").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Devices/iotHubs/hub1/fallbackRoute/default"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestFallbackRouteIDFormatter(t *testing.T) {
 	}
 }
 
-func TestFallbackRouteID(t *testing.T) {
+func TestParseFallbackRouteID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -129,7 +129,7 @@ func TestFallbackRouteID(t *testing.T) {
 	}
 }
 
-func TestFallbackRouteIDInsensitively(t *testing.T) {
+func TestParseFallbackRouteIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

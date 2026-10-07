@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package loganalytics
 
 import (
@@ -8,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/tables"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2025-07-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -53,7 +56,7 @@ func (LogAnalyticsWorkspaceTableDataSource) Attributes() map[string]*pluginsdk.S
 	}
 }
 
-func (LogAnalyticsWorkspaceTableDataSource) ModelObject() interface{} {
+func (LogAnalyticsWorkspaceTableDataSource) ModelObject() any {
 	return &LogAnalyticsWorkspaceTableDataSourceModel{}
 }
 

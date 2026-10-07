@@ -97,11 +97,11 @@ A `network_interface` block exports the following:
 
 * `ip_configuration` - An `ip_configuration` block as defined below.
 
-* `enable_accelerated_networking` - Whether accelerated networking is enabled.
+* `accelerated_networking_enabled` - Whether accelerated networking is enabled.
 
 * `dns_servers` - An array of the DNS servers in use.
 
-* `enable_ip_forwarding` - Whether IP forwarding is enabled on this NIC.
+* `ip_forwarding_enabled` - Whether IP forwarding is enabled on this NIC.
 
 * `network_security_group_id` - The identifier for the network security group.
 
@@ -151,7 +151,7 @@ An `ip_tag` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Machine Scale Set.
 
@@ -159,4 +159,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Compute`: 2024-11-01, 2024-03-01, 2023-09-01
+* `Microsoft.Compute` - 2025-04-01, 2024-03-01, 2023-09-01

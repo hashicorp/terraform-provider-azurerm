@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package eventhub
@@ -73,7 +73,7 @@ func EventHubAuthorizationRuleDataSource() *pluginsdk.Resource {
 	}
 }
 
-func EventHubAuthorizationRuleDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func EventHubAuthorizationRuleDataSourceRead(d *pluginsdk.ResourceData, meta any) error {
 	eventHubsClient := meta.(*clients.Client).Eventhub.EventHubsClient
 	rulesClient := meta.(*clients.Client).Eventhub.EventHubAuthorizationRulesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId

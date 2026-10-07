@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
@@ -46,6 +46,8 @@ var premiumSkus = []string{
 	"P1v2", "P2v2", "P3v2", // Premium V2
 	"P0v3", "P1v3", "P2v3", "P3v3", // Premium V3
 	"P1mv3", "P2mv3", "P3mv3", "P4mv3", "P5mv3", // Premium V3 memory optimized
+	"P0v4", "P1v4", "P2v4", "P3v4", // Premium V4
+	"P1mv4", "P2mv4", "P3mv4", "P4mv4", "P5mv4", // Premium V4 memory optimized
 }
 
 var flexConsumptionSkus = []string{
