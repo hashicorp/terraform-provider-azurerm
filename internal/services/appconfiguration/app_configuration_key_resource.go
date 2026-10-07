@@ -13,6 +13,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/configurationstores"
@@ -25,7 +26,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/appconfiguration/1.0/appconfiguration"
 )
 
@@ -42,16 +42,16 @@ const (
 )
 
 type KeyResourceModel struct {
-	ConfigurationStoreId string                 `tfschema:"configuration_store_id"`
-	Key                  string                 `tfschema:"key"`
-	ContentType          string                 `tfschema:"content_type"`
-	Etag                 string                 `tfschema:"etag"`
-	Label                string                 `tfschema:"label"`
-	Value                string                 `tfschema:"value"`
-	Locked               bool                   `tfschema:"locked"`
-	Tags                 map[string]interface{} `tfschema:"tags"`
-	Type                 string                 `tfschema:"type"`
-	VaultKeyReference    string                 `tfschema:"vault_key_reference"`
+	ConfigurationStoreId string         `tfschema:"configuration_store_id"`
+	Key                  string         `tfschema:"key"`
+	ContentType          string         `tfschema:"content_type"`
+	Etag                 string         `tfschema:"etag"`
+	Label                string         `tfschema:"label"`
+	Value                string         `tfschema:"value"`
+	Locked               bool           `tfschema:"locked"`
+	Tags                 map[string]any `tfschema:"tags"`
+	Type                 string         `tfschema:"type"`
+	VaultKeyReference    string         `tfschema:"vault_key_reference"`
 }
 
 type VaultKeyReference struct {
@@ -82,9 +82,9 @@ func (k KeyResource) Arguments() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 		"etag": {
-			Type: pluginsdk.TypeString,
-			// NOTE: O+C The value of this is updated anytime the resource changes so this should remain Computed
+			Type:     pluginsdk.TypeString,
 			Computed: true,
+			// NOTE: O+C The value of this is updated anytime the resource changes
 			Optional: true,
 		},
 		"label": {
@@ -130,7 +130,7 @@ func (k KeyResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (k KeyResource) ModelObject() interface{} {
+func (k KeyResource) ModelObject() any {
 	return &KeyResourceModel{}
 }
 
@@ -171,7 +171,7 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 				return errors.New("internal-error: context had no deadline")
 			}
 
-			// from https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-enable-rbac#azure-built-in-roles-for-azure-app-configuration
+			// from https://learn.microsoft.com/azure/azure-app-configuration/concept-enable-rbac#azure-built-in-roles-for-azure-app-configuration
 			// allow some time for role permission to be propagated
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending:                   []string{"Forbidden"},
@@ -190,7 +190,7 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 				kv, err := client.GetKeyValue(ctx, model.Key, model.Label, "", "", "", []appconfiguration.KeyValueFields{})
 				if err != nil {
 					if v, ok := err.(autorest.DetailedError); ok {
-						if !utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
+						if !response.WasNotFound(v.Response) {
 							return fmt.Errorf("checking for presence of existing %s: %+v", nestedItemId, err)
 						}
 					} else {
@@ -297,7 +297,7 @@ func (k KeyResource) Read() sdk.ResourceFunc {
 			kv, err := client.GetKeyValue(ctx, nestedItemId.Key, nestedItemId.Label, "", "", "", []appconfiguration.KeyValueFields{})
 			if err != nil {
 				if v, ok := err.(autorest.DetailedError); ok {
-					if utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
+					if response.WasNotFound(v.Response) {
 						return metadata.MarkAsGone(nestedItemId)
 					}
 				} else {
@@ -321,8 +321,7 @@ func (k KeyResource) Read() sdk.ResourceFunc {
 			} else {
 				var ref VaultKeyReference
 				refBytes := []byte(pointer.From(kv.Value))
-				err := json.Unmarshal(refBytes, &ref)
-				if err != nil {
+				if err := json.Unmarshal(refBytes, &ref); err != nil {
 					return fmt.Errorf("while unmarshalling vault reference: %+v", err)
 				}
 
@@ -366,7 +365,8 @@ func (k KeyResource) Update() sdk.ResourceFunc {
 
 			metadata.Client.AppConfiguration.AddToCache(*configurationStoreId, nestedItemId.ConfigurationStoreEndpoint)
 
-			if metadata.ResourceData.HasChange("value") || metadata.ResourceData.HasChange("content_type") || metadata.ResourceData.HasChange("tags") || metadata.ResourceData.HasChange("type") || metadata.ResourceData.HasChange("vault_key_reference") {
+			// lintignore:R019 // deliberate subset: only the fields feeding the KeyValue update entity
+			if metadata.ResourceData.HasChanges("value", "content_type", "tags", "type", "vault_key_reference") {
 				entity := appconfiguration.KeyValue{
 					Key:   pointer.To(model.Key),
 					Label: pointer.To(model.Label),

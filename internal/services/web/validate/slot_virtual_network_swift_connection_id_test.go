@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestSlotVirtualNetworkSwiftConnectionID(t *testing.T) {
+func TestValidateSlotVirtualNetworkSwiftConnectionID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
