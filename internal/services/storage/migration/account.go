@@ -19,7 +19,7 @@ func (AccountV0ToV1) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (AccountV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		// this should have been applied from pre-0.12 migration system; backporting just in-case
 		accountType := rawState["account_type"].(string)
 		split := strings.Split(accountType, "_")
@@ -39,7 +39,7 @@ func (AccountV1ToV2) Schema() map[string]*pluginsdk.Schema {
 
 func (AccountV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	// this should have been applied from pre-0.12 migration system; backporting just in-case
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		rawState["account_encryption_source"] = "Microsoft.Storage"
 		return rawState, nil
 	}
@@ -1051,7 +1051,7 @@ func (AccountV2ToV3) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (AccountV2ToV3) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		x, ok := rawState["allow_blob_public_access"]
 		if ok {
 			rawState["allow_nested_items_to_be_public"] = x

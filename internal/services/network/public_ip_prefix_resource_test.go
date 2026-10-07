@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/publicipprefixes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/publicipprefixes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -69,9 +69,10 @@ func TestAccPublicIpPrefix_globalTier(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.sku_tier(data, string(publicipprefixes.PublicIPPrefixSkuTierGlobal)),
+			Config: r.sku_tier(data, string(publicipprefixes.PublicIPPrefixSkuNameStandard), string(publicipprefixes.PublicIPPrefixSkuTierGlobal)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue(string(publicipprefixes.PublicIPPrefixSkuNameStandard)),
 				check.That(data.ResourceName).Key("sku_tier").HasValue(string(publicipprefixes.PublicIPPrefixSkuTierGlobal)),
 			),
 		},
@@ -104,10 +105,40 @@ func TestAccPublicIpPrefix_regionalTier(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.sku_tier(data, string(publicipprefixes.PublicIPPrefixSkuTierRegional)),
+			Config: r.sku_tier(data, string(publicipprefixes.PublicIPPrefixSkuNameStandard), string(publicipprefixes.PublicIPPrefixSkuTierRegional)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue(string(publicipprefixes.PublicIPPrefixSkuNameStandard)),
 				check.That(data.ResourceName).Key("sku_tier").HasValue(string(publicipprefixes.PublicIPPrefixSkuTierRegional)),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccPublicIpPrefix_skuUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
+	r := PublicIpPrefixResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.sku_tier(data, string(publicipprefixes.PublicIPPrefixSkuNameStandard), string(publicipprefixes.PublicIPPrefixSkuTierRegional)),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.sku_tier(data, string(publicipprefixes.PublicIPPrefixSkuNameStandardVTwo), string(publicipprefixes.PublicIPPrefixSkuTierRegional)),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.sku_tier(data, string(publicipprefixes.PublicIPPrefixSkuNameStandard), string(publicipprefixes.PublicIPPrefixSkuTierRegional)),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -166,8 +197,8 @@ func TestAccPublicIpPrefix_prefixLength31(t *testing.T) {
 func TestAccPublicIpPrefix_prefixLength24(t *testing.T) {
 	// NOTE: This test will fail unless the subscription is updated
 	//        to accept a minimum PrefixLength of 24
-	// more detail about [public ip limits](https://learn.microsoft.com/en-us/azure/virtual-network/ip-services/public-ip-addresses#limits)
-	// you can submit a support request to increase the limit in [Azure Portal](https://learn.microsoft.com/en-us/azure/networking/check-usage-against-limits#azure-portal)
+	// more detail about [public ip limits](https://learn.microsoft.com/azure/virtual-network/ip-services/public-ip-addresses#limits)
+	// you can submit a support request to increase the limit in [Azure Portal](https://learn.microsoft.com/azure/networking/check-usage-against-limits#azure-portal)
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
 	r := PublicIpPrefixResource{}
 
@@ -393,7 +424,7 @@ resource "azurerm_public_ip_prefix" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (PublicIpPrefixResource) sku_tier(data acceptance.TestData, tier string) string {
+func (PublicIpPrefixResource) sku_tier(data acceptance.TestData, sku string, tier string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -408,9 +439,10 @@ resource "azurerm_public_ip_prefix" "test" {
   resource_group_name = azurerm_resource_group.test.name
   name                = "acctestpublicipprefix-%d"
   location            = azurerm_resource_group.test.location
+  sku                 = "%s"
   sku_tier            = "%s"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, tier)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku, tier)
 }
 
 func (PublicIpPrefixResource) zonesSingle(data acceptance.TestData) string {

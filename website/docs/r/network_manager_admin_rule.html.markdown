@@ -105,7 +105,7 @@ A `destination` block supports the following:
 
 * `address_prefix` - (Required) Specifies the address prefix. 
 
-* `address_prefix_type` - (Required) Specifies the address prefix type. Possible values are `IPPrefix` and `ServiceTag`. For more information, please see [this document](https://learn.microsoft.com/en-us/azure/virtual-network-manager/concept-security-admins#source-and-destination-types).
+* `address_prefix_type` - (Required) Specifies the address prefix type. Possible values are `IPPrefix` and `ServiceTag`. For more information, please see [this document](https://learn.microsoft.com/azure/virtual-network-manager/concept-security-admins#source-and-destination-types).
 
 ---
 
@@ -113,7 +113,7 @@ A `source` block supports the following:
 
 * `address_prefix` - (Required) Specifies the address prefix.
 
-* `address_prefix_type` - (Required) Specifies the address prefix type. Possible values are `IPPrefix` and `ServiceTag`. For more information, please see [this document](https://learn.microsoft.com/en-us/azure/virtual-network-manager/concept-security-admins#source-and-destination-types).
+* `address_prefix_type` - (Required) Specifies the address prefix type. Possible values are `IPPrefix` and `ServiceTag`. For more information, please see [this document](https://learn.microsoft.com/azure/virtual-network-manager/concept-security-admins#source-and-destination-types).
 
 ## Attributes Reference
 
@@ -142,4 +142,4 @@ terraform import azurerm_network_manager_admin_rule.example /subscriptions/00000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2025-01-01
+* `Microsoft.Network` - 2025-07-01

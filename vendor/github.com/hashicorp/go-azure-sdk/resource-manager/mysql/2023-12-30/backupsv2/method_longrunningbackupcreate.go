@@ -63,9 +63,20 @@ func (c BackupsV2Client) LongRunningBackupCreate(ctx context.Context, id Backups
 
 // LongRunningBackupCreateThenPoll performs LongRunningBackupCreate then polls until it's completed
 func (c BackupsV2Client) LongRunningBackupCreateThenPoll(ctx context.Context, id BackupsV2Id, input ServerBackupV2) error {
+	return c.LongRunningBackupCreateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// LongRunningBackupCreateCallbackThenPoll performs LongRunningBackupCreate, runs the optional callback function, then polls until it's completed
+func (c BackupsV2Client) LongRunningBackupCreateCallbackThenPoll(ctx context.Context, id BackupsV2Id, input ServerBackupV2, callback func() error) error {
 	result, err := c.LongRunningBackupCreate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing LongRunningBackupCreate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
