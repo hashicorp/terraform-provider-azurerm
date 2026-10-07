@@ -68,7 +68,7 @@ func flatten(ctx context.Context, sourcePath path.Path, source reflect.Value, ta
 		diags.Append(flattenFloat(ctx, source, targetValType, target, false)...)
 		return diags
 
-	case reflect.Ptr:
+	case reflect.Pointer:
 		diags.Append(flattenPtr(ctx, sourcePath, source, targetPath, targetValType, target)...)
 
 	case reflect.Slice:
@@ -531,7 +531,7 @@ func flattenSlice(ctx context.Context, sourcePath path.Path, source reflect.Valu
 				return diags
 			}
 		}
-	case reflect.Ptr:
+	case reflect.Pointer:
 		switch elementType.Elem().Kind() {
 		case reflect.String:
 			switch t := targetType.(type) {
@@ -1082,7 +1082,7 @@ func flattenMap(ctx context.Context, sourcePath path.Path, source reflect.Value,
 				}
 			}
 
-		case reflect.Ptr:
+		case reflect.Pointer:
 			{
 				switch mapElemKind := mapElem.Elem().Kind(); mapElemKind {
 				case reflect.Struct:
@@ -1288,7 +1288,7 @@ func flattenStructMapToObjectList(ctx context.Context, sourcePath path.Path, sou
 		}
 
 		fromInterface := source.MapIndex(k).Interface()
-		if source.MapIndex(k).Kind() == reflect.Ptr {
+		if source.MapIndex(k).Kind() == reflect.Pointer {
 			fromInterface = source.MapIndex(k).Elem().Interface()
 		}
 
@@ -1324,7 +1324,7 @@ func setMapKey(target any, key reflect.Value) diag.Diagnostics {
 	diags := diag.Diagnostics{}
 
 	targetVal := reflect.ValueOf(target)
-	if targetVal.Kind() == reflect.Ptr {
+	if targetVal.Kind() == reflect.Pointer {
 		targetVal = targetVal.Elem()
 	}
 

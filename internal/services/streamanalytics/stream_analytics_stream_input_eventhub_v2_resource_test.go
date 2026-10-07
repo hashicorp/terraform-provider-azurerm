@@ -74,7 +74,7 @@ func TestAccStreamAnalyticsStreamInputEventHubV2_noOptional(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("eventhub_consumer_group_name").IsEmpty(),
-				check.That((data.ResourceName)).Key("partition_key").IsEmpty(),
+				check.That(data.ResourceName).Key("partition_key").IsEmpty(),
 			),
 		},
 		data.ImportStep("shared_access_policy_key"),
@@ -91,8 +91,9 @@ func TestAccStreamAnalyticsStreamInputEventHubV2_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("eventhub_consumer_group_name").MatchesOtherKey(
-					check.That("azurerm_eventhub_consumer_group.test").Key("name")),
-				check.That((data.ResourceName)).Key("partition_key").HasValue("partitionKey"),
+					check.That("azurerm_eventhub_consumer_group.test").Key("name"),
+				),
+				check.That(data.ResourceName).Key("partition_key").HasValue("partitionKey"),
 			),
 		},
 		{
@@ -100,8 +101,9 @@ func TestAccStreamAnalyticsStreamInputEventHubV2_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("eventhub_consumer_group_name").MatchesOtherKey(
-					check.That("azurerm_eventhub_consumer_group.updated").Key("name")),
-				check.That((data.ResourceName)).Key("partition_key").HasValue("updatedPartitionKey"),
+					check.That("azurerm_eventhub_consumer_group.updated").Key("name"),
+				),
+				check.That(data.ResourceName).Key("partition_key").HasValue("updatedPartitionKey"),
 			),
 		},
 		{
@@ -109,7 +111,7 @@ func TestAccStreamAnalyticsStreamInputEventHubV2_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("eventhub_consumer_group_name").IsEmpty(),
-				check.That((data.ResourceName)).Key("partition_key").IsEmpty(),
+				check.That(data.ResourceName).Key("partition_key").IsEmpty(),
 			),
 		},
 		data.ImportStep("shared_access_policy_key"),
@@ -178,7 +180,6 @@ func (r StreamAnalyticsStreamInputEventHubV2Resource) Exists(ctx context.Context
 }
 
 func (r StreamAnalyticsStreamInputEventHubV2Resource) avro(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -195,11 +196,10 @@ resource "azurerm_stream_analytics_stream_input_eventhub_v2" "test" {
     type = "Avro"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsStreamInputEventHubV2Resource) csv(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -219,11 +219,10 @@ resource "azurerm_stream_analytics_stream_input_eventhub_v2" "test" {
     field_delimiter = ","
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsStreamInputEventHubV2Resource) json(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -242,11 +241,10 @@ resource "azurerm_stream_analytics_stream_input_eventhub_v2" "test" {
     encoding = "UTF8"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsStreamInputEventHubV2Resource) jsonNoOptional(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -263,11 +261,10 @@ resource "azurerm_stream_analytics_stream_input_eventhub_v2" "test" {
     encoding = "UTF8"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsStreamInputEventHubV2Resource) updated(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -280,11 +277,10 @@ resource "azurerm_eventhub_namespace" "updated" {
 }
 
 resource "azurerm_eventhub" "updated" {
-  name                = "acctesteh2-%d"
-  namespace_name      = azurerm_eventhub_namespace.updated.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 2
-  message_retention   = 1
+  name              = "acctesteh2-%d"
+  namespace_id      = azurerm_eventhub_namespace.updated.id
+  partition_count   = 2
+  message_retention = 1
 }
 
 resource "azurerm_eventhub_consumer_group" "updated" {
@@ -308,11 +304,10 @@ resource "azurerm_stream_analytics_stream_input_eventhub_v2" "test" {
     type = "Avro"
   }
 }
-`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r StreamAnalyticsStreamInputEventHubV2Resource) requiresImport(data acceptance.TestData) string {
-	template := r.json(data)
 	return fmt.Sprintf(`
 %s
 
@@ -332,11 +327,10 @@ resource "azurerm_stream_analytics_stream_input_eventhub_v2" "import" {
     }
   }
 }
-`, template)
+`, r.json(data))
 }
 
 func (r StreamAnalyticsStreamInputEventHubV2Resource) authenticationMode(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -356,7 +350,7 @@ resource "azurerm_stream_analytics_stream_input_eventhub_v2" "test" {
     encoding = "UTF8"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsStreamInputEventHubV2Resource) msiWithoutSharedAccessPolicy(data acceptance.TestData) string {
@@ -399,11 +393,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctesteh-%d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 2
-  message_retention   = 1
+  name              = "acctesteh-%d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 1
 }
 
 resource "azurerm_eventhub_consumer_group" "test" {

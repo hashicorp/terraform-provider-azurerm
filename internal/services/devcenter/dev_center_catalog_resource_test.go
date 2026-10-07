@@ -166,5 +166,5 @@ resource "azurerm_dev_center" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, "West Europe")
+`, data.RandomInteger, data.Locations.Primary)
 }
