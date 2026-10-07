@@ -508,7 +508,7 @@ resource "azurerm_network_interface" "test" {
 }
 
 func (r NetworkInterfaceResource) auxiliaryAcceleratedConnectionsR1Sku(data acceptance.TestData) string {
-	// Auxiliary Mode Nic is enabled in specific regions (https://learn.microsoft.com/en-us/azure/networking/nva-accelerated-connections#supported-regions) for now
+	// Auxiliary Mode Nic is enabled in specific regions (https://learn.microsoft.com/azure/networking/nva-accelerated-connections#supported-regions) for now
 	// To not affect other testcases of `Network`, hard-code to that for now
 	data.Locations.Primary = "westus"
 
