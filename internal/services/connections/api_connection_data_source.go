@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2016-06-01/connections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/connections/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -124,7 +125,7 @@ func (r ApiConnectionDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Connections.ConnectionsClient
+			client := azuresdkhacks.NewConnectionsWorkaroundClient(metadata.Client.Connections.ConnectionsClient)
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var state ApiConnectionDataSourceModel
@@ -172,7 +173,7 @@ func (r ApiConnectionDataSource) Read() sdk.ResourceFunc {
 	}
 }
 
-func flattenParameterValueSetForDataSource(input *connections.ParameterValueSet) []ParameterValueSetModel {
+func flattenParameterValueSetForDataSource(input *azuresdkhacks.ParameterValueSet) []ParameterValueSetModel {
 	if input == nil {
 		return []ParameterValueSetModel{}
 	}

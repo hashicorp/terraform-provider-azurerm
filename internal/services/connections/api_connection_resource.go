@@ -4,7 +4,6 @@
 package connections
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"time"
@@ -19,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/connections/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -42,8 +42,6 @@ func resourceApiConnection() *pluginsdk.Resource {
 			_, err := connections.ParseConnectionID(id)
 			return err
 		}),
-
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(resourceApiConnectionCustomizeDiff),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -74,15 +72,11 @@ func resourceApiConnection() *pluginsdk.Resource {
 			},
 
 			"kind": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// Note: O+C because Azure sets a default `kind` (e.g. `V1`) when it is not specified.
 				Computed:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
-			}, "parameter_value_type": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				ValidateFunc:  validation.StringIsNotEmpty,
-				ConflictsWith: []string{"parameter_value_set", "parameter_values"},
 			},
 
 			"parameter_value_set": {
@@ -97,6 +91,7 @@ func resourceApiConnection() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+
 						"values": {
 							Type:     pluginsdk.TypeMap,
 							Optional: true,
@@ -108,9 +103,17 @@ func resourceApiConnection() *pluginsdk.Resource {
 				},
 			},
 
+			"parameter_value_type": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ValidateFunc:  validation.StringIsNotEmpty,
+				ConflictsWith: []string{"parameter_value_set", "parameter_values"},
+			},
+
 			"parameter_values": {
-				Type:     pluginsdk.TypeMap,
-				Optional: true,
+				Type:          pluginsdk.TypeMap,
+				Optional:      true,
+				ConflictsWith: []string{"parameter_value_type"},
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
@@ -122,7 +125,7 @@ func resourceApiConnection() *pluginsdk.Resource {
 }
 
 func resourceApiConnectionCreate(d *schema.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Connections.ConnectionsClient
+	client := azuresdkhacks.NewConnectionsWorkaroundClient(meta.(*clients.Client).Connections.ConnectionsClient)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -146,9 +149,9 @@ func resourceApiConnectionCreate(d *schema.ResourceData, meta any) error {
 		return fmt.Errorf("parsing `managed_app_id`: %+v", err)
 	}
 	location := location.Normalize(managedAppId.LocationName)
-	model := connections.ApiConnectionDefinition{
+	model := azuresdkhacks.ApiConnectionDefinition{
 		Location: pointer.To(location),
-		Properties: &connections.ApiConnectionDefinitionProperties{
+		Properties: &azuresdkhacks.ApiConnectionDefinitionProperties{
 			Api: &connections.ApiReference{
 				Id: pointer.To(managedAppId.ID()),
 			},
@@ -163,12 +166,12 @@ func resourceApiConnectionCreate(d *schema.ResourceData, meta any) error {
 		model.Kind = pointer.To(v)
 	}
 
+	if v, ok := d.GetOk("parameter_values"); ok {
+		model.Properties.ParameterValues = pointer.To(v.(map[string]any))
+	}
+
 	if v := d.Get("parameter_value_type").(string); v != "" {
 		model.Properties.ParameterValueType = pointer.To(v)
-		// parameter_values must not be set when parameter_value_type is used
-	} else if v, ok := d.GetOk("parameter_values"); ok {
-		// Only set parameter_values if parameter_value_type is not set
-		model.Properties.ParameterValues = pointer.To(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("parameter_value_set"); ok {
@@ -184,7 +187,7 @@ func resourceApiConnectionCreate(d *schema.ResourceData, meta any) error {
 }
 
 func resourceApiConnectionRead(d *schema.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Connections.ConnectionsClient
+	client := azuresdkhacks.NewConnectionsWorkaroundClient(meta.(*clients.Client).Connections.ConnectionsClient)
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -206,7 +209,7 @@ func resourceApiConnectionRead(d *schema.ResourceData, meta any) error {
 	d.Set("name", id.ConnectionName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	if model := resp.Model; model != nil {
-		d.Set("kind", model.Kind)
+		d.Set("kind", pointer.From(model.Kind))
 
 		if props := model.Properties; props != nil {
 			d.Set("display_name", props.DisplayName)
@@ -223,7 +226,7 @@ func resourceApiConnectionRead(d *schema.ResourceData, meta any) error {
 				return fmt.Errorf("setting `parameter_values`: %+v", err)
 			}
 
-			d.Set("parameter_value_type", props.ParameterValueType)
+			d.Set("parameter_value_type", pointer.From(props.ParameterValueType))
 
 			if err := d.Set("parameter_value_set", flattenParameterValueSet(props.ParameterValueSet)); err != nil {
 				return fmt.Errorf("setting `parameter_value_set`: %+v", err)
@@ -239,7 +242,7 @@ func resourceApiConnectionRead(d *schema.ResourceData, meta any) error {
 }
 
 func resourceApiConnectionUpdate(d *schema.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Connections.ConnectionsClient
+	client := azuresdkhacks.NewConnectionsWorkaroundClient(meta.(*clients.Client).Connections.ConnectionsClient)
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -275,13 +278,15 @@ func resourceApiConnectionUpdate(d *schema.ResourceData, meta any) error {
 		existing.Model.Kind = pointer.To(d.Get("kind").(string))
 	}
 
-	if d.HasChange("parameter_value_type") {
-		props.ParameterValueType = pointer.To(d.Get("parameter_value_type").(string))
-		// When parameter_value_type is set, parameter_values must be nil
-		props.ParameterValues = nil
-	} else if d.HasChange("parameter_values") {
-		// Only update parameter_values if parameter_value_type is not set
+	if d.HasChange("parameter_values") {
 		props.ParameterValues = pointer.To(d.Get("parameter_values").(map[string]any))
+	}
+
+	if d.HasChange("parameter_value_type") {
+		props.ParameterValueType = nil
+		if v := d.Get("parameter_value_type").(string); v != "" {
+			props.ParameterValueType = pointer.To(v)
+		}
 	}
 
 	if d.HasChange("parameter_value_set") {
@@ -328,13 +333,13 @@ func flattenParameterValues(input map[string]any) map[string]string {
 	return output
 }
 
-func expandParameterValueSet(input []any) *connections.ParameterValueSet {
+func expandParameterValueSet(input []any) *azuresdkhacks.ParameterValueSet {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	v := input[0].(map[string]any)
-	result := &connections.ParameterValueSet{
+	result := &azuresdkhacks.ParameterValueSet{
 		Name: pointer.To(v["name"].(string)),
 	}
 
@@ -351,18 +356,17 @@ func expandParameterValueSet(input []any) *connections.ParameterValueSet {
 	return result
 }
 
-func flattenParameterValueSet(input *connections.ParameterValueSet) []any {
+func flattenParameterValueSet(input *azuresdkhacks.ParameterValueSet) []any {
 	if input == nil {
 		return []any{}
 	}
 
-	result := map[string]any{
-		"name": pointer.From(input.Name),
+	return []any{
+		map[string]any{
+			"name":   pointer.From(input.Name),
+			"values": flattenParameterValueSetValues(input.Values),
+		},
 	}
-
-	result["values"] = flattenParameterValueSetValues(input.Values)
-
-	return []any{result}
 }
 
 // flattenParameterValueSetValues extracts values from the API's parameter value set format.
@@ -384,18 +388,4 @@ func flattenParameterValueSetValues(input *map[string]any) map[string]string {
 		}
 	}
 	return values
-}
-
-func resourceApiConnectionCustomizeDiff(_ context.Context, d *pluginsdk.ResourceDiff, _ any) error {
-	// Validate that parameter_values is not set when parameter_value_type is set
-	// The Azure API requires parameter_values to be null when parameter_value_type is specified
-	if paramValueType, ok := d.GetOk("parameter_value_type"); ok && paramValueType.(string) != "" {
-		if paramValues, ok := d.GetOk("parameter_values"); ok {
-			if len(paramValues.(map[string]any)) > 0 {
-				return fmt.Errorf("`parameter_values` must not be set when `parameter_value_type` is specified - the Azure API requires parameter_values to be null when parameter_value_type is provided")
-			}
-		}
-	}
-
-	return nil
 }

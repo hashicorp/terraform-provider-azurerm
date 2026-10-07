@@ -146,15 +146,19 @@ The following arguments are supported:
 
 * `display_name` - (Optional) A display name for this API Connection.
 
-* `kind` - (Optional) The kind of API Connection. For example `V1`.
+* `kind` - (Optional) The kind of API Connection, for example `V1`.
+
+* `parameter_value_set` - (Optional) A `parameter_value_set` block as defined below. This is used by Managed APIs which support multiple authentication types, such as Managed Identity authentication.
+
+-> **Note:** `parameter_value_set` cannot be specified when `parameter_value_type` is specified.
+
+* `parameter_value_type` - (Optional) The parameter value type for the API Connection, for example `Alternative` for Managed APIs which support Managed Identity as their only alternative authentication type.
+
+-> **Note:** `parameter_value_type` cannot be specified when `parameter_values` or `parameter_value_set` is specified.
 
 * `parameter_values` - (Optional) A map of parameter values associated with this API Connection.
 
 -> **Note:** The Azure API doesn't return sensitive parameters in the API response which can lead to a diff, as such you may need to use Terraform's `ignore_changes` functionality on this field as shown in the Example Usage above.
-
-* `parameter_value_set` - (Optional) A `parameter_value_set` block as defined below. This is used for multi-auth scenarios, such as Managed Identity authentication. Conflicts with `parameter_value_type`.
-
-* `parameter_value_type` - (Optional) The parameter value type for the API Connection. For example `Alternative` for single-auth Managed Identity scenarios. Conflicts with `parameter_value_set`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the API Connection.
 
@@ -164,7 +168,7 @@ A `parameter_value_set` block supports the following:
 
 * `name` - (Required) The name of the parameter value set. For example `oauthMI` or `managedIdentityAuth`.
 
-* `values` - (Optional) A map of values for the parameter value set.
+* `values` - (Optional) A mapping of parameter names to their values for the parameter value set, for example `vaultName` for the `keyvault` Managed API.
 
 ## Attributes Reference
 

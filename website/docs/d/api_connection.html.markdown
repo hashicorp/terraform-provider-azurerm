@@ -53,11 +53,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `kind` - The kind of API Connection.
 
-* `parameter_values` - A mapping of parameter names to their values for the API Connection.
+* `parameter_value_set` - A `parameter_value_set` block as defined below.
 
 * `parameter_value_type` - The parameter value type for the API Connection.
 
-* `parameter_value_set` - A `parameter_value_set` block as defined below.
+* `parameter_values` - A mapping of parameter names to their values for the API Connection.
 
 * `tags` - A mapping of tags assigned to the API Connection.
 
@@ -67,7 +67,7 @@ A `parameter_value_set` block exports the following:
 
 * `name` - The name of the parameter value set.
 
-* `values` - A map of values for the parameter value set.
+* `values` - A mapping of parameter names to their values for the parameter value set.
 
 ## Timeouts
 

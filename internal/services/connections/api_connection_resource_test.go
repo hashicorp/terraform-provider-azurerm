@@ -69,12 +69,12 @@ func TestAccApiConnection_complete(t *testing.T) {
 	})
 }
 
-func TestAccApiConnection_withKind(t *testing.T) {
+func TestAccApiConnection_kind(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_connection", "test")
 	r := ApiConnectionTestResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withKind(data),
+			Config: r.kind(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("V1"),
@@ -84,38 +84,35 @@ func TestAccApiConnection_withKind(t *testing.T) {
 	})
 }
 
-func TestAccApiConnection_withParameterValueSet(t *testing.T) {
+func TestAccApiConnection_parameterValueSet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_connection", "test")
 	r := ApiConnectionTestResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withParameterValueSet(data),
+			Config: r.parameterValueSet(data, "azurerm_key_vault.test.name"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("parameter_value_set.#").HasValue("1"),
-				check.That(data.ResourceName).Key("parameter_value_set.0.name").HasValue("oauthMI"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.parameterValueSet(data, "azurerm_key_vault.test2.name"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccApiConnection_withParameterValueSetUpdate(t *testing.T) {
+func TestAccApiConnection_parameterValueType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_connection", "test")
 	r := ApiConnectionTestResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.parameterValueType(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.withKind(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("V1"),
 			),
 		},
 		data.ImportStep(),
@@ -315,8 +312,7 @@ data "azurerm_managed_api" "test_sftpwithssh" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (t ApiConnectionTestResource) withKind(data acceptance.TestData) string {
-	template := t.template(data)
+func (t ApiConnectionTestResource) kind(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -326,44 +322,10 @@ resource "azurerm_api_connection" "test" {
   managed_api_id      = data.azurerm_managed_api.test.id
   kind                = "V1"
 }
-`, template, data.RandomInteger)
+`, t.template(data), data.RandomInteger)
 }
 
-func (t ApiConnectionTestResource) withParameterValueSet(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_key_vault" "test" {
-  name                       = "acctkv%[2]d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  tenant_id                  = data.azurerm_client_config.current.tenant_id
-  sku_name                   = "standard"
-  soft_delete_retention_days = 7
-  purge_protection_enabled   = false
-}
-
-data "azurerm_managed_api" "keyvault" {
-  name     = "keyvault"
-  location = azurerm_resource_group.test.location
-}
-
-resource "azurerm_api_connection" "test" {
-  name                = "acctestconn-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  managed_api_id      = data.azurerm_managed_api.keyvault.id
-
-  parameter_value_set {
-    name = "oauthMI"
-    values = {
-      vaultName = azurerm_key_vault.test.name
-    }
-  }
-}
-`, t.templateWithClientConfig(data), data.RandomInteger)
-}
-
-func (ApiConnectionTestResource) templateWithClientConfig(data acceptance.TestData) string {
+func (t ApiConnectionTestResource) parameterValueSet(data acceptance.TestData, vaultName string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -374,6 +336,65 @@ data "azurerm_client_config" "current" {}
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-conn-%[1]d"
   location = %[2]q
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctestkv1%[3]s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
+}
+
+resource "azurerm_key_vault" "test2" {
+  name                = "acctestkv2%[3]s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
+}
+
+data "azurerm_managed_api" "test" {
+  name     = "keyvault"
+  location = azurerm_resource_group.test.location
+}
+
+resource "azurerm_api_connection" "test" {
+  name                = "acctestconn-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  managed_api_id      = data.azurerm_managed_api.test.id
+
+  parameter_value_set {
+    name = "oauthMI"
+    values = {
+      vaultName = %[4]s
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, vaultName)
+}
+
+func (t ApiConnectionTestResource) parameterValueType(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-conn-%[1]d"
+  location = %[2]q
+}
+
+data "azurerm_managed_api" "test" {
+  name     = "azureblob"
+  location = azurerm_resource_group.test.location
+}
+
+resource "azurerm_api_connection" "test" {
+  name                 = "acctestconn-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  managed_api_id       = data.azurerm_managed_api.test.id
+  parameter_value_type = "Alternative"
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
