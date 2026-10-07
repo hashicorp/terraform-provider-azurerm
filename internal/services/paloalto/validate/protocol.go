@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func ProtocolWithPort(input interface{}, k string) (warnings []string, errors []error) {
+func ProtocolWithPort(input any, k string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %s to be a string", k))

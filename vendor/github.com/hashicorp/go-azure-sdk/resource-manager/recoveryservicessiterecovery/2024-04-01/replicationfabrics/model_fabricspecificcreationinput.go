@@ -25,9 +25,9 @@ func (s BaseFabricSpecificCreationInputImpl) FabricSpecificCreationInput() BaseF
 
 var _ FabricSpecificCreationInput = RawFabricSpecificCreationInputImpl{}
 
-// RawFabricSpecificCreationInputImpl is returned when the Discriminated Value doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+// RawFabricSpecificCreationInputImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawFabricSpecificCreationInputImpl struct {
 	fabricSpecificCreationInput BaseFabricSpecificCreationInputImpl
 	Type                        string
@@ -36,6 +36,10 @@ type RawFabricSpecificCreationInputImpl struct {
 
 func (s RawFabricSpecificCreationInputImpl) FabricSpecificCreationInput() BaseFabricSpecificCreationInputImpl {
 	return s.fabricSpecificCreationInput
+}
+
+func (s RawFabricSpecificCreationInputImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
 }
 
 func UnmarshalFabricSpecificCreationInputImplementation(input []byte) (FabricSpecificCreationInput, error) {
