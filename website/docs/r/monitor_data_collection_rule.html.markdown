@@ -208,63 +208,6 @@ resource "azurerm_monitor_data_collection_rule" "example" {
 }
 ```
 
-### Example Usage with Kind "Direct"
-
-```hcl
-resource "azurerm_log_analytics_workspace" "example" {
-  name                = "example-law"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  sku                 = "PerGB2018"
-  retention_in_days   = 30
-}
-
-resource "azurerm_log_analytics_workspace_table_custom_log" "example" {
-  name         = "MyCustomStream_CL"
-  workspace_id = azurerm_log_analytics_workspace.example.id
-  column {
-    name = "TimeGenerated"
-    type = "dateTime"
-  }
-  column {
-    name = "RawData"
-    type = "string"
-  }
-}
-
-resource "azurerm_monitor_data_collection_rule" "example" {
-  name                = "example-mdcr"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-  kind                = "Direct"
-  destinations {
-    log_analytics {
-      workspace_resource_id = azurerm_log_analytics_workspace.example.id
-      name                  = "example-destination-log"
-    }
-  }
-  data_flow {
-    streams       = ["Custom-MyCustomStream_CL"]
-    destinations  = ["example-destination-log"]
-    output_stream = "Custom-MyCustomStream_CL"
-  }
-  stream_declaration {
-    stream_name = "Custom-MyCustomStream_CL"
-    column {
-      name = "TimeGenerated"
-      type = "datetime"
-    }
-    column {
-      name = "RawData"
-      type = "string"
-    }
-  }
-  depends_on = [
-    azurerm_log_analytics_workspace_table_custom_log.example,
-  ]
-}
-```
-
 ## Arguments Reference
 
 The following arguments are supported:

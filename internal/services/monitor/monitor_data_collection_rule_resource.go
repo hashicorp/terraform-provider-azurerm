@@ -32,20 +32,20 @@ var (
 )
 
 type DataCollectionRule struct {
-	DataCollectionEndpointId string                 `tfschema:"data_collection_endpoint_id"`
-	DataFlows                []DataFlow             `tfschema:"data_flow"`
-	DataSources              []DataSource           `tfschema:"data_sources"`
-	Description              string                 `tfschema:"description"`
-	Destinations             []Destination          `tfschema:"destinations"`
-	ImmutableId              string                 `tfschema:"immutable_id"`
-	Kind                     string                 `tfschema:"kind"`
-	LogsIngestionEndpoint    string                 `tfschema:"logs_ingestion_endpoint"`
-	MetricsIngestionEndpoint string                 `tfschema:"metrics_ingestion_endpoint"`
-	Name                     string                 `tfschema:"name"`
-	Location                 string                 `tfschema:"location"`
-	ResourceGroupName        string                 `tfschema:"resource_group_name"`
-	StreamDeclaration        []StreamDeclaration    `tfschema:"stream_declaration"`
-	Tags                     map[string]interface{} `tfschema:"tags"`
+	DataCollectionEndpointId string              `tfschema:"data_collection_endpoint_id"`
+	DataFlows                []DataFlow          `tfschema:"data_flow"`
+	DataSources              []DataSource        `tfschema:"data_sources"`
+	Description              string              `tfschema:"description"`
+	Destinations             []Destination       `tfschema:"destinations"`
+	ImmutableId              string              `tfschema:"immutable_id"`
+	Kind                     string              `tfschema:"kind"`
+	LogsIngestionEndpoint    string              `tfschema:"logs_ingestion_endpoint"`
+	MetricsIngestionEndpoint string              `tfschema:"metrics_ingestion_endpoint"`
+	Name                     string              `tfschema:"name"`
+	Location                 string              `tfschema:"location"`
+	ResourceGroupName        string              `tfschema:"resource_group_name"`
+	StreamDeclaration        []StreamDeclaration `tfschema:"stream_declaration"`
+	Tags                     map[string]any      `tfschema:"tags"`
 }
 
 type DataFlow struct {
@@ -1030,7 +1030,7 @@ func (r DataCollectionRuleResource) Read() sdk.ResourceFunc {
 			var streamDeclaration []StreamDeclaration
 
 			if model := resp.Model; model != nil {
-				kind = flattenDataCollectionRuleKind(model.Kind)
+				kind = pointer.FromEnum(model.Kind)
 				loc = location.Normalize(model.Location)
 				tag = tags.Flatten(model.Tags)
 
@@ -1044,13 +1044,13 @@ func (r DataCollectionRuleResource) Read() sdk.ResourceFunc {
 				}
 
 				if prop := model.Properties; prop != nil {
-					dataCollectionEndpointId = flattenStringPtr(prop.DataCollectionEndpointId)
-					description = flattenStringPtr(prop.Description)
+					dataCollectionEndpointId = pointer.From(prop.DataCollectionEndpointId)
+					description = pointer.From(prop.Description)
 					dataFlows = flattenDataCollectionRuleDataFlows(prop.DataFlows)
 					dataSources = flattenDataCollectionRuleDataSources(prop.DataSources)
 					destinations = flattenDataCollectionRuleDestinations(prop.Destinations)
 					logsIngestionEndpoint, metricsIngestionEndpoint = flattenDataCollectionRuleEndpoints(prop.Endpoints)
-					immutableId = flattenStringPtr(prop.ImmutableId)
+					immutableId = pointer.From(prop.ImmutableId)
 					streamDeclaration = flattenDataCollectionRuleStreamDeclarations(prop.StreamDeclarations)
 				}
 			}
@@ -1695,27 +1695,6 @@ func expandDataCollectionRuleStreamDeclarations(input []StreamDeclaration) *map[
 	return &result
 }
 
-func flattenDataCollectionRuleKind(input *datacollectionrules.KnownDataCollectionRuleResourceKind) string {
-	if input == nil {
-		return ""
-	}
-	return string(*input)
-}
-
-func flattenStringPtr(input *string) string {
-	if input == nil {
-		return ""
-	}
-	return *input
-}
-
-func flattenStringSlicePtr(input *[]string) []string {
-	if input == nil {
-		return make([]string, 0)
-	}
-	return *input
-}
-
 func flattenDataCollectionRuleDataFlows(input *[]datacollectionrules.DataFlow) []DataFlow {
 	if input == nil {
 		return make([]DataFlow, 0)
@@ -1724,24 +1703,12 @@ func flattenDataCollectionRuleDataFlows(input *[]datacollectionrules.DataFlow) [
 	result := make([]DataFlow, 0)
 	for _, v := range *input {
 		result = append(result, DataFlow{
-			BuiltInTransform: flattenStringPtr(v.BuiltInTransform),
-			Destinations:     flattenStringSlicePtr(v.Destinations),
-			OutputStream:     flattenStringPtr(v.OutputStream),
-			Streams:          flattenDataCollectionRuleDataFlowStreams(v.Streams),
-			TransformKql:     flattenStringPtr(v.TransformKql),
+			BuiltInTransform: pointer.From(v.BuiltInTransform),
+			Destinations:     pointer.From(v.Destinations),
+			OutputStream:     pointer.From(v.OutputStream),
+			Streams:          pointer.FromEnumSlice(v.Streams),
+			TransformKql:     pointer.From(v.TransformKql),
 		})
-	}
-	return result
-}
-
-func flattenDataCollectionRuleDataFlowStreams(input *[]datacollectionrules.KnownDataFlowStreams) []string {
-	if input == nil {
-		return make([]string, 0)
-	}
-
-	result := make([]string, 0)
-	for _, v := range *input {
-		result = append(result, string(v))
 	}
 	return result
 }
@@ -1774,9 +1741,9 @@ func flattenDataCollectionRuleDataSourceDataImports(input *datacollectionrules.D
 		{
 			EventHubDataSource: []EventHubDataSource{
 				{
-					ConsumerGroup: flattenStringPtr(input.EventHub.ConsumerGroup),
-					Name:          flattenStringPtr(input.EventHub.Name),
-					Stream:        flattenStringPtr(input.EventHub.Stream),
+					ConsumerGroup: pointer.From(input.EventHub.ConsumerGroup),
+					Name:          pointer.From(input.EventHub.Name),
+					Stream:        pointer.From(input.EventHub.Stream),
 				},
 			},
 		},
@@ -1797,23 +1764,11 @@ func flattenDataCollectionRuleDataSourceExtensions(input *[]datacollectionrules.
 		}
 		result = append(result, Extension{
 			ExtensionName:     v.ExtensionName,
-			Name:              flattenStringPtr(v.Name),
+			Name:              pointer.From(v.Name),
 			ExtensionSettings: extensionSettings,
-			InputDataSources:  flattenStringSlicePtr(v.InputDataSources),
-			Streams:           flattenDataCollectionRuleDataSourceExtensionStreams(v.Streams),
+			InputDataSources:  pointer.From(v.InputDataSources),
+			Streams:           pointer.FromEnumSlice(v.Streams),
 		})
-	}
-	return result
-}
-
-func flattenDataCollectionRuleDataSourceExtensionStreams(input *[]datacollectionrules.KnownExtensionDataSourceStreams) []string {
-	if input == nil {
-		return make([]string, 0)
-	}
-
-	result := make([]string, 0)
-	for _, v := range *input {
-		result = append(result, string(v))
 	}
 	return result
 }
@@ -1826,8 +1781,8 @@ func flattenDataCollectionRuleDataSourceIisLog(input *[]datacollectionrules.IisL
 	result := make([]IisLog, 0)
 	for _, v := range *input {
 		result = append(result, IisLog{
-			Name:           flattenStringPtr(v.Name),
-			LogDirectories: flattenStringSlicePtr(v.LogDirectories),
+			Name:           pointer.From(v.Name),
+			LogDirectories: pointer.From(v.LogDirectories),
 			Streams:        v.Streams,
 		})
 	}
@@ -1853,7 +1808,7 @@ func flattenDataCollectionRuleDataSourceLogFiles(input *[]datacollectionrules.Lo
 		}
 
 		result = append(result, LogFile{
-			Name:         flattenStringPtr(v.Name),
+			Name:         pointer.From(v.Name),
 			Format:       string(v.Format),
 			FilePatterns: v.FilePatterns,
 			Streams:      v.Streams,
@@ -1871,23 +1826,11 @@ func flattenDataCollectionRuleDataSourcePerfCounters(input *[]datacollectionrule
 	result := make([]PerfCounter, 0)
 	for _, v := range *input {
 		result = append(result, PerfCounter{
-			Name:                       flattenStringPtr(v.Name),
-			CounterSpecifiers:          flattenStringSlicePtr(v.CounterSpecifiers),
+			Name:                       pointer.From(v.Name),
+			CounterSpecifiers:          pointer.From(v.CounterSpecifiers),
 			SamplingFrequencyInSeconds: pointer.From(v.SamplingFrequencyInSeconds),
-			Streams:                    flattenDataCollectionRuleDataSourcePerfCounterStreams(v.Streams),
+			Streams:                    pointer.FromEnumSlice(v.Streams),
 		})
-	}
-	return result
-}
-
-func flattenDataCollectionRuleDataSourcePerfCounterStreams(input *[]datacollectionrules.KnownPerfCounterDataSourceStreams) []string {
-	if input == nil {
-		return make([]string, 0)
-	}
-
-	result := make([]string, 0)
-	for _, v := range *input {
-		result = append(result, string(v))
 	}
 	return result
 }
@@ -1900,7 +1843,7 @@ func flattenDataCollectionRuleDataSourcePlatformTelemetry(input *[]datacollectio
 	result := make([]PlatformTelemetry, 0)
 	for _, v := range *input {
 		result = append(result, PlatformTelemetry{
-			Name:    flattenStringPtr(v.Name),
+			Name:    pointer.From(v.Name),
 			Streams: v.Streams,
 		})
 	}
@@ -1925,22 +1868,10 @@ func flattenDataCollectionRuleDataSourcePrometheusForwarder(input *[]datacollect
 		}
 
 		result = append(result, PrometheusForwarder{
-			Name:               flattenStringPtr(v.Name),
-			Streams:            flattenDataCollectionRuleDataSourcePrometheusForwarderStreams(v.Streams),
+			Name:               pointer.From(v.Name),
+			Streams:            pointer.FromEnumSlice(v.Streams),
 			LabelIncludeFilter: labelIncludeFilter,
 		})
-	}
-	return result
-}
-
-func flattenDataCollectionRuleDataSourcePrometheusForwarderStreams(input *[]datacollectionrules.KnownPrometheusForwarderDataSourceStreams) []string {
-	if input == nil {
-		return make([]string, 0)
-	}
-
-	result := make([]string, 0)
-	for _, v := range *input {
-		result = append(result, string(v))
 	}
 	return result
 }
@@ -1953,47 +1884,11 @@ func flattenDataCollectionRuleDataSourceSyslog(input *[]datacollectionrules.Sysl
 	result := make([]Syslog, 0)
 	for _, v := range *input {
 		result = append(result, Syslog{
-			Name:          flattenStringPtr(v.Name),
-			FacilityNames: flattenDataCollectionRuleDataSourceSyslogFacilityNames(v.FacilityNames),
-			LogLevels:     flattenDataCollectionRuleDataSourceSyslogLogLevels(v.LogLevels),
-			Streams:       flattenDataCollectionRuleSyslogStreams(v.Streams),
+			Name:          pointer.From(v.Name),
+			FacilityNames: pointer.FromEnumSlice(v.FacilityNames),
+			LogLevels:     pointer.FromEnumSlice(v.LogLevels),
+			Streams:       pointer.FromEnumSlice(v.Streams),
 		})
-	}
-	return result
-}
-
-func flattenDataCollectionRuleDataSourceSyslogFacilityNames(input *[]datacollectionrules.KnownSyslogDataSourceFacilityNames) []string {
-	if input == nil {
-		return make([]string, 0)
-	}
-
-	result := make([]string, 0)
-	for _, v := range *input {
-		result = append(result, string(v))
-	}
-	return result
-}
-
-func flattenDataCollectionRuleDataSourceSyslogLogLevels(input *[]datacollectionrules.KnownSyslogDataSourceLogLevels) []string {
-	if input == nil {
-		return make([]string, 0)
-	}
-
-	result := make([]string, 0)
-	for _, v := range *input {
-		result = append(result, string(v))
-	}
-	return result
-}
-
-func flattenDataCollectionRuleSyslogStreams(input *[]datacollectionrules.KnownSyslogDataSourceStreams) []string {
-	if input == nil {
-		return make([]string, 0)
-	}
-
-	result := make([]string, 0)
-	for _, v := range *input {
-		result = append(result, string(v))
 	}
 	return result
 }
@@ -2006,22 +1901,10 @@ func flattenDataCollectionRuleWindowsEventLogs(input *[]datacollectionrules.Wind
 	result := make([]WindowsEventLog, 0)
 	for _, v := range *input {
 		result = append(result, WindowsEventLog{
-			Name:         flattenStringPtr(v.Name),
-			XPathQueries: flattenStringSlicePtr(v.XPathQueries),
-			Streams:      flattenDataCollectionRuleWindowsEventLogStreams(v.Streams),
+			Name:         pointer.From(v.Name),
+			XPathQueries: pointer.From(v.XPathQueries),
+			Streams:      pointer.FromEnumSlice(v.Streams),
 		})
-	}
-	return result
-}
-
-func flattenDataCollectionRuleWindowsEventLogStreams(input *[]datacollectionrules.KnownWindowsEventLogDataSourceStreams) []string {
-	if input == nil {
-		return make([]string, 0)
-	}
-
-	result := make([]string, 0)
-	for _, v := range *input {
-		result = append(result, string(v))
 	}
 	return result
 }
@@ -2034,7 +1917,7 @@ func flattenDataCollectionRuleWindowsFirewallLog(input *[]datacollectionrules.Wi
 	result := make([]WindowsFirewallLog, 0)
 	for _, v := range *input {
 		result = append(result, WindowsFirewallLog{
-			Name:    flattenStringPtr(v.Name),
+			Name:    pointer.From(v.Name),
 			Streams: v.Streams,
 		})
 	}
@@ -2072,7 +1955,7 @@ func flattenDataCollectionRuleDestinationMetrics(input *datacollectionrules.Azur
 	}
 
 	return []AzureMonitorMetric{{
-		Name: flattenStringPtr(input.Name),
+		Name: pointer.From(input.Name),
 	}}
 }
 
@@ -2084,8 +1967,8 @@ func flattenDataCollectionRuleDestinationEventHubs(input *[]datacollectionrules.
 	result := make([]EventHub, 0)
 	for _, v := range *input {
 		result = append(result, EventHub{
-			Name:               flattenStringPtr(v.Name),
-			EventHubResourceId: flattenStringPtr(v.EventHubResourceId),
+			Name:               pointer.From(v.Name),
+			EventHubResourceId: pointer.From(v.EventHubResourceId),
 		})
 	}
 	return result
@@ -2099,8 +1982,8 @@ func flattenDataCollectionRuleDestinationEventHubDirect(input *[]datacollectionr
 	result := make([]EventHub, 0)
 	for _, v := range *input {
 		result = append(result, EventHub{
-			Name:               flattenStringPtr(v.Name),
-			EventHubResourceId: flattenStringPtr(v.EventHubResourceId),
+			Name:               pointer.From(v.Name),
+			EventHubResourceId: pointer.From(v.EventHubResourceId),
 		})
 	}
 	return result
@@ -2114,8 +1997,8 @@ func flattenDataCollectionRuleDestinationLogAnalytics(input *[]datacollectionrul
 	result := make([]LogAnalytic, 0)
 	for _, v := range *input {
 		result = append(result, LogAnalytic{
-			Name:                flattenStringPtr(v.Name),
-			WorkspaceResourceId: flattenStringPtr(v.WorkspaceResourceId),
+			Name:                pointer.From(v.Name),
+			WorkspaceResourceId: pointer.From(v.WorkspaceResourceId),
 		})
 	}
 	return result
@@ -2129,8 +2012,8 @@ func flattenDataCollectionRuleDestinationMonitorAccount(input *[]datacollectionr
 	result := make([]MonitorAccount, 0)
 	for _, v := range *input {
 		result = append(result, MonitorAccount{
-			Name:      flattenStringPtr(v.Name),
-			AccountId: flattenStringPtr(v.AccountResourceId),
+			Name:      pointer.From(v.Name),
+			AccountId: pointer.From(v.AccountResourceId),
 		})
 	}
 	return result
@@ -2144,9 +2027,9 @@ func flattenDataCollectionRuleDestinationStorageBlob(input *[]datacollectionrule
 	result := make([]StorageBlob, 0)
 	for _, v := range *input {
 		result = append(result, StorageBlob{
-			Name:             flattenStringPtr(v.Name),
-			StorageAccountId: flattenStringPtr(v.StorageAccountResourceId),
-			ContainerName:    flattenStringPtr(v.ContainerName),
+			Name:             pointer.From(v.Name),
+			StorageAccountId: pointer.From(v.StorageAccountResourceId),
+			ContainerName:    pointer.From(v.ContainerName),
 		})
 	}
 	return result
@@ -2160,9 +2043,9 @@ func flattenDataCollectionRuleDestinationStorageTableDirect(input *[]datacollect
 	result := make([]StorageTableDirect, 0)
 	for _, v := range *input {
 		result = append(result, StorageTableDirect{
-			Name:             flattenStringPtr(v.Name),
-			StorageAccountId: flattenStringPtr(v.StorageAccountResourceId),
-			TableName:        flattenStringPtr(v.TableName),
+			Name:             pointer.From(v.Name),
+			StorageAccountId: pointer.From(v.StorageAccountResourceId),
+			TableName:        pointer.From(v.TableName),
 		})
 	}
 	return result
@@ -2207,6 +2090,24 @@ func (r DataCollectionRuleResource) CustomizeDiff() sdk.ResourceFunc {
 			if oldValue, newValue := metadata.ResourceDiff.GetChange("kind"); oldValue.(string) != newValue.(string) && oldValue.(string) != "" {
 				if err := metadata.ResourceDiff.ForceNew("kind"); err != nil {
 					return err
+				}
+			}
+
+			if kind := metadata.ResourceDiff.Get("kind").(string); kind == "Direct" {
+				if v := metadata.ResourceDiff.Get("data_sources").([]any); len(v) > 0 {
+					return fmt.Errorf("`data_sources` cannot be used when `kind` is set to `Direct`")
+				}
+
+				if v := metadata.ResourceDiff.Get("destinations.0.event_hub_direct").([]any); len(v) > 0 {
+					return fmt.Errorf("`event_hub_direct`, `storage_blob_direct`, and `storage_table_direct` destinations cannot be used when `kind` is set to `Direct`")
+				}
+
+				if v := metadata.ResourceDiff.Get("destinations.0.storage_blob_direct").([]any); len(v) > 0 {
+					return fmt.Errorf("`event_hub_direct`, `storage_blob_direct`, and `storage_table_direct` destinations cannot be used when `kind` is set to `Direct`")
+				}
+
+				if v := metadata.ResourceDiff.Get("destinations.0.storage_table_direct").([]any); len(v) > 0 {
+					return fmt.Errorf("`event_hub_direct`, `storage_blob_direct`, and `storage_table_direct` destinations cannot be used when `kind` is set to `Direct`")
 				}
 			}
 
