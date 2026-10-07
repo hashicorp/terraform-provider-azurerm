@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package maintenance_test
 
 import (
@@ -5,35 +8,35 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/configurationassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MaintenanceArcMachineResource struct{}
+type MaintenanceAssignmentArcMachineResource struct{}
 
 func TestAccMaintenanceAssignmentArcMachine_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_assignment_arc_machine", "test")
-	r := MaintenanceArcMachineResource{}
+	r := MaintenanceAssignmentArcMachineResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctest-mc%d", data.RandomInteger)),
 			),
 		},
-		// The service is not returning location, tracked by https://github.com/Azure/azure-rest-api-specs/issues/28880
-		data.ImportStep("location"),
+		data.ImportStep(),
 	})
 }
 
 func TestAccMaintenanceAssignmentArcMachine_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_assignment_arc_machine", "test")
-	r := MaintenanceArcMachineResource{}
+	r := MaintenanceAssignmentArcMachineResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +49,7 @@ func TestAccMaintenanceAssignmentArcMachine_requiresImport(t *testing.T) {
 	})
 }
 
-func (MaintenanceArcMachineResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (MaintenanceAssignmentArcMachineResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := configurationassignments.ParseScopedConfigurationAssignmentID(state.ID)
 	if err != nil {
 		return nil, err
@@ -57,35 +60,32 @@ func (MaintenanceArcMachineResource) Exists(ctx context.Context, clients *client
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
-func (r MaintenanceArcMachineResource) basic(data acceptance.TestData) string {
+func (r MaintenanceAssignmentArcMachineResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%[1]s
+%s
 
 resource "azurerm_maintenance_assignment_arc_machine" "test" {
-  location                     = "%[2]s"
   arc_machine_id               = azurerm_arc_machine.test.id
   maintenance_configuration_id = azurerm_maintenance_configuration.test.id
 }
-`, r.template(data), data.Locations.Primary)
+`, r.template(data))
 }
 
-func (r MaintenanceArcMachineResource) requiresImport(data acceptance.TestData) string {
+func (r MaintenanceAssignmentArcMachineResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%[1]s
+%s
 
 resource "azurerm_maintenance_assignment_arc_machine" "import" {
-  location = azurerm_maintenance_assignment_arc_machine.test.location
-  # The service is returning these properties in lowered case, we can not parse them. Tracked by https://github.com/Azure/azure-rest-api-specs/issues/34824
-  arc_machine_id               = azurerm_arc_machine.test.id
-  maintenance_configuration_id = azurerm_maintenance_configuration.test.id
+  arc_machine_id               = azurerm_maintenance_assignment_arc_machine.test.arc_machine_id
+  maintenance_configuration_id = azurerm_maintenance_assignment_arc_machine.test.maintenance_configuration_id
 }
 `, r.basic(data))
 }
 
-func (MaintenanceArcMachineResource) template(data acceptance.TestData) string {
+func (MaintenanceAssignmentArcMachineResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -105,7 +105,7 @@ resource "azurerm_arc_machine" "test" {
 }
 
 resource "azurerm_maintenance_configuration" "test" {
-  name                     = "acctest-MC%[1]d"
+  name                     = "acctest-mc%[1]d"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   scope                    = "InGuestPatch"
@@ -113,6 +113,7 @@ resource "azurerm_maintenance_configuration" "test" {
 
   window {
     start_date_time = formatdate("YYYY-MM-DD hh:mm", timestamp())
+    duration        = "02:00"
     time_zone       = "Greenwich Standard Time"
     recur_every     = "1Day"
   }
@@ -122,15 +123,12 @@ resource "azurerm_maintenance_configuration" "test" {
 
     windows {
       classifications_to_include = ["Critical"]
-      kb_numbers_to_exclude      = []
-      kb_numbers_to_include      = []
     }
   }
 
   lifecycle {
     ignore_changes = [
-      window[0].start_date_time,
-      window[0].duration
+      window[0].start_date_time
     ]
   }
 }
