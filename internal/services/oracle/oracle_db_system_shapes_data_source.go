@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package oracle
@@ -6,12 +6,13 @@ package oracle
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/dbsystemshapes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/dbsystemshapes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -21,6 +22,7 @@ type DbSystemShapesDataSource struct{}
 type DbSystemShapesModel struct {
 	DbSystemShapes []DbSystemShapeModel `tfschema:"db_system_shapes"`
 	Location       string               `tfschema:"location"`
+	Zone           string               `tfschema:"zone"`
 }
 
 type DbSystemShapeModel struct {
@@ -52,6 +54,11 @@ type DbSystemShapeModel struct {
 func (d DbSystemShapesDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.Location(),
+		"zone": {
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Description: "Filter the versions by zone",
+		},
 	}
 }
 
@@ -160,7 +167,7 @@ func (d DbSystemShapesDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (d DbSystemShapesDataSource) ModelObject() interface{} {
+func (d DbSystemShapesDataSource) ModelObject() any {
 	return &DbSystemShapesModel{}
 }
 
@@ -188,7 +195,17 @@ func (d DbSystemShapesDataSource) Read() sdk.ResourceFunc {
 
 			id := dbsystemshapes.NewLocationID(subscriptionId, state.Location)
 
-			resp, err := client.ListByLocation(ctx, id, dbsystemshapes.DefaultListByLocationOperationOptions())
+			options := dbsystemshapes.ListByLocationOperationOptions{}
+
+			if state.Zone != "" {
+				options.Zone = &state.Zone
+			}
+
+			if state.Zone == "" {
+				log.Printf("[WARN] DbSystem shapes data source: Zone parameter is empty. This may result in unfiltered results from the API. Consider specifying Zone for more precise results in the desired zone.")
+			}
+
+			resp, err := client.ListByLocation(ctx, id, options)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("%s was not found", id)

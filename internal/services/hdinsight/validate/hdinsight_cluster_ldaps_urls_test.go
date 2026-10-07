@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -15,7 +15,12 @@ func TestHDInsightClusterLdapsUrls(t *testing.T) {
 			expected: false,
 		},
 		{
+			// scheme only, no host
 			input:    "ldaps://",
+			expected: false,
+		},
+		{
+			input:    "ldaps://example.com:636",
 			expected: true,
 		},
 		{

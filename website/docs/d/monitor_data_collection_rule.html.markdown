@@ -24,7 +24,7 @@ output "rule_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Data Collection Rule.
 
@@ -198,7 +198,7 @@ An `identity` block exports the following:
 
 A `label_include_filter` block exports the following:
 
-* `label` - The label of the filter. This label should be unique across all `label_include_fileter` block. Possible value is `microsoft_metrics_include_label`.
+* `label` - The label of the filter. This label should be unique across all `label_include_filter` block. Possible value is `microsoft_metrics_include_label`.
 
 * `value` - The value of the filter.
 
@@ -343,7 +343,7 @@ A `windows_firewall_log` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Data Collection Rule.
 

@@ -56,7 +56,7 @@ QUERY
 }
 
 resource "azurerm_sentinel_metadata" "example" {
-  name         = "exampl"
+  name         = "example"
   workspace_id = azurerm_log_analytics_solution.example.workspace_resource_id
   content_id   = azurerm_sentinel_alert_rule_nrt.example.name
   kind         = "AnalyticsRule"
@@ -174,7 +174,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Sentinel Metadata.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Sentinel Metadata.

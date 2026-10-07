@@ -46,11 +46,10 @@ resource "azurerm_eventhub_namespace" "eventhub_ns" {
 }
 
 resource "azurerm_eventhub" "eventhub" {
-  name                = "my-eventhub"
-  namespace_name      = azurerm_eventhub_namespace.eventhub_ns.name
-  resource_group_name = azurerm_resource_group.example.name
-  partition_count     = 1
-  message_retention   = 1
+  name              = "my-eventhub"
+  namespace_id      = azurerm_eventhub_namespace.eventhub_ns.id
+  partition_count   = 1
+  message_retention = 1
 }
 
 resource "azurerm_eventhub_consumer_group" "consumer_group" {
@@ -70,13 +69,14 @@ resource "azurerm_kusto_eventhub_data_connection" "eventhub_connection" {
   eventhub_id    = azurerm_eventhub.eventhub.id
   consumer_group = azurerm_eventhub_consumer_group.consumer_group.name
 
-  table_name        = "my-table"         #(Optional)
-  mapping_rule_name = "my-table-mapping" #(Optional)
-  data_format       = "JSON"             #(Optional)
+  table_name           = "my-table"         #(Optional)
+  mapping_rule_name    = "my-table-mapping" #(Optional)
+  data_format          = "JSON"             #(Optional)
+  retrieval_start_date = "2023-06-26T12:00:00Z"
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -108,6 +108,8 @@ The following arguments are supported:
 
 * `database_routing_type` - (Optional) Indication for database routing information from the data connection, by default only database routing information is allowed. Allowed values: `Single`, `Multi`. Changing this forces a new resource to be created. Defaults to `Single`.
 
+* `retrieval_start_date` - (Optional) Specifies the date after which data should be retrieved from Event Hub. When defined, the data connection retrieves existing events created since the specified retrieval start date. It can only retrieve events retained by the Event Hub, based on its retention period. The value should be in RFC3339 format (e.g., `2023-06-26T12:00:00Z`).
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -116,7 +118,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 1 hour) Used when creating the Kusto EventHub Data Connection.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Kusto EventHub Data Connection.

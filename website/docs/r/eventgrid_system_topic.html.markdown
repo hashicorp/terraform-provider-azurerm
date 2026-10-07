@@ -31,11 +31,11 @@ resource "azurerm_storage_account" "example" {
 }
 
 resource "azurerm_eventgrid_system_topic" "example" {
-  name                   = "example-topic"
-  resource_group_name    = azurerm_resource_group.example.name
-  location               = azurerm_resource_group.example.location
-  source_arm_resource_id = azurerm_storage_account.example.id
-  topic_type             = "Microsoft.Storage.StorageAccounts"
+  name                = "example-topic"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  source_resource_id  = azurerm_storage_account.example.id
+  topic_type          = "Microsoft.Storage.StorageAccounts"
 }
 ```
 
@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Event Grid System Topic should exist. Changing this forces a new Event Grid System Topic to be created.
 
-* `source_arm_resource_id` - (Required) The ID of the Event Grid System Topic ARM Source. Changing this forces a new Event Grid System Topic to be created.
+* `source_resource_id` - (Optional) The ID of the Event Grid System Topic ARM Source. Changing this forces a new Event Grid System Topic to be created.
 
 * `topic_type` - (Required) The Topic Type of the Event Grid System Topic. The topic type is validated by Azure and there may be additional topic types beyond the following: `Microsoft.AppConfiguration.ConfigurationStores`, `Microsoft.Communication.CommunicationServices`, `Microsoft.ContainerRegistry.Registries`, `Microsoft.Devices.IoTHubs`, `Microsoft.EventGrid.Domains`, `Microsoft.EventGrid.Topics`, `Microsoft.Eventhub.Namespaces`, `Microsoft.KeyVault.vaults`, `Microsoft.MachineLearningServices.Workspaces`, `Microsoft.Maps.Accounts`, `Microsoft.Media.MediaServices`, `Microsoft.Resources.ResourceGroups`, `Microsoft.Resources.Subscriptions`, `Microsoft.ServiceBus.Namespaces`, `Microsoft.SignalRService.SignalR`, `Microsoft.Storage.StorageAccounts`, `Microsoft.Web.ServerFarms` and `Microsoft.Web.Sites`. Changing this forces a new Event Grid System Topic to be created.
 
@@ -83,7 +83,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - An `identity` block as defined below.
 
-* `metric_arm_resource_id` - The Metric ARM Resource ID of the Event Grid System Topic.
+* `metric_resource_id` - The Metric Resource ID of the Event Grid System Topic.
+
+-> **Note:** This is **not** an Azure RM ID ("/subscription/..."), but rather an Azure-internal identifier for this metric in the form of a GUID. For consumption in Azure Monitor resources, generally the system topic's Azure RM ID is used.
 
 ---
 
@@ -97,7 +99,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Event Grid System Topic.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Event Grid System Topic.
@@ -116,4 +118,4 @@ terraform import azurerm_eventgrid_system_topic.example /subscriptions/00000000-
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.EventGrid` - 2022-06-15
+* `Microsoft.EventGrid` - 2025-02-15
