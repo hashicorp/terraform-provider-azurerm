@@ -1135,7 +1135,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 							if accountKind == string(storageaccounts.KindStorageVTwo) && (changedKind == string(storageaccounts.KindStorage) || changedKind == string(storageaccounts.KindBlobStorage)) {
 								url := "https://learn.microsoft.com/azure/storage/common/general-purpose-version-1-account-migration-overview#retirement-timeline-and-key-milestones"
 								if changedKind == string(storageaccounts.KindBlobStorage) {
-									url = "https://learn.microsoft.com/en-us/azure/storage/common/legacy-blob-storage-account-migration-overview#retirement-timeline-and-key-milestones"
+									url = "https://learn.microsoft.com/azure/storage/common/legacy-blob-storage-account-migration-overview#retirement-timeline-and-key-milestones"
 								}
 
 								return fmt.Errorf("`account_kind` of type `%[1]s` has been retired by Azure, changing from `%[2]s` to `%[1]s` is no longer possible. For additional information, see %[3]s", changedKind, storageaccounts.KindStorageVTwo, url)
