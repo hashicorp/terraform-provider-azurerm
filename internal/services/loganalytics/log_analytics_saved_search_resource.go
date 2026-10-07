@@ -91,7 +91,7 @@ func resourceLogAnalyticsSavedSearch() *pluginsdk.Resource {
 				ForceNew: true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
-					// https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/functions/user-defined-functions
+					// https://learn.microsoft.com/azure/data-explorer/kusto/query/functions/user-defined-functions
 					ValidateFunc: validation.StringMatch(
 						regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9-_]*:([a-z]+(=[^,\n]+)?|\(\*\)|(\([a-zA-Z_][a-zA-Z0-9-_]*:[a-z]+(,[a-zA-Z_][a-zA-Z0-9-_]*:([a-z]+))*\)))(,\s*[a-zA-Z_][a-zA-Z0-9-_]*:([a-z]+(=[^,\n]+)?|\(\*\)|(\([a-zA-Z_][a-zA-Z0-9-_]*:[a-z]+(,\s*[a-zA-Z_][a-zA-Z0-9-_]*:([a-z]+))*\))))*$`),
 						"Log Analytics Saved Search Function Parameters must be in the following format: param-name1:type1=default_value1 OR param-name1:type1 OR param-name1:string='string goes here'",
@@ -104,7 +104,7 @@ func resourceLogAnalyticsSavedSearch() *pluginsdk.Resource {
 	}
 }
 
-func resourceLogAnalyticsSavedSearchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsSavedSearchCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.SavedSearchesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -134,12 +134,12 @@ func resourceLogAnalyticsSavedSearchCreate(d *pluginsdk.ResourceData, meta inter
 			DisplayName:   d.Get("display_name").(string),
 			Query:         d.Get("query").(string),
 			FunctionAlias: pointer.To(d.Get("function_alias").(string)),
-			Tags:          expandSavedSearchTag(d.Get("tags").(map[string]interface{})), // expand tags because it's defined as object set in service
+			Tags:          expandSavedSearchTag(d.Get("tags").(map[string]any)), // expand tags because it's defined as object set in service
 		},
 	}
 
 	if v, ok := d.GetOk("function_parameters"); ok {
-		attrs := v.([]interface{})
+		attrs := v.([]any)
 		result := make([]string, 0)
 		for _, item := range attrs {
 			if item != nil {
@@ -157,7 +157,7 @@ func resourceLogAnalyticsSavedSearchCreate(d *pluginsdk.ResourceData, meta inter
 	return resourceLogAnalyticsSavedSearchRead(d, meta)
 }
 
-func resourceLogAnalyticsSavedSearchRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsSavedSearchRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.SavedSearchesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -185,11 +185,7 @@ func resourceLogAnalyticsSavedSearchRead(d *pluginsdk.ResourceData, meta interfa
 		d.Set("category", props.Category)
 		d.Set("query", props.Query)
 
-		functionAlias := ""
-		if props.FunctionAlias != nil {
-			functionAlias = *props.FunctionAlias
-		}
-		d.Set("function_alias", functionAlias)
+		d.Set("function_alias", pointer.From(props.FunctionAlias))
 
 		functionParams := make([]string, 0)
 		if props.FunctionParameters != nil {
@@ -206,7 +202,7 @@ func resourceLogAnalyticsSavedSearchRead(d *pluginsdk.ResourceData, meta interfa
 	return nil
 }
 
-func resourceLogAnalyticsSavedSearchDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsSavedSearchDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.SavedSearchesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -222,7 +218,7 @@ func resourceLogAnalyticsSavedSearchDelete(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func expandSavedSearchTag(input map[string]interface{}) *[]savedsearches.Tag {
+func expandSavedSearchTag(input map[string]any) *[]savedsearches.Tag {
 	results := make([]savedsearches.Tag, 0)
 	for key, value := range input {
 		result := savedsearches.Tag{
@@ -234,8 +230,8 @@ func expandSavedSearchTag(input map[string]interface{}) *[]savedsearches.Tag {
 	return &results
 }
 
-func flattenSavedSearchTag(input *[]savedsearches.Tag) map[string]interface{} {
-	results := make(map[string]interface{})
+func flattenSavedSearchTag(input *[]savedsearches.Tag) map[string]any {
+	results := make(map[string]any)
 	if input == nil {
 		return results
 	}

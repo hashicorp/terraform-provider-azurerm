@@ -71,7 +71,7 @@ func resourceMySQLFlexibleServerConfiguration() *pluginsdk.Resource {
 	}
 }
 
-func resourceMySQLFlexibleServerConfigurationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMySQLFlexibleServerConfigurationCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MySQL.FlexibleServers.Configurations
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -111,7 +111,7 @@ func resourceMySQLFlexibleServerConfigurationCreate(d *pluginsdk.ResourceData, m
 	return resourceMySQLFlexibleServerConfigurationRead(d, meta)
 }
 
-func resourceMySQLFlexibleServerConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMySQLFlexibleServerConfigurationUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MySQL.FlexibleServers.Configurations
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -143,7 +143,7 @@ func resourceMySQLFlexibleServerConfigurationUpdate(d *pluginsdk.ResourceData, m
 	return resourceMySQLFlexibleServerConfigurationRead(d, meta)
 }
 
-func resourceMySQLFlexibleServerConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMySQLFlexibleServerConfigurationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MySQL.FlexibleServers.Configurations
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -183,7 +183,7 @@ func resourceMySQLFlexibleServerConfigurationFlatten(d *pluginsdk.ResourceData, 
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceMySQLFlexibleServerConfigurationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMySQLFlexibleServerConfigurationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MySQL.FlexibleServers.Configurations
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
