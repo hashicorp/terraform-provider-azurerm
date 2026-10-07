@@ -8,7 +8,7 @@ import (
 	"runtime"
 )
 
-func FuncFileLine(f interface{}) (file string, line int) {
+func FuncFileLine(f any) (file string, line int) {
 	vf, ok := f.(reflect.Value)
 	if !ok {
 		vf = reflect.ValueOf(f)

@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourcePortalDashboard() *pluginsdk.Resource {
@@ -59,35 +58,38 @@ func resourcePortalDashboard() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.DashboardProperties,
-				StateFunc:    utils.NormalizeJson,
+				StateFunc:    pluginsdk.NormalizeJson,
 			},
 		},
 	}
 }
 
-func resourcePortalDashboardCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePortalDashboardCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Portal.DashboardsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := dashboard.NewDashboardID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
-			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_portal_dashboard", id.ID())
+	if d.IsNewResource() {
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+				}
+			}
+
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_portal_dashboard", id.ID())
+			}
 		}
 	}
 
 	props := dashboard.Dashboard{
 		Location: location.Normalize(d.Get("location").(string)),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	var dashboardProperties dashboard.DashboardProperties
@@ -103,11 +105,14 @@ func resourcePortalDashboardCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("creating/updating %s %+v", id, err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
+
 	return resourcePortalDashboardRead(d, meta)
 }
 
-func resourcePortalDashboardRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePortalDashboardRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Portal.DashboardsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -141,13 +146,15 @@ func resourcePortalDashboardRead(d *pluginsdk.ResourceData, meta interface{}) er
 			d.Set("dashboard_properties", string(v))
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
-func resourcePortalDashboardDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePortalDashboardDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Portal.DashboardsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -5,7 +5,6 @@ package healthcare
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -15,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2024-03-31/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -74,15 +74,14 @@ func resourceHealthcareApisWorkspace() *pluginsdk.Resource {
 	}
 }
 
-func resourceHealthcareApisWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceHealthcareApisWorkspaceCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for AzureRM Healthcare Workspace creation.")
 
 	id := workspaces.NewWorkspaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -95,15 +94,14 @@ func resourceHealthcareApisWorkspaceCreate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	location := location.Normalize(d.Get("location").(string))
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
 	parameters := workspaces.Workspace{
 		Location: &location,
 		Tags:     tags.Expand(t),
 	}
 
-	err := client.CreateOrUpdateThenPoll(ctx, id, parameters)
-	if err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating/ updating %s: %+v", id, err)
 	}
 
@@ -112,7 +110,7 @@ func resourceHealthcareApisWorkspaceCreate(d *pluginsdk.ResourceData, meta inter
 	return resourceHealthcareApisWorkspaceRead(d, meta)
 }
 
-func resourceHealthcareApisWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceHealthcareApisWorkspaceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -140,13 +138,15 @@ func resourceHealthcareApisWorkspaceRead(d *pluginsdk.ResourceData, meta interfa
 			d.Set("private_endpoint_connection", flattenWorkspacePrivateEndpoint(props.PrivateEndpointConnections))
 		}
 
-		return tags.FlattenAndSet(d, m.Tags)
+		if err := tags.FlattenAndSet(d, m.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
-func resourceHealthcareApisWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceHealthcareApisWorkspaceUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -156,23 +156,20 @@ func resourceHealthcareApisWorkspaceUpdate(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
 	parameters := workspaces.ResourceTags{
 		Tags: tags.Expand(t),
 	}
 
-	err = client.UpdateThenPoll(ctx, *id, parameters)
-	if err != nil {
+	if err = client.UpdateThenPoll(ctx, *id, parameters); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
-
-	d.SetId(id.ID())
 
 	return resourceHealthcareApisWorkspaceRead(d, meta)
 }
 
-func resourceHealthcareApisWorkspaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceHealthcareApisWorkspaceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -182,22 +179,21 @@ func resourceHealthcareApisWorkspaceDelete(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
 }
 
-func flattenWorkspacePrivateEndpoint(input *[]workspaces.PrivateEndpointConnection) []interface{} {
-	results := make([]interface{}, 0)
+func flattenWorkspacePrivateEndpoint(input *[]workspaces.PrivateEndpointConnection) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, endpoint := range *input {
-		result := map[string]interface{}{}
+		result := map[string]any{}
 		if endpoint.Name != nil {
 			result["name"] = *endpoint.Name
 		}

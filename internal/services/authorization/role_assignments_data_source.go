@@ -120,7 +120,7 @@ func (r RoleAssignmentsDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r RoleAssignmentsDataSource) ModelObject() interface{} {
+func (r RoleAssignmentsDataSource) ModelObject() any {
 	return &RoleAssignmentsDataSourceModel{}
 }
 
@@ -196,7 +196,7 @@ func flattenRoleAssignmentsToModel(input *[]roleassignments.RoleAssignment, scop
 			assignment.DelegatedManagedIdentityResourceID = pointer.From(props.DelegatedManagedIdentityResourceId)
 			assignment.Description = pointer.From(props.Description)
 			assignment.PrincipalID = props.PrincipalId
-			assignment.PrincipalType = string(pointer.From(props.PrincipalType))
+			assignment.PrincipalType = pointer.FromEnum(props.PrincipalType)
 			assignment.RoleAssignmentScope = pointer.From(props.Scope)
 			assignment.RoleDefinitionID = props.RoleDefinitionId
 		}

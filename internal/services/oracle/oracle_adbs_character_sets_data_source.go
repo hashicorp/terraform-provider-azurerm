@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/autonomousdatabasecharactersets"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -50,7 +49,7 @@ func (d AdbsCharSetsDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (d AdbsCharSetsDataSource) ModelObject() interface{} {
+func (d AdbsCharSetsDataSource) ModelObject() any {
 	return &AdbsCharSetsModel{}
 }
 
