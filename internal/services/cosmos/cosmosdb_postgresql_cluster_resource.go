@@ -1,7 +1,9 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name cosmosdb_postgresql_cluster -properties "name,resource_group_name" -test-expect-non-empty
 
 import (
 	"context"
@@ -12,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -61,18 +64,25 @@ type MaintenanceWindow struct {
 
 type CosmosDbPostgreSQLClusterResource struct{}
 
-var _ sdk.ResourceWithUpdate = CosmosDbPostgreSQLClusterResource{}
+var (
+	_ sdk.ResourceWithIdentity = CosmosDbPostgreSQLClusterResource{}
+	_ sdk.ResourceWithUpdate   = CosmosDbPostgreSQLClusterResource{}
+)
 
 func (r CosmosDbPostgreSQLClusterResource) ResourceType() string {
 	return CosmosDbPostgreSQLClusterResourceName
 }
 
-func (r CosmosDbPostgreSQLClusterResource) ModelObject() interface{} {
+func (r CosmosDbPostgreSQLClusterResource) ModelObject() any {
 	return &CosmosDbPostgreSQLClusterModel{}
 }
 
 func (r CosmosDbPostgreSQLClusterResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return clusters.ValidateServerGroupsv2ID
+}
+
+func (r CosmosDbPostgreSQLClusterResource) Identity() resourceids.ResourceId {
+	return new(clusters.ServerGroupsv2Id)
 }
 
 func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Schema {
@@ -107,7 +117,7 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 		"citus_version": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringInSlice([]string{
 				"8.3",
 				"9.0",
@@ -228,7 +238,7 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 		"node_storage_quota_in_mb": {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.All(
 				validation.IntBetween(32768, 16777216),
 				validation.IntDivisibleBy(1024),
@@ -238,7 +248,7 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 		"node_vcores": {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.IntInSlice([]int{
 				1,
 				2,
@@ -265,7 +275,7 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 		"shards_on_coordinator_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 		},
 
 		"source_location": {
@@ -288,7 +298,7 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 		"sql_version": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringInSlice([]string{
 				"11",
 				"12",
@@ -341,13 +351,15 @@ func (r CosmosDbPostgreSQLClusterResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := clusters.NewServerGroupsv2ID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := &clusters.Cluster{
@@ -411,7 +423,7 @@ func (r CosmosDbPostgreSQLClusterResource) Create() sdk.ResourceFunc {
 			// If `shards_on_coordinator_enabled` isn't set, API would set it to `true` when `node_count` is `0`.
 			// If `shards_on_coordinator_enabled` isn't set, API would set it to `false` when `node_count` is greater than or equal to `2`.
 			// As `shards_on_coordinator_enabled` is `bool` and it's always set to `false` as zero value when it isn't set, so we cannot use `model.ShardsOnCoordinatorEnabled` to check if this property is set in tf config.
-			// nolint staticcheck
+			//nolint:staticcheck,tfproviderlint // XR001: GetOkExists is needed here, see above
 			if v, ok := metadata.ResourceData.GetOkExists("shards_on_coordinator_enabled"); ok {
 				parameters.Properties.EnableShardsOnCoordinator = pointer.To(v.(bool))
 			}
@@ -420,12 +432,12 @@ func (r CosmosDbPostgreSQLClusterResource) Create() sdk.ResourceFunc {
 				parameters.Tags = &v
 			}
 
-			if err := client.CreateThenPoll(ctx, id, *parameters); err != nil {
+			if err := client.CreateCallbackThenPoll(ctx, id, *parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
-			return nil
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id)
 		},
 	}
 }
@@ -601,6 +613,10 @@ func (r CosmosDbPostgreSQLClusterResource) Read() sdk.ResourceFunc {
 				state.Tags = *model.Tags
 			}
 
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
+
 			return metadata.Encode(&state)
 		},
 	}
@@ -647,7 +663,7 @@ func expandMaintenanceWindow(input []MaintenanceWindow) *clusters.MaintenanceWin
 
 func flattenMaintenanceWindow(input *clusters.MaintenanceWindow) []MaintenanceWindow {
 	if input == nil || input.CustomWindow == nil || *input.CustomWindow == "Disabled" {
-		return nil
+		return []MaintenanceWindow{}
 	}
 
 	return []MaintenanceWindow{

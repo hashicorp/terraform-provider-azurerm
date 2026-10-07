@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managementgroup
@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/managementgroups/2020-05-01/managementgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/management/2020-05-01/managementgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/migration"
@@ -63,7 +63,7 @@ func resourceManagementGroupSubscriptionAssociation() *pluginsdk.Resource {
 	}
 }
 
-func resourceManagementGroupSubscriptionAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagementGroupSubscriptionAssociationCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ManagementGroups.GroupsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -100,7 +100,9 @@ func resourceManagementGroupSubscriptionAssociationCreate(d *pluginsdk.ResourceD
 		if props.Children != nil {
 			for _, v := range *props.Children {
 				if v.Type != nil && *v.Type == managementgroups.ManagementGroupChildTypeSubscriptions && v.Name != nil && strings.EqualFold(*v.Name, id.SubscriptionId) {
-					return tf.ImportAsExistsError("azurerm_management_group_subscription_association", id.ID())
+					if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+						return tf.ImportAsExistsError("azurerm_management_group_subscription_association", id.ID())
+					}
 				}
 			}
 		}
@@ -115,7 +117,7 @@ func resourceManagementGroupSubscriptionAssociationCreate(d *pluginsdk.ResourceD
 	return resourceManagementGroupSubscriptionAssociationRead(d, meta)
 }
 
-func resourceManagementGroupSubscriptionAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagementGroupSubscriptionAssociationRead(d *pluginsdk.ResourceData, meta any) error {
 	// There is no "read" function on the appropriate client so we need to check if the Subscription is in the Management Group subscription list
 	client := meta.(*clients.Client).ManagementGroups.GroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -161,7 +163,7 @@ func resourceManagementGroupSubscriptionAssociationRead(d *pluginsdk.ResourceDat
 	return nil
 }
 
-func resourceManagementGroupSubscriptionAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagementGroupSubscriptionAssociationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ManagementGroups.GroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -202,7 +204,7 @@ func resourceManagementGroupSubscriptionAssociationDelete(d *pluginsdk.ResourceD
 }
 
 func subscriptionAssociationRefreshFunc(ctx context.Context, client *managementgroups.ManagementGroupsClient, id managementgroups.SubscriptionId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		managementGroup, err := client.Get(ctx, commonids.NewManagementGroupID(id.GroupId), managementgroups.GetOperationOptions{
 			CacheControl: &managementGroupCacheControl,
 			Expand:       pointer.To(managementgroups.ExpandChildren),

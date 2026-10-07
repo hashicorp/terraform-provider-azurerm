@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/blobinventorypolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/blobinventorypolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -21,10 +21,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_blob_inventory_policy -service-package-name storage -compare-values "subscription_id:storage_account_id,resource_group_name:storage_account_id,storage_account_name:storage_account_id"
+//go:generate go run ../../tools/generator-tests resourceidentity -parent-id "storage_account_id"
 
 func resourceStorageBlobInventoryPolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -72,30 +71,21 @@ func resourceStorageBlobInventoryPolicy() *pluginsdk.Resource {
 						},
 
 						"format": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(blobinventorypolicies.FormatCsv),
-								string(blobinventorypolicies.FormatParquet),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(blobinventorypolicies.PossibleValuesForFormat(), false),
 						},
 
 						"schedule": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(blobinventorypolicies.ScheduleDaily),
-								string(blobinventorypolicies.ScheduleWeekly),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(blobinventorypolicies.PossibleValuesForSchedule(), false),
 						},
 
 						"scope": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(blobinventorypolicies.ObjectTypeBlob),
-								string(blobinventorypolicies.ObjectTypeContainer),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(blobinventorypolicies.PossibleValuesForObjectType(), false),
 						},
 
 						"schema_fields": {
@@ -124,6 +114,12 @@ func resourceStorageBlobInventoryPolicy() *pluginsdk.Resource {
 												"pageBlob",
 											}, false),
 										},
+									},
+
+									"created_within_days": {
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 36500),
 									},
 
 									"include_blob_versions": {
@@ -173,7 +169,7 @@ func resourceStorageBlobInventoryPolicy() *pluginsdk.Resource {
 	}
 }
 
-func resourceStorageBlobInventoryPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageBlobInventoryPolicyCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Storage.ResourceManager.BlobInventoryPolicies
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -188,14 +184,16 @@ func resourceStorageBlobInventoryPolicyCreateUpdate(d *pluginsdk.ResourceData, m
 	// however we want to ensure it's in the same subscription, so we'll build this up here
 	id := commonids.NewStorageAccountID(subscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName)
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %q: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %q: %+v", id, err)
+				}
 			}
-		}
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_storage_blob_inventory_policy", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_storage_blob_inventory_policy", id.ID())
+			}
 		}
 	}
 
@@ -218,14 +216,14 @@ func resourceStorageBlobInventoryPolicyCreateUpdate(d *pluginsdk.ResourceData, m
 	}
 
 	d.SetId(id.ID())
-	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+	if err := pluginsdk.SetResourceIdentityData(d, &id, pluginsdk.ResourceTypeForIdentityVirtual); err != nil {
 		return err
 	}
 
 	return resourceStorageBlobInventoryPolicyRead(d, meta)
 }
 
-func resourceStorageBlobInventoryPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageBlobInventoryPolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.ResourceManager.BlobInventoryPolicies
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -261,7 +259,7 @@ func resourceStorageBlobInventoryPolicyRead(d *pluginsdk.ResourceData, meta inte
 	return pluginsdk.SetResourceIdentityData(d, id, pluginsdk.ResourceTypeForIdentityVirtual)
 }
 
-func resourceStorageBlobInventoryPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageBlobInventoryPolicyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.ResourceManager.BlobInventoryPolicies
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -277,12 +275,12 @@ func resourceStorageBlobInventoryPolicyDelete(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func expandBlobInventoryPolicyRules(input []interface{}) ([]blobinventorypolicies.BlobInventoryPolicyRule, error) {
+func expandBlobInventoryPolicyRules(input []any) ([]blobinventorypolicies.BlobInventoryPolicyRule, error) {
 	results := make([]blobinventorypolicies.BlobInventoryPolicyRule, 0)
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 
-		filters, err := expandBlobInventoryPolicyFilter(v["filter"].([]interface{}), v["scope"].(string))
+		filters, err := expandBlobInventoryPolicyFilter(v["filter"].([]any), v["scope"].(string))
 		if err != nil {
 			return nil, fmt.Errorf("%s rule is invalid: %+v", v["name"].(string), err)
 		}
@@ -295,7 +293,7 @@ func expandBlobInventoryPolicyRules(input []interface{}) ([]blobinventorypolicie
 				Format:       blobinventorypolicies.Format(v["format"].(string)),
 				Schedule:     blobinventorypolicies.Schedule(v["schedule"].(string)),
 				ObjectType:   blobinventorypolicies.ObjectType(v["scope"].(string)),
-				SchemaFields: *utils.ExpandStringSlice(v["schema_fields"].([]interface{})),
+				SchemaFields: *pluginsdk.ExpandStringSlice(v["schema_fields"].([]any)),
 				Filters:      filters,
 			},
 		})
@@ -303,15 +301,15 @@ func expandBlobInventoryPolicyRules(input []interface{}) ([]blobinventorypolicie
 	return results, nil
 }
 
-func expandBlobInventoryPolicyFilter(input []interface{}, objectType string) (*blobinventorypolicies.BlobInventoryPolicyFilter, error) {
+func expandBlobInventoryPolicyFilter(input []any, objectType string) (*blobinventorypolicies.BlobInventoryPolicyFilter, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	policyFilter := &blobinventorypolicies.BlobInventoryPolicyFilter{
-		PrefixMatch:         utils.ExpandStringSlice(v["prefix_match"].(*pluginsdk.Set).List()),
-		ExcludePrefix:       utils.ExpandStringSlice(v["exclude_prefixes"].(*pluginsdk.Set).List()),
-		BlobTypes:           utils.ExpandStringSlice(v["blob_types"].(*pluginsdk.Set).List()),
+		PrefixMatch:         pluginsdk.ExpandStringSlice(v["prefix_match"].(*pluginsdk.Set).List()),
+		ExcludePrefix:       pluginsdk.ExpandStringSlice(v["exclude_prefixes"].(*pluginsdk.Set).List()),
+		BlobTypes:           pluginsdk.ExpandStringSlice(v["blob_types"].(*pluginsdk.Set).List()),
 		IncludeBlobVersions: pointer.To(v["include_blob_versions"].(bool)),
 		IncludeDeleted:      pointer.To(v["include_deleted"].(bool)),
 		IncludeSnapshots:    pointer.To(v["include_snapshots"].(bool)),
@@ -327,11 +325,17 @@ func expandBlobInventoryPolicyFilter(input []interface{}, objectType string) (*b
 		policyFilter.IncludeSnapshots = nil
 	}
 
+	if v["created_within_days"].(int) > 0 {
+		policyFilter.CreationTime = &blobinventorypolicies.BlobInventoryCreationTime{
+			LastNDays: pointer.To(int64(v["created_within_days"].(int))),
+		}
+	}
+
 	return policyFilter, nil
 }
 
-func flattenBlobInventoryPolicyRules(input []blobinventorypolicies.BlobInventoryPolicyRule) []interface{} {
-	results := make([]interface{}, 0)
+func flattenBlobInventoryPolicyRules(input []blobinventorypolicies.BlobInventoryPolicyRule) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
@@ -341,7 +345,7 @@ func flattenBlobInventoryPolicyRules(input []blobinventorypolicies.BlobInventory
 			continue
 		}
 
-		results = append(results, map[string]interface{}{
+		results = append(results, map[string]any{
 			"name":                   item.Name,
 			"storage_container_name": item.Destination,
 			"format":                 string(item.Definition.Format),
@@ -354,31 +358,25 @@ func flattenBlobInventoryPolicyRules(input []blobinventorypolicies.BlobInventory
 	return results
 }
 
-func flattenBlobInventoryPolicyFilter(input *blobinventorypolicies.BlobInventoryPolicyFilter) []interface{} {
+func flattenBlobInventoryPolicyFilter(input *blobinventorypolicies.BlobInventoryPolicyFilter) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	var includeBlobVersions bool
-	if input.IncludeBlobVersions != nil {
-		includeBlobVersions = *input.IncludeBlobVersions
+	var createdWithinDays int
+	if input.CreationTime != nil {
+		createdWithinDays = int(pointer.From(input.CreationTime.LastNDays))
 	}
-	var includeDeleted bool
-	if input.IncludeDeleted != nil {
-		includeDeleted = *input.IncludeDeleted
-	}
-	var includeSnapshots bool
-	if input.IncludeSnapshots != nil {
-		includeSnapshots = *input.IncludeSnapshots
-	}
-	return []interface{}{
-		map[string]interface{}{
-			"blob_types":            utils.FlattenStringSlice(input.BlobTypes),
-			"include_blob_versions": includeBlobVersions,
-			"include_deleted":       includeDeleted,
-			"include_snapshots":     includeSnapshots,
-			"prefix_match":          utils.FlattenStringSlice(input.PrefixMatch),
-			"exclude_prefixes":      utils.FlattenStringSlice(input.ExcludePrefix),
+
+	return []any{
+		map[string]any{
+			"blob_types":            pluginsdk.FlattenSlice(input.BlobTypes),
+			"created_within_days":   createdWithinDays,
+			"include_blob_versions": pointer.From(input.IncludeBlobVersions),
+			"include_deleted":       pointer.From(input.IncludeDeleted),
+			"include_snapshots":     pointer.From(input.IncludeSnapshots),
+			"prefix_match":          pluginsdk.FlattenSlice(input.PrefixMatch),
+			"exclude_prefixes":      pluginsdk.FlattenSlice(input.ExcludePrefix),
 		},
 	}
 }

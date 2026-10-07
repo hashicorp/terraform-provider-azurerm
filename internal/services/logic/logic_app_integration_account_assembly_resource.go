@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package logic
@@ -95,7 +95,7 @@ func resourceLogicAppIntegrationAccountAssembly() *pluginsdk.Resource {
 	}
 }
 
-func resourceLogicAppIntegrationAccountAssemblyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppIntegrationAccountAssemblyCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Logic.IntegrationAccountAssemblyClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -104,14 +104,16 @@ func resourceLogicAppIntegrationAccountAssemblyCreateUpdate(d *pluginsdk.Resourc
 	id := integrationaccountassemblies.NewAssemblyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("integration_account_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_logic_app_integration_account_assembly", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_logic_app_integration_account_assembly", id.ID())
+			}
 		}
 	}
 
@@ -145,7 +147,7 @@ func resourceLogicAppIntegrationAccountAssemblyCreateUpdate(d *pluginsdk.Resourc
 	return resourceLogicAppIntegrationAccountAssemblyRead(d, meta)
 }
 
-func resourceLogicAppIntegrationAccountAssemblyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppIntegrationAccountAssemblyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Logic.IntegrationAccountAssemblyClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -184,7 +186,7 @@ func resourceLogicAppIntegrationAccountAssemblyRead(d *pluginsdk.ResourceData, m
 	return nil
 }
 
-func resourceLogicAppIntegrationAccountAssemblyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppIntegrationAccountAssemblyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Logic.IntegrationAccountAssemblyClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

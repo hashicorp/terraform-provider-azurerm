@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package databasemigration
@@ -15,13 +15,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datamigration/2021-06-30/serviceresource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databasemigration/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceDatabaseMigrationService() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -30,10 +34,10 @@ func resourceDatabaseMigrationService() *pluginsdk.Resource {
 		Update: resourceDatabaseMigrationServiceUpdate,
 		Delete: resourceDatabaseMigrationServiceDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := serviceresource.ParseServiceID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&serviceresource.ServiceId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&serviceresource.ServiceId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -67,7 +71,7 @@ func resourceDatabaseMigrationService() *pluginsdk.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					// No const defined in go sdk, the literal listed below is derived from the response of listskus endpoint.
-					// See: https://docs.microsoft.com/en-us/rest/api/datamigration/resourceskus/listskus
+					// See: https://docs.microsoft.com/rest/api/datamigration/resourceskus/listskus
 					"Premium_4vCores",
 					"Standard_1vCores",
 					"Standard_2vCores",
@@ -80,14 +84,14 @@ func resourceDatabaseMigrationService() *pluginsdk.Resource {
 	}
 }
 
-func resourceDatabaseMigrationServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatabaseMigrationServiceCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DatabaseMigration.ServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := serviceresource.NewServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.ServicesGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -110,18 +114,21 @@ func resourceDatabaseMigrationServiceCreate(d *pluginsdk.ResourceData, meta inte
 		Kind: pointer.To("Cloud"), // currently only "Cloud" is supported, hence hardcode here
 	}
 	if t, ok := d.GetOk("tags"); ok {
-		parameters.Tags = tags.Expand(t.(map[string]interface{}))
+		parameters.Tags = tags.Expand(t.(map[string]any))
 	}
 
-	if err := client.ServicesCreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.ServicesCreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 	return resourceDatabaseMigrationServiceRead(d, meta)
 }
 
-func resourceDatabaseMigrationServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatabaseMigrationServiceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DatabaseMigration.ServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -151,12 +158,14 @@ func resourceDatabaseMigrationServiceRead(d *pluginsdk.ResourceData, meta interf
 		}
 		d.Set("sku_name", model.Sku.Name)
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceDatabaseMigrationServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatabaseMigrationServiceUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DatabaseMigration.ServicesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -169,7 +178,7 @@ func resourceDatabaseMigrationServiceUpdate(d *pluginsdk.ResourceData, meta inte
 	parameters := serviceresource.DataMigrationService{
 		// location isn't update-able but if we don't supply the current value the SDK sends an empty string instead which errors on the API side
 		Location: location.Normalize(d.Get("location").(string)),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if err := client.ServicesUpdateThenPoll(ctx, *id, parameters); err != nil {
@@ -179,7 +188,7 @@ func resourceDatabaseMigrationServiceUpdate(d *pluginsdk.ResourceData, meta inte
 	return resourceDatabaseMigrationServiceRead(d, meta)
 }
 
-func resourceDatabaseMigrationServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatabaseMigrationServiceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DatabaseMigration.ServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

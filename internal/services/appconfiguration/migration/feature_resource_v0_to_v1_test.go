@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -15,13 +15,13 @@ import (
 func TestFeatureResourceV0ToV1(t *testing.T) {
 	testData := []struct {
 		name                        string
-		input                       map[string]interface{}
+		input                       map[string]any
 		expected                    *string
 		appConfigurationEnvironment environments.Api
 	}{
 		{
 			name: "old id (normal)",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationFeature/keyName/Label/labelName",
 			},
 			expected:                    pointer.To("https://appConf1.azconfig.io/kv/.appconfig.featureflag%2FkeyName?label=labelName"),
@@ -29,7 +29,7 @@ func TestFeatureResourceV0ToV1(t *testing.T) {
 		},
 		{
 			name: "old id (complicated)",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationFeature/key:name/test/Label/test:label/name",
 			},
 			expected:                    pointer.To("https://appConf1.azconfig.io/kv/.appconfig.featureflag%2Fkey:name%2Ftest?label=test%3Alabel%2Fname"),
@@ -37,7 +37,7 @@ func TestFeatureResourceV0ToV1(t *testing.T) {
 		},
 		{
 			name: "old id (no label)",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationFeature/keyName/Label/%00",
 			},
 			expected:                    pointer.To("https://appConf1.azconfig.io/kv/.appconfig.featureflag%2FkeyName?label="),
@@ -45,7 +45,7 @@ func TestFeatureResourceV0ToV1(t *testing.T) {
 		},
 		{
 			name: "old id (\000 label)",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationFeature/keyName/Label/\000",
 			},
 			expected:                    pointer.To("https://appConf1.azconfig.io/kv/.appconfig.featureflag%2FkeyName?label="),
@@ -53,7 +53,7 @@ func TestFeatureResourceV0ToV1(t *testing.T) {
 		},
 		{
 			name: "old id (empty label)",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationFeature/keyName/Label/",
 			},
 			expected:                    pointer.To("https://appConf1.azconfig.io/kv/.appconfig.featureflag%2FkeyName?label="),
@@ -61,7 +61,7 @@ func TestFeatureResourceV0ToV1(t *testing.T) {
 		},
 		{
 			name: "old id (empty label - china)",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationFeature/keyName/Label/",
 			},
 			expected:                    pointer.To("https://appConf1.azconfig.azure.cn/kv/.appconfig.featureflag%2FkeyName?label="),
@@ -69,7 +69,7 @@ func TestFeatureResourceV0ToV1(t *testing.T) {
 		},
 		{
 			name: "old id (empty label - usgov)",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationFeature/keyName/Label/",
 			},
 			expected:                    pointer.To("https://appConf1.azconfig.azure.us/kv/.appconfig.featureflag%2FkeyName?label="),

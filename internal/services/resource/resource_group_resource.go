@@ -1,9 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package resource
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -25,7 +26,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name resource_group -service-package-name resource -properties "name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
+
+const resourceGroupResourceName = "azurerm_resource_group"
 
 func resourceResourceGroup() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -52,6 +55,7 @@ func resourceResourceGroup() *pluginsdk.Resource {
 			"managed_by": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
@@ -62,27 +66,29 @@ func resourceResourceGroup() *pluginsdk.Resource {
 	}
 }
 
-func resourceResourceGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceResourceGroupCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Resource.ResourceGroupsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := commonids.NewResourceGroupID(meta.(*clients.Client).Account.SubscriptionId, d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_resource_group", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError(resourceGroupResourceName, id.ID())
+		}
 	}
 
 	parameters := resourcegroups.ResourceGroup{
 		Location: location.Normalize(d.Get("location").(string)),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v := d.Get("managed_by").(string); v != "" {
@@ -96,7 +102,7 @@ func resourceResourceGroupCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	// custom poller to account for replication delays in the eventual consistency responses of newly created RG resources
 	pollerType := custompollers.NewResourceGroupCreatePoller(client, id)
 	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-	if err = poller.PollUntilDone(ctx); err != nil {
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return err
 	}
 
@@ -108,7 +114,7 @@ func resourceResourceGroupCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceResourceGroupRead(d, meta)
 }
 
-func resourceResourceGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceResourceGroupUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Resource.ResourceGroupsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -120,12 +126,8 @@ func resourceResourceGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	patch := resourcegroups.ResourceGroupPatchable{}
 
-	if d.HasChange("managed_by") {
-		patch.ManagedBy = pointer.To(d.Get("managed_by").(string))
-	}
-
 	if d.HasChange("tags") {
-		patch.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		patch.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if _, err := client.Update(ctx, *id, patch); err != nil {
@@ -135,7 +137,7 @@ func resourceResourceGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceResourceGroupRead(d, meta)
 }
 
-func resourceResourceGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceResourceGroupRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Resource.ResourceGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -156,11 +158,21 @@ func resourceResourceGroupRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("reading resource group: %+v", err)
 	}
 
+	if err := resourceResourceGroupFlatten(d, id, resp.Model); err != nil {
+		return fmt.Errorf("encoding %s: %+v", id, err)
+	}
+
+	return nil
+}
+
+func resourceResourceGroupFlatten(d *pluginsdk.ResourceData, id *commonids.ResourceGroupId, group *resourcegroups.ResourceGroup) error {
 	d.Set("name", id.ResourceGroupName)
-	if model := resp.Model; model != nil {
-		d.Set("location", location.Normalize(model.Location))
-		d.Set("managed_by", pointer.From(model.ManagedBy))
-		if err = tags.FlattenAndSet(d, model.Tags); err != nil {
+
+	if group != nil {
+		d.Set("location", location.Normalize(group.Location))
+		d.Set("managed_by", pointer.From(group.ManagedBy))
+
+		if err := tags.FlattenAndSet(d, group.Tags); err != nil {
 			return err
 		}
 	}
@@ -168,7 +180,7 @@ func resourceResourceGroupRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Resource.ResourceGroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -181,9 +193,12 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	// conditionally check for nested resources and error if they exist
 	if meta.(*clients.Client).Features.ResourceGroup.PreventDeletionIfContainsResources {
 		// Resource groups sometimes hold on to resource information after the resources have been deleted. We'll retry this check to account for that eventual consistency.
+		deletePollerContext, deletePollerCancel := context.WithTimeout(context.Background(), 10*time.Minute)
+		defer deletePollerCancel()
+
 		pollerType := custompollers.NewResourceGroupPreventDeletePoller(client, *id)
-		poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-		if err := poller.PollUntilDone(ctx); err != nil {
+		poller := pollers.NewRetryOnErrorPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow, true)
+		if err := poller.PollUntilDone(deletePollerContext); err != nil {
 			return err
 		}
 	}

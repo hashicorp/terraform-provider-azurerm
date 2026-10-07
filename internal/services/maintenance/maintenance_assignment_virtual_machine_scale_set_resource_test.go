@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package maintenance_test
@@ -205,8 +205,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   automatic_os_upgrade_policy {
-    disable_automatic_rollback  = true
-    enable_automatic_os_upgrade = true
+    automatic_rollback_enabled   = false
+    automatic_os_upgrade_enabled = true
   }
 
   rolling_upgrade_policy {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package devtestlabs
@@ -87,13 +87,10 @@ func resourceArmDevTestPolicy() *pluginsdk.Resource {
 			},
 
 			"evaluator_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(policies.PolicyEvaluatorTypeAllowedValuesPolicy),
-					string(policies.PolicyEvaluatorTypeMaxValuePolicy),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(policies.PossibleValuesForPolicyEvaluatorType(), false),
 			},
 
 			"description": {
@@ -111,26 +108,26 @@ func resourceArmDevTestPolicy() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmDevTestPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmDevTestPolicyCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DevTestLabs.PoliciesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for DevTest Policy creation")
-
 	id := policies.NewPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("lab_name").(string), d.Get("policy_set_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, policies.GetOperationOptions{})
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id, policies.GetOperationOptions{})
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_dev_test_policy", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_dev_test_policy", id.ID())
+			}
 		}
 	}
 
@@ -139,12 +136,11 @@ func resourceArmDevTestPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	evaluatorType := policies.PolicyEvaluatorType(d.Get("evaluator_type").(string))
 
 	description := d.Get("description").(string)
-	factName := policies.PolicyFactName(id.PolicyName)
 
 	parameters := policies.Policy{
-		Tags: expandTags(d.Get("tags").(map[string]interface{})),
+		Tags: expandTags(d.Get("tags").(map[string]any)),
 		Properties: policies.PolicyProperties{
-			FactName:      &factName,
+			FactName:      pointer.ToEnum[policies.PolicyFactName](id.PolicyName),
 			FactData:      pointer.To(factData),
 			Description:   pointer.To(description),
 			EvaluatorType: &evaluatorType,
@@ -161,7 +157,7 @@ func resourceArmDevTestPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	return resourceArmDevTestPolicyRead(d, meta)
 }
 
-func resourceArmDevTestPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmDevTestPolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DevTestLabs.PoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -191,7 +187,7 @@ func resourceArmDevTestPolicyRead(d *pluginsdk.ResourceData, meta interface{}) e
 		props := model.Properties
 		d.Set("description", props.Description)
 		d.Set("fact_data", props.FactData)
-		d.Set("evaluator_type", string(pointer.From(props.EvaluatorType)))
+		d.Set("evaluator_type", pointer.FromEnum(props.EvaluatorType))
 		d.Set("threshold", props.Threshold)
 
 		if err = tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
@@ -201,7 +197,7 @@ func resourceArmDevTestPolicyRead(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceArmDevTestPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmDevTestPolicyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DevTestLabs.PoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

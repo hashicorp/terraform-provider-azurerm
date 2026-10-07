@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -11,14 +11,14 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/storageaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storageaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_account_static_website -service-package-name storage -compare-values "subscription_id:storage_account_id,resource_group_name:storage_account_id,storage_account_name:storage_account_id" -test-name "complete"
+//go:generate go run ../../tools/generator-tests resourceidentity -parent-id "storage_account_id" -test-name "complete"
 
 type AccountStaticWebsiteResource struct{}
 
@@ -65,7 +65,7 @@ func (a AccountStaticWebsiteResource) Attributes() map[string]*pluginsdk.Schema 
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (a AccountStaticWebsiteResource) ModelObject() interface{} {
+func (a AccountStaticWebsiteResource) ModelObject() any {
 	return &AccountStaticWebsiteResourceModel{}
 }
 
@@ -218,14 +218,12 @@ func (a AccountStaticWebsiteResource) Delete() sdk.ResourceFunc {
 
 			accountDetails, err := storageClient.GetAccount(ctx, *id)
 			if err != nil {
-				// nolint:nilerr // If we don't find the account we can safely assume we don't need to remove the website since it must already be deleted
+				//nolint:nilerr // If we don't find the account we can safely assume we don't need to remove the website since it must already be deleted
 				return nil
 			}
 
 			properties := accounts.StorageServiceProperties{
-				StaticWebsite: &accounts.StaticWebsite{
-					Enabled: false,
-				},
+				StaticWebsite: &accounts.StaticWebsite{},
 			}
 
 			client, err := storageClient.AccountsDataPlaneClient(ctx, *accountDetails, storageClient.DataPlaneOperationSupportingAnyAuthMethod())

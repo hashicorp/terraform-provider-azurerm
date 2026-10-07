@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation
@@ -6,7 +6,6 @@ package automation
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -118,21 +117,10 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"runbook_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(runbook.RunbookTypeEnumGraph),
-					string(runbook.RunbookTypeEnumGraphPowerShell),
-					string(runbook.RunbookTypeEnumGraphPowerShellWorkflow),
-					string(runbook.RunbookTypeEnumPowerShell),
-					string(runbook.RunbookTypeEnumPowerShellSevenTwo),
-					string(runbook.RunbookTypeEnumPythonTwo),
-					string(runbook.RunbookTypeEnumPythonThree),
-					string(runbook.RunbookTypeEnumPowerShellWorkflow),
-					string(runbook.RunbookTypeEnumPowerShellSevenTwo),
-					string(runbook.RunbookTypeEnumScript),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(runbook.PossibleValuesForRunbookTypeEnum(), false),
 			},
 
 			"log_progress": {
@@ -162,7 +150,7 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 			"job_schedule": {
 				Type:       pluginsdk.TypeSet,
 				Optional:   true,
-				Computed:   true,
+				Computed:   true, // azignore:AZS007 - pre-existing violation
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -276,62 +264,69 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 				ValidateFunc: validation.IntAtLeast(0),
 			},
 
+			"runtime_environment_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"tags": commonschema.Tags(),
 		},
 	}
 }
 
-func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	autoCli := meta.(*clients.Client).Automation
 	client := autoCli.Runbook
 	jsClient := autoCli.JobSchedule
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Automation Runbook creation.")
 	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
 
 	id := runbook.NewRunbookID(subscriptionID, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_automation_runbook", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_automation_runbook", id.ID())
+			}
 		}
 	}
 
 	// for existing runbook, if only job_schedule field updated, then skip update runbook
 	if d.IsNewResource() || d.HasChangeExcept("job_schedule") {
 		location := location.Normalize(d.Get("location").(string))
-		t := d.Get("tags").(map[string]interface{})
 
 		parameters := runbook.RunbookCreateOrUpdateParameters{
 			Properties: runbook.RunbookCreateOrUpdateProperties{
-				LogVerbose:       pointer.To(d.Get("log_verbose").(bool)),
-				LogProgress:      pointer.To(d.Get("log_progress").(bool)),
-				RunbookType:      runbook.RunbookTypeEnum(d.Get("runbook_type").(string)),
-				Description:      pointer.To(d.Get("description").(string)),
-				LogActivityTrace: pointer.To(int64(d.Get("log_activity_trace_level").(int))),
+				LogVerbose:         pointer.To(d.Get("log_verbose").(bool)),
+				LogProgress:        pointer.To(d.Get("log_progress").(bool)),
+				RuntimeEnvironment: pointer.To(d.Get("runtime_environment_name").(string)),
+				RunbookType:        runbook.RunbookTypeEnum(d.Get("runbook_type").(string)),
+				Description:        pointer.To(d.Get("description").(string)),
+				LogActivityTrace:   pointer.To(int64(d.Get("log_activity_trace_level").(int))),
 			},
 
 			Location: &location,
 		}
-		if tagsVal := expandStringInterfaceMap(t); tagsVal != nil {
+		if tagsVal := expandStringInterfaceMap(d.Get("tags").(map[string]any)); tagsVal != nil {
 			parameters.Tags = &tagsVal
 		}
 
-		contentLink := expandContentLink(d.Get("publish_content_link").([]interface{}))
+		contentLink := expandContentLink(d.Get("publish_content_link").([]any))
 		if contentLink != nil {
 			parameters.Properties.PublishContentLink = contentLink
 		} else {
 			parameters.Properties.Draft = &runbook.RunbookDraft{}
-			if draft := expandDraft(d.Get("draft").([]interface{})); draft != nil {
+			if draft := expandDraft(d.Get("draft").([]any)); draft != nil {
 				parameters.Properties.Draft = draft
 			}
 		}
@@ -339,6 +334,8 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 			return fmt.Errorf("creating/updating %s: %+v", id, err)
 		}
+
+		d.SetId(id.ID())
 
 		if v, ok := d.GetOk("content"); ok {
 			content := v.(string)
@@ -351,8 +348,6 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 				return fmt.Errorf("publishing the updated %s: %+v", id, err)
 			}
 		}
-
-		d.SetId(id.ID())
 	}
 
 	// **don't need** to list job schedules and delete all of them. update the runbook will recreate these job schedules automatically,
@@ -374,7 +369,7 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	return resourceAutomationRunbookRead(d, meta)
 }
 
-func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta any) error {
 	autoCli := meta.(*clients.Client).Automation
 	client := autoCli.Runbook
 	jsClient := autoCli.JobSchedule
@@ -405,9 +400,10 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 	if props := model.Properties; props != nil {
 		d.Set("log_verbose", props.LogVerbose)
 		d.Set("log_progress", props.LogProgress)
-		d.Set("runbook_type", string(pointer.From(props.RunbookType)))
+		d.Set("runbook_type", pointer.FromEnum(props.RunbookType))
 		d.Set("description", props.Description)
 		d.Set("log_activity_trace_level", props.LogActivityTrace)
+		d.Set("runtime_environment_name", pointer.From(props.RuntimeEnvironment))
 	}
 
 	// GetContent need to use preview version client RunbookClientHack
@@ -420,10 +416,7 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("retrieving content for Automation Runbook %s: %+v", id, err)
 		}
 	}
-
-	if v := contentResp.Model; v != nil && *v != nil {
-		d.Set("content", string(*v))
-	}
+	d.Set("content", string(pointer.From(contentResp.Model)))
 
 	jsMap := make(map[uuid.UUID]jobschedule.JobScheduleProperties)
 	automationAccountId := jobschedule.NewAutomationAccountID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName)
@@ -457,8 +450,7 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	jobSchedule := helper.FlattenAutomationJobSchedule(jsMap)
-	if err := d.Set("job_schedule", jobSchedule); err != nil {
+	if err := d.Set("job_schedule", helper.FlattenAutomationJobSchedule(jsMap)); err != nil {
 		return fmt.Errorf("setting `job_schedule`: %+v", err)
 	}
 
@@ -469,7 +461,7 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceAutomationRunbookDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationRunbookDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Runbook
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -491,18 +483,18 @@ func resourceAutomationRunbookDelete(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func expandContentLink(inputs []interface{}) *runbook.ContentLink {
+func expandContentLink(inputs []any) *runbook.ContentLink {
 	if len(inputs) == 0 || inputs[0] == nil {
 		return nil
 	}
 
-	input := inputs[0].(map[string]interface{})
+	input := inputs[0].(map[string]any)
 	uri := input["uri"].(string)
 	version := input["version"].(string)
-	hashes := input["hash"].([]interface{})
+	hashes := input["hash"].([]any)
 
 	if len(hashes) > 0 {
-		hash := hashes[0].(map[string]interface{})
+		hash := hashes[0].(map[string]any)
 		hashValue := hash["value"].(string)
 		hashAlgorithm := hash["algorithm"].(string)
 
@@ -522,20 +514,20 @@ func expandContentLink(inputs []interface{}) *runbook.ContentLink {
 	}
 }
 
-func expandDraft(inputs []interface{}) *runbook.RunbookDraft {
+func expandDraft(inputs []any) *runbook.RunbookDraft {
 	if len(inputs) == 0 || inputs[0] == nil {
 		return nil
 	}
 
-	input := inputs[0].(map[string]interface{})
+	input := inputs[0].(map[string]any)
 	var res runbook.RunbookDraft
 
-	res.DraftContentLink = expandContentLink(input["content_link"].([]interface{}))
+	res.DraftContentLink = expandContentLink(input["content_link"].([]any))
 	res.InEdit = pointer.To(input["edit_mode_enabled"].(bool))
 	parameter := map[string]runbook.RunbookParameter{}
 
-	for _, iparam := range input["parameters"].([]interface{}) {
-		param := iparam.(map[string]interface{})
+	for _, iparam := range input["parameters"].([]any) {
+		param := iparam.(map[string]any)
 		key := param["key"].(string)
 		parameter[key] = runbook.RunbookParameter{
 			Type:         pointer.To(param["type"].(string)),
@@ -546,7 +538,7 @@ func expandDraft(inputs []interface{}) *runbook.RunbookDraft {
 	}
 	res.Parameters = &parameter
 
-	typesInput := input["output_types"].([]interface{})
+	typesInput := input["output_types"].([]any)
 	types := make([]string, 0, len(typesInput))
 	for _, v := range typesInput {
 		types = append(types, v.(string))

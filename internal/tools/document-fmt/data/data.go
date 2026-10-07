@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package data
@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/data/models"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/markdown"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/util"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 )
 
@@ -111,16 +111,16 @@ func GetAllTerraformNodeData(fs afero.Fs, providerDir string, serviceName string
 	// Only load packages if needed by the selected rules
 	var pkgData *packageData
 	if shouldLoadPackages {
-		log.WithField("reason", "required by selected rules").Info("loading packages for API analysis")
+		logrus.WithField("reason", "required by selected rules").Info("loading packages for API analysis")
 		pkgData = loadPackages(providerDir)
 	} else {
-		log.Info("skipping package loading - no rules require it")
+		logrus.Info("skipping package loading - no rules require it")
 	}
 
 	for _, s := range provider.SupportedTypedServices() {
 		service, err := NewService(fs, providerDir, s, s.Name())
 		if err != nil {
-			log.WithFields(log.Fields{
+			logrus.WithFields(logrus.Fields{
 				"service": s.Name(),
 				"error":   err,
 			}).Warn("Skipping service...")
@@ -150,7 +150,7 @@ func GetAllTerraformNodeData(fs afero.Fs, providerDir string, serviceName string
 
 			rd, err := newTerraformNodeData(fs, providerDir, *service, name, ResourceTypeData, r)
 			if err != nil {
-				log.Error(err)
+				logrus.Error(err)
 				continue
 			}
 
@@ -171,7 +171,7 @@ func GetAllTerraformNodeData(fs afero.Fs, providerDir string, serviceName string
 
 			rd, err := newTerraformNodeData(fs, providerDir, *service, name, ResourceTypeResource, r)
 			if err != nil {
-				log.Error(err)
+				logrus.Error(err)
 				continue
 			}
 
@@ -183,7 +183,7 @@ func GetAllTerraformNodeData(fs afero.Fs, providerDir string, serviceName string
 	for _, s := range provider.SupportedUntypedServices() {
 		service, err := NewService(fs, providerDir, s, s.Name())
 		if err != nil {
-			log.WithFields(log.Fields{
+			logrus.WithFields(logrus.Fields{
 				"service": s.Name(),
 				"error":   err,
 			}).Warn("Skipping Service")
@@ -204,7 +204,7 @@ func GetAllTerraformNodeData(fs afero.Fs, providerDir string, serviceName string
 		for name, r := range s.SupportedDataSources() {
 			rd, err := newTerraformNodeData(fs, providerDir, *service, name, ResourceTypeData, r)
 			if err != nil {
-				log.Error(err)
+				logrus.Error(err)
 				continue
 			}
 
@@ -223,7 +223,7 @@ func GetAllTerraformNodeData(fs afero.Fs, providerDir string, serviceName string
 		for name, r := range s.SupportedResources() {
 			rd, err := newTerraformNodeData(fs, providerDir, *service, name, ResourceTypeResource, r)
 			if err != nil {
-				log.Error(err)
+				logrus.Error(err)
 				continue
 			}
 

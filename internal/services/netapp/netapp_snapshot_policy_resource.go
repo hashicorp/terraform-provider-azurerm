@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp
@@ -16,17 +16,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/capacitypools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/snapshotpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/capacitypools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/snapshotpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceNetAppSnapshotPolicy() *pluginsdk.Resource {
@@ -52,7 +51,7 @@ func resourceNetAppSnapshotPolicy() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: netAppValidate.SnapshotName,
+				ValidateFunc: validate.SnapshotName,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -63,7 +62,7 @@ func resourceNetAppSnapshotPolicy() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: netAppValidate.AccountName,
+				ValidateFunc: validate.AccountName,
 			},
 
 			"enabled": {
@@ -197,26 +196,26 @@ func resourceNetAppSnapshotPolicy() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			pluginsdk.ForceNewIfChange("hourly_schedule", func(ctx context.Context, old, new, meta interface{}) bool {
-				return len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0
+			pluginsdk.ForceNewIfChange("hourly_schedule", func(ctx context.Context, old, new, meta any) bool {
+				return len(old.([]any)) > 0 && len(new.([]any)) == 0
 			}),
 
-			pluginsdk.ForceNewIfChange("daily_schedule", func(ctx context.Context, old, new, meta interface{}) bool {
-				return len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0
+			pluginsdk.ForceNewIfChange("daily_schedule", func(ctx context.Context, old, new, meta any) bool {
+				return len(old.([]any)) > 0 && len(new.([]any)) == 0
 			}),
 
-			pluginsdk.ForceNewIfChange("weekly_schedule", func(ctx context.Context, old, new, meta interface{}) bool {
-				return len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0
+			pluginsdk.ForceNewIfChange("weekly_schedule", func(ctx context.Context, old, new, meta any) bool {
+				return len(old.([]any)) > 0 && len(new.([]any)) == 0
 			}),
 
-			pluginsdk.ForceNewIfChange("monthly_schedule", func(ctx context.Context, old, new, meta interface{}) bool {
-				return len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0
+			pluginsdk.ForceNewIfChange("monthly_schedule", func(ctx context.Context, old, new, meta any) bool {
+				return len(old.([]any)) > 0 && len(new.([]any)) == 0
 			}),
 		),
 	}
 }
 
-func resourceNetAppSnapshotPolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetAppSnapshotPolicyCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NetApp.SnapshotPoliciesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -224,7 +223,7 @@ func resourceNetAppSnapshotPolicyCreate(d *pluginsdk.ResourceData, meta interfac
 
 	id := snapshotpolicies.NewSnapshotPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -240,13 +239,13 @@ func resourceNetAppSnapshotPolicyCreate(d *pluginsdk.ResourceData, meta interfac
 		Location: location.Normalize(d.Get("location").(string)),
 		Name:     pointer.To(id.SnapshotPolicyName),
 		Properties: snapshotpolicies.SnapshotPolicyProperties{
-			HourlySchedule:  expandNetAppSnapshotPolicyHourlySchedule(d.Get("hourly_schedule").([]interface{})),
-			DailySchedule:   expandNetAppSnapshotPolicyDailySchedule(d.Get("daily_schedule").([]interface{})),
-			WeeklySchedule:  expandNetAppSnapshotPolicyWeeklySchedule(d.Get("weekly_schedule").([]interface{})),
-			MonthlySchedule: expandNetAppSnapshotPolicyMonthlySchedule(d.Get("monthly_schedule").([]interface{})),
+			HourlySchedule:  expandNetAppSnapshotPolicyHourlySchedule(d.Get("hourly_schedule").([]any)),
+			DailySchedule:   expandNetAppSnapshotPolicyDailySchedule(d.Get("daily_schedule").([]any)),
+			WeeklySchedule:  expandNetAppSnapshotPolicyWeeklySchedule(d.Get("weekly_schedule").([]any)),
+			MonthlySchedule: expandNetAppSnapshotPolicyMonthlySchedule(d.Get("monthly_schedule").([]any)),
 			Enabled:         pointer.To(d.Get("enabled").(bool)),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if _, err := client.Create(ctx, id, parameters); err != nil {
@@ -255,7 +254,7 @@ func resourceNetAppSnapshotPolicyCreate(d *pluginsdk.ResourceData, meta interfac
 
 	// Waiting for snapshot policy be completely provisioned
 	log.Printf("[DEBUG] Waiting for %s to complete", id)
-	if err := waitForSnapshotPolicyCreation(ctx, client, id, d.Timeout(pluginsdk.TimeoutDelete)); err != nil {
+	if err := waitForSnapshotPolicyCreation(ctx, client, id, d.Timeout(pluginsdk.TimeoutCreate)); err != nil {
 		return err
 	}
 
@@ -264,7 +263,7 @@ func resourceNetAppSnapshotPolicyCreate(d *pluginsdk.ResourceData, meta interfac
 	return resourceNetAppSnapshotPolicyRead(d, meta)
 }
 
-func resourceNetAppSnapshotPolicyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetAppSnapshotPolicyUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NetApp.SnapshotPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -278,13 +277,13 @@ func resourceNetAppSnapshotPolicyUpdate(d *pluginsdk.ResourceData, meta interfac
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Name:     pointer.To(id.SnapshotPolicyName),
 		Properties: &snapshotpolicies.SnapshotPolicyProperties{
-			HourlySchedule:  expandNetAppSnapshotPolicyHourlySchedule(d.Get("hourly_schedule").([]interface{})),
-			DailySchedule:   expandNetAppSnapshotPolicyDailySchedule(d.Get("daily_schedule").([]interface{})),
-			WeeklySchedule:  expandNetAppSnapshotPolicyWeeklySchedule(d.Get("weekly_schedule").([]interface{})),
-			MonthlySchedule: expandNetAppSnapshotPolicyMonthlySchedule(d.Get("monthly_schedule").([]interface{})),
+			HourlySchedule:  expandNetAppSnapshotPolicyHourlySchedule(d.Get("hourly_schedule").([]any)),
+			DailySchedule:   expandNetAppSnapshotPolicyDailySchedule(d.Get("daily_schedule").([]any)),
+			WeeklySchedule:  expandNetAppSnapshotPolicyWeeklySchedule(d.Get("weekly_schedule").([]any)),
+			MonthlySchedule: expandNetAppSnapshotPolicyMonthlySchedule(d.Get("monthly_schedule").([]any)),
 			Enabled:         pointer.To(d.Get("enabled").(bool)),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if err = client.UpdateThenPoll(ctx, *id, parameters); err != nil {
@@ -294,7 +293,7 @@ func resourceNetAppSnapshotPolicyUpdate(d *pluginsdk.ResourceData, meta interfac
 	return resourceNetAppSnapshotPolicyRead(d, meta)
 }
 
-func resourceNetAppSnapshotPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetAppSnapshotPolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NetApp.SnapshotPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -336,13 +335,15 @@ func resourceNetAppSnapshotPolicyRead(d *pluginsdk.ResourceData, meta interface{
 			return fmt.Errorf("setting `monthly_schedule`: %+v", err)
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
-func resourceNetAppSnapshotPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetAppSnapshotPolicyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NetApp.SnapshotPoliciesClient
 	volumeClient := meta.(*clients.Client).NetApp.VolumeClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -354,8 +355,7 @@ func resourceNetAppSnapshotPolicyDelete(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	// Try to delete the snapshot policy using DeleteThenPoll
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		// Check if error is about snapshot policy being in use
 		if strings.Contains(err.Error(), "SnapshotPolicy is used") {
 			// Get all volumes in the account that might be using this snapshot policy
@@ -459,14 +459,14 @@ func findVolumesUsingSnapshotPolicy(ctx context.Context, client *clients.Client,
 	return volumeIds, nil
 }
 
-func expandNetAppSnapshotPolicyHourlySchedule(input []interface{}) *snapshotpolicies.HourlySchedule {
+func expandNetAppSnapshotPolicyHourlySchedule(input []any) *snapshotpolicies.HourlySchedule {
 	if len(input) == 0 || input[0] == nil {
 		return &snapshotpolicies.HourlySchedule{}
 	}
 
 	hourlyScheduleObject := snapshotpolicies.HourlySchedule{}
 
-	hourlyScheduleRaw := input[0].(map[string]interface{})
+	hourlyScheduleRaw := input[0].(map[string]any)
 
 	if v, ok := hourlyScheduleRaw["snapshots_to_keep"]; ok {
 		hourlyScheduleObject.SnapshotsToKeep = pointer.To(int64(v.(int)))
@@ -478,14 +478,14 @@ func expandNetAppSnapshotPolicyHourlySchedule(input []interface{}) *snapshotpoli
 	return &hourlyScheduleObject
 }
 
-func expandNetAppSnapshotPolicyDailySchedule(input []interface{}) *snapshotpolicies.DailySchedule {
+func expandNetAppSnapshotPolicyDailySchedule(input []any) *snapshotpolicies.DailySchedule {
 	if len(input) == 0 || input[0] == nil {
 		return &snapshotpolicies.DailySchedule{}
 	}
 
 	dailyScheduleObject := snapshotpolicies.DailySchedule{}
 
-	dailyScheduleRaw := input[0].(map[string]interface{})
+	dailyScheduleRaw := input[0].(map[string]any)
 
 	if v, ok := dailyScheduleRaw["snapshots_to_keep"]; ok {
 		dailyScheduleObject.SnapshotsToKeep = pointer.To(int64(v.(int)))
@@ -500,20 +500,20 @@ func expandNetAppSnapshotPolicyDailySchedule(input []interface{}) *snapshotpolic
 	return &dailyScheduleObject
 }
 
-func expandNetAppSnapshotPolicyWeeklySchedule(input []interface{}) *snapshotpolicies.WeeklySchedule {
+func expandNetAppSnapshotPolicyWeeklySchedule(input []any) *snapshotpolicies.WeeklySchedule {
 	if len(input) == 0 || input[0] == nil {
 		return &snapshotpolicies.WeeklySchedule{}
 	}
 
 	weeklyScheduleObject := snapshotpolicies.WeeklySchedule{}
 
-	weeklyScheduleRaw := input[0].(map[string]interface{})
+	weeklyScheduleRaw := input[0].(map[string]any)
 
 	if v, ok := weeklyScheduleRaw["snapshots_to_keep"]; ok {
 		weeklyScheduleObject.SnapshotsToKeep = pointer.To(int64(v.(int)))
 	}
 	if _, ok := weeklyScheduleRaw["days_of_week"]; ok {
-		weeklyScheduleObject.Day = utils.ExpandStringSliceWithDelimiter(weeklyScheduleRaw["days_of_week"].(*pluginsdk.Set).List(), ",")
+		weeklyScheduleObject.Day = pluginsdk.ExpandStringSliceWithDelimiter(weeklyScheduleRaw["days_of_week"].(*pluginsdk.Set).List(), ",")
 	}
 	if v, ok := weeklyScheduleRaw["hour"]; ok {
 		weeklyScheduleObject.Hour = pointer.To(int64(v.(int)))
@@ -525,20 +525,20 @@ func expandNetAppSnapshotPolicyWeeklySchedule(input []interface{}) *snapshotpoli
 	return &weeklyScheduleObject
 }
 
-func expandNetAppSnapshotPolicyMonthlySchedule(input []interface{}) *snapshotpolicies.MonthlySchedule {
+func expandNetAppSnapshotPolicyMonthlySchedule(input []any) *snapshotpolicies.MonthlySchedule {
 	if len(input) == 0 || input[0] == nil {
 		return &snapshotpolicies.MonthlySchedule{}
 	}
 
 	monthlyScheduleObject := snapshotpolicies.MonthlySchedule{}
 
-	monthlyScheduleRaw := input[0].(map[string]interface{})
+	monthlyScheduleRaw := input[0].(map[string]any)
 
 	if v, ok := monthlyScheduleRaw["snapshots_to_keep"]; ok {
 		monthlyScheduleObject.SnapshotsToKeep = pointer.To(int64(v.(int)))
 	}
 	if _, ok := monthlyScheduleRaw["days_of_month"]; ok {
-		monthlyScheduleObject.DaysOfMonth = utils.ExpandIntSliceWithDelimiter(monthlyScheduleRaw["days_of_month"].(*pluginsdk.Set).List(), ",")
+		monthlyScheduleObject.DaysOfMonth = pluginsdk.ExpandIntSliceWithDelimiter(monthlyScheduleRaw["days_of_month"].(*pluginsdk.Set).List(), ",")
 	}
 	if v, ok := monthlyScheduleRaw["hour"]; ok {
 		monthlyScheduleObject.Hour = pointer.To(int64(v.(int)))
@@ -550,26 +550,26 @@ func expandNetAppSnapshotPolicyMonthlySchedule(input []interface{}) *snapshotpol
 	return &monthlyScheduleObject
 }
 
-func flattenNetAppVolumeSnapshotPolicyHourlySchedule(input *snapshotpolicies.HourlySchedule) []interface{} {
+func flattenNetAppVolumeSnapshotPolicyHourlySchedule(input *snapshotpolicies.HourlySchedule) []any {
 	if input == nil || (input.Minute == nil && input.SnapshotsToKeep == nil) {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"snapshots_to_keep": input.SnapshotsToKeep,
 			"minute":            input.Minute,
 		},
 	}
 }
 
-func flattenNetAppVolumeSnapshotPolicyDailySchedule(input *snapshotpolicies.DailySchedule) []interface{} {
+func flattenNetAppVolumeSnapshotPolicyDailySchedule(input *snapshotpolicies.DailySchedule) []any {
 	if input == nil || (input.SnapshotsToKeep == nil && input.Hour == nil && input.Minute == nil) {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"snapshots_to_keep": input.SnapshotsToKeep,
 			"hour":              input.Hour,
 			"minute":            input.Minute,
@@ -577,20 +577,20 @@ func flattenNetAppVolumeSnapshotPolicyDailySchedule(input *snapshotpolicies.Dail
 	}
 }
 
-func flattenNetAppVolumeSnapshotPolicyWeeklySchedule(input *snapshotpolicies.WeeklySchedule) []interface{} {
+func flattenNetAppVolumeSnapshotPolicyWeeklySchedule(input *snapshotpolicies.WeeklySchedule) []any {
 	if input == nil || (input.SnapshotsToKeep == nil && input.Day == nil && input.Hour == nil && input.Minute == nil) {
-		return []interface{}{}
+		return []any{}
 	}
 
-	weekDays := make([]interface{}, 0)
+	weekDays := make([]any, 0)
 	if input.Day != nil {
-		for _, day := range strings.Split(*input.Day, ",") {
+		for day := range strings.SplitSeq(*input.Day, ",") {
 			weekDays = append(weekDays, day)
 		}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"snapshots_to_keep": input.SnapshotsToKeep,
 			"days_of_week":      weekDays,
 			"hour":              input.Hour,
@@ -599,21 +599,21 @@ func flattenNetAppVolumeSnapshotPolicyWeeklySchedule(input *snapshotpolicies.Wee
 	}
 }
 
-func flattenNetAppVolumeSnapshotPolicyMonthlySchedule(input *snapshotpolicies.MonthlySchedule) []interface{} {
+func flattenNetAppVolumeSnapshotPolicyMonthlySchedule(input *snapshotpolicies.MonthlySchedule) []any {
 	if input == nil || (input.SnapshotsToKeep == nil && input.DaysOfMonth == nil && input.Hour == nil && input.Minute == nil) {
-		return []interface{}{}
+		return []any{}
 	}
 
-	daysOfMonth := make([]interface{}, 0)
+	daysOfMonth := make([]any, 0)
 	if input.DaysOfMonth != nil {
-		for _, day := range strings.Split(*input.DaysOfMonth, ",") {
+		for day := range strings.SplitSeq(*input.DaysOfMonth, ",") {
 			intDay, _ := strconv.Atoi(day)
 			daysOfMonth = append(daysOfMonth, intDay)
 		}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"snapshots_to_keep": input.SnapshotsToKeep,
 			"days_of_month":     daysOfMonth,
 			"hour":              input.Hour,
@@ -659,7 +659,7 @@ func waitForSnapshotPolicyDeletion(ctx context.Context, client *snapshotpolicies
 }
 
 func netappSnapshotPolicyStateRefreshFunc(ctx context.Context, client *snapshotpolicies.SnapshotPoliciesClient, id snapshotpolicies.SnapshotPolicyId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		res, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(res.HttpResponse) {

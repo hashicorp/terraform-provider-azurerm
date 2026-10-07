@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos_test
@@ -246,7 +246,7 @@ func (t CosmosSqlContainerResource) Exists(ctx context.Context, clients *clients
 
 	resp, err := clients.Cosmos.CosmosDBClient.SqlResourcesGetSqlContainer(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Cosmos SQL Container (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	return pointer.To(resp.Model != nil), nil

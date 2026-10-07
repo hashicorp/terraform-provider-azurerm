@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package resource_test
@@ -18,6 +18,16 @@ import (
 )
 
 type ResourceDeploymentScriptAzurePowerShellResource struct{}
+
+func TestAccResourceDeploymentScriptAzurePowerShell_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_deployment_script_azure_power_shell", "test")
+	r := ResourceDeploymentScriptAzurePowerShellResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccResourceDeploymentScriptAzurePowerShell_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_deployment_script_azure_power_shell", "test")

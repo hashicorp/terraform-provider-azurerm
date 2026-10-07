@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package securitycenter
@@ -8,8 +8,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/azuresdkhacks"
@@ -17,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSecurityCenterContact() *pluginsdk.Resource {
@@ -72,7 +72,7 @@ func resourceSecurityCenterContact() *pluginsdk.Resource {
 	}
 }
 
-func resourceSecurityCenterContactCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSecurityCenterContactCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	// TODO: split this Create/Update
 	client := meta.(*clients.Client).SecurityCenter.ContactsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -82,15 +82,17 @@ func resourceSecurityCenterContactCreateUpdate(d *pluginsdk.ResourceData, meta i
 	id := parse.NewContactID(subscriptionId, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.SecurityContactName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.SecurityContactName)
+			if err != nil {
+				if !response.WasNotFound(existing.Response.Response) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_security_center_contact", id.ID())
+			if !response.WasNotFound(existing.Response.Response) {
+				return tf.ImportAsExistsError("azurerm_security_center_contact", id.ID())
+			}
 		}
 	}
 
@@ -128,7 +130,7 @@ func resourceSecurityCenterContactCreateUpdate(d *pluginsdk.ResourceData, meta i
 	return resourceSecurityCenterContactRead(d, meta)
 }
 
-func resourceSecurityCenterContactRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSecurityCenterContactRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.ContactsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -140,7 +142,7 @@ func resourceSecurityCenterContactRead(d *pluginsdk.ResourceData, meta interface
 
 	resp, err := client.Get(ctx, id.SecurityContactName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[DEBUG] %s was not found - removing from state!", id)
 			d.SetId("")
 			return nil
@@ -160,7 +162,7 @@ func resourceSecurityCenterContactRead(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func resourceSecurityCenterContactDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSecurityCenterContactDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.ContactsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

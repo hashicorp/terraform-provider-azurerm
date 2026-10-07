@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package deliveryruleconditions
@@ -6,11 +6,10 @@ package deliveryruleconditions
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func RequestURI() *pluginsdk.Resource {
@@ -52,33 +51,30 @@ func RequestURI() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(cdn.TransformLowercase),
-						string(cdn.TransformUppercase),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInEnumSlice(cdn.PossibleTransformValues(), false),
 				},
 			},
 		},
 	}
 }
 
-func ExpandArmCdnEndpointConditionRequestURI(input []interface{}) []cdn.BasicDeliveryRuleCondition {
+func ExpandArmCdnEndpointConditionRequestURI(input []any) []cdn.BasicDeliveryRuleCondition {
 	output := make([]cdn.BasicDeliveryRuleCondition, 0)
 
 	for _, v := range input {
-		item := v.(map[string]interface{})
+		item := v.(map[string]any)
 		requestURICondition := cdn.DeliveryRuleRequestURICondition{
 			Name: cdn.NameRequestURI,
 			Parameters: &cdn.RequestURIMatchConditionParameters{
 				OdataType:       pointer.To("Microsoft.Azure.Cdn.Models.DeliveryRuleRequestUriConditionParameters"),
 				Operator:        cdn.RequestURIOperator(item["operator"].(string)),
 				NegateCondition: pointer.To(item["negate_condition"].(bool)),
-				MatchValues:     utils.ExpandStringSlice(item["match_values"].(*pluginsdk.Set).List()),
+				MatchValues:     pluginsdk.ExpandStringSlice(item["match_values"].(*pluginsdk.Set).List()),
 			},
 		}
 
-		if rawTransforms := item["transforms"].([]interface{}); len(rawTransforms) != 0 {
+		if rawTransforms := item["transforms"].([]any); len(rawTransforms) != 0 {
 			transforms := make([]cdn.Transform, 0)
 			for _, t := range rawTransforms {
 				transforms = append(transforms, cdn.Transform(t.(string)))
@@ -92,13 +88,13 @@ func ExpandArmCdnEndpointConditionRequestURI(input []interface{}) []cdn.BasicDel
 	return output
 }
 
-func FlattenArmCdnEndpointConditionRequestURI(input cdn.BasicDeliveryRuleCondition) (*map[string]interface{}, error) {
+func FlattenArmCdnEndpointConditionRequestURI(input cdn.BasicDeliveryRuleCondition) (*map[string]any, error) {
 	condition, ok := input.AsDeliveryRuleRequestURICondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule request uri condition")
 	}
 
-	matchValues := make([]interface{}, 0)
+	matchValues := make([]any, 0)
 	negateCondition := false
 	operator := ""
 	transforms := make([]string, 0)
@@ -110,7 +106,7 @@ func FlattenArmCdnEndpointConditionRequestURI(input cdn.BasicDeliveryRuleConditi
 		}
 
 		if params.MatchValues != nil {
-			matchValues = utils.FlattenStringSlice(params.MatchValues)
+			matchValues = pluginsdk.FlattenSlice(params.MatchValues)
 		}
 
 		if params.Transforms != nil {
@@ -120,7 +116,7 @@ func FlattenArmCdnEndpointConditionRequestURI(input cdn.BasicDeliveryRuleConditi
 		}
 	}
 
-	return &map[string]interface{}{
+	return &map[string]any{
 		"match_values":     pluginsdk.NewSet(pluginsdk.HashString, matchValues),
 		"negate_condition": negateCondition,
 		"operator":         operator,

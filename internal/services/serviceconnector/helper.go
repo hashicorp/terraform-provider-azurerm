@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package serviceconnector
@@ -383,14 +383,9 @@ func flattenTargetService(input servicelinker.TargetServiceBase) string {
 }
 
 func flattenSecretStore(input servicelinker.SecretStore) []SecretStoreModel {
-	var keyVaultId string
-	if input.KeyVaultId != nil {
-		keyVaultId = *input.KeyVaultId
-	}
-
 	return []SecretStoreModel{
 		{
-			KeyVaultId: keyVaultId,
+			KeyVaultId: pointer.From(input.KeyVaultId),
 		},
 	}
 }

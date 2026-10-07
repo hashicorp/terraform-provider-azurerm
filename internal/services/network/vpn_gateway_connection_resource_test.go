@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -261,7 +261,7 @@ func (t VPNGatewayConnectionResource) Exists(ctx context.Context, clients *clien
 
 	resp, err := clients.Network.VirtualWANs.VpnConnectionsGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading VPN Gateway Connnection (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading VPN Gateway Connection (%s): %+v", id, err)
 	}
 
 	return pointer.To(resp.Model != nil), nil

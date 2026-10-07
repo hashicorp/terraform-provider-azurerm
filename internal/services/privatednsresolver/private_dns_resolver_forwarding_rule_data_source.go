@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package privatednsresolver
@@ -32,7 +32,7 @@ func (r PrivateDNSResolverForwardingRuleDataSource) ResourceType() string {
 	return "azurerm_private_dns_resolver_forwarding_rule"
 }
 
-func (r PrivateDNSResolverForwardingRuleDataSource) ModelObject() interface{} {
+func (r PrivateDNSResolverForwardingRuleDataSource) ModelObject() any {
 	return &PrivateDNSResolverForwardingRuleModel{}
 }
 
@@ -116,7 +116,8 @@ func (r PrivateDNSResolverForwardingRuleDataSource) Read() sdk.ResourceFunc {
 				dnsForwardingRulesetId.SubscriptionId,
 				dnsForwardingRulesetId.ResourceGroupName,
 				dnsForwardingRulesetId.DnsForwardingRulesetName,
-				state.Name)
+				state.Name,
+			)
 			resp, err := client.Get(ctx, id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", id, err)

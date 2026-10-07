@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package maintenance
@@ -25,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMaintenanceConfiguration() *pluginsdk.Resource {
@@ -238,7 +237,7 @@ func resourceMaintenanceConfiguration() *pluginsdk.Resource {
 	}
 }
 
-func resourceMaintenanceConfigurationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMaintenanceConfigurationCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Maintenance.ConfigurationsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -246,22 +245,24 @@ func resourceMaintenanceConfigurationCreate(d *pluginsdk.ResourceData, meta inte
 
 	id := maintenanceconfigurations.NewMaintenanceConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_maintenance_configuration", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_maintenance_configuration", id.ID())
+		}
 	}
 
 	scope := maintenanceconfigurations.MaintenanceScope(d.Get("scope").(string))
 	visibility := maintenanceconfigurations.Visibility(d.Get("visibility").(string))
-	windowRaw := d.Get("window").([]interface{})
+	windowRaw := d.Get("window").([]any)
 	window := expandMaintenanceConfigurationWindow(windowRaw)
-	installPatches := expandMaintenanceConfigurationInstallPatches(d.Get("install_patches").([]interface{}))
-	extensionProperties := expandExtensionProperties(d.Get("properties").(map[string]interface{}))
+	installPatches := expandMaintenanceConfigurationInstallPatches(d.Get("install_patches").([]any))
+	extensionProperties := expandExtensionProperties(d.Get("properties").(map[string]any))
 
 	if scope == maintenanceconfigurations.MaintenanceScopeInGuestPatch {
 		if window == nil {
@@ -289,7 +290,7 @@ func resourceMaintenanceConfigurationCreate(d *pluginsdk.ResourceData, meta inte
 			ExtensionProperties: extensionProperties,
 			InstallPatches:      installPatches,
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, configuration); err != nil {
@@ -300,7 +301,7 @@ func resourceMaintenanceConfigurationCreate(d *pluginsdk.ResourceData, meta inte
 	return resourceMaintenanceConfigurationRead(d, meta)
 }
 
-func resourceMaintenanceConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMaintenanceConfigurationUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Maintenance.ConfigurationsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -319,9 +320,9 @@ func resourceMaintenanceConfigurationUpdate(d *pluginsdk.ResourceData, meta inte
 
 	if d.HasChanges("scope", "window", "install_patches", "properties") {
 		scope := maintenanceconfigurations.MaintenanceScope(d.Get("scope").(string))
-		window := expandMaintenanceConfigurationWindow(d.Get("window").([]interface{}))
-		installPatches := expandMaintenanceConfigurationInstallPatches(d.Get("install_patches").([]interface{}))
-		extensionProperties := expandExtensionProperties(d.Get("properties").(map[string]interface{}))
+		window := expandMaintenanceConfigurationWindow(d.Get("window").([]any))
+		installPatches := expandMaintenanceConfigurationInstallPatches(d.Get("install_patches").([]any))
+		extensionProperties := expandExtensionProperties(d.Get("properties").(map[string]any))
 		if scope == maintenanceconfigurations.MaintenanceScopeInGuestPatch {
 			if window == nil {
 				return errors.New("`window` must be specified when `scope` is `InGuestPatch`")
@@ -344,11 +345,11 @@ func resourceMaintenanceConfigurationUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("visibility") {
-		payload.Properties.Visibility = pointer.To(maintenanceconfigurations.Visibility(d.Get("visibility").(string)))
+		payload.Properties.Visibility = pointer.ToEnum[maintenanceconfigurations.Visibility](d.Get("visibility").(string))
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, *id, *payload); err != nil {
@@ -358,7 +359,7 @@ func resourceMaintenanceConfigurationUpdate(d *pluginsdk.ResourceData, meta inte
 	return resourceMaintenanceConfigurationRead(d, meta)
 }
 
-func resourceMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Maintenance.ConfigurationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -383,8 +384,8 @@ func resourceMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta interf
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("scope", string(pointer.From(props.MaintenanceScope)))
-			d.Set("visibility", string(pointer.From(props.Visibility)))
+			d.Set("scope", pointer.FromEnum(props.MaintenanceScope))
+			d.Set("visibility", pointer.FromEnum(props.Visibility))
 
 			properties := flattenExtensionProperties(props.ExtensionProperties)
 			if properties["InGuestPatchMode"] != nil {
@@ -393,13 +394,11 @@ func resourceMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta interf
 			}
 			d.Set("properties", properties)
 
-			window := flattenMaintenanceConfigurationWindow(props.MaintenanceWindow)
-			if err := d.Set("window", window); err != nil {
+			if err := d.Set("window", flattenMaintenanceConfigurationWindow(props.MaintenanceWindow)); err != nil {
 				return fmt.Errorf("setting `window`: %+v", err)
 			}
 
-			installPatches := flattenMaintenanceConfigurationInstallPatches(props.InstallPatches)
-			if err := d.Set("install_patches", installPatches); err != nil {
+			if err := d.Set("install_patches", flattenMaintenanceConfigurationInstallPatches(props.InstallPatches)); err != nil {
 				return fmt.Errorf("setting `install_patches`: %+v", err)
 			}
 		}
@@ -411,7 +410,7 @@ func resourceMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func resourceMaintenanceConfigurationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMaintenanceConfigurationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Maintenance.ConfigurationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -427,12 +426,12 @@ func resourceMaintenanceConfigurationDelete(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func expandMaintenanceConfigurationWindow(input []interface{}) *maintenanceconfigurations.MaintenanceWindow {
+func expandMaintenanceConfigurationWindow(input []any) *maintenanceconfigurations.MaintenanceWindow {
 	if len(input) == 0 {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	startDateTime := v["start_date_time"].(string)
 	expirationDateTime := v["expiration_date_time"].(string)
 	duration := v["duration"].(string)
@@ -448,11 +447,11 @@ func expandMaintenanceConfigurationWindow(input []interface{}) *maintenanceconfi
 	return &window
 }
 
-func flattenMaintenanceConfigurationWindow(input *maintenanceconfigurations.MaintenanceWindow) []interface{} {
-	results := make([]interface{}, 0)
+func flattenMaintenanceConfigurationWindow(input *maintenanceconfigurations.MaintenanceWindow) []any {
+	results := make([]any, 0)
 
 	if v := input; v != nil {
-		output := make(map[string]interface{})
+		output := make(map[string]any)
 
 		if startDateTime := v.StartDateTime; startDateTime != nil {
 			output["start_date_time"] = *startDateTime
@@ -480,29 +479,28 @@ func flattenMaintenanceConfigurationWindow(input *maintenanceconfigurations.Main
 	return results
 }
 
-func expandMaintenanceConfigurationInstallPatches(input []interface{}) *maintenanceconfigurations.InputPatchConfiguration {
+func expandMaintenanceConfigurationInstallPatches(input []any) *maintenanceconfigurations.InputPatchConfiguration {
 	if len(input) == 0 {
 		return nil
 	}
 
-	v, ok := input[0].(map[string]interface{})
+	v, ok := input[0].(map[string]any)
 	if !ok {
 		return nil
 	}
-	rebootSetting := maintenanceconfigurations.RebootOptions(v["reboot"].(string))
 	installPatches := maintenanceconfigurations.InputPatchConfiguration{
-		WindowsParameters: expandMaintenanceConfigurationInstallPatchesWindows(v["windows"].([]interface{})),
-		LinuxParameters:   expandMaintenanceConfigurationInstallPatchesLinux(v["linux"].([]interface{})),
-		RebootSetting:     &rebootSetting,
+		WindowsParameters: expandMaintenanceConfigurationInstallPatchesWindows(v["windows"].([]any)),
+		LinuxParameters:   expandMaintenanceConfigurationInstallPatchesLinux(v["linux"].([]any)),
+		RebootSetting:     pointer.ToEnum[maintenanceconfigurations.RebootOptions](v["reboot"].(string)),
 	}
 	return &installPatches
 }
 
-func flattenMaintenanceConfigurationInstallPatches(input *maintenanceconfigurations.InputPatchConfiguration) []interface{} {
-	results := make([]interface{}, 0)
+func flattenMaintenanceConfigurationInstallPatches(input *maintenanceconfigurations.InputPatchConfiguration) []any {
+	results := make([]any, 0)
 
 	if v := input; v != nil {
-		output := make(map[string]interface{})
+		output := make(map[string]any)
 
 		if rebootSetting := v.RebootSetting; rebootSetting != nil {
 			// https://github.com/Azure/azure-rest-api-specs/issues/27222
@@ -527,44 +525,44 @@ func flattenMaintenanceConfigurationInstallPatches(input *maintenanceconfigurati
 	return results
 }
 
-func expandMaintenanceConfigurationInstallPatchesWindows(input []interface{}) *maintenanceconfigurations.InputWindowsParameters {
+func expandMaintenanceConfigurationInstallPatchesWindows(input []any) *maintenanceconfigurations.InputWindowsParameters {
 	if len(input) == 0 {
 		return nil
 	}
 
-	v, ok := input[0].(map[string]interface{})
+	v, ok := input[0].(map[string]any)
 	if !ok {
 		return nil
 	}
 	windowsInput := maintenanceconfigurations.InputWindowsParameters{}
 	if v, ok := v["classifications_to_include"]; ok {
-		windowsInput.ClassificationsToInclude = utils.ExpandStringSlice(v.([]interface{}))
+		windowsInput.ClassificationsToInclude = pluginsdk.ExpandStringSlice(v.([]any))
 	}
 	if v, ok := v["kb_numbers_to_exclude"]; ok {
-		windowsInput.KbNumbersToExclude = utils.ExpandStringSlice(v.([]interface{}))
+		windowsInput.KbNumbersToExclude = pluginsdk.ExpandStringSlice(v.([]any))
 	}
 	if v, ok := v["kb_numbers_to_include"]; ok {
-		windowsInput.KbNumbersToInclude = utils.ExpandStringSlice(v.([]interface{}))
+		windowsInput.KbNumbersToInclude = pluginsdk.ExpandStringSlice(v.([]any))
 	}
 	return &windowsInput
 }
 
-func flattenMaintenanceConfigurationInstallPatchesWindows(input *maintenanceconfigurations.InputWindowsParameters) []interface{} {
-	results := make([]interface{}, 0)
+func flattenMaintenanceConfigurationInstallPatchesWindows(input *maintenanceconfigurations.InputWindowsParameters) []any {
+	results := make([]any, 0)
 
 	if v := input; v != nil {
-		output := make(map[string]interface{})
+		output := make(map[string]any)
 
 		if classificationsToInclude := v.ClassificationsToInclude; classificationsToInclude != nil {
-			output["classifications_to_include"] = utils.FlattenStringSlice(classificationsToInclude)
+			output["classifications_to_include"] = pluginsdk.FlattenSlice(classificationsToInclude)
 		}
 
 		if kbNumbersToExclude := v.KbNumbersToExclude; kbNumbersToExclude != nil {
-			output["kb_numbers_to_exclude"] = utils.FlattenStringSlice(kbNumbersToExclude)
+			output["kb_numbers_to_exclude"] = pluginsdk.FlattenSlice(kbNumbersToExclude)
 		}
 
 		if kbNumbersToInclude := v.KbNumbersToInclude; kbNumbersToInclude != nil {
-			output["kb_numbers_to_include"] = utils.FlattenStringSlice(kbNumbersToInclude)
+			output["kb_numbers_to_include"] = pluginsdk.FlattenSlice(kbNumbersToInclude)
 		}
 
 		results = append(results, output)
@@ -573,46 +571,46 @@ func flattenMaintenanceConfigurationInstallPatchesWindows(input *maintenanceconf
 	return results
 }
 
-func expandMaintenanceConfigurationInstallPatchesLinux(input []interface{}) *maintenanceconfigurations.InputLinuxParameters {
+func expandMaintenanceConfigurationInstallPatchesLinux(input []any) *maintenanceconfigurations.InputLinuxParameters {
 	if len(input) == 0 {
 		return nil
 	}
 
-	v, ok := input[0].(map[string]interface{})
+	v, ok := input[0].(map[string]any)
 	if !ok {
 		return nil
 	}
 	linuxParameters := maintenanceconfigurations.InputLinuxParameters{}
 	if v, ok := v["classifications_to_include"]; ok {
-		linuxParameters.ClassificationsToInclude = utils.ExpandStringSlice(v.([]interface{}))
+		linuxParameters.ClassificationsToInclude = pluginsdk.ExpandStringSlice(v.([]any))
 	}
 	if v, ok := v["package_names_mask_to_exclude"]; ok {
-		linuxParameters.PackageNameMasksToExclude = utils.ExpandStringSlice(v.([]interface{}))
+		linuxParameters.PackageNameMasksToExclude = pluginsdk.ExpandStringSlice(v.([]any))
 	}
 	if v, ok := v["package_names_mask_to_include"]; ok {
-		linuxParameters.PackageNameMasksToInclude = utils.ExpandStringSlice(v.([]interface{}))
+		linuxParameters.PackageNameMasksToInclude = pluginsdk.ExpandStringSlice(v.([]any))
 	}
 	return &linuxParameters
 }
 
-func flattenMaintenanceConfigurationInstallPatchesLinux(input *maintenanceconfigurations.InputLinuxParameters) []interface{} {
-	results := make([]interface{}, 0)
+func flattenMaintenanceConfigurationInstallPatchesLinux(input *maintenanceconfigurations.InputLinuxParameters) []any {
+	results := make([]any, 0)
 
 	if input != nil {
-		classificationsToInclude := make([]interface{}, 0)
+		classificationsToInclude := make([]any, 0)
 		if input.ClassificationsToInclude != nil {
-			classificationsToInclude = utils.FlattenStringSlice(input.ClassificationsToInclude)
+			classificationsToInclude = pluginsdk.FlattenSlice(input.ClassificationsToInclude)
 		}
-		packageNamesMaskToExclude := make([]interface{}, 0)
+		packageNamesMaskToExclude := make([]any, 0)
 		if input.PackageNameMasksToExclude != nil {
-			packageNamesMaskToExclude = utils.FlattenStringSlice(input.PackageNameMasksToExclude)
+			packageNamesMaskToExclude = pluginsdk.FlattenSlice(input.PackageNameMasksToExclude)
 		}
-		packageNamesMaskToInclude := make([]interface{}, 0)
+		packageNamesMaskToInclude := make([]any, 0)
 		if input.PackageNameMasksToInclude != nil {
-			packageNamesMaskToInclude = utils.FlattenStringSlice(input.PackageNameMasksToInclude)
+			packageNamesMaskToInclude = pluginsdk.FlattenSlice(input.PackageNameMasksToInclude)
 		}
 
-		results = append(results, map[string]interface{}{
+		results = append(results, map[string]any{
 			"classifications_to_include":    classificationsToInclude,
 			"package_names_mask_to_exclude": packageNamesMaskToExclude,
 			"package_names_mask_to_include": packageNamesMaskToInclude,
@@ -622,7 +620,7 @@ func flattenMaintenanceConfigurationInstallPatchesLinux(input *maintenanceconfig
 	return results
 }
 
-func expandExtensionProperties(input map[string]interface{}) *map[string]string {
+func expandExtensionProperties(input map[string]any) *map[string]string {
 	output := make(map[string]string)
 	for k, v := range input {
 		output[k] = v.(string)
@@ -630,8 +628,8 @@ func expandExtensionProperties(input map[string]interface{}) *map[string]string 
 	return &output
 }
 
-func flattenExtensionProperties(input *map[string]string) map[string]interface{} {
-	output := make(map[string]interface{})
+func flattenExtensionProperties(input *map[string]string) map[string]any {
+	output := make(map[string]any)
 	if input != nil {
 		for k, v := range *input {
 			if k == "inGuestPatchMode" {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datadog_test
@@ -277,7 +277,12 @@ resource "azurerm_datadog_monitor" "import" {
 
 func (r DatadogMonitorResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-	%s
+provider "azurerm" {
+  features {}
+}
+
+%s
+
 resource "azurerm_datadog_monitor" "test" {
   name                = "acctest-datadog-%s"
   resource_group_name = azurerm_resource_group.test.name

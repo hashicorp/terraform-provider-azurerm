@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package devtestlabs_test
@@ -18,7 +18,7 @@ import (
 
 type DevTestVirtualMachineResource struct{}
 
-func TestAccDevTestVirtualMachine_basic(t *testing.T) {
+func TestAccDevTestWindowsVirtualMachine_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_windows_virtual_machine", "test")
 	r := DevTestVirtualMachineResource{}
 
@@ -40,7 +40,7 @@ func TestAccDevTestVirtualMachine_basic(t *testing.T) {
 	})
 }
 
-func TestAccDevTestVirtualMachine_requiresImport(t *testing.T) {
+func TestAccDevTestWindowsVirtualMachine_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_windows_virtual_machine", "test")
 	r := DevTestVirtualMachineResource{}
 
@@ -116,7 +116,7 @@ resource "azurerm_dev_test_windows_virtual_machine" "test" {
   gallery_image_reference {
     offer     = "WindowsServer"
     publisher = "MicrosoftWindowsServer"
-    sku       = "2012-Datacenter"
+    sku       = "2022-datacenter"
     version   = "latest"
   }
 }
@@ -142,7 +142,7 @@ resource "azurerm_dev_test_windows_virtual_machine" "import" {
   gallery_image_reference {
     offer     = "WindowsServer"
     publisher = "MicrosoftWindowsServer"
-    sku       = "2012-Datacenter"
+    sku       = "2022-datacenter"
     version   = "latest"
   }
 }
@@ -169,7 +169,7 @@ resource "azurerm_dev_test_windows_virtual_machine" "test" {
   gallery_image_reference {
     offer     = "WindowsServer"
     publisher = "MicrosoftWindowsServer"
-    sku       = "2012-Datacenter"
+    sku       = "2022-datacenter"
     version   = "latest"
   }
 

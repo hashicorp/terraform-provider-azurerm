@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -18,10 +18,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name virtual_machine_extension -service-package-name compute -properties "name" -compare-values "virtual_machine_name:virtual_machine_id,resource_group_name:virtual_machine_id,subscription_id:virtual_machine_id"
@@ -128,7 +128,7 @@ func resourceVirtualMachineExtension() *pluginsdk.Resource {
 	}
 }
 
-func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.VirtualMachineExtensionsClient
 	vmClient := meta.(*clients.Client).Compute.VirtualMachinesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -155,15 +155,17 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, virtualmachineextensions.DefaultGetOperationOptions())
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id, virtualmachineextensions.DefaultGetOperationOptions())
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_virtual_machine_extension", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_virtual_machine_extension", id.ID())
+			}
 		}
 	}
 
@@ -173,7 +175,7 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 	autoUpgradeMinor := d.Get("auto_upgrade_minor_version").(bool)
 	enableAutomaticUpgrade := d.Get("automatic_upgrade_enabled").(bool)
 	suppressFailure := d.Get("failure_suppression_enabled").(bool)
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
 	extension := virtualmachineextensions.VirtualMachineExtension{
 		Location: &location,
@@ -183,47 +185,50 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 			TypeHandlerVersion:            &typeHandlerVersion,
 			AutoUpgradeMinorVersion:       &autoUpgradeMinor,
 			EnableAutomaticUpgrade:        &enableAutomaticUpgrade,
-			ProtectedSettingsFromKeyVault: expandProtectedSettingsFromKeyVault(d.Get("protected_settings_from_key_vault").([]interface{})),
+			ProtectedSettingsFromKeyVault: expandProtectedSettingsFromKeyVault(d.Get("protected_settings_from_key_vault").([]any)),
 			SuppressFailures:              &suppressFailure,
 		},
 		Tags: tags.Expand(t),
 	}
 
 	if settingsString := d.Get("settings").(string); settingsString != "" {
-		var result interface{}
-		err := json.Unmarshal([]byte(settingsString), &result)
-		if err != nil {
+		var result any
+		if err := json.Unmarshal([]byte(settingsString), &result); err != nil {
 			return fmt.Errorf("unmarshaling `settings`: %+v", err)
 		}
 		extension.Properties.Settings = pointer.To(result)
 	}
 
 	if protectedSettingsString := d.Get("protected_settings").(string); protectedSettingsString != "" {
-		var result interface{}
-		err := json.Unmarshal([]byte(protectedSettingsString), &result)
-		if err != nil {
+		var result any
+		if err := json.Unmarshal([]byte(protectedSettingsString), &result); err != nil {
 			return fmt.Errorf("unmarshaling `protected_settings`: %+v", err)
 		}
 		extension.Properties.ProtectedSettings = pointer.To(result)
 	}
 
 	if provisionAfterExtensionsValue, exists := d.GetOk("provision_after_extensions"); exists {
-		extension.Properties.ProvisionAfterExtensions = utils.ExpandStringSlice(provisionAfterExtensionsValue.([]interface{}))
+		extension.Properties.ProvisionAfterExtensions = pluginsdk.ExpandStringSlice(provisionAfterExtensionsValue.([]any))
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, extension); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-
-	d.SetId(id.ID())
-	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
-		return err
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, extension, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+		if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+			return err
+		}
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, extension); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
 	return resourceVirtualMachineExtensionsRead(d, meta)
 }
 
-func resourceVirtualMachineExtensionsRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualMachineExtensionsRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.VirtualMachineExtensionsClient
 	vmClient := meta.(*clients.Client).Compute.VirtualMachinesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -268,11 +273,7 @@ func resourceVirtualMachineExtensionsRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("protected_settings_from_key_vault", flattenProtectedSettingsFromKeyVault(props.ProtectedSettingsFromKeyVault))
 			d.Set("provision_after_extensions", pointer.From(props.ProvisionAfterExtensions))
 
-			suppressFailure := false
-			if props.SuppressFailures != nil {
-				suppressFailure = *props.SuppressFailures
-			}
-			d.Set("failure_suppression_enabled", suppressFailure)
+			d.Set("failure_suppression_enabled", pointer.From(props.SuppressFailures))
 
 			if props.Settings != nil {
 				settings, err := json.Marshal(props.Settings)
@@ -290,7 +291,7 @@ func resourceVirtualMachineExtensionsRead(d *pluginsdk.ResourceData, meta interf
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceVirtualMachineExtensionsDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualMachineExtensionsDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.VirtualMachineExtensionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

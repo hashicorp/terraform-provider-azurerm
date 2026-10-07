@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cmd
@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/rule"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/util"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/validator"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
@@ -94,13 +94,11 @@ func Make() *cobra.Command {
 
 				if r.Document.HasChange {
 					if err := r.Document.Write(fs); err != nil {
-						if err != nil {
-							log.WithFields(log.Fields{
-								"resource": r.Name,
-								"path":     r.Document.Path,
-								"error":    err,
-							}).Error("writing changes to the documentation file")
-						}
+						logrus.WithFields(logrus.Fields{
+							"resource": r.Name,
+							"path":     r.Document.Path,
+							"error":    err,
+						}).Error("writing changes to the documentation file")
 					}
 				}
 			}
@@ -147,12 +145,12 @@ func validateProviderDirectoryAccess(fs afero.Fs) {
 	if flags.ProviderDirectory == "" {
 		flags.ProviderDirectory, err = os.Getwd()
 		if err != nil {
-			log.WithError(err).Fatal("retrieving current working directory")
+			logrus.WithError(err).Fatal("retrieving current working directory")
 		}
 	}
 
 	if !util.DirExists(fs, flags.ProviderDirectory) {
-		log.WithField("path", flags.ProviderDirectory).Fatal("unable to access provider directory")
+		logrus.WithField("path", flags.ProviderDirectory).Fatal("unable to access provider directory")
 	}
 }
 
@@ -170,7 +168,7 @@ func printErrors(rd *data.TerraformNodeData) {
 	b.WriteString(sep)
 
 	for _, v := range rd.Errors {
-		b.WriteString(fmt.Sprintf("-> %s\n", v.Error()))
+		fmt.Fprintf(&b, "-> %s\n", v.Error())
 	}
 
 	b.WriteString("\n")

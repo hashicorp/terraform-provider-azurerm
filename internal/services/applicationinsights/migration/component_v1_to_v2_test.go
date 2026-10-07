@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -13,26 +13,26 @@ import (
 func TestComponentV1ToV2(t *testing.T) {
 	testData := []struct {
 		name     string
-		input    map[string]interface{}
+		input    map[string]any
 		expected *string
 	}{
 		{
 			name: "old id",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourcegroups/group1/providers/microsoft.insights/components/component1",
 			},
 			expected: pointer.To("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Insights/components/component1"),
 		},
 		{
 			name: "old id - mixed case",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourcegroups/group1/providers/microsoft.insights/Components/component1",
 			},
 			expected: pointer.To("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Insights/components/component1"),
 		},
 		{
 			name: "new id",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Insights/components/component1",
 			},
 			expected: pointer.To("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Insights/components/component1"),

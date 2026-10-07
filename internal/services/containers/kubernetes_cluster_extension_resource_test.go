@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers_test
@@ -137,6 +137,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {

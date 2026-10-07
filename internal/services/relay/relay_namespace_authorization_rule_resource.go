@@ -1,11 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package relay
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -58,24 +57,25 @@ func resourceRelayNamespaceAuthorizationRule() *pluginsdk.Resource {
 	}
 }
 
-func resourceRelayNamespaceAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRelayNamespaceAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Relay.NamespacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Relay Namespace Authorization Rule creation.")
-
 	resourceId := namespaces.NewAuthorizationRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
+
 	if d.IsNewResource() {
-		existing, err := client.GetAuthorizationRule(ctx, resourceId)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", resourceId, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.GetAuthorizationRule(ctx, resourceId)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", resourceId, err)
+				}
 			}
-		}
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_relay_namespace_authorization_rule", resourceId.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_relay_namespace_authorization_rule", resourceId.ID())
+			}
 		}
 	}
 
@@ -90,12 +90,14 @@ func resourceRelayNamespaceAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceDa
 		return fmt.Errorf("creating/updating %s: %+v", resourceId, err)
 	}
 
-	d.SetId(resourceId.ID())
+	if d.IsNewResource() {
+		d.SetId(resourceId.ID())
+	}
 
 	return resourceRelayNamespaceAuthorizationRuleRead(d, meta)
 }
 
-func resourceRelayNamespaceAuthorizationRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRelayNamespaceAuthorizationRuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Relay.NamespacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -138,7 +140,7 @@ func resourceRelayNamespaceAuthorizationRuleRead(d *pluginsdk.ResourceData, meta
 	return nil
 }
 
-func resourceRelayNamespaceAuthorizationRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRelayNamespaceAuthorizationRuleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Relay.NamespacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

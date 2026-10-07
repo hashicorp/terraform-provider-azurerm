@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package resource_test
@@ -18,6 +18,16 @@ import (
 )
 
 type ManagementLockResource struct{}
+
+func TestAccManagementLock_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_management_lock", "test")
+	r := ManagementLockResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.resourceGroupReadOnlyComplete(data),
+		},
+	}, "")
+}
 
 func TestAccManagementLock_resourceGroupReadOnlyBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_lock", "test")

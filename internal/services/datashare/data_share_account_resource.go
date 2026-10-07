@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datashare
@@ -13,14 +13,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	helperTags "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/account"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceDataShareAccount() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -36,10 +40,10 @@ func resourceDataShareAccount() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := account.ParseAccountID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&account.AccountId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&account.AccountId{}),
+		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -62,7 +66,7 @@ func resourceDataShareAccount() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataShareAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataShareAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataShare.AccountClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -70,17 +74,19 @@ func resourceDataShareAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	id := account.NewAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+		}
 		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			return tf.ImportAsExistsError("azurerm_data_share_account", id.ID())
 		}
 	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_data_share_account", id.ID())
-	}
 
-	expandedIdentity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
+	expandedIdentity, err := identity.ExpandSystemAssigned(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -89,19 +95,22 @@ func resourceDataShareAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 		Name:     pointer.To(id.AccountName),
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Identity: *expandedIdentity,
-		Tags:     helperTags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
-	if err := client.CreateThenPoll(ctx, id, account); err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, id, account, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceDataShareAccountRead(d, meta)
 }
 
-func resourceDataShareAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataShareAccountRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataShare.AccountClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -128,12 +137,14 @@ func resourceDataShareAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if err := d.Set("identity", identity.FlattenSystemAssigned(&model.Identity)); err != nil {
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
-		return helperTags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return fmt.Errorf("setting `tags`: %+v", err)
+		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceDataShareAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataShareAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataShare.AccountClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -146,7 +157,7 @@ func resourceDataShareAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 	props := account.AccountUpdateParameters{}
 
 	if d.HasChange("tags") {
-		props.Tags = helperTags.Expand(d.Get("tags").(map[string]interface{}))
+		props.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if _, err = client.Update(ctx, *id, props); err != nil {
@@ -156,7 +167,7 @@ func resourceDataShareAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceDataShareAccountRead(d, meta)
 }
 
-func resourceDataShareAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataShareAccountDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataShare.AccountClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

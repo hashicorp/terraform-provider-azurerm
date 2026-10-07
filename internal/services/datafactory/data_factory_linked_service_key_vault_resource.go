@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory
@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
@@ -19,8 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 func resourceDataFactoryLinkedServiceKeyVault() *pluginsdk.Resource {
@@ -98,7 +98,7 @@ func resourceDataFactoryLinkedServiceKeyVault() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryLinkedServiceKeyVaultCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceKeyVaultCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	subscriptionId := meta.(*clients.Client).DataFactory.LinkedServiceClient.SubscriptionID
 	keyVaultsClient := meta.(*clients.Client).KeyVault
@@ -123,15 +123,17 @@ func resourceDataFactoryLinkedServiceKeyVaultCreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Data Factory Key Vault %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
+			if err != nil {
+				if !response.WasNotFound(existing.Response.Response) {
+					return fmt.Errorf("checking for presence of existing Data Factory Key Vault %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_data_factory_linked_service_key_vault", id.ID())
+			if !response.WasNotFound(existing.Response.Response) {
+				return tf.ImportAsExistsError("azurerm_data_factory_linked_service_key_vault", id.ID())
+			}
 		}
 	}
 
@@ -146,7 +148,7 @@ func resourceDataFactoryLinkedServiceKeyVaultCreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		azureKeyVaultLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]interface{}))
+		azureKeyVaultLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
@@ -154,12 +156,11 @@ func resourceDataFactoryLinkedServiceKeyVaultCreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		azureKeyVaultLinkedService.AdditionalProperties = v.(map[string]interface{})
+		azureKeyVaultLinkedService.AdditionalProperties = v.(map[string]any)
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		azureKeyVaultLinkedService.Annotations = &annotations
+		azureKeyVaultLinkedService.Annotations = pointer.To(v.([]any))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -175,7 +176,7 @@ func resourceDataFactoryLinkedServiceKeyVaultCreateUpdate(d *pluginsdk.ResourceD
 	return resourceDataFactoryLinkedServiceKeyVaultRead(d, meta)
 }
 
-func resourceDataFactoryLinkedServiceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceKeyVaultRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -190,7 +191,7 @@ func resourceDataFactoryLinkedServiceKeyVaultRead(d *pluginsdk.ResourceData, met
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -209,13 +210,11 @@ func resourceDataFactoryLinkedServiceKeyVaultRead(d *pluginsdk.ResourceData, met
 	d.Set("additional_properties", keyVault.AdditionalProperties)
 	d.Set("description", keyVault.Description)
 
-	annotations := flattenDataFactoryAnnotations(keyVault.Annotations)
-	if err := d.Set("annotations", annotations); err != nil {
+	if err := d.Set("annotations", flattenDataFactoryAnnotations(keyVault.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
-	parameters := flattenLinkedServiceParameters(keyVault.Parameters)
-	if err := d.Set("parameters", parameters); err != nil {
+	if err := d.Set("parameters", flattenLinkedServiceParameters(keyVault.Parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 
@@ -250,7 +249,7 @@ func resourceDataFactoryLinkedServiceKeyVaultRead(d *pluginsdk.ResourceData, met
 	return nil
 }
 
-func resourceDataFactoryLinkedServiceKeyVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceKeyVaultDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -260,9 +259,9 @@ func resourceDataFactoryLinkedServiceKeyVaultDelete(d *pluginsdk.ResourceData, m
 		return err
 	}
 
-	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
-		if !utils.ResponseWasNotFound(response) {
+		if !response.WasNotFound(resp.Response) {
 			return fmt.Errorf("deleting Data Factory Key Vault %s: %+v", *id, err)
 		}
 	}

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package elasticsan_test
@@ -148,7 +148,6 @@ func TestAccElasticSAN_reduceBaseSize(t *testing.T) {
 			Config:      r.basic(data),
 			ExpectError: regexp.MustCompile("new base_size_in_tib should be greater than the existing one"),
 		},
-		data.ImportStep(),
 	})
 }
 

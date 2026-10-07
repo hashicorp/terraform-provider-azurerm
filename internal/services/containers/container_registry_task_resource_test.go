@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers_test
@@ -29,8 +29,8 @@ type githubRepo struct {
 
 func preCheckGithubRepo(t *testing.T) {
 	// - ARM_TEST_ACR_TASK_GITHUB_REPO_URL represents the user forked repo from: https://github.com/Azure-Samples/acr-build-helloworld-node
-	// - ARM_TEST_ACR_TASK_GITHUB_USER_TOKEN represents the github personal token with the appropriate permissions per: https://docs.microsoft.com/en-us/azure/container-registry/container-registry-tutorial-build-task#create-a-github-personal-access-token
-	// Checkout https://docs.microsoft.com/en-us/azure/container-registry/container-registry-tutorial-build-task for details.
+	// - ARM_TEST_ACR_TASK_GITHUB_USER_TOKEN represents the github personal token with the appropriate permissions per: https://docs.microsoft.com/azure/container-registry/container-registry-tutorial-build-task#create-a-github-personal-access-token
+	// Checkout https://docs.microsoft.com/azure/container-registry/container-registry-tutorial-build-task for details.
 	variables := []string{
 		"ARM_TEST_ACR_TASK_GITHUB_REPO_URL",
 		"ARM_TEST_ACR_TASK_GITHUB_USER_TOKEN",
