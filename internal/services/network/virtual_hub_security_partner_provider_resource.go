@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/virtualwans"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/securitypartnerproviders"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/securitypartnerproviders"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -54,14 +54,10 @@ func resourceVirtualHubSecurityPartnerProvider() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"security_provider_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(securitypartnerproviders.SecurityProviderNameZScaler),
-					string(securitypartnerproviders.SecurityProviderNameIBoss),
-					string(securitypartnerproviders.SecurityProviderNameCheckpoint),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(securitypartnerproviders.PossibleValuesForSecurityProviderName(), false),
 			},
 
 			"virtual_hub_id": {
@@ -76,7 +72,7 @@ func resourceVirtualHubSecurityPartnerProvider() *pluginsdk.Resource {
 	}
 }
 
-func resourceVirtualHubSecurityPartnerProviderCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubSecurityPartnerProviderCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.SecurityPartnerProviders
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -100,9 +96,9 @@ func resourceVirtualHubSecurityPartnerProviderCreate(d *pluginsdk.ResourceData, 
 	parameters := securitypartnerproviders.SecurityPartnerProvider{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &securitypartnerproviders.SecurityPartnerProviderPropertiesFormat{
-			SecurityProviderName: pointer.To(securitypartnerproviders.SecurityProviderName(d.Get("security_provider_name").(string))),
+			SecurityProviderName: pointer.ToEnum[securitypartnerproviders.SecurityProviderName](d.Get("security_provider_name").(string)),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v, ok := d.GetOk("virtual_hub_id"); ok {
@@ -120,7 +116,7 @@ func resourceVirtualHubSecurityPartnerProviderCreate(d *pluginsdk.ResourceData, 
 	return resourceVirtualHubSecurityPartnerProviderRead(d, meta)
 }
 
-func resourceVirtualHubSecurityPartnerProviderRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubSecurityPartnerProviderRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.SecurityPartnerProviders
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -147,7 +143,7 @@ func resourceVirtualHubSecurityPartnerProviderRead(d *pluginsdk.ResourceData, me
 		d.Set("location", location.NormalizeNilable(model.Location))
 
 		if props := model.Properties; props != nil {
-			d.Set("security_provider_name", string(pointer.From(props.SecurityProviderName)))
+			d.Set("security_provider_name", pointer.FromEnum(props.SecurityProviderName))
 
 			if props.VirtualHub != nil && props.VirtualHub.Id != nil {
 				d.Set("virtual_hub_id", props.VirtualHub.Id)
@@ -160,7 +156,7 @@ func resourceVirtualHubSecurityPartnerProviderRead(d *pluginsdk.ResourceData, me
 	return nil
 }
 
-func resourceVirtualHubSecurityPartnerProviderUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubSecurityPartnerProviderUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.SecurityPartnerProviders
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -173,7 +169,7 @@ func resourceVirtualHubSecurityPartnerProviderUpdate(d *pluginsdk.ResourceData, 
 	parameters := securitypartnerproviders.TagsObject{}
 
 	if d.HasChange("tags") {
-		parameters.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		parameters.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if _, err := client.UpdateTags(ctx, *id, parameters); err != nil {
@@ -183,7 +179,7 @@ func resourceVirtualHubSecurityPartnerProviderUpdate(d *pluginsdk.ResourceData, 
 	return resourceVirtualHubSecurityPartnerProviderRead(d, meta)
 }
 
-func resourceVirtualHubSecurityPartnerProviderDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubSecurityPartnerProviderDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.SecurityPartnerProviders
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
