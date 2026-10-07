@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -16,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 func resourceDataFactoryLinkedServicePostgreSQL() *pluginsdk.Resource {
@@ -99,7 +100,7 @@ func resourceDataFactoryLinkedServicePostgreSQL() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryLinkedServicePostgreSQLCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServicePostgreSQLCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	subscriptionId := meta.(*clients.Client).DataFactory.LinkedServiceClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -146,7 +147,7 @@ func resourceDataFactoryLinkedServicePostgreSQLCreateUpdate(d *pluginsdk.Resourc
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		postgresqlLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]interface{}))
+		postgresqlLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
@@ -154,12 +155,11 @@ func resourceDataFactoryLinkedServicePostgreSQLCreateUpdate(d *pluginsdk.Resourc
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		postgresqlLinkedService.AdditionalProperties = v.(map[string]interface{})
+		postgresqlLinkedService.AdditionalProperties = v.(map[string]any)
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		postgresqlLinkedService.Annotations = &annotations
+		postgresqlLinkedService.Annotations = pointer.To(v.([]any))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -175,7 +175,7 @@ func resourceDataFactoryLinkedServicePostgreSQLCreateUpdate(d *pluginsdk.Resourc
 	return resourceDataFactoryLinkedServicePostgreSQLRead(d, meta)
 }
 
-func resourceDataFactoryLinkedServicePostgreSQLRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServicePostgreSQLRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -208,13 +208,11 @@ func resourceDataFactoryLinkedServicePostgreSQLRead(d *pluginsdk.ResourceData, m
 	d.Set("additional_properties", postgresql.AdditionalProperties)
 	d.Set("description", postgresql.Description)
 
-	annotations := flattenDataFactoryAnnotations(postgresql.Annotations)
-	if err := d.Set("annotations", annotations); err != nil {
+	if err := d.Set("annotations", flattenDataFactoryAnnotations(postgresql.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
-	parameters := flattenLinkedServiceParameters(postgresql.Parameters)
-	if err := d.Set("parameters", parameters); err != nil {
+	if err := d.Set("parameters", flattenLinkedServiceParameters(postgresql.Parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 
@@ -227,7 +225,7 @@ func resourceDataFactoryLinkedServicePostgreSQLRead(d *pluginsdk.ResourceData, m
 	return nil
 }
 
-func resourceDataFactoryLinkedServicePostgreSQLDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServicePostgreSQLDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

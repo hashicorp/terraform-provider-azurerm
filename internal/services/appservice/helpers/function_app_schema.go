@@ -72,9 +72,10 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"always_on": {
-					Type:        pluginsdk.TypeBool,
-					Optional:    true,
-					Computed:    true, // Note - several factors change the default for this, so needs to be computed.
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					// Note: O+C because several factors change the default for this, so needs to be computed.
+					Computed:    true,
 					Description: "If this Linux Web App is Always On enabled. Defaults to `false`.",
 				},
 
@@ -101,7 +102,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 				"app_scale_limit": {
 					Type:        pluginsdk.TypeInt,
 					Optional:    true,
-					Computed:    true,
+					Computed:    true, // azignore:AZS007 - pre-existing violation
 					Description: "The number of workers this function app can scale out to. Only applicable to apps on the Consumption and Premium plan.",
 					// TODO Validation?
 				},
@@ -143,7 +144,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 				"default_documents": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
@@ -153,7 +154,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 				"elastic_instance_minimum": {
 					Type:        pluginsdk.TypeInt,
 					Optional:    true,
-					Computed:    true,
+					Computed:    true, // azignore:AZS007 - pre-existing violation
 					Description: "The number of minimum instances for this Linux Function App. Only affects apps on Elastic Premium plans.",
 				},
 
@@ -213,9 +214,10 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 				},
 
 				"pre_warmed_instance_count": {
-					Type:        pluginsdk.TypeInt,
-					Optional:    true,
-					Computed:    true, // Variable defaults depending on plan etc
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					// Note: O+C because Variable defaults depending on plan etc
+					Computed:    true,
 					Description: "The number of pre-warmed instances for this function app. Only affects apps on an Elastic Premium plan.",
 				},
 
@@ -229,7 +231,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 				"remote_debugging_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2022",
 					}, false),
@@ -288,7 +290,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 				"worker_count": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.IntBetween(1, 100),
 					Description:  "The number of Workers for this Linux Function App.",
 				},
@@ -429,10 +431,8 @@ func SiteConfigSchemaLinuxFunctionAppComputed() *pluginsdk.Schema {
 				"scm_ip_restriction": IpRestrictionSchemaComputed(),
 
 				"scm_ip_restriction_default_action": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					Default:      webapps.DefaultActionAllow,
-					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForDefaultAction(), false),
+					Type:     pluginsdk.TypeString,
+					Computed: true,
 				},
 
 				"load_balancing_mode": {
@@ -633,7 +633,7 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 				"default_documents": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
@@ -643,7 +643,7 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 				"elastic_instance_minimum": {
 					Type:        pluginsdk.TypeInt,
 					Optional:    true,
-					Computed:    true,
+					Computed:    true, // azignore:AZS007 - pre-existing violation
 					Description: "The number of minimum instances for this Linux Function App. Only affects apps on Elastic Premium plans.",
 				},
 
@@ -712,7 +712,7 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 				"remote_debugging_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2017",
 						"VS2019",
@@ -773,7 +773,7 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 				"worker_count": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.IntBetween(1, 100),
 					Description:  "The number of Workers for this Linux Function App.",
 				},
@@ -854,9 +854,10 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"always_on": {
-					Type:        pluginsdk.TypeBool,
-					Optional:    true,
-					Computed:    true, // Note - several factors change the default for this, so needs to be computed.
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					// Note: O+C because several factors change the default for this, so needs to be computed.
+					Computed:    true,
 					Description: "If this Windows Web App is Always On enabled. Defaults to `false`.",
 				},
 
@@ -883,7 +884,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 				"app_scale_limit": {
 					Type:        pluginsdk.TypeInt,
 					Optional:    true,
-					Computed:    true,
+					Computed:    true, // azignore:AZS007 - pre-existing violation
 					Description: "The number of workers this function app can scale out to. Only applicable to apps on the Consumption and Premium plan.",
 					// TODO Validation?
 				},
@@ -911,7 +912,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 				"default_documents": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
@@ -921,7 +922,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 				"elastic_instance_minimum": {
 					Type:        pluginsdk.TypeInt,
 					Optional:    true,
-					Computed:    true,
+					Computed:    true, // azignore:AZS007 - pre-existing violation
 					Description: "The number of minimum instances for this Windows Function App. Only affects apps on Elastic Premium plans.",
 				},
 
@@ -981,9 +982,10 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 				},
 
 				"pre_warmed_instance_count": {
-					Type:        pluginsdk.TypeInt,
-					Optional:    true,
-					Computed:    true, // Variable defaults depending on plan etc
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					// Note: O+C because Variable defaults depending on plan etc
+					Computed:    true,
 					Description: "The number of pre-warmed instances for this function app. Only affects apps on an Elastic Premium plan.",
 				},
 
@@ -997,7 +999,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 				"remote_debugging_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2022",
 					}, false),
@@ -1056,7 +1058,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 				"worker_count": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.IntBetween(1, 100),
 					Description:  "The number of Workers for this Windows Function App.",
 				},
@@ -1299,7 +1301,7 @@ type ApplicationStackLinuxFunctionApp struct {
 	DotNetIsolated        bool                     `tfschema:"use_dotnet_isolated_runtime"` // Supported values `true` for `dotnet-isolated`, `false` otherwise
 	NodeVersion           string                   `tfschema:"node_version"`                // Supported values `12LTS`, `14LTS`, `16LTS`, `18LTS, `20LTS`, `22LTS`
 	PythonVersion         string                   `tfschema:"python_version"`              // Supported values `3.14`, `3.13`, `3.12`, `3.11`, `3.10`, `3.9`, `3.8`, `3.7`
-	PowerShellCoreVersion string                   `tfschema:"powershell_core_version"`     // Supported values are `7.0`, `7.2`
+	PowerShellCoreVersion string                   `tfschema:"powershell_core_version"`     // Supported values are `7.0`, `7.2`, `7.4`, `7.6`
 	JavaVersion           string                   `tfschema:"java_version"`                // Supported values `8`, `11`, `17`, `21`, `25`
 	CustomHandler         bool                     `tfschema:"use_custom_runtime"`          // Supported values `true`
 	Docker                []ApplicationStackDocker `tfschema:"docker"`                      // Needs ElasticPremium or Basic (B1) Standard (S 1-3) or Premium(PxV2 or PxV3) LINUX Service Plan
@@ -1310,7 +1312,7 @@ type ApplicationStackWindowsFunctionApp struct {
 	DotNetIsolated        bool   `tfschema:"use_dotnet_isolated_runtime"` // Supported values `true` for `dotnet-isolated`, `false` otherwise
 	NodeVersion           string `tfschema:"node_version"`                // Supported values `12LTS`, `14LTS`, `16LTS`, `18LTS, `20LTS`, `22LTS`, `24LTS`
 	JavaVersion           string `tfschema:"java_version"`                // Supported values `8`, `11`, `17`, `21`, `25`
-	PowerShellCoreVersion string `tfschema:"powershell_core_version"`     // Supported values are `7.0`, `7.2`
+	PowerShellCoreVersion string `tfschema:"powershell_core_version"`     // Supported values are `7.0`, `7.2`, `7.4`, `7.6`
 	CustomHandler         bool   `tfschema:"use_custom_runtime"`          // Supported values `true`
 }
 
@@ -1423,6 +1425,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"7",   // Deprecated / not available in the portal
 						"7.2", // preview LTS Support
 						"7.4", // current LTS Support
+						"7.6",
 					}, false),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",
@@ -1612,7 +1615,7 @@ func windowsFunctionAppStackSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -1642,7 +1645,7 @@ func windowsFunctionAppStackSchema() *pluginsdk.Schema {
 				"use_dotnet_isolated_runtime": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					ConflictsWith: []string{
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
@@ -1716,7 +1719,7 @@ func windowsFunctionAppStackSchema() *pluginsdk.Schema {
 				"use_custom_runtime": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.java_version",
@@ -1934,8 +1937,8 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 			appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_PASSWORD", dockerConfig.RegistryPassword, false)
 			dockerUrl := dockerConfig.RegistryURL
 			for _, prefix := range urlSchemes {
-				if strings.HasPrefix(dockerConfig.RegistryURL, prefix) {
-					dockerUrl = strings.TrimPrefix(dockerConfig.RegistryURL, prefix)
+				if after, ok := strings.CutPrefix(dockerConfig.RegistryURL, prefix); ok {
+					dockerUrl = after
 					continue
 				}
 			}
@@ -2480,18 +2483,18 @@ func FlattenSiteConfigLinuxFunctionApp(functionAppSiteConfig *webapps.SiteConfig
 		DetailedErrorLogging:          pointer.From(functionAppSiteConfig.DetailedErrorLoggingEnabled),
 		HealthCheckPath:               pointer.From(functionAppSiteConfig.HealthCheckPath),
 		Http2Enabled:                  pointer.From(functionAppSiteConfig.HTTP20Enabled),
-		IpRestrictionDefaultAction:    string(pointer.From(functionAppSiteConfig.IPSecurityRestrictionsDefaultAction)),
-		ScmIpRestrictionDefaultAction: string(pointer.From(functionAppSiteConfig.ScmIPSecurityRestrictionsDefaultAction)),
+		IpRestrictionDefaultAction:    pointer.FromEnum(functionAppSiteConfig.IPSecurityRestrictionsDefaultAction),
+		ScmIpRestrictionDefaultAction: pointer.FromEnum(functionAppSiteConfig.ScmIPSecurityRestrictionsDefaultAction),
 		LinuxFxVersion:                pointer.From(functionAppSiteConfig.LinuxFxVersion),
-		LoadBalancing:                 string(pointer.From(functionAppSiteConfig.LoadBalancing)),
-		ManagedPipelineMode:           string(pointer.From(functionAppSiteConfig.ManagedPipelineMode)),
+		LoadBalancing:                 pointer.FromEnum(functionAppSiteConfig.LoadBalancing),
+		ManagedPipelineMode:           pointer.FromEnum(functionAppSiteConfig.ManagedPipelineMode),
 		WorkerCount:                   pointer.From(functionAppSiteConfig.NumberOfWorkers),
-		ScmType:                       string(pointer.From(functionAppSiteConfig.ScmType)),
-		FtpsState:                     string(pointer.From(functionAppSiteConfig.FtpsState)),
+		ScmType:                       pointer.FromEnum(functionAppSiteConfig.ScmType),
+		FtpsState:                     pointer.FromEnum(functionAppSiteConfig.FtpsState),
 		RuntimeScaleMonitoring:        pointer.From(functionAppSiteConfig.FunctionsRuntimeScaleMonitoringEnabled),
-		MinTlsVersion:                 string(pointer.From(functionAppSiteConfig.MinTlsVersion)),
-		ScmMinTlsVersion:              string(pointer.From(functionAppSiteConfig.ScmMinTlsVersion)),
-		MinTlsCipherSuite:             string(pointer.From(functionAppSiteConfig.MinTlsCipherSuite)),
+		MinTlsVersion:                 pointer.FromEnum(functionAppSiteConfig.MinTlsVersion),
+		ScmMinTlsVersion:              pointer.FromEnum(functionAppSiteConfig.ScmMinTlsVersion),
+		MinTlsCipherSuite:             pointer.FromEnum(functionAppSiteConfig.MinTlsCipherSuite),
 		PreWarmedInstanceCount:        pointer.From(functionAppSiteConfig.PreWarmedInstanceCount),
 		ElasticInstanceMinimum:        pointer.From(functionAppSiteConfig.MinimumElasticInstanceCount),
 		Use32BitWorker:                pointer.From(functionAppSiteConfig.Use32BitWorkerProcess),
@@ -2547,15 +2550,15 @@ func FlattenSiteConfigFunctionAppFlexConsumption(functionAppFlexConsumptionSiteC
 		Cors:                          FlattenCorsSettings(functionAppFlexConsumptionSiteConfig.Cors),
 		DetailedErrorLogging:          pointer.From(functionAppFlexConsumptionSiteConfig.DetailedErrorLoggingEnabled),
 		HealthCheckPath:               pointer.From(functionAppFlexConsumptionSiteConfig.HealthCheckPath),
-		IpRestrictionDefaultAction:    string(pointer.From(functionAppFlexConsumptionSiteConfig.IPSecurityRestrictionsDefaultAction)),
-		ScmIpRestrictionDefaultAction: string(pointer.From(functionAppFlexConsumptionSiteConfig.ScmIPSecurityRestrictionsDefaultAction)),
-		LoadBalancing:                 string(pointer.From(functionAppFlexConsumptionSiteConfig.LoadBalancing)),
-		ManagedPipelineMode:           string(pointer.From(functionAppFlexConsumptionSiteConfig.ManagedPipelineMode)),
+		IpRestrictionDefaultAction:    pointer.FromEnum(functionAppFlexConsumptionSiteConfig.IPSecurityRestrictionsDefaultAction),
+		ScmIpRestrictionDefaultAction: pointer.FromEnum(functionAppFlexConsumptionSiteConfig.ScmIPSecurityRestrictionsDefaultAction),
+		LoadBalancing:                 pointer.FromEnum(functionAppFlexConsumptionSiteConfig.LoadBalancing),
+		ManagedPipelineMode:           pointer.FromEnum(functionAppFlexConsumptionSiteConfig.ManagedPipelineMode),
 		WorkerCount:                   pointer.From(functionAppFlexConsumptionSiteConfig.NumberOfWorkers),
-		ScmType:                       string(pointer.From(functionAppFlexConsumptionSiteConfig.ScmType)),
+		ScmType:                       pointer.FromEnum(functionAppFlexConsumptionSiteConfig.ScmType),
 		RuntimeScaleMonitoring:        pointer.From(functionAppFlexConsumptionSiteConfig.FunctionsRuntimeScaleMonitoringEnabled),
-		MinTlsVersion:                 string(pointer.From(functionAppFlexConsumptionSiteConfig.MinTlsVersion)),
-		ScmMinTlsVersion:              string(pointer.From(functionAppFlexConsumptionSiteConfig.ScmMinTlsVersion)),
+		MinTlsVersion:                 pointer.FromEnum(functionAppFlexConsumptionSiteConfig.MinTlsVersion),
+		ScmMinTlsVersion:              pointer.FromEnum(functionAppFlexConsumptionSiteConfig.ScmMinTlsVersion),
 		WebSockets:                    pointer.From(functionAppFlexConsumptionSiteConfig.WebSocketsEnabled),
 		ScmUseMainIpRestriction:       pointer.From(functionAppFlexConsumptionSiteConfig.ScmIPSecurityRestrictionsUseMain),
 		UseManagedIdentityACR:         pointer.From(functionAppFlexConsumptionSiteConfig.AcrUseManagedIdentityCreds),
@@ -2602,15 +2605,15 @@ func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *webapps.SiteConf
 		HealthCheckPath:               pointer.From(functionAppSiteConfig.HealthCheckPath),
 		Http2Enabled:                  pointer.From(functionAppSiteConfig.HTTP20Enabled),
 		WindowsFxVersion:              pointer.From(functionAppSiteConfig.WindowsFxVersion),
-		LoadBalancing:                 string(pointer.From(functionAppSiteConfig.LoadBalancing)),
-		ManagedPipelineMode:           string(pointer.From(functionAppSiteConfig.ManagedPipelineMode)),
+		LoadBalancing:                 pointer.FromEnum(functionAppSiteConfig.LoadBalancing),
+		ManagedPipelineMode:           pointer.FromEnum(functionAppSiteConfig.ManagedPipelineMode),
 		NumberOfWorkers:               pointer.From(functionAppSiteConfig.NumberOfWorkers),
-		ScmType:                       string(pointer.From(functionAppSiteConfig.ScmType)),
-		FtpsState:                     string(pointer.From(functionAppSiteConfig.FtpsState)),
+		ScmType:                       pointer.FromEnum(functionAppSiteConfig.ScmType),
+		FtpsState:                     pointer.FromEnum(functionAppSiteConfig.FtpsState),
 		RuntimeScaleMonitoring:        pointer.From(functionAppSiteConfig.FunctionsRuntimeScaleMonitoringEnabled),
-		MinTlsVersion:                 string(pointer.From(functionAppSiteConfig.MinTlsVersion)),
-		ScmMinTlsVersion:              string(pointer.From(functionAppSiteConfig.ScmMinTlsVersion)),
-		MinTlsCipherSuite:             string(pointer.From(functionAppSiteConfig.MinTlsCipherSuite)),
+		MinTlsVersion:                 pointer.FromEnum(functionAppSiteConfig.MinTlsVersion),
+		ScmMinTlsVersion:              pointer.FromEnum(functionAppSiteConfig.ScmMinTlsVersion),
+		MinTlsCipherSuite:             pointer.FromEnum(functionAppSiteConfig.MinTlsCipherSuite),
 		PreWarmedInstanceCount:        pointer.From(functionAppSiteConfig.PreWarmedInstanceCount),
 		ElasticInstanceMinimum:        pointer.From(functionAppSiteConfig.MinimumElasticInstanceCount),
 		Use32BitWorker:                pointer.From(functionAppSiteConfig.Use32BitWorkerProcess),
@@ -2619,8 +2622,8 @@ func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *webapps.SiteConf
 		RemoteDebugging:               pointer.From(functionAppSiteConfig.RemoteDebuggingEnabled),
 		RemoteDebuggingVersion:        strings.ToUpper(pointer.From(functionAppSiteConfig.RemoteDebuggingVersion)),
 		VnetRouteAllEnabled:           pointer.From(functionAppSiteConfig.VnetRouteAllEnabled),
-		IpRestrictionDefaultAction:    string(pointer.From(functionAppSiteConfig.IPSecurityRestrictionsDefaultAction)),
-		ScmIpRestrictionDefaultAction: string(pointer.From(functionAppSiteConfig.ScmIPSecurityRestrictionsDefaultAction)),
+		IpRestrictionDefaultAction:    pointer.FromEnum(functionAppSiteConfig.IPSecurityRestrictionsDefaultAction),
+		ScmIpRestrictionDefaultAction: pointer.FromEnum(functionAppSiteConfig.ScmIPSecurityRestrictionsDefaultAction),
 	}
 
 	if v := functionAppSiteConfig.ApiDefinition; v != nil && v.Url != nil {
@@ -2651,13 +2654,11 @@ func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *webapps.SiteConf
 		}
 	}
 
+	// isolated, version, and custom handler will be set later from app settings
 	result.ApplicationStack = []ApplicationStackWindowsFunctionApp{{
 		DotNetVersion:         pointer.From(functionAppSiteConfig.NetFrameworkVersion),
-		DotNetIsolated:        false, // set this later from app_settings
-		NodeVersion:           "",    // Need to get this from app_settings later
 		JavaVersion:           pointer.From(functionAppSiteConfig.JavaVersion),
 		PowerShellCoreVersion: powershellVersion,
-		CustomHandler:         false, // set this later from app_settings
 	}}
 
 	return result, nil
@@ -2668,8 +2669,8 @@ func ParseWebJobsStorageString(input string) (name, key string) {
 		return
 	}
 
-	parts := strings.Split(input, ";")
-	for _, part := range parts {
+	parts := strings.SplitSeq(input, ";")
+	for part := range parts {
 		if strings.HasPrefix(part, "AccountName") {
 			name = strings.TrimPrefix(part, "AccountName=")
 		}

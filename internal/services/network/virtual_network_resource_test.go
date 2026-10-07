@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -530,7 +530,7 @@ resource "azurerm_virtual_network" "test" {
 
 func (r VirtualNetworkResource) tagCount(data acceptance.TestData) string {
 	tags := ""
-	for i := 0; i < 50; i++ {
+	for i := range 50 {
 		tags += fmt.Sprintf("t%d = \"v%d\"\n", i, i)
 	}
 

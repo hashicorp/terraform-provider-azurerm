@@ -10,11 +10,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -30,8 +31,15 @@ func resourceBotChannelFacebook() *pluginsdk.Resource {
 		Update: resourceBotChannelFacebookUpdate,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.BotChannelID(id)
+			_, err := commonids.ParseBotServiceChannelID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			// v0 -> v1 normalises the casing of IDs imported while this resource parsed them with the
+			// case-insensitive legacy parser, so they can be parsed with the case-sensitive SDK parser
+			0: migration.BotChannelFacebookV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -90,15 +98,15 @@ func resourceBotChannelFacebook() *pluginsdk.Resource {
 	}
 }
 
-func resourceBotChannelFacebookCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelFacebookCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewBotChannelID(subscriptionId, d.Get("resource_group_name").(string), d.Get("bot_name").(string), string(botservice.ChannelNameFacebookChannel))
+	id := commonids.NewBotServiceChannelID(subscriptionId, d.Get("resource_group_name").(string), d.Get("bot_name").(string), string(botservice.ChannelNameFacebookChannel))
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, id.ChannelName)
+		existing, err := client.Get(ctx, id.ResourceGroupName, id.BotServiceName, id.ChannelType)
 		if err != nil {
 			if !response.WasNotFound(existing.Response.Response) {
 				return fmt.Errorf("checking for presence of %s: %+v", id, err)
@@ -123,7 +131,7 @@ func resourceBotChannelFacebookCreate(d *pluginsdk.ResourceData, meta interface{
 		Kind:     botservice.KindBot,
 	}
 
-	if _, err := client.Create(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameFacebookChannel, channel); err != nil {
+	if _, err := client.Create(ctx, id.ResourceGroupName, id.BotServiceName, botservice.ChannelNameFacebookChannel, channel); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -131,17 +139,17 @@ func resourceBotChannelFacebookCreate(d *pluginsdk.ResourceData, meta interface{
 	return resourceBotChannelFacebookRead(d, meta)
 }
 
-func resourceBotChannelFacebookRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelFacebookRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BotChannelID(d.Id())
+	id, err := commonids.ParseBotServiceChannelID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameFacebookChannel))
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.BotServiceName, string(botservice.ChannelNameFacebookChannel))
 	if err != nil {
 		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] %s was not found - removing from state", id)
@@ -152,13 +160,13 @@ func resourceBotChannelFacebookRead(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	channelsResp, err := client.ListWithKeys(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameFacebookChannel)
+	channelsResp, err := client.ListWithKeys(ctx, id.ResourceGroupName, id.BotServiceName, botservice.ChannelNameFacebookChannel)
 	if err != nil {
 		return fmt.Errorf("listing keys for %s: %+v", *id, err)
 	}
 
 	d.Set("bot_name", id.BotServiceName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := channelsResp.Properties; props != nil {
@@ -177,12 +185,12 @@ func resourceBotChannelFacebookRead(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceBotChannelFacebookUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelFacebookUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BotChannelID(d.Id())
+	id, err := commonids.ParseBotServiceChannelID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -201,24 +209,24 @@ func resourceBotChannelFacebookUpdate(d *pluginsdk.ResourceData, meta interface{
 		Kind:     botservice.KindBot,
 	}
 
-	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameFacebookChannel, channel); err != nil {
+	if _, err := client.Update(ctx, id.ResourceGroupName, id.BotServiceName, botservice.ChannelNameFacebookChannel, channel); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	return resourceBotChannelFacebookRead(d, meta)
 }
 
-func resourceBotChannelFacebookDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelFacebookDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BotChannelID(d.Id())
+	id, err := commonids.ParseBotServiceChannelID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameFacebookChannel))
+	resp, err := client.Delete(ctx, id.ResourceGroupName, id.BotServiceName, string(botservice.ChannelNameFacebookChannel))
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
 			return fmt.Errorf("deleting %s: %+v", id, err)
@@ -228,11 +236,11 @@ func resourceBotChannelFacebookDelete(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func expandFacebookPage(input []interface{}) *[]botservice.FacebookPage {
+func expandFacebookPage(input []any) *[]botservice.FacebookPage {
 	results := make([]botservice.FacebookPage, 0)
 
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 
 		result := botservice.FacebookPage{
 			AccessToken: pointer.To(v["access_token"].(string)),
@@ -245,14 +253,14 @@ func expandFacebookPage(input []interface{}) *[]botservice.FacebookPage {
 	return &results
 }
 
-func flattenFacebookPage(input *[]botservice.FacebookPage) []interface{} {
-	results := make([]interface{}, 0)
+func flattenFacebookPage(input *[]botservice.FacebookPage) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		results = append(results, map[string]interface{}{
+		results = append(results, map[string]any{
 			"id":           pointer.From(item.ID),
 			"access_token": pointer.From(item.AccessToken),
 		})

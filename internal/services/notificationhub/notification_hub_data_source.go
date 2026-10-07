@@ -90,7 +90,7 @@ func dataSourceNotificationHub() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceNotificationHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceNotificationHubRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NotificationHubs.HubsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -119,14 +119,12 @@ func dataSourceNotificationHubRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 	if credentialsModel := credentials.Model; credentialsModel != nil {
 		if props := credentialsModel.Properties; props != nil {
-			apns := flattenNotificationHubsDataSourceAPNSCredentials(props.ApnsCredential)
-			if setErr := d.Set("apns_credential", apns); setErr != nil {
-				return fmt.Errorf("setting `apns_credential`: %+v", err)
+			if setErr := d.Set("apns_credential", flattenNotificationHubsDataSourceAPNSCredentials(props.ApnsCredential)); setErr != nil {
+				return fmt.Errorf("setting `apns_credential`: %+v", setErr)
 			}
 
-			gcm := flattenNotificationHubsDataSourceGCMCredentials(props.GcmCredential)
-			if setErr := d.Set("gcm_credential", gcm); setErr != nil {
-				return fmt.Errorf("setting `gcm_credential`: %+v", err)
+			if setErr := d.Set("gcm_credential", flattenNotificationHubsDataSourceGCMCredentials(props.GcmCredential)); setErr != nil {
+				return fmt.Errorf("setting `gcm_credential`: %+v", setErr)
 			}
 		}
 	}
@@ -140,12 +138,12 @@ func dataSourceNotificationHubRead(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func flattenNotificationHubsDataSourceAPNSCredentials(input *hubs.ApnsCredential) []interface{} {
+func flattenNotificationHubsDataSourceAPNSCredentials(input *hubs.ApnsCredential) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	output := make(map[string]interface{})
+	output := make(map[string]any)
 
 	if bundleId := input.Properties.AppName; bundleId != nil {
 		output["bundle_id"] = *bundleId
@@ -169,16 +167,16 @@ func flattenNotificationHubsDataSourceAPNSCredentials(input *hubs.ApnsCredential
 		output["token"] = *token
 	}
 
-	return []interface{}{output}
+	return []any{output}
 }
 
-func flattenNotificationHubsDataSourceGCMCredentials(input *hubs.GcmCredential) []interface{} {
+func flattenNotificationHubsDataSourceGCMCredentials(input *hubs.GcmCredential) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make(map[string]interface{})
+	output := make(map[string]any)
 	output["api_key"] = input.Properties.GoogleApiKey
 
-	return []interface{}{output}
+	return []any{output}
 }

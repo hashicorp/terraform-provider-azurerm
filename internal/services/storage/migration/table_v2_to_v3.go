@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package migration
 
 import (
@@ -67,7 +70,7 @@ func (TableV2ToV3) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (TableV2ToV3) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		tableName, ok := rawState["name"].(string)
 		if !ok || tableName == "" {
 			return rawState, nil
