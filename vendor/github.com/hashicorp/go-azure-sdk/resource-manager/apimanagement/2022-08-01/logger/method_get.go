@@ -45,7 +45,6 @@ func (c LoggerClient) Get(ctx context.Context, id LoggerId) (result GetOperation
 
 	var model LoggerContract
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

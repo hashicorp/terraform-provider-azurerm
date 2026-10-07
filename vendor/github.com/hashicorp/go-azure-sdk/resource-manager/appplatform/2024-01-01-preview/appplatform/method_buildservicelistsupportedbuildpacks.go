@@ -23,6 +23,18 @@ type BuildServiceListSupportedBuildpacksCompleteResult struct {
 	Items              []SupportedBuildpackResource
 }
 
+type BuildServiceListSupportedBuildpacksCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *BuildServiceListSupportedBuildpacksCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // BuildServiceListSupportedBuildpacks ...
 func (c AppPlatformClient) BuildServiceListSupportedBuildpacks(ctx context.Context, id BuildServiceId) (result BuildServiceListSupportedBuildpacksOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c AppPlatformClient) BuildServiceListSupportedBuildpacks(ctx context.Conte
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &BuildServiceListSupportedBuildpacksCustomPager{},
 		Path:       fmt.Sprintf("%s/supportedBuildPacks", id.ID()),
 	}
 

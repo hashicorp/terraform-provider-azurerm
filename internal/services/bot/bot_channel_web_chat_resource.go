@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package bot
@@ -8,31 +8,38 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/botservice/2021-05-01-preview/botservice"
+	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
 func resourceBotChannelWebChat() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceBotChannelWebChatCreate,
 		Read:   resourceBotChannelWebChatRead,
 		Delete: resourceBotChannelWebChatDelete,
 		Update: resourceBotChannelWebChatUpdate,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.BotChannelID(id)
+			_, err := commonids.ParseBotServiceChannelID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			// v0 -> v1 normalises the casing of IDs imported while this resource parsed them with the
+			// case-insensitive legacy parser, so they can be parsed with the case-sensitive SDK parser
+			0: migration.BotChannelWebChatV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -57,7 +64,6 @@ func resourceBotChannelWebChat() *pluginsdk.Resource {
 			"site": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Computed: !features.FourPointOhBeta(),
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -84,60 +90,40 @@ func resourceBotChannelWebChat() *pluginsdk.Resource {
 						},
 					},
 				},
-				ExactlyOneOf: func() []string {
-					if !features.FourPointOhBeta() {
-						return []string{"site_names", "site"}
-					}
-					return []string{}
-				}(),
 			},
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		resource.Schema["site_names"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
-			Computed: true,
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-			Deprecated:   "`site_names` will be removed in favour of the property `site` in version 4.0 of the AzureRM Provider.",
-			ExactlyOneOf: []string{"site_names", "site"},
-		}
-	}
-
-	return resource
 }
 
-func resourceBotChannelWebChatCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelWebChatCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewBotChannelID(subscriptionId, d.Get("resource_group_name").(string), d.Get("bot_name").(string), string(botservice.ChannelNameWebChatChannel))
+	id := commonids.NewBotServiceChannelID(subscriptionId, d.Get("resource_group_name").(string), d.Get("bot_name").(string), string(botservice.ChannelNameWebChatChannel))
 
-	existing, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, id.ChannelName)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id.ResourceGroupName, id.BotServiceName, id.ChannelType)
+		if err != nil {
+			if !response.WasNotFound(existing.Response.Response) {
+				return fmt.Errorf("checking for presence of %s: %+v", id, err)
+			}
 		}
-	}
-	if !utils.ResponseWasNotFound(existing.Response) {
-		// The Bot WebChat Channel would be created by default while creating Bot Registrations Channel.
-		// So if the channel includes `Default Site`, it means it's default channel and delete it.
-		// So if the channel includes other site, it means it's user custom channel and throws conflict error.
-		if props := existing.Properties; props != nil {
-			defaultChannel, ok := props.AsWebChatChannel()
-			if ok && defaultChannel.Properties != nil {
-				if includeDefaultWebChatSite(defaultChannel.Properties.Sites) {
-					if _, err := client.Delete(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameBasicChannelChannelNameWebChatChannel)); err != nil {
-						return fmt.Errorf("deleting the default Web Chat Channel %s: %+v", id, err)
+		if !response.WasNotFound(existing.Response.Response) {
+			// The Bot WebChat Channel would be created by default while creating Bot Registrations Channel.
+			// So if the channel includes `Default Site`, it means it's default channel and delete it.
+			// So if the channel includes other site, it means it's user custom channel and throws conflict error.
+			if props := existing.Properties; props != nil {
+				defaultChannel, ok := props.AsWebChatChannel()
+				if ok && defaultChannel.Properties != nil {
+					if includeDefaultWebChatSite(defaultChannel.Properties.Sites) {
+						if _, err := client.Delete(ctx, id.ResourceGroupName, id.BotServiceName, string(botservice.ChannelNameBasicChannelChannelNameWebChatChannel)); err != nil {
+							return fmt.Errorf("deleting the default Web Chat Channel %s: %+v", id, err)
+						}
+					} else {
+						return tf.ImportAsExistsError("azurerm_bot_channel_web_chat", id.ID())
 					}
-				} else {
-					return tf.ImportAsExistsError("azurerm_bot_channel_web_chat", id.ID())
 				}
 			}
 		}
@@ -148,15 +134,8 @@ func resourceBotChannelWebChatCreate(d *pluginsdk.ResourceData, meta interface{}
 			Properties:  &botservice.WebChatChannelProperties{},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameWebChatChannel,
 		},
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
-	}
-
-	if !features.FourPointOhBeta() {
-		if v, ok := d.GetOk("site_names"); ok {
-			channel, _ := channel.Properties.AsWebChatChannel()
-			channel.Properties.Sites = expandSiteNames(v.(*pluginsdk.Set).List())
-		}
 	}
 
 	if v, ok := d.GetOk("site"); ok {
@@ -164,33 +143,33 @@ func resourceBotChannelWebChatCreate(d *pluginsdk.ResourceData, meta interface{}
 		channel.Properties.Sites = expandSites(v.(*pluginsdk.Set).List())
 	}
 
-	if _, err := client.Create(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameWebChatChannel, channel); err != nil {
+	if _, err := client.Create(ctx, id.ResourceGroupName, id.BotServiceName, botservice.ChannelNameWebChatChannel, channel); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
-	// Unable to add a new site with user_upload_enabled, endpoint_parameters_enabled, storage_enabled in the same operation, so we need to make two calls
-	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameWebChatChannel, channel); err != nil {
-		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 
+	// Unable to add a new site with user_upload_enabled, endpoint_parameters_enabled, storage_enabled in the same operation, so we need to make two calls
+	if _, err := client.Update(ctx, id.ResourceGroupName, id.BotServiceName, botservice.ChannelNameWebChatChannel, channel); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
 	return resourceBotChannelWebChatRead(d, meta)
 }
 
-func resourceBotChannelWebChatRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelWebChatRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BotChannelID(d.Id())
+	id, err := commonids.ParseBotServiceChannelID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameWebChatChannel))
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.BotServiceName, string(botservice.ChannelNameWebChatChannel))
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] %s was not found - removing from state", id)
 			d.SetId("")
 			return nil
@@ -200,18 +179,12 @@ func resourceBotChannelWebChatRead(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	d.Set("bot_name", id.BotServiceName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.Properties; props != nil {
 		if channel, ok := props.AsWebChatChannel(); ok {
 			if channelProps := channel.Properties; channelProps != nil {
-				if !features.FourPointOhBeta() {
-					if err := d.Set("site_names", flattenSiteNames(channelProps.Sites)); err != nil {
-						return fmt.Errorf("setting `site_names`: %+v", err)
-					}
-				}
-
 				if err := d.Set("site", flattenSites(channelProps.Sites)); err != nil {
 					return fmt.Errorf("setting `site`: %+v", err)
 				}
@@ -222,12 +195,12 @@ func resourceBotChannelWebChatRead(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceBotChannelWebChatUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelWebChatUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BotChannelID(d.Id())
+	id, err := commonids.ParseBotServiceChannelID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -237,15 +210,8 @@ func resourceBotChannelWebChatUpdate(d *pluginsdk.ResourceData, meta interface{}
 			Properties:  &botservice.WebChatChannelProperties{},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameWebChatChannel,
 		},
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
-	}
-
-	if !features.FourPointOhBeta() {
-		if d.HasChange("site_names") {
-			channel, _ := channel.Properties.AsWebChatChannel()
-			channel.Properties.Sites = expandSiteNames(d.Get("site_names").(*pluginsdk.Set).List())
-		}
 	}
 
 	if d.HasChange("site") {
@@ -253,29 +219,29 @@ func resourceBotChannelWebChatUpdate(d *pluginsdk.ResourceData, meta interface{}
 		channel.Properties.Sites = expandSites(d.Get("site").(*pluginsdk.Set).List())
 	}
 
-	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameWebChatChannel, channel); err != nil {
+	if _, err := client.Update(ctx, id.ResourceGroupName, id.BotServiceName, botservice.ChannelNameWebChatChannel, channel); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	// Unable to add a new site with user_upload_enabled, endpoint_parameters_enabled, storage_enabled in the same operation, so we need to make two calls
-	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameWebChatChannel, channel); err != nil {
+	if _, err := client.Update(ctx, id.ResourceGroupName, id.BotServiceName, botservice.ChannelNameWebChatChannel, channel); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	return resourceBotChannelWebChatRead(d, meta)
 }
 
-func resourceBotChannelWebChatDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelWebChatDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BotChannelID(d.Id())
+	id, err := commonids.ParseBotServiceChannelID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	existing, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameWebChatChannel))
+	existing, err := client.Get(ctx, id.ResourceGroupName, id.BotServiceName, string(botservice.ChannelNameWebChatChannel))
 	if err != nil {
 		return err
 	}
@@ -285,53 +251,40 @@ func resourceBotChannelWebChatDelete(d *pluginsdk.ResourceData, meta interface{}
 			Properties: &botservice.WebChatChannelProperties{
 				Sites: &[]botservice.WebChatSite{
 					{
-						SiteName:  utils.String("Default Site"),
-						IsEnabled: utils.Bool(true),
+						SiteName:  pointer.To("Default Site"),
+						IsEnabled: pointer.To(true),
 					},
 				},
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameWebChatChannel,
 		},
-		Location: utils.String(azure.NormalizeLocation(*existing.Location)),
+		Location: pointer.To(location.Normalize(*existing.Location)),
 		Kind:     botservice.KindBot,
 	}
 
 	// The Bot WebChat Channel would be created by default while creating Bot Registrations Channel.
 	// So it has to restore the default Web Chat Channel while deleting
-	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameWebChatChannel, channel); err != nil {
+	if _, err := client.Update(ctx, id.ResourceGroupName, id.BotServiceName, botservice.ChannelNameWebChatChannel, channel); err != nil {
 		return fmt.Errorf("restoring the default Web Chat Channel %s: %+v", id, err)
 	}
 
 	return nil
 }
 
-func expandSiteNames(input []interface{}) *[]botservice.WebChatSite {
+func expandSites(input []any) *[]botservice.WebChatSite {
 	results := make([]botservice.WebChatSite, 0)
 
 	for _, item := range input {
-		results = append(results, botservice.WebChatSite{
-			SiteName:  utils.String(item.(string)),
-			IsEnabled: utils.Bool(true),
-		})
-	}
-
-	return &results
-}
-
-func expandSites(input []interface{}) *[]botservice.WebChatSite {
-	results := make([]botservice.WebChatSite, 0)
-
-	for _, item := range input {
-		site := item.(map[string]interface{})
+		site := item.(map[string]any)
 		result := botservice.WebChatSite{
-			IsEnabled:                   utils.Bool(true),
-			IsBlockUserUploadEnabled:    utils.Bool(!site["user_upload_enabled"].(bool)),
-			IsEndpointParametersEnabled: utils.Bool(site["endpoint_parameters_enabled"].(bool)),
-			IsNoStorageEnabled:          utils.Bool(!site["storage_enabled"].(bool)),
+			IsEnabled:                   pointer.To(true),
+			IsBlockUserUploadEnabled:    pointer.To(!site["user_upload_enabled"].(bool)),
+			IsEndpointParametersEnabled: pointer.To(site["endpoint_parameters_enabled"].(bool)),
+			IsNoStorageEnabled:          pointer.To(!site["storage_enabled"].(bool)),
 		}
 
 		if siteName := site["name"].(string); siteName != "" {
-			result.SiteName = utils.String(siteName)
+			result.SiteName = pointer.To(siteName)
 		}
 
 		results = append(results, result)
@@ -340,35 +293,13 @@ func expandSites(input []interface{}) *[]botservice.WebChatSite {
 	return &results
 }
 
-func flattenSiteNames(input *[]botservice.WebChatSite) []interface{} {
-	results := make([]interface{}, 0)
-	if input == nil {
-		return results
-	}
+func flattenSites(input *[]botservice.WebChatSite) []any {
+	results := make([]any, 0)
 
 	for _, item := range *input {
-		var siteName string
-		if item.SiteName != nil {
-			siteName = *item.SiteName
-		}
+		result := make(map[string]any)
 
-		results = append(results, siteName)
-	}
-
-	return results
-}
-
-func flattenSites(input *[]botservice.WebChatSite) []interface{} {
-	results := make([]interface{}, 0)
-
-	for _, item := range *input {
-		result := make(map[string]interface{})
-
-		var name string
-		if v := item.SiteName; v != nil {
-			name = *v
-		}
-		result["name"] = name
+		result["name"] = pointer.From(item.SiteName)
 
 		userUploadEnabled := true
 		if v := item.IsBlockUserUploadEnabled; v != nil {
@@ -376,11 +307,7 @@ func flattenSites(input *[]botservice.WebChatSite) []interface{} {
 		}
 		result["user_upload_enabled"] = userUploadEnabled
 
-		var endpointParametersEnabled bool
-		if v := item.IsEndpointParametersEnabled; v != nil {
-			endpointParametersEnabled = *v
-		}
-		result["endpoint_parameters_enabled"] = endpointParametersEnabled
+		result["endpoint_parameters_enabled"] = pointer.From(item.IsEndpointParametersEnabled)
 
 		storageEnabled := true
 		if v := item.IsNoStorageEnabled; v != nil {

@@ -23,6 +23,18 @@ type GetLinkedBackendsCompleteResult struct {
 	Items              []StaticSiteLinkedBackendARMResource
 }
 
+type GetLinkedBackendsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *GetLinkedBackendsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // GetLinkedBackends ...
 func (c StaticSitesClient) GetLinkedBackends(ctx context.Context, id StaticSiteId) (result GetLinkedBackendsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c StaticSitesClient) GetLinkedBackends(ctx context.Context, id StaticSiteI
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &GetLinkedBackendsCustomPager{},
 		Path:       fmt.Sprintf("%s/linkedBackends", id.ID()),
 	}
 

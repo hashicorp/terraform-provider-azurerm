@@ -10,6 +10,6 @@ type VirtualMachineInstanceProperties struct {
 	NetworkProfile        *NetworkProfile            `json:"networkProfile,omitempty"`
 	OsProfile             *OsProfileForVMInstance    `json:"osProfile,omitempty"`
 	PowerState            *string                    `json:"powerState,omitempty"`
-	ProvisioningState     *ResourceProvisioningState `json:"provisioningState,omitempty"`
+	ProvisioningState     *ProvisioningState         `json:"provisioningState,omitempty"`
 	StorageProfile        *StorageProfile            `json:"storageProfile,omitempty"`
 }

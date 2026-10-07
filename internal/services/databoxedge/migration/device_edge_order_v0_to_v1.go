@@ -1,10 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 
@@ -235,7 +236,7 @@ func (DataBoxEdgeOrderV0ToV1) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (DataBoxEdgeOrderV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		oldIdRaw := rawState["id"].(string)
 		oldId, err := parseLegacyResourceID(oldIdRaw)
 		if err != nil {
@@ -266,11 +267,11 @@ func parseLegacyResourceID(input string) (*legacyResourceId, error) {
 	}
 
 	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+		return nil, errors.New("ID was missing the 'subscriptions' element")
 	}
 
 	if resourceId.ResourceGroupName == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+		return nil, errors.New("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.DataBoxEdgeDeviceName, err = id.PopSegment("dataBoxEdgeDevices"); err != nil {

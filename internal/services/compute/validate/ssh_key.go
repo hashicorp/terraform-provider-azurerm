@@ -1,9 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
 
 import (
+	"crypto/ed25519"
 	"crypto/rsa"
 	"encoding/base64"
 	"fmt"
@@ -14,7 +15,8 @@ import (
 
 // SSHKey performs some basic validation on supplied SSH Keys - Encoded Signature and Key Size are evaluated
 // Will require rework if/when other Key Types are supported
-func SSHKey(i interface{}, k string) (warnings []string, errors []error) {
+// lintignore:V012 // false positive - this validates a string SSH key, not an int; the int comparison here checks the RSA key size
+func SSHKey(i any, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
@@ -35,9 +37,8 @@ func SSHKey(i interface{}, k string) (warnings []string, errors []error) {
 			return nil, []error{fmt.Errorf("parsing %q as a public key object", k)}
 		}
 
-		if pubKey.Type() != ssh.KeyAlgoRSA {
-			return nil, []error{fmt.Errorf("- the provided %s SSH key is not supported. Only RSA SSH keys are supported by Azure", pubKey.Type())}
-		} else {
+		switch pubKey.Type() {
+		case ssh.KeyAlgoRSA:
 			rsaPubKey, ok := pubKey.(ssh.CryptoPublicKey).CryptoPublicKey().(*rsa.PublicKey)
 			if !ok {
 				return nil, []error{fmt.Errorf("- could not retrieve the RSA public key from the SSH public key")}
@@ -46,6 +47,13 @@ func SSHKey(i interface{}, k string) (warnings []string, errors []error) {
 			if rsaPubKeyBits < 2048 {
 				return nil, []error{fmt.Errorf("- the provided RSA SSH key has %d bits. Only ssh-rsa keys with 2048 bits or higher are supported by Azure", rsaPubKeyBits)}
 			}
+		case ssh.KeyAlgoED25519:
+			_, ok := pubKey.(ssh.CryptoPublicKey).CryptoPublicKey().(ed25519.PublicKey)
+			if !ok {
+				return nil, []error{fmt.Errorf("- could not retrieve the ED25519 public key from the SSH public key")}
+			}
+		default:
+			return nil, []error{fmt.Errorf("- the provided %s SSH key is not supported. Only RSA and ED25519 SSH keys are supported by Azure", pubKey.Type())}
 		}
 	} else {
 		return nil, []error{fmt.Errorf("%q is not a complete SSH2 Public Key", k)}

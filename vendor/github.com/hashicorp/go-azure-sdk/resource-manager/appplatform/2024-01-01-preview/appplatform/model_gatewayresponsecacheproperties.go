@@ -10,18 +10,39 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type GatewayResponseCacheProperties interface {
+	GatewayResponseCacheProperties() BaseGatewayResponseCachePropertiesImpl
 }
 
-// RawGatewayResponseCachePropertiesImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+var _ GatewayResponseCacheProperties = BaseGatewayResponseCachePropertiesImpl{}
+
+type BaseGatewayResponseCachePropertiesImpl struct {
+	ResponseCacheType string `json:"responseCacheType"`
+}
+
+func (s BaseGatewayResponseCachePropertiesImpl) GatewayResponseCacheProperties() BaseGatewayResponseCachePropertiesImpl {
+	return s
+}
+
+var _ GatewayResponseCacheProperties = RawGatewayResponseCachePropertiesImpl{}
+
+// RawGatewayResponseCachePropertiesImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawGatewayResponseCachePropertiesImpl struct {
-	Type   string
-	Values map[string]interface{}
+	gatewayResponseCacheProperties BaseGatewayResponseCachePropertiesImpl
+	Type                           string
+	Values                         map[string]interface{}
 }
 
-func unmarshalGatewayResponseCachePropertiesImplementation(input []byte) (GatewayResponseCacheProperties, error) {
+func (s RawGatewayResponseCachePropertiesImpl) GatewayResponseCacheProperties() BaseGatewayResponseCachePropertiesImpl {
+	return s.gatewayResponseCacheProperties
+}
+
+func (s RawGatewayResponseCachePropertiesImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
+}
+
+func UnmarshalGatewayResponseCachePropertiesImplementation(input []byte) (GatewayResponseCacheProperties, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +52,9 @@ func unmarshalGatewayResponseCachePropertiesImplementation(input []byte) (Gatewa
 		return nil, fmt.Errorf("unmarshaling GatewayResponseCacheProperties into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["responseCacheType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["responseCacheType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "LocalCachePerInstance") {
@@ -52,10 +73,15 @@ func unmarshalGatewayResponseCachePropertiesImplementation(input []byte) (Gatewa
 		return out, nil
 	}
 
-	out := RawGatewayResponseCachePropertiesImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseGatewayResponseCachePropertiesImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseGatewayResponseCachePropertiesImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawGatewayResponseCachePropertiesImpl{
+		gatewayResponseCacheProperties: parent,
+		Type:                           value,
+		Values:                         temp,
+	}, nil
 
 }

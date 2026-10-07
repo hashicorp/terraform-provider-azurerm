@@ -23,6 +23,18 @@ type ConfigurationsListCompleteResult struct {
 	Items              []DatadogSingleSignOnResource
 }
 
+type ConfigurationsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ConfigurationsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ConfigurationsList ...
 func (c SingleSignOnClient) ConfigurationsList(ctx context.Context, id MonitorId) (result ConfigurationsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c SingleSignOnClient) ConfigurationsList(ctx context.Context, id MonitorId
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ConfigurationsListCustomPager{},
 		Path:       fmt.Sprintf("%s/singleSignOnConfigurations", id.ID()),
 	}
 

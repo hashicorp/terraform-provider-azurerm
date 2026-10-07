@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package iotcentral
@@ -13,14 +13,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	dataplane "github.com/tombuildsstuff/kermit/sdk/iotcentral/2022-10-31-preview/iotcentral"
+	dataplane "github.com/jackofallops/kermit/sdk/iotcentral/2022-10-31-preview/iotcentral"
 )
 
 type IotCentralServicePrincipalUserResource struct{}
 
-var (
-	_ sdk.ResourceWithUpdate = IotCentralServicePrincipalUserResource{}
-)
+var _ sdk.ResourceWithUpdate = IotCentralServicePrincipalUserResource{}
 
 type IotCentralServicePrincipalUserModel struct {
 	IotCentralApplicationId string `tfschema:"iotcentral_application_id"`
@@ -197,7 +195,7 @@ func (r IotCentralServicePrincipalUserResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("unable to convert user to type ServicePrincipalUser")
 			}
 
-			var state = IotCentralServicePrincipalUserModel{
+			state := IotCentralServicePrincipalUserModel{
 				IotCentralApplicationId: appId.ID(),
 				UserId:                  id.Name,
 				Type:                    "ServicePrincipal",

@@ -24,6 +24,18 @@ type ListByClusterCompleteResult struct {
 	Items              []RuntimeScriptActionDetail
 }
 
+type ListByClusterCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByClusterCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByCluster ...
 func (c ScriptActionsClient) ListByCluster(ctx context.Context, id commonids.HDInsightClusterId) (result ListByClusterOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c ScriptActionsClient) ListByCluster(ctx context.Context, id commonids.HDI
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByClusterCustomPager{},
 		Path:       fmt.Sprintf("%s/scriptActions", id.ID()),
 	}
 

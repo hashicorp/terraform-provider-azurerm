@@ -23,6 +23,18 @@ type ListByEdgeZoneCompleteResult struct {
 	Items              []VirtualMachineImageResource
 }
 
+type ListByEdgeZoneCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByEdgeZoneCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByEdgeZone ...
 func (c VirtualMachineImagesClient) ListByEdgeZone(ctx context.Context, id EdgeZoneId) (result ListByEdgeZoneOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c VirtualMachineImagesClient) ListByEdgeZone(ctx context.Context, id EdgeZ
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByEdgeZoneCustomPager{},
 		Path:       fmt.Sprintf("%s/vmimages", id.ID()),
 	}
 

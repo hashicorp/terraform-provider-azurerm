@@ -47,7 +47,6 @@ func (c MaintenanceConfigurationsClient) ForResourceGroupList(ctx context.Contex
 
 	var model ListMaintenanceConfigurationsResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

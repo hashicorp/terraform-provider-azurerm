@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package iotcentral
@@ -13,14 +13,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	dataplane "github.com/tombuildsstuff/kermit/sdk/iotcentral/2022-10-31-preview/iotcentral"
+	dataplane "github.com/jackofallops/kermit/sdk/iotcentral/2022-10-31-preview/iotcentral"
 )
 
 type IotCentralUserResource struct{}
 
-var (
-	_ sdk.ResourceWithUpdate = IotCentralUserResource{}
-)
+var _ sdk.ResourceWithUpdate = IotCentralUserResource{}
 
 type IotCentralUserModel struct {
 	IotCentralApplicationId string `tfschema:"iotcentral_application_id"`
@@ -190,7 +188,7 @@ func (r IotCentralUserResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("unable to convert user to type EmailUser")
 			}
 
-			var state = IotCentralUserModel{
+			state := IotCentralUserModel{
 				IotCentralApplicationId: appId.ID(),
 				UserId:                  id.Name,
 				Type:                    "Email",

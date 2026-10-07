@@ -24,6 +24,18 @@ type ActivityLogAlertsListBySubscriptionIdCompleteResult struct {
 	Items              []ActivityLogAlertResource
 }
 
+type ActivityLogAlertsListBySubscriptionIdCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ActivityLogAlertsListBySubscriptionIdCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ActivityLogAlertsListBySubscriptionId ...
 func (c ActivityLogAlertsAPIsClient) ActivityLogAlertsListBySubscriptionId(ctx context.Context, id commonids.SubscriptionId) (result ActivityLogAlertsListBySubscriptionIdOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c ActivityLogAlertsAPIsClient) ActivityLogAlertsListBySubscriptionId(ctx c
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ActivityLogAlertsListBySubscriptionIdCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Insights/activityLogAlerts", id.ID()),
 	}
 

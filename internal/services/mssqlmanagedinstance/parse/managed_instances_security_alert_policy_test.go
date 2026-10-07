@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = ManagedInstancesSecurityAlertPolicyId{}
 
-func TestManagedInstancesSecurityAlertPolicyIDFormatter(t *testing.T) {
+func TestParseManagedInstancesSecurityAlertPolicyIDFormatter(t *testing.T) {
 	actual := NewManagedInstancesSecurityAlertPolicyID("12345678-1234-9876-4563-123456789012", "group1", "instance1", "Default").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Sql/managedInstances/instance1/securityAlertPolicies/Default"
 	if actual != expected {
@@ -21,13 +21,12 @@ func TestManagedInstancesSecurityAlertPolicyIDFormatter(t *testing.T) {
 	}
 }
 
-func TestManagedInstancesSecurityAlertPolicyID(t *testing.T) {
+func TestParseManagedInstancesSecurityAlertPolicyID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
 		Expected *ManagedInstancesSecurityAlertPolicyId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -1,20 +1,19 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"log"
 	"regexp"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protectionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2024-10-01/protectionpolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -24,20 +23,22 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name backup_policy_vm -properties "name,resource_group_name,vault_name:recovery_vault_name" -test-name policyTypeDefault
 
 func resourceBackupProtectionPolicyVM() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceBackupProtectionPolicyVMCreateUpdate,
+		Create: resourceBackupProtectionPolicyVMCreate,
 		Read:   resourceBackupProtectionPolicyVMRead,
-		Update: resourceBackupProtectionPolicyVMCreateUpdate,
+		Update: resourceBackupProtectionPolicyVMUpdate,
 		Delete: resourceBackupProtectionPolicyVMDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := protectionpolicies.ParseBackupPolicyID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&protectionpolicies.BackupPolicyId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&protectionpolicies.BackupPolicyId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -50,7 +51,7 @@ func resourceBackupProtectionPolicyVM() *pluginsdk.Resource {
 
 		// if daily, we need daily retention
 		// if weekly daily cannot be set, and we need weekly
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v any) error {
 			_, hasDaily := diff.GetOk("retention_daily")
 			_, hasWeekly := diff.GetOk("retention_weekly")
 
@@ -58,70 +59,72 @@ func resourceBackupProtectionPolicyVM() *pluginsdk.Resource {
 			switch frequency.(string) {
 			case string(protectionpolicies.ScheduleRunTypeHourly):
 				if !hasDaily {
-					return fmt.Errorf("`retention_daily` must be set when backup.0.frequency is hourly")
+					return errors.New("`retention_daily` must be set when backup.0.frequency is hourly")
 				}
 
 				if _, ok := diff.GetOk("backup.0.weekdays"); ok {
-					return fmt.Errorf("`backup.0.weekdays` should be not set when backup.0.frequency is hourly")
+					return errors.New("`backup.0.weekdays` should be not set when backup.0.frequency is hourly")
 				}
 			case string(protectionpolicies.ScheduleRunTypeDaily):
 				if !hasDaily {
-					return fmt.Errorf("`retention_daily` must be set when backup.0.frequency is daily")
+					return errors.New("`retention_daily` must be set when backup.0.frequency is daily")
 				}
 
 				if _, ok := diff.GetOk("backup.0.weekdays"); ok {
-					return fmt.Errorf("`backup.0.weekdays` should be not set when backup.0.frequency is daily")
+					return errors.New("`backup.0.weekdays` should be not set when backup.0.frequency is daily")
 				}
 
 				if _, ok := diff.GetOk("backup.0.hour_interval"); ok {
-					return fmt.Errorf("`backup.0.hour_interval` should be not set when backup.0.frequency is daily")
+					return errors.New("`backup.0.hour_interval` should be not set when backup.0.frequency is daily")
 				}
 
 				if _, ok := diff.GetOk("backup.0.hour_duration"); ok {
-					return fmt.Errorf("`backup.0.hour_duration` should be not set when backup.0.frequency is daily")
+					return errors.New("`backup.0.hour_duration` should be not set when backup.0.frequency is daily")
 				}
 			case string(protectionpolicies.ScheduleRunTypeWeekly):
 				if hasDaily {
-					return fmt.Errorf("`retention_daily` must be not set when backup.0.frequency is weekly")
+					return errors.New("`retention_daily` must be not set when backup.0.frequency is weekly")
 				}
 				if !hasWeekly {
-					return fmt.Errorf("`retention_weekly` must be set when backup.0.frequency is weekly")
+					return errors.New("`retention_weekly` must be set when backup.0.frequency is weekly")
 				}
 
 				if _, ok := diff.GetOk("backup.0.hour_interval"); ok {
-					return fmt.Errorf("`backup.0.hour_interval` should be not set when backup.0.frequency is weekly")
+					return errors.New("`backup.0.hour_interval` should be not set when backup.0.frequency is weekly")
 				}
 
 				if _, ok := diff.GetOk("backup.0.hour_duration"); ok {
-					return fmt.Errorf("`backup.0.hour_duration` should be not set when backup.0.frequency is weekly")
+					return errors.New("`backup.0.hour_duration` should be not set when backup.0.frequency is weekly")
 				}
 			default:
-				return fmt.Errorf("Unrecognized value for backup.0.frequency")
+				return errors.New("unrecognized value for backup.0.frequency")
 			}
+
+			consistencyType, hasConsistencyType := diff.GetOk("consistency_type")
+			if hasConsistencyType && consistencyType.(string) == string(protectionpolicies.IaasVMSnapshotConsistencyTypeOnlyCrashConsistent) {
+				if diff.Get("policy_type").(string) != string(protectionpolicies.IAASVMPolicyTypeVTwo) {
+					return errors.New("`policy_type` must be `V2` when `consistency_type` is `OnlyCrashConsistent`")
+				}
+			}
+
 			return nil
 		}),
 	}
 }
 
-func resourceBackupProtectionPolicyVMCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBackupProtectionPolicyVMCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).RecoveryServices.ProtectionPoliciesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := protectionpolicies.NewBackupPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("recovery_vault_name").(string), d.Get("name").(string))
 
-	log.Printf("[DEBUG] Creating/updating %s", id)
-
 	// getting this ready now because its shared between *everything*, time is... complicated for this resource
-	timeOfDay := d.Get("backup.0.time").(string)
-	dateOfDay, err := time.Parse(time.RFC3339, fmt.Sprintf("%sT%s:00Z", time.Now().Format("2006-01-02"), timeOfDay))
-	if err != nil {
-		return fmt.Errorf("generating time from %q for %s: %+v", timeOfDay, id, err)
-	}
-	times := append(make([]string, 0), date.Time{Time: dateOfDay}.String())
+	timeOfDay := fmt.Sprintf("%s:00Z", d.Get("backup.0.time").(string))
+	times := append(make([]string, 0), timeOfDay)
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -135,8 +138,8 @@ func resourceBackupProtectionPolicyVMCreateUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	// Less than 7 daily backups is no longer supported for create/update
-	if (d.IsNewResource() || d.HasChange("retention_daily.0.count")) && (d.Get("retention_daily.0.count").(int) > 1 && d.Get("retention_daily.0.count").(int) < 7) {
-		return fmt.Errorf("The Azure API has recently changed behaviour so that provisioning a `count` for the `retention_daily` field can no longer be less than 7 days for new/updates to existing Backup Policies. Please ensure that `count` is greater than 7, currently %d", d.Get("retention_daily.0.count").(int))
+	if d.Get("retention_daily.0.count").(int) > 1 && d.Get("retention_daily.0.count").(int) < 7 {
+		return fmt.Errorf("the Azure API has recently changed behaviour so that provisioning a `count` for the `retention_daily` field can no longer be less than 7 days for new/updates to existing Backup Policies. Please ensure that `count` is greater than 7, currently %d", d.Get("retention_daily.0.count").(int))
 	}
 
 	schedulePolicy, err := expandBackupProtectionPolicyVMSchedule(d, times)
@@ -146,10 +149,12 @@ func resourceBackupProtectionPolicyVMCreateUpdate(d *pluginsdk.ResourceData, met
 
 	policyType := protectionpolicies.IAASVMPolicyType(d.Get("policy_type").(string))
 	vmProtectionPolicyProperties := &protectionpolicies.AzureIaaSVMProtectionPolicy{
-		TimeZone:         utils.String(d.Get("timezone").(string)),
-		PolicyType:       pointer.To(policyType),
-		SchedulePolicy:   schedulePolicy,
-		InstantRPDetails: expandBackupProtectionPolicyVMResourceGroup(d),
+		TimeZone:                pointer.To(d.Get("timezone").(string)),
+		SnapshotConsistencyType: pointer.ToEnum[protectionpolicies.IaasVMSnapshotConsistencyType](d.Get("consistency_type").(string)),
+		PolicyType:              pointer.To(policyType),
+		SchedulePolicy:          schedulePolicy,
+		TieringPolicy:           expandBackupProtectionPolicyVMTieringPolicy(d.Get("tiering_policy").([]any)),
+		InstantRPDetails:        expandBackupProtectionPolicyVMResourceGroup(d),
 		RetentionPolicy: &protectionpolicies.LongTermRetentionPolicy{ // SimpleRetentionPolicy only has duration property ¯\_(ツ)_/¯
 			DailySchedule:   expandBackupProtectionPolicyVMRetentionDaily(d, times),
 			WeeklySchedule:  expandBackupProtectionPolicyVMRetentionWeekly(d, times),
@@ -171,8 +176,8 @@ func resourceBackupProtectionPolicyVMCreateUpdate(d *pluginsdk.ResourceData, met
 		Properties: vmProtectionPolicyProperties,
 	}
 
-	if _, err = client.CreateOrUpdate(ctx, id, policy); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if _, err = client.CreateOrUpdate(ctx, id, policy, protectionpolicies.DefaultCreateOrUpdateOperationOptions()); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = resourceBackupProtectionPolicyVMWaitForUpdate(ctx, client, id, d); err != nil {
@@ -181,10 +186,14 @@ func resourceBackupProtectionPolicyVMCreateUpdate(d *pluginsdk.ResourceData, met
 
 	d.SetId(id.ID())
 
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceBackupProtectionPolicyVMRead(d, meta)
 }
 
-func resourceBackupProtectionPolicyVMRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBackupProtectionPolicyVMRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).RecoveryServices.ProtectionPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -193,8 +202,6 @@ func resourceBackupProtectionPolicyVMRead(d *pluginsdk.ResourceData, meta interf
 	if err != nil {
 		return err
 	}
-
-	log.Printf("[DEBUG] Reading %s", id)
 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
@@ -206,14 +213,19 @@ func resourceBackupProtectionPolicyVMRead(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("making Read request on %s: %+v", id, err)
 	}
 
+	return resourceBackupProtectionPolicyVMFlatten(d, id, resp.Model)
+}
+
+func resourceBackupProtectionPolicyVMFlatten(d *pluginsdk.ResourceData, id *protectionpolicies.BackupPolicyId, model *protectionpolicies.ProtectionPolicyResource) error {
 	d.Set("name", id.BackupPolicyName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("recovery_vault_name", id.VaultName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if properties, ok := model.Properties.(protectionpolicies.AzureIaaSVMProtectionPolicy); ok {
 			d.Set("timezone", properties.TimeZone)
 			d.Set("instant_restore_retention_days", properties.InstantRpRetentionRangeInDays)
+			d.Set("tiering_policy", flattenBackupProtectionPolicyVMTieringPolicy(properties.TieringPolicy))
 
 			if schedule, ok := properties.SchedulePolicy.(protectionpolicies.SimpleSchedulePolicy); ok {
 				if err := d.Set("backup", flattenBackupProtectionPolicyVMSchedule(schedule)); err != nil {
@@ -229,9 +241,11 @@ func resourceBackupProtectionPolicyVMRead(d *pluginsdk.ResourceData, meta interf
 
 			policyType := string(protectionpolicies.IAASVMPolicyTypeVOne)
 			if pointer.From(properties.PolicyType) != "" {
-				policyType = string(pointer.From(properties.PolicyType))
+				policyType = pointer.FromEnum(properties.PolicyType)
 			}
 			d.Set("policy_type", policyType)
+
+			d.Set("consistency_type", pointer.FromEnum(properties.SnapshotConsistencyType))
 
 			if retention, ok := properties.RetentionPolicy.(protectionpolicies.LongTermRetentionPolicy); ok {
 				if s := retention.DailySchedule; s != nil {
@@ -273,10 +287,151 @@ func resourceBackupProtectionPolicyVMRead(d *pluginsdk.ResourceData, meta interf
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceBackupProtectionPolicyVMDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBackupProtectionPolicyVMUpdate(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).RecoveryServices.ProtectionPoliciesClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := protectionpolicies.ParseBackupPolicyID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	// getting this ready now because its shared between *everything*, time is... complicated for this resource
+	timeOfDay := fmt.Sprintf("%s:00Z", d.Get("backup.0.time").(string))
+	times := append(make([]string, 0), timeOfDay)
+
+	// Less than 7 daily backups is no longer supported for create/update
+	if d.HasChange("retention_daily.0.count") && (d.Get("retention_daily.0.count").(int) > 1 && d.Get("retention_daily.0.count").(int) < 7) {
+		return fmt.Errorf("the Azure API has recently changed behaviour so that provisioning a `count` for the `retention_daily` field can no longer be less than 7 days for new/updates to existing Backup Policies. Please ensure that `count` is greater than 7, currently %d", d.Get("retention_daily.0.count").(int))
+	}
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return err
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+
+	if _, ok := existing.Model.Properties.(protectionpolicies.AzureIaaSVMProtectionPolicy); !ok {
+		return fmt.Errorf("retrieving %s: `properties` was not a AzureIaaSVMProtectionPolicy", id)
+	}
+
+	model := *existing.Model
+	properties := existing.Model.Properties.(protectionpolicies.AzureIaaSVMProtectionPolicy)
+
+	properties.InstantRpRetentionRangeInDays = nil
+	if d.HasChange("instant_restore_retention_days") {
+		days := d.Get("instant_restore_retention_days").(int)
+		if properties.PolicyType != nil && protectionpolicies.IAASVMPolicyTypeVOne == *properties.PolicyType && days > 5 {
+			return fmt.Errorf("`instant_restore_retention_days` must be less than or equal to `5` when `policy_type` is `V1`")
+		}
+
+		properties.InstantRpRetentionRangeInDays = pointer.To(int64(days))
+	}
+
+	if d.HasChange("consistency_type") {
+		properties.SnapshotConsistencyType = pointer.ToEnum[protectionpolicies.IaasVMSnapshotConsistencyType](d.Get("consistency_type").(string))
+	}
+
+	if d.HasChange("tiering_policy") {
+		properties.TieringPolicy = expandBackupProtectionPolicyVMTieringPolicy(d.Get("tiering_policy").([]any))
+	}
+
+	if d.HasChange("timezone") {
+		properties.TimeZone = pointer.To(d.Get("timezone").(string))
+	}
+
+	if d.HasChange("instant_restore_resource_group") {
+		properties.InstantRPDetails = expandBackupProtectionPolicyVMResourceGroup(d)
+	}
+
+	// If anything changes inside any of the `retention_*` fields, update the `schedulePolicy` object as the API requires all timestamps match
+	// lintignore:R019 // deliberate subset: only the fields feeding schedulePolicy; the remaining attributes are applied in separate branches
+	if d.HasChanges("backup", "retention_daily", "retention_weekly", "retention_monthly", "retention_yearly") {
+		schedulePolicy, err := expandBackupProtectionPolicyVMSchedule(d, times)
+		if err != nil {
+			return err
+		}
+		properties.SchedulePolicy = schedulePolicy
+	}
+
+	if d.HasChanges("retention_daily", "backup.0.time") {
+		if properties.RetentionPolicy == nil {
+			properties.RetentionPolicy = &protectionpolicies.LongTermRetentionPolicy{}
+		}
+		retentionPolicy, ok := properties.RetentionPolicy.(protectionpolicies.LongTermRetentionPolicy)
+		if !ok {
+			properties.RetentionPolicy = &protectionpolicies.LongTermRetentionPolicy{}
+		}
+
+		retentionPolicy.DailySchedule = expandBackupProtectionPolicyVMRetentionDaily(d, times)
+		properties.RetentionPolicy = retentionPolicy
+	}
+
+	if d.HasChanges("retention_weekly", "backup.0.time") {
+		if properties.RetentionPolicy == nil {
+			properties.RetentionPolicy = &protectionpolicies.LongTermRetentionPolicy{}
+		}
+		retentionPolicy, ok := properties.RetentionPolicy.(protectionpolicies.LongTermRetentionPolicy)
+		if !ok {
+			properties.RetentionPolicy = &protectionpolicies.LongTermRetentionPolicy{}
+		}
+
+		retentionPolicy.WeeklySchedule = expandBackupProtectionPolicyVMRetentionWeekly(d, times)
+		properties.RetentionPolicy = retentionPolicy
+	}
+
+	if d.HasChanges("retention_monthly", "backup.0.time") {
+		if properties.RetentionPolicy == nil {
+			properties.RetentionPolicy = &protectionpolicies.LongTermRetentionPolicy{}
+		}
+		retentionPolicy, ok := properties.RetentionPolicy.(protectionpolicies.LongTermRetentionPolicy)
+		if !ok {
+			properties.RetentionPolicy = &protectionpolicies.LongTermRetentionPolicy{}
+		}
+
+		retentionPolicy.MonthlySchedule = expandBackupProtectionPolicyVMRetentionMonthly(d, times)
+		properties.RetentionPolicy = retentionPolicy
+	}
+
+	if d.HasChanges("retention_yearly", "backup.0.time") {
+		if properties.RetentionPolicy == nil {
+			properties.RetentionPolicy = &protectionpolicies.LongTermRetentionPolicy{}
+		}
+		retentionPolicy, ok := properties.RetentionPolicy.(protectionpolicies.LongTermRetentionPolicy)
+		if !ok {
+			properties.RetentionPolicy = &protectionpolicies.LongTermRetentionPolicy{}
+		}
+
+		retentionPolicy.YearlySchedule = expandBackupProtectionPolicyVMRetentionYearly(d, times)
+		properties.RetentionPolicy = retentionPolicy
+	}
+
+	model.Properties = properties
+	if _, err = client.CreateOrUpdate(ctx, *id, model, protectionpolicies.DefaultCreateOrUpdateOperationOptions()); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	if err = resourceBackupProtectionPolicyVMWaitForUpdate(ctx, client, *id, d); err != nil {
+		return err
+	}
+
+	d.SetId(id.ID())
+
+	return resourceBackupProtectionPolicyVMRead(d, meta)
+}
+
+func resourceBackupProtectionPolicyVMDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).RecoveryServices.ProtectionPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -285,8 +440,6 @@ func resourceBackupProtectionPolicyVMDelete(d *pluginsdk.ResourceData, meta inte
 	if err != nil {
 		return err
 	}
-
-	log.Printf("[DEBUG] Deleting %s", id)
 
 	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
@@ -300,8 +453,8 @@ func resourceBackupProtectionPolicyVMDelete(d *pluginsdk.ResourceData, meta inte
 }
 
 func expandBackupProtectionPolicyVMSchedule(d *pluginsdk.ResourceData, times []string) (protectionpolicies.SchedulePolicy, error) {
-	if bb, ok := d.Get("backup").([]interface{}); ok && len(bb) > 0 {
-		block := bb[0].(map[string]interface{})
+	if bb, ok := d.Get("backup").([]any); ok && len(bb) > 0 {
+		block := bb[0].(map[string]any)
 
 		policyType := d.Get("policy_type").(string)
 		if policyType == string(protectionpolicies.IAASVMPolicyTypeVOne) {
@@ -310,7 +463,7 @@ func expandBackupProtectionPolicyVMSchedule(d *pluginsdk.ResourceData, times []s
 			}
 
 			if v, ok := block["frequency"].(string); ok {
-				schedule.ScheduleRunFrequency = pointer.To(protectionpolicies.ScheduleRunType(v))
+				schedule.ScheduleRunFrequency = pointer.ToEnum[protectionpolicies.ScheduleRunType](v)
 			}
 
 			if v, ok := block["weekdays"].(*pluginsdk.Set); ok {
@@ -325,7 +478,7 @@ func expandBackupProtectionPolicyVMSchedule(d *pluginsdk.ResourceData, times []s
 		} else {
 			frequency := block["frequency"].(string)
 			schedule := protectionpolicies.SimpleSchedulePolicyV2{
-				ScheduleRunFrequency: pointer.To(protectionpolicies.ScheduleRunType(frequency)),
+				ScheduleRunFrequency: pointer.ToEnum[protectionpolicies.ScheduleRunType](frequency),
 			}
 
 			switch frequency {
@@ -379,7 +532,7 @@ func expandBackupProtectionPolicyVMSchedule(d *pluginsdk.ResourceData, times []s
 					ScheduleRunTimes: &times,
 				}
 			default:
-				return nil, fmt.Errorf("Unrecognized value for backup.0.frequency")
+				return nil, errors.New("unrecognized value for backup.0.frequency")
 			}
 
 			return schedule, nil
@@ -390,13 +543,13 @@ func expandBackupProtectionPolicyVMSchedule(d *pluginsdk.ResourceData, times []s
 }
 
 func expandBackupProtectionPolicyVMResourceGroup(d *pluginsdk.ResourceData) *protectionpolicies.InstantRPAdditionalDetails {
-	if v, ok := d.Get("instant_restore_resource_group").([]interface{}); ok && len(v) > 0 {
-		rgRaw := v[0].(map[string]interface{})
+	if v, ok := d.Get("instant_restore_resource_group").([]any); ok && len(v) > 0 {
+		rgRaw := v[0].(map[string]any)
 		output := &protectionpolicies.InstantRPAdditionalDetails{
-			AzureBackupRGNamePrefix: utils.String(rgRaw["prefix"].(string)),
+			AzureBackupRGNamePrefix: pointer.To(rgRaw["prefix"].(string)),
 		}
 		if suffix, ok := rgRaw["suffix"]; ok && suffix != "" {
-			output.AzureBackupRGNameSuffix = utils.String(suffix.(string))
+			output.AzureBackupRGNameSuffix = pointer.To(suffix.(string))
 		}
 		return output
 	}
@@ -405,8 +558,8 @@ func expandBackupProtectionPolicyVMResourceGroup(d *pluginsdk.ResourceData) *pro
 }
 
 func expandBackupProtectionPolicyVMRetentionDaily(d *pluginsdk.ResourceData, times []string) *protectionpolicies.DailyRetentionSchedule {
-	if rb, ok := d.Get("retention_daily").([]interface{}); ok && len(rb) > 0 {
-		block := rb[0].(map[string]interface{})
+	if rb, ok := d.Get("retention_daily").([]any); ok && len(rb) > 0 {
+		block := rb[0].(map[string]any)
 
 		return &protectionpolicies.DailyRetentionSchedule{
 			RetentionTimes: &times,
@@ -421,8 +574,8 @@ func expandBackupProtectionPolicyVMRetentionDaily(d *pluginsdk.ResourceData, tim
 }
 
 func expandBackupProtectionPolicyVMRetentionWeekly(d *pluginsdk.ResourceData, times []string) *protectionpolicies.WeeklyRetentionSchedule {
-	if rb, ok := d.Get("retention_weekly").([]interface{}); ok && len(rb) > 0 {
-		block := rb[0].(map[string]interface{})
+	if rb, ok := d.Get("retention_weekly").([]any); ok && len(rb) > 0 {
+		block := rb[0].(map[string]any)
 
 		retention := protectionpolicies.WeeklyRetentionSchedule{
 			RetentionTimes: &times,
@@ -447,8 +600,8 @@ func expandBackupProtectionPolicyVMRetentionWeekly(d *pluginsdk.ResourceData, ti
 }
 
 func expandBackupProtectionPolicyVMRetentionMonthly(d *pluginsdk.ResourceData, times []string) *protectionpolicies.MonthlyRetentionSchedule {
-	if rb, ok := d.Get("retention_monthly").([]interface{}); ok && len(rb) > 0 {
-		block := rb[0].(map[string]interface{})
+	if rb, ok := d.Get("retention_monthly").([]any); ok && len(rb) > 0 {
+		block := rb[0].(map[string]any)
 
 		scheduleFormat := protectionpolicies.RetentionScheduleFormatWeekly
 		var weekly *protectionpolicies.WeeklyRetentionFormat = nil
@@ -478,8 +631,8 @@ func expandBackupProtectionPolicyVMRetentionMonthly(d *pluginsdk.ResourceData, t
 }
 
 func expandBackupProtectionPolicyVMRetentionYearly(d *pluginsdk.ResourceData, times []string) *protectionpolicies.YearlyRetentionSchedule {
-	if rb, ok := d.Get("retention_yearly").([]interface{}); ok && len(rb) > 0 {
-		block := rb[0].(map[string]interface{})
+	if rb, ok := d.Get("retention_yearly").([]any); ok && len(rb) > 0 {
+		block := rb[0].(map[string]any)
 
 		scheduleFormat := protectionpolicies.RetentionScheduleFormatWeekly
 		var weekly *protectionpolicies.WeeklyRetentionFormat = nil
@@ -516,7 +669,7 @@ func expandBackupProtectionPolicyVMRetentionYearly(d *pluginsdk.ResourceData, ti
 	return nil
 }
 
-func expandBackupProtectionPolicyVMRetentionWeeklyFormat(block map[string]interface{}) *protectionpolicies.WeeklyRetentionFormat {
+func expandBackupProtectionPolicyVMRetentionWeeklyFormat(block map[string]any) *protectionpolicies.WeeklyRetentionFormat {
 	weekly := protectionpolicies.WeeklyRetentionFormat{}
 
 	if v, ok := block["weekdays"].(*pluginsdk.Set); ok {
@@ -538,7 +691,7 @@ func expandBackupProtectionPolicyVMRetentionWeeklyFormat(block map[string]interf
 	return &weekly
 }
 
-func expandBackupProtectionPolicyVMRetentionDailyFormat(block map[string]interface{}) *protectionpolicies.DailyRetentionFormat {
+func expandBackupProtectionPolicyVMRetentionDailyFormat(block map[string]any) *protectionpolicies.DailyRetentionFormat {
 	days := make([]protectionpolicies.Day, 0)
 
 	if block["include_last_days"].(bool) {
@@ -564,32 +717,65 @@ func expandBackupProtectionPolicyVMRetentionDailyFormat(block map[string]interfa
 	return &daily
 }
 
-func flattenBackupProtectionPolicyVMResourceGroup(rpDetail protectionpolicies.InstantRPAdditionalDetails) []interface{} {
-	if rpDetail.AzureBackupRGNamePrefix == nil {
-		return nil
+func expandBackupProtectionPolicyVMTieringPolicy(input []any) *map[string]protectionpolicies.TieringPolicy {
+	result := make(map[string]protectionpolicies.TieringPolicy)
+	if len(input) == 0 {
+		result["ArchivedRP"] = protectionpolicies.TieringPolicy{
+			TieringMode:  pointer.To(protectionpolicies.TieringModeDoNotTier),
+			DurationType: pointer.To(protectionpolicies.RetentionDurationTypeInvalid),
+			Duration:     pointer.To(int64(0)),
+		}
+
+		return &result
 	}
 
-	block := map[string]interface{}{}
+	tieringPolicy := input[0].(map[string]any)
+	archivedRP := tieringPolicy["archived_restore_point"].([]any)
+	result["ArchivedRP"] = expandBackupProtectionPolicyVMArchivedRP(archivedRP)
 
-	prefix := ""
-	if rpDetail.AzureBackupRGNamePrefix != nil {
-		prefix = *rpDetail.AzureBackupRGNamePrefix
-	}
-	block["prefix"] = prefix
-
-	suffix := ""
-	if rpDetail.AzureBackupRGNameSuffix != nil {
-		suffix = *rpDetail.AzureBackupRGNameSuffix
-	}
-	block["suffix"] = suffix
-
-	return []interface{}{block}
+	return &result
 }
 
-func flattenBackupProtectionPolicyVMSchedule(schedule protectionpolicies.SimpleSchedulePolicy) []interface{} {
-	block := map[string]interface{}{}
+func expandBackupProtectionPolicyVMArchivedRP(input []any) protectionpolicies.TieringPolicy {
+	if len(input) == 0 {
+		return protectionpolicies.TieringPolicy{}
+	}
 
-	block["frequency"] = string(pointer.From(schedule.ScheduleRunFrequency))
+	archivedRP := input[0].(map[string]any)
+
+	result := protectionpolicies.TieringPolicy{
+		TieringMode: pointer.ToEnum[protectionpolicies.TieringMode](archivedRP["mode"].(string)),
+	}
+
+	if v := archivedRP["duration_type"].(string); v != "" {
+		result.DurationType = pointer.ToEnum[protectionpolicies.RetentionDurationType](v)
+	}
+
+	if v := archivedRP["duration"].(int); v != 0 {
+		result.Duration = pointer.To(int64(v))
+	}
+
+	return result
+}
+
+func flattenBackupProtectionPolicyVMResourceGroup(rpDetail protectionpolicies.InstantRPAdditionalDetails) []any {
+	if rpDetail.AzureBackupRGNamePrefix == nil {
+		return []any{}
+	}
+
+	block := map[string]any{}
+
+	block["prefix"] = pointer.From(rpDetail.AzureBackupRGNamePrefix)
+
+	block["suffix"] = pointer.From(rpDetail.AzureBackupRGNameSuffix)
+
+	return []any{block}
+}
+
+func flattenBackupProtectionPolicyVMSchedule(schedule protectionpolicies.SimpleSchedulePolicy) []any {
+	block := map[string]any{}
+
+	block["frequency"] = pointer.FromEnum(schedule.ScheduleRunFrequency)
 
 	if times := schedule.ScheduleRunTimes; times != nil && len(*times) > 0 {
 		policyTime, _ := time.Parse(time.RFC3339, (*times)[0])
@@ -597,18 +783,18 @@ func flattenBackupProtectionPolicyVMSchedule(schedule protectionpolicies.SimpleS
 	}
 
 	if days := schedule.ScheduleRunDays; days != nil {
-		weekdays := make([]interface{}, 0)
+		weekdays := make([]any, 0)
 		for _, d := range *days {
 			weekdays = append(weekdays, string(d))
 		}
 		block["weekdays"] = pluginsdk.NewSet(pluginsdk.HashString, weekdays)
 	}
 
-	return []interface{}{block}
+	return []any{block}
 }
 
-func flattenBackupProtectionPolicyVMScheduleV2(schedule protectionpolicies.SimpleSchedulePolicyV2) []interface{} {
-	block := map[string]interface{}{}
+func flattenBackupProtectionPolicyVMScheduleV2(schedule protectionpolicies.SimpleSchedulePolicyV2) []any {
+	block := map[string]any{}
 
 	frequency := pointer.From(schedule.ScheduleRunFrequency)
 	block["frequency"] = string(frequency)
@@ -637,7 +823,7 @@ func flattenBackupProtectionPolicyVMScheduleV2(schedule protectionpolicies.Simpl
 	case protectionpolicies.ScheduleRunTypeWeekly:
 		schedule := schedule.WeeklySchedule
 		if days := schedule.ScheduleRunDays; days != nil {
-			weekdays := make([]interface{}, 0)
+			weekdays := make([]any, 0)
 			for _, d := range *days {
 				weekdays = append(weekdays, string(d))
 			}
@@ -651,11 +837,11 @@ func flattenBackupProtectionPolicyVMScheduleV2(schedule protectionpolicies.Simpl
 	default:
 	}
 
-	return []interface{}{block}
+	return []any{block}
 }
 
-func flattenBackupProtectionPolicyVMRetentionDaily(daily *protectionpolicies.DailyRetentionSchedule) []interface{} {
-	block := map[string]interface{}{}
+func flattenBackupProtectionPolicyVMRetentionDaily(daily *protectionpolicies.DailyRetentionSchedule) []any {
+	block := map[string]any{}
 
 	if duration := daily.RetentionDuration; duration != nil {
 		if v := duration.Count; v != nil {
@@ -663,11 +849,11 @@ func flattenBackupProtectionPolicyVMRetentionDaily(daily *protectionpolicies.Dai
 		}
 	}
 
-	return []interface{}{block}
+	return []any{block}
 }
 
-func flattenBackupProtectionPolicyVMRetentionWeekly(weekly *protectionpolicies.WeeklyRetentionSchedule) []interface{} {
-	block := map[string]interface{}{}
+func flattenBackupProtectionPolicyVMRetentionWeekly(weekly *protectionpolicies.WeeklyRetentionSchedule) []any {
+	block := map[string]any{}
 
 	if duration := weekly.RetentionDuration; duration != nil {
 		if v := duration.Count; v != nil {
@@ -676,18 +862,18 @@ func flattenBackupProtectionPolicyVMRetentionWeekly(weekly *protectionpolicies.W
 	}
 
 	if days := weekly.DaysOfTheWeek; days != nil {
-		weekdays := make([]interface{}, 0)
+		weekdays := make([]any, 0)
 		for _, d := range *days {
 			weekdays = append(weekdays, string(d))
 		}
 		block["weekdays"] = pluginsdk.NewSet(pluginsdk.HashString, weekdays)
 	}
 
-	return []interface{}{block}
+	return []any{block}
 }
 
-func flattenBackupProtectionPolicyVMRetentionMonthly(monthly *protectionpolicies.MonthlyRetentionSchedule) []interface{} {
-	block := map[string]interface{}{}
+func flattenBackupProtectionPolicyVMRetentionMonthly(monthly *protectionpolicies.MonthlyRetentionSchedule) []any {
+	block := map[string]any{}
 
 	if duration := monthly.RetentionDuration; duration != nil {
 		if v := duration.Count; v != nil {
@@ -703,11 +889,11 @@ func flattenBackupProtectionPolicyVMRetentionMonthly(monthly *protectionpolicies
 		block["days"], block["include_last_days"] = flattenBackupProtectionPolicyVMRetentionDailyFormat(daily)
 	}
 
-	return []interface{}{block}
+	return []any{block}
 }
 
-func flattenBackupProtectionPolicyVMRetentionYearly(yearly *protectionpolicies.YearlyRetentionSchedule) []interface{} {
-	block := map[string]interface{}{}
+func flattenBackupProtectionPolicyVMRetentionYearly(yearly *protectionpolicies.YearlyRetentionSchedule) []any {
+	block := map[string]any{}
 
 	if duration := yearly.RetentionDuration; duration != nil {
 		if v := duration.Count; v != nil {
@@ -720,7 +906,7 @@ func flattenBackupProtectionPolicyVMRetentionYearly(yearly *protectionpolicies.Y
 	}
 
 	if months := yearly.MonthsOfYear; months != nil {
-		slice := make([]interface{}, 0)
+		slice := make([]any, 0)
 		for _, d := range *months {
 			slice = append(slice, string(d))
 		}
@@ -731,12 +917,12 @@ func flattenBackupProtectionPolicyVMRetentionYearly(yearly *protectionpolicies.Y
 		block["days"], block["include_last_days"] = flattenBackupProtectionPolicyVMRetentionDailyFormat(daily)
 	}
 
-	return []interface{}{block}
+	return []any{block}
 }
 
 func flattenBackupProtectionPolicyVMRetentionWeeklyFormat(retention *protectionpolicies.WeeklyRetentionFormat) (weekdays, weeks *pluginsdk.Set) {
 	if days := retention.DaysOfTheWeek; days != nil {
-		slice := make([]interface{}, 0)
+		slice := make([]any, 0)
 		for _, d := range *days {
 			slice = append(slice, string(d))
 		}
@@ -744,7 +930,7 @@ func flattenBackupProtectionPolicyVMRetentionWeeklyFormat(retention *protectionp
 	}
 
 	if days := retention.WeeksOfTheMonth; days != nil {
-		slice := make([]interface{}, 0)
+		slice := make([]any, 0)
 		for _, d := range *days {
 			slice = append(slice, string(d))
 		}
@@ -754,7 +940,7 @@ func flattenBackupProtectionPolicyVMRetentionWeeklyFormat(retention *protectionp
 	return weekdays, weeks
 }
 
-func flattenBackupProtectionPolicyVMRetentionDailyFormat(retention *protectionpolicies.DailyRetentionFormat) (days []interface{}, includeLastDay bool) {
+func flattenBackupProtectionPolicyVMRetentionDailyFormat(retention *protectionpolicies.DailyRetentionFormat) (days []any, includeLastDay bool) {
 	if dotm := retention.DaysOfTheMonth; dotm != nil {
 		for _, d := range *dotm {
 			if d.Date != nil && *d.Date != 0 {
@@ -767,6 +953,46 @@ func flattenBackupProtectionPolicyVMRetentionDailyFormat(retention *protectionpo
 	}
 
 	return days, includeLastDay
+}
+
+func flattenBackupProtectionPolicyVMTieringPolicy(input *map[string]protectionpolicies.TieringPolicy) []any {
+	results := make([]any, 0)
+	if input == nil {
+		return results
+	}
+
+	for k, v := range *input {
+		if k == "ArchivedRP" {
+			if pointer.From(v.TieringMode) == protectionpolicies.TieringModeDoNotTier && pointer.From(v.DurationType) == protectionpolicies.RetentionDurationTypeInvalid && pointer.From(v.Duration) == 0 {
+				return results
+			}
+
+			results = append(results, map[string]any{
+				"archived_restore_point": flattenBackupProtectionPolicyVMArchivedRP(v),
+			})
+		}
+	}
+
+	return results
+}
+
+func flattenBackupProtectionPolicyVMArchivedRP(input protectionpolicies.TieringPolicy) []any {
+	results := make([]any, 0)
+
+	result := map[string]any{
+		"mode":     pointer.FromEnum(input.TieringMode),
+		"duration": int(pointer.From(input.Duration)),
+	}
+
+	durationType := ""
+	if v := input.DurationType; v != nil && pointer.From(v) != protectionpolicies.RetentionDurationTypeInvalid {
+		durationType = pointer.FromEnum(v)
+	}
+	result["duration_type"] = durationType
+
+	results = append(results, result)
+
+	return results
 }
 
 func resourceBackupProtectionPolicyVMWaitForUpdate(ctx context.Context, client *protectionpolicies.ProtectionPoliciesClient, id protectionpolicies.BackupPolicyId, d *pluginsdk.ResourceData) error {
@@ -784,8 +1010,7 @@ func resourceBackupProtectionPolicyVMWaitForUpdate(ctx context.Context, client *
 		state.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	_, err := state.WaitForStateContext(ctx)
-	if err != nil {
+	if _, err := state.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to provision: %+v", id, err)
 	}
 
@@ -802,8 +1027,7 @@ func resourceBackupProtectionPolicyVMWaitForDeletion(ctx context.Context, client
 		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
 	}
 
-	_, err := state.WaitForStateContext(ctx)
-	if err != nil {
+	if _, err := state.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to provision: %+v", id, err)
 	}
 
@@ -811,7 +1035,7 @@ func resourceBackupProtectionPolicyVMWaitForDeletion(ctx context.Context, client
 }
 
 func resourceBackupProtectionPolicyVMRefreshFunc(ctx context.Context, client *protectionpolicies.ProtectionPoliciesClient, id protectionpolicies.BackupPolicyId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		resp, err := client.Get(ctx, id)
 		if err != nil {
 			if response.WasNotFound(resp.HttpResponse) {
@@ -842,7 +1066,7 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 		"instant_restore_retention_days": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.IntBetween(1, 30),
 		},
 
@@ -851,6 +1075,51 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.RecoveryServicesVaultName,
+		},
+
+		// `tiering_policy` is defined as the map type in Swagger and currently the key only supports `ArchivedRP`. Service team confirmed that they would support other keys in the future.
+		"tiering_policy": {
+			Type:     pluginsdk.TypeList,
+			MaxItems: 1,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"archived_restore_point": {
+						Type:     pluginsdk.TypeList,
+						MaxItems: 1,
+						Required: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"mode": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(protectionpolicies.TieringModeTierAfter),
+										string(protectionpolicies.TieringModeTierRecommended),
+									}, false),
+								},
+
+								"duration": {
+									Type:         pluginsdk.TypeInt,
+									Optional:     true,
+									ValidateFunc: validation.IntAtLeast(3),
+								},
+
+								"duration_type": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(protectionpolicies.RetentionDurationTypeDays),
+										string(protectionpolicies.RetentionDurationTypeWeeks),
+										string(protectionpolicies.RetentionDurationTypeMonths),
+										string(protectionpolicies.RetentionDurationTypeYears),
+									}, false),
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 
 		"timezone": {
@@ -933,6 +1202,12 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
+		},
+
+		"consistency_type": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(protectionpolicies.PossibleValuesForIaasVMSnapshotConsistencyType(), false),
 		},
 
 		"policy_type": {

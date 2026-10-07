@@ -20,10 +20,15 @@ type DeploymentResourceProperties struct {
 var _ json.Unmarshaler = &DeploymentResourceProperties{}
 
 func (s *DeploymentResourceProperties) UnmarshalJSON(bytes []byte) error {
-	type alias DeploymentResourceProperties
-	var decoded alias
+	var decoded struct {
+		Active             *bool                                `json:"active,omitempty"`
+		DeploymentSettings *DeploymentSettings                  `json:"deploymentSettings,omitempty"`
+		Instances          *[]DeploymentInstance                `json:"instances,omitempty"`
+		ProvisioningState  *DeploymentResourceProvisioningState `json:"provisioningState,omitempty"`
+		Status             *DeploymentResourceStatus            `json:"status,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into DeploymentResourceProperties: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.Active = decoded.Active
@@ -38,11 +43,12 @@ func (s *DeploymentResourceProperties) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["source"]; ok {
-		impl, err := unmarshalUserSourceInfoImplementation(v)
+		impl, err := UnmarshalUserSourceInfoImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Source' for 'DeploymentResourceProperties': %+v", err)
 		}
 		s.Source = impl
 	}
+
 	return nil
 }

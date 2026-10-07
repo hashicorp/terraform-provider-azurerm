@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = BackendHttpSettingsCollectionId{}
 
-func TestBackendHttpSettingsCollectionIDFormatter(t *testing.T) {
+func TestParseBackendHttpSettingsCollectionIDFormatter(t *testing.T) {
 	actual := NewBackendHttpSettingsCollectionID("12345678-1234-9876-4563-123456789012", "group1", "applicationGateway1", "backendHttpSettingsCollection1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/backendHttpSettingsCollection/backendHttpSettingsCollection1"
 	if actual != expected {
@@ -21,13 +21,12 @@ func TestBackendHttpSettingsCollectionIDFormatter(t *testing.T) {
 	}
 }
 
-func TestBackendHttpSettingsCollectionID(t *testing.T) {
+func TestParseBackendHttpSettingsCollectionID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
 		Expected *BackendHttpSettingsCollectionId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -130,13 +129,12 @@ func TestBackendHttpSettingsCollectionID(t *testing.T) {
 	}
 }
 
-func TestBackendHttpSettingsCollectionIDInsensitively(t *testing.T) {
+func TestParseBackendHttpSettingsCollectionIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
 		Expected *BackendHttpSettingsCollectionId
 	}{
-
 		{
 			// empty
 			Input: "",

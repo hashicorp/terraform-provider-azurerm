@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = DataDiskId{}
 
-func TestDataDiskIDFormatter(t *testing.T) {
+func TestParseDataDiskIDFormatter(t *testing.T) {
 	actual := NewDataDiskID("12345678-1234-9876-4563-123456789012", "group1", "machine1", "disk1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Compute/virtualMachines/machine1/dataDisks/disk1"
 	if actual != expected {
@@ -21,13 +21,12 @@ func TestDataDiskIDFormatter(t *testing.T) {
 	}
 }
 
-func TestDataDiskID(t *testing.T) {
+func TestParseDataDiskID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
 		Expected *DataDiskId
 	}{
-
 		{
 			// empty
 			Input: "",

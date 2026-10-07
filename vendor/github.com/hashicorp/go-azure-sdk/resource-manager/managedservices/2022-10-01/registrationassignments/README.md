@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/managedservices/2022-10-01/registrationassignments` Documentation
 
-The `registrationassignments` SDK allows for interaction with the Azure Resource Manager Service `managedservices` (API Version `2022-10-01`).
+The `registrationassignments` SDK allows for interaction with Azure Resource Manager `managedservices` (API Version `2022-10-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := registrationassignments.NewScopedRegistrationAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "registrationAssignmentIdValue")
+id := registrationassignments.NewScopedRegistrationAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "registrationAssignmentId")
 
 payload := registrationassignments.RegistrationAssignment{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := registrationassignments.NewScopedRegistrationAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "registrationAssignmentIdValue")
+id := registrationassignments.NewScopedRegistrationAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "registrationAssignmentId")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := registrationassignments.NewScopedRegistrationAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "registrationAssignmentIdValue")
+id := registrationassignments.NewScopedRegistrationAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "registrationAssignmentId")
 
 read, err := client.Get(ctx, id, registrationassignments.DefaultGetOperationOptions())
 if err != nil {

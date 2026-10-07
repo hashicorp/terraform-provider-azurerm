@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appconfiguration
@@ -10,13 +10,14 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/appconfiguration/1.0/appconfiguration"
+	"github.com/jackofallops/kermit/sdk/appconfiguration/1.0/appconfiguration"
 )
 
 type KeysDataSource struct{}
@@ -24,15 +25,15 @@ type KeysDataSource struct{}
 var _ sdk.DataSource = KeysDataSource{}
 
 type KeyDataSourceModel struct {
-	Key               string                 `tfschema:"key"`
-	ContentType       string                 `tfschema:"content_type"`
-	Etag              string                 `tfschema:"etag"`
-	Label             string                 `tfschema:"label"`
-	Value             string                 `tfschema:"value"`
-	Locked            bool                   `tfschema:"locked"`
-	Tags              map[string]interface{} `tfschema:"tags"`
-	Type              string                 `tfschema:"type"`
-	VaultKeyReference string                 `tfschema:"vault_key_reference"`
+	Key               string         `tfschema:"key"`
+	ContentType       string         `tfschema:"content_type"`
+	Etag              string         `tfschema:"etag"`
+	Label             string         `tfschema:"label"`
+	Value             string         `tfschema:"value"`
+	Locked            bool           `tfschema:"locked"`
+	Tags              map[string]any `tfschema:"tags"`
+	Type              string         `tfschema:"type"`
+	VaultKeyReference string         `tfschema:"vault_key_reference"`
 }
 
 type KeysDataSourceModel struct {
@@ -101,14 +102,14 @@ func (k KeysDataSource) Attributes() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
-					"tags": tags.SchemaDataSource(),
+					"tags": commonschema.TagsDataSource(),
 				},
 			},
 		},
 	}
 }
 
-func (k KeysDataSource) ModelObject() interface{} {
+func (k KeysDataSource) ModelObject() any {
 	return &KeysDataSourceModel{}
 }
 
@@ -152,7 +153,7 @@ func (k KeysDataSource) Read() sdk.ResourceFunc {
 			iter, err := client.GetKeyValuesComplete(ctx, model.Key, model.Label, "", "", []appconfiguration.KeyValueFields{})
 			if err != nil {
 				if v, ok := err.(autorest.DetailedError); ok {
-					if utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
+					if response.WasNotFound(v.Response) {
 						return fmt.Errorf("key %s was not found", model.Key)
 					}
 				} else {
@@ -164,17 +165,16 @@ func (k KeysDataSource) Read() sdk.ResourceFunc {
 			for iter.NotDone() {
 				kv := iter.Value()
 				var krmodel KeyDataSourceModel
-				krmodel.Key = utils.NormalizeNilableString(kv.Key)
-				krmodel.Label = utils.NormalizeNilableString(kv.Label)
-				if contentType := utils.NormalizeNilableString(kv.ContentType); contentType != VaultKeyContentType {
+				krmodel.Key = pointer.From(kv.Key)
+				krmodel.Label = pointer.From(kv.Label)
+				if contentType := pointer.From(kv.ContentType); contentType != VaultKeyContentType {
 					krmodel.Type = KeyTypeKV
 					krmodel.ContentType = contentType
-					krmodel.Value = utils.NormalizeNilableString(kv.Value)
+					krmodel.Value = pointer.From(kv.Value)
 				} else {
 					var ref VaultKeyReference
-					refBytes := []byte(utils.NormalizeNilableString(kv.Value))
-					err := json.Unmarshal(refBytes, &ref)
-					if err != nil {
+					refBytes := []byte(pointer.From(kv.Value))
+					if err := json.Unmarshal(refBytes, &ref); err != nil {
 						return fmt.Errorf("while unmarshalling vault reference: %+v", err)
 					}
 
@@ -187,7 +187,7 @@ func (k KeysDataSource) Read() sdk.ResourceFunc {
 				if kv.Locked != nil {
 					krmodel.Locked = *kv.Locked
 				}
-				krmodel.Etag = utils.NormalizeNilableString(kv.Etag)
+				krmodel.Etag = pointer.From(kv.Etag)
 
 				model.Items = append(model.Items, krmodel)
 				if err := iter.NextWithContext(ctx); err != nil {

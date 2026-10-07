@@ -23,6 +23,18 @@ type ListVhdsCompleteResult struct {
 	Items              []LabVhd
 }
 
+type ListVhdsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListVhdsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListVhds ...
 func (c LabsClient) ListVhds(ctx context.Context, id LabId) (result ListVhdsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c LabsClient) ListVhds(ctx context.Context, id LabId) (result ListVhdsOper
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &ListVhdsCustomPager{},
 		Path:       fmt.Sprintf("%s/listVhds", id.ID()),
 	}
 

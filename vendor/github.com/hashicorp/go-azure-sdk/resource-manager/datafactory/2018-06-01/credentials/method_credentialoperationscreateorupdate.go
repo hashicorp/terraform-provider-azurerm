@@ -29,13 +29,14 @@ func DefaultCredentialOperationsCreateOrUpdateOperationOptions() CredentialOpera
 func (o CredentialOperationsCreateOrUpdateOperationOptions) ToHeaders() *client.Headers {
 	out := client.Headers{}
 	if o.IfMatch != nil {
-		out.Append("If-Match", fmt.Sprintf("%v", *o.IfMatch))
+		out.Append("if-match", fmt.Sprintf("%v", *o.IfMatch))
 	}
 	return &out
 }
 
 func (o CredentialOperationsCreateOrUpdateOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -53,8 +54,8 @@ func (c CredentialsClient) CredentialOperationsCreateOrUpdate(ctx context.Contex
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPut,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -78,7 +79,6 @@ func (c CredentialsClient) CredentialOperationsCreateOrUpdate(ctx context.Contex
 
 	var model CredentialResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

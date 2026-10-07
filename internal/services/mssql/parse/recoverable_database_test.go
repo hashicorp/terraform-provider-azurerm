@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = RecoverableDatabaseId{}
 
-func TestRecoverableDatabaseIDFormatter(t *testing.T) {
+func TestParseRecoverableDatabaseIDFormatter(t *testing.T) {
 	actual := NewRecoverableDatabaseID("12345678-1234-9876-4563-123456789012", "group1", "server1", "database1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Sql/servers/server1/recoverabledatabases/database1"
 	if actual != expected {
@@ -21,13 +21,12 @@ func TestRecoverableDatabaseIDFormatter(t *testing.T) {
 	}
 }
 
-func TestRecoverableDatabaseID(t *testing.T) {
+func TestParseRecoverableDatabaseID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
 		Expected *RecoverableDatabaseId
 	}{
-
 		{
 			// empty
 			Input: "",

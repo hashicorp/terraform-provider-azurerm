@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -11,12 +11,42 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+func SSHKeysSchemaVM() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeSet,
+		Optional: true,
+		ForceNew: true,
+		Set:      SSHKeySchemaHash,
+		ConflictsWith: []string{
+			"os_managed_disk_id",
+		},
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"public_key": {
+					Type:             pluginsdk.TypeString,
+					Required:         true,
+					ForceNew:         true,
+					ValidateFunc:     validate.SSHKey,
+					DiffSuppressFunc: suppress.SSHKey,
+				},
+
+				"username": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
 
 func SSHKeysSchema(isVirtualMachine bool) *pluginsdk.Schema {
 	// the SSH Keys for a Virtual Machine cannot be changed once provisioned:
@@ -48,11 +78,11 @@ func SSHKeysSchema(isVirtualMachine bool) *pluginsdk.Schema {
 	}
 }
 
-func expandSSHKeys(input []interface{}) []virtualmachines.SshPublicKey {
+func expandSSHKeys(input []any) []virtualmachines.SshPublicKey {
 	output := make([]virtualmachines.SshPublicKey, 0)
 
 	for _, v := range input {
-		raw := v.(map[string]interface{})
+		raw := v.(map[string]any)
 
 		username := raw["username"].(string)
 		output = append(output, virtualmachines.SshPublicKey{
@@ -64,11 +94,11 @@ func expandSSHKeys(input []interface{}) []virtualmachines.SshPublicKey {
 	return output
 }
 
-func expandSSHKeysVMSS(input []interface{}) []virtualmachinescalesets.SshPublicKey {
+func expandSSHKeysVMSS(input []any) []virtualmachinescalesets.SshPublicKey {
 	output := make([]virtualmachinescalesets.SshPublicKey, 0)
 
 	for _, v := range input {
-		raw := v.(map[string]interface{})
+		raw := v.(map[string]any)
 
 		username := raw["username"].(string)
 		output = append(output, virtualmachinescalesets.SshPublicKey{
@@ -80,12 +110,12 @@ func expandSSHKeysVMSS(input []interface{}) []virtualmachinescalesets.SshPublicK
 	return output
 }
 
-func flattenSSHKeys(input *virtualmachines.SshConfiguration) (*[]interface{}, error) {
+func flattenSSHKeys(input *virtualmachines.SshConfiguration) (*[]any, error) {
 	if input == nil || input.PublicKeys == nil {
-		return &[]interface{}{}, nil
+		return &[]any{}, nil
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 	for _, v := range *input.PublicKeys {
 		if v.KeyData == nil || v.Path == nil {
 			continue
@@ -96,7 +126,7 @@ func flattenSSHKeys(input *virtualmachines.SshConfiguration) (*[]interface{}, er
 			return nil, fmt.Errorf("parsing username from %q", *v.Path)
 		}
 
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"public_key": *v.KeyData,
 			"username":   *username,
 		})
@@ -105,12 +135,12 @@ func flattenSSHKeys(input *virtualmachines.SshConfiguration) (*[]interface{}, er
 	return &output, nil
 }
 
-func flattenSSHKeysVMSS(input *virtualmachinescalesets.SshConfiguration) (*[]interface{}, error) {
+func flattenSSHKeysVMSS(input *virtualmachinescalesets.SshConfiguration) (*[]any, error) {
 	if input == nil || input.PublicKeys == nil {
-		return &[]interface{}{}, nil
+		return &[]any{}, nil
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 	for _, v := range *input.PublicKeys {
 		if v.KeyData == nil || v.Path == nil {
 			continue
@@ -121,7 +151,7 @@ func flattenSSHKeysVMSS(input *virtualmachinescalesets.SshConfiguration) (*[]int
 			return nil, fmt.Errorf("parsing username from %q", *v.Path)
 		}
 
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"public_key": *v.KeyData,
 			"username":   *username,
 		})
@@ -152,24 +182,23 @@ func parseUsernameFromAuthorizedKeysPath(input string) *string {
 
 	for i, k := range keys {
 		if k == "username" {
-			value := values[i]
-			return &value
+			return pointer.To(values[i])
 		}
 	}
 
 	return nil
 }
 
-func SSHKeySchemaHash(v interface{}) int {
+func SSHKeySchemaHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
+	if m, ok := v.(map[string]any); ok {
 		normalisedKey, err := suppress.NormalizeSSHKey(m["public_key"].(string))
 		if err != nil {
 			log.Printf("[DEBUG] error normalising ssh key %q: %+v", m["public_key"].(string), err)
 		}
-		buf.WriteString(fmt.Sprintf("%s-", *normalisedKey))
-		buf.WriteString(fmt.Sprintf("%s", m["username"]))
+		fmt.Fprintf(&buf, "%s-", *normalisedKey)
+		fmt.Fprintf(&buf, "%s", m["username"])
 	}
 
 	return pluginsdk.HashString(buf.String())

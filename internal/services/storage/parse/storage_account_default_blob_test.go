@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = StorageAccountDefaultBlobId{}
 
-func TestStorageAccountDefaultBlobIDFormatter(t *testing.T) {
+func TestParseStorageAccountDefaultBlobIDFormatter(t *testing.T) {
 	actual := NewStorageAccountDefaultBlobID("12345678-1234-9876-4563-123456789012", "resGroup1", "storageAccount1", "default").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Storage/storageAccounts/storageAccount1/blobServices/default"
 	if actual != expected {
@@ -21,13 +21,12 @@ func TestStorageAccountDefaultBlobIDFormatter(t *testing.T) {
 	}
 }
 
-func TestStorageAccountDefaultBlobID(t *testing.T) {
+func TestParseStorageAccountDefaultBlobID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
 		Expected *StorageAccountDefaultBlobId
 	}{
-
 		{
 			// empty
 			Input: "",

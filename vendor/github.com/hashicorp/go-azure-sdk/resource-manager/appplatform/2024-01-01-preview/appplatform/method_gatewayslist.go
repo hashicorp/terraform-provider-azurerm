@@ -24,6 +24,18 @@ type GatewaysListCompleteResult struct {
 	Items              []GatewayResource
 }
 
+type GatewaysListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *GatewaysListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // GatewaysList ...
 func (c AppPlatformClient) GatewaysList(ctx context.Context, id commonids.SpringCloudServiceId) (result GatewaysListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c AppPlatformClient) GatewaysList(ctx context.Context, id commonids.Spring
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &GatewaysListCustomPager{},
 		Path:       fmt.Sprintf("%s/gateways", id.ID()),
 	}
 

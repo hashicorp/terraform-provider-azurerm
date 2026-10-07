@@ -15,7 +15,7 @@ type RegistrationAssignmentsClient struct {
 }
 
 func NewRegistrationAssignmentsClientWithBaseURI(sdkApi sdkEnv.Api) (*RegistrationAssignmentsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "registrationassignments", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "registrationassignments", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating RegistrationAssignmentsClient: %+v", err)
 	}

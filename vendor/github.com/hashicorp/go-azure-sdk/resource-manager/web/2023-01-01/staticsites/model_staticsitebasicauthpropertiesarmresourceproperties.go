@@ -8,5 +8,5 @@ type StaticSiteBasicAuthPropertiesARMResourceProperties struct {
 	Environments               *[]string `json:"environments,omitempty"`
 	Password                   *string   `json:"password,omitempty"`
 	SecretState                *string   `json:"secretState,omitempty"`
-	SecretUrl                  *string   `json:"secretUrl,omitempty"`
+	SecretURL                  *string   `json:"secretUrl,omitempty"`
 }

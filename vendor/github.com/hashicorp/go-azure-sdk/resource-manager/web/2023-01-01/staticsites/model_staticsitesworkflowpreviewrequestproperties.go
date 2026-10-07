@@ -6,5 +6,5 @@ package staticsites
 type StaticSitesWorkflowPreviewRequestProperties struct {
 	Branch          *string                    `json:"branch,omitempty"`
 	BuildProperties *StaticSiteBuildProperties `json:"buildProperties,omitempty"`
-	RepositoryUrl   *string                    `json:"repositoryUrl,omitempty"`
+	RepositoryURL   *string                    `json:"repositoryUrl,omitempty"`
 }

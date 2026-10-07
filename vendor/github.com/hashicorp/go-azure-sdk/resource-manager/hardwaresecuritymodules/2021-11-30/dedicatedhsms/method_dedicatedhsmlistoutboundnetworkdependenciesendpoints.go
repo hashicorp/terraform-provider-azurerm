@@ -23,6 +23,18 @@ type DedicatedHsmListOutboundNetworkDependenciesEndpointsCompleteResult struct {
 	Items              []OutboundEnvironmentEndpoint
 }
 
+type DedicatedHsmListOutboundNetworkDependenciesEndpointsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *DedicatedHsmListOutboundNetworkDependenciesEndpointsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // DedicatedHsmListOutboundNetworkDependenciesEndpoints ...
 func (c DedicatedHsmsClient) DedicatedHsmListOutboundNetworkDependenciesEndpoints(ctx context.Context, id DedicatedHSMId) (result DedicatedHsmListOutboundNetworkDependenciesEndpointsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c DedicatedHsmsClient) DedicatedHsmListOutboundNetworkDependenciesEndpoint
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &DedicatedHsmListOutboundNetworkDependenciesEndpointsCustomPager{},
 		Path:       fmt.Sprintf("%s/outboundNetworkDependenciesEndpoints", id.ID()),
 	}
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package communication
@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/communicationservices"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2026-03-18/communicationservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -31,6 +31,8 @@ type CommunicationServiceDataSourceModel struct {
 	SecondaryConnectionString string            `tfschema:"secondary_connection_string"`
 	SecondaryKey              string            `tfschema:"secondary_key"`
 	Tags                      map[string]string `tfschema:"tags"`
+	HostName                  string            `tfschema:"hostname"`
+	ImmutableResourceId       string            `tfschema:"immutable_resource_id"`
 }
 
 func (CommunicationServiceDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -53,30 +55,43 @@ func (CommunicationServiceDataSource) Attributes() map[string]*pluginsdk.Schema 
 		},
 
 		"primary_connection_string": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
 		},
 
 		"primary_key": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
 		},
 
 		"secondary_connection_string": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
 		},
 
 		"secondary_key": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
 		},
 
 		"tags": commonschema.TagsDataSource(),
+
+		"hostname": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"immutable_resource_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 	}
 }
 
-func (CommunicationServiceDataSource) ModelObject() interface{} {
+func (CommunicationServiceDataSource) ModelObject() any {
 	return &CommunicationServiceDataSourceModel{}
 }
 
@@ -110,6 +125,8 @@ func (CommunicationServiceDataSource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
 					state.DataLocation = props.DataLocation
+					state.HostName = pointer.From(props.HostName)
+					state.ImmutableResourceId = pointer.From(props.ImmutableResourceId)
 				}
 
 				state.Tags = pointer.From(model.Tags)

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datashare
@@ -90,7 +90,7 @@ func resourceDataShareDataSetDataLakeGen2() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataShareDataSetDataLakeGen2Create(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataShareDataSetDataLakeGen2Create(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -101,14 +101,16 @@ func resourceDataShareDataSetDataLakeGen2Create(d *pluginsdk.ResourceData, meta 
 	}
 	id := dataset.NewDataSetID(shareId.SubscriptionId, shareId.ResourceGroupName, shareId.AccountName, shareId.ShareName, d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_data_share_dataset_data_lake_gen2", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_data_share_dataset_data_lake_gen2", id.ID())
+		}
 	}
 
 	strId, err := commonids.ParseStorageAccountID(d.Get("storage_account_id").(string))
@@ -157,7 +159,7 @@ func resourceDataShareDataSetDataLakeGen2Create(d *pluginsdk.ResourceData, meta 
 	return resourceDataShareDataSetDataLakeGen2Read(d, meta)
 }
 
-func resourceDataShareDataSetDataLakeGen2Read(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataShareDataSetDataLakeGen2Read(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -182,20 +184,19 @@ func resourceDataShareDataSetDataLakeGen2Read(d *pluginsdk.ResourceData, meta in
 	d.Set("share_id", shareId.ID())
 
 	if model := resp.Model; model != nil {
-		m := *model
-		if ds, ok := m.(dataset.ADLSGen2FileDataSet); ok {
+		if ds, ok := model.(dataset.ADLSGen2FileDataSet); ok {
 			props := ds.Properties
 			d.Set("storage_account_id", commonids.NewStorageAccountID(props.SubscriptionId, props.ResourceGroup, props.StorageAccountName).ID())
 			d.Set("file_system_name", props.FileSystem)
 			d.Set("file_path", props.FilePath)
 			d.Set("display_name", props.DataSetId)
-		} else if ds, ok := m.(dataset.ADLSGen2FolderDataSet); ok {
+		} else if ds, ok := model.(dataset.ADLSGen2FolderDataSet); ok {
 			props := ds.Properties
 			d.Set("storage_account_id", commonids.NewStorageAccountID(props.SubscriptionId, props.ResourceGroup, props.StorageAccountName).ID())
 			d.Set("file_system_name", props.FileSystem)
 			d.Set("folder_path", props.FolderPath)
 			d.Set("display_name", props.DataSetId)
-		} else if ds, ok := m.(dataset.ADLSGen2FileSystemDataSet); ok {
+		} else if ds, ok := model.(dataset.ADLSGen2FileSystemDataSet); ok {
 			props := ds.Properties
 			d.Set("storage_account_id", commonids.NewStorageAccountID(props.SubscriptionId, props.ResourceGroup, props.StorageAccountName).ID())
 			d.Set("file_system_name", props.FileSystem)
@@ -207,7 +208,7 @@ func resourceDataShareDataSetDataLakeGen2Read(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func resourceDataShareDataSetDataLakeGen2Delete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataShareDataSetDataLakeGen2Delete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

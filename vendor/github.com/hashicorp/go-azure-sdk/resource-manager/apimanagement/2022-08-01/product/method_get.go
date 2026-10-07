@@ -45,7 +45,6 @@ func (c ProductClient) Get(ctx context.Context, id ProductId) (result GetOperati
 
 	var model ProductContract
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

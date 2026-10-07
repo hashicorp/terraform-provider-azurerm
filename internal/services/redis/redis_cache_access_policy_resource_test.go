@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package redis_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-08-01/redis"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/rediscacheaccesspolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type RedisCacheAccessPolicyResource struct{}
@@ -23,6 +23,35 @@ func TestAccRedisCacheAccessPolicy_basic(t *testing.T) {
 	r := RedisCacheAccessPolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccRedisCacheAccessPolicy_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache_access_policy", "test")
+	r := RedisCacheAccessPolicyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -66,17 +95,17 @@ func TestAccRedisCacheAccessPolicy_requiresImport(t *testing.T) {
 }
 
 func (t RedisCacheAccessPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := redis.ParseAccessPolicyID(state.ID)
+	id, err := rediscacheaccesspolicies.ParseAccessPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Redis.Redis.AccessPolicyGet(ctx, *id)
+	resp, err := clients.Redis.CacheAccessPoliciesClient.AccessPolicyGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (RedisCacheAccessPolicyResource) basic(data acceptance.TestData) string {
@@ -94,14 +123,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_redis_cache" "test" {
-  name                = "acctestRedis-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  capacity            = 1
-  family              = "C"
-  sku_name            = "Basic"
-  enable_non_ssl_port = true
-  minimum_tls_version = "1.2"
+  name                 = "acctestRedis-%d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  capacity             = 1
+  family               = "C"
+  sku_name             = "Basic"
+  non_ssl_port_enabled = true
+  minimum_tls_version  = "1.2"
 
   redis_configuration {
   }
@@ -111,6 +140,42 @@ resource "azurerm_redis_cache_access_policy" "test" {
   name           = "acctestRedisAccessPolicytest"
   redis_cache_id = azurerm_redis_cache.test.id
   permissions    = "+@read +@connection +cluster|info allkeys"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (RedisCacheAccessPolicyResource) basicUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "test" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_redis_cache" "test" {
+  name                 = "acctestRedis-%d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  capacity             = 1
+  family               = "C"
+  sku_name             = "Basic"
+  non_ssl_port_enabled = true
+  minimum_tls_version  = "1.2"
+
+  redis_configuration {
+  }
+}
+
+resource "azurerm_redis_cache_access_policy" "test" {
+  name           = "acctestRedisAccessPolicytest"
+  redis_cache_id = azurerm_redis_cache.test.id
+  permissions    = "+@read +@write +@connection +cluster|info allkeys"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

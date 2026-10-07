@@ -15,7 +15,7 @@ type PolicyClient struct {
 }
 
 func NewPolicyClientWithBaseURI(sdkApi sdkEnv.Api) (*PolicyClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "policy", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "policy", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating PolicyClient: %+v", err)
 	}

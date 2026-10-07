@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -7,19 +7,20 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
-	"strings"
+	"slices"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/applicationsecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networksecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/publicipprefixes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func OrchestratedVirtualMachineScaleSetOSProfileSchema() *pluginsdk.Schema {
@@ -69,8 +70,7 @@ func OrchestratedVirtualMachineScaleSetWindowsConfigurationSchema() *pluginsdk.S
 
 				"additional_unattend_content": additionalUnattendContentSchema(),
 
-				// TODO 4.0: change this from enable_* to *_enabled
-				"enable_automatic_updates": {
+				"automatic_updates_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  true,
@@ -90,24 +90,17 @@ func OrchestratedVirtualMachineScaleSetWindowsConfigurationSchema() *pluginsdk.S
 				},
 
 				"patch_assessment_mode": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(virtualmachinescalesets.WindowsPatchAssessmentModeImageDefault),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(virtualmachinescalesets.WindowsPatchAssessmentModeAutomaticByPlatform),
-						string(virtualmachinescalesets.WindowsPatchAssessmentModeImageDefault),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(virtualmachinescalesets.WindowsPatchAssessmentModeImageDefault),
+					ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForWindowsPatchAssessmentMode(), false),
 				},
 
 				"patch_mode": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(virtualmachinescalesets.WindowsVMGuestPatchModeAutomaticByOS),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(virtualmachinescalesets.WindowsVMGuestPatchModeAutomaticByOS),
-						string(virtualmachinescalesets.WindowsVMGuestPatchModeAutomaticByPlatform),
-						string(virtualmachinescalesets.WindowsVMGuestPatchModeManual),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(virtualmachinescalesets.WindowsVMGuestPatchModeAutomaticByOS),
+					ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForWindowsVMGuestPatchMode(), false),
 				},
 
 				"secret": windowsSecretSchema(),
@@ -164,23 +157,17 @@ func OrchestratedVirtualMachineScaleSetLinuxConfigurationSchema() *pluginsdk.Sch
 				},
 
 				"patch_assessment_mode": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(virtualmachinescalesets.LinuxPatchAssessmentModeImageDefault),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(virtualmachinescalesets.LinuxPatchAssessmentModeAutomaticByPlatform),
-						string(virtualmachinescalesets.LinuxPatchAssessmentModeImageDefault),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(virtualmachinescalesets.LinuxPatchAssessmentModeImageDefault),
+					ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForLinuxPatchAssessmentMode(), false),
 				},
 
 				"patch_mode": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(virtualmachinescalesets.LinuxVMGuestPatchModeImageDefault),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(virtualmachinescalesets.LinuxVMGuestPatchModeImageDefault),
-						string(virtualmachinescalesets.LinuxVMGuestPatchModeAutomaticByPlatform),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(virtualmachinescalesets.LinuxVMGuestPatchModeImageDefault),
+					ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForLinuxVMGuestPatchMode(), false),
 				},
 
 				"secret": linuxSecretSchema(),
@@ -193,7 +180,7 @@ func OrchestratedVirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Optional: true,
-		Computed: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
@@ -230,6 +217,7 @@ func OrchestratedVirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 				"failure_suppression_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
+					Default:  false,
 				},
 
 				"force_extension_execution_on_change": {
@@ -282,6 +270,28 @@ func OrchestratedVirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schem
 
 				"ip_configuration": orchestratedVirtualMachineScaleSetIPConfigurationSchema(),
 
+				"auxiliary_mode": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						// None is not exposed.
+						string(virtualmachinescalesets.NetworkInterfaceAuxiliaryModeAcceleratedConnections),
+						string(virtualmachinescalesets.NetworkInterfaceAuxiliaryModeFloating),
+					}, false),
+				},
+
+				"auxiliary_sku": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						// None is not exposed.
+						string(virtualmachinescalesets.NetworkInterfaceAuxiliarySkuAEight),
+						string(virtualmachinescalesets.NetworkInterfaceAuxiliarySkuAFour),
+						string(virtualmachinescalesets.NetworkInterfaceAuxiliarySkuAOne),
+						string(virtualmachinescalesets.NetworkInterfaceAuxiliarySkuATwo),
+					}, false),
+				},
+
 				"dns_servers": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
@@ -291,15 +301,13 @@ func OrchestratedVirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schem
 					},
 				},
 
-				// TODO 4.0: change this from enable_* to *_enabled
-				"enable_accelerated_networking": {
+				"accelerated_networking_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
 				},
 
-				// TODO 4.0: change this from enable_* to *_enabled
-				"enable_ip_forwarding": {
+				"ip_forwarding_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
@@ -308,7 +316,7 @@ func OrchestratedVirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schem
 				"network_security_group_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: networkValidate.NetworkSecurityGroupID,
+					ValidateFunc: networksecuritygroups.ValidateNetworkSecurityGroupID,
 				},
 
 				"primary": {
@@ -316,6 +324,8 @@ func OrchestratedVirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schem
 					Optional: true,
 					Default:  false,
 				},
+
+				"tags": commonschema.Tags(),
 			},
 		},
 	}
@@ -374,13 +384,10 @@ func orchestratedVirtualMachineScaleSetIPConfigurationSchema() *pluginsdk.Schema
 				},
 
 				"version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(virtualmachinescalesets.IPVersionIPvFour),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(virtualmachinescalesets.IPVersionIPvFour),
-						string(virtualmachinescalesets.IPVersionIPvSix),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(virtualmachinescalesets.IPVersionIPvFour),
+					ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForIPVersion(), false),
 				},
 			},
 		},
@@ -408,7 +415,7 @@ func orchestratedVirtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema
 				"idle_timeout_in_minutes": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.IntBetween(4, 32),
 				},
 				"ip_tag": {
@@ -439,7 +446,7 @@ func orchestratedVirtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ForceNew:     true,
-					ValidateFunc: networkValidate.PublicIpPrefixID,
+					ValidateFunc: publicipprefixes.ValidatePublicIPPrefixID,
 				},
 
 				"sku_name": {
@@ -450,14 +457,11 @@ func orchestratedVirtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema
 				},
 
 				"version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ForceNew: true,
-					Default:  string(virtualmachinescalesets.IPVersionIPvFour),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(virtualmachinescalesets.IPVersionIPvFour),
-						string(virtualmachinescalesets.IPVersionIPvSix),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					Default:      string(virtualmachinescalesets.IPVersionIPvFour),
+					ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForIPVersion(), false),
 				},
 			},
 		},
@@ -468,8 +472,7 @@ func computerPrefixWindowsSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeString,
 		Optional: true,
-
-		// Computed since we reuse the VM name if one's not specified
+		// Note: O+C since we reuse the VM name if one's not specified
 		Computed:     true,
 		ForceNew:     true,
 		ValidateFunc: validate.WindowsComputerNamePrefix,
@@ -480,8 +483,7 @@ func computerPrefixLinuxSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeString,
 		Optional: true,
-
-		// Computed since we reuse the VM name if one's not specified
+		// Note: O+C since we reuse the VM name if one's not specified
 		Computed:     true,
 		ForceNew:     true,
 		ValidateFunc: validate.LinuxComputerNamePrefix,
@@ -495,13 +497,9 @@ func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"caching": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(virtualmachinescalesets.CachingTypesNone),
-						string(virtualmachinescalesets.CachingTypesReadOnly),
-						string(virtualmachinescalesets.CachingTypesReadWrite),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForCachingTypes(), false),
 				},
 
 				"create_option": {
@@ -521,12 +519,13 @@ func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 					// presumably this'll take effect once key rotation is supported a few months post-GA?
 					// however for now let's make this ForceNew since it can't be (successfully) updated
 					ForceNew:     true,
-					ValidateFunc: validate.DiskEncryptionSetID,
+					ValidateFunc: validation.AsGeneratedID(commonids.ParseDiskEncryptionSetIDInsensitively),
 				},
 
 				"disk_size_gb": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					// Note: O+C because Azure computes disk size when not specified
 					Computed:     true,
 					ValidateFunc: validation.IntBetween(1, 32767),
 				},
@@ -534,22 +533,14 @@ func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 				"lun": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true,                           // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.IntBetween(0, 2000), // TODO: confirm upper bounds
 				},
 
 				"storage_account_type": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(virtualmachinescalesets.StorageAccountTypesPremiumLRS),
-						string(virtualmachinescalesets.StorageAccountTypesPremiumVTwoLRS),
-						string(virtualmachinescalesets.StorageAccountTypesPremiumZRS),
-						string(virtualmachinescalesets.StorageAccountTypesStandardLRS),
-						string(virtualmachinescalesets.StorageAccountTypesStandardSSDLRS),
-						string(virtualmachinescalesets.StorageAccountTypesStandardSSDZRS),
-						string(virtualmachinescalesets.StorageAccountTypesUltraSSDLRS),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForStorageAccountTypes(), false),
 				},
 
 				"write_accelerator_enabled": {
@@ -558,20 +549,20 @@ func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 					Default:  false,
 				},
 
-				// TODO rename `ultra_ssd_disk_iops_read_write` to `disk_iops_read_write` in 4.0
-				"ultra_ssd_disk_iops_read_write": {
+				"disk_iops_read_write": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntAtLeast(1),
-					Computed:     true,
+					// Note: O+C because Azure assigns IOPS based on disk size when not specified
+					Computed: true,
 				},
 
-				// TODO rename `ultra_ssd_disk_mbps_read_write` to `disk_mbps_read_write` in 4.0
-				"ultra_ssd_disk_mbps_read_write": {
+				"disk_mbps_read_write": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntAtLeast(1),
-					Computed:     true,
+					// Note: O+C because Azure assigns throughput based on disk size when not specified
+					Computed: true,
 				},
 			},
 		},
@@ -604,13 +595,9 @@ func OrchestratedVirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"caching": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(virtualmachinescalesets.CachingTypesNone),
-						string(virtualmachinescalesets.CachingTypesReadOnly),
-						string(virtualmachinescalesets.CachingTypesReadWrite),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForCachingTypes(), false),
 				},
 				"storage_account_type": {
 					Type:     pluginsdk.TypeString,
@@ -636,23 +623,19 @@ func OrchestratedVirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"option": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-								ForceNew: true,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(virtualmachinescalesets.DiffDiskOptionsLocal),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ForceNew:     true,
+								ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForDiffDiskOptions(), false),
 							},
 							"placement": {
-								Type:     pluginsdk.TypeString,
-								Optional: true,
-								ForceNew: true,
-								Default:  string(virtualmachinescalesets.DiffDiskPlacementCacheDisk),
-								ValidateFunc: validation.StringInSlice([]string{
-									string(virtualmachinescalesets.DiffDiskPlacementCacheDisk),
-									string(virtualmachinescalesets.DiffDiskPlacementResourceDisk),
-								}, false),
-							}},
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								ForceNew:     true,
+								Default:      string(virtualmachinescalesets.DiffDiskPlacementCacheDisk),
+								ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForDiffDiskPlacement(), false),
+							},
+						},
 					},
 				},
 
@@ -663,12 +646,13 @@ func OrchestratedVirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 					// presumably this'll take effect once key rotation is supported a few months post-GA?
 					// however for now let's make this ForceNew since it can't be (successfully) updated
 					ForceNew:     true,
-					ValidateFunc: validate.DiskEncryptionSetID,
+					ValidateFunc: validation.AsGeneratedID(commonids.ParseDiskEncryptionSetIDInsensitively),
 				},
 
 				"disk_size_gb": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					// Note: O+C because Azure computes disk size when not specified
 					Computed:     true,
 					ValidateFunc: validation.IntBetween(0, 4095),
 				},
@@ -687,7 +671,7 @@ func OrchestratedVirtualMachineScaleSetTerminationNotificationSchema() *pluginsd
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -698,7 +682,7 @@ func OrchestratedVirtualMachineScaleSetTerminationNotificationSchema() *pluginsd
 				"timeout": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: azValidate.ISO8601DurationBetween("PT5M", "PT15M"),
+					ValidateFunc: validation.ISO8601DurationBetween("PT5M", "PT15M"),
 					Default:      "PT5M",
 				},
 			},
@@ -730,18 +714,18 @@ func OrchestratedVirtualMachineScaleSetPriorityMixPolicySchema() *pluginsdk.Sche
 	}
 }
 
-func FlattenOrchestratedVirtualMachineScaleSetOSProfile(input *virtualmachinescalesets.VirtualMachineScaleSetOSProfile, d *pluginsdk.ResourceData) []interface{} {
+func FlattenOrchestratedVirtualMachineScaleSetOSProfile(input *virtualmachinescalesets.VirtualMachineScaleSetOSProfile, d *pluginsdk.ResourceData) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make(map[string]interface{})
+	output := make(map[string]any)
 
 	if input.CustomData != nil {
 		output["custom_data"] = *input.CustomData
 	} else {
 		// look up the current custom data
-		output["custom_data"] = utils.Base64EncodeIfNot(d.Get("os_profile.0.custom_data").(string))
+		output["custom_data"] = base64.EncodeIfNot(d.Get("os_profile.0.custom_data").(string))
 	}
 
 	if winConfig := input.WindowsConfiguration; winConfig != nil {
@@ -752,16 +736,10 @@ func FlattenOrchestratedVirtualMachineScaleSetOSProfile(input *virtualmachinesca
 		output["linux_configuration"] = flattenOrchestratedVirtualMachineScaleSetLinuxConfiguration(input, d)
 	}
 
-	return []interface{}{output}
+	return []any{output}
 }
 
-func validateAdminUsernameWindows(input interface{}, key string) (warnings []string, errors []error) {
-	v, ok := input.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-		return
-	}
-
+func validateAdminUsernameWindows(input any, key string) (warnings []string, errors []error) {
 	// **Disallowed values:**
 	invalidUserNames := []string{
 		" ", "administrator", "admin", "user", "user1", "test", "user2", "test1", "user3", "admin1", "1", "123", "a",
@@ -769,34 +747,14 @@ func validateAdminUsernameWindows(input interface{}, key string) (warnings []str
 		"sql", "support", "support_388945a0", "sys", "test2", "test3", "user4", "user5",
 	}
 
-	for _, str := range invalidUserNames {
-		if strings.EqualFold(v, str) {
-			errors = append(errors, fmt.Errorf("%q can not be one of %v, got %q", key, invalidUserNames, v))
-			return warnings, errors
-		}
-	}
-
-	// Cannot end in "."
-	if strings.HasSuffix(input.(string), ".") {
-		errors = append(errors, fmt.Errorf("%q can not end with a '.', got %q", key, v))
-		return warnings, errors
-	}
-
-	if len(v) < 1 || len(v) > 20 {
-		errors = append(errors, fmt.Errorf("%q must be between 1 and 20 characters in length, got %q(%d characters)", key, v, len(v)))
-		return warnings, errors
-	}
-
-	return
+	return validation.All(
+		validation.StringNotInSlice(invalidUserNames, true),
+		validation.StringDoesNotMatch(regexp.MustCompile(`\.$`), "cannot end with a '.'"),
+		validation.StringLenBetween(1, 20),
+	)(input, key)
 }
 
-func validateAdminUsernameLinux(input interface{}, key string) (warnings []string, errors []error) {
-	v, ok := input.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-		return
-	}
-
+func validateAdminUsernameLinux(input any, key string) (warnings []string, errors []error) {
 	// **Disallowed values:**
 	invalidUserNames := []string{
 		" ", "abrt", "adm", "admin", "audio", "backup", "bin", "cdrom", "cgred", "console", "crontab", "daemon", "dbus", "dialout", "dip",
@@ -808,30 +766,22 @@ func validateAdminUsernameLinux(input interface{}, key string) (warnings []strin
 		"www", "www-data", "wwwrun", "xok",
 	}
 
-	for _, str := range invalidUserNames {
-		if strings.EqualFold(v, str) {
-			errors = append(errors, fmt.Errorf("%q can not be one of %s, got %q", key, azure.QuotedStringSlice(invalidUserNames), v))
-			return warnings, errors
-		}
-	}
-
-	if len(v) < 1 || len(v) > 64 {
-		errors = append(errors, fmt.Errorf("%q must be between 1 and 64 characters in length, got %q(%d characters)", key, v, len(v)))
-		return warnings, errors
-	}
-
-	return
+	return validation.All(
+		validation.StringNotInSlice(invalidUserNames, true),
+		validation.StringLenBetween(1, 64),
+	)(input, key)
 }
 
-func validatePasswordComplexityWindows(input interface{}, key string) (warnings []string, errors []error) {
+func validatePasswordComplexityWindows(input any, key string) (warnings []string, errors []error) {
 	return validatePasswordComplexity(input, key, 8, 123)
 }
 
-func validatePasswordComplexityLinux(input interface{}, key string) (warnings []string, errors []error) {
+func validatePasswordComplexityLinux(input any, key string) (warnings []string, errors []error) {
 	return validatePasswordComplexity(input, key, 6, 72)
 }
 
-func validatePasswordComplexity(input interface{}, key string, min int, max int) (warnings []string, errors []error) {
+// lintignore:V012,V013,V011,V001 // false positive - this validates a password; the int comparisons check length and complexity rule counts, the string comparisons check the disallowed-passwords list
+func validatePasswordComplexity(input any, key string, min int, max int) (warnings []string, errors []error) {
 	password, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
@@ -860,12 +810,12 @@ func validatePasswordComplexity(input interface{}, key string, min int, max int)
 	}
 
 	if complexityMatch < 3 {
-		errors = append(errors, fmt.Errorf("%q did not meet minimum password complexity requirements. A password must contain at least 3 of the 4 following conditions: a lower case character, a upper case character, a digit and/or a special character. Got %q", key, password))
+		errors = append(errors, fmt.Errorf("%q did not meet minimum password complexity requirements. A password must contain at least 3 of the 4 following conditions: a lower case character, a upper case character, a digit and/or a special character", key))
 		return warnings, errors
 	}
 
 	if len(password) < min || len(password) > max {
-		errors = append(errors, fmt.Errorf("%q must be at least 6 characters long and less than 72 characters long. Got %q(%d characters)", key, password, len(password)))
+		errors = append(errors, fmt.Errorf("%q must be at least %d characters long and no more than %d characters long, got %d characters", key, min, max, len(password)))
 		return warnings, errors
 	}
 
@@ -875,21 +825,19 @@ func validatePasswordComplexity(input interface{}, key string, min int, max int)
 		"abc@123", "P@$$w0rd", "P@ssw0rd", "P@ssword123", "Pa$$word", "pass@word1", "Password!", "Password1", "Password22", "iloveyou!",
 	}
 
-	for _, str := range disallowedValues {
-		if password == str {
-			errors = append(errors, fmt.Errorf("%q can not be one of %s, got %q", key, azure.QuotedStringSlice(disallowedValues), password))
-			return warnings, errors
-		}
+	if slices.Contains(disallowedValues, password) {
+		errors = append(errors, fmt.Errorf("%q can not be one of %q", key, disallowedValues))
+		return warnings, errors
 	}
 
 	return warnings, errors
 }
 
-func ExpandOrchestratedVirtualMachineScaleSetAdditionalCapabilities(input []interface{}) *virtualmachinescalesets.AdditionalCapabilities {
+func ExpandOrchestratedVirtualMachineScaleSetAdditionalCapabilities(input []any) *virtualmachinescalesets.AdditionalCapabilities {
 	capabilities := virtualmachinescalesets.AdditionalCapabilities{}
 
 	if len(input) > 0 {
-		raw := input[0].(map[string]interface{})
+		raw := input[0].(map[string]any)
 
 		capabilities.UltraSSDEnabled = pointer.To(raw["ultra_ssd_enabled"].(bool))
 	}
@@ -897,25 +845,19 @@ func ExpandOrchestratedVirtualMachineScaleSetAdditionalCapabilities(input []inte
 	return &capabilities
 }
 
-func FlattenOrchestratedVirtualMachineScaleSetAdditionalCapabilities(input *virtualmachinescalesets.AdditionalCapabilities) []interface{} {
+func FlattenOrchestratedVirtualMachineScaleSetAdditionalCapabilities(input *virtualmachinescalesets.AdditionalCapabilities) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	ultraSsdEnabled := false
-
-	if input.UltraSSDEnabled != nil {
-		ultraSsdEnabled = *input.UltraSSDEnabled
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"ultra_ssd_enabled": ultraSsdEnabled,
+	return []any{
+		map[string]any{
+			"ultra_ssd_enabled": pointer.From(input.UltraSSDEnabled),
 		},
 	}
 }
 
-func expandOrchestratedVirtualMachineScaleSetOsProfileWithWindowsConfiguration(input map[string]interface{}, customData string) *virtualmachinescalesets.VirtualMachineScaleSetOSProfile {
+func expandOrchestratedVirtualMachineScaleSetOsProfileWithWindowsConfiguration(input map[string]any, customData string) *virtualmachinescalesets.VirtualMachineScaleSetOSProfile {
 	osProfile := virtualmachinescalesets.VirtualMachineScaleSetOSProfile{}
 	winConfig := virtualmachinescalesets.WindowsConfiguration{}
 	patchSettings := virtualmachinescalesets.PatchSettings{}
@@ -929,25 +871,25 @@ func expandOrchestratedVirtualMachineScaleSetOsProfileWithWindowsConfiguration(i
 			osProfile.ComputerNamePrefix = pointer.To(computerPrefix)
 		}
 
-		if secrets := input["secret"].([]interface{}); len(secrets) > 0 {
+		if secrets := input["secret"].([]any); len(secrets) > 0 {
 			osProfile.Secrets = expandWindowsSecretsVMSS(secrets)
 		}
 
-		if additionalUnattendContents := input["additional_unattend_content"].([]interface{}); len(additionalUnattendContents) > 0 {
-			winConfig.AdditionalUnattendContent = expandWindowsConfigurationAdditionalUnattendContent(input["additional_unattend_content"].([]interface{}))
+		if additionalUnattendContents := input["additional_unattend_content"].([]any); len(additionalUnattendContents) > 0 {
+			winConfig.AdditionalUnattendContent = expandWindowsConfigurationAdditionalUnattendContent(input["additional_unattend_content"].([]any))
 		}
-		winConfig.EnableAutomaticUpdates = pointer.To(input["enable_automatic_updates"].(bool))
+		winConfig.EnableAutomaticUpdates = pointer.To(input["automatic_updates_enabled"].(bool))
 		winConfig.ProvisionVMAgent = pointer.To(input["provision_vm_agent"].(bool))
 		winRmListenersRaw := input["winrm_listener"].(*pluginsdk.Set).List()
 		winConfig.WinRM = expandWinRMListenerVMSS(winRmListenersRaw)
 
 		// Automatic VM Guest Patching and Hotpatching settings
-		patchSettings.AssessmentMode = pointer.To(virtualmachinescalesets.WindowsPatchAssessmentMode(input["patch_assessment_mode"].(string)))
-		patchSettings.PatchMode = pointer.To(virtualmachinescalesets.WindowsVMGuestPatchMode(input["patch_mode"].(string)))
+		patchSettings.AssessmentMode = pointer.ToEnum[virtualmachinescalesets.WindowsPatchAssessmentMode](input["patch_assessment_mode"].(string))
+		patchSettings.PatchMode = pointer.ToEnum[virtualmachinescalesets.WindowsVMGuestPatchMode](input["patch_mode"].(string))
 		patchSettings.EnableHotpatching = pointer.To(input["hotpatching_enabled"].(bool))
 		winConfig.PatchSettings = &patchSettings
 
-		// due to a change in RP behavor, it will now throw and error if we pass an empty
+		// due to a change in RP behaviour, it will now throw and error if we pass an empty
 		// string add check to only include it if it is actually defined in the config file
 		timeZone := input["timezone"].(string)
 		if timeZone != "" {
@@ -960,7 +902,7 @@ func expandOrchestratedVirtualMachineScaleSetOsProfileWithWindowsConfiguration(i
 	return &osProfile
 }
 
-func expandOrchestratedVirtualMachineScaleSetOsProfileWithLinuxConfiguration(input map[string]interface{}, customData string) *virtualmachinescalesets.VirtualMachineScaleSetOSProfile {
+func expandOrchestratedVirtualMachineScaleSetOsProfileWithLinuxConfiguration(input map[string]any, customData string) *virtualmachinescalesets.VirtualMachineScaleSetOSProfile {
 	osProfile := virtualmachinescalesets.VirtualMachineScaleSetOSProfile{}
 	linConfig := virtualmachinescalesets.LinuxConfiguration{}
 	patchSettings := virtualmachinescalesets.LinuxPatchSettings{}
@@ -977,7 +919,7 @@ func expandOrchestratedVirtualMachineScaleSetOsProfileWithLinuxConfiguration(inp
 			osProfile.ComputerNamePrefix = pointer.To(computerPrefix)
 		}
 
-		if secrets := input["secret"].([]interface{}); len(secrets) > 0 {
+		if secrets := input["secret"].([]any); len(secrets) > 0 {
 			osProfile.Secrets = expandLinuxSecretsVMSS(secrets)
 		}
 
@@ -992,8 +934,8 @@ func expandOrchestratedVirtualMachineScaleSetOsProfileWithLinuxConfiguration(inp
 		linConfig.ProvisionVMAgent = pointer.To(input["provision_vm_agent"].(bool))
 
 		// Automatic VM Guest Patching
-		patchSettings.AssessmentMode = pointer.To(virtualmachinescalesets.LinuxPatchAssessmentMode(input["patch_assessment_mode"].(string)))
-		patchSettings.PatchMode = pointer.To(virtualmachinescalesets.LinuxVMGuestPatchMode(input["patch_mode"].(string)))
+		patchSettings.AssessmentMode = pointer.ToEnum[virtualmachinescalesets.LinuxPatchAssessmentMode](input["patch_assessment_mode"].(string))
+		patchSettings.PatchMode = pointer.ToEnum[virtualmachinescalesets.LinuxVMGuestPatchMode](input["patch_mode"].(string))
 		linConfig.PatchSettings = &patchSettings
 	}
 
@@ -1002,37 +944,37 @@ func expandOrchestratedVirtualMachineScaleSetOsProfileWithLinuxConfiguration(inp
 	return &osProfile
 }
 
-func expandWindowsConfigurationAdditionalUnattendContent(input []interface{}) *[]virtualmachinescalesets.AdditionalUnattendContent {
+func expandWindowsConfigurationAdditionalUnattendContent(input []any) *[]virtualmachinescalesets.AdditionalUnattendContent {
 	output := make([]virtualmachinescalesets.AdditionalUnattendContent, 0)
 
 	for _, v := range input {
-		raw := v.(map[string]interface{})
+		raw := v.(map[string]any)
 
 		output = append(output, virtualmachinescalesets.AdditionalUnattendContent{
-			SettingName: pointer.To(virtualmachinescalesets.SettingNames(raw["setting"].(string))),
+			SettingName: pointer.ToEnum[virtualmachinescalesets.SettingNames](raw["setting"].(string)),
 			Content:     pointer.To(raw["content"].(string)),
 
 			// no other possible values
-			PassName:      pointer.To(virtualmachinescalesets.PassNamesOobeSystem),
-			ComponentName: pointer.To(virtualmachinescalesets.ComponentNamesMicrosoftNegativeWindowsNegativeShellNegativeSetup),
+			PassName:      pointer.To(virtualmachinescalesets.PassNameOobeSystem),
+			ComponentName: pointer.To(virtualmachinescalesets.ComponentNameMicrosoftNegativeWindowsNegativeShellNegativeSetup),
 		})
 	}
 
 	return &output
 }
 
-func ExpandOrchestratedVirtualMachineScaleSetNetworkInterface(input []interface{}) (*[]virtualmachinescalesets.VirtualMachineScaleSetNetworkConfiguration, error) {
+func ExpandOrchestratedVirtualMachineScaleSetNetworkInterface(input []any) (*[]virtualmachinescalesets.VirtualMachineScaleSetNetworkConfiguration, error) {
 	output := make([]virtualmachinescalesets.VirtualMachineScaleSetNetworkConfiguration, 0)
 
 	for _, v := range input {
-		raw := v.(map[string]interface{})
+		raw := v.(map[string]any)
 
-		dnsServers := utils.ExpandStringSlice(raw["dns_servers"].([]interface{}))
+		dnsServers := pluginsdk.ExpandStringSlice(raw["dns_servers"].([]any))
 
 		ipConfigurations := make([]virtualmachinescalesets.VirtualMachineScaleSetIPConfiguration, 0)
-		ipConfigurationsRaw := raw["ip_configuration"].([]interface{})
+		ipConfigurationsRaw := raw["ip_configuration"].([]any)
 		for _, configV := range ipConfigurationsRaw {
-			configRaw := configV.(map[string]interface{})
+			configRaw := configV.(map[string]any)
 			ipConfiguration, err := expandOrchestratedVirtualMachineScaleSetIPConfiguration(configRaw)
 			if err != nil {
 				return nil, err
@@ -1047,11 +989,19 @@ func ExpandOrchestratedVirtualMachineScaleSetNetworkInterface(input []interface{
 				DnsSettings: &virtualmachinescalesets.VirtualMachineScaleSetNetworkConfigurationDnsSettings{
 					DnsServers: dnsServers,
 				},
-				EnableAcceleratedNetworking: pointer.To(raw["enable_accelerated_networking"].(bool)),
-				EnableIPForwarding:          pointer.To(raw["enable_ip_forwarding"].(bool)),
+				EnableAcceleratedNetworking: pointer.To(raw["accelerated_networking_enabled"].(bool)),
+				EnableIPForwarding:          pointer.To(raw["ip_forwarding_enabled"].(bool)),
 				IPConfigurations:            ipConfigurations,
 				Primary:                     pointer.To(raw["primary"].(bool)),
 			},
+		}
+
+		if auxiliaryMode := raw["auxiliary_mode"].(string); auxiliaryMode != "" {
+			config.Properties.AuxiliaryMode = pointer.ToEnum[virtualmachinescalesets.NetworkInterfaceAuxiliaryMode](auxiliaryMode)
+		}
+
+		if auxiliarySku := raw["auxiliary_sku"].(string); auxiliarySku != "" {
+			config.Properties.AuxiliarySku = pointer.ToEnum[virtualmachinescalesets.NetworkInterfaceAuxiliarySku](auxiliarySku)
 		}
 
 		if nsgId := raw["network_security_group_id"].(string); nsgId != "" {
@@ -1060,13 +1010,15 @@ func ExpandOrchestratedVirtualMachineScaleSetNetworkInterface(input []interface{
 			}
 		}
 
+		config.Tags = tags.Expand(raw["tags"].(map[string]any))
+
 		output = append(output, config)
 	}
 
 	return &output, nil
 }
 
-func expandOrchestratedVirtualMachineScaleSetIPConfiguration(raw map[string]interface{}) (*virtualmachinescalesets.VirtualMachineScaleSetIPConfiguration, error) {
+func expandOrchestratedVirtualMachineScaleSetIPConfiguration(raw map[string]any) (*virtualmachinescalesets.VirtualMachineScaleSetIPConfiguration, error) {
 	applicationGatewayBackendAddressPoolIdsRaw := raw["application_gateway_backend_address_pool_ids"].(*pluginsdk.Set).List()
 	applicationGatewayBackendAddressPoolIds := expandIDsToSubResources(applicationGatewayBackendAddressPoolIdsRaw)
 
@@ -1100,21 +1052,20 @@ func expandOrchestratedVirtualMachineScaleSetIPConfiguration(raw map[string]inte
 		}
 	}
 
-	publicIPConfigsRaw := raw["public_ip_address"].([]interface{})
-	if len(publicIPConfigsRaw) > 0 {
-		publicIPConfigRaw := publicIPConfigsRaw[0].(map[string]interface{})
-		publicIPAddressConfig := expandOrchestratedVirtualMachineScaleSetPublicIPAddress(publicIPConfigRaw)
-		ipConfiguration.Properties.PublicIPAddressConfiguration = publicIPAddressConfig
+	publicIPConfigsRaw := raw["public_ip_address"].([]any)
+	if len(publicIPConfigsRaw) > 0 && publicIPConfigsRaw[0] != nil {
+		publicIPConfigRaw := publicIPConfigsRaw[0].(map[string]any)
+		ipConfiguration.Properties.PublicIPAddressConfiguration = expandOrchestratedVirtualMachineScaleSetPublicIPAddress(publicIPConfigRaw)
 	}
 
 	return &ipConfiguration, nil
 }
 
-func expandOrchestratedVirtualMachineScaleSetPublicIPAddress(raw map[string]interface{}) *virtualmachinescalesets.VirtualMachineScaleSetPublicIPAddressConfiguration {
-	ipTagsRaw := raw["ip_tag"].([]interface{})
+func expandOrchestratedVirtualMachineScaleSetPublicIPAddress(raw map[string]any) *virtualmachinescalesets.VirtualMachineScaleSetPublicIPAddressConfiguration {
+	ipTagsRaw := raw["ip_tag"].([]any)
 	ipTags := make([]virtualmachinescalesets.VirtualMachineScaleSetIPTag, 0)
 	for _, ipTagV := range ipTagsRaw {
-		ipTagRaw := ipTagV.(map[string]interface{})
+		ipTagRaw := ipTagV.(map[string]any)
 		ipTags = append(ipTags, virtualmachinescalesets.VirtualMachineScaleSetIPTag{
 			Tag:       pointer.To(ipTagRaw["tag"].(string)),
 			IPTagType: pointer.To(ipTagRaw["type"].(string)),
@@ -1129,10 +1080,9 @@ func expandOrchestratedVirtualMachineScaleSetPublicIPAddress(raw map[string]inte
 	}
 
 	if domainNameLabel := raw["domain_name_label"].(string); domainNameLabel != "" {
-		dns := &virtualmachinescalesets.VirtualMachineScaleSetPublicIPAddressConfigurationDnsSettings{
+		publicIPAddressConfig.Properties.DnsSettings = &virtualmachinescalesets.VirtualMachineScaleSetPublicIPAddressConfigurationDnsSettings{
 			DomainNameLabel: domainNameLabel,
 		}
-		publicIPAddressConfig.Properties.DnsSettings = dns
 	}
 
 	if idleTimeout := raw["idle_timeout_in_minutes"].(int); idleTimeout > 0 {
@@ -1146,29 +1096,28 @@ func expandOrchestratedVirtualMachineScaleSetPublicIPAddress(raw map[string]inte
 	}
 
 	if sku := raw["sku_name"].(string); sku != "" {
-		v := expandOrchestratedVirtualMachineScaleSetPublicIPSku(sku)
-		publicIPAddressConfig.Sku = v
+		publicIPAddressConfig.Sku = expandOrchestratedVirtualMachineScaleSetPublicIPSku(sku)
 	}
 
 	if version := raw["version"].(string); version != "" {
-		publicIPAddressConfig.Properties.PublicIPAddressVersion = pointer.To(virtualmachinescalesets.IPVersion(version))
+		publicIPAddressConfig.Properties.PublicIPAddressVersion = pointer.ToEnum[virtualmachinescalesets.IPVersion](version)
 	}
 
 	return &publicIPAddressConfig
 }
 
-func ExpandOrchestratedVirtualMachineScaleSetNetworkInterfaceUpdate(input []interface{}) (*[]virtualmachinescalesets.VirtualMachineScaleSetUpdateNetworkConfiguration, error) {
+func ExpandOrchestratedVirtualMachineScaleSetNetworkInterfaceUpdate(input []any) (*[]virtualmachinescalesets.VirtualMachineScaleSetUpdateNetworkConfiguration, error) {
 	output := make([]virtualmachinescalesets.VirtualMachineScaleSetUpdateNetworkConfiguration, 0)
 
 	for _, v := range input {
-		raw := v.(map[string]interface{})
+		raw := v.(map[string]any)
 
-		dnsServers := utils.ExpandStringSlice(raw["dns_servers"].([]interface{}))
+		dnsServers := pluginsdk.ExpandStringSlice(raw["dns_servers"].([]any))
 
 		ipConfigurations := make([]virtualmachinescalesets.VirtualMachineScaleSetUpdateIPConfiguration, 0)
-		ipConfigurationsRaw := raw["ip_configuration"].([]interface{})
+		ipConfigurationsRaw := raw["ip_configuration"].([]any)
 		for _, configV := range ipConfigurationsRaw {
-			configRaw := configV.(map[string]interface{})
+			configRaw := configV.(map[string]any)
 			ipConfiguration, err := expandOrchestratedVirtualMachineScaleSetIPConfigurationUpdate(configRaw)
 			if err != nil {
 				return nil, err
@@ -1183,11 +1132,19 @@ func ExpandOrchestratedVirtualMachineScaleSetNetworkInterfaceUpdate(input []inte
 				DnsSettings: &virtualmachinescalesets.VirtualMachineScaleSetNetworkConfigurationDnsSettings{
 					DnsServers: dnsServers,
 				},
-				EnableAcceleratedNetworking: pointer.To(raw["enable_accelerated_networking"].(bool)),
-				EnableIPForwarding:          pointer.To(raw["enable_ip_forwarding"].(bool)),
+				EnableAcceleratedNetworking: pointer.To(raw["accelerated_networking_enabled"].(bool)),
+				EnableIPForwarding:          pointer.To(raw["ip_forwarding_enabled"].(bool)),
 				IPConfigurations:            &ipConfigurations,
 				Primary:                     pointer.To(raw["primary"].(bool)),
 			},
+		}
+
+		if auxiliaryMode := raw["auxiliary_mode"].(string); auxiliaryMode != "" {
+			config.Properties.AuxiliaryMode = pointer.ToEnum[virtualmachinescalesets.NetworkInterfaceAuxiliaryMode](auxiliaryMode)
+		}
+
+		if auxiliarySku := raw["auxiliary_sku"].(string); auxiliarySku != "" {
+			config.Properties.AuxiliarySku = pointer.ToEnum[virtualmachinescalesets.NetworkInterfaceAuxiliarySku](auxiliarySku)
 		}
 
 		if nsgId := raw["network_security_group_id"].(string); nsgId != "" {
@@ -1196,13 +1153,15 @@ func ExpandOrchestratedVirtualMachineScaleSetNetworkInterfaceUpdate(input []inte
 			}
 		}
 
+		config.Tags = tags.Expand(raw["tags"].(map[string]any))
+
 		output = append(output, config)
 	}
 
 	return &output, nil
 }
 
-func expandOrchestratedVirtualMachineScaleSetIPConfigurationUpdate(raw map[string]interface{}) (*virtualmachinescalesets.VirtualMachineScaleSetUpdateIPConfiguration, error) {
+func expandOrchestratedVirtualMachineScaleSetIPConfigurationUpdate(raw map[string]any) (*virtualmachinescalesets.VirtualMachineScaleSetUpdateIPConfiguration, error) {
 	applicationGatewayBackendAddressPoolIdsRaw := raw["application_gateway_backend_address_pool_ids"].(*pluginsdk.Set).List()
 	applicationGatewayBackendAddressPoolIds := expandIDsToSubResources(applicationGatewayBackendAddressPoolIdsRaw)
 
@@ -1237,27 +1196,25 @@ func expandOrchestratedVirtualMachineScaleSetIPConfigurationUpdate(raw map[strin
 		}
 	}
 
-	publicIPConfigsRaw := raw["public_ip_address"].([]interface{})
-	if len(publicIPConfigsRaw) > 0 {
-		publicIPConfigRaw := publicIPConfigsRaw[0].(map[string]interface{})
-		publicIPAddressConfig := expandOrchestratedVirtualMachineScaleSetPublicIPAddressUpdate(publicIPConfigRaw)
-		ipConfiguration.Properties.PublicIPAddressConfiguration = publicIPAddressConfig
+	publicIPConfigsRaw := raw["public_ip_address"].([]any)
+	if len(publicIPConfigsRaw) > 0 && publicIPConfigsRaw[0] != nil {
+		publicIPConfigRaw := publicIPConfigsRaw[0].(map[string]any)
+		ipConfiguration.Properties.PublicIPAddressConfiguration = expandOrchestratedVirtualMachineScaleSetPublicIPAddressUpdate(publicIPConfigRaw)
 	}
 
 	return &ipConfiguration, nil
 }
 
-func expandOrchestratedVirtualMachineScaleSetPublicIPAddressUpdate(raw map[string]interface{}) *virtualmachinescalesets.VirtualMachineScaleSetUpdatePublicIPAddressConfiguration {
+func expandOrchestratedVirtualMachineScaleSetPublicIPAddressUpdate(raw map[string]any) *virtualmachinescalesets.VirtualMachineScaleSetUpdatePublicIPAddressConfiguration {
 	publicIPAddressConfig := virtualmachinescalesets.VirtualMachineScaleSetUpdatePublicIPAddressConfiguration{
 		Name:       pointer.To(raw["name"].(string)),
 		Properties: &virtualmachinescalesets.VirtualMachineScaleSetUpdatePublicIPAddressConfigurationProperties{},
 	}
 
 	if domainNameLabel := raw["domain_name_label"].(string); domainNameLabel != "" {
-		dns := &virtualmachinescalesets.VirtualMachineScaleSetPublicIPAddressConfigurationDnsSettings{
+		publicIPAddressConfig.Properties.DnsSettings = &virtualmachinescalesets.VirtualMachineScaleSetPublicIPAddressConfigurationDnsSettings{
 			DomainNameLabel: domainNameLabel,
 		}
-		publicIPAddressConfig.Properties.DnsSettings = dns
 	}
 
 	if idleTimeout := raw["idle_timeout_in_minutes"].(int); idleTimeout > 0 {
@@ -1267,15 +1224,15 @@ func expandOrchestratedVirtualMachineScaleSetPublicIPAddressUpdate(raw map[strin
 	return &publicIPAddressConfig
 }
 
-func ExpandOrchestratedVirtualMachineScaleSetDataDisk(input []interface{}, ultraSSDEnabled bool) (*[]virtualmachinescalesets.VirtualMachineScaleSetDataDisk, error) {
+func ExpandOrchestratedVirtualMachineScaleSetDataDisk(input []any, ultraSSDEnabled bool) (*[]virtualmachinescalesets.VirtualMachineScaleSetDataDisk, error) {
 	disks := make([]virtualmachinescalesets.VirtualMachineScaleSetDataDisk, 0)
 
 	for _, v := range input {
-		raw := v.(map[string]interface{})
+		raw := v.(map[string]any)
 
 		storageAccountType := virtualmachinescalesets.StorageAccountTypes(raw["storage_account_type"].(string))
 		disk := virtualmachinescalesets.VirtualMachineScaleSetDataDisk{
-			Caching: pointer.To(virtualmachinescalesets.CachingTypes(raw["caching"].(string))),
+			Caching: pointer.ToEnum[virtualmachinescalesets.CachingTypes](raw["caching"].(string)),
 			ManagedDisk: &virtualmachinescalesets.VirtualMachineScaleSetManagedDiskParameters{
 				StorageAccountType: pointer.To(storageAccountType),
 			},
@@ -1298,12 +1255,12 @@ func ExpandOrchestratedVirtualMachineScaleSetDataDisk(input []interface{}, ultra
 		}
 
 		var iops int
-		if diskIops, ok := raw["ultra_ssd_disk_iops_read_write"]; ok && diskIops.(int) > 0 {
+		if diskIops, ok := raw["disk_iops_read_write"]; ok && diskIops.(int) > 0 {
 			iops = diskIops.(int)
 		}
 
 		if iops > 0 && !ultraSSDEnabled && storageAccountType != virtualmachinescalesets.StorageAccountTypesPremiumVTwoLRS {
-			return nil, fmt.Errorf("`ultra_ssd_disk_iops_read_write` can only be set when `storage_account_type` is set to `PremiumV2_LRS` or `UltraSSD_LRS`")
+			return nil, fmt.Errorf("`disk_iops_read_write` can only be set when `storage_account_type` is set to `PremiumV2_LRS` or `UltraSSD_LRS`")
 		}
 
 		// Do not set value unless value is greater than 0 - issue 15516
@@ -1312,12 +1269,12 @@ func ExpandOrchestratedVirtualMachineScaleSetDataDisk(input []interface{}, ultra
 		}
 
 		var mbps int
-		if diskMbps, ok := raw["ultra_ssd_disk_mbps_read_write"]; ok && diskMbps.(int) > 0 {
+		if diskMbps, ok := raw["disk_mbps_read_write"]; ok && diskMbps.(int) > 0 {
 			mbps = diskMbps.(int)
 		}
 
 		if mbps > 0 && !ultraSSDEnabled && storageAccountType != virtualmachinescalesets.StorageAccountTypesPremiumVTwoLRS {
-			return nil, fmt.Errorf("`ultra_ssd_disk_mbps_read_write` can only be set when `storage_account_type` is set to `PremiumV2_LRS` or `UltraSSD_LRS`")
+			return nil, fmt.Errorf("`disk_mbps_read_write` can only be set when `storage_account_type` is set to `PremiumV2_LRS` or `UltraSSD_LRS`")
 		}
 
 		// Do not set value unless value is greater than 0 - issue 15516
@@ -1331,18 +1288,21 @@ func ExpandOrchestratedVirtualMachineScaleSetDataDisk(input []interface{}, ultra
 	return &disks, nil
 }
 
-func ExpandOrchestratedVirtualMachineScaleSetOSDisk(input []interface{}, osType virtualmachinescalesets.OperatingSystemTypes) *virtualmachinescalesets.VirtualMachineScaleSetOSDisk {
-	raw := input[0].(map[string]interface{})
+func ExpandOrchestratedVirtualMachineScaleSetOSDisk(input []any, osType virtualmachinescalesets.OperatingSystemTypes) *virtualmachinescalesets.VirtualMachineScaleSetOSDisk {
+	raw := input[0].(map[string]any)
 	disk := virtualmachinescalesets.VirtualMachineScaleSetOSDisk{
-		Caching: pointer.To(virtualmachinescalesets.CachingTypes(raw["caching"].(string))),
+		Caching: pointer.ToEnum[virtualmachinescalesets.CachingTypes](raw["caching"].(string)),
 		ManagedDisk: &virtualmachinescalesets.VirtualMachineScaleSetManagedDiskParameters{
-			StorageAccountType: pointer.To(virtualmachinescalesets.StorageAccountTypes(raw["storage_account_type"].(string))),
+			StorageAccountType: pointer.ToEnum[virtualmachinescalesets.StorageAccountTypes](raw["storage_account_type"].(string)),
 		},
 		WriteAcceleratorEnabled: pointer.To(raw["write_accelerator_enabled"].(bool)),
 
 		// these have to be hard-coded so there's no point exposing them
 		CreateOption: virtualmachinescalesets.DiskCreateOptionTypesFromImage,
-		OsType:       pointer.To(osType),
+	}
+
+	if len(osType) > 0 {
+		disk.OsType = pointer.To(osType)
 	}
 
 	if diskEncryptionSetId := raw["disk_encryption_set_id"].(string); diskEncryptionSetId != "" {
@@ -1355,23 +1315,23 @@ func ExpandOrchestratedVirtualMachineScaleSetOSDisk(input []interface{}, osType 
 		disk.DiskSizeGB = pointer.To(int64(osDiskSize))
 	}
 
-	if diffDiskSettingsRaw := raw["diff_disk_settings"].([]interface{}); len(diffDiskSettingsRaw) > 0 {
-		diffDiskRaw := diffDiskSettingsRaw[0].(map[string]interface{})
+	if diffDiskSettingsRaw := raw["diff_disk_settings"].([]any); len(diffDiskSettingsRaw) > 0 && diffDiskSettingsRaw[0] != nil {
+		diffDiskRaw := diffDiskSettingsRaw[0].(map[string]any)
 		disk.DiffDiskSettings = &virtualmachinescalesets.DiffDiskSettings{
-			Option:    pointer.To(virtualmachinescalesets.DiffDiskOptions(diffDiskRaw["option"].(string))),
-			Placement: pointer.To(virtualmachinescalesets.DiffDiskPlacement(diffDiskRaw["placement"].(string))),
+			Option:    pointer.ToEnum[virtualmachinescalesets.DiffDiskOptions](diffDiskRaw["option"].(string)),
+			Placement: pointer.ToEnum[virtualmachinescalesets.DiffDiskPlacement](diffDiskRaw["placement"].(string)),
 		}
 	}
 
 	return &disk
 }
 
-func ExpandOrchestratedVirtualMachineScaleSetOSDiskUpdate(input []interface{}) *virtualmachinescalesets.VirtualMachineScaleSetUpdateOSDisk {
-	raw := input[0].(map[string]interface{})
+func ExpandOrchestratedVirtualMachineScaleSetOSDiskUpdate(input []any) *virtualmachinescalesets.VirtualMachineScaleSetUpdateOSDisk {
+	raw := input[0].(map[string]any)
 	disk := virtualmachinescalesets.VirtualMachineScaleSetUpdateOSDisk{
-		Caching: pointer.To(virtualmachinescalesets.CachingTypes(raw["caching"].(string))),
+		Caching: pointer.ToEnum[virtualmachinescalesets.CachingTypes](raw["caching"].(string)),
 		ManagedDisk: &virtualmachinescalesets.VirtualMachineScaleSetManagedDiskParameters{
-			StorageAccountType: pointer.To(virtualmachinescalesets.StorageAccountTypes(raw["storage_account_type"].(string))),
+			StorageAccountType: pointer.ToEnum[virtualmachinescalesets.StorageAccountTypes](raw["storage_account_type"].(string)),
 		},
 		WriteAcceleratorEnabled: pointer.To(raw["write_accelerator_enabled"].(bool)),
 	}
@@ -1389,24 +1349,22 @@ func ExpandOrchestratedVirtualMachineScaleSetOSDiskUpdate(input []interface{}) *
 	return &disk
 }
 
-func ExpandOrchestratedVirtualMachineScaleSetScheduledEventsProfile(input []interface{}) *virtualmachinescalesets.ScheduledEventsProfile {
+func ExpandOrchestratedVirtualMachineScaleSetScheduledEventsProfile(input []any) *virtualmachinescalesets.ScheduledEventsProfile {
 	if len(input) == 0 {
 		return nil
 	}
 
-	raw := input[0].(map[string]interface{})
-	enabled := raw["enabled"].(bool)
-	timeout := raw["timeout"].(string)
+	raw := input[0].(map[string]any)
 
 	return &virtualmachinescalesets.ScheduledEventsProfile{
 		TerminateNotificationProfile: &virtualmachinescalesets.TerminateNotificationProfile{
-			Enable:           &enabled,
-			NotBeforeTimeout: &timeout,
+			Enable:           pointer.To(raw["enabled"].(bool)),
+			NotBeforeTimeout: pointer.To(raw["timeout"].(string)),
 		},
 	}
 }
 
-func expandOrchestratedVirtualMachineScaleSetExtensions(input []interface{}) (extensionProfile *virtualmachinescalesets.VirtualMachineScaleSetExtensionProfile, hasHealthExtension bool, err error) {
+func expandOrchestratedVirtualMachineScaleSetExtensions(input []any) (extensionProfile *virtualmachinescalesets.VirtualMachineScaleSetExtensionProfile, hasHealthExtension bool, err error) {
 	extensionProfile = &virtualmachinescalesets.VirtualMachineScaleSetExtensionProfile{}
 	if len(input) == 0 {
 		return nil, false, nil
@@ -1414,18 +1372,19 @@ func expandOrchestratedVirtualMachineScaleSetExtensions(input []interface{}) (ex
 
 	extensions := make([]virtualmachinescalesets.VirtualMachineScaleSetExtension, 0)
 	for _, v := range input {
-		extensionRaw := v.(map[string]interface{})
+		extensionRaw := v.(map[string]any)
 		extension := virtualmachinescalesets.VirtualMachineScaleSetExtension{
 			Name: pointer.To(extensionRaw["name"].(string)),
 		}
 		extensionType := extensionRaw["type"].(string)
 
+		autoUpgradeMinorVersion, _ := extensionRaw["auto_upgrade_minor_version_enabled"].(bool)
+
 		extensionProps := virtualmachinescalesets.VirtualMachineScaleSetExtensionProperties{
-			Publisher:                pointer.To(extensionRaw["publisher"].(string)),
-			Type:                     &extensionType,
-			TypeHandlerVersion:       pointer.To(extensionRaw["type_handler_version"].(string)),
-			AutoUpgradeMinorVersion:  pointer.To(extensionRaw["auto_upgrade_minor_version_enabled"].(bool)),
-			ProvisionAfterExtensions: utils.ExpandStringSlice(extensionRaw["extensions_to_provision_after_vm_creation"].([]interface{})),
+			Publisher:               pointer.To(extensionRaw["publisher"].(string)),
+			Type:                    &extensionType,
+			TypeHandlerVersion:      pointer.To(extensionRaw["type_handler_version"].(string)),
+			AutoUpgradeMinorVersion: pointer.To(autoUpgradeMinorVersion),
 		}
 
 		if extensionType == "ApplicationHealthLinux" || extensionType == "ApplicationHealthWindows" {
@@ -1441,25 +1400,27 @@ func expandOrchestratedVirtualMachineScaleSetExtensions(input []interface{}) (ex
 		}
 
 		if val, ok := extensionRaw["settings"]; ok && val.(string) != "" {
-			var result interface{}
-			err := json.Unmarshal([]byte(val.(string)), &result)
-			if err != nil {
+			var result any
+			if err := json.Unmarshal([]byte(val.(string)), &result); err != nil {
 				return nil, false, fmt.Errorf("unmarshaling `settings`: %+v", err)
 			}
 			extensionProps.Settings = pointer.To(result)
 		}
 
-		protectedSettingsFromKeyVault := expandProtectedSettingsFromKeyVaultVMSS(extensionRaw["protected_settings_from_key_vault"].([]interface{}))
-		extensionProps.ProtectedSettingsFromKeyVault = (protectedSettingsFromKeyVault)
+		if val, ok := extensionRaw["extensions_to_provision_after_vm_creation"]; ok && val != nil {
+			extensionProps.ProvisionAfterExtensions = pluginsdk.ExpandStringSlice(val.([]any))
+		}
+
+		protectedSettingsFromKeyVault := expandProtectedSettingsFromKeyVaultVMSS(extensionRaw["protected_settings_from_key_vault"].([]any))
+		extensionProps.ProtectedSettingsFromKeyVault = protectedSettingsFromKeyVault
 
 		if val, ok := extensionRaw["protected_settings"]; ok && val.(string) != "" {
 			if protectedSettingsFromKeyVault != nil {
 				return nil, false, fmt.Errorf("`protected_settings_from_key_vault` cannot be used with `protected_settings`")
 			}
 
-			var result interface{}
-			err := json.Unmarshal([]byte(val.(string)), &result)
-			if err != nil {
+			var result any
+			if err := json.Unmarshal([]byte(val.(string)), &result); err != nil {
 				return nil, false, fmt.Errorf("unmarshaling `protected_settings`: %+v", err)
 			}
 			extensionProps.ProtectedSettings = pointer.To(result)
@@ -1473,12 +1434,12 @@ func expandOrchestratedVirtualMachineScaleSetExtensions(input []interface{}) (ex
 	return extensionProfile, hasHealthExtension, nil
 }
 
-func ExpandOrchestratedVirtualMachineScaleSetPriorityMixPolicy(input []interface{}) *virtualmachinescalesets.PriorityMixPolicy {
+func ExpandOrchestratedVirtualMachineScaleSetPriorityMixPolicy(input []any) *virtualmachinescalesets.PriorityMixPolicy {
 	if len(input) == 0 {
 		return nil
 	}
 
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 
 	return &virtualmachinescalesets.PriorityMixPolicy{
 		BaseRegularPriorityCount:           pointer.To(int64(raw["base_regular_count"].(int))),
@@ -1486,36 +1447,33 @@ func ExpandOrchestratedVirtualMachineScaleSetPriorityMixPolicy(input []interface
 	}
 }
 
-func flattenOrchestratedVirtualMachineScaleSetExtensions(input *virtualmachinescalesets.VirtualMachineScaleSetExtensionProfile, d *pluginsdk.ResourceData) ([]map[string]interface{}, error) {
-	result := make([]map[string]interface{}, 0)
+func flattenOrchestratedVirtualMachineScaleSetExtensions(input *virtualmachinescalesets.VirtualMachineScaleSetExtensionProfile, d *pluginsdk.ResourceData) ([]map[string]any, error) {
+	result := make([]map[string]any, 0)
 	if input == nil || input.Extensions == nil {
 		return result, nil
 	}
 
 	// extensionsFromState holds the "extension" block, which is used to retrieve the "protected_settings" to fill it back the state,
 	// since it is not returned from the API.
-	extensionsFromState := map[string]map[string]interface{}{}
+	extensionsFromState := map[string]map[string]any{}
 	if extSet, ok := d.GetOk("extension"); ok && extSet != nil {
 		extensions := extSet.(*pluginsdk.Set).List()
 		for _, ext := range extensions {
 			if ext == nil {
 				continue
 			}
-			ext := ext.(map[string]interface{})
+			ext := ext.(map[string]any)
 			extensionsFromState[ext["name"].(string)] = ext
 		}
 	}
 
 	for _, v := range *input.Extensions {
-		name := ""
-		if v.Name != nil {
-			name = *v.Name
-		}
+		name := pointer.From(v.Name)
 
 		autoUpgradeMinorVersion := false
 		suppressFailures := false
 		forceUpdateTag := ""
-		provisionAfterExtension := make([]interface{}, 0)
+		provisionAfterExtension := make([]any, 0)
 		protectedSettings := ""
 		var protectedSettingsFromKeyVault *virtualmachinescalesets.KeyVaultSecretReference
 		extPublisher := ""
@@ -1549,7 +1507,7 @@ func flattenOrchestratedVirtualMachineScaleSetExtensions(input *virtualmachinesc
 			}
 
 			if props.ProvisionAfterExtensions != nil {
-				provisionAfterExtension = utils.FlattenStringSlice(props.ProvisionAfterExtensions)
+				provisionAfterExtension = pluginsdk.FlattenSlice(props.ProvisionAfterExtensions)
 			}
 
 			if props.Settings != nil {
@@ -1572,7 +1530,7 @@ func flattenOrchestratedVirtualMachineScaleSetExtensions(input *virtualmachinesc
 			}
 		}
 
-		result = append(result, map[string]interface{}{
+		result = append(result, map[string]any{
 			"name":                                      name,
 			"auto_upgrade_minor_version_enabled":        autoUpgradeMinorVersion,
 			"force_extension_execution_on_change":       forceUpdateTag,
@@ -1589,10 +1547,10 @@ func flattenOrchestratedVirtualMachineScaleSetExtensions(input *virtualmachinesc
 	return result, nil
 }
 
-func FlattenOrchestratedVirtualMachineScaleSetIPConfiguration(input virtualmachinescalesets.VirtualMachineScaleSetIPConfiguration) map[string]interface{} {
+func FlattenOrchestratedVirtualMachineScaleSetIPConfiguration(input virtualmachinescalesets.VirtualMachineScaleSetIPConfiguration) map[string]any {
 	var subnetId, version string
 	var primary bool
-	var publicIPAddresses, applicationGatewayBackendAddressPoolIds, applicationSecurityGroupIds, loadBalancerBackendAddressPoolIds []interface{}
+	var publicIPAddresses, applicationGatewayBackendAddressPoolIds, applicationSecurityGroupIds, loadBalancerBackendAddressPoolIds []any
 
 	if props := input.Properties; props != nil {
 		if props.Subnet != nil && props.Subnet.Id != nil {
@@ -1607,15 +1565,14 @@ func FlattenOrchestratedVirtualMachineScaleSetIPConfiguration(input virtualmachi
 			publicIPAddresses = append(publicIPAddresses, FlattenOrchestratedVirtualMachineScaleSetPublicIPAddress(*props.PublicIPAddressConfiguration))
 		}
 
-		version = string(pointer.From(props.PrivateIPAddressVersion))
+		version = pointer.FromEnum(props.PrivateIPAddressVersion)
 
 		applicationGatewayBackendAddressPoolIds = flattenSubResourcesToIDs(props.ApplicationGatewayBackendAddressPools)
 		applicationSecurityGroupIds = flattenSubResourcesToIDs(props.ApplicationSecurityGroups)
 		loadBalancerBackendAddressPoolIds = flattenSubResourcesToIDs(props.LoadBalancerBackendAddressPools)
-
 	}
 
-	return map[string]interface{}{
+	return map[string]any{
 		"name":              input.Name,
 		"primary":           primary,
 		"public_ip_address": publicIPAddresses,
@@ -1628,8 +1585,8 @@ func FlattenOrchestratedVirtualMachineScaleSetIPConfiguration(input virtualmachi
 	}
 }
 
-func FlattenOrchestratedVirtualMachineScaleSetPublicIPAddress(input virtualmachinescalesets.VirtualMachineScaleSetPublicIPAddressConfiguration) map[string]interface{} {
-	ipTags := make([]interface{}, 0)
+func FlattenOrchestratedVirtualMachineScaleSetPublicIPAddress(input virtualmachinescalesets.VirtualMachineScaleSetPublicIPAddressConfiguration) map[string]any {
+	ipTags := make([]any, 0)
 	var domainNameLabel, publicIPPrefixId, version, sku string
 	var idleTimeoutInMinutes int
 
@@ -1646,7 +1603,7 @@ func FlattenOrchestratedVirtualMachineScaleSetPublicIPAddress(input virtualmachi
 					tag = *rawTag.Tag
 				}
 
-				ipTags = append(ipTags, map[string]interface{}{
+				ipTags = append(ipTags, map[string]any{
 					"tag":  tag,
 					"type": tagType,
 				})
@@ -1666,16 +1623,15 @@ func FlattenOrchestratedVirtualMachineScaleSetPublicIPAddress(input virtualmachi
 		}
 
 		if props.PublicIPAddressVersion != nil {
-			version = string(pointer.From(props.PublicIPAddressVersion))
+			version = pointer.FromEnum(props.PublicIPAddressVersion)
 		}
 
 		if input.Sku != nil && input.Sku.Name != nil && input.Sku.Tier != nil {
 			sku = flattenOrchestratedVirtualMachineScaleSetPublicIPSku(input.Sku)
 		}
-
 	}
 
-	return map[string]interface{}{
+	return map[string]any{
 		"name":                    input.Name,
 		"domain_name_label":       domainNameLabel,
 		"idle_timeout_in_minutes": idleTimeoutInMinutes,
@@ -1686,12 +1642,12 @@ func FlattenOrchestratedVirtualMachineScaleSetPublicIPAddress(input virtualmachi
 	}
 }
 
-func flattenOrchestratedVirtualMachineScaleSetWindowsConfiguration(input *virtualmachinescalesets.VirtualMachineScaleSetOSProfile, d *pluginsdk.ResourceData) []interface{} {
+func flattenOrchestratedVirtualMachineScaleSetWindowsConfiguration(input *virtualmachinescalesets.VirtualMachineScaleSetOSProfile, d *pluginsdk.ResourceData) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make(map[string]interface{})
+	output := make(map[string]any)
 	winConfig := input.WindowsConfiguration
 	patchSettings := winConfig.PatchSettings
 
@@ -1699,10 +1655,10 @@ func flattenOrchestratedVirtualMachineScaleSetWindowsConfiguration(input *virtua
 		output["admin_username"] = *v
 	}
 
-	if v := d.Get("os_profile").([]interface{}); len(v) > 0 {
-		osProfile := v[0].(map[string]interface{})
-		if winConfigRaw := osProfile["windows_configuration"].([]interface{}); len(winConfigRaw) > 0 {
-			winCfg := winConfigRaw[0].(map[string]interface{})
+	if v := d.Get("os_profile").([]any); len(v) > 0 {
+		osProfile := v[0].(map[string]any)
+		if winConfigRaw := osProfile["windows_configuration"].([]any); len(winConfigRaw) > 0 && winConfigRaw[0] != nil {
+			winCfg := winConfigRaw[0].(map[string]any)
 			output["admin_password"] = winCfg["admin_password"].(string)
 		}
 	}
@@ -1716,7 +1672,7 @@ func flattenOrchestratedVirtualMachineScaleSetWindowsConfiguration(input *virtua
 	}
 
 	if v := winConfig.EnableAutomaticUpdates; v != nil {
-		output["enable_automatic_updates"] = *v
+		output["automatic_updates_enabled"] = *v
 	}
 
 	if v := winConfig.ProvisionVMAgent; v != nil {
@@ -1748,25 +1704,25 @@ func flattenOrchestratedVirtualMachineScaleSetWindowsConfiguration(input *virtua
 		}
 	}
 
-	return []interface{}{output}
+	return []any{output}
 }
 
-func flattenOrchestratedVirtualMachineScaleSetLinuxConfiguration(input *virtualmachinescalesets.VirtualMachineScaleSetOSProfile, d *pluginsdk.ResourceData) []interface{} {
+func flattenOrchestratedVirtualMachineScaleSetLinuxConfiguration(input *virtualmachinescalesets.VirtualMachineScaleSetOSProfile, d *pluginsdk.ResourceData) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make(map[string]interface{})
+	output := make(map[string]any)
 	linConfig := input.LinuxConfiguration
 
 	if v := input.AdminUsername; v != nil {
 		output["admin_username"] = *v
 	}
 
-	if v := d.Get("os_profile").([]interface{}); len(v) > 0 {
-		osProfile := v[0].(map[string]interface{})
-		if linConfigRaw := osProfile["linux_configuration"].([]interface{}); len(linConfigRaw) > 0 {
-			linCfg := linConfigRaw[0].(map[string]interface{})
+	if v := d.Get("os_profile").([]any); len(v) > 0 {
+		osProfile := v[0].(map[string]any)
+		if linConfigRaw := osProfile["linux_configuration"].([]any); len(linConfigRaw) > 0 && linConfigRaw[0] != nil {
+			linCfg := linConfigRaw[0].(map[string]any)
 			output["admin_password"] = linCfg["admin_password"].(string)
 		}
 	}
@@ -1802,21 +1758,29 @@ func flattenOrchestratedVirtualMachineScaleSetLinuxConfiguration(input *virtualm
 		output["secret"] = flattenLinuxSecretsVMSS(v)
 	}
 
-	return []interface{}{output}
+	return []any{output}
 }
 
-func FlattenOrchestratedVirtualMachineScaleSetNetworkInterface(input *[]virtualmachinescalesets.VirtualMachineScaleSetNetworkConfiguration) []interface{} {
+func FlattenOrchestratedVirtualMachineScaleSetNetworkInterface(input *[]virtualmachinescalesets.VirtualMachineScaleSetNetworkConfiguration) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	results := make([]interface{}, 0)
+	results := make([]any, 0)
 	for _, v := range *input {
-		var networkSecurityGroupId string
+		var auxiliaryMode, auxiliarySku, networkSecurityGroupId string
 		var enableAcceleratedNetworking, enableIPForwarding, primary bool
-		var dnsServers []interface{}
-		var ipConfigurations []interface{}
+		var dnsServers []any
+		var ipConfigurations []any
 		if props := v.Properties; props != nil {
+			if props.AuxiliaryMode != nil && *props.AuxiliaryMode != virtualmachinescalesets.NetworkInterfaceAuxiliaryModeNone {
+				auxiliaryMode = pointer.FromEnum(props.AuxiliaryMode)
+			}
+
+			if props.AuxiliarySku != nil && *props.AuxiliarySku != virtualmachinescalesets.NetworkInterfaceAuxiliarySkuNone {
+				auxiliarySku = pointer.FromEnum(props.AuxiliarySku)
+			}
+
 			if props.NetworkSecurityGroup != nil && props.NetworkSecurityGroup.Id != nil {
 				networkSecurityGroupId = *props.NetworkSecurityGroup.Id
 			}
@@ -1832,7 +1796,7 @@ func FlattenOrchestratedVirtualMachineScaleSetNetworkInterface(input *[]virtualm
 			}
 
 			if settings := props.DnsSettings; settings != nil {
-				dnsServers = utils.FlattenStringSlice(props.DnsSettings.DnsServers)
+				dnsServers = pluginsdk.FlattenSlice(props.DnsSettings.DnsServers)
 			}
 
 			if len(props.IPConfigurations) != 0 {
@@ -1841,29 +1805,31 @@ func FlattenOrchestratedVirtualMachineScaleSetNetworkInterface(input *[]virtualm
 					ipConfigurations = append(ipConfigurations, config)
 				}
 			}
-
 		}
 
-		results = append(results, map[string]interface{}{
-			"name":                          v.Name,
-			"dns_servers":                   dnsServers,
-			"enable_accelerated_networking": enableAcceleratedNetworking,
-			"enable_ip_forwarding":          enableIPForwarding,
-			"ip_configuration":              ipConfigurations,
-			"network_security_group_id":     networkSecurityGroupId,
-			"primary":                       primary,
+		results = append(results, map[string]any{
+			"name":                           v.Name,
+			"auxiliary_mode":                 auxiliaryMode,
+			"auxiliary_sku":                  auxiliarySku,
+			"dns_servers":                    dnsServers,
+			"accelerated_networking_enabled": enableAcceleratedNetworking,
+			"ip_forwarding_enabled":          enableIPForwarding,
+			"ip_configuration":               ipConfigurations,
+			"network_security_group_id":      networkSecurityGroupId,
+			"primary":                        primary,
+			"tags":                           tags.Flatten(v.Tags),
 		})
 	}
 
 	return results
 }
 
-func FlattenOrchestratedVirtualMachineScaleSetDataDisk(input *[]virtualmachinescalesets.VirtualMachineScaleSetDataDisk) []interface{} {
+func FlattenOrchestratedVirtualMachineScaleSetDataDisk(input *[]virtualmachinescalesets.VirtualMachineScaleSetDataDisk) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 
 	for _, v := range *input {
 		diskSizeGb := 0
@@ -1874,16 +1840,13 @@ func FlattenOrchestratedVirtualMachineScaleSetDataDisk(input *[]virtualmachinesc
 		storageAccountType := ""
 		diskEncryptionSetId := ""
 		if v.ManagedDisk != nil {
-			storageAccountType = string(pointer.From(v.ManagedDisk.StorageAccountType))
+			storageAccountType = pointer.FromEnum(v.ManagedDisk.StorageAccountType)
 			if v.ManagedDisk.DiskEncryptionSet != nil && v.ManagedDisk.DiskEncryptionSet.Id != nil {
 				diskEncryptionSetId = *v.ManagedDisk.DiskEncryptionSet.Id
 			}
 		}
 
-		writeAcceleratorEnabled := false
-		if v.WriteAcceleratorEnabled != nil {
-			writeAcceleratorEnabled = *v.WriteAcceleratorEnabled
-		}
+		writeAcceleratorEnabled := pointer.From(v.WriteAcceleratorEnabled)
 
 		iops := 0
 		if v.DiskIOPSReadWrite != nil {
@@ -1895,39 +1858,39 @@ func FlattenOrchestratedVirtualMachineScaleSetDataDisk(input *[]virtualmachinesc
 			mbps = int(*v.DiskMBpsReadWrite)
 		}
 
-		output = append(output, map[string]interface{}{
-			"caching":                        pointer.From(v.Caching),
-			"create_option":                  string(v.CreateOption),
-			"lun":                            v.Lun,
-			"disk_encryption_set_id":         diskEncryptionSetId,
-			"disk_size_gb":                   diskSizeGb,
-			"storage_account_type":           storageAccountType,
-			"write_accelerator_enabled":      writeAcceleratorEnabled,
-			"ultra_ssd_disk_iops_read_write": iops,
-			"ultra_ssd_disk_mbps_read_write": mbps,
+		output = append(output, map[string]any{
+			"caching":                   pointer.From(v.Caching),
+			"create_option":             string(v.CreateOption),
+			"lun":                       v.Lun,
+			"disk_encryption_set_id":    diskEncryptionSetId,
+			"disk_size_gb":              diskSizeGb,
+			"storage_account_type":      storageAccountType,
+			"write_accelerator_enabled": writeAcceleratorEnabled,
+			"disk_iops_read_write":      iops,
+			"disk_mbps_read_write":      mbps,
 		})
 	}
 
 	return output
 }
 
-func flattenWindowsConfigurationAdditionalUnattendContent(input *virtualmachinescalesets.WindowsConfiguration, d *pluginsdk.ResourceData) []interface{} {
+func flattenWindowsConfigurationAdditionalUnattendContent(input *virtualmachinescalesets.WindowsConfiguration, d *pluginsdk.ResourceData) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	existing := make([]interface{}, 0)
+	existing := make([]any, 0)
 	if v, ok := d.GetOk("os_profile.0.windows_configuration.0.additional_unattend_content"); ok {
-		existing = v.([]interface{})
+		existing = v.([]any)
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 	for i, v := range *input.AdditionalUnattendContent {
 		// content isn't returned by the API since it's sensitive data so we need to pull from the state file.
 		content := ""
 		if len(existing) > i {
 			existingVal := existing[i]
-			existingRaw, ok := existingVal.(map[string]interface{})
+			existingRaw, ok := existingVal.(map[string]any)
 			if ok {
 				contentRaw, ok := existingRaw["content"]
 				if ok {
@@ -1935,7 +1898,7 @@ func flattenWindowsConfigurationAdditionalUnattendContent(input *virtualmachines
 				}
 			}
 		}
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"content": content,
 			"setting": pointer.From(v.SettingName),
 		})
@@ -1944,14 +1907,14 @@ func flattenWindowsConfigurationAdditionalUnattendContent(input *virtualmachines
 	return output
 }
 
-func FlattenOrchestratedVirtualMachineScaleSetOSDisk(input *virtualmachinescalesets.VirtualMachineScaleSetOSDisk) []interface{} {
+func FlattenOrchestratedVirtualMachineScaleSetOSDisk(input *virtualmachinescalesets.VirtualMachineScaleSetOSDisk) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	diffDiskSettings := make([]interface{}, 0)
+	diffDiskSettings := make([]any, 0)
 	if input.DiffDiskSettings != nil {
-		diffDiskSettings = append(diffDiskSettings, map[string]interface{}{
+		diffDiskSettings = append(diffDiskSettings, map[string]any{
 			"option":    pointer.From(input.DiffDiskSettings.Option),
 			"placement": pointer.From(input.DiffDiskSettings.Placement),
 		})
@@ -1965,19 +1928,16 @@ func FlattenOrchestratedVirtualMachineScaleSetOSDisk(input *virtualmachinescales
 	storageAccountType := ""
 	diskEncryptionSetId := ""
 	if input.ManagedDisk != nil {
-		storageAccountType = string(pointer.From(input.ManagedDisk.StorageAccountType))
+		storageAccountType = pointer.FromEnum(input.ManagedDisk.StorageAccountType)
 		if input.ManagedDisk.DiskEncryptionSet != nil && input.ManagedDisk.DiskEncryptionSet.Id != nil {
 			diskEncryptionSetId = *input.ManagedDisk.DiskEncryptionSet.Id
 		}
 	}
 
-	writeAcceleratorEnabled := false
-	if input.WriteAcceleratorEnabled != nil {
-		writeAcceleratorEnabled = *input.WriteAcceleratorEnabled
-	}
+	writeAcceleratorEnabled := pointer.From(input.WriteAcceleratorEnabled)
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"caching":                   pointer.From(input.Caching),
 			"disk_size_gb":              diskSizeGb,
 			"diff_disk_settings":        diffDiskSettings,
@@ -1988,7 +1948,7 @@ func FlattenOrchestratedVirtualMachineScaleSetOSDisk(input *virtualmachinescales
 	}
 }
 
-func FlattenOrchestratedVirtualMachineScaleSetScheduledEventsProfile(input *virtualmachinescalesets.ScheduledEventsProfile) []interface{} {
+func FlattenOrchestratedVirtualMachineScaleSetScheduledEventsProfile(input *virtualmachinescalesets.ScheduledEventsProfile) []any {
 	// if enabled is set to false, there will be no ScheduledEventsProfile in response, to avoid plan non empty when
 	// a user explicitly set enabled to false, we need to assign a default block to this field
 
@@ -2002,16 +1962,15 @@ func FlattenOrchestratedVirtualMachineScaleSetScheduledEventsProfile(input *virt
 		timeout = *input.TerminateNotificationProfile.NotBeforeTimeout
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"enabled": enabled,
 			"timeout": timeout,
 		},
 	}
 }
 
-func FlattenOrchestratedVirtualMachineScaleSetPriorityMixPolicy(input *virtualmachinescalesets.PriorityMixPolicy) []interface{} {
-
+func FlattenOrchestratedVirtualMachineScaleSetPriorityMixPolicy(input *virtualmachinescalesets.PriorityMixPolicy) []any {
 	baseRegularPriorityCount := int64(0)
 	if input != nil && input.BaseRegularPriorityCount != nil {
 		baseRegularPriorityCount = *input.BaseRegularPriorityCount
@@ -2022,8 +1981,8 @@ func FlattenOrchestratedVirtualMachineScaleSetPriorityMixPolicy(input *virtualma
 		regularPriorityPercentageAboveBase = *input.RegularPriorityPercentageAboveBase
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"base_regular_count":            baseRegularPriorityCount,
 			"regular_percentage_above_base": regularPriorityPercentageAboveBase,
 		},

@@ -24,6 +24,18 @@ type DigitalTwinsListByResourceGroupCompleteResult struct {
 	Items              []DigitalTwinsDescription
 }
 
+type DigitalTwinsListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *DigitalTwinsListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // DigitalTwinsListByResourceGroup ...
 func (c DigitalTwinsInstanceClient) DigitalTwinsListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result DigitalTwinsListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c DigitalTwinsInstanceClient) DigitalTwinsListByResourceGroup(ctx context.
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &DigitalTwinsListByResourceGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.DigitalTwins/digitalTwinsInstances", id.ID()),
 	}
 

@@ -1,18 +1,19 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package servicebus
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/disasterrecoveryconfigs"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/namespacesauthorizationrule"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2022-10-01-preview/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/armdisasterrecoveries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespacesauthorizationrule"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -105,23 +106,23 @@ func authorizationRuleSchemaFrom(s map[string]*pluginsdk.Schema) map[string]*plu
 	return s
 }
 
-func authorizationRuleCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+func authorizationRuleCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ any) error {
 	listen, hasListen := d.GetOk("listen")
 	send, hasSend := d.GetOk("send")
 	manage, hasManage := d.GetOk("manage")
 
 	if !hasListen && !hasSend && !hasManage {
-		return fmt.Errorf("One of the `listen`, `send` or `manage` properties needs to be set")
+		return errors.New("one of the `listen`, `send` or `manage` properties needs to be set")
 	}
 
 	if manage.(bool) && (!listen.(bool) || !send.(bool)) {
-		return fmt.Errorf("if `manage` is set both `listen` and `send` must be set to true too")
+		return errors.New("if `manage` is set both `listen` and `send` must be set to true too")
 	}
 
 	return nil
 }
 
-func waitForPairedNamespaceReplication(ctx context.Context, meta interface{}, id namespaces.NamespaceId, timeout time.Duration) error {
+func waitForPairedNamespaceReplication(ctx context.Context, meta any, id namespaces.NamespaceId, timeout time.Duration) error {
 	namespaceClient := meta.(*clients.Client).ServiceBus.NamespacesClient
 	resp, err := namespaceClient.Get(ctx, id)
 
@@ -131,9 +132,9 @@ func waitForPairedNamespaceReplication(ctx context.Context, meta interface{}, id
 		}
 	}
 
-	disasterRecoveryClient := meta.(*clients.Client).ServiceBus.DisasterRecoveryConfigsClient
-	disasterRecoveryNamespaceId := disasterrecoveryconfigs.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
-	disasterRecoveryResponse, err := disasterRecoveryClient.List(ctx, disasterRecoveryNamespaceId)
+	disasterRecoveryClient := meta.(*clients.Client).ServiceBus.ArmDisasterRecoveriesClient
+	disasterRecoveryNamespaceId := armdisasterrecoveries.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
+	disasterRecoveryResponse, err := disasterRecoveryClient.DisasterRecoveryConfigsList(ctx, disasterRecoveryNamespaceId)
 
 	if disasterRecoveryResponse.Model == nil {
 		return err
@@ -145,21 +146,21 @@ func waitForPairedNamespaceReplication(ctx context.Context, meta interface{}, id
 
 	aliasName := (*disasterRecoveryResponse.Model)[0].Name
 
-	disasterRecoveryConfigId := disasterrecoveryconfigs.NewDisasterRecoveryConfigID(disasterRecoveryNamespaceId.SubscriptionId, disasterRecoveryNamespaceId.ResourceGroupName, disasterRecoveryNamespaceId.NamespaceName, *aliasName)
+	disasterRecoveryConfigId := armdisasterrecoveries.NewDisasterRecoveryConfigID(disasterRecoveryNamespaceId.SubscriptionId, disasterRecoveryNamespaceId.ResourceGroupName, disasterRecoveryNamespaceId.NamespaceName, *aliasName)
 
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{string(disasterrecoveryconfigs.ProvisioningStateDRAccepted)},
-		Target:     []string{string(disasterrecoveryconfigs.ProvisioningStateDRSucceeded)},
+		Pending:    []string{string(armdisasterrecoveries.ProvisioningStateDRAccepted)},
+		Target:     []string{string(armdisasterrecoveries.ProvisioningStateDRSucceeded)},
 		MinTimeout: 30 * time.Second,
 		Timeout:    timeout,
-		Refresh: func() (interface{}, string, error) {
-			resp, err := disasterRecoveryClient.Get(ctx, disasterRecoveryConfigId)
+		Refresh: func() (any, string, error) {
+			resp, err := disasterRecoveryClient.DisasterRecoveryConfigsGet(ctx, disasterRecoveryConfigId)
 			if err != nil {
 				return nil, "error", fmt.Errorf("wait read for %s: %v", disasterRecoveryConfigId, err)
 			}
 
 			if model := resp.Model; model != nil {
-				if *model.Properties.ProvisioningState == disasterrecoveryconfigs.ProvisioningStateDRFailed {
+				if *model.Properties.ProvisioningState == armdisasterrecoveries.ProvisioningStateDRFailed {
 					return resp, "failed", fmt.Errorf("replication for %s failed", disasterRecoveryConfigId)
 				}
 				return resp, string(*model.Properties.ProvisioningState), nil
@@ -173,7 +174,7 @@ func waitForPairedNamespaceReplication(ctx context.Context, meta interface{}, id
 	return waitErr
 }
 
-func waitForNamespaceStatusToBeReady(ctx context.Context, meta interface{}, id namespaces.NamespaceId, timeout time.Duration) error {
+func waitForNamespaceStatusToBeReady(ctx context.Context, meta any, id namespaces.NamespaceId, timeout time.Duration) error {
 	namespaceClient := meta.(*clients.Client).ServiceBus.NamespacesClient
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending: []string{
@@ -195,7 +196,7 @@ func waitForNamespaceStatusToBeReady(ctx context.Context, meta interface{}, id n
 }
 
 func serviceBusNamespaceProvisioningStateRefreshFunc(ctx context.Context, client *namespaces.NamespacesClient, id namespaces.NamespaceId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		res, err := client.Get(ctx, id)
 		if err != nil {
 			return nil, "", fmt.Errorf("retrieving servicebus namespace error: %+v", err)

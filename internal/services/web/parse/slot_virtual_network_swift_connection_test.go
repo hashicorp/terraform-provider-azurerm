@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = SlotVirtualNetworkSwiftConnectionId{}
 
-func TestSlotVirtualNetworkSwiftConnectionIDFormatter(t *testing.T) {
+func TestParseSlotVirtualNetworkSwiftConnectionIDFormatter(t *testing.T) {
 	actual := NewSlotVirtualNetworkSwiftConnectionID("12345678-1234-9876-4563-123456789012", "resGroup1", "site1", "slot1", "virtualNetwork").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/slots/slot1/config/virtualNetwork"
 	if actual != expected {
@@ -21,13 +21,12 @@ func TestSlotVirtualNetworkSwiftConnectionIDFormatter(t *testing.T) {
 	}
 }
 
-func TestSlotVirtualNetworkSwiftConnectionID(t *testing.T) {
+func TestParseSlotVirtualNetworkSwiftConnectionID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
 		Expected *SlotVirtualNetworkSwiftConnectionId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -1,9 +1,12 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package azuresdkhacks
 
 import (
 	"encoding/json"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2022-10-01/vaultcertificates"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2024-04-01/vaultcertificates"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -19,7 +22,7 @@ type CertificateCreateOptions struct {
 }
 
 func (c CertificateCreateOptions) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
+	objectMap := make(map[string]any)
 
 	objectMap["validityInHours"] = c.ValidityInHours
 	return json.Marshal(objectMap)

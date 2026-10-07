@@ -1,0 +1,56 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
+package storage
+
+import (
+	"slices"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storageaccounts"
+)
+
+type storageAccountServiceSupportLevel struct {
+	supportBlob          bool
+	supportQueue         bool
+	supportShare         bool
+	supportStaticWebsite bool
+	supportTable         bool
+}
+
+func availableFunctionalityForAccount(kind storageaccounts.Kind, tier storageaccounts.SkuTier, replicationType string) storageAccountServiceSupportLevel {
+	// FileStorage doesn't support blob
+	supportBlob := kind != storageaccounts.KindFileStorage
+
+	// Queue is only supported for Storage and StorageV2, in Standard sku tier.
+	supportQueue := tier == storageaccounts.SkuTierStandard && (kind == storageaccounts.KindStorageVTwo ||
+		(kind == storageaccounts.KindStorage &&
+			// Per local test, only LRS/GRS/RAGRS Storage V1 accounts support queue endpoint.
+			// GZRS and RAGZRS is invalid, while ZRS is valid but has no queue endpoint.
+			slices.Contains([]string{"LRS", "GRS", "RAGRS"}, replicationType)))
+
+	// File share is only supported for StorageV2 and FileStorage.
+	// See: https://docs.microsoft.com/azure/storage/files/storage-files-planning#management-concepts
+	// Per test, the StorageV2 with Premium sku tier also doesn't support file share.
+	supportShare := kind == storageaccounts.KindFileStorage || (tier != storageaccounts.SkuTierPremium && (kind == storageaccounts.KindStorageVTwo ||
+		(kind == storageaccounts.KindStorage &&
+			// Per local test, only LRS/GRS/RAGRS Storage V1 accounts support file endpoint.
+			// GZRS and RAGZRS is invalid, while ZRS is valid but has no file endpoint.
+			slices.Contains([]string{"LRS", "GRS", "RAGRS"}, replicationType))))
+
+	// Static Website is only supported for StorageV2 (not for Storage(v1)) and BlockBlobStorage
+	supportStaticWebSite := kind == storageaccounts.KindStorageVTwo || kind == storageaccounts.KindBlockBlobStorage
+
+	// Table is only supported for Storage and StorageV2, in Standard sku tier.
+	// This matches the same conditions as Queue Storage.
+	supportTable := tier == storageaccounts.SkuTierStandard && (kind == storageaccounts.KindStorageVTwo ||
+		(kind == storageaccounts.KindStorage &&
+			slices.Contains([]string{"LRS", "GRS", "RAGRS"}, replicationType)))
+
+	return storageAccountServiceSupportLevel{
+		supportBlob:          supportBlob,
+		supportQueue:         supportQueue,
+		supportShare:         supportShare,
+		supportStaticWebsite: supportStaticWebSite,
+		supportTable:         supportTable,
+	}
+}

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package servicefabric_test
@@ -8,18 +8,18 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicefabric/2021-06-01/cluster"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ServiceFabricClusterResource struct{}
 
-func TestAccAzureRMServiceFabricCluster_basic(t *testing.T) {
+func TestAccServiceFabricCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -28,9 +28,9 @@ func TestAccAzureRMServiceFabricCluster_basic(t *testing.T) {
 			Config: r.basic(data, 3),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("management_endpoint").HasValue("http://example:80"),
+				check.That(data.ResourceName).Key("management_endpoint").HasValue("https://example:80"),
 				check.That(data.ResourceName).Key("add_on_features.#").HasValue("0"),
-				check.That(data.ResourceName).Key("certificate.#").HasValue("0"),
+				check.That(data.ResourceName).Key("certificate.#").HasValue("1"),
 				check.That(data.ResourceName).Key("reverse_proxy_certificate.#").HasValue("0"),
 				check.That(data.ResourceName).Key("client_certificate_thumbprint.#").HasValue("0"),
 				check.That(data.ResourceName).Key("azure_active_directory.#").HasValue("0"),
@@ -44,7 +44,7 @@ func TestAccAzureRMServiceFabricCluster_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_basicNodeTypeUpdate(t *testing.T) {
+func TestAccServiceFabricCluster_basicNodeTypeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -53,9 +53,9 @@ func TestAccAzureRMServiceFabricCluster_basicNodeTypeUpdate(t *testing.T) {
 			Config: r.basic(data, 3),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("management_endpoint").HasValue("http://example:80"),
+				check.That(data.ResourceName).Key("management_endpoint").HasValue("https://example:80"),
 				check.That(data.ResourceName).Key("add_on_features.#").HasValue("0"),
-				check.That(data.ResourceName).Key("certificate.#").HasValue("0"),
+				check.That(data.ResourceName).Key("certificate.#").HasValue("1"),
 				check.That(data.ResourceName).Key("reverse_proxy_certificate.#").HasValue("0"),
 				check.That(data.ResourceName).Key("client_certificate_thumbprint.#").HasValue("0"),
 				check.That(data.ResourceName).Key("azure_active_directory.#").HasValue("0"),
@@ -69,9 +69,9 @@ func TestAccAzureRMServiceFabricCluster_basicNodeTypeUpdate(t *testing.T) {
 			Config: r.basicNodeTypeUpdate(data, 3, 3),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("management_endpoint").HasValue("http://example:80"),
+				check.That(data.ResourceName).Key("management_endpoint").HasValue("https://example:80"),
 				check.That(data.ResourceName).Key("add_on_features.#").HasValue("0"),
-				check.That(data.ResourceName).Key("certificate.#").HasValue("0"),
+				check.That(data.ResourceName).Key("certificate.#").HasValue("1"),
 				check.That(data.ResourceName).Key("reverse_proxy_certificate.#").HasValue("0"),
 				check.That(data.ResourceName).Key("client_certificate_thumbprint.#").HasValue("0"),
 				check.That(data.ResourceName).Key("azure_active_directory.#").HasValue("0"),
@@ -86,7 +86,7 @@ func TestAccAzureRMServiceFabricCluster_basicNodeTypeUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_requiresImport(t *testing.T) {
+func TestAccServiceFabricCluster_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -95,9 +95,9 @@ func TestAccAzureRMServiceFabricCluster_requiresImport(t *testing.T) {
 			Config: r.basic(data, 3),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("management_endpoint").HasValue("http://example:80"),
+				check.That(data.ResourceName).Key("management_endpoint").HasValue("https://example:80"),
 				check.That(data.ResourceName).Key("add_on_features.#").HasValue("0"),
-				check.That(data.ResourceName).Key("certificate.#").HasValue("0"),
+				check.That(data.ResourceName).Key("certificate.#").HasValue("1"),
 				check.That(data.ResourceName).Key("reverse_proxy_certificate.#").HasValue("0"),
 				check.That(data.ResourceName).Key("client_certificate_thumbprint.#").HasValue("0"),
 				check.That(data.ResourceName).Key("azure_active_directory.#").HasValue("0"),
@@ -111,7 +111,7 @@ func TestAccAzureRMServiceFabricCluster_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_manualClusterCodeVersion(t *testing.T) {
+func TestAccServiceFabricCluster_manualClusterCodeVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	codeVersion := "10.1.1541.9590"
 	r := ServiceFabricClusterResource{}
@@ -137,7 +137,7 @@ func TestAccAzureRMServiceFabricCluster_manualClusterCodeVersion(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_manualLatest(t *testing.T) {
+func TestAccServiceFabricCluster_manualLatest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -154,7 +154,7 @@ func TestAccAzureRMServiceFabricCluster_manualLatest(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_addOnFeatures(t *testing.T) {
+func TestAccServiceFabricCluster_addOnFeatures(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -170,7 +170,7 @@ func TestAccAzureRMServiceFabricCluster_addOnFeatures(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_certificate(t *testing.T) {
+func TestAccServiceFabricCluster_certificate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -191,7 +191,7 @@ func TestAccAzureRMServiceFabricCluster_certificate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_reverseProxyCertificate(t *testing.T) {
+func TestAccServiceFabricCluster_reverseProxyCertificate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -216,7 +216,7 @@ func TestAccAzureRMServiceFabricCluster_reverseProxyCertificate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_reverseProxyNotSet(t *testing.T) {
+func TestAccServiceFabricCluster_reverseProxyNotSet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -225,9 +225,9 @@ func TestAccAzureRMServiceFabricCluster_reverseProxyNotSet(t *testing.T) {
 			Config: r.basic(data, 3),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("management_endpoint").HasValue("http://example:80"),
+				check.That(data.ResourceName).Key("management_endpoint").HasValue("https://example:80"),
 				check.That(data.ResourceName).Key("add_on_features.#").HasValue("0"),
-				check.That(data.ResourceName).Key("certificate.#").HasValue("0"),
+				check.That(data.ResourceName).Key("certificate.#").HasValue("1"),
 				check.That(data.ResourceName).Key("reverse_proxy_certificate.#").HasValue("0"),
 				check.That(data.ResourceName).Key("client_certificate_thumbprint.#").HasValue("0"),
 				check.That(data.ResourceName).Key("azure_active_directory.#").HasValue("0"),
@@ -242,7 +242,7 @@ func TestAccAzureRMServiceFabricCluster_reverseProxyNotSet(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_reverseProxyUpdate(t *testing.T) {
+func TestAccServiceFabricCluster_reverseProxyUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -251,9 +251,9 @@ func TestAccAzureRMServiceFabricCluster_reverseProxyUpdate(t *testing.T) {
 			Config: r.basic(data, 3),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("management_endpoint").HasValue("http://example:80"),
+				check.That(data.ResourceName).Key("management_endpoint").HasValue("https://example:80"),
 				check.That(data.ResourceName).Key("add_on_features.#").HasValue("0"),
-				check.That(data.ResourceName).Key("certificate.#").HasValue("0"),
+				check.That(data.ResourceName).Key("certificate.#").HasValue("1"),
 				check.That(data.ResourceName).Key("reverse_proxy_certificate.#").HasValue("0"),
 				check.That(data.ResourceName).Key("client_certificate_thumbprint.#").HasValue("0"),
 				check.That(data.ResourceName).Key("azure_active_directory.#").HasValue("0"),
@@ -283,9 +283,9 @@ func TestAccAzureRMServiceFabricCluster_reverseProxyUpdate(t *testing.T) {
 			Config: r.basic(data, 3),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("management_endpoint").HasValue("http://example:80"),
+				check.That(data.ResourceName).Key("management_endpoint").HasValue("https://example:80"),
 				check.That(data.ResourceName).Key("add_on_features.#").HasValue("0"),
-				check.That(data.ResourceName).Key("certificate.#").HasValue("0"),
+				check.That(data.ResourceName).Key("certificate.#").HasValue("1"),
 				check.That(data.ResourceName).Key("reverse_proxy_certificate.#").HasValue("0"),
 				check.That(data.ResourceName).Key("client_certificate_thumbprint.#").HasValue("0"),
 				check.That(data.ResourceName).Key("azure_active_directory.#").HasValue("0"),
@@ -299,7 +299,7 @@ func TestAccAzureRMServiceFabricCluster_reverseProxyUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_clientCertificateThumbprint(t *testing.T) {
+func TestAccServiceFabricCluster_clientCertificateThumbprint(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -312,7 +312,7 @@ func TestAccAzureRMServiceFabricCluster_clientCertificateThumbprint(t *testing.T
 				check.That(data.ResourceName).Key("certificate.0.thumbprint").HasValue("3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
 				check.That(data.ResourceName).Key("certificate.0.x509_store_name").HasValue("My"),
 				check.That(data.ResourceName).Key("client_certificate_thumbprint.#").HasValue("1"),
-				check.That(data.ResourceName).Key("client_certificate_thumbprint.0.thumbprint").HasValue("3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
+				check.That(data.ResourceName).Key("client_certificate_thumbprint.0.thumbprint").HasValue("8155941a075f972a60ae1c74c749bbddf82960b5"),
 				check.That(data.ResourceName).Key("client_certificate_thumbprint.0.is_admin").HasValue("true"),
 				check.That(data.ResourceName).Key("client_certificate_common_name.#").HasValue("0"),
 				check.That(data.ResourceName).Key("fabric_settings.0.name").HasValue("Security"),
@@ -324,7 +324,7 @@ func TestAccAzureRMServiceFabricCluster_clientCertificateThumbprint(t *testing.T
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_withMultipleClientCertificateThumbprints(t *testing.T) {
+func TestAccServiceFabricCluster_withMultipleClientCertificateThumbprints(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -339,7 +339,7 @@ func TestAccAzureRMServiceFabricCluster_withMultipleClientCertificateThumbprints
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_clientCertificateCommonNames(t *testing.T) {
+func TestAccServiceFabricCluster_clientCertificateCommonNames(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -351,12 +351,12 @@ func TestAccAzureRMServiceFabricCluster_clientCertificateCommonNames(t *testing.
 				check.That(data.ResourceName).Key("client_certificate_common_name.#").HasValue("2"),
 				check.That(data.ResourceName).Key("client_certificate_common_name.0.common_name").HasValue("firstcertcommonname"),
 				check.That(data.ResourceName).Key("client_certificate_common_name.0.is_admin").HasValue("true"),
-				check.That(data.ResourceName).Key("client_certificate_common_name.0.issuer_thumbprint").HasValue("3341db6cf2af72c611df3be3721a653af1d43ecd50f584f828793dbe9103c3ee"),
+				check.That(data.ResourceName).Key("client_certificate_common_name.0.issuer_thumbprint").HasValue("8155941a075f972a60ae1c74c749bbddf82960b5"),
 				check.That(data.ResourceName).Key("client_certificate_common_name.1.common_name").HasValue("secondcertcommonname"),
 				check.That(data.ResourceName).Key("client_certificate_common_name.1.is_admin").HasValue("false"),
 				check.That(data.ResourceName).Key("client_certificate_common_name.1.issuer_thumbprint").IsEmpty(),
 				check.That(data.ResourceName).Key("client_certificate_thumbprint.#").HasValue("1"),
-				check.That(data.ResourceName).Key("client_certificate_thumbprint.0.thumbprint").HasValue("3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
+				check.That(data.ResourceName).Key("client_certificate_thumbprint.0.thumbprint").HasValue("312d31a79fa0cef49c00f769afc2b73e9f4edf34"),
 				check.That(data.ResourceName).Key("client_certificate_thumbprint.0.is_admin").HasValue("true"),
 				check.That(data.ResourceName).Key("fabric_settings.0.name").HasValue("Security"),
 				check.That(data.ResourceName).Key("fabric_settings.0.parameters.ClusterProtectionLevel").HasValue("EncryptAndSign"),
@@ -367,7 +367,7 @@ func TestAccAzureRMServiceFabricCluster_clientCertificateCommonNames(t *testing.
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_readerAdminClientCertificateThumbprint(t *testing.T) {
+func TestAccServiceFabricCluster_readerAdminClientCertificateThumbprint(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -380,9 +380,9 @@ func TestAccAzureRMServiceFabricCluster_readerAdminClientCertificateThumbprint(t
 				check.That(data.ResourceName).Key("certificate.0.thumbprint").HasValue("3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
 				check.That(data.ResourceName).Key("certificate.0.x509_store_name").HasValue("My"),
 				check.That(data.ResourceName).Key("client_certificate_thumbprint.#").HasValue("2"),
-				check.That(data.ResourceName).Key("client_certificate_thumbprint.0.thumbprint").HasValue("3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
+				check.That(data.ResourceName).Key("client_certificate_thumbprint.0.thumbprint").HasValue("8155941a075f972a60ae1c74c749bbddf82960b5"),
 				check.That(data.ResourceName).Key("client_certificate_thumbprint.0.is_admin").HasValue("true"),
-				check.That(data.ResourceName).Key("client_certificate_thumbprint.1.thumbprint").HasValue("3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"),
+				check.That(data.ResourceName).Key("client_certificate_thumbprint.1.thumbprint").HasValue("312d31a79fa0cef49c00f769afc2b73e9f4edf34"),
 				check.That(data.ResourceName).Key("client_certificate_thumbprint.1.is_admin").HasValue("false"),
 				check.That(data.ResourceName).Key("client_certificate_common_name.#").HasValue("0"),
 				check.That(data.ResourceName).Key("fabric_settings.0.name").HasValue("Security"),
@@ -394,7 +394,7 @@ func TestAccAzureRMServiceFabricCluster_readerAdminClientCertificateThumbprint(t
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_certificateCommonNames(t *testing.T) {
+func TestAccServiceFabricCluster_certificateCommonNames(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -413,7 +413,7 @@ func TestAccAzureRMServiceFabricCluster_certificateCommonNames(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_reverseProxyCertificateCommonNames(t *testing.T) {
+func TestAccServiceFabricCluster_reverseProxyCertificateCommonNames(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -432,7 +432,7 @@ func TestAccAzureRMServiceFabricCluster_reverseProxyCertificateCommonNames(t *te
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_azureActiveDirectory(t *testing.T) {
+func TestAccServiceFabricCluster_azureActiveDirectory(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -457,7 +457,7 @@ func TestAccAzureRMServiceFabricCluster_azureActiveDirectory(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_azureActiveDirectoryDelete(t *testing.T) {
+func TestAccServiceFabricCluster_azureActiveDirectoryDelete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -495,7 +495,7 @@ func TestAccAzureRMServiceFabricCluster_azureActiveDirectoryDelete(t *testing.T)
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_diagnosticsConfig(t *testing.T) {
+func TestAccServiceFabricCluster_diagnosticsConfig(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -516,7 +516,7 @@ func TestAccAzureRMServiceFabricCluster_diagnosticsConfig(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_diagnosticsConfigDelete(t *testing.T) {
+func TestAccServiceFabricCluster_diagnosticsConfigDelete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -544,7 +544,7 @@ func TestAccAzureRMServiceFabricCluster_diagnosticsConfigDelete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_fabricSettings(t *testing.T) {
+func TestAccServiceFabricCluster_fabricSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -563,7 +563,7 @@ func TestAccAzureRMServiceFabricCluster_fabricSettings(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_fabricSettingsRemove(t *testing.T) {
+func TestAccServiceFabricCluster_fabricSettingsRemove(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -585,7 +585,7 @@ func TestAccAzureRMServiceFabricCluster_fabricSettingsRemove(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_nodeTypeCustomPorts(t *testing.T) {
+func TestAccServiceFabricCluster_nodeTypeCustomPorts(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -607,7 +607,7 @@ func TestAccAzureRMServiceFabricCluster_nodeTypeCustomPorts(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_nodeTypesMultiple(t *testing.T) {
+func TestAccServiceFabricCluster_nodeTypesMultiple(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -629,7 +629,7 @@ func TestAccAzureRMServiceFabricCluster_nodeTypesMultiple(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_nodeTypesUpdate(t *testing.T) {
+func TestAccServiceFabricCluster_nodeTypesUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -651,7 +651,7 @@ func TestAccAzureRMServiceFabricCluster_nodeTypesUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_nodeTypeProperties(t *testing.T) {
+func TestAccServiceFabricCluster_nodeTypeProperties(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -703,7 +703,7 @@ func TestAccServiceFabricCluster_clusterUpgradePolicy(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_tags(t *testing.T) {
+func TestAccServiceFabricCluster_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -720,7 +720,7 @@ func TestAccAzureRMServiceFabricCluster_tags(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_nodeTypesStateless(t *testing.T) {
+func TestAccServiceFabricCluster_nodeTypesStateless(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -743,7 +743,7 @@ func TestAccAzureRMServiceFabricCluster_nodeTypesStateless(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_zonalUpgradeMode(t *testing.T) {
+func TestAccServiceFabricCluster_zonalUpgradeMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -752,9 +752,9 @@ func TestAccAzureRMServiceFabricCluster_zonalUpgradeMode(t *testing.T) {
 			Config: r.zonalUpgradeMode(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("management_endpoint").HasValue("http://example:80"),
+				check.That(data.ResourceName).Key("management_endpoint").HasValue("https://example:80"),
 				check.That(data.ResourceName).Key("add_on_features.#").HasValue("0"),
-				check.That(data.ResourceName).Key("certificate.#").HasValue("0"),
+				check.That(data.ResourceName).Key("certificate.#").HasValue("1"),
 				check.That(data.ResourceName).Key("reverse_proxy_certificate.#").HasValue("0"),
 				check.That(data.ResourceName).Key("client_certificate_thumbprint.#").HasValue("0"),
 				check.That(data.ResourceName).Key("azure_active_directory.#").HasValue("0"),
@@ -779,11 +779,11 @@ func (r ServiceFabricClusterResource) Exists(ctx context.Context, client *client
 	resp, err := client.ServiceFabric.ClustersClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id.ID(), err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r ServiceFabricClusterResource) basic(data acceptance.TestData, count int) string {
@@ -804,7 +804,12 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-  management_endpoint = "http://example:80"
+  management_endpoint = "https://example:80"
+
+  certificate {
+    thumbprint      = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    x509_store_name = "My"
+  }
 
   node_type {
     name                 = "first"
@@ -835,7 +840,12 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-  management_endpoint = "http://example:80"
+  management_endpoint = "https://example:80"
+
+  certificate {
+    thumbprint      = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    x509_store_name = "My"
+  }
 
   node_type {
     name                 = "first"
@@ -899,7 +909,12 @@ resource "azurerm_service_fabric_cluster" "test" {
   upgrade_mode         = "Manual"
   cluster_code_version = "%[3]s"
   vm_image             = "Windows"
-  management_endpoint  = "http://example:80"
+  management_endpoint  = "https://example:80"
+
+  certificate {
+    thumbprint      = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    x509_store_name = "My"
+  }
 
   node_type {
     name                 = "first"
@@ -930,8 +945,13 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-  management_endpoint = "http://example:80"
+  management_endpoint = "https://example:80"
   add_on_features     = ["DnsService", "RepairManager"]
+
+  certificate {
+    thumbprint      = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    x509_store_name = "My"
+  }
 
   node_type {
     name                 = "first"
@@ -1064,7 +1084,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   }
 
   client_certificate_thumbprint {
-    thumbprint = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    thumbprint = "8155941a075f972a60ae1c74c749bbddf82960b5"
     is_admin   = true
   }
 
@@ -1113,17 +1133,17 @@ resource "azurerm_service_fabric_cluster" "test" {
   }
 
   client_certificate_thumbprint {
-    thumbprint = "1341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    thumbprint = "8155941a075f972a60ae1c74c749bbddf82960b5"
     is_admin   = true
   }
 
   client_certificate_thumbprint {
-    thumbprint = "2341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    thumbprint = "312d31a79fa0cef49c00f769afc2b73e9f4edf34"
     is_admin   = false
   }
 
   client_certificate_thumbprint {
-    thumbprint = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    thumbprint = "83FFBFC8848B5A5836C94D0112367E16148A286F"
     is_admin   = true
   }
 
@@ -1148,6 +1168,10 @@ resource "azurerm_service_fabric_cluster" "test" {
 
 func (r ServiceFabricClusterResource) clientCertificateCommonNames(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1169,7 +1193,7 @@ resource "azurerm_service_fabric_cluster" "test" {
 
   client_certificate_common_name {
     common_name       = "firstcertcommonname"
-    issuer_thumbprint = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    issuer_thumbprint = "8155941a075f972a60ae1c74c749bbddf82960b5"
     is_admin          = true
   }
 
@@ -1179,7 +1203,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   }
 
   client_certificate_thumbprint {
-    thumbprint = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    thumbprint = "312d31a79fa0cef49c00f769afc2b73e9f4edf34"
     is_admin   = true
   }
 
@@ -1228,12 +1252,12 @@ resource "azurerm_service_fabric_cluster" "test" {
   }
 
   client_certificate_thumbprint {
-    thumbprint = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    thumbprint = "8155941a075f972a60ae1c74c749bbddf82960b5"
     is_admin   = true
   }
 
   client_certificate_thumbprint {
-    thumbprint = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    thumbprint = "312d31a79fa0cef49c00f769afc2b73e9f4edf34"
     is_admin   = false
   }
 
@@ -1404,7 +1428,7 @@ resource "azuread_application" "cluster_explorer" {
 }
 
 resource "azuread_service_principal" "cluster_explorer" {
-  application_id = azuread_application.cluster_explorer.application_id
+  client_id = azuread_application.cluster_explorer.client_id
 }
 
 resource "azuread_application" "cluster_console" {
@@ -1430,7 +1454,7 @@ resource "azuread_application" "cluster_console" {
   }
 
   required_resource_access {
-    resource_app_id = azuread_application.cluster_explorer.application_id
+    resource_app_id = azuread_application.cluster_explorer.client_id
 
     resource_access {
       id   = "311a71cc-e848-46a1-bdf8-97ff7156d8e6" # sign in and user profile permission ctx https://github.com/Azure/azure-cli/issues/7925
@@ -1440,7 +1464,7 @@ resource "azuread_application" "cluster_console" {
 }
 
 resource "azuread_service_principal" "cluster_console" {
-  application_id = azuread_application.cluster_console.application_id
+  client_id = azuread_application.cluster_console.client_id
 }
 
 resource "azurerm_service_fabric_cluster" "test" {
@@ -1459,8 +1483,8 @@ resource "azurerm_service_fabric_cluster" "test" {
 
   azure_active_directory {
     tenant_id              = data.azurerm_client_config.current.tenant_id
-    cluster_application_id = azuread_application.cluster_explorer.application_id
-    client_application_id  = azuread_application.cluster_console.application_id
+    cluster_application_id = azuread_application.cluster_explorer.client_id
+    client_application_id  = azuread_application.cluster_console.client_id
   }
 
   fabric_settings {
@@ -1555,7 +1579,12 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-  management_endpoint = "http://example:80"
+  management_endpoint = "https://example:80"
+
+  certificate {
+    thumbprint      = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    x509_store_name = "My"
+  }
 
   diagnostics_config {
     storage_account_name       = azurerm_storage_account.test.name
@@ -1602,7 +1631,12 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-  management_endpoint = "http://example:80"
+  management_endpoint = "https://example:80"
+
+  certificate {
+    thumbprint      = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    x509_store_name = "My"
+  }
 
   node_type {
     name                 = "first"
@@ -1633,7 +1667,12 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-  management_endpoint = "http://example:80"
+  management_endpoint = "https://example:80"
+
+  certificate {
+    thumbprint      = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    x509_store_name = "My"
+  }
 
   fabric_settings {
     name = "Security"
@@ -1672,7 +1711,12 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-  management_endpoint = "http://example:80"
+  management_endpoint = "https://example:80"
+
+  certificate {
+    thumbprint      = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    x509_store_name = "My"
+  }
 
   node_type {
     name                 = "first"
@@ -1713,7 +1757,12 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-  management_endpoint = "http://example:80"
+  management_endpoint = "https://example:80"
+
+  certificate {
+    thumbprint      = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    x509_store_name = "My"
+  }
 
   node_type {
     name                 = "first"
@@ -1752,7 +1801,12 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-  management_endpoint = "http://example:80"
+  management_endpoint = "https://example:80"
+
+  certificate {
+    thumbprint      = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    x509_store_name = "My"
+  }
 
   node_type {
     name = "first"
@@ -1797,7 +1851,12 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-  management_endpoint = "http://example:80"
+  management_endpoint = "https://example:80"
+
+  certificate {
+    thumbprint      = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    x509_store_name = "My"
+  }
 
   node_type {
     name                 = "first"
@@ -1837,7 +1896,11 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-  management_endpoint = "http://example:80"
+  management_endpoint = "https://example:80"
+  certificate {
+    thumbprint      = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    x509_store_name = "My"
+  }
   diagnostics_config {
     storage_account_name       = azurerm_storage_account.test.name
     protected_account_key_name = "StorageAccountKey1"
@@ -1897,7 +1960,11 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-  management_endpoint = "http://example:80"
+  management_endpoint = "https://example:80"
+  certificate {
+    thumbprint      = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    x509_store_name = "My"
+  }
   diagnostics_config {
     storage_account_name       = azurerm_storage_account.test.name
     protected_account_key_name = "StorageAccountKey1"
@@ -1943,7 +2010,12 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-  management_endpoint = "http://example:80"
+  management_endpoint = "https://example:80"
+
+  certificate {
+    thumbprint      = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    x509_store_name = "My"
+  }
 
   node_type {
     name                 = "first"
@@ -1983,9 +2055,14 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level                 = "Bronze"
   upgrade_mode                      = "Automatic"
   vm_image                          = "Windows"
-  management_endpoint               = "http://example:80"
+  management_endpoint               = "https://example:80"
   service_fabric_zonal_upgrade_mode = "Hierarchical"
   vmss_zonal_upgrade_mode           = "Parallel"
+
+  certificate {
+    thumbprint      = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    x509_store_name = "My"
+  }
 
   node_type {
     name                        = "first"

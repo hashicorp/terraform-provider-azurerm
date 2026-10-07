@@ -1,9 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2019, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package tfjson
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -29,6 +30,12 @@ const (
 
 // Plan represents the entire contents of an output Terraform plan.
 type Plan struct {
+	// useJSONNumber opts into the behavior of calling
+	// json.Decoder.UseNumber prior to decoding the plan, which turns
+	// numbers into json.Numbers instead of float64s. Set it using
+	// Plan.UseJSONNumber.
+	useJSONNumber bool
+
 	// The version of the plan format. This should always match the
 	// PlanFormatVersion constant in this package, or else an unmarshal
 	// will be unstable.
@@ -53,6 +60,17 @@ type Plan struct {
 	// plan.
 	ResourceChanges []*ResourceChange `json:"resource_changes,omitempty"`
 
+	// DeferredChanges contains the change operations for resources that are deferred
+	// for this plan.
+	DeferredChanges []*DeferredResourceChange `json:"deferred_changes,omitempty"`
+
+	// Complete indicates that all resources have successfully planned changes.
+	// This will be false if there are DeferredChanges or if the -target flag is used.
+	//
+	// Complete was introduced in Terraform 1.8 and will be nil for all previous
+	// Terraform versions.
+	Complete *bool `json:"complete,omitempty"`
+
 	// The change operations for outputs within this plan.
 	OutputChanges map[string]*Change `json:"output_changes,omitempty"`
 
@@ -74,6 +92,8 @@ type Plan struct {
 	// Timestamp contains the static timestamp that Terraform considers to be
 	// the time this plan executed, in UTC.
 	Timestamp string `json:"timestamp,omitempty"`
+
+	ActionInvocations []*ActionInvocation `json:"action_invocations,omitempty"`
 }
 
 // ResourceAttribute describes a full path to a resource attribute
@@ -83,6 +103,14 @@ type ResourceAttribute struct {
 	// Attribute describes the attribute path using a lossy representation
 	// of cty.Path. (e.g. ["id"] or ["objects", 0, "val"]).
 	Attribute []json.RawMessage `json:"attribute"`
+}
+
+// UseJSONNumber controls whether the Plan will be decoded using the
+// json.Number behavior or the float64 behavior. When b is true, the Plan will
+// represent numbers in PlanOutputs as json.Numbers. When b is false, the
+// Plan will represent numbers in PlanOutputs as float64s.
+func (p *Plan) UseJSONNumber(b bool) {
+	p.useJSONNumber = b
 }
 
 // Validate checks to ensure that the plan is present, and the
@@ -114,20 +142,19 @@ func (p *Plan) Validate() error {
 	return nil
 }
 
-func isStringInSlice(slice []string, s string) bool {
-	for _, el := range slice {
-		if el == s {
-			return true
-		}
-	}
-	return false
-}
-
+// UnmarshalJSON implements json.Unmarshaler for Plan.
+//
+// As per established convention this method should only ever
+// be invoked *indirectly* via [encoding/json] library.
 func (p *Plan) UnmarshalJSON(b []byte) error {
 	type rawPlan Plan
 	var plan rawPlan
 
-	err := json.Unmarshal(b, &plan)
+	dec := json.NewDecoder(bytes.NewReader(b))
+	if p.useJSONNumber {
+		dec.UseNumber()
+	}
+	err := dec.Decode(&plan)
 	if err != nil {
 		return err
 	}
@@ -143,6 +170,10 @@ func (p *Plan) UnmarshalJSON(b []byte) error {
 type ResourceChange struct {
 	// The absolute resource address.
 	Address string `json:"address,omitempty"`
+
+	// The absolute address that this resource instance had
+	// at the conclusion of a previous plan.
+	PreviousAddress string `json:"previous_address,omitempty"`
 
 	// The module portion of the above address. Omitted if the instance
 	// is in the root module.
@@ -177,7 +208,84 @@ type ResourceChange struct {
 
 	// The data describing the change that will be made to this object.
 	Change *Change `json:"change,omitempty"`
+
+	// ActionReason is an optional keyword providing extra context for why the
+	// actions in Change.Actions were chosen, for example that a resource must
+	// be replaced because its existing object was tainted. It is empty when
+	// Terraform did not report a reason. This detail is for display purposes
+	// only and should not be used to make decisions.
+	ActionReason ActionReason `json:"action_reason,omitempty"`
 }
+
+// ActionReason is a keyword representing the optional reason Terraform reports
+// for the actions proposed in a ResourceChange. The set of possible values may
+// grow in future Terraform versions, so consumers should treat unrecognized
+// values as equivalent to ActionReasonNone.
+//
+// The canonical list of reason keywords is defined by Terraform in
+// internal/command/jsonplan/plan.go (the ResourceInstance* constants):
+// https://github.com/hashicorp/terraform/blob/main/internal/command/jsonplan/plan.go
+type ActionReason string
+
+const (
+	// ActionReasonNone is the absence of any specific reason; Terraform omits
+	// the action_reason property in this case.
+	ActionReasonNone ActionReason = ""
+
+	// ActionReasonReplaceBecauseCannotUpdate indicates a resource must be
+	// replaced because the requested change is not possible without doing so.
+	ActionReasonReplaceBecauseCannotUpdate ActionReason = "replace_because_cannot_update"
+
+	// ActionReasonReplaceBecauseTainted indicates a resource must be replaced
+	// because its existing object was marked as tainted.
+	ActionReasonReplaceBecauseTainted ActionReason = "replace_because_tainted"
+
+	// ActionReasonReplaceByRequest indicates a resource must be replaced because
+	// the user explicitly requested it (e.g. "terraform plan -replace=...").
+	ActionReasonReplaceByRequest ActionReason = "replace_by_request"
+
+	// ActionReasonReplaceByTriggers indicates a resource must be replaced
+	// because of a change in a value referenced by its replace_triggered_by.
+	ActionReasonReplaceByTriggers ActionReason = "replace_by_triggers"
+
+	// ActionReasonDeleteBecauseNoResourceConfig indicates a resource will be
+	// destroyed because it has no matching configuration block.
+	ActionReasonDeleteBecauseNoResourceConfig ActionReason = "delete_because_no_resource_config"
+
+	// ActionReasonDeleteBecauseWrongRepetition indicates a resource instance
+	// will be destroyed because its instance key does not match the resource's
+	// count/for_each repetition mode.
+	ActionReasonDeleteBecauseWrongRepetition ActionReason = "delete_because_wrong_repetition"
+
+	// ActionReasonDeleteBecauseCountIndex indicates a resource instance will be
+	// destroyed because its index is out of range for the count value.
+	ActionReasonDeleteBecauseCountIndex ActionReason = "delete_because_count_index"
+
+	// ActionReasonDeleteBecauseEachKey indicates a resource instance will be
+	// destroyed because its key is not present in the for_each value.
+	ActionReasonDeleteBecauseEachKey ActionReason = "delete_because_each_key"
+
+	// ActionReasonDeleteBecauseNoModule indicates a resource instance will be
+	// destroyed because its containing module instance is no longer declared.
+	ActionReasonDeleteBecauseNoModule ActionReason = "delete_because_no_module"
+
+	// ActionReasonDeleteBecauseNoMoveTarget indicates a resource was moved to an
+	// address that has no configuration, so it will be destroyed.
+	ActionReasonDeleteBecauseNoMoveTarget ActionReason = "delete_because_no_move_target"
+
+	// ActionReasonReadBecauseConfigUnknown indicates a data resource will be
+	// read during apply because its configuration contains unknown values.
+	ActionReasonReadBecauseConfigUnknown ActionReason = "read_because_config_unknown"
+
+	// ActionReasonReadBecauseDependencyPending indicates a data resource will be
+	// read during apply because it depends on a resource or module with changes
+	// pending.
+	ActionReasonReadBecauseDependencyPending ActionReason = "read_because_dependency_pending"
+
+	// ActionReasonReadBecauseCheckNested indicates a data resource nested within
+	// a check block will be read during apply.
+	ActionReasonReadBecauseCheckNested ActionReason = "read_because_check_nested"
+)
 
 // Change is the representation of a proposed change for an object.
 type Change struct {
@@ -223,6 +331,20 @@ type Change struct {
 	// might change in the future. However, not all Importing changes will
 	// contain generated config.
 	GeneratedConfig string `json:"generated_config,omitempty"`
+
+	// ReplacePaths contains a set of paths that point to attributes/elements
+	// that are causing the overall resource to be replaced rather than simply
+	// updated.
+	//
+	// This field is always a slice of indexes, where an index in this context
+	// is either an integer pointing to a child of a set/list, or a string
+	// pointing to the child of a map, object, or block.
+	ReplacePaths []interface{} `json:"replace_paths,omitempty"`
+
+	// BeforeIdentity and AfterIdentity are representations of the resource
+	// identity value both before and after the action.
+	BeforeIdentity interface{} `json:"before_identity,omitempty"`
+	AfterIdentity  interface{} `json:"after_identity,omitempty"`
 }
 
 // Importing is a nested object for the resource import metadata.
@@ -230,6 +352,16 @@ type Importing struct {
 	// The original ID of this resource used to target it as part of planned
 	// import operation.
 	ID string `json:"id,omitempty"`
+
+	// Unknown indicates the ID or identity was unknown at the time of
+	// planning. This would have led to the overall change being deferred, as
+	// such this should only be true when processing changes from the deferred
+	// changes list.
+	Unknown bool `json:"unknown,omitempty"`
+
+	// The identity can be used instead of the ID to target the resource as part
+	// of the planned import operation.
+	Identity interface{} `json:"identity,omitempty"`
 }
 
 // PlanVariable is a top-level variable in the Terraform plan.
@@ -237,3 +369,45 @@ type PlanVariable struct {
 	// The value for this variable at plan time.
 	Value interface{} `json:"value,omitempty"`
 }
+
+// DeferredResourceChange is a description of a resource change that has been
+// deferred for some reason.
+type DeferredResourceChange struct {
+	// Reason is the reason why this resource change was deferred.
+	Reason string `json:"reason,omitempty"`
+
+	// Change contains any information we have about the deferred change.
+	ResourceChange *ResourceChange `json:"resource_change,omitempty"`
+}
+
+type ActionInvocation struct {
+	// Address is the absolute action address
+	Address string `json:"address,omitempty"`
+	// Type is the type of the action
+	Type string `json:"type,omitempty"`
+	// Name is the name of the action
+	Name string `json:"name,omitempty"`
+
+	// ConfigValues is the JSON representation of the values in the config block of the action
+	ConfigValues    interface{} `json:"config_values,omitempty"`
+	ConfigSensitive interface{} `json:"config_sensitive,omitempty"`
+	ConfigUnknown   interface{} `json:"config_unknown,omitempty"`
+
+	// ProviderName allows the property "type" to be interpreted unambiguously
+	// in the unusual situation where a provider offers a type whose
+	// name does not start with its own name, such as the "googlebeta" provider
+	// offering "google_compute_instance".
+	ProviderName string `json:"provider_name,omitempty"`
+
+	LifecycleActionTrigger *LifecycleActionTrigger `json:"lifecycle_action_trigger,omitempty"`
+	InvokeActionTrigger    *InvokeActionTrigger    `json:"invoke_action_trigger,omitempty"`
+}
+
+type LifecycleActionTrigger struct {
+	TriggeringResourceAddress string `json:"triggering_resource_address,omitempty"`
+	ActionTriggerEvent        string `json:"action_trigger_event,omitempty"`
+	ActionTriggerBlockIndex   int    `json:"action_trigger_block_index"`
+	ActionsListIndex          int    `json:"actions_list_index"`
+}
+
+type InvokeActionTrigger struct{}

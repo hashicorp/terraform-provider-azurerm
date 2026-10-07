@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = OrganizationId{}
 
-func TestOrganizationIDFormatter(t *testing.T) {
+func TestParseOrganizationIDFormatter(t *testing.T) {
 	actual := NewOrganizationID("12345678-1234-9876-4563-123456789012", "resGroup1", "application1", "organization1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.IoTCentral/iotApps/application1/organizations/organization1"
 	if actual != expected {
@@ -21,13 +21,12 @@ func TestOrganizationIDFormatter(t *testing.T) {
 	}
 }
 
-func TestOrganizationID(t *testing.T) {
+func TestParseOrganizationID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
 		Expected *OrganizationId
 	}{
-
 		{
 			// empty
 			Input: "",

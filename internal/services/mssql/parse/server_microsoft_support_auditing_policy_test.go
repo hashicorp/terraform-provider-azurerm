@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = ServerMicrosoftSupportAuditingPolicyId{}
 
-func TestServerMicrosoftSupportAuditingPolicyIDFormatter(t *testing.T) {
+func TestParseServerMicrosoftSupportAuditingPolicyIDFormatter(t *testing.T) {
 	actual := NewServerMicrosoftSupportAuditingPolicyID("12345678-1234-9876-4563-123456789012", "group1", "server1", "default").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Sql/servers/server1/devOpsAuditingSettings/default"
 	if actual != expected {
@@ -21,13 +21,12 @@ func TestServerMicrosoftSupportAuditingPolicyIDFormatter(t *testing.T) {
 	}
 }
 
-func TestServerMicrosoftSupportAuditingPolicyID(t *testing.T) {
+func TestParseServerMicrosoftSupportAuditingPolicyID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
 		Expected *ServerMicrosoftSupportAuditingPolicyId
 	}{
-
 		{
 			// empty
 			Input: "",

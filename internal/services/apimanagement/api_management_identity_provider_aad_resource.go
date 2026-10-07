@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceApiManagementIdentityProviderAAD() *pluginsdk.Resource {
@@ -63,6 +62,13 @@ func resourceApiManagementIdentityProviderAAD() *pluginsdk.Resource {
 					ValidateFunc: validation.IsUUID,
 				},
 			},
+
+			"client_library": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringLenBetween(0, 16),
+			},
+
 			"signin_tenant": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -72,7 +78,7 @@ func resourceApiManagementIdentityProviderAAD() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementIdentityProviderAADCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderAADCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -80,29 +86,33 @@ func resourceApiManagementIdentityProviderAADCreateUpdate(d *pluginsdk.ResourceD
 
 	clientID := d.Get("client_id").(string)
 	clientSecret := d.Get("client_secret").(string)
-	allowedTenants := d.Get("allowed_tenants").([]interface{})
+	clientLibrary := d.Get("client_library").(string)
+	allowedTenants := d.Get("allowed_tenants").([]any)
 	signinTenant := d.Get("signin_tenant").(string)
 	id := identityprovider.NewIdentityProviderID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), identityprovider.IdentityProviderTypeAad)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_identity_provider_aad", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_api_management_identity_provider_aad", id.ID())
+			}
 		}
 	}
 
 	parameters := identityprovider.IdentityProviderCreateContract{
 		Properties: &identityprovider.IdentityProviderCreateContractProperties{
 			ClientId:       clientID,
+			ClientLibrary:  pointer.To(clientLibrary),
 			ClientSecret:   clientSecret,
 			Type:           pointer.To(identityprovider.IdentityProviderTypeAad),
-			AllowedTenants: utils.ExpandStringSlice(allowedTenants),
+			AllowedTenants: pluginsdk.ExpandStringSlice(allowedTenants),
 			SigninTenant:   pointer.To(signinTenant),
 		},
 	}
@@ -116,7 +126,7 @@ func resourceApiManagementIdentityProviderAADCreateUpdate(d *pluginsdk.ResourceD
 	return resourceApiManagementIdentityProviderAADRead(d, meta)
 }
 
-func resourceApiManagementIdentityProviderAADRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderAADRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -125,8 +135,6 @@ func resourceApiManagementIdentityProviderAADRead(d *pluginsdk.ResourceData, met
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroupName
-	serviceName := id.ServiceName
 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
@@ -139,12 +147,13 @@ func resourceApiManagementIdentityProviderAADRead(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("api_management_name", serviceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("api_management_name", id.ServiceName)
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("client_id", props.ClientId)
+			d.Set("client_library", props.ClientLibrary)
 			d.Set("allowed_tenants", pointer.From(props.AllowedTenants))
 			d.Set("signin_tenant", pointer.From(props.SigninTenant))
 		}
@@ -153,7 +162,7 @@ func resourceApiManagementIdentityProviderAADRead(d *pluginsdk.ResourceData, met
 	return nil
 }
 
-func resourceApiManagementIdentityProviderAADDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderAADDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

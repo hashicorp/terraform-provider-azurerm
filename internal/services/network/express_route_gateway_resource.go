@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -13,11 +13,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/virtualwans"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/expressrouteconnections"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/expressroutegateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressrouteconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressroutegateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -25,9 +26,9 @@ import (
 
 func resourceExpressRouteGateway() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceExpressRouteGatewayCreateUpdate,
+		Create: resourceExpressRouteGatewayCreate,
 		Read:   resourceExpressRouteGatewayRead,
-		Update: resourceExpressRouteGatewayCreateUpdate,
+		Update: resourceExpressRouteGatewayUpdate,
 		Delete: resourceExpressRouteGatewayDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := expressroutegateways.ParseExpressRouteGatewayID(id)
@@ -77,18 +78,16 @@ func resourceExpressRouteGateway() *pluginsdk.Resource {
 	}
 }
 
-func resourceExpressRouteGatewayCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExpressRouteGatewayCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRouteGateways
 	connectionsClient := meta.(*clients.Client).Network.ExpressRouteConnections
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Println("[INFO] preparing arguments for ExpressRoute Gateway creation.")
 
 	id := expressroutegateways.NewExpressRouteGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		resp, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(resp.HttpResponse) {
@@ -126,10 +125,10 @@ func resourceExpressRouteGatewayCreateUpdate(d *pluginsdk.ResourceData, meta int
 			},
 			ExpressRouteConnections: connections,
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -138,7 +137,74 @@ func resourceExpressRouteGatewayCreateUpdate(d *pluginsdk.ResourceData, meta int
 	return resourceExpressRouteGatewayRead(d, meta)
 }
 
-func resourceExpressRouteGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExpressRouteGatewayUpdate(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Network.ExpressRouteGateways
+	connectionsClient := meta.(*clients.Client).Network.ExpressRouteConnections
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := expressroutegateways.ParseExpressRouteGatewayID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+
+	gatewayId, err := expressrouteconnections.ParseExpressRouteGatewayID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	respConnections, err := connectionsClient.List(ctx, *gatewayId)
+	if err != nil && !response.WasNotFound(respConnections.HttpResponse) {
+		return fmt.Errorf("retrieving %s: %+v", gatewayId, err)
+	}
+
+	payload := existing.Model
+
+	var connections *[]expressroutegateways.ExpressRouteConnection
+	if model := respConnections.Model; model != nil {
+		connections = convertConnectionsToGatewayConnections(model.Value)
+	}
+
+	payload.Properties.ExpressRouteConnections = connections
+
+	if d.HasChange("scale_units") {
+		payload.Properties.AutoScaleConfiguration = &expressroutegateways.ExpressRouteGatewayPropertiesAutoScaleConfiguration{
+			Bounds: &expressroutegateways.ExpressRouteGatewayPropertiesAutoScaleConfigurationBounds{
+				Min: pointer.To(int64(d.Get("scale_units").(int))),
+			},
+		}
+	}
+
+	if d.HasChange("allow_non_virtual_wan_traffic") {
+		payload.Properties.AllowNonVirtualWanTraffic = pointer.To(d.Get("allow_non_virtual_wan_traffic").(bool))
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	return resourceExpressRouteGatewayRead(d, meta)
+}
+
+func resourceExpressRouteGatewayRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRouteGateways
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -174,12 +240,14 @@ func resourceExpressRouteGatewayRead(d *pluginsdk.ResourceData, meta interface{}
 			}
 			d.Set("scale_units", scaleUnits)
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
-func resourceExpressRouteGatewayDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExpressRouteGatewayDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRouteGateways
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -218,30 +286,52 @@ func convertConnectionsToGatewayConnections(input *[]expressrouteconnections.Exp
 				},
 				ExpressRouteGatewayBypass: props.ExpressRouteGatewayBypass,
 				ProvisioningState:         (*expressroutegateways.ProvisioningState)(props.ProvisioningState),
-				RoutingConfiguration: &expressroutegateways.RoutingConfiguration{
-					AssociatedRouteTable: &expressroutegateways.SubResource{
-						Id: props.RoutingConfiguration.AssociatedRouteTable.Id,
-					},
-					InboundRouteMap: &expressroutegateways.SubResource{
-						Id: props.RoutingConfiguration.InboundRouteMap.Id,
-					},
-					OutboundRouteMap: &expressroutegateways.SubResource{
-						Id: props.RoutingConfiguration.OutboundRouteMap.Id,
-					},
-					PropagatedRouteTables: &expressroutegateways.PropagatedRouteTable{
+				RoutingWeight:             props.RoutingWeight,
+			}
+
+			if routingConfiguration := props.RoutingConfiguration; routingConfiguration != nil {
+				rc := &expressroutegateways.RoutingConfiguration{}
+
+				if routingConfiguration.AssociatedRouteTable != nil {
+					rc.AssociatedRouteTable = &expressroutegateways.SubResource{
+						Id: routingConfiguration.AssociatedRouteTable.Id,
+					}
+				}
+
+				if routingConfiguration.InboundRouteMap != nil {
+					rc.InboundRouteMap = &expressroutegateways.SubResource{
+						Id: routingConfiguration.InboundRouteMap.Id,
+					}
+				}
+
+				if routingConfiguration.OutboundRouteMap != nil {
+					rc.OutboundRouteMap = &expressroutegateways.SubResource{
+						Id: routingConfiguration.OutboundRouteMap.Id,
+					}
+				}
+
+				if routingConfiguration.PropagatedRouteTables != nil {
+					rc.PropagatedRouteTables = &expressroutegateways.PropagatedRouteTable{
 						Ids:    convertConnectionsSubresourceToGatewaySubResource(props.RoutingConfiguration.PropagatedRouteTables.Ids),
-						Labels: props.RoutingConfiguration.PropagatedRouteTables.Labels,
-					},
-					VnetRoutes: &expressroutegateways.VnetRoute{
-						BgpConnections: convertConnectionsSubresourceToGatewaySubResource(props.RoutingConfiguration.VnetRoutes.BgpConnections),
-						StaticRoutes:   convertConnectionsStaticRouteToGatewayStaticRoute(props.RoutingConfiguration.VnetRoutes.StaticRoutes),
-						StaticRoutesConfig: &expressroutegateways.StaticRoutesConfig{
-							PropagateStaticRoutes:          i.Properties.RoutingConfiguration.VnetRoutes.StaticRoutesConfig.PropagateStaticRoutes,
-							VnetLocalRouteOverrideCriteria: (*expressroutegateways.VnetLocalRouteOverrideCriteria)(i.Properties.RoutingConfiguration.VnetRoutes.StaticRoutesConfig.VnetLocalRouteOverrideCriteria),
-						},
-					},
-				},
-				RoutingWeight: props.RoutingWeight,
+						Labels: routingConfiguration.PropagatedRouteTables.Labels,
+					}
+				}
+
+				if vnet := routingConfiguration.VnetRoutes; vnet != nil {
+					rc.VnetRoutes = &expressroutegateways.VnetRoute{
+						BgpConnections: convertConnectionsSubresourceToGatewaySubResource(vnet.BgpConnections),
+						StaticRoutes:   convertConnectionsStaticRouteToGatewayStaticRoute(vnet.StaticRoutes),
+					}
+
+					if src := vnet.StaticRoutesConfig; src != nil {
+						rc.VnetRoutes.StaticRoutesConfig = &expressroutegateways.StaticRoutesConfig{
+							PropagateStaticRoutes:          src.PropagateStaticRoutes,
+							VnetLocalRouteOverrideCriteria: (*expressroutegateways.VnetLocalRouteOverrideCriteria)(src.VnetLocalRouteOverrideCriteria),
+						}
+					}
+				}
+
+				o.Properties.RoutingConfiguration = rc
 			}
 		}
 		output = append(output, o)

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = TrustedRootCertificateId{}
 
-func TestTrustedRootCertificateIDFormatter(t *testing.T) {
+func TestParseTrustedRootCertificateIDFormatter(t *testing.T) {
 	actual := NewTrustedRootCertificateID("12345678-1234-9876-4563-123456789012", "group1", "applicationGateway1", "rootCert1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/trustedRootCertificates/rootCert1"
 	if actual != expected {
@@ -21,13 +21,12 @@ func TestTrustedRootCertificateIDFormatter(t *testing.T) {
 	}
 }
 
-func TestTrustedRootCertificateID(t *testing.T) {
+func TestParseTrustedRootCertificateID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
 		Expected *TrustedRootCertificateId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -130,13 +129,12 @@ func TestTrustedRootCertificateID(t *testing.T) {
 	}
 }
 
-func TestTrustedRootCertificateIDInsensitively(t *testing.T) {
+func TestParseTrustedRootCertificateIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
 		Expected *TrustedRootCertificateId
 	}{
-
 		{
 			// empty
 			Input: "",

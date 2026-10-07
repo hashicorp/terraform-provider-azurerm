@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -41,6 +41,10 @@ func TestIntegrationAccountSchemaName(t *testing.T) {
 		{
 			input: strings.Repeat("s", 81),
 			valid: false,
+		},
+		{
+			input: "a2-.()b_",
+			valid: true,
 		},
 	}
 

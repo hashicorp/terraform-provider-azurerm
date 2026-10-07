@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = WorkspaceId{}
 
-func TestWorkspaceIDFormatter(t *testing.T) {
+func TestParseWorkspaceIDFormatter(t *testing.T) {
 	actual := NewWorkspaceID("12345678-1234-9876-4563-123456789012", "resGroup1", "workspace1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Synapse/workspaces/workspace1"
 	if actual != expected {
@@ -21,13 +21,12 @@ func TestWorkspaceIDFormatter(t *testing.T) {
 	}
 }
 
-func TestWorkspaceID(t *testing.T) {
+func TestParseWorkspaceID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
 		Expected *WorkspaceId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -114,13 +113,12 @@ func TestWorkspaceID(t *testing.T) {
 	}
 }
 
-func TestWorkspaceIDInsensitively(t *testing.T) {
+func TestParseWorkspaceIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
 		Expected *WorkspaceId
 	}{
-
 		{
 			// empty
 			Input: "",

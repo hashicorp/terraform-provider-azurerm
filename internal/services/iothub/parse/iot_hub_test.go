@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = IotHubId{}
 
-func TestIotHubIDFormatter(t *testing.T) {
+func TestParseIotHubIDFormatter(t *testing.T) {
 	actual := NewIotHubID("12345678-1234-9876-4563-123456789012", "resGroup1", "hub1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Devices/iotHubs/hub1"
 	if actual != expected {
@@ -21,13 +21,12 @@ func TestIotHubIDFormatter(t *testing.T) {
 	}
 }
 
-func TestIotHubID(t *testing.T) {
+func TestParseIotHubID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
 		Expected *IotHubId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -114,13 +113,12 @@ func TestIotHubID(t *testing.T) {
 	}
 }
 
-func TestIotHubIDInsensitively(t *testing.T) {
+func TestParseIotHubIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
 		Expected *IotHubId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = WorkspaceSqlAADAdminId{}
 
-func TestWorkspaceSqlAADAdminIDFormatter(t *testing.T) {
+func TestParseWorkspaceSqlAADAdminIDFormatter(t *testing.T) {
 	actual := NewWorkspaceSqlAADAdminID("12345678-1234-9876-4563-123456789012", "resourceGroup1", "workspace1", "activeDirectory").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Synapse/workspaces/workspace1/sqlAdministrators/activeDirectory"
 	if actual != expected {
@@ -21,13 +21,12 @@ func TestWorkspaceSqlAADAdminIDFormatter(t *testing.T) {
 	}
 }
 
-func TestWorkspaceSqlAADAdminID(t *testing.T) {
+func TestParseWorkspaceSqlAADAdminID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
 		Expected *WorkspaceSqlAADAdminId
 	}{
-
 		{
 			// empty
 			Input: "",

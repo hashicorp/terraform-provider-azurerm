@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = SparkPoolId{}
 
-func TestSparkPoolIDFormatter(t *testing.T) {
+func TestParseSparkPoolIDFormatter(t *testing.T) {
 	actual := NewSparkPoolID("12345678-1234-9876-4563-123456789012", "resGroup1", "workspace1", "bigDataPool1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Synapse/workspaces/workspace1/bigDataPools/bigDataPool1"
 	if actual != expected {
@@ -21,13 +21,12 @@ func TestSparkPoolIDFormatter(t *testing.T) {
 	}
 }
 
-func TestSparkPoolID(t *testing.T) {
+func TestParseSparkPoolID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
 		Expected *SparkPoolId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -130,13 +129,12 @@ func TestSparkPoolID(t *testing.T) {
 	}
 }
 
-func TestSparkPoolIDInsensitively(t *testing.T) {
+func TestParseSparkPoolIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
 		Expected *SparkPoolId
 	}{
-
 		{
 			// empty
 			Input: "",

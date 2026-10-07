@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = FirewallApplicationRuleCollectionId{}
 
-func TestFirewallApplicationRuleCollectionIDFormatter(t *testing.T) {
+func TestParseFirewallApplicationRuleCollectionIDFormatter(t *testing.T) {
 	actual := NewFirewallApplicationRuleCollectionID("00000000-0000-0000-0000-000000000000", "mygroup1", "myfirewall", "applicationRuleCollection1").ID()
 	expected := "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/azureFirewalls/myfirewall/applicationRuleCollections/applicationRuleCollection1"
 	if actual != expected {
@@ -21,13 +21,12 @@ func TestFirewallApplicationRuleCollectionIDFormatter(t *testing.T) {
 	}
 }
 
-func TestFirewallApplicationRuleCollectionID(t *testing.T) {
+func TestParseFirewallApplicationRuleCollectionID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
 		Expected *FirewallApplicationRuleCollectionId
 	}{
-
 		{
 			// empty
 			Input: "",

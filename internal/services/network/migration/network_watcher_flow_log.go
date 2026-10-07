@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -9,9 +9,9 @@ import (
 	"log"
 	"strings"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/flowlogs"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkwatchers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/flowlogs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networksecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkwatchers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -131,7 +131,7 @@ func (NetworkWatcherFlowLogV0ToV1) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (NetworkWatcherFlowLogV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		// old
 		// 	/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Network/networkWatchers/watcher1/networkSecurityGroupId/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/networkSecurityGroups/group1
 		// new:
@@ -139,7 +139,7 @@ func (NetworkWatcherFlowLogV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		oldId := rawState["id"].(string)
 		parts := strings.Split(oldId, "/networkSecurityGroupId")
 		if len(parts) != 2 {
-			return rawState, fmt.Errorf("Error: Network Watcher Flow Log ID could not be split on `/networkSecurityGroupId`: %s", oldId)
+			return rawState, fmt.Errorf("network watcher Flow Log ID could not be split on `/networkSecurityGroupId`: %s", oldId)
 		}
 		watcherId, err := networkwatchers.ParseNetworkWatcherIDInsensitively(parts[0])
 		if err != nil {
@@ -153,11 +153,11 @@ func (NetworkWatcherFlowLogV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		} else {
 			// The `name` is introduced as an attribute since 0e528be. If users have provisioned this resource prior to that commit, and didn't run a `refresh` for the flow log. Then the state won't have `name` included.
 			// In this case, we will use the Portal way to construct the flow log name.
-			nsgId, err := parse.NetworkSecurityGroupID(parts[1])
+			nsgId, err := networksecuritygroups.ParseNetworkSecurityGroupID(parts[1])
 			if err != nil {
 				return rawState, err
 			}
-			name = fmt.Sprintf("Microsoft.Network%s%s", watcherId.ResourceGroupName, nsgId.Name)
+			name = fmt.Sprintf("Microsoft.Network%s%s", watcherId.ResourceGroupName, nsgId.NetworkSecurityGroupName)
 			if len(name) > 80 {
 				name = name[:80]
 			}

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/expressroutecircuitconnections"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/expressroutecircuits"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressroutecircuitconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressroutecircuits"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -86,9 +86,9 @@ func resourceExpressRouteCircuitConnection() *pluginsdk.Resource {
 	}
 }
 
-func resourceExpressRouteCircuitConnectionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitConnectionCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRouteCircuitConnections
-	circuitClient := meta.(*clients.Client).Network.ExpressRouteCircuitsClient
+	circuitClient := meta.(*clients.Client).Network.ExpressRouteCircuits
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -99,15 +99,17 @@ func resourceExpressRouteCircuitConnectionCreate(d *pluginsdk.ResourceData, meta
 
 	id := expressroutecircuitconnections.NewPeeringConnectionID(circuitPeeringId.SubscriptionId, circuitPeeringId.ResourceGroupName, circuitPeeringId.CircuitName, circuitPeeringId.PeeringName, d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_express_route_circuit_connection", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_express_route_circuit_connection", id.ID())
+		}
 	}
 
 	circuitPeerPeeringId, err := commonids.ParseExpressRouteCircuitPeeringID(d.Get("peer_peering_id").(string))
@@ -133,14 +135,14 @@ func resourceExpressRouteCircuitConnectionCreate(d *pluginsdk.ResourceData, meta
 	}
 
 	if v, ok := d.GetOk("address_prefix_ipv6"); ok {
-		circuitId := parse.NewExpressRouteCircuitID(circuitPeeringId.SubscriptionId, circuitPeeringId.ResourceGroupName, circuitPeeringId.CircuitName)
+		circuitId := expressroutecircuits.NewExpressRouteCircuitID(circuitPeeringId.SubscriptionId, circuitPeeringId.ResourceGroupName, circuitPeeringId.CircuitName)
 
-		circuit, err := circuitClient.Get(ctx, circuitId.ResourceGroup, circuitId.Name)
+		circuit, err := circuitClient.Get(ctx, circuitId)
 		if err != nil {
 			return fmt.Errorf("retrieving %s: %+v", circuitId, err)
 		}
 
-		if circuit.ExpressRouteCircuitPropertiesFormat != nil && circuit.ExpressRouteCircuitPropertiesFormat.ExpressRoutePort != nil {
+		if circuit.Model != nil && circuit.Model.Properties != nil && circuit.Model.Properties.ExpressRoutePort != nil {
 			return fmt.Errorf("`address_prefix_ipv6` cannot be set when ExpressRoute Circuit Connection with ExpressRoute Circuit based on ExpressRoute Port")
 		} else {
 			expressRouteCircuitConnectionParameters.Properties.IPv6CircuitConnectionConfig = &expressroutecircuitconnections.IPv6CircuitConnectionConfig{
@@ -149,7 +151,7 @@ func resourceExpressRouteCircuitConnectionCreate(d *pluginsdk.ResourceData, meta
 		}
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, expressRouteCircuitConnectionParameters); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, expressRouteCircuitConnectionParameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -158,7 +160,7 @@ func resourceExpressRouteCircuitConnectionCreate(d *pluginsdk.ResourceData, meta
 	return resourceExpressRouteCircuitConnectionRead(d, meta)
 }
 
-func resourceExpressRouteCircuitConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitConnectionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRouteCircuitConnections
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -183,7 +185,6 @@ func resourceExpressRouteCircuitConnectionRead(d *pluginsdk.ResourceData, meta i
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-
 			d.Set("address_prefix_ipv4", props.AddressPrefix)
 
 			// The ExpressRoute Circuit Connection API returns "*****************" for AuthorizationKey when it's changed from a valid value to `nil`
@@ -213,7 +214,7 @@ func resourceExpressRouteCircuitConnectionRead(d *pluginsdk.ResourceData, meta i
 	return nil
 }
 
-func resourceExpressRouteCircuitConnectionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitConnectionUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRouteCircuitConnections
 	circuitClient := meta.(*clients.Client).Network.ExpressRouteCircuits
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -275,7 +276,7 @@ func resourceExpressRouteCircuitConnectionUpdate(d *pluginsdk.ResourceData, meta
 	return resourceExpressRouteCircuitConnectionRead(d, meta)
 }
 
-func resourceExpressRouteCircuitConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitConnectionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRouteCircuitConnections
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

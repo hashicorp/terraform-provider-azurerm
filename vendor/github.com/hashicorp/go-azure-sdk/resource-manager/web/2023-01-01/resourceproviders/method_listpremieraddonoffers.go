@@ -24,6 +24,18 @@ type ListPremierAddOnOffersCompleteResult struct {
 	Items              []PremierAddOnOffer
 }
 
+type ListPremierAddOnOffersCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListPremierAddOnOffersCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListPremierAddOnOffers ...
 func (c ResourceProvidersClient) ListPremierAddOnOffers(ctx context.Context, id commonids.SubscriptionId) (result ListPremierAddOnOffersOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c ResourceProvidersClient) ListPremierAddOnOffers(ctx context.Context, id 
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListPremierAddOnOffersCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Web/premieraddonoffers", id.ID()),
 	}
 

@@ -24,6 +24,18 @@ type ServicesListBySubscriptionCompleteResult struct {
 	Items              []ServiceResource
 }
 
+type ServicesListBySubscriptionCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ServicesListBySubscriptionCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ServicesListBySubscription ...
 func (c AppPlatformClient) ServicesListBySubscription(ctx context.Context, id commonids.SubscriptionId) (result ServicesListBySubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c AppPlatformClient) ServicesListBySubscription(ctx context.Context, id co
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ServicesListBySubscriptionCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.AppPlatform/spring", id.ID()),
 	}
 

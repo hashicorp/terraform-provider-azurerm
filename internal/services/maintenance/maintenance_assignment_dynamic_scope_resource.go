@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package maintenance
@@ -128,13 +128,10 @@ func (MaintenanceDynamicScopeResource) Arguments() map[string]*pluginsdk.Schema 
 					},
 
 					"tag_filter": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  configurationassignments.TagOperatorsAny,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(configurationassignments.TagOperatorsAny),
-							string(configurationassignments.TagOperatorsAll),
-						}, true),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      configurationassignments.TagOperatorsAny,
+						ValidateFunc: validation.StringInSlice(configurationassignments.PossibleValuesForTagOperators(), true),
 						RequiredWith: []string{
 							"filter.0.tags",
 						},
@@ -149,7 +146,7 @@ func (MaintenanceDynamicScopeResource) Attributes() map[string]*pluginsdk.Schema
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (MaintenanceDynamicScopeResource) ModelObject() interface{} {
+func (MaintenanceDynamicScopeResource) ModelObject() any {
 	return &MaintenanceDynamicScopeModel{}
 }
 
@@ -175,15 +172,17 @@ func (r MaintenanceDynamicScopeResource) Create() sdk.ResourceFunc {
 
 			id := configurationassignments.NewConfigurationAssignmentID(metadata.Client.Account.SubscriptionId, model.Name)
 
-			existing, err := client.ForSubscriptionsGet(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.ForSubscriptionsGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			configurationAssignment := configurationassignments.ConfigurationAssignment{
@@ -218,11 +217,10 @@ func (r MaintenanceDynamicScopeResource) Create() sdk.ResourceFunc {
 						tags[tag.Tag] = tag.Values
 					}
 
-					tagProperties := &configurationassignments.TagSettingsProperties{
-						FilterOperator: pointer.To(configurationassignments.TagOperators(filter.TagFilter)),
+					filterProperties.TagSettings = &configurationassignments.TagSettingsProperties{
+						FilterOperator: pointer.ToEnum[configurationassignments.TagOperators](filter.TagFilter),
 						Tags:           pointer.To(tags),
 					}
-					filterProperties.TagSettings = tagProperties
 				}
 				configurationAssignment.Properties.Filter = pointer.To(filterProperties)
 			}
@@ -258,11 +256,9 @@ func (MaintenanceDynamicScopeResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-
 				state.Name = id.ConfigurationAssignmentName
 
 				if properties := model.Properties; properties != nil {
-
 					if properties.MaintenanceConfigurationId != nil {
 						maintenanceConfigurationId, err := maintenanceconfigurations.ParseMaintenanceConfigurationIDInsensitively(pointer.From(properties.MaintenanceConfigurationId))
 						if err != nil {
@@ -276,7 +272,7 @@ func (MaintenanceDynamicScopeResource) Read() sdk.ResourceFunc {
 						tagsListProp := make([]Tag, 0)
 						tagFilterProp := ""
 						if tags := filter.TagSettings; tags != nil {
-							tagFilterProp = string(pointer.From(tags.FilterOperator))
+							tagFilterProp = pointer.FromEnum(tags.FilterOperator)
 							for k, v := range pointer.From(tags.Tags) {
 								tagsListProp = append(tagsListProp, Tag{
 									Tag:    k,
@@ -351,11 +347,10 @@ func (MaintenanceDynamicScopeResource) Update() sdk.ResourceFunc {
 							tags[tag.Tag] = tag.Values
 						}
 
-						tagProperties := &configurationassignments.TagSettingsProperties{
-							FilterOperator: pointer.To(configurationassignments.TagOperators(filter.TagFilter)),
+						filterProperties.TagSettings = &configurationassignments.TagSettingsProperties{
+							FilterOperator: pointer.ToEnum[configurationassignments.TagOperators](filter.TagFilter),
 							Tags:           pointer.To(tags),
 						}
-						filterProperties.TagSettings = tagProperties
 					}
 
 					if pointer.To(filterProperties) != nil {
@@ -394,6 +389,6 @@ func (MaintenanceDynamicScopeResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (MaintenanceDynamicScopeResource) IDValidationFunc() func(interface{}, string) ([]string, []error) {
+func (MaintenanceDynamicScopeResource) IDValidationFunc() func(any, string) ([]string, []error) {
 	return configurationassignments.ValidateConfigurationAssignmentID
 }

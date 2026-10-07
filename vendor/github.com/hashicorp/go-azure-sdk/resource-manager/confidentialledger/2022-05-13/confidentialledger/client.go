@@ -15,7 +15,7 @@ type ConfidentialLedgerClient struct {
 }
 
 func NewConfidentialLedgerClientWithBaseURI(sdkApi sdkEnv.Api) (*ConfidentialLedgerClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "confidentialledger", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "confidentialledger", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ConfidentialLedgerClient: %+v", err)
 	}

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = EncryptionProtectorId{}
 
-func TestEncryptionProtectorIDFormatter(t *testing.T) {
+func TestParseEncryptionProtectorIDFormatter(t *testing.T) {
 	actual := NewEncryptionProtectorID("12345678-1234-9876-4563-123456789012", "group1", "server1", "current").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Sql/servers/server1/encryptionProtector/current"
 	if actual != expected {
@@ -21,13 +21,12 @@ func TestEncryptionProtectorIDFormatter(t *testing.T) {
 	}
 }
 
-func TestEncryptionProtectorID(t *testing.T) {
+func TestParseEncryptionProtectorID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
 		Expected *EncryptionProtectorId
 	}{
-
 		{
 			// empty
 			Input: "",

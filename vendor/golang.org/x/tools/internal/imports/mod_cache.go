@@ -14,6 +14,7 @@ import (
 
 	"golang.org/x/mod/module"
 	"golang.org/x/tools/internal/gopathwalk"
+	"golang.org/x/tools/internal/stdlib"
 )
 
 // To find packages to import, the resolver needs to know about all of
@@ -73,7 +74,7 @@ type directoryPackageInfo struct {
 	// the default build context GOOS and GOARCH.
 	//
 	// We can make this explicit, and key exports by GOOS, GOARCH.
-	exports []string
+	exports []stdlib.Symbol
 }
 
 // reachedStatus returns true when info has a status at least target and any error associated with
@@ -127,7 +128,7 @@ func (d *DirInfoCache) ScanAndListen(ctx context.Context, listener cacheListener
 	// are going to be. Setting an arbitrary limit makes it much easier.
 	const maxInFlight = 10
 	sema := make(chan struct{}, maxInFlight)
-	for i := 0; i < maxInFlight; i++ {
+	for range maxInFlight {
 		sema <- struct{}{}
 	}
 
@@ -155,7 +156,7 @@ func (d *DirInfoCache) ScanAndListen(ctx context.Context, listener cacheListener
 		d.mu.Lock()
 		delete(d.listeners, cookie)
 		d.mu.Unlock()
-		for i := 0; i < maxInFlight; i++ {
+		for range maxInFlight {
 			<-sema
 		}
 	}
@@ -229,7 +230,7 @@ func (d *DirInfoCache) CachePackageName(info directoryPackageInfo) (string, erro
 	return info.packageName, info.err
 }
 
-func (d *DirInfoCache) CacheExports(ctx context.Context, env *ProcessEnv, info directoryPackageInfo) (string, []string, error) {
+func (d *DirInfoCache) CacheExports(ctx context.Context, env *ProcessEnv, info directoryPackageInfo) (string, []stdlib.Symbol, error) {
 	if reached, _ := info.reachedStatus(exportsLoaded); reached {
 		return info.packageName, info.exports, info.err
 	}

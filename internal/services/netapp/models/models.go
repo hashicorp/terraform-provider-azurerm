@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package models
@@ -12,6 +12,8 @@ type NetAppAccountEncryption struct {
 	UserAssignedIdentityID            string `tfschema:"user_assigned_identity_id"`
 	SystemAssignedIdentityPrincipalID string `tfschema:"system_assigned_identity_principal_id"`
 	EncryptionKey                     string `tfschema:"encryption_key"`
+	FederatedClientID                 string `tfschema:"federated_client_id"`
+	CrossTenantKeyVaultResourceID     string `tfschema:"cross_tenant_key_vault_resource_id"`
 }
 
 type NetAppAccountEncryptionDataSourceModel struct {
@@ -19,9 +21,11 @@ type NetAppAccountEncryptionDataSourceModel struct {
 	UserAssignedIdentityID            string `tfschema:"user_assigned_identity_id"`
 	SystemAssignedIdentityPrincipalID string `tfschema:"system_assigned_identity_principal_id"`
 	EncryptionKey                     string `tfschema:"encryption_key"`
+	FederatedClientID                 string `tfschema:"federated_client_id"`
+	CrossTenantKeyVaultResourceID     string `tfschema:"cross_tenant_key_vault_resource_id"`
 }
 
-type NetAppVolumeGroupVolume struct {
+type NetAppVolumeGroupSAPHanaVolume struct {
 	Id                           string                         `tfschema:"id"`
 	Name                         string                         `tfschema:"name"`
 	VolumePath                   string                         `tfschema:"volume_path"`
@@ -40,26 +44,75 @@ type NetAppVolumeGroupVolume struct {
 	MountIpAddresses             []string                       `tfschema:"mount_ip_addresses"`
 	DataProtectionReplication    []DataProtectionReplication    `tfschema:"data_protection_replication"`
 	DataProtectionSnapshotPolicy []DataProtectionSnapshotPolicy `tfschema:"data_protection_snapshot_policy"`
+	Zone                         string                         `tfschema:"zone"`
+	EncryptionKeySource          string                         `tfschema:"encryption_key_source"`
+	KeyVaultPrivateEndpointId    string                         `tfschema:"key_vault_private_endpoint_id"`
+	NetworkFeatures              string                         `tfschema:"network_features"`
 }
 
-type NetAppVolumeGroupSapHanaModel struct {
-	Name                  string                    `tfschema:"name"`
-	ResourceGroupName     string                    `tfschema:"resource_group_name"`
-	Location              string                    `tfschema:"location"`
-	AccountName           string                    `tfschema:"account_name"`
-	GroupDescription      string                    `tfschema:"group_description"`
-	ApplicationIdentifier string                    `tfschema:"application_identifier"`
-	Volumes               []NetAppVolumeGroupVolume `tfschema:"volume"`
+type NetAppVolumeGroupSAPHanaModel struct {
+	Name                  string                           `tfschema:"name"`
+	ResourceGroupName     string                           `tfschema:"resource_group_name"`
+	Location              string                           `tfschema:"location"`
+	AccountName           string                           `tfschema:"account_name"`
+	GroupDescription      string                           `tfschema:"group_description"`
+	ApplicationIdentifier string                           `tfschema:"application_identifier"`
+	Volumes               []NetAppVolumeGroupSAPHanaVolume `tfschema:"volume"`
 }
 
-type NetAppVolumeGroupSapHanaDataSourceModel struct {
-	Name                  string                    `tfschema:"name"`
-	ResourceGroupName     string                    `tfschema:"resource_group_name"`
-	Location              string                    `tfschema:"location"`
-	AccountName           string                    `tfschema:"account_name"`
-	GroupDescription      string                    `tfschema:"group_description"`
-	ApplicationIdentifier string                    `tfschema:"application_identifier"`
-	Volumes               []NetAppVolumeGroupVolume `tfschema:"volume"`
+type NetAppVolumeGroupSAPHanaDataSourceModel struct {
+	Name                  string                           `tfschema:"name"`
+	ResourceGroupName     string                           `tfschema:"resource_group_name"`
+	Location              string                           `tfschema:"location"`
+	AccountName           string                           `tfschema:"account_name"`
+	GroupDescription      string                           `tfschema:"group_description"`
+	ApplicationIdentifier string                           `tfschema:"application_identifier"`
+	Volumes               []NetAppVolumeGroupSAPHanaVolume `tfschema:"volume"`
+}
+
+type NetAppVolumeGroupOracleVolume struct {
+	Id                           string                         `tfschema:"id"`
+	Name                         string                         `tfschema:"name"`
+	VolumePath                   string                         `tfschema:"volume_path"`
+	ServiceLevel                 string                         `tfschema:"service_level"`
+	SubnetId                     string                         `tfschema:"subnet_id"`
+	Protocols                    []string                       `tfschema:"protocols"`
+	SecurityStyle                string                         `tfschema:"security_style"`
+	StorageQuotaInGB             int64                          `tfschema:"storage_quota_in_gb"`
+	ThroughputInMibps            float64                        `tfschema:"throughput_in_mibps"`
+	Tags                         map[string]string              `tfschema:"tags"`
+	SnapshotDirectoryVisible     bool                           `tfschema:"snapshot_directory_visible"`
+	CapacityPoolId               string                         `tfschema:"capacity_pool_id"`
+	ProximityPlacementGroupId    string                         `tfschema:"proximity_placement_group_id"`
+	VolumeSpecName               string                         `tfschema:"volume_spec_name"`
+	ExportPolicy                 []ExportPolicyRule             `tfschema:"export_policy_rule"`
+	MountIpAddresses             []string                       `tfschema:"mount_ip_addresses"`
+	DataProtectionReplication    []DataProtectionReplication    `tfschema:"data_protection_replication"`
+	DataProtectionSnapshotPolicy []DataProtectionSnapshotPolicy `tfschema:"data_protection_snapshot_policy"`
+	Zone                         string                         `tfschema:"zone"`
+	EncryptionKeySource          string                         `tfschema:"encryption_key_source"`
+	KeyVaultPrivateEndpointId    string                         `tfschema:"key_vault_private_endpoint_id"`
+	NetworkFeatures              string                         `tfschema:"network_features"`
+}
+
+type NetAppVolumeGroupOracleModel struct {
+	Name                  string                          `tfschema:"name"`
+	ResourceGroupName     string                          `tfschema:"resource_group_name"`
+	Location              string                          `tfschema:"location"`
+	AccountName           string                          `tfschema:"account_name"`
+	GroupDescription      string                          `tfschema:"group_description"`
+	ApplicationIdentifier string                          `tfschema:"application_identifier"`
+	Volumes               []NetAppVolumeGroupOracleVolume `tfschema:"volume"`
+}
+
+type NetAppVolumeGroupOracleDataSourceModel struct {
+	Name                  string                          `tfschema:"name"`
+	ResourceGroupName     string                          `tfschema:"resource_group_name"`
+	Location              string                          `tfschema:"location"`
+	AccountName           string                          `tfschema:"account_name"`
+	GroupDescription      string                          `tfschema:"group_description"`
+	ApplicationIdentifier string                          `tfschema:"application_identifier"`
+	Volumes               []NetAppVolumeGroupOracleVolume `tfschema:"volume"`
 }
 
 type ExportPolicyRule struct {
@@ -115,4 +168,100 @@ type NetAppVolumeQuotaRuleDataSourceModel struct {
 	QuotaTarget    string `tfschema:"quota_target"`
 	QuotaSizeInKiB int64  `tfschema:"quota_size_in_kib"`
 	QuotaType      string `tfschema:"quota_type"`
+}
+
+type NetAppBackupVaultModel struct {
+	Name              string            `tfschema:"name"`
+	ResourceGroupName string            `tfschema:"resource_group_name"`
+	Location          string            `tfschema:"location"`
+	AccountName       string            `tfschema:"account_name"`
+	Tags              map[string]string `tfschema:"tags"`
+}
+
+type NetAppBackupPolicyModel struct {
+	Name                 string            `tfschema:"name"`
+	ResourceGroupName    string            `tfschema:"resource_group_name"`
+	Location             string            `tfschema:"location"`
+	AccountName          string            `tfschema:"account_name"`
+	Tags                 map[string]string `tfschema:"tags"`
+	DailyBackupsToKeep   int64             `tfschema:"daily_backups_to_keep"`
+	WeeklyBackupsToKeep  int64             `tfschema:"weekly_backups_to_keep"`
+	MonthlyBackupsToKeep int64             `tfschema:"monthly_backups_to_keep"`
+	Enabled              bool              `tfschema:"enabled"`
+}
+
+type NetAppVolumeBucketNfsUser struct {
+	GroupID int64 `tfschema:"group_id"`
+	UserID  int64 `tfschema:"user_id"`
+}
+
+type NetAppVolumeBucketServer struct {
+	Fqdn                        string `tfschema:"fqdn"`
+	CertificatePem              string `tfschema:"certificate_pem"`
+	OnCertificateConflictAction string `tfschema:"on_certificate_conflict_action"`
+}
+
+type NetAppVolumeBucketKeyVault struct {
+	CertificateKeyVaultUri string `tfschema:"certificate_key_vault_uri"`
+	CertificateName        string `tfschema:"certificate_name"`
+	CredentialsKeyVaultUri string `tfschema:"credentials_key_vault_uri"`
+	CredentialsSecretName  string `tfschema:"credentials_secret_name"`
+}
+
+type NetAppVolumeBucketModel struct {
+	Name                        string                       `tfschema:"name"`
+	VolumeID                    string                       `tfschema:"volume_id"`
+	Path                        string                       `tfschema:"path"`
+	Permissions                 string                       `tfschema:"permissions"`
+	FileSystemNfsUser           []NetAppVolumeBucketNfsUser  `tfschema:"file_system_nfs_user"`
+	FileSystemCifsUsername      string                       `tfschema:"file_system_cifs_username"`
+	KeyVault                    []NetAppVolumeBucketKeyVault `tfschema:"key_vault"`
+	Status                      string                       `tfschema:"status"`
+	ServerIPAddress             string                       `tfschema:"server_ip_address"`
+	ServerCertificateCommonName string                       `tfschema:"server_certificate_common_name"`
+	ServerCertificateExpiryDate string                       `tfschema:"server_certificate_expiry_date"`
+}
+
+type NetAppVolumeBucketWithServerModel struct {
+	Name                        string                       `tfschema:"name"`
+	VolumeID                    string                       `tfschema:"volume_id"`
+	Path                        string                       `tfschema:"path"`
+	Permissions                 string                       `tfschema:"permissions"`
+	FileSystemNfsUser           []NetAppVolumeBucketNfsUser  `tfschema:"file_system_nfs_user"`
+	FileSystemCifsUsername      string                       `tfschema:"file_system_cifs_username"`
+	Server                      []NetAppVolumeBucketServer   `tfschema:"server"`
+	KeyVault                    []NetAppVolumeBucketKeyVault `tfschema:"key_vault"`
+	Status                      string                       `tfschema:"status"`
+	ServerIPAddress             string                       `tfschema:"server_ip_address"`
+	ServerCertificateCommonName string                       `tfschema:"server_certificate_common_name"`
+	ServerCertificateExpiryDate string                       `tfschema:"server_certificate_expiry_date"`
+}
+
+type NetAppVolumeBucketDataSourceModel struct {
+	Name                        string                       `tfschema:"name"`
+	NetAppVolumeID              string                       `tfschema:"netapp_volume_id"`
+	Path                        string                       `tfschema:"path"`
+	Permissions                 string                       `tfschema:"permissions"`
+	FileSystemNfsUser           []NetAppVolumeBucketNfsUser  `tfschema:"file_system_nfs_user"`
+	FileSystemCifsUsername      string                       `tfschema:"file_system_cifs_username"`
+	KeyVault                    []NetAppVolumeBucketKeyVault `tfschema:"key_vault"`
+	Status                      string                       `tfschema:"status"`
+	ServerIPAddress             string                       `tfschema:"server_ip_address"`
+	ServerCertificateCommonName string                       `tfschema:"server_certificate_common_name"`
+	ServerCertificateExpiryDate string                       `tfschema:"server_certificate_expiry_date"`
+}
+
+type NetAppVolumeBucketWithServerDataSourceModel struct {
+	Name                        string                       `tfschema:"name"`
+	NetAppVolumeID              string                       `tfschema:"netapp_volume_id"`
+	Path                        string                       `tfschema:"path"`
+	Permissions                 string                       `tfschema:"permissions"`
+	FileSystemNfsUser           []NetAppVolumeBucketNfsUser  `tfschema:"file_system_nfs_user"`
+	FileSystemCifsUsername      string                       `tfschema:"file_system_cifs_username"`
+	Server                      []NetAppVolumeBucketServer   `tfschema:"server"`
+	KeyVault                    []NetAppVolumeBucketKeyVault `tfschema:"key_vault"`
+	Status                      string                       `tfschema:"status"`
+	ServerIPAddress             string                       `tfschema:"server_ip_address"`
+	ServerCertificateCommonName string                       `tfschema:"server_certificate_common_name"`
+	ServerCertificateExpiryDate string                       `tfschema:"server_certificate_expiry_date"`
 }

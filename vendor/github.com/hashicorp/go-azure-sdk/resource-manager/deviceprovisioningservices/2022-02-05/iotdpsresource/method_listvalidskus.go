@@ -24,6 +24,18 @@ type ListValidSkusCompleteResult struct {
 	Items              []IotDpsSkuDefinition
 }
 
+type ListValidSkusCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListValidSkusCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListValidSkus ...
 func (c IotDpsResourceClient) ListValidSkus(ctx context.Context, id commonids.ProvisioningServiceId) (result ListValidSkusOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c IotDpsResourceClient) ListValidSkus(ctx context.Context, id commonids.Pr
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListValidSkusCustomPager{},
 		Path:       fmt.Sprintf("%s/skus", id.ID()),
 	}
 

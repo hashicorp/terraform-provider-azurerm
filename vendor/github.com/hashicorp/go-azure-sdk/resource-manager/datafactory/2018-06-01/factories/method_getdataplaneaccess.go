@@ -50,7 +50,6 @@ func (c FactoriesClient) GetDataPlaneAccess(ctx context.Context, id FactoryId, i
 
 	var model AccessPolicyResponse
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

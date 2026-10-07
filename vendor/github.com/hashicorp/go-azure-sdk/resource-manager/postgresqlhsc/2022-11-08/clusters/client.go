@@ -15,7 +15,7 @@ type ClustersClient struct {
 }
 
 func NewClustersClientWithBaseURI(sdkApi sdkEnv.Api) (*ClustersClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "clusters", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "clusters", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ClustersClient: %+v", err)
 	}

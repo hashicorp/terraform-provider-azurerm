@@ -10,18 +10,71 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type Selector interface {
+	Selector() BaseSelectorImpl
 }
 
-// RawSelectorImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+var _ Selector = BaseSelectorImpl{}
+
+type BaseSelectorImpl struct {
+	Filter Filter       `json:"filter"`
+	Id     string       `json:"id"`
+	Type   SelectorType `json:"type"`
+}
+
+func (s BaseSelectorImpl) Selector() BaseSelectorImpl {
+	return s
+}
+
+var _ Selector = RawSelectorImpl{}
+
+// RawSelectorImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawSelectorImpl struct {
-	Type   string
-	Values map[string]interface{}
+	selector BaseSelectorImpl
+	Type     string
+	Values   map[string]interface{}
 }
 
-func unmarshalSelectorImplementation(input []byte) (Selector, error) {
+func (s RawSelectorImpl) Selector() BaseSelectorImpl {
+	return s.selector
+}
+
+func (s RawSelectorImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
+}
+
+var _ json.Unmarshaler = &BaseSelectorImpl{}
+
+func (s *BaseSelectorImpl) UnmarshalJSON(bytes []byte) error {
+	var decoded struct {
+		Id   string       `json:"id"`
+		Type SelectorType `json:"type"`
+	}
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+
+	s.Id = decoded.Id
+	s.Type = decoded.Type
+
+	var temp map[string]json.RawMessage
+	if err := json.Unmarshal(bytes, &temp); err != nil {
+		return fmt.Errorf("unmarshaling BaseSelectorImpl into map[string]json.RawMessage: %+v", err)
+	}
+
+	if v, ok := temp["filter"]; ok {
+		impl, err := UnmarshalFilterImplementation(v)
+		if err != nil {
+			return fmt.Errorf("unmarshaling field 'Filter' for 'BaseSelectorImpl': %+v", err)
+		}
+		s.Filter = impl
+	}
+
+	return nil
+}
+
+func UnmarshalSelectorImplementation(input []byte) (Selector, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +84,9 @@ func unmarshalSelectorImplementation(input []byte) (Selector, error) {
 		return nil, fmt.Errorf("unmarshaling Selector into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["type"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["type"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "List") {
@@ -52,10 +105,15 @@ func unmarshalSelectorImplementation(input []byte) (Selector, error) {
 		return out, nil
 	}
 
-	out := RawSelectorImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseSelectorImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseSelectorImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawSelectorImpl{
+		selector: parent,
+		Type:     value,
+		Values:   temp,
+	}, nil
 
 }

@@ -24,6 +24,18 @@ type ListAllCompleteResult struct {
 	Items              []GalleryImages
 }
 
+type ListAllCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListAllCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListAll ...
 func (c GalleryImagesClient) ListAll(ctx context.Context, id commonids.SubscriptionId) (result ListAllOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c GalleryImagesClient) ListAll(ctx context.Context, id commonids.Subscript
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListAllCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.AzureStackHCI/galleryImages", id.ID()),
 	}
 

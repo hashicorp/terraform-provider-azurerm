@@ -45,7 +45,6 @@ func (c IotDpsResourceClient) GetPrivateEndpointConnection(ctx context.Context, 
 
 	var model PrivateEndpointConnection
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

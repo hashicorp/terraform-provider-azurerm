@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -14,25 +14,25 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/expressroutecircuits"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/expressrouteports"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressroutecircuits"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressrouteports"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var expressRouteCircuitResourceName = "azurerm_express_route_circuit"
 
 func resourceExpressRouteCircuit() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceExpressRouteCircuitCreateUpdate,
+		Create: resourceExpressRouteCircuitCreate,
 		Read:   resourceExpressRouteCircuitRead,
-		Update: resourceExpressRouteCircuitCreateUpdate,
+		Update: resourceExpressRouteCircuitUpdate,
 		Delete: resourceExpressRouteCircuitDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := expressroutecircuits.ParseExpressRouteCircuitID(id)
@@ -41,7 +41,7 @@ func resourceExpressRouteCircuit() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomDiffInSequence(
 			// If bandwidth is reduced force a new resource
-			pluginsdk.ForceNewIfChange("bandwidth_in_mbps", func(ctx context.Context, old, new, meta interface{}) bool {
+			pluginsdk.ForceNewIfChange("bandwidth_in_mbps", func(ctx context.Context, old, new, meta any) bool {
 				return new.(int) < old.(int)
 			}),
 		),
@@ -71,23 +71,15 @@ func resourceExpressRouteCircuit() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"tier": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(expressroutecircuits.ExpressRouteCircuitSkuTierBasic),
-								string(expressroutecircuits.ExpressRouteCircuitSkuTierLocal),
-								string(expressroutecircuits.ExpressRouteCircuitSkuTierStandard),
-								string(expressroutecircuits.ExpressRouteCircuitSkuTierPremium),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(expressroutecircuits.PossibleValuesForExpressRouteCircuitSkuTier(), false),
 						},
 
 						"family": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(expressroutecircuits.ExpressRouteCircuitSkuFamilyMeteredData),
-								string(expressroutecircuits.ExpressRouteCircuitSkuFamilyUnlimitedData),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(expressroutecircuits.PossibleValuesForExpressRouteCircuitSkuFamily(), false),
 						},
 					},
 				},
@@ -140,6 +132,12 @@ func resourceExpressRouteCircuit() *pluginsdk.Resource {
 				ValidateFunc:  expressrouteports.ValidateExpressRoutePortID,
 			},
 
+			"rate_limiting_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"service_provider_provisioning_state": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -162,20 +160,18 @@ func resourceExpressRouteCircuit() *pluginsdk.Resource {
 	}
 }
 
-func resourceExpressRouteCircuitCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRouteCircuits
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Azure ARM ExpressRoute Circuit creation.")
 
 	id := expressroutecircuits.NewExpressRouteCircuitID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	locks.ByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
 	defer locks.UnlockByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -188,44 +184,30 @@ func resourceExpressRouteCircuitCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	// There is the potential for the express route circuit to become out of sync when the service provider updates
-	// the express route circuit. We'll get and update the resource in place as per https://aka.ms/erRefresh
-	// We also want to keep track of the resource obtained from the api and pass down any attributes not
-	// managed by Terraform.
-	erc := expressroutecircuits.ExpressRouteCircuit{}
-	if !d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s : %s", id, err)
-			}
-		}
-
-		if err := client.CreateOrUpdateThenPoll(ctx, id, *existing.Model); err != nil {
-			return fmt.Errorf("creating/updating %s : %+v", id, err)
-		}
-
-		erc = *existing.Model
+	erc := expressroutecircuits.ExpressRouteCircuit{
+		Name:     &id.ExpressRouteCircuitName,
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
+		Sku:      expandExpressRouteCircuitSku(d.Get("sku").([]any)),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
-	erc.Name = &id.ExpressRouteCircuitName
-	erc.Location = pointer.To(location.Normalize(d.Get("location").(string)))
-	erc.Sku = expandExpressRouteCircuitSku(d.Get("sku").([]interface{}))
-	erc.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	erc.Properties = &expressroutecircuits.ExpressRouteCircuitPropertiesFormat{
+		AuthorizationKey: pointer.To(d.Get("authorization_key").(string)),
+	}
 
-	if !d.IsNewResource() {
-		erc.Properties.AllowClassicOperations = pointer.To(d.Get("allow_classic_operations").(bool))
+	if v, ok := d.GetOk("allow_classic_operations"); ok {
+		erc.Properties.AllowClassicOperations = pointer.To(v.(bool))
+	}
+
+	if v, ok := d.GetOk("rate_limiting_enabled"); ok {
+		erc.Properties.EnableDirectPortRateLimit = pointer.To(v.(bool))
+	}
+
+	// ServiceProviderProperties and expressRoutePorts/bandwidthInGbps properties are mutually exclusive
+	if _, ok := d.GetOk("express_route_port_id"); ok {
+		erc.Properties.ExpressRoutePort = &expressroutecircuits.SubResource{}
 	} else {
-		erc.Properties = &expressroutecircuits.ExpressRouteCircuitPropertiesFormat{
-			AuthorizationKey: pointer.To(d.Get("authorization_key").(string)),
-		}
-
-		// ServiceProviderProperties and expressRoutePorts/bandwidthInGbps properties are mutually exclusive
-		if _, ok := d.GetOk("express_route_port_id"); ok {
-			erc.Properties.ExpressRoutePort = &expressroutecircuits.SubResource{}
-		} else {
-			erc.Properties.ServiceProviderProperties = &expressroutecircuits.ExpressRouteCircuitServiceProviderProperties{}
-		}
+		erc.Properties.ServiceProviderProperties = &expressroutecircuits.ExpressRouteCircuitServiceProviderProperties{}
 	}
 
 	if erc.Properties.ServiceProviderProperties != nil {
@@ -234,17 +216,18 @@ func resourceExpressRouteCircuitCreateUpdate(d *pluginsdk.ResourceData, meta int
 		erc.Properties.ServiceProviderProperties.BandwidthInMbps = pointer.To(int64(d.Get("bandwidth_in_mbps").(int)))
 	} else {
 		erc.Properties.ExpressRoutePort.Id = pointer.To(d.Get("express_route_port_id").(string))
-		erc.Properties.BandwidthInGbps = utils.Float(d.Get("bandwidth_in_gbps").(float64))
+		erc.Properties.BandwidthInGbps = pointer.To(d.Get("bandwidth_in_gbps").(float64))
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, erc); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, erc, sdk.SetIDCallback(meta, &id, d)); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+	d.SetId(id.ID())
 
 	// API has bug, which appears to be eventually consistent on creation. Tracked by this issue: https://github.com/Azure/azure-rest-api-specs/issues/10148
 	log.Printf("[DEBUG] Waiting for %s to be able to be queried", id)
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"NotFound"},
+		Pending:                   []string{"NotFound", "Waiting"},
 		Target:                    []string{"Exists"},
 		Refresh:                   expressRouteCircuitCreationRefreshFunc(ctx, client, id),
 		PollInterval:              3 * time.Second,
@@ -259,6 +242,95 @@ func resourceExpressRouteCircuitCreateUpdate(d *pluginsdk.ResourceData, meta int
 	//  authorization_key can only be set after Circuit is created
 	if erc.Properties.AuthorizationKey != nil && *erc.Properties.AuthorizationKey != "" {
 		if err := client.CreateOrUpdateThenPoll(ctx, id, erc); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+	}
+
+	return resourceExpressRouteCircuitRead(d, meta)
+}
+
+func resourceExpressRouteCircuitUpdate(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Network.ExpressRouteCircuits
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := expressroutecircuits.ParseExpressRouteCircuitID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	locks.ByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
+	defer locks.UnlockByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
+
+	// There is the potential for the express route circuit to become out of sync when the service provider updates
+	// the express route circuit. We'll get and update the resource in place as per https://aka.ms/erRefresh
+	// We also want to keep track of the resource obtained from the api and pass down any attributes not
+	// managed by Terraform.
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s : %s", id, err)
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
+		return fmt.Errorf("updating %s : %+v", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", *id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
+	}
+
+	payload := *existing.Model
+
+	if d.HasChange("sku") {
+		payload.Sku = expandExpressRouteCircuitSku(d.Get("sku").([]any))
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
+	}
+
+	if d.HasChange("allow_classic_operations") {
+		payload.Properties.AllowClassicOperations = pointer.To(d.Get("allow_classic_operations").(bool))
+	}
+
+	if d.HasChange("rate_limiting_enabled") {
+		payload.Properties.EnableDirectPortRateLimit = pointer.To(d.Get("rate_limiting_enabled").(bool))
+	}
+
+	if d.HasChange("bandwidth_in_gbps") {
+		payload.Properties.BandwidthInGbps = pointer.To(d.Get("bandwidth_in_gbps").(float64))
+	}
+
+	if d.HasChange("bandwidth_in_mbps") {
+		payload.Properties.ServiceProviderProperties.BandwidthInMbps = pointer.To(int64(d.Get("bandwidth_in_mbps").(int)))
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	// API has bug, which appears to be eventually consistent on creation. Tracked by this issue: https://github.com/Azure/azure-rest-api-specs/issues/10148
+	log.Printf("[DEBUG] Waiting for %s to be able to be queried", id)
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:                   []string{"NotFound"},
+		Target:                    []string{"Exists"},
+		Refresh:                   expressRouteCircuitCreationRefreshFunc(ctx, client, *id),
+		PollInterval:              3 * time.Second,
+		ContinuousTargetOccurence: 3,
+		Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("for %s to be able to be queried: %+v", id, err)
+	}
+
+	//  authorization_key can only be set after Circuit is created
+	if payload.Properties.AuthorizationKey != nil && *payload.Properties.AuthorizationKey != "" {
+		if err := client.CreateOrUpdateThenPoll(ctx, *id, payload); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
 	}
@@ -268,7 +340,7 @@ func resourceExpressRouteCircuitCreateUpdate(d *pluginsdk.ResourceData, meta int
 	return resourceExpressRouteCircuitRead(d, meta)
 }
 
-func resourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRouteCircuits
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -294,8 +366,7 @@ func resourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface{}
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
-		sku := flattenExpressRouteCircuitSku(model.Sku)
-		if err := d.Set("sku", sku); err != nil {
+		if err := d.Set("sku", flattenExpressRouteCircuitSku(model.Sku)); err != nil {
 			return fmt.Errorf("setting `sku`: %+v", err)
 		}
 		if props := model.Properties; props != nil {
@@ -309,9 +380,10 @@ func resourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface{}
 				d.Set("express_route_port_id", portID.ID())
 			}
 
-			d.Set("service_provider_provisioning_state", string(pointer.From(props.ServiceProviderProvisioningState)))
+			d.Set("service_provider_provisioning_state", pointer.FromEnum(props.ServiceProviderProvisioningState))
 			d.Set("service_key", props.ServiceKey)
 			d.Set("allow_classic_operations", props.AllowClassicOperations)
+			d.Set("rate_limiting_enabled", props.EnableDirectPortRateLimit)
 
 			if serviceProviderProps := props.ServiceProviderProperties; serviceProviderProps != nil {
 				d.Set("service_provider_name", serviceProviderProps.ServiceProviderName)
@@ -319,12 +391,14 @@ func resourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface{}
 				d.Set("bandwidth_in_mbps", serviceProviderProps.BandwidthInMbps)
 			}
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
-func resourceExpressRouteCircuitDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExpressRouteCircuitDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRouteCircuits
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -344,33 +418,33 @@ func resourceExpressRouteCircuitDelete(d *pluginsdk.ResourceData, meta interface
 	return err
 }
 
-func expandExpressRouteCircuitSku(input []interface{}) *expressroutecircuits.ExpressRouteCircuitSku {
-	v := input[0].(map[string]interface{}) // [0] is guarded by MinItems in pluginsdk.
+func expandExpressRouteCircuitSku(input []any) *expressroutecircuits.ExpressRouteCircuitSku {
+	v := input[0].(map[string]any) // [0] is guarded by MinItems in pluginsdk.
 	tier := v["tier"].(string)
 	family := v["family"].(string)
 
 	return &expressroutecircuits.ExpressRouteCircuitSku{
 		Name:   pointer.To(fmt.Sprintf("%s_%s", tier, family)),
-		Tier:   pointer.To(expressroutecircuits.ExpressRouteCircuitSkuTier(tier)),
-		Family: pointer.To(expressroutecircuits.ExpressRouteCircuitSkuFamily(family)),
+		Tier:   pointer.ToEnum[expressroutecircuits.ExpressRouteCircuitSkuTier](tier),
+		Family: pointer.ToEnum[expressroutecircuits.ExpressRouteCircuitSkuFamily](family),
 	}
 }
 
-func flattenExpressRouteCircuitSku(sku *expressroutecircuits.ExpressRouteCircuitSku) []interface{} {
+func flattenExpressRouteCircuitSku(sku *expressroutecircuits.ExpressRouteCircuitSku) []any {
 	if sku == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"tier":   string(pointer.From(sku.Tier)),
-			"family": string(pointer.From(sku.Family)),
+	return []any{
+		map[string]any{
+			"tier":   pointer.FromEnum(sku.Tier),
+			"family": pointer.FromEnum(sku.Family),
 		},
 	}
 }
 
 func expressRouteCircuitCreationRefreshFunc(ctx context.Context, client *expressroutecircuits.ExpressRouteCircuitsClient, id expressroutecircuits.ExpressRouteCircuitId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		res, err := client.Get(ctx, id)
 		if err != nil {
 			if response.WasNotFound(res.HttpResponse) {
@@ -378,6 +452,17 @@ func expressRouteCircuitCreationRefreshFunc(ctx context.Context, client *express
 			}
 
 			return nil, "", fmt.Errorf("polling to check if the Express Route Circuit has been created: %+v", err)
+		}
+
+		if model := res.Model; model != nil && model.Properties != nil && model.Properties.ProvisioningState != nil {
+			switch *model.Properties.ProvisioningState {
+			case expressroutecircuits.ProvisioningStateFailed:
+				return nil, "", fmt.Errorf("%s failed to provision: %+v", id.ID(), res)
+			case expressroutecircuits.ProvisioningStateDeleting:
+				return nil, "", fmt.Errorf("%s is in a deleting state: %+v", id.ID(), res)
+			case expressroutecircuits.ProvisioningStateUpdating:
+				return nil, "Waiting", nil
+			}
 		}
 
 		return res, "Exists", nil

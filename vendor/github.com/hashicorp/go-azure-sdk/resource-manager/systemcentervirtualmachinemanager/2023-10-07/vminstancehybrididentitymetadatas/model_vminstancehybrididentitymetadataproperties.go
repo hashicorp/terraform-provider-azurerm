@@ -4,7 +4,7 @@ package vminstancehybrididentitymetadatas
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type VMInstanceHybridIdentityMetadataProperties struct {
-	ProvisioningState *ResourceProvisioningState `json:"provisioningState,omitempty"`
-	PublicKey         *string                    `json:"publicKey,omitempty"`
-	ResourceUid       *string                    `json:"resourceUid,omitempty"`
+	ProvisioningState *ProvisioningState `json:"provisioningState,omitempty"`
+	PublicKey         *string            `json:"publicKey,omitempty"`
+	ResourceUid       *string            `json:"resourceUid,omitempty"`
 }

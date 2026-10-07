@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package notificationhub
@@ -10,10 +10,9 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2017-04-01/notificationhubs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2023-09-01/hubs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -27,7 +26,7 @@ func resourceNotificationHubAuthorizationRule() *pluginsdk.Resource {
 		Update: resourceNotificationHubAuthorizationRuleCreateUpdate,
 		Delete: resourceNotificationHubAuthorizationRuleDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := notificationhubs.ParseNotificationHubAuthorizationRuleID(id)
+			_, err := hubs.ParseNotificationHubAuthorizationRuleID(id)
 			return err
 		}),
 		// TODO: customizeDiff for send+listen when manage selected
@@ -86,13 +85,13 @@ func resourceNotificationHubAuthorizationRule() *pluginsdk.Resource {
 			"primary_access_key": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
-				Sensitive: features.FourPointOhBeta(),
+				Sensitive: true,
 			},
 
 			"secondary_access_key": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
-				Sensitive: features.FourPointOhBeta(),
+				Sensitive: true,
 			},
 
 			"primary_connection_string": {
@@ -110,23 +109,25 @@ func resourceNotificationHubAuthorizationRule() *pluginsdk.Resource {
 	}
 }
 
-func resourceNotificationHubAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNotificationHubAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NotificationHubs.HubsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := notificationhubs.NewNotificationHubAuthorizationRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("notification_hub_name").(string), d.Get("name").(string))
+	id := hubs.NewNotificationHubAuthorizationRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("notification_hub_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.GetAuthorizationRule(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.NotificationHubsGetAuthorizationRule(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_notification_hub_authorization_rule", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_notification_hub_authorization_rule", id.ID())
+			}
 		}
 	}
 
@@ -139,13 +140,13 @@ func resourceNotificationHubAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceD
 	manage := d.Get("manage").(bool)
 	send := d.Get("send").(bool)
 	listen := d.Get("listen").(bool)
-	parameters := notificationhubs.SharedAccessAuthorizationRuleCreateOrUpdateParameters{
-		Properties: notificationhubs.SharedAccessAuthorizationRuleProperties{
+	parameters := hubs.SharedAccessAuthorizationRuleResource{
+		Properties: &hubs.SharedAccessAuthorizationRuleProperties{
 			Rights: expandNotificationHubAuthorizationRuleRights(manage, send, listen),
 		},
 	}
 
-	if _, err := client.CreateOrUpdateAuthorizationRule(ctx, id, parameters); err != nil {
+	if _, err := client.NotificationHubsCreateOrUpdateAuthorizationRule(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -153,17 +154,17 @@ func resourceNotificationHubAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceD
 	return resourceNotificationHubAuthorizationRuleRead(d, meta)
 }
 
-func resourceNotificationHubAuthorizationRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNotificationHubAuthorizationRuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NotificationHubs.HubsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := notificationhubs.ParseNotificationHubAuthorizationRuleID(d.Id())
+	id, err := hubs.ParseNotificationHubAuthorizationRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.GetAuthorizationRule(ctx, *id)
+	resp, err := client.NotificationHubsGetAuthorizationRule(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state", *id)
@@ -174,7 +175,7 @@ func resourceNotificationHubAuthorizationRuleRead(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	keysResp, err := client.ListKeys(ctx, *id)
+	keysResp, err := client.NotificationHubsListKeys(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("listing access keys for %s: %+v", *id, err)
 	}
@@ -186,7 +187,7 @@ func resourceNotificationHubAuthorizationRuleRead(d *pluginsdk.ResourceData, met
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			manage, send, listen := flattenNotificationHubAuthorizationRuleRights(props.Rights)
+			manage, send, listen := flattenNotificationHubAuthorizationRuleRights(&props.Rights)
 			d.Set("manage", manage)
 			d.Set("send", send)
 			d.Set("listen", listen)
@@ -203,12 +204,12 @@ func resourceNotificationHubAuthorizationRuleRead(d *pluginsdk.ResourceData, met
 	return nil
 }
 
-func resourceNotificationHubAuthorizationRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNotificationHubAuthorizationRuleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NotificationHubs.HubsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := notificationhubs.ParseNotificationHubAuthorizationRuleID(d.Id())
+	id, err := hubs.ParseNotificationHubAuthorizationRuleID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -219,7 +220,7 @@ func resourceNotificationHubAuthorizationRuleDelete(d *pluginsdk.ResourceData, m
 	locks.ByName(id.NamespaceName, notificationHubNamespaceResourceName)
 	defer locks.UnlockByName(id.NamespaceName, notificationHubNamespaceResourceName)
 
-	resp, err := client.DeleteAuthorizationRule(ctx, *id)
+	resp, err := client.NotificationHubsDeleteAuthorizationRule(ctx, *id)
 	if err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("deleting %s: %+v", *id, err)
@@ -229,38 +230,38 @@ func resourceNotificationHubAuthorizationRuleDelete(d *pluginsdk.ResourceData, m
 	return nil
 }
 
-func expandNotificationHubAuthorizationRuleRights(manage bool, send bool, listen bool) *[]notificationhubs.AccessRights {
-	rights := make([]notificationhubs.AccessRights, 0)
+func expandNotificationHubAuthorizationRuleRights(manage bool, send bool, listen bool) []hubs.AccessRights {
+	rights := make([]hubs.AccessRights, 0)
 
 	if manage {
-		rights = append(rights, notificationhubs.AccessRightsManage)
+		rights = append(rights, hubs.AccessRightsManage)
 	}
 
 	if send {
-		rights = append(rights, notificationhubs.AccessRightsSend)
+		rights = append(rights, hubs.AccessRightsSend)
 	}
 
 	if listen {
-		rights = append(rights, notificationhubs.AccessRightsListen)
+		rights = append(rights, hubs.AccessRightsListen)
 	}
 
-	return &rights
+	return rights
 }
 
-func flattenNotificationHubAuthorizationRuleRights(input *[]notificationhubs.AccessRights) (manage bool, send bool, listen bool) {
+func flattenNotificationHubAuthorizationRuleRights(input *[]hubs.AccessRights) (manage bool, send bool, listen bool) {
 	if input == nil {
 		return
 	}
 
 	for _, right := range *input {
 		switch right {
-		case notificationhubs.AccessRightsManage:
+		case hubs.AccessRightsManage:
 			manage = true
 			continue
-		case notificationhubs.AccessRightsSend:
+		case hubs.AccessRightsSend:
 			send = true
 			continue
-		case notificationhubs.AccessRightsListen:
+		case hubs.AccessRightsListen:
 			listen = true
 			continue
 		}

@@ -36,6 +36,7 @@ func (o ServicesDeleteOperationOptions) ToHeaders() *client.Headers {
 
 func (o ServicesDeleteOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -57,8 +58,8 @@ func (c ServiceResourceClient) ServicesDelete(ctx context.Context, id ServiceId,
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodDelete,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

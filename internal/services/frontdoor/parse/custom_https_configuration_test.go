@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = CustomHttpsConfigurationId{}
 
-func TestCustomHttpsConfigurationIDFormatter(t *testing.T) {
+func TestParseCustomHttpsConfigurationIDFormatter(t *testing.T) {
 	actual := NewCustomHttpsConfigurationID("12345678-1234-9876-4563-123456789012", "resGroup1", "frontdoor1", "endpoint1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoors/frontdoor1/customHttpsConfiguration/endpoint1"
 	if actual != expected {
@@ -21,13 +21,12 @@ func TestCustomHttpsConfigurationIDFormatter(t *testing.T) {
 	}
 }
 
-func TestCustomHttpsConfigurationID(t *testing.T) {
+func TestParseCustomHttpsConfigurationID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
 		Expected *CustomHttpsConfigurationId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -130,13 +129,12 @@ func TestCustomHttpsConfigurationID(t *testing.T) {
 	}
 }
 
-func TestCustomHttpsConfigurationIDInsensitively(t *testing.T) {
+func TestParseCustomHttpsConfigurationIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
 		Expected *CustomHttpsConfigurationId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -40,7 +40,7 @@ func ParseScopedBudgetID(input string) (*ScopedBudgetId, error) {
 	}
 
 	id := ScopedBudgetId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -57,7 +57,7 @@ func ParseScopedBudgetIDInsensitively(input string) (*ScopedBudgetId, error) {
 	}
 
 	id := ScopedBudgetId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -106,7 +106,7 @@ func (id ScopedBudgetId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftConsumption", "Microsoft.Consumption", "Microsoft.Consumption"),
 		resourceids.StaticSegment("staticBudgets", "budgets", "budgets"),
-		resourceids.UserSpecifiedSegment("budgetName", "budgetValue"),
+		resourceids.UserSpecifiedSegment("budgetName", "budgetName"),
 	}
 }
 

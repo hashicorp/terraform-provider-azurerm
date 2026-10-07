@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package lighthouse
@@ -8,17 +8,17 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/managedservices/2022-10-01/registrationdefinitions"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceLighthouseDefinition() *pluginsdk.Resource {
@@ -138,7 +138,7 @@ func resourceLighthouseDefinition() *pluginsdk.Resource {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										Default:      "PT8H",
-										ValidateFunc: azValidate.ISO8601Duration,
+										ValidateFunc: validation.ISO8601Duration,
 									},
 
 									"approver": {
@@ -176,7 +176,7 @@ func resourceLighthouseDefinition() *pluginsdk.Resource {
 			"lighthouse_definition_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
@@ -217,7 +217,7 @@ func resourceLighthouseDefinition() *pluginsdk.Resource {
 	}
 }
 
-func resourceLighthouseDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLighthouseDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Lighthouse.DefinitionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -234,24 +234,26 @@ func resourceLighthouseDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	id := registrationdefinitions.NewScopedRegistrationDefinitionID(d.Get("scope").(string), lighthouseDefinitionID)
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_lighthouse_definition", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_lighthouse_definition", id.ID())
+			}
 		}
 	}
 	authorizations := expandLighthouseDefinitionAuthorization(d.Get("authorization").(*pluginsdk.Set).List())
 	parameters := registrationdefinitions.RegistrationDefinition{
-		Plan: expandLighthouseDefinitionPlan(d.Get("plan").([]interface{})),
+		Plan: expandLighthouseDefinitionPlan(d.Get("plan").([]any)),
 		Properties: &registrationdefinitions.RegistrationDefinitionProperties{
-			Description:                utils.String(d.Get("description").(string)),
+			Description:                pointer.To(d.Get("description").(string)),
 			Authorizations:             authorizations,
-			RegistrationDefinitionName: utils.String(d.Get("name").(string)),
+			RegistrationDefinitionName: pointer.To(d.Get("name").(string)),
 			ManagedByTenantId:          d.Get("managing_tenant_id").(string),
 		},
 	}
@@ -261,15 +263,21 @@ func resourceLighthouseDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	// NOTE: this API call uses DefinitionId then Scope - check in the future
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
-	d.SetId(id.ID())
 	return resourceLighthouseDefinitionRead(d, meta)
 }
 
-func resourceLighthouseDefinitionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLighthouseDefinitionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Lighthouse.DefinitionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -314,7 +322,7 @@ func resourceLighthouseDefinitionRead(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func resourceLighthouseDefinitionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLighthouseDefinitionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Lighthouse.DefinitionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -331,34 +339,29 @@ func resourceLighthouseDefinitionDelete(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func flattenLighthouseDefinitionAuthorization(input []registrationdefinitions.Authorization) []interface{} {
-	results := make([]interface{}, 0)
+func flattenLighthouseDefinitionAuthorization(input []registrationdefinitions.Authorization) []any {
+	results := make([]any, 0)
 	for _, item := range input {
-		principalIDDisplayName := ""
-		if item.PrincipalIdDisplayName != nil {
-			principalIDDisplayName = *item.PrincipalIdDisplayName
-		}
-
-		results = append(results, map[string]interface{}{
+		results = append(results, map[string]any{
 			"role_definition_id":            item.RoleDefinitionId,
 			"principal_id":                  item.PrincipalId,
-			"principal_display_name":        principalIDDisplayName,
-			"delegated_role_definition_ids": utils.FlattenStringSlice(item.DelegatedRoleDefinitionIds),
+			"principal_display_name":        pointer.From(item.PrincipalIdDisplayName),
+			"delegated_role_definition_ids": pluginsdk.FlattenSlice(item.DelegatedRoleDefinitionIds),
 		})
 	}
 
 	return results
 }
 
-func expandLighthouseDefinitionAuthorization(input []interface{}) []registrationdefinitions.Authorization {
+func expandLighthouseDefinitionAuthorization(input []any) []registrationdefinitions.Authorization {
 	results := make([]registrationdefinitions.Authorization, 0)
 	for _, item := range input {
-		v := item.(map[string]interface{})
-		delegatedRoleDefinitionIds := utils.ExpandStringSlice(v["delegated_role_definition_ids"].(*pluginsdk.Set).List())
+		v := item.(map[string]any)
+		delegatedRoleDefinitionIds := pluginsdk.ExpandStringSlice(v["delegated_role_definition_ids"].(*pluginsdk.Set).List())
 		result := registrationdefinitions.Authorization{
 			RoleDefinitionId:           v["role_definition_id"].(string),
 			PrincipalId:                v["principal_id"].(string),
-			PrincipalIdDisplayName:     utils.String(v["principal_display_name"].(string)),
+			PrincipalIdDisplayName:     pointer.To(v["principal_display_name"].(string)),
 			DelegatedRoleDefinitionIds: delegatedRoleDefinitionIds,
 		}
 		results = append(results, result)
@@ -366,12 +369,12 @@ func expandLighthouseDefinitionAuthorization(input []interface{}) []registration
 	return results
 }
 
-func expandLighthouseDefinitionPlan(input []interface{}) *registrationdefinitions.Plan {
+func expandLighthouseDefinitionPlan(input []any) *registrationdefinitions.Plan {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 	return &registrationdefinitions.Plan{
 		Name:      raw["name"].(string),
 		Publisher: raw["publisher"].(string),
@@ -380,13 +383,13 @@ func expandLighthouseDefinitionPlan(input []interface{}) *registrationdefinition
 	}
 }
 
-func flattenLighthouseDefinitionPlan(input *registrationdefinitions.Plan) []interface{} {
+func flattenLighthouseDefinitionPlan(input *registrationdefinitions.Plan) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"name":      input.Name,
 			"publisher": input.Publisher,
 			"product":   input.Product,
@@ -395,24 +398,23 @@ func flattenLighthouseDefinitionPlan(input *registrationdefinitions.Plan) []inte
 	}
 }
 
-func expandLighthouseDefinitionEligibleAuthorization(input []interface{}) *[]registrationdefinitions.EligibleAuthorization {
+func expandLighthouseDefinitionEligibleAuthorization(input []any) *[]registrationdefinitions.EligibleAuthorization {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	var results []registrationdefinitions.EligibleAuthorization
-
+	results := make([]registrationdefinitions.EligibleAuthorization, 0, len(input))
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 
 		result := registrationdefinitions.EligibleAuthorization{
 			PrincipalId:            v["principal_id"].(string),
 			RoleDefinitionId:       v["role_definition_id"].(string),
-			JustInTimeAccessPolicy: expandLighthouseDefinitionJustInTimeAccessPolicy(v["just_in_time_access_policy"].([]interface{})),
+			JustInTimeAccessPolicy: expandLighthouseDefinitionJustInTimeAccessPolicy(v["just_in_time_access_policy"].([]any)),
 		}
 
 		if principalDisplayName := v["principal_display_name"].(string); principalDisplayName != "" {
-			result.PrincipalIdDisplayName = utils.String(principalDisplayName)
+			result.PrincipalIdDisplayName = pointer.To(principalDisplayName)
 		}
 
 		results = append(results, result)
@@ -421,15 +423,15 @@ func expandLighthouseDefinitionEligibleAuthorization(input []interface{}) *[]reg
 	return &results
 }
 
-func expandLighthouseDefinitionJustInTimeAccessPolicy(input []interface{}) *registrationdefinitions.JustInTimeAccessPolicy {
+func expandLighthouseDefinitionJustInTimeAccessPolicy(input []any) *registrationdefinitions.JustInTimeAccessPolicy {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	justInTimeAccessPolicy := input[0].(map[string]interface{})
+	justInTimeAccessPolicy := input[0].(map[string]any)
 
 	result := registrationdefinitions.JustInTimeAccessPolicy{
-		MaximumActivationDuration: utils.String(justInTimeAccessPolicy["maximum_activation_duration"].(string)),
+		MaximumActivationDuration: pointer.To(justInTimeAccessPolicy["maximum_activation_duration"].(string)),
 		ManagedByTenantApprovers:  expandLighthouseDefinitionApprover(justInTimeAccessPolicy["approver"].(*pluginsdk.Set).List()),
 	}
 
@@ -442,22 +444,21 @@ func expandLighthouseDefinitionJustInTimeAccessPolicy(input []interface{}) *regi
 	return &result
 }
 
-func expandLighthouseDefinitionApprover(input []interface{}) *[]registrationdefinitions.EligibleApprover {
+func expandLighthouseDefinitionApprover(input []any) *[]registrationdefinitions.EligibleApprover {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	var results []registrationdefinitions.EligibleApprover
-
+	results := make([]registrationdefinitions.EligibleApprover, 0)
 	for _, v := range input {
-		eligibleApprover := v.(map[string]interface{})
+		eligibleApprover := v.(map[string]any)
 
 		result := registrationdefinitions.EligibleApprover{
 			PrincipalId: eligibleApprover["principal_id"].(string),
 		}
 
 		if principalDisplayName := eligibleApprover["principal_display_name"].(string); principalDisplayName != "" {
-			result.PrincipalIdDisplayName = utils.String(principalDisplayName)
+			result.PrincipalIdDisplayName = pointer.To(principalDisplayName)
 		}
 
 		results = append(results, result)
@@ -466,15 +467,14 @@ func expandLighthouseDefinitionApprover(input []interface{}) *[]registrationdefi
 	return &results
 }
 
-func flattenLighthouseDefinitionEligibleAuthorization(input *[]registrationdefinitions.EligibleAuthorization) []interface{} {
+func flattenLighthouseDefinitionEligibleAuthorization(input *[]registrationdefinitions.EligibleAuthorization) []any {
 	if input == nil {
-		return nil
+		return []any{}
 	}
 
-	var results []interface{}
-
+	results := make([]any, 0, len(*input))
 	for _, item := range *input {
-		result := map[string]interface{}{
+		result := map[string]any{
 			"principal_id":       item.PrincipalId,
 			"role_definition_id": item.RoleDefinitionId,
 		}
@@ -493,14 +493,14 @@ func flattenLighthouseDefinitionEligibleAuthorization(input *[]registrationdefin
 	return results
 }
 
-func flattenLighthouseDefinitionJustInTimeAccessPolicy(input *registrationdefinitions.JustInTimeAccessPolicy) []interface{} {
+func flattenLighthouseDefinitionJustInTimeAccessPolicy(input *registrationdefinitions.JustInTimeAccessPolicy) []any {
 	if input == nil {
-		return nil
+		return []any{}
 	}
 
-	var results []interface{}
+	var results []any
 
-	result := map[string]interface{}{}
+	result := map[string]any{}
 
 	if v := input.MultiFactorAuthProvider; v != registrationdefinitions.MultiFactorAuthProviderNone {
 		result["multi_factor_auth_provider"] = string(v)
@@ -519,15 +519,14 @@ func flattenLighthouseDefinitionJustInTimeAccessPolicy(input *registrationdefini
 	return append(results, result)
 }
 
-func flattenLighthouseDefinitionApprover(input *[]registrationdefinitions.EligibleApprover) []interface{} {
+func flattenLighthouseDefinitionApprover(input *[]registrationdefinitions.EligibleApprover) []any {
 	if input == nil {
-		return nil
+		return []any{}
 	}
 
-	var results []interface{}
-
+	results := make([]any, 0, len(*input))
 	for _, item := range *input {
-		result := map[string]interface{}{
+		result := map[string]any{
 			"principal_id": item.PrincipalId,
 		}
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = FirewallNatRuleCollectionId{}
 
-func TestFirewallNatRuleCollectionIDFormatter(t *testing.T) {
+func TestParseFirewallNatRuleCollectionIDFormatter(t *testing.T) {
 	actual := NewFirewallNatRuleCollectionID("00000000-0000-0000-0000-000000000000", "mygroup1", "myfirewall", "natRuleCollection1").ID()
 	expected := "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/azureFirewalls/myfirewall/natRuleCollections/natRuleCollection1"
 	if actual != expected {
@@ -21,13 +21,12 @@ func TestFirewallNatRuleCollectionIDFormatter(t *testing.T) {
 	}
 }
 
-func TestFirewallNatRuleCollectionID(t *testing.T) {
+func TestParseFirewallNatRuleCollectionID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
 		Expected *FirewallNatRuleCollectionId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -8,20 +8,19 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualwans"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourcePointToSiteVPNGateway() *pluginsdk.Resource {
@@ -31,7 +30,7 @@ func resourcePointToSiteVPNGateway() *pluginsdk.Resource {
 		Update: resourcePointToSiteVPNGatewayUpdate,
 		Delete: resourcePointToSiteVPNGatewayDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.PointToSiteVpnGatewayID(id)
+			_, err := commonids.ParseVirtualWANP2SVPNGatewayID(id)
 			return err
 		}),
 
@@ -58,7 +57,7 @@ func resourcePointToSiteVPNGateway() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.VirtualHubID,
+				ValidateFunc: virtualwans.ValidateVirtualHubID,
 			},
 
 			"vpn_server_configuration_id": {
@@ -90,7 +89,7 @@ func resourcePointToSiteVPNGateway() *pluginsdk.Resource {
 										Required: true,
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
-											ValidateFunc: validate.CIDR,
+											ValidateFunc: validation.IsCIDRIPv4,
 										},
 									},
 								},
@@ -100,26 +99,26 @@ func resourcePointToSiteVPNGateway() *pluginsdk.Resource {
 						"route": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"associated_route_table_id": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: networkValidate.HubRouteTableID,
+										ValidateFunc: virtualwans.ValidateHubRouteTableID,
 									},
 
 									"inbound_route_map_id": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
-										ValidateFunc: networkValidate.RouteMapID,
+										ValidateFunc: virtualwans.ValidateRouteMapID,
 									},
 
 									"outbound_route_map_id": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
-										ValidateFunc: networkValidate.RouteMapID,
+										ValidateFunc: virtualwans.ValidateRouteMapID,
 									},
 
 									"propagated_route_table": {
@@ -133,7 +132,7 @@ func resourcePointToSiteVPNGateway() *pluginsdk.Resource {
 													Required: true,
 													Elem: &pluginsdk.Schema{
 														Type:         pluginsdk.TypeString,
-														ValidateFunc: networkValidate.HubRouteTableID,
+														ValidateFunc: virtualwans.ValidateHubRouteTableID,
 													},
 												},
 
@@ -154,7 +153,6 @@ func resourcePointToSiteVPNGateway() *pluginsdk.Resource {
 						"internet_security_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							ForceNew: true,
 							Default:  false,
 						},
 					},
@@ -183,66 +181,54 @@ func resourcePointToSiteVPNGateway() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
 
-func resourcePointToSiteVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.PointToSiteVpnGatewaysClient
+func resourcePointToSiteVPNGatewayCreate(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Network.VirtualWANs
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewPointToSiteVpnGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := commonids.NewVirtualWANP2SVPNGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id.ResourceGroup, id.P2sVpnGatewayName)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.P2sVpnGatewaysGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+		}
+
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_point_to_site_vpn_gateway", id.ID())
 		}
 	}
 
-	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_point_to_site_vpn_gateway", id.ID())
-	}
-
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	scaleUnit := d.Get("scale_unit").(int)
-	virtualHubId := d.Get("virtual_hub_id").(string)
-	vpnServerConfigurationId := d.Get("vpn_server_configuration_id").(string)
-	t := d.Get("tags").(map[string]interface{})
-
-	connectionConfigurationsRaw := d.Get("connection_configuration").([]interface{})
-	connectionConfigurations := expandPointToSiteVPNGatewayConnectionConfiguration(connectionConfigurationsRaw)
-
-	parameters := network.P2SVpnGateway{
-		Location: utils.String(location),
-		P2SVpnGatewayProperties: &network.P2SVpnGatewayProperties{
-			IsRoutingPreferenceInternet: utils.Bool(d.Get("routing_preference_internet_enabled").(bool)),
-			P2SConnectionConfigurations: connectionConfigurations,
-			VpnServerConfiguration: &network.SubResource{
-				ID: utils.String(vpnServerConfigurationId),
+	parameters := virtualwans.P2SVpnGateway{
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
+		Properties: &virtualwans.P2SVpnGatewayProperties{
+			IsRoutingPreferenceInternet: pointer.To(d.Get("routing_preference_internet_enabled").(bool)),
+			P2SConnectionConfigurations: expandPointToSiteVPNGatewayConnectionConfiguration(d.Get("connection_configuration").([]any)),
+			VpnServerConfiguration: &virtualwans.SubResource{
+				Id: pointer.To(d.Get("vpn_server_configuration_id").(string)),
 			},
-			VirtualHub: &network.SubResource{
-				ID: utils.String(virtualHubId),
+			VirtualHub: &virtualwans.SubResource{
+				Id: pointer.To(d.Get("virtual_hub_id").(string)),
 			},
-			VpnGatewayScaleUnit: utils.Int32(int32(scaleUnit)),
+			VpnGatewayScaleUnit: pointer.To(int64(d.Get("scale_unit").(int))),
 		},
-		Tags: tags.Expand(t),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
-	customDNSServers := utils.ExpandStringSlice(d.Get("dns_servers").([]interface{}))
+	customDNSServers := pluginsdk.ExpandStringSlice(d.Get("dns_servers").([]any))
 	if len(*customDNSServers) != 0 {
-		parameters.P2SVpnGatewayProperties.CustomDNSServers = customDNSServers
+		parameters.Properties.CustomDnsServers = customDNSServers
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.P2sVpnGatewayName, parameters)
-	if err != nil {
+	if err := client.P2sVpnGatewaysCreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -250,48 +236,52 @@ func resourcePointToSiteVPNGatewayCreate(d *pluginsdk.ResourceData, meta interfa
 	return resourcePointToSiteVPNGatewayRead(d, meta)
 }
 
-func resourcePointToSiteVPNGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.PointToSiteVpnGatewaysClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+func resourcePointToSiteVPNGatewayUpdate(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Network.VirtualWANs
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewPointToSiteVpnGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, id.ResourceGroup, id.P2sVpnGatewayName)
+	id, err := commonids.ParseVirtualWANP2SVPNGatewayID(d.Id())
+	if err != nil {
+		return err
+	}
+	existing, err := client.P2sVpnGatewaysGet(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+
+	props := virtualwans.P2SVpnGatewayProperties{}
+	if existing.Model.Properties != nil {
+		props = *existing.Model.Properties
+	}
+
 	if d.HasChange("connection_configuration") {
-		existing.P2SConnectionConfigurations = expandPointToSiteVPNGatewayConnectionConfiguration(d.Get("connection_configuration").([]interface{}))
+		props.P2SConnectionConfigurations = expandPointToSiteVPNGatewayConnectionConfiguration(d.Get("connection_configuration").([]any))
 	}
 
 	if d.HasChange("scale_unit") {
-		existing.VpnGatewayScaleUnit = utils.Int32(int32(d.Get("scale_unit").(int)))
+		props.VpnGatewayScaleUnit = pointer.To(int64(d.Get("scale_unit").(int)))
 	}
 
 	if d.HasChange("dns_servers") {
-		if existing.P2SVpnGatewayProperties == nil {
-			existing.P2SVpnGatewayProperties = &network.P2SVpnGatewayProperties{}
-		}
-
-		customDNSServers := utils.ExpandStringSlice(d.Get("dns_servers").([]interface{}))
+		customDNSServers := pluginsdk.ExpandStringSlice(d.Get("dns_servers").([]any))
 		if len(*customDNSServers) != 0 {
-			existing.P2SVpnGatewayProperties.CustomDNSServers = customDNSServers
+			props.CustomDnsServers = customDNSServers
 		}
 	}
 
 	if d.HasChange("tags") {
-		existing.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.P2sVpnGatewayName, existing)
-	if err != nil {
+	existing.Model.Properties = &props
+
+	if err := client.P2sVpnGatewaysCreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -299,19 +289,19 @@ func resourcePointToSiteVPNGatewayUpdate(d *pluginsdk.ResourceData, meta interfa
 	return resourcePointToSiteVPNGatewayRead(d, meta)
 }
 
-func resourcePointToSiteVPNGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.PointToSiteVpnGatewaysClient
+func resourcePointToSiteVPNGatewayRead(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.PointToSiteVpnGatewayID(d.Id())
+	id, err := commonids.ParseVirtualWANP2SVPNGatewayID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.P2sVpnGatewayName)
+	resp, err := client.P2sVpnGatewaysGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state!", id)
 			d.SetId("")
 			return nil
@@ -320,82 +310,73 @@ func resourcePointToSiteVPNGatewayRead(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.P2sVpnGatewayName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.GatewayName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+		if props := model.Properties; props != nil {
+			d.Set("dns_servers", pluginsdk.FlattenSlice(props.CustomDnsServers))
+			if err := d.Set("connection_configuration", flattenPointToSiteVPNGatewayConnectionConfiguration(props.P2SConnectionConfigurations)); err != nil {
+				return fmt.Errorf("setting `connection_configuration`: %+v", err)
+			}
+
+			scaleUnit := 0
+			if props.VpnGatewayScaleUnit != nil {
+				scaleUnit = int(*props.VpnGatewayScaleUnit)
+			}
+			d.Set("scale_unit", scaleUnit)
+
+			virtualHubId := ""
+			if props.VirtualHub != nil && props.VirtualHub.Id != nil {
+				virtualHubId = *props.VirtualHub.Id
+			}
+			d.Set("virtual_hub_id", virtualHubId)
+
+			vpnServerConfigurationId := ""
+			if props.VpnServerConfiguration != nil && props.VpnServerConfiguration.Id != nil {
+				vpnServerConfigurationId = *props.VpnServerConfiguration.Id
+			}
+			d.Set("vpn_server_configuration_id", vpnServerConfigurationId)
+
+			d.Set("routing_preference_internet_enabled", pointer.From(props.IsRoutingPreferenceInternet))
+		}
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
-
-	if props := resp.P2SVpnGatewayProperties; props != nil {
-		d.Set("dns_servers", utils.FlattenStringSlice(props.CustomDNSServers))
-		flattenedConfigurations := flattenPointToSiteVPNGatewayConnectionConfiguration(props.P2SConnectionConfigurations)
-		if err := d.Set("connection_configuration", flattenedConfigurations); err != nil {
-			return fmt.Errorf("setting `connection_configuration`: %+v", err)
-		}
-
-		scaleUnit := 0
-		if props.VpnGatewayScaleUnit != nil {
-			scaleUnit = int(*props.VpnGatewayScaleUnit)
-		}
-		d.Set("scale_unit", scaleUnit)
-
-		virtualHubId := ""
-		if props.VirtualHub != nil && props.VirtualHub.ID != nil {
-			virtualHubId = *props.VirtualHub.ID
-		}
-		d.Set("virtual_hub_id", virtualHubId)
-
-		vpnServerConfigurationId := ""
-		if props.VpnServerConfiguration != nil && props.VpnServerConfiguration.ID != nil {
-			vpnServerConfigurationId = *props.VpnServerConfiguration.ID
-		}
-		d.Set("vpn_server_configuration_id", vpnServerConfigurationId)
-
-		routingPreferenceInternetEnabled := false
-		if props.IsRoutingPreferenceInternet != nil {
-			routingPreferenceInternetEnabled = *props.IsRoutingPreferenceInternet
-		}
-		d.Set("routing_preference_internet_enabled", routingPreferenceInternetEnabled)
-	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
-func resourcePointToSiteVPNGatewayDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.PointToSiteVpnGatewaysClient
+func resourcePointToSiteVPNGatewayDelete(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.PointToSiteVpnGatewayID(d.Id())
+	id, err := commonids.ParseVirtualWANP2SVPNGatewayID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.P2sVpnGatewayName)
-	if err != nil {
+	if err := client.P2sVpnGatewaysDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func expandPointToSiteVPNGatewayConnectionConfiguration(input []interface{}) *[]network.P2SConnectionConfiguration {
-	configurations := make([]network.P2SConnectionConfiguration, 0)
+func expandPointToSiteVPNGatewayConnectionConfiguration(input []any) *[]virtualwans.P2SConnectionConfiguration {
+	configurations := make([]virtualwans.P2SConnectionConfiguration, 0)
 
 	for _, v := range input {
-		raw := v.(map[string]interface{})
+		raw := v.(map[string]any)
 
 		addressPrefixes := make([]string, 0)
 		name := raw["name"].(string)
 
-		clientAddressPoolsRaw := raw["vpn_client_address_pool"].([]interface{})
+		clientAddressPoolsRaw := raw["vpn_client_address_pool"].([]any)
 		for _, clientV := range clientAddressPoolsRaw {
-			clientRaw := clientV.(map[string]interface{})
+			clientRaw := clientV.(map[string]any)
 
 			addressPrefixesRaw := clientRaw["address_prefixes"].(*pluginsdk.Set).List()
 			for _, prefix := range addressPrefixesRaw {
@@ -403,14 +384,14 @@ func expandPointToSiteVPNGatewayConnectionConfiguration(input []interface{}) *[]
 			}
 		}
 
-		configurations = append(configurations, network.P2SConnectionConfiguration{
-			Name: utils.String(name),
-			P2SConnectionConfigurationProperties: &network.P2SConnectionConfigurationProperties{
-				VpnClientAddressPool: &network.AddressSpace{
+		configurations = append(configurations, virtualwans.P2SConnectionConfiguration{
+			Name: pointer.To(name),
+			Properties: &virtualwans.P2SConnectionConfigurationProperties{
+				VpnClientAddressPool: &virtualwans.AddressSpace{
 					AddressPrefixes: &addressPrefixes,
 				},
-				RoutingConfiguration:   expandPointToSiteVPNGatewayConnectionRouteConfiguration(raw["route"].([]interface{})),
-				EnableInternetSecurity: utils.Bool(raw["internet_security_enabled"].(bool)),
+				RoutingConfiguration:   expandPointToSiteVPNGatewayConnectionRouteConfiguration(raw["route"].([]any)),
+				EnableInternetSecurity: pointer.To(raw["internet_security_enabled"].(bool)),
 			},
 		})
 	}
@@ -418,69 +399,65 @@ func expandPointToSiteVPNGatewayConnectionConfiguration(input []interface{}) *[]
 	return &configurations
 }
 
-func expandPointToSiteVPNGatewayConnectionRouteConfiguration(input []interface{}) *network.RoutingConfiguration {
+func expandPointToSiteVPNGatewayConnectionRouteConfiguration(input []any) *virtualwans.RoutingConfiguration {
 	if len(input) == 0 {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
-	routingConfiguration := &network.RoutingConfiguration{
-		AssociatedRouteTable: &network.SubResource{
-			ID: utils.String(v["associated_route_table_id"].(string)),
+	routingConfiguration := &virtualwans.RoutingConfiguration{
+		AssociatedRouteTable: &virtualwans.SubResource{
+			Id: pointer.To(v["associated_route_table_id"].(string)),
 		},
-		PropagatedRouteTables: expandPointToSiteVPNGatewayConnectionRouteConfigurationPropagatedRouteTable(v["propagated_route_table"].([]interface{})),
+		PropagatedRouteTables: expandPointToSiteVPNGatewayConnectionRouteConfigurationPropagatedRouteTable(v["propagated_route_table"].([]any)),
 	}
 
 	if inboundRouteMapId := v["inbound_route_map_id"].(string); inboundRouteMapId != "" {
-		routingConfiguration.InboundRouteMap = &network.SubResource{
-			ID: utils.String(inboundRouteMapId),
+		routingConfiguration.InboundRouteMap = &virtualwans.SubResource{
+			Id: pointer.To(inboundRouteMapId),
 		}
 	}
 
 	if outboundRouteMapId := v["outbound_route_map_id"].(string); outboundRouteMapId != "" {
-		routingConfiguration.OutboundRouteMap = &network.SubResource{
-			ID: utils.String(outboundRouteMapId),
+		routingConfiguration.OutboundRouteMap = &virtualwans.SubResource{
+			Id: pointer.To(outboundRouteMapId),
 		}
 	}
 
 	return routingConfiguration
 }
 
-func expandPointToSiteVPNGatewayConnectionRouteConfigurationPropagatedRouteTable(input []interface{}) *network.PropagatedRouteTable {
+func expandPointToSiteVPNGatewayConnectionRouteConfigurationPropagatedRouteTable(input []any) *virtualwans.PropagatedRouteTable {
 	if len(input) == 0 {
 		return nil
 	}
-	v := input[0].(map[string]interface{})
-	idRaws := utils.ExpandStringSlice(v["ids"].([]interface{}))
-	ids := make([]network.SubResource, len(*idRaws))
+	v := input[0].(map[string]any)
+	idRaws := pluginsdk.ExpandStringSlice(v["ids"].([]any))
+	ids := make([]virtualwans.SubResource, len(*idRaws))
 	for i, item := range *idRaws {
-		ids[i] = network.SubResource{
-			ID: utils.String(item),
+		ids[i] = virtualwans.SubResource{
+			Id: pointer.To(item),
 		}
 	}
-	return &network.PropagatedRouteTable{
-		Labels: utils.ExpandStringSlice(v["labels"].(*pluginsdk.Set).List()),
+	return &virtualwans.PropagatedRouteTable{
+		Labels: pluginsdk.ExpandStringSlice(v["labels"].(*pluginsdk.Set).List()),
 		Ids:    &ids,
 	}
 }
 
-func flattenPointToSiteVPNGatewayConnectionConfiguration(input *[]network.P2SConnectionConfiguration) []interface{} {
+func flattenPointToSiteVPNGatewayConnectionConfiguration(input *[]virtualwans.P2SConnectionConfiguration) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 
 	for _, v := range *input {
-		name := ""
-		if v.Name != nil {
-			name = *v.Name
-		}
-
-		addressPrefixes := make([]interface{}, 0)
+		route := make([]any, 0)
+		addressPrefixes := make([]any, 0)
 		enableInternetSecurity := false
-		if props := v.P2SConnectionConfigurationProperties; props != nil {
+		if props := v.Properties; props != nil {
 			if props.VpnClientAddressPool == nil {
 				continue
 			}
@@ -494,16 +471,20 @@ func flattenPointToSiteVPNGatewayConnectionConfiguration(input *[]network.P2SCon
 			if props.EnableInternetSecurity != nil {
 				enableInternetSecurity = *props.EnableInternetSecurity
 			}
+
+			if props.RoutingConfiguration != nil {
+				route = flattenPointToSiteVPNGatewayConnectionRouteConfiguration(props.RoutingConfiguration)
+			}
 		}
 
-		output = append(output, map[string]interface{}{
-			"name": name,
-			"vpn_client_address_pool": []interface{}{
-				map[string]interface{}{
+		output = append(output, map[string]any{
+			"name": pointer.From(v.Name),
+			"vpn_client_address_pool": []any{
+				map[string]any{
 					"address_prefixes": addressPrefixes,
 				},
 			},
-			"route":                     flattenPointToSiteVPNGatewayConnectionRouteConfiguration(v.RoutingConfiguration),
+			"route":                     route,
 			"internet_security_enabled": enableInternetSecurity,
 		})
 	}
@@ -511,28 +492,28 @@ func flattenPointToSiteVPNGatewayConnectionConfiguration(input *[]network.P2SCon
 	return output
 }
 
-func flattenPointToSiteVPNGatewayConnectionRouteConfiguration(input *network.RoutingConfiguration) []interface{} {
+func flattenPointToSiteVPNGatewayConnectionRouteConfiguration(input *virtualwans.RoutingConfiguration) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	var associatedRouteTableId string
-	if input.AssociatedRouteTable != nil && input.AssociatedRouteTable.ID != nil {
-		associatedRouteTableId = *input.AssociatedRouteTable.ID
+	if input.AssociatedRouteTable != nil && input.AssociatedRouteTable.Id != nil {
+		associatedRouteTableId = *input.AssociatedRouteTable.Id
 	}
 
 	var inboundRouteMapId string
-	if input.InboundRouteMap != nil && input.InboundRouteMap.ID != nil {
-		inboundRouteMapId = *input.InboundRouteMap.ID
+	if input.InboundRouteMap != nil && input.InboundRouteMap.Id != nil {
+		inboundRouteMapId = *input.InboundRouteMap.Id
 	}
 
 	var outboundRouteMapId string
-	if input.OutboundRouteMap != nil && input.OutboundRouteMap.ID != nil {
-		outboundRouteMapId = *input.OutboundRouteMap.ID
+	if input.OutboundRouteMap != nil && input.OutboundRouteMap.Id != nil {
+		outboundRouteMapId = *input.OutboundRouteMap.Id
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"associated_route_table_id": associatedRouteTableId,
 			"inbound_route_map_id":      inboundRouteMapId,
 			"outbound_route_map_id":     outboundRouteMapId,
@@ -541,22 +522,22 @@ func flattenPointToSiteVPNGatewayConnectionRouteConfiguration(input *network.Rou
 	}
 }
 
-func flattenPointToSiteVPNGatewayConnectionRouteConfigurationPropagatedRouteTable(input *network.PropagatedRouteTable) []interface{} {
+func flattenPointToSiteVPNGatewayConnectionRouteConfigurationPropagatedRouteTable(input *virtualwans.PropagatedRouteTable) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 	ids := make([]string, 0)
 	if input.Ids != nil {
 		for _, item := range *input.Ids {
-			if item.ID != nil {
-				ids = append(ids, *item.ID)
+			if item.Id != nil {
+				ids = append(ids, *item.Id)
 			}
 		}
 	}
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"ids":    ids,
-			"labels": utils.FlattenStringSlice(input.Labels),
+			"labels": pluginsdk.FlattenSlice(input.Labels),
 		},
 	}
 }

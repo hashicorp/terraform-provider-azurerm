@@ -41,6 +41,7 @@ func (o ListForManagementGroupOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListForManagementGroupOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -55,6 +56,18 @@ func (o ListForManagementGroupOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListForManagementGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListForManagementGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListForManagementGroup ...
 func (c PolicyAssignmentsClient) ListForManagementGroup(ctx context.Context, id commonids.ManagementGroupId, options ListForManagementGroupOperationOptions) (result ListForManagementGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -63,8 +76,9 @@ func (c PolicyAssignmentsClient) ListForManagementGroup(ctx context.Context, id 
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.Authorization/policyAssignments", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListForManagementGroupCustomPager{},
+		Path:          fmt.Sprintf("%s/providers/Microsoft.Authorization/policyAssignments", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

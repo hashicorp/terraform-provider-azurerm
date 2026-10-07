@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = SqlPoolId{}
 
-func TestSqlPoolIDFormatter(t *testing.T) {
+func TestParseSqlPoolIDFormatter(t *testing.T) {
 	actual := NewSqlPoolID("12345678-1234-9876-4563-123456789012", "resGroup1", "workspace1", "sqlPool1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Synapse/workspaces/workspace1/sqlPools/sqlPool1"
 	if actual != expected {
@@ -21,13 +21,12 @@ func TestSqlPoolIDFormatter(t *testing.T) {
 	}
 }
 
-func TestSqlPoolID(t *testing.T) {
+func TestParseSqlPoolID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
 		Expected *SqlPoolId
 	}{
-
 		{
 			// empty
 			Input: "",

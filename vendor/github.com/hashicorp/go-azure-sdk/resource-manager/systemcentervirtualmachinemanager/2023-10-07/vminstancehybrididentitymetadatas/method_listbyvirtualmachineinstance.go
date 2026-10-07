@@ -24,6 +24,18 @@ type ListByVirtualMachineInstanceCompleteResult struct {
 	Items              []VMInstanceHybridIdentityMetadata
 }
 
+type ListByVirtualMachineInstanceCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByVirtualMachineInstanceCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByVirtualMachineInstance ...
 func (c VMInstanceHybridIdentityMetadatasClient) ListByVirtualMachineInstance(ctx context.Context, id commonids.ScopeId) (result ListByVirtualMachineInstanceOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c VMInstanceHybridIdentityMetadatasClient) ListByVirtualMachineInstance(ct
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByVirtualMachineInstanceCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.ScVmm/virtualMachineInstances/default/hybridIdentityMetadata", id.ID()),
 	}
 

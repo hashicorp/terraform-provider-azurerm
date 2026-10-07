@@ -24,6 +24,18 @@ type ApiPortalsListCompleteResult struct {
 	Items              []ApiPortalResource
 }
 
+type ApiPortalsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ApiPortalsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ApiPortalsList ...
 func (c AppPlatformClient) ApiPortalsList(ctx context.Context, id commonids.SpringCloudServiceId) (result ApiPortalsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c AppPlatformClient) ApiPortalsList(ctx context.Context, id commonids.Spri
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ApiPortalsListCustomPager{},
 		Path:       fmt.Sprintf("%s/apiPortals", id.ID()),
 	}
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2020, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package tftypes
@@ -446,7 +446,7 @@ func marshalMsgPackNumber(val Value, typ Type, p *AttributePath, enc *msgpack.En
 		if err != nil {
 			return p.NewErrorf("error encoding int value: %w", err)
 		}
-	} else if fv, acc := n.Float64(); acc == big.Exact {
+	} else if fv, acc := n.Float64(); acc == big.Exact && !n.IsInt() {
 		err := enc.EncodeFloat64(fv)
 		if err != nil {
 			return p.NewErrorf("error encoding float value: %w", err)

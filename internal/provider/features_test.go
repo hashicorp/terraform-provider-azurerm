@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package provider
@@ -13,14 +13,16 @@ import (
 func TestExpandFeatures(t *testing.T) {
 	testData := []struct {
 		Name     string
-		Input    []interface{}
-		EnvVars  map[string]interface{}
+		Input    []any
+		EnvVars  map[string]any
 		Expected features.UserFeatures
 	}{
 		{
 			Name:  "Empty Block",
-			Input: []interface{}{},
+			Input: []any{},
 			Expected: features.UserFeatures{
+				PersistIDOnCreateBeforePollingForCompletion:                 false,
+				SkipImportCheckOnCreateAndAllowOverwritingExistingResources: false,
 				ApiManagement: features.ApiManagementFeatures{
 					PurgeSoftDeleteOnDestroy: true,
 					RecoverSoftDeleted:       true,
@@ -35,6 +37,12 @@ func TestExpandFeatures(t *testing.T) {
 				CognitiveAccount: features.CognitiveAccountFeatures{
 					PurgeSoftDeleteOnDestroy: true,
 				},
+				EnhancedValidation: features.EnhancedValidationFeatures{
+					Locations:         false,
+					ResourceProviders: false,
+					PreflightEnabled:  false,
+					LocationFallback:  nil,
+				},
 				KeyVault: features.KeyVaultFeatures{
 					PurgeSoftDeletedCertsOnDestroy:   true,
 					PurgeSoftDeletedKeysOnDestroy:    true,
@@ -49,7 +57,7 @@ func TestExpandFeatures(t *testing.T) {
 					RecoverSoftDeletedHSMKeys:        true,
 				},
 				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
-					PermanentlyDeleteOnDestroy: true,
+					PermanentlyDeleteOnDestroy: false,
 				},
 				ManagedDisk: features.ManagedDiskFeatures{
 					ExpandWithoutDowntime: true,
@@ -60,7 +68,6 @@ func TestExpandFeatures(t *testing.T) {
 				VirtualMachine: features.VirtualMachineFeatures{
 					DetachImplicitDataDiskOnDeletion: false,
 					DeleteOSDiskOnDeletion:           true,
-					GracefulShutdown:                 false,
 					SkipShutdownAndForceDelete:       false,
 				},
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
@@ -75,6 +82,9 @@ func TestExpandFeatures(t *testing.T) {
 				RecoveryServicesVault: features.RecoveryServicesVault{
 					RecoverSoftDeletedBackupProtectedVM: true,
 				},
+				Storage: features.StorageFeatures{
+					DataPlaneAvailable: true,
+				},
 				Subscription: features.SubscriptionFeatures{
 					PreventCancellationOnDestroy: false,
 				},
@@ -85,39 +95,49 @@ func TestExpandFeatures(t *testing.T) {
 					PurgeSoftDeletedWorkspaceOnDestroy: false,
 				},
 				RecoveryService: features.RecoveryServiceFeatures{
-					VMBackupStopProtectionAndRetainDataOnDestroy: false,
-					PurgeProtectedItemsFromVaultOnDestroy:        false,
+					VMBackupStopProtectionAndRetainDataOnDestroy:    false,
+					VMBackupSuspendProtectionAndRetainDataOnDestroy: false,
+					PurgeProtectedItemsFromVaultOnDestroy:           false,
+				},
+				NetApp: features.NetAppFeatures{
+					DeleteBackupsOnBackupVaultDestroy: false,
+					PreventVolumeDestruction:          true,
+				},
+				DatabricksWorkspace: features.DatabricksWorkspaceFeatures{
+					ForceDelete: false,
 				},
 			},
 		},
 		{
 			Name: "Complete Enabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"api_management": []interface{}{
-						map[string]interface{}{
+			Input: []any{
+				map[string]any{
+					"persist_id_on_create_before_polling_for_completion":                   true,
+					"skip_import_check_on_create_and_allow_overwriting_existing_resources": true,
+					"api_management": []any{
+						map[string]any{
 							"purge_soft_delete_on_destroy": true,
 							"recover_soft_deleted":         true,
 						},
 					},
-					"app_configuration": []interface{}{
-						map[string]interface{}{
+					"app_configuration": []any{
+						map[string]any{
 							"purge_soft_delete_on_destroy": true,
 							"recover_soft_deleted":         true,
 						},
 					},
-					"application_insights": []interface{}{
-						map[string]interface{}{
+					"application_insights": []any{
+						map[string]any{
 							"disable_generated_rule": true,
 						},
 					},
-					"cognitive_account": []interface{}{
-						map[string]interface{}{
+					"cognitive_account": []any{
+						map[string]any{
 							"purge_soft_delete_on_destroy": true,
 						},
 					},
-					"key_vault": []interface{}{
-						map[string]interface{}{
+					"key_vault": []any{
+						map[string]any{
 							"purge_soft_deleted_certificates_on_destroy":                  true,
 							"purge_soft_deleted_keys_on_destroy":                          true,
 							"purge_soft_deleted_secrets_on_destroy":                       true,
@@ -131,71 +151,97 @@ func TestExpandFeatures(t *testing.T) {
 							"recover_soft_deleted_hardware_security_module_keys":          true,
 						},
 					},
-					"log_analytics_workspace": []interface{}{
-						map[string]interface{}{
+					"log_analytics_workspace": []any{
+						map[string]any{
 							"permanently_delete_on_destroy": true,
 						},
 					},
-					"managed_disk": []interface{}{
-						map[string]interface{}{
+					"managed_disk": []any{
+						map[string]any{
 							"expand_without_downtime": true,
 						},
 					},
-					"postgresql_flexible_server": []interface{}{
-						map[string]interface{}{
+					"postgresql_flexible_server": []any{
+						map[string]any{
 							"restart_server_on_configuration_value_change": true,
 						},
 					},
-					"resource_group": []interface{}{
-						map[string]interface{}{
+					"resource_group": []any{
+						map[string]any{
 							"prevent_deletion_if_contains_resources": true,
 						},
 					},
-					"recovery_services_vaults": []interface{}{
-						map[string]interface{}{
+					"recovery_services_vaults": []any{
+						map[string]any{
 							"recover_soft_deleted_backup_protected_vm": true,
 						},
 					},
-					"subscription": []interface{}{
-						map[string]interface{}{
+					"storage": []any{
+						map[string]any{
+							"data_plane_available": true,
+						},
+					},
+					"subscription": []any{
+						map[string]any{
 							"prevent_cancellation_on_destroy": true,
 						},
 					},
-					"template_deployment": []interface{}{
-						map[string]interface{}{
+					"template_deployment": []any{
+						map[string]any{
 							"delete_nested_items_during_deletion": true,
 						},
 					},
-					"virtual_machine": []interface{}{
-						map[string]interface{}{
+					"virtual_machine": []any{
+						map[string]any{
 							"detach_implicit_data_disk_on_deletion": true,
 							"delete_os_disk_on_deletion":            true,
-							"graceful_shutdown":                     true,
 							"skip_shutdown_and_force_delete":        true,
 						},
 					},
-					"virtual_machine_scale_set": []interface{}{
-						map[string]interface{}{
+					"virtual_machine_scale_set": []any{
+						map[string]any{
 							"reimage_on_manual_upgrade":     true,
 							"roll_instances_when_required":  true,
 							"force_delete":                  true,
 							"scale_to_zero_before_deletion": true,
 						},
 					},
-					"machine_learning": []interface{}{
-						map[string]interface{}{
+					"machine_learning": []any{
+						map[string]any{
 							"purge_soft_deleted_workspace_on_destroy": true,
 						},
 					},
-					"recovery_service": []interface{}{
-						map[string]interface{}{
-							"vm_backup_stop_protection_and_retain_data_on_destroy": true,
-							"purge_protected_items_from_vault_on_destroy":          true,
+					"recovery_service": []any{
+						map[string]any{
+							"vm_backup_stop_protection_and_retain_data_on_destroy":    true,
+							"vm_backup_suspend_protection_and_retain_data_on_destroy": true,
+							"purge_protected_items_from_vault_on_destroy":             true,
+						},
+					},
+					"netapp": []any{
+						map[string]any{
+							"delete_backups_on_backup_vault_destroy": true,
+							"prevent_volume_destruction":             true,
+						},
+					},
+					"databricks_workspace": []any{
+						map[string]any{
+							"force_delete": true,
+						},
+					},
+					"enhanced_validation": []any{
+						map[string]any{
+							"locations":                   true,
+							"resource_providers":          true,
+							"preflight_enabled":           true,
+							"preflight_location_fallback": "",
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
+				PersistIDOnCreateBeforePollingForCompletion:                 true,
+				SkipImportCheckOnCreateAndAllowOverwritingExistingResources: true,
 				ApiManagement: features.ApiManagementFeatures{
 					PurgeSoftDeleteOnDestroy: true,
 					RecoverSoftDeleted:       true,
@@ -209,6 +255,12 @@ func TestExpandFeatures(t *testing.T) {
 				},
 				CognitiveAccount: features.CognitiveAccountFeatures{
 					PurgeSoftDeleteOnDestroy: true,
+				},
+				EnhancedValidation: features.EnhancedValidationFeatures{
+					Locations:         true,
+					ResourceProviders: true,
+					PreflightEnabled:  true,
+					LocationFallback:  nil,
 				},
 				KeyVault: features.KeyVaultFeatures{
 					PurgeSoftDeletedCertsOnDestroy:   true,
@@ -235,6 +287,9 @@ func TestExpandFeatures(t *testing.T) {
 				RecoveryServicesVault: features.RecoveryServicesVault{
 					RecoverSoftDeletedBackupProtectedVM: true,
 				},
+				Storage: features.StorageFeatures{
+					DataPlaneAvailable: true,
+				},
 				Subscription: features.SubscriptionFeatures{
 					PreventCancellationOnDestroy: true,
 				},
@@ -244,7 +299,6 @@ func TestExpandFeatures(t *testing.T) {
 				VirtualMachine: features.VirtualMachineFeatures{
 					DetachImplicitDataDiskOnDeletion: true,
 					DeleteOSDiskOnDeletion:           true,
-					GracefulShutdown:                 true,
 					SkipShutdownAndForceDelete:       true,
 				},
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
@@ -260,39 +314,49 @@ func TestExpandFeatures(t *testing.T) {
 					PurgeSoftDeletedWorkspaceOnDestroy: true,
 				},
 				RecoveryService: features.RecoveryServiceFeatures{
-					VMBackupStopProtectionAndRetainDataOnDestroy: true,
-					PurgeProtectedItemsFromVaultOnDestroy:        true,
+					VMBackupStopProtectionAndRetainDataOnDestroy:    true,
+					VMBackupSuspendProtectionAndRetainDataOnDestroy: true,
+					PurgeProtectedItemsFromVaultOnDestroy:           true,
+				},
+				NetApp: features.NetAppFeatures{
+					DeleteBackupsOnBackupVaultDestroy: true,
+					PreventVolumeDestruction:          true,
+				},
+				DatabricksWorkspace: features.DatabricksWorkspaceFeatures{
+					ForceDelete: true,
 				},
 			},
 		},
 		{
 			Name: "Complete Disabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"api_management": []interface{}{
-						map[string]interface{}{
+			Input: []any{
+				map[string]any{
+					"persist_id_on_create_before_polling_for_completion":                   false,
+					"skip_import_check_on_create_and_allow_overwriting_existing_resources": false,
+					"api_management": []any{
+						map[string]any{
 							"purge_soft_delete_on_destroy": false,
 							"recover_soft_deleted":         false,
 						},
 					},
-					"app_configuration": []interface{}{
-						map[string]interface{}{
+					"app_configuration": []any{
+						map[string]any{
 							"purge_soft_delete_on_destroy": false,
 							"recover_soft_deleted":         false,
 						},
 					},
-					"application_insights": []interface{}{
-						map[string]interface{}{
+					"application_insights": []any{
+						map[string]any{
 							"disable_generated_rule": false,
 						},
 					},
-					"cognitive_account": []interface{}{
-						map[string]interface{}{
+					"cognitive_account": []any{
+						map[string]any{
 							"purge_soft_delete_on_destroy": false,
 						},
 					},
-					"key_vault": []interface{}{
-						map[string]interface{}{
+					"key_vault": []any{
+						map[string]any{
 							"purge_soft_deleted_certificates_on_destroy":                  false,
 							"purge_soft_deleted_keys_on_destroy":                          false,
 							"purge_soft_deleted_secrets_on_destroy":                       false,
@@ -306,71 +370,97 @@ func TestExpandFeatures(t *testing.T) {
 							"recover_soft_deleted_hardware_security_module_keys":          false,
 						},
 					},
-					"log_analytics_workspace": []interface{}{
-						map[string]interface{}{
+					"log_analytics_workspace": []any{
+						map[string]any{
 							"permanently_delete_on_destroy": false,
 						},
 					},
-					"managed_disk": []interface{}{
-						map[string]interface{}{
+					"managed_disk": []any{
+						map[string]any{
 							"expand_without_downtime": false,
 						},
 					},
-					"postgresql_flexible_server": []interface{}{
-						map[string]interface{}{
+					"postgresql_flexible_server": []any{
+						map[string]any{
 							"restart_server_on_configuration_value_change": false,
 						},
 					},
-					"resource_group": []interface{}{
-						map[string]interface{}{
+					"resource_group": []any{
+						map[string]any{
 							"prevent_deletion_if_contains_resources": false,
 						},
 					},
-					"recovery_services_vaults": []interface{}{
-						map[string]interface{}{
+					"recovery_services_vaults": []any{
+						map[string]any{
 							"recover_soft_deleted_backup_protected_vm": false,
 						},
 					},
-					"subscription": []interface{}{
-						map[string]interface{}{
+					"storage": []any{
+						map[string]any{
+							"data_plane_available": false,
+						},
+					},
+					"subscription": []any{
+						map[string]any{
 							"prevent_cancellation_on_destroy": false,
 						},
 					},
-					"template_deployment": []interface{}{
-						map[string]interface{}{
+					"template_deployment": []any{
+						map[string]any{
 							"delete_nested_items_during_deletion": false,
 						},
 					},
-					"virtual_machine": []interface{}{
-						map[string]interface{}{
+					"virtual_machine": []any{
+						map[string]any{
 							"detach_implicit_data_disk_on_deletion": false,
 							"delete_os_disk_on_deletion":            false,
-							"graceful_shutdown":                     false,
 							"skip_shutdown_and_force_delete":        false,
 						},
 					},
-					"virtual_machine_scale_set": []interface{}{
-						map[string]interface{}{
+					"virtual_machine_scale_set": []any{
+						map[string]any{
 							"force_delete":                  false,
 							"reimage_on_manual_upgrade":     false,
 							"roll_instances_when_required":  false,
 							"scale_to_zero_before_deletion": false,
 						},
 					},
-					"machine_learning": []interface{}{
-						map[string]interface{}{
+					"machine_learning": []any{
+						map[string]any{
 							"purge_soft_deleted_workspace_on_destroy": false,
 						},
 					},
-					"recovery_service": []interface{}{
-						map[string]interface{}{
-							"vm_backup_stop_protection_and_retain_data_on_destroy": false,
-							"purge_protected_items_from_vault_on_destroy":          false,
+					"recovery_service": []any{
+						map[string]any{
+							"vm_backup_stop_protection_and_retain_data_on_destroy":    false,
+							"vm_backup_suspend_protection_and_retain_data_on_destroy": false,
+							"purge_protected_items_from_vault_on_destroy":             false,
+						},
+					},
+					"netapp": []any{
+						map[string]any{
+							"delete_backups_on_backup_vault_destroy": false,
+							"prevent_volume_destruction":             false,
+						},
+					},
+					"databricks_workspace": []any{
+						map[string]any{
+							"force_delete": false,
+						},
+					},
+					"enhanced_validation": []any{
+						map[string]any{
+							"locations":                   false,
+							"resource_providers":          false,
+							"preflight_enabled":           false,
+							"preflight_location_fallback": "",
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
+				PersistIDOnCreateBeforePollingForCompletion:                 false,
+				SkipImportCheckOnCreateAndAllowOverwritingExistingResources: false,
 				ApiManagement: features.ApiManagementFeatures{
 					PurgeSoftDeleteOnDestroy: false,
 					RecoverSoftDeleted:       false,
@@ -384,6 +474,12 @@ func TestExpandFeatures(t *testing.T) {
 				},
 				CognitiveAccount: features.CognitiveAccountFeatures{
 					PurgeSoftDeleteOnDestroy: false,
+				},
+				EnhancedValidation: features.EnhancedValidationFeatures{
+					Locations:         false,
+					ResourceProviders: false,
+					PreflightEnabled:  false,
+					LocationFallback:  nil,
 				},
 				KeyVault: features.KeyVaultFeatures{
 					PurgeSoftDeletedCertsOnDestroy:   false,
@@ -410,6 +506,9 @@ func TestExpandFeatures(t *testing.T) {
 				RecoveryServicesVault: features.RecoveryServicesVault{
 					RecoverSoftDeletedBackupProtectedVM: false,
 				},
+				Storage: features.StorageFeatures{
+					DataPlaneAvailable: false,
+				},
 				Subscription: features.SubscriptionFeatures{
 					PreventCancellationOnDestroy: false,
 				},
@@ -419,7 +518,6 @@ func TestExpandFeatures(t *testing.T) {
 				VirtualMachine: features.VirtualMachineFeatures{
 					DetachImplicitDataDiskOnDeletion: false,
 					DeleteOSDiskOnDeletion:           false,
-					GracefulShutdown:                 false,
 					SkipShutdownAndForceDelete:       false,
 				},
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
@@ -435,8 +533,16 @@ func TestExpandFeatures(t *testing.T) {
 					PurgeSoftDeletedWorkspaceOnDestroy: false,
 				},
 				RecoveryService: features.RecoveryServiceFeatures{
-					VMBackupStopProtectionAndRetainDataOnDestroy: false,
-					PurgeProtectedItemsFromVaultOnDestroy:        false,
+					VMBackupStopProtectionAndRetainDataOnDestroy:    false,
+					VMBackupSuspendProtectionAndRetainDataOnDestroy: false,
+					PurgeProtectedItemsFromVaultOnDestroy:           false,
+				},
+				NetApp: features.NetAppFeatures{
+					DeleteBackupsOnBackupVaultDestroy: false,
+					PreventVolumeDestruction:          false,
+				},
+				DatabricksWorkspace: features.DatabricksWorkspaceFeatures{
+					ForceDelete: false,
 				},
 			},
 		},
@@ -454,15 +560,15 @@ func TestExpandFeatures(t *testing.T) {
 func TestExpandFeaturesApiManagement(t *testing.T) {
 	testData := []struct {
 		Name     string
-		Input    []interface{}
-		EnvVars  map[string]interface{}
+		Input    []any
+		EnvVars  map[string]any
 		Expected features.UserFeatures
 	}{
 		{
 			Name: "Empty Block",
-			Input: []interface{}{
-				map[string]interface{}{
-					"api_management": []interface{}{},
+			Input: []any{
+				map[string]any{
+					"api_management": []any{},
 				},
 			},
 			Expected: features.UserFeatures{
@@ -474,10 +580,10 @@ func TestExpandFeaturesApiManagement(t *testing.T) {
 		},
 		{
 			Name: "Purge Soft Delete On Destroy and Recover Soft Deleted Api Management Enabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"api_management": []interface{}{
-						map[string]interface{}{
+			Input: []any{
+				map[string]any{
+					"api_management": []any{
+						map[string]any{
 							"purge_soft_delete_on_destroy": true,
 							"recover_soft_deleted":         true,
 						},
@@ -493,10 +599,10 @@ func TestExpandFeaturesApiManagement(t *testing.T) {
 		},
 		{
 			Name: "Purge Soft Delete On Destroy and Recover Soft Deleted Api Management Disabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"api_management": []interface{}{
-						map[string]interface{}{
+			Input: []any{
+				map[string]any{
+					"api_management": []any{
+						map[string]any{
 							"purge_soft_delete_on_destroy": false,
 							"recover_soft_deleted":         false,
 						},
@@ -524,15 +630,15 @@ func TestExpandFeaturesApiManagement(t *testing.T) {
 func TestExpandFeaturesAppConfiguration(t *testing.T) {
 	testData := []struct {
 		Name     string
-		Input    []interface{}
-		EnvVars  map[string]interface{}
+		Input    []any
+		EnvVars  map[string]any
 		Expected features.UserFeatures
 	}{
 		{
 			Name: "Empty Block",
-			Input: []interface{}{
-				map[string]interface{}{
-					"app_configuration": []interface{}{},
+			Input: []any{
+				map[string]any{
+					"app_configuration": []any{},
 				},
 			},
 			Expected: features.UserFeatures{
@@ -544,10 +650,10 @@ func TestExpandFeaturesAppConfiguration(t *testing.T) {
 		},
 		{
 			Name: "Purge Soft Delete On Destroy and Recover Soft Deleted App Configuration Enabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"app_configuration": []interface{}{
-						map[string]interface{}{
+			Input: []any{
+				map[string]any{
+					"app_configuration": []any{
+						map[string]any{
 							"purge_soft_delete_on_destroy": true,
 							"recover_soft_deleted":         true,
 						},
@@ -563,10 +669,10 @@ func TestExpandFeaturesAppConfiguration(t *testing.T) {
 		},
 		{
 			Name: "Purge Soft Delete On Destroy and Recover Soft Deleted App Configuration Disabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"app_configuration": []interface{}{
-						map[string]interface{}{
+			Input: []any{
+				map[string]any{
+					"app_configuration": []any{
+						map[string]any{
 							"purge_soft_delete_on_destroy": false,
 							"recover_soft_deleted":         false,
 						},
@@ -594,15 +700,15 @@ func TestExpandFeaturesAppConfiguration(t *testing.T) {
 func TestExpandFeaturesApplicationInsights(t *testing.T) {
 	testData := []struct {
 		Name     string
-		Input    []interface{}
-		EnvVars  map[string]interface{}
+		Input    []any
+		EnvVars  map[string]any
 		Expected features.UserFeatures
 	}{
 		{
 			Name: "Empty Block",
-			Input: []interface{}{
-				map[string]interface{}{
-					"application_insights": []interface{}{},
+			Input: []any{
+				map[string]any{
+					"application_insights": []any{},
 				},
 			},
 			Expected: features.UserFeatures{
@@ -613,10 +719,10 @@ func TestExpandFeaturesApplicationInsights(t *testing.T) {
 		},
 		{
 			Name: "Disable Generated Rule",
-			Input: []interface{}{
-				map[string]interface{}{
-					"application_insights": []interface{}{
-						map[string]interface{}{
+			Input: []any{
+				map[string]any{
+					"application_insights": []any{
+						map[string]any{
 							"disable_generated_rule": true,
 						},
 					},
@@ -630,10 +736,10 @@ func TestExpandFeaturesApplicationInsights(t *testing.T) {
 		},
 		{
 			Name: "Enable Generated Rule",
-			Input: []interface{}{
-				map[string]interface{}{
-					"application_insights": []interface{}{
-						map[string]interface{}{
+			Input: []any{
+				map[string]any{
+					"application_insights": []any{
+						map[string]any{
 							"disable_generated_rule": false,
 						},
 					},
@@ -659,15 +765,15 @@ func TestExpandFeaturesApplicationInsights(t *testing.T) {
 func TestExpandFeaturesCognitiveServices(t *testing.T) {
 	testData := []struct {
 		Name     string
-		Input    []interface{}
-		EnvVars  map[string]interface{}
+		Input    []any
+		EnvVars  map[string]any
 		Expected features.UserFeatures
 	}{
 		{
 			Name: "Empty Block",
-			Input: []interface{}{
-				map[string]interface{}{
-					"cognitive_account": []interface{}{},
+			Input: []any{
+				map[string]any{
+					"cognitive_account": []any{},
 				},
 			},
 			Expected: features.UserFeatures{
@@ -678,10 +784,10 @@ func TestExpandFeaturesCognitiveServices(t *testing.T) {
 		},
 		{
 			Name: "Purge on Destroy Enabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"cognitive_account": []interface{}{
-						map[string]interface{}{
+			Input: []any{
+				map[string]any{
+					"cognitive_account": []any{
+						map[string]any{
 							"purge_soft_delete_on_destroy": true,
 						},
 					},
@@ -695,10 +801,10 @@ func TestExpandFeaturesCognitiveServices(t *testing.T) {
 		},
 		{
 			Name: "Purge on Destroy Disabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"cognitive_account": []interface{}{
-						map[string]interface{}{
+			Input: []any{
+				map[string]any{
+					"cognitive_account": []any{
+						map[string]any{
 							"purge_soft_delete_on_destroy": false,
 						},
 					},
@@ -724,15 +830,15 @@ func TestExpandFeaturesCognitiveServices(t *testing.T) {
 func TestExpandFeaturesKeyVault(t *testing.T) {
 	testData := []struct {
 		Name     string
-		Input    []interface{}
-		EnvVars  map[string]interface{}
+		Input    []any
+		EnvVars  map[string]any
 		Expected features.UserFeatures
 	}{
 		{
 			Name: "Empty Block",
-			Input: []interface{}{
-				map[string]interface{}{
-					"key_vault": []interface{}{},
+			Input: []any{
+				map[string]any{
+					"key_vault": []any{},
 				},
 			},
 			Expected: features.UserFeatures{
@@ -753,10 +859,10 @@ func TestExpandFeaturesKeyVault(t *testing.T) {
 		},
 		{
 			Name: "Purge Soft Delete On Destroy and Recover Soft Deleted Key Vaults Enabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"key_vault": []interface{}{
-						map[string]interface{}{
+			Input: []any{
+				map[string]any{
+					"key_vault": []any{
+						map[string]any{
 							"purge_soft_deleted_certificates_on_destroy":                  true,
 							"purge_soft_deleted_keys_on_destroy":                          true,
 							"purge_soft_deleted_secrets_on_destroy":                       true,
@@ -790,10 +896,10 @@ func TestExpandFeaturesKeyVault(t *testing.T) {
 		},
 		{
 			Name: "Purge Soft Delete On Destroy and Recover Soft Deleted Key Vaults Disabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"key_vault": []interface{}{
-						map[string]interface{}{
+			Input: []any{
+				map[string]any{
+					"key_vault": []any{
+						map[string]any{
 							"purge_soft_deleted_certificates_on_destroy":                  false,
 							"purge_soft_deleted_keys_on_destroy":                          false,
 							"purge_soft_deleted_secrets_on_destroy":                       false,
@@ -839,15 +945,15 @@ func TestExpandFeaturesKeyVault(t *testing.T) {
 func TestExpandFeaturesTemplateDeployment(t *testing.T) {
 	testData := []struct {
 		Name     string
-		Input    []interface{}
-		EnvVars  map[string]interface{}
+		Input    []any
+		EnvVars  map[string]any
 		Expected features.UserFeatures
 	}{
 		{
 			Name: "Empty Block",
-			Input: []interface{}{
-				map[string]interface{}{
-					"template_deployment": []interface{}{},
+			Input: []any{
+				map[string]any{
+					"template_deployment": []any{},
 				},
 			},
 			Expected: features.UserFeatures{
@@ -858,10 +964,10 @@ func TestExpandFeaturesTemplateDeployment(t *testing.T) {
 		},
 		{
 			Name: "Delete Nested Items During Deletion Enabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"template_deployment": []interface{}{
-						map[string]interface{}{
+			Input: []any{
+				map[string]any{
+					"template_deployment": []any{
+						map[string]any{
 							"delete_nested_items_during_deletion": true,
 						},
 					},
@@ -875,10 +981,10 @@ func TestExpandFeaturesTemplateDeployment(t *testing.T) {
 		},
 		{
 			Name: "Delete Nested Items During Deletion Disabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"template_deployment": []interface{}{
-						map[string]interface{}{
+			Input: []any{
+				map[string]any{
+					"template_deployment": []any{
+						map[string]any{
 							"delete_nested_items_during_deletion": false,
 						},
 					},
@@ -904,35 +1010,33 @@ func TestExpandFeaturesTemplateDeployment(t *testing.T) {
 func TestExpandFeaturesVirtualMachine(t *testing.T) {
 	testData := []struct {
 		Name     string
-		Input    []interface{}
-		EnvVars  map[string]interface{}
+		Input    []any
+		EnvVars  map[string]any
 		Expected features.UserFeatures
 	}{
 		{
 			Name: "Empty Block",
-			Input: []interface{}{
-				map[string]interface{}{
-					"virtual_machine": []interface{}{},
+			Input: []any{
+				map[string]any{
+					"virtual_machine": []any{},
 				},
 			},
 			Expected: features.UserFeatures{
 				VirtualMachine: features.VirtualMachineFeatures{
 					DetachImplicitDataDiskOnDeletion: false,
 					DeleteOSDiskOnDeletion:           true,
-					GracefulShutdown:                 false,
 					SkipShutdownAndForceDelete:       false,
 				},
 			},
 		},
 		{
 			Name: "Detach implicit Data Disk Enabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"virtual_machine": []interface{}{
-						map[string]interface{}{
+			Input: []any{
+				map[string]any{
+					"virtual_machine": []any{
+						map[string]any{
 							"detach_implicit_data_disk_on_deletion": true,
 							"delete_os_disk_on_deletion":            false,
-							"graceful_shutdown":                     false,
 							"force_delete":                          false,
 							"shutdown_before_deletion":              false,
 						},
@@ -943,20 +1047,18 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 				VirtualMachine: features.VirtualMachineFeatures{
 					DetachImplicitDataDiskOnDeletion: true,
 					DeleteOSDiskOnDeletion:           false,
-					GracefulShutdown:                 false,
 					SkipShutdownAndForceDelete:       false,
 				},
 			},
 		},
 		{
 			Name: "Delete OS Disk Enabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"virtual_machine": []interface{}{
-						map[string]interface{}{
+			Input: []any{
+				map[string]any{
+					"virtual_machine": []any{
+						map[string]any{
 							"detach_implicit_data_disk_on_deletion": false,
 							"delete_os_disk_on_deletion":            true,
-							"graceful_shutdown":                     false,
 							"force_delete":                          false,
 							"shutdown_before_deletion":              false,
 						},
@@ -967,20 +1069,18 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 				VirtualMachine: features.VirtualMachineFeatures{
 					DetachImplicitDataDiskOnDeletion: false,
 					DeleteOSDiskOnDeletion:           true,
-					GracefulShutdown:                 false,
 					SkipShutdownAndForceDelete:       false,
 				},
 			},
 		},
 		{
 			Name: "Graceful Shutdown Enabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"virtual_machine": []interface{}{
-						map[string]interface{}{
+			Input: []any{
+				map[string]any{
+					"virtual_machine": []any{
+						map[string]any{
 							"detach_implicit_data_disk_on_deletion": false,
 							"delete_os_disk_on_deletion":            false,
-							"graceful_shutdown":                     true,
 							"force_delete":                          false,
 						},
 					},
@@ -990,20 +1090,18 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 				VirtualMachine: features.VirtualMachineFeatures{
 					DetachImplicitDataDiskOnDeletion: false,
 					DeleteOSDiskOnDeletion:           false,
-					GracefulShutdown:                 true,
 					SkipShutdownAndForceDelete:       false,
 				},
 			},
 		},
 		{
 			Name: "Skip Shutdown and Force Delete Enabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"virtual_machine": []interface{}{
-						map[string]interface{}{
+			Input: []any{
+				map[string]any{
+					"virtual_machine": []any{
+						map[string]any{
 							"detach_implicit_data_disk_on_deletion": false,
 							"delete_os_disk_on_deletion":            false,
-							"graceful_shutdown":                     false,
 							"skip_shutdown_and_force_delete":        true,
 						},
 					},
@@ -1013,20 +1111,18 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 				VirtualMachine: features.VirtualMachineFeatures{
 					DetachImplicitDataDiskOnDeletion: false,
 					DeleteOSDiskOnDeletion:           false,
-					GracefulShutdown:                 false,
 					SkipShutdownAndForceDelete:       true,
 				},
 			},
 		},
 		{
 			Name: "All Disabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"virtual_machine": []interface{}{
-						map[string]interface{}{
+			Input: []any{
+				map[string]any{
+					"virtual_machine": []any{
+						map[string]any{
 							"detach_implicit_data_disk_on_deletion": false,
 							"delete_os_disk_on_deletion":            false,
-							"graceful_shutdown":                     false,
 							"skip_shutdown_and_force_delete":        false,
 						},
 					},
@@ -1036,7 +1132,6 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 				VirtualMachine: features.VirtualMachineFeatures{
 					DetachImplicitDataDiskOnDeletion: false,
 					DeleteOSDiskOnDeletion:           false,
-					GracefulShutdown:                 false,
 					SkipShutdownAndForceDelete:       false,
 				},
 			},
@@ -1055,15 +1150,15 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 	testData := []struct {
 		Name     string
-		Input    []interface{}
-		EnvVars  map[string]interface{}
+		Input    []any
+		EnvVars  map[string]any
 		Expected features.UserFeatures
 	}{
 		{
 			Name: "Empty Block",
-			Input: []interface{}{
-				map[string]interface{}{
-					"virtual_machine_scale_set": []interface{}{},
+			Input: []any{
+				map[string]any{
+					"virtual_machine_scale_set": []any{},
 				},
 			},
 			Expected: features.UserFeatures{
@@ -1076,10 +1171,10 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 		},
 		{
 			Name: "Force Delete Enabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"virtual_machine_scale_set": []interface{}{
-						map[string]interface{}{
+			Input: []any{
+				map[string]any{
+					"virtual_machine_scale_set": []any{
+						map[string]any{
 							"force_delete":                 true,
 							"roll_instances_when_required": false,
 						},
@@ -1097,10 +1192,10 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 		},
 		{
 			Name: "Roll Instances Enabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"virtual_machine_scale_set": []interface{}{
-						map[string]interface{}{
+			Input: []any{
+				map[string]any{
+					"virtual_machine_scale_set": []any{
+						map[string]any{
 							"force_delete":                 false,
 							"roll_instances_when_required": true,
 						},
@@ -1118,10 +1213,10 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 		},
 		{
 			Name: "Scale In On Delete Disabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"virtual_machine_scale_set": []interface{}{
-						map[string]interface{}{
+			Input: []any{
+				map[string]any{
+					"virtual_machine_scale_set": []any{
+						map[string]any{
 							"force_delete":                  false,
 							"roll_instances_when_required":  true,
 							"scale_to_zero_before_deletion": false,
@@ -1140,10 +1235,10 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 		},
 		{
 			Name: "All Fields Disabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"virtual_machine_scale_set": []interface{}{
-						map[string]interface{}{
+			Input: []any{
+				map[string]any{
+					"virtual_machine_scale_set": []any{
+						map[string]any{
 							"force_delete":                  false,
 							"reimage_on_manual_upgrade":     false,
 							"roll_instances_when_required":  false,
@@ -1175,29 +1270,29 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 func TestExpandFeaturesLogAnalyticsWorkspace(t *testing.T) {
 	testData := []struct {
 		Name     string
-		Input    []interface{}
-		EnvVars  map[string]interface{}
+		Input    []any
+		EnvVars  map[string]any
 		Expected features.UserFeatures
 	}{
 		{
 			Name: "Empty Block",
-			Input: []interface{}{
-				map[string]interface{}{
-					"log_analytics_workspace": []interface{}{},
+			Input: []any{
+				map[string]any{
+					"log_analytics_workspace": []any{},
 				},
 			},
 			Expected: features.UserFeatures{
 				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
-					PermanentlyDeleteOnDestroy: !features.FourPointOhBeta(),
+					PermanentlyDeleteOnDestroy: false,
 				},
 			},
 		},
 		{
 			Name: "Permanent Delete Enabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"log_analytics_workspace": []interface{}{
-						map[string]interface{}{
+			Input: []any{
+				map[string]any{
+					"log_analytics_workspace": []any{
+						map[string]any{
 							"permanently_delete_on_destroy": true,
 						},
 					},
@@ -1211,10 +1306,10 @@ func TestExpandFeaturesLogAnalyticsWorkspace(t *testing.T) {
 		},
 		{
 			Name: "Permanent Delete Disabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"log_analytics_workspace": []interface{}{
-						map[string]interface{}{
+			Input: []any{
+				map[string]any{
+					"log_analytics_workspace": []any{
+						map[string]any{
 							"permanently_delete_on_destroy": false,
 						},
 					},
@@ -1239,15 +1334,15 @@ func TestExpandFeaturesLogAnalyticsWorkspace(t *testing.T) {
 func TestExpandFeaturesResourceGroup(t *testing.T) {
 	testData := []struct {
 		Name     string
-		Input    []interface{}
-		EnvVars  map[string]interface{}
+		Input    []any
+		EnvVars  map[string]any
 		Expected features.UserFeatures
 	}{
 		{
 			Name: "Empty Block",
-			Input: []interface{}{
-				map[string]interface{}{
-					"resource_group": []interface{}{},
+			Input: []any{
+				map[string]any{
+					"resource_group": []any{},
 				},
 			},
 			Expected: features.UserFeatures{
@@ -1258,10 +1353,10 @@ func TestExpandFeaturesResourceGroup(t *testing.T) {
 		},
 		{
 			Name: "Prevent Deletion If Contains Resources Enabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"resource_group": []interface{}{
-						map[string]interface{}{
+			Input: []any{
+				map[string]any{
+					"resource_group": []any{
+						map[string]any{
 							"prevent_deletion_if_contains_resources": true,
 						},
 					},
@@ -1275,10 +1370,10 @@ func TestExpandFeaturesResourceGroup(t *testing.T) {
 		},
 		{
 			Name: "Prevent Deletion If Contains Resources Disabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"resource_group": []interface{}{
-						map[string]interface{}{
+			Input: []any{
+				map[string]any{
+					"resource_group": []any{
+						map[string]any{
 							"prevent_deletion_if_contains_resources": false,
 						},
 					},
@@ -1304,15 +1399,15 @@ func TestExpandFeaturesResourceGroup(t *testing.T) {
 func TestExpandFeaturesRecoveryServicesVault(t *testing.T) {
 	testData := []struct {
 		Name     string
-		Input    []interface{}
-		EnvVars  map[string]interface{}
+		Input    []any
+		EnvVars  map[string]any
 		Expected features.UserFeatures
 	}{
 		{
 			Name: "Empty Block",
-			Input: []interface{}{
-				map[string]interface{}{
-					"recovery_services_vaults": []interface{}{},
+			Input: []any{
+				map[string]any{
+					"recovery_services_vaults": []any{},
 				},
 			},
 			Expected: features.UserFeatures{
@@ -1323,10 +1418,10 @@ func TestExpandFeaturesRecoveryServicesVault(t *testing.T) {
 		},
 		{
 			Name: "Recover Soft Deleted Protected VM Enabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"recovery_services_vaults": []interface{}{
-						map[string]interface{}{
+			Input: []any{
+				map[string]any{
+					"recovery_services_vaults": []any{
+						map[string]any{
 							"recover_soft_deleted_backup_protected_vm": true,
 						},
 					},
@@ -1340,10 +1435,10 @@ func TestExpandFeaturesRecoveryServicesVault(t *testing.T) {
 		},
 		{
 			Name: "Recover Soft Deleted Protected VM Disabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"recovery_services_vaults": []interface{}{
-						map[string]interface{}{
+			Input: []any{
+				map[string]any{
+					"recovery_services_vaults": []any{
+						map[string]any{
 							"recover_soft_deleted_backup_protected_vm": false,
 						},
 					},
@@ -1369,15 +1464,15 @@ func TestExpandFeaturesRecoveryServicesVault(t *testing.T) {
 func TestExpandFeaturesManagedDisk(t *testing.T) {
 	testData := []struct {
 		Name     string
-		Input    []interface{}
-		EnvVars  map[string]interface{}
+		Input    []any
+		EnvVars  map[string]any
 		Expected features.UserFeatures
 	}{
 		{
 			Name: "Empty Block",
-			Input: []interface{}{
-				map[string]interface{}{
-					"managed_disk": []interface{}{},
+			Input: []any{
+				map[string]any{
+					"managed_disk": []any{},
 				},
 			},
 			Expected: features.UserFeatures{
@@ -1388,10 +1483,10 @@ func TestExpandFeaturesManagedDisk(t *testing.T) {
 		},
 		{
 			Name: "No Downtime Resize Enabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"managed_disk": []interface{}{
-						map[string]interface{}{
+			Input: []any{
+				map[string]any{
+					"managed_disk": []any{
+						map[string]any{
 							"expand_without_downtime": true,
 						},
 					},
@@ -1405,10 +1500,10 @@ func TestExpandFeaturesManagedDisk(t *testing.T) {
 		},
 		{
 			Name: "No Downtime Resize Disabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"managed_disk": []interface{}{
-						map[string]interface{}{
+			Input: []any{
+				map[string]any{
+					"managed_disk": []any{
+						map[string]any{
 							"expand_without_downtime": false,
 						},
 					},
@@ -1431,18 +1526,66 @@ func TestExpandFeaturesManagedDisk(t *testing.T) {
 	}
 }
 
-func TestExpandFeaturesSubscription(t *testing.T) {
+func TestExpandFeaturesStorage(t *testing.T) {
 	testData := []struct {
 		Name     string
-		Input    []interface{}
-		EnvVars  map[string]interface{}
+		Input    []any
+		EnvVars  map[string]any
 		Expected features.UserFeatures
 	}{
 		{
 			Name: "Empty Block",
-			Input: []interface{}{
-				map[string]interface{}{
-					"subscription": []interface{}{},
+			Input: []any{
+				map[string]any{
+					"storage": []any{},
+				},
+			},
+			Expected: features.UserFeatures{
+				Storage: features.StorageFeatures{
+					DataPlaneAvailable: true,
+				},
+			},
+		},
+		{
+			Name: "Storage Data Plane on Create is Disabled",
+			Input: []any{
+				map[string]any{
+					"storage": []any{
+						map[string]any{
+							"data_plane_available": false,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				Storage: features.StorageFeatures{
+					DataPlaneAvailable: false,
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testData {
+		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
+		result := expandFeatures(testCase.Input)
+		if !reflect.DeepEqual(result.Storage, testCase.Expected.Storage) {
+			t.Fatalf("Expected %+v but got %+v", result.Storage, testCase.Expected.Storage)
+		}
+	}
+}
+
+func TestExpandFeaturesSubscription(t *testing.T) {
+	testData := []struct {
+		Name     string
+		Input    []any
+		EnvVars  map[string]any
+		Expected features.UserFeatures
+	}{
+		{
+			Name: "Empty Block",
+			Input: []any{
+				map[string]any{
+					"subscription": []any{},
 				},
 			},
 			Expected: features.UserFeatures{
@@ -1453,10 +1596,10 @@ func TestExpandFeaturesSubscription(t *testing.T) {
 		},
 		{
 			Name: "Subscription cancellation on destroy is Disabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"subscription": []interface{}{
-						map[string]interface{}{
+			Input: []any{
+				map[string]any{
+					"subscription": []any{
+						map[string]any{
 							"prevent_cancellation_on_destroy": true,
 						},
 					},
@@ -1482,15 +1625,15 @@ func TestExpandFeaturesSubscription(t *testing.T) {
 func TestExpandFeaturesPosgresqlFlexibleServer(t *testing.T) {
 	testData := []struct {
 		Name     string
-		Input    []interface{}
-		EnvVars  map[string]interface{}
+		Input    []any
+		EnvVars  map[string]any
 		Expected features.UserFeatures
 	}{
 		{
 			Name: "Empty Block",
-			Input: []interface{}{
-				map[string]interface{}{
-					"postgresql_flexible_server": []interface{}{},
+			Input: []any{
+				map[string]any{
+					"postgresql_flexible_server": []any{},
 				},
 			},
 			Expected: features.UserFeatures{
@@ -1501,10 +1644,10 @@ func TestExpandFeaturesPosgresqlFlexibleServer(t *testing.T) {
 		},
 		{
 			Name: "Postgresql Flexible Server restarts on configuration change is Enabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"postgresql_flexible_server": []interface{}{
-						map[string]interface{}{
+			Input: []any{
+				map[string]any{
+					"postgresql_flexible_server": []any{
+						map[string]any{
 							"restart_server_on_configuration_value_change": true,
 						},
 					},
@@ -1518,10 +1661,10 @@ func TestExpandFeaturesPosgresqlFlexibleServer(t *testing.T) {
 		},
 		{
 			Name: "Postgresql Flexible Server restarts on configuration change is Disabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"postgresql_flexible_server": []interface{}{
-						map[string]interface{}{
+			Input: []any{
+				map[string]any{
+					"postgresql_flexible_server": []any{
+						map[string]any{
 							"restart_server_on_configuration_value_change": false,
 						},
 					},
@@ -1547,15 +1690,15 @@ func TestExpandFeaturesPosgresqlFlexibleServer(t *testing.T) {
 func TestExpandFeaturesMachineLearning(t *testing.T) {
 	testData := []struct {
 		Name     string
-		Input    []interface{}
-		EnvVars  map[string]interface{}
+		Input    []any
+		EnvVars  map[string]any
 		Expected features.UserFeatures
 	}{
 		{
 			Name: "Empty Block",
-			Input: []interface{}{
-				map[string]interface{}{
-					"machine_learning": []interface{}{},
+			Input: []any{
+				map[string]any{
+					"machine_learning": []any{},
 				},
 			},
 			Expected: features.UserFeatures{
@@ -1566,10 +1709,10 @@ func TestExpandFeaturesMachineLearning(t *testing.T) {
 		},
 		{
 			Name: "MachineLearning Workspace purge soft delete on destroy",
-			Input: []interface{}{
-				map[string]interface{}{
-					"machine_learning": []interface{}{
-						map[string]interface{}{
+			Input: []any{
+				map[string]any{
+					"machine_learning": []any{
+						map[string]any{
 							"purge_soft_deleted_workspace_on_destroy": true,
 						},
 					},
@@ -1583,10 +1726,10 @@ func TestExpandFeaturesMachineLearning(t *testing.T) {
 		},
 		{
 			Name: "MachineLearning Workspace does not purge soft delete on destroy",
-			Input: []interface{}{
-				map[string]interface{}{
-					"machine_learning": []interface{}{
-						map[string]interface{}{
+			Input: []any{
+				map[string]any{
+					"machine_learning": []any{
+						map[string]any{
 							"purge_soft_deleted_workspace_on_destroy": false,
 						},
 					},
@@ -1612,59 +1755,64 @@ func TestExpandFeaturesMachineLearning(t *testing.T) {
 func TestExpandFeaturesRecoveryService(t *testing.T) {
 	testData := []struct {
 		Name     string
-		Input    []interface{}
-		EnvVars  map[string]interface{}
+		Input    []any
+		EnvVars  map[string]any
 		Expected features.UserFeatures
 	}{
 		{
 			Name: "Empty Block",
-			Input: []interface{}{
-				map[string]interface{}{
-					"recovery_service": []interface{}{},
+			Input: []any{
+				map[string]any{
+					"recovery_service": []any{},
 				},
 			},
 			Expected: features.UserFeatures{
 				RecoveryService: features.RecoveryServiceFeatures{
-					VMBackupStopProtectionAndRetainDataOnDestroy: false,
-					PurgeProtectedItemsFromVaultOnDestroy:        false,
+					VMBackupStopProtectionAndRetainDataOnDestroy:    false,
+					VMBackupSuspendProtectionAndRetainDataOnDestroy: false,
+					PurgeProtectedItemsFromVaultOnDestroy:           false,
 				},
 			},
 		},
 		{
 			Name: "Recovery Service Features Enabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"recovery_service": []interface{}{
-						map[string]interface{}{
-							"vm_backup_stop_protection_and_retain_data_on_destroy": true,
-							"purge_protected_items_from_vault_on_destroy":          true,
+			Input: []any{
+				map[string]any{
+					"recovery_service": []any{
+						map[string]any{
+							"vm_backup_stop_protection_and_retain_data_on_destroy":    true,
+							"vm_backup_suspend_protection_and_retain_data_on_destroy": true,
+							"purge_protected_items_from_vault_on_destroy":             true,
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
 				RecoveryService: features.RecoveryServiceFeatures{
-					VMBackupStopProtectionAndRetainDataOnDestroy: true,
-					PurgeProtectedItemsFromVaultOnDestroy:        true,
+					VMBackupStopProtectionAndRetainDataOnDestroy:    true,
+					VMBackupSuspendProtectionAndRetainDataOnDestroy: true,
+					PurgeProtectedItemsFromVaultOnDestroy:           true,
 				},
 			},
 		},
 		{
 			Name: "Recovery Service Features Disabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"recovery_service": []interface{}{
-						map[string]interface{}{
-							"vm_backup_stop_protection_and_retain_data_on_destroy": false,
-							"purge_protected_items_from_vault_on_destroy":          false,
+			Input: []any{
+				map[string]any{
+					"recovery_service": []any{
+						map[string]any{
+							"vm_backup_stop_protection_and_retain_data_on_destroy":    false,
+							"vm_backup_suspend_protection_and_retain_data_on_destroy": false,
+							"purge_protected_items_from_vault_on_destroy":             false,
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
 				RecoveryService: features.RecoveryServiceFeatures{
-					VMBackupStopProtectionAndRetainDataOnDestroy: false,
-					PurgeProtectedItemsFromVaultOnDestroy:        false,
+					VMBackupStopProtectionAndRetainDataOnDestroy:    false,
+					VMBackupSuspendProtectionAndRetainDataOnDestroy: false,
+					PurgeProtectedItemsFromVaultOnDestroy:           false,
 				},
 			},
 		},
@@ -1675,6 +1823,240 @@ func TestExpandFeaturesRecoveryService(t *testing.T) {
 		result := expandFeatures(testCase.Input)
 		if !reflect.DeepEqual(result.Subscription, testCase.Expected.Subscription) {
 			t.Fatalf("Expected %+v but got %+v", result.Subscription, testCase.Expected.Subscription)
+		}
+	}
+}
+
+func TestExpandFeaturesNetApp(t *testing.T) {
+	testData := []struct {
+		Name     string
+		Input    []any
+		EnvVars  map[string]any
+		Expected features.UserFeatures
+	}{
+		{
+			Name: "Empty Block",
+			Input: []any{
+				map[string]any{
+					"netapp": []any{},
+				},
+			},
+			Expected: features.UserFeatures{
+				NetApp: features.NetAppFeatures{
+					DeleteBackupsOnBackupVaultDestroy: false,
+					PreventVolumeDestruction:          true,
+				},
+			},
+		},
+		{
+			Name: "NetApp Features Enabled",
+			Input: []any{
+				map[string]any{
+					"netapp": []any{
+						map[string]any{
+							"delete_backups_on_backup_vault_destroy": true,
+							"prevent_volume_destruction":             true,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				NetApp: features.NetAppFeatures{
+					DeleteBackupsOnBackupVaultDestroy: false,
+					PreventVolumeDestruction:          true,
+				},
+			},
+		},
+		{
+			Name: "NetApp Features Disabled",
+			Input: []any{
+				map[string]any{
+					"netapp": []any{
+						map[string]any{
+							"delete_backups_on_backup_vault_destroy": false,
+							"prevent_volume_destruction":             false,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				NetApp: features.NetAppFeatures{
+					DeleteBackupsOnBackupVaultDestroy: false,
+					PreventVolumeDestruction:          false,
+				},
+			},
+		},
+		{
+			Name: "NetApp Features Reverse Default Values",
+			Input: []any{
+				map[string]any{
+					"netapp": []any{
+						map[string]any{
+							"delete_backups_on_backup_vault_destroy": true,
+							"prevent_volume_destruction":             false,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				NetApp: features.NetAppFeatures{
+					DeleteBackupsOnBackupVaultDestroy: true,
+					PreventVolumeDestruction:          false,
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testData {
+		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
+		result := expandFeatures(testCase.Input)
+		if !reflect.DeepEqual(result.Subscription, testCase.Expected.Subscription) {
+			t.Fatalf("Expected %+v but got %+v", result.Subscription, testCase.Expected.Subscription)
+		}
+	}
+}
+
+func TestExpandFeaturesDatabricksWorkspace(t *testing.T) {
+	testData := []struct {
+		Name     string
+		Input    []any
+		EnvVars  map[string]any
+		Expected features.UserFeatures
+	}{
+		{
+			Name: "Empty Block",
+			Input: []any{
+				map[string]any{
+					"databricks_workspace": []any{},
+				},
+			},
+			Expected: features.UserFeatures{
+				DatabricksWorkspace: features.DatabricksWorkspaceFeatures{
+					ForceDelete: false,
+				},
+			},
+		},
+		{
+			Name: "Databricks Workspace Features Enabled",
+			Input: []any{
+				map[string]any{
+					"databricks_workspace": []any{
+						map[string]any{
+							"force_delete": true,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				DatabricksWorkspace: features.DatabricksWorkspaceFeatures{
+					ForceDelete: true,
+				},
+			},
+		},
+		{
+			Name: "Databricks Workspace Features Disabled",
+			Input: []any{
+				map[string]any{
+					"databricks_workspace": []any{
+						map[string]any{
+							"force_delete": false,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				DatabricksWorkspace: features.DatabricksWorkspaceFeatures{
+					ForceDelete: false,
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testData {
+		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
+		result := expandFeatures(testCase.Input)
+		if !reflect.DeepEqual(result.DatabricksWorkspace, testCase.Expected.DatabricksWorkspace) {
+			t.Fatalf("Expected %+v but got %+v", result.DatabricksWorkspace, testCase.Expected.DatabricksWorkspace)
+		}
+	}
+}
+
+func TestExpandFeaturesEnhancedValidation(t *testing.T) {
+	testData := []struct {
+		Name     string
+		Input    []any
+		EnvVars  map[string]any
+		Expected features.UserFeatures
+	}{
+		{
+			Name: "Empty Block",
+			Input: []any{
+				map[string]any{
+					"enhanced_validation": []any{},
+				},
+			},
+			Expected: features.UserFeatures{
+				EnhancedValidation: features.EnhancedValidationFeatures{
+					Locations:         false,
+					ResourceProviders: false,
+					PreflightEnabled:  false,
+					LocationFallback:  nil,
+				},
+			},
+		},
+		{
+			Name: "Enhanced Validation Features Enabled",
+			Input: []any{
+				map[string]any{
+					"enhanced_validation": []any{
+						map[string]any{
+							"locations":                   true,
+							"resource_providers":          true,
+							"preflight_enabled":           true,
+							"preflight_location_fallback": "",
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				EnhancedValidation: features.EnhancedValidationFeatures{
+					Locations:         true,
+					ResourceProviders: true,
+					PreflightEnabled:  true,
+					LocationFallback:  nil,
+				},
+			},
+		},
+		{
+			Name: "Enhanced Validation Features Disabled",
+			Input: []any{
+				map[string]any{
+					"enhanced_validation": []any{
+						map[string]any{
+							"locations":                   false,
+							"resource_providers":          false,
+							"preflight_enabled":           false,
+							"preflight_location_fallback": "",
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				EnhancedValidation: features.EnhancedValidationFeatures{
+					Locations:         false,
+					ResourceProviders: false,
+					PreflightEnabled:  false,
+					LocationFallback:  nil,
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testData {
+		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
+		result := expandFeatures(testCase.Input)
+		if !reflect.DeepEqual(result.EnhancedValidation, testCase.Expected.EnhancedValidation) {
+			t.Fatalf("Expected %+v but got %+v", testCase.Expected.EnhancedValidation, result.EnhancedValidation)
 		}
 	}
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = TriggerId{}
 
-func TestTriggerIDFormatter(t *testing.T) {
+func TestParseTriggerIDFormatter(t *testing.T) {
 	actual := NewTriggerID("12345678-1234-9876-4563-123456789012", "resGroup1", "factory1", "trigger1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DataFactory/factories/factory1/triggers/trigger1"
 	if actual != expected {
@@ -21,13 +21,12 @@ func TestTriggerIDFormatter(t *testing.T) {
 	}
 }
 
-func TestTriggerID(t *testing.T) {
+func TestParseTriggerID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
 		Expected *TriggerId
 	}{
-
 		{
 			// empty
 			Input: "",

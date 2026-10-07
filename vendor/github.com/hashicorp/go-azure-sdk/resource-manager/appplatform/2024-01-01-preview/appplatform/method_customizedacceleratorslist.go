@@ -23,6 +23,18 @@ type CustomizedAcceleratorsListCompleteResult struct {
 	Items              []CustomizedAcceleratorResource
 }
 
+type CustomizedAcceleratorsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *CustomizedAcceleratorsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // CustomizedAcceleratorsList ...
 func (c AppPlatformClient) CustomizedAcceleratorsList(ctx context.Context, id ApplicationAcceleratorId) (result CustomizedAcceleratorsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c AppPlatformClient) CustomizedAcceleratorsList(ctx context.Context, id Ap
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &CustomizedAcceleratorsListCustomPager{},
 		Path:       fmt.Sprintf("%s/customizedAccelerators", id.ID()),
 	}
 

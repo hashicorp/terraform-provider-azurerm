@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package databricks_test
@@ -104,7 +104,7 @@ resource "azurerm_subnet" "privatelink" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.3.0/24"]
 
-  enforce_private_link_endpoint_network_policies = true
+  private_endpoint_network_policies = "Enabled"
 }
 
 resource "azurerm_network_security_group" "nsg" {
@@ -172,8 +172,7 @@ resource "azurerm_private_dns_zone" "test" {
 
 resource "azurerm_private_dns_cname_record" "test" {
   name                = azurerm_databricks_workspace.test.workspace_url
-  zone_name           = azurerm_private_dns_zone.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
   ttl                 = 300
   record              = "eastus2-c2.azuredatabricks.net"
 }

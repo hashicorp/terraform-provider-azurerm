@@ -23,6 +23,18 @@ type InstancesListByAccountCompleteResult struct {
 	Items              []Instance
 }
 
+type InstancesListByAccountCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *InstancesListByAccountCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // InstancesListByAccount ...
 func (c DeviceupdatesClient) InstancesListByAccount(ctx context.Context, id AccountId) (result InstancesListByAccountOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c DeviceupdatesClient) InstancesListByAccount(ctx context.Context, id Acco
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &InstancesListByAccountCustomPager{},
 		Path:       fmt.Sprintf("%s/instances", id.ID()),
 	}
 

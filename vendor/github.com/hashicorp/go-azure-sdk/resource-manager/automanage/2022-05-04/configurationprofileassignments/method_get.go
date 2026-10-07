@@ -45,7 +45,6 @@ func (c ConfigurationProfileAssignmentsClient) Get(ctx context.Context, id Virtu
 
 	var model ConfigurationProfileAssignment
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

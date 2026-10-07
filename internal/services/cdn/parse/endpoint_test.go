@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = EndpointId{}
 
-func TestEndpointIDFormatter(t *testing.T) {
+func TestParseEndpointIDFormatter(t *testing.T) {
 	actual := NewEndpointID("12345678-1234-9876-4563-123456789012", "resGroup1", "profile1", "endpoint1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/endpoints/endpoint1"
 	if actual != expected {
@@ -21,13 +21,12 @@ func TestEndpointIDFormatter(t *testing.T) {
 	}
 }
 
-func TestEndpointID(t *testing.T) {
+func TestParseEndpointID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
 		Expected *EndpointId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -130,13 +129,12 @@ func TestEndpointID(t *testing.T) {
 	}
 }
 
-func TestEndpointIDInsensitively(t *testing.T) {
+func TestParseEndpointIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
 		Expected *EndpointId
 	}{
-
 		{
 			// empty
 			Input: "",

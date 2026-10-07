@@ -1,9 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -15,7 +16,9 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 var packagesUsingAlias = map[string]struct{}{
@@ -128,8 +131,7 @@ func parseServicePackageName(relativePath string) (*string, error) {
 		return nil, fmt.Errorf("not enough segments")
 	}
 
-	servicePackageName := segments[serviceIndex+1]
-	return &servicePackageName, nil
+	return pointer.To(segments[serviceIndex+1]), nil
 }
 
 func convertToSnakeCase(input string) string {
@@ -217,7 +219,7 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 			toCamelCase := func(input string) string {
 				// lazy but it works
 				out := make([]rune, 0)
-				for i, char := range azure.TitleCase(input) {
+				for i, char := range cases.Title(language.English, cases.NoLower).String(input) {
 					if i == 0 {
 						out = append(out, unicode.ToLower(char))
 						continue
@@ -230,7 +232,7 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 
 			rewritten := fmt.Sprintf("%sName", key)
 			segment := ResourceIdSegment{
-				FieldName:    azure.TitleCase(rewritten),
+				FieldName:    cases.Title(language.English, cases.NoLower).String(rewritten),
 				ArgumentName: toCamelCase(rewritten),
 				SegmentKey:   key,
 				SegmentValue: value,
@@ -252,8 +254,8 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 				// TODO: in time this could be worth a series of overrides
 
 				// handles "GallerieName" and `DataFactoriesName`
-				if strings.HasSuffix(key, "ies") {
-					key = strings.TrimSuffix(key, "ies")
+				if before, ok := strings.CutSuffix(key, "ies"); ok {
+					key = before
 					key = fmt.Sprintf("%sy", key)
 				}
 				switch {
@@ -275,7 +277,7 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 				} else {
 					// remove {Thing}s and make that {Thing}Name
 					rewritten = fmt.Sprintf("%sName", key)
-					segment.FieldName = azure.TitleCase(rewritten)
+					segment.FieldName = cases.Title(language.English, cases.NoLower).String(rewritten)
 					segment.ArgumentName = toCamelCase(rewritten)
 				}
 			}
@@ -337,7 +339,7 @@ type ResourceIdGenerator struct {
 
 func (id ResourceIdGenerator) Code() string {
 	return fmt.Sprintf(`
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -345,6 +347,7 @@ package parse
 // NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -396,8 +399,8 @@ func New%[1]sID(%[2]s string) %[1]sId {
 func (id ResourceIdGenerator) codeForDescription() string {
 	makeHumanReadable := func(input string) string {
 		chars := make([]rune, 0)
-		for _, c := range input {
-			if unicode.IsUpper(c) {
+		for i, c := range input {
+			if unicode.IsUpper(c) && i+1 < len(input) && unicode.IsLower(rune(input[i+1])) {
 				chars = append(chars, ' ')
 			}
 
@@ -465,7 +468,7 @@ func (id ResourceIdGenerator) codeForParser() string {
 		if isSubscription || isResourceGroup {
 			parserStatements = append(parserStatements, fmt.Sprintf(`
 	if resourceId.%[1]s == "" {
-		return nil, fmt.Errorf("ID was missing the '%[2]s' element")
+		return nil, errors.New("ID was missing the '%[2]s' element")
 	}
 `, segment.FieldName, segment.SegmentKey))
 			continue
@@ -520,7 +523,7 @@ func (id ResourceIdGenerator) codeForParserInsensitive() string {
 		if isSubscription || isResourceGroup {
 			parserStatements = append(parserStatements, fmt.Sprintf(`
 	if resourceId.%[1]s == "" {
-		return nil, fmt.Errorf("ID was missing the '%[2]s' element")
+		return nil, errors.New("ID was missing the '%[2]s' element")
 	}
 `, segment.FieldName, segment.SegmentKey))
 			continue
@@ -579,7 +582,7 @@ func (id ResourceIdGenerator) TestCode() string {
 	}
 
 	return fmt.Sprintf(`
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse%s
@@ -609,7 +612,7 @@ func (id ResourceIdGenerator) testCodeForFormatter() string {
 		return fmt.Sprintf(`
 var _ resourceids.Id = %[1]sId{}
 
-func Test%[1]sIDFormatter(t *testing.T) {
+func TestParse%[1]sIDFormatter(t *testing.T) {
 	actual := New%[1]sID(%[2]s).ID()
 	expected := %[3]q
 	if actual != expected {
@@ -622,7 +625,7 @@ func Test%[1]sIDFormatter(t *testing.T) {
 	return fmt.Sprintf(`
 var _ resourceid.Formatter = parse.%[1]sId{}
 
-func Test%[1]sIDFormatter(t *testing.T) {
+func TestParse%[1]sIDFormatter(t *testing.T) {
 	actual := parse.New%[1]sID(%[2]s).ID()
 	expected := %[3]q
 	if actual != expected {
@@ -695,13 +698,12 @@ func (id ResourceIdGenerator) testCodeForParser() string {
 
 	if id.TestPackageSuffix == "" {
 		return fmt.Sprintf(`
-func Test%[1]sID(t *testing.T) {
+func TestParse%[1]sID(t *testing.T) {
 	testData := []struct {
 		Input  string
 		Error  bool
 		Expected *%[1]sId
-	}{
-%[2]s
+	}{%[2]s
 	}
 
 	for _, v := range testData {
@@ -726,13 +728,12 @@ func Test%[1]sID(t *testing.T) {
 	}
 
 	return fmt.Sprintf(`
-func Test%[1]sID(t *testing.T) {
+func TestParse%[1]sID(t *testing.T) {
 	testData := []struct {
 		Input  string
 		Error  bool
 		Expected *parse.%[1]sId
-	}{
-%[2]s
+	}{%[2]s
 	}
 
 	for _, v := range testData {
@@ -852,13 +853,12 @@ func (id ResourceIdGenerator) testCodeForParserInsensitive() string {
 
 	if id.TestPackageSuffix == "" {
 		return fmt.Sprintf(`
-func Test%[1]sIDInsensitively(t *testing.T) {
+func TestParse%[1]sIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input  string
 		Error  bool
 		Expected *%[1]sId
-	}{
-%[2]s
+	}{%[2]s
 	}
 
 	for _, v := range testData {
@@ -883,13 +883,12 @@ func Test%[1]sIDInsensitively(t *testing.T) {
 	}
 
 	return fmt.Sprintf(`
-func Test%[1]sIDInsensitively(t *testing.T) {
+func TestParse%[1]sIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input  string
 		Error  bool
 		Expected *parse.%[1]sId
-	}{
-%[2]s
+	}{%[2]s
 	}
 
 	for _, v := range testData {
@@ -915,7 +914,7 @@ func Test%[1]sIDInsensitively(t *testing.T) {
 
 func (id ResourceIdGenerator) ValidatorCode() string {
 	return fmt.Sprintf(`
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -928,7 +927,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/%[2]s/parse"
 )
 
-func %[1]sID(input interface{}, key string) (warnings []string, errors []error) {
+func %[1]sID(input any, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %%q to be a string", key))
@@ -992,7 +991,7 @@ func (id ResourceIdGenerator) ValidatorTestCode() string {
 
 	if id.TestPackageSuffix == "" {
 		return fmt.Sprintf(`
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -1001,12 +1000,11 @@ package validate
 
 import "testing"
 
-func Test%[1]sID(t *testing.T) {
+func TestValidate%[1]sID(t *testing.T) {
 	cases := []struct {
 		Input    string
 		Valid bool
-	}{
-%[2]s
+	}{%[2]s
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %%s", tc.Input)
@@ -1021,7 +1019,7 @@ func Test%[1]sID(t *testing.T) {
 `, id.TypeName, testCasesStr)
 	}
 
-	return fmt.Sprintf(`// Copyright (c) HashiCorp, Inc.
+	return fmt.Sprintf(`// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate%[1]s
@@ -1034,12 +1032,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/%[4]s/validate"
 )
 
-func Test%[2]sID(t *testing.T) {
+func TestValidate%[2]sID(t *testing.T) {
 	cases := []struct {
 		Input    string
 		Valid bool
-	}{
-%[3]s
+	}{%[3]s
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %%s", tc.Input)
@@ -1095,14 +1092,14 @@ func (f GolangCodeFormatter) Format(input string) (*string, error) {
 }
 
 func (f GolangCodeFormatter) runGoFmt(filePath string) {
-	cmd := exec.Command("gofmt", "-w", filePath)
+	cmd := exec.CommandContext(context.Background(), "gofmt", "-w", filePath)
 	// intentionally not using these errors since the exit codes are kinda uninteresting
 	_ = cmd.Start()
 	_ = cmd.Wait()
 }
 
 func (f GolangCodeFormatter) runGoImports(filePath string) {
-	cmd := exec.Command("goimports", "-w", filePath)
+	cmd := exec.CommandContext(context.Background(), "goimports", "-w", filePath)
 	// intentionally not using these errors since the exit codes are kinda uninteresting
 	_ = cmd.Start()
 	_ = cmd.Wait()
@@ -1114,6 +1111,5 @@ func (f GolangCodeFormatter) readFileContents(filePath string) (*string, error) 
 		return nil, err
 	}
 
-	contents := string(data)
-	return &contents, nil
+	return pointer.To(string(data)), nil
 }

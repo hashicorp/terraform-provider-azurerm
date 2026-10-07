@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = EnrichmentId{}
 
-func TestEnrichmentIDFormatter(t *testing.T) {
+func TestParseEnrichmentIDFormatter(t *testing.T) {
 	actual := NewEnrichmentID("12345678-1234-9876-4563-123456789012", "resGroup1", "hub1", "enrichment1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Devices/iotHubs/hub1/enrichments/enrichment1"
 	if actual != expected {
@@ -21,13 +21,12 @@ func TestEnrichmentIDFormatter(t *testing.T) {
 	}
 }
 
-func TestEnrichmentID(t *testing.T) {
+func TestParseEnrichmentID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
 		Expected *EnrichmentId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -130,13 +129,12 @@ func TestEnrichmentID(t *testing.T) {
 	}
 }
 
-func TestEnrichmentIDInsensitively(t *testing.T) {
+func TestParseEnrichmentIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
 		Expected *EnrichmentId
 	}{
-
 		{
 			// empty
 			Input: "",

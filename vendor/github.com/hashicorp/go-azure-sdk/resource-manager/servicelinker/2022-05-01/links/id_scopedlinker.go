@@ -40,7 +40,7 @@ func ParseScopedLinkerID(input string) (*ScopedLinkerId, error) {
 	}
 
 	id := ScopedLinkerId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -57,7 +57,7 @@ func ParseScopedLinkerIDInsensitively(input string) (*ScopedLinkerId, error) {
 	}
 
 	id := ScopedLinkerId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -106,7 +106,7 @@ func (id ScopedLinkerId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftServiceLinker", "Microsoft.ServiceLinker", "Microsoft.ServiceLinker"),
 		resourceids.StaticSegment("staticLinkers", "linkers", "linkers"),
-		resourceids.UserSpecifiedSegment("linkerName", "linkerValue"),
+		resourceids.UserSpecifiedSegment("linkerName", "linkerName"),
 	}
 }
 

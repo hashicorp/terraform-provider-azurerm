@@ -36,6 +36,7 @@ func (o EdgeZoneListOperationOptions) ToHeaders() *client.Headers {
 
 func (o EdgeZoneListOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -61,8 +62,8 @@ func (c VirtualMachineImagesClient) EdgeZoneList(ctx context.Context, id OfferSk
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/versions", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/versions", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -82,7 +83,6 @@ func (c VirtualMachineImagesClient) EdgeZoneList(ctx context.Context, id OfferSk
 
 	var model []VirtualMachineImageResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

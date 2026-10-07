@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = ResourceGroupAssignmentId{}
 
-func TestResourceGroupAssignmentIDFormatter(t *testing.T) {
+func TestParseResourceGroupAssignmentIDFormatter(t *testing.T) {
 	actual := NewResourceGroupAssignmentID("12345678-1234-9876-4563-123456789012", "resGroup1", "assignment1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Authorization/policyAssignments/assignment1"
 	if actual != expected {
@@ -21,13 +21,12 @@ func TestResourceGroupAssignmentIDFormatter(t *testing.T) {
 	}
 }
 
-func TestResourceGroupAssignmentID(t *testing.T) {
+func TestParseResourceGroupAssignmentID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
 		Expected *ResourceGroupAssignmentId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -10,14 +10,13 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2019-10-17-preview/privatelinkscopesapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-07-01-preview/privatelinkscopesapis"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMonitorPrivateLinkScope() *pluginsdk.Resource {
@@ -47,14 +46,28 @@ func resourceMonitorPrivateLinkScope() *pluginsdk.Resource {
 				ValidateFunc: validate.PrivateLinkScopeName,
 			},
 
+			"ingestion_access_mode": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(privatelinkscopesapis.AccessModeOpen),
+				ValidateFunc: validation.StringInSlice(privatelinkscopesapis.PossibleValuesForAccessMode(), false),
+			},
+
+			"query_access_mode": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(privatelinkscopesapis.AccessModeOpen),
+				ValidateFunc: validation.StringInSlice(privatelinkscopesapis.PossibleValuesForAccessMode(), false),
+			},
+
 			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
 
-func resourceMonitorPrivateLinkScopeCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorPrivateLinkScopeCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Monitor.PrivateLinkScopesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -66,21 +79,33 @@ func resourceMonitorPrivateLinkScopeCreateUpdate(d *pluginsdk.ResourceData, meta
 	id := privatelinkscopesapis.NewPrivateLinkScopeID(subscriptionId, resourceGroup, name)
 
 	if d.IsNewResource() {
-		existing, err := client.PrivateLinkScopesGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.PrivateLinkScopesGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_monitor_private_link_scope", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_monitor_private_link_scope", id.ID())
+			}
 		}
 	}
 
+	ingestionAccessMode := privatelinkscopesapis.AccessMode(d.Get("ingestion_access_mode").(string))
+	queryaccessMode := privatelinkscopesapis.AccessMode(d.Get("query_access_mode").(string))
+
 	parameters := privatelinkscopesapis.AzureMonitorPrivateLinkScope{
+		Name:     &name,
 		Location: "Global",
-		Tags:     utils.ExpandPtrMapStringString(d.Get("tags").(map[string]interface{})),
+		Tags:     pluginsdk.ExpandPtrMapStringString(d.Get("tags").(map[string]any)),
+		Properties: privatelinkscopesapis.AzureMonitorPrivateLinkScopeProperties{
+			AccessModeSettings: privatelinkscopesapis.AccessModeSettings{
+				IngestionAccessMode: ingestionAccessMode,
+				QueryAccessMode:     queryaccessMode,
+			},
+		},
 	}
 
 	if _, err := client.PrivateLinkScopesCreateOrUpdate(ctx, id, parameters); err != nil {
@@ -92,7 +117,7 @@ func resourceMonitorPrivateLinkScopeCreateUpdate(d *pluginsdk.ResourceData, meta
 	return resourceMonitorPrivateLinkScopeRead(d, meta)
 }
 
-func resourceMonitorPrivateLinkScopeRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorPrivateLinkScopeRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.PrivateLinkScopesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -116,15 +141,19 @@ func resourceMonitorPrivateLinkScopeRead(d *pluginsdk.ResourceData, meta interfa
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		if err = d.Set("tags", utils.FlattenPtrMapStringString(model.Tags)); err != nil {
+		if err = d.Set("tags", pluginsdk.FlattenPtrMapStringString(model.Tags)); err != nil {
 			return err
 		}
+
+		props := model.Properties
+		d.Set("ingestion_access_mode", string(props.AccessModeSettings.IngestionAccessMode))
+		d.Set("query_access_mode", string(props.AccessModeSettings.QueryAccessMode))
 	}
 
 	return nil
 }
 
-func resourceMonitorPrivateLinkScopeDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorPrivateLinkScopeDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.PrivateLinkScopesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -134,8 +163,7 @@ func resourceMonitorPrivateLinkScopeDelete(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	err = client.PrivateLinkScopesDeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.PrivateLinkScopesDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

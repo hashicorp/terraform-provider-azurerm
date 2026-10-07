@@ -16,6 +16,14 @@ type AcceleratorSshSetting struct {
 	PrivateKey       *string `json:"privateKey,omitempty"`
 
 	// Fields inherited from AcceleratorAuthSetting
+
+	AuthType string `json:"authType"`
+}
+
+func (s AcceleratorSshSetting) AcceleratorAuthSetting() BaseAcceleratorAuthSettingImpl {
+	return BaseAcceleratorAuthSettingImpl{
+		AuthType: s.AuthType,
+	}
 }
 
 var _ json.Marshaler = AcceleratorSshSetting{}
@@ -29,9 +37,10 @@ func (s AcceleratorSshSetting) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AcceleratorSshSetting: %+v", err)
 	}
+
 	decoded["authType"] = "SSH"
 
 	encoded, err = json.Marshal(decoded)

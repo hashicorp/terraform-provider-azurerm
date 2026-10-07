@@ -42,7 +42,7 @@ func ParseVirtualMachineTemplateID(input string) (*VirtualMachineTemplateId, err
 	}
 
 	id := VirtualMachineTemplateId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseVirtualMachineTemplateIDInsensitively(input string) (*VirtualMachineTe
 	}
 
 	id := VirtualMachineTemplateId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id VirtualMachineTemplateId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftScVmm", "Microsoft.ScVmm", "Microsoft.ScVmm"),
 		resourceids.StaticSegment("staticVirtualMachineTemplates", "virtualMachineTemplates", "virtualMachineTemplates"),
-		resourceids.UserSpecifiedSegment("virtualMachineTemplateName", "virtualMachineTemplateValue"),
+		resourceids.UserSpecifiedSegment("virtualMachineTemplateName", "virtualMachineTemplateName"),
 	}
 }
 

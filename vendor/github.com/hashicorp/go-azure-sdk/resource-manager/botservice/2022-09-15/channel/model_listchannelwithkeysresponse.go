@@ -31,10 +31,23 @@ type ListChannelWithKeysResponse struct {
 var _ json.Unmarshaler = &ListChannelWithKeysResponse{}
 
 func (s *ListChannelWithKeysResponse) UnmarshalJSON(bytes []byte) error {
-	type alias ListChannelWithKeysResponse
-	var decoded alias
+	var decoded struct {
+		ChangedTime       *string            `json:"changedTime,omitempty"`
+		EntityTag         *string            `json:"entityTag,omitempty"`
+		Etag              *string            `json:"etag,omitempty"`
+		Id                *string            `json:"id,omitempty"`
+		Kind              *Kind              `json:"kind,omitempty"`
+		Location          *string            `json:"location,omitempty"`
+		Name              *string            `json:"name,omitempty"`
+		ProvisioningState *string            `json:"provisioningState,omitempty"`
+		Setting           *ChannelSettings   `json:"setting,omitempty"`
+		Sku               *Sku               `json:"sku,omitempty"`
+		Tags              *map[string]string `json:"tags,omitempty"`
+		Type              *string            `json:"type,omitempty"`
+		Zones             *zones.Schema      `json:"zones,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into ListChannelWithKeysResponse: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.ChangedTime = decoded.ChangedTime
@@ -57,7 +70,7 @@ func (s *ListChannelWithKeysResponse) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["properties"]; ok {
-		impl, err := unmarshalChannelImplementation(v)
+		impl, err := UnmarshalChannelImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Properties' for 'ListChannelWithKeysResponse': %+v", err)
 		}
@@ -65,11 +78,12 @@ func (s *ListChannelWithKeysResponse) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["resource"]; ok {
-		impl, err := unmarshalChannelImplementation(v)
+		impl, err := UnmarshalChannelImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Resource' for 'ListChannelWithKeysResponse': %+v", err)
 		}
 		s.Resource = impl
 	}
+
 	return nil
 }

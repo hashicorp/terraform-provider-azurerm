@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = CustomDomainId{}
 
-func TestCustomDomainIDFormatter(t *testing.T) {
+func TestParseCustomDomainIDFormatter(t *testing.T) {
 	actual := NewCustomDomainID("12345678-1234-9876-4563-123456789012", "resGroup1", "service1", "customdomain").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/service1/customDomains/customdomain"
 	if actual != expected {
@@ -21,13 +21,12 @@ func TestCustomDomainIDFormatter(t *testing.T) {
 	}
 }
 
-func TestCustomDomainID(t *testing.T) {
+func TestParseCustomDomainID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
 		Expected *CustomDomainId
 	}{
-
 		{
 			// empty
 			Input: "",

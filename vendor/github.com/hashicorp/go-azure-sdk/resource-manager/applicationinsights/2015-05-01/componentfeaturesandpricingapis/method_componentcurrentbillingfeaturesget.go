@@ -46,7 +46,6 @@ func (c ComponentFeaturesAndPricingAPIsClient) ComponentCurrentBillingFeaturesGe
 
 	var model ApplicationInsightsComponentBillingFeatures
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

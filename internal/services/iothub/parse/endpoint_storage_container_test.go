@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = EndpointStorageContainerId{}
 
-func TestEndpointStorageContainerIDFormatter(t *testing.T) {
+func TestParseEndpointStorageContainerIDFormatter(t *testing.T) {
 	actual := NewEndpointStorageContainerID("12345678-1234-9876-4563-123456789012", "resGroup1", "hub1", "storageContainerEndpoint1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Devices/iotHubs/hub1/endpoints/storageContainerEndpoint1"
 	if actual != expected {
@@ -21,13 +21,12 @@ func TestEndpointStorageContainerIDFormatter(t *testing.T) {
 	}
 }
 
-func TestEndpointStorageContainerID(t *testing.T) {
+func TestParseEndpointStorageContainerID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
 		Expected *EndpointStorageContainerId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -130,13 +129,12 @@ func TestEndpointStorageContainerID(t *testing.T) {
 	}
 }
 
-func TestEndpointStorageContainerIDInsensitively(t *testing.T) {
+func TestParseEndpointStorageContainerIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
 		Expected *EndpointStorageContainerId
 	}{
-
 		{
 			// empty
 			Input: "",

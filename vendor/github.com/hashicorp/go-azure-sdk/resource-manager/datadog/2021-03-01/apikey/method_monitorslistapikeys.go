@@ -23,6 +23,18 @@ type MonitorsListApiKeysCompleteResult struct {
 	Items              []DatadogApiKey
 }
 
+type MonitorsListApiKeysCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *MonitorsListApiKeysCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // MonitorsListApiKeys ...
 func (c ApiKeyClient) MonitorsListApiKeys(ctx context.Context, id MonitorId) (result MonitorsListApiKeysOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ApiKeyClient) MonitorsListApiKeys(ctx context.Context, id MonitorId) (re
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &MonitorsListApiKeysCustomPager{},
 		Path:       fmt.Sprintf("%s/listApiKeys", id.ID()),
 	}
 

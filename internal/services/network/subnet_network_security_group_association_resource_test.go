@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -9,14 +9,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/subnets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/subnets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SubnetNetworkSecurityGroupAssociationResource struct{}
@@ -49,10 +49,7 @@ func TestAccSubnetNetworkSecurityGroupAssociation_requiresImport(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			Config:      r.requiresImport(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_subnet_network_security_group_association"),
-		},
+		data.RequiresImportAssociationErrorStep(r.requiresImport),
 	})
 }
 
@@ -103,7 +100,7 @@ func (SubnetNetworkSecurityGroupAssociationResource) Exists(ctx context.Context,
 		return nil, err
 	}
 
-	resp, err := clients.Network.Client.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
+	resp, err := clients.Network.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
@@ -118,7 +115,7 @@ func (SubnetNetworkSecurityGroupAssociationResource) Exists(ctx context.Context,
 		return nil, fmt.Errorf("properties was nil for %s", *id)
 	}
 
-	return utils.Bool(props.NetworkSecurityGroup.Id != nil), nil
+	return pointer.To(props.NetworkSecurityGroup.Id != nil), nil
 }
 
 func (SubnetNetworkSecurityGroupAssociationResource) destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
@@ -131,7 +128,7 @@ func (SubnetNetworkSecurityGroupAssociationResource) destroy(ctx context.Context
 		return err
 	}
 
-	read, err := client.Network.Client.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
+	read, err := client.Network.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
 		if !response.WasNotFound(read.HttpResponse) {
 			return fmt.Errorf("retrieving %s: %+v", id, err)
@@ -140,7 +137,7 @@ func (SubnetNetworkSecurityGroupAssociationResource) destroy(ctx context.Context
 
 	read.Model.Properties.NetworkSecurityGroup = nil
 
-	if err := client.Network.Client.Subnets.CreateOrUpdateThenPoll(ctx, *id, *read.Model); err != nil {
+	if err := client.Network.Subnets.CreateOrUpdateThenPoll(ctx, *id, *read.Model); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -186,7 +183,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 
-  enforce_private_link_endpoint_network_policies = true
+  private_endpoint_network_policies = "Disabled"
 }
 
 resource "azurerm_subnet_network_security_group_association" "test" {

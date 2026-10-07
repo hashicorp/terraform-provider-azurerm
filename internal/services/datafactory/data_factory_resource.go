@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory
@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
@@ -23,12 +24,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDataFactory() *pluginsdk.Resource {
@@ -201,29 +199,31 @@ func resourceDataFactory() *pluginsdk.Resource {
 
 			"customer_managed_key_id": {
 				Type:         pluginsdk.TypeString,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				Optional:     true,
-				ValidateFunc: keyVaultValidate.NestedItemId,
+				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 			},
 
 			"customer_managed_key_identity_id": {
 				Type:         pluginsdk.TypeString,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				Optional:     true,
 				ValidateFunc: commonids.ValidateUserAssignedIdentityID,
-				RequiredWith: []string{"customer_managed_key_id"},
 			},
 
 			"tags": commonschema.Tags(),
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			pluginsdk.ForceNewIfChange("managed_virtual_network_enabled", func(ctx context.Context, old, new, meta interface{}) bool {
+			pluginsdk.ForceNewIfChange("managed_virtual_network_enabled", func(ctx context.Context, old, new, meta any) bool {
 				return old.(bool) && !new.(bool)
 			}),
+			validate.CMKIdentityIdRequiredAtCreation,
 		),
 	}
 }
 
-func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.Factories
 	managedVirtualNetworksClient := meta.(*clients.Client).DataFactory.ManagedVirtualNetworks
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -232,15 +232,17 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	id := factories.NewFactoryID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, factories.DefaultGetOperationOptions())
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id, factories.DefaultGetOperationOptions())
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_data_factory", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_data_factory", id.ID())
+			}
 		}
 	}
 
@@ -250,19 +252,19 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		publicNetworkAccess = factories.PublicNetworkAccessDisabled
 	}
 
-	expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+	expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
-	location := location.Normalize(d.Get("location").(string))
+	normalizedLocation := location.Normalize(d.Get("location").(string))
 	payload := factories.Factory{
-		Location: utils.String(location),
+		Location: pointer.To(normalizedLocation),
 		Properties: &factories.FactoryProperties{
 			PublicNetworkAccess: &publicNetworkAccess,
 		},
 		Identity: expandedIdentity,
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if purviewId, ok := d.GetOk("purview_id"); ok {
@@ -272,18 +274,16 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if keyVaultKeyID, ok := d.GetOk("customer_managed_key_id"); ok {
-		keyVaultKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyID.(string))
+		keyVaultKey, err := keyvault.ParseNestedItemID(keyVaultKeyID.(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 		if err != nil {
 			return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
 		}
 
 		payload.Properties.Encryption = &factories.EncryptionConfiguration{
-			VaultBaseUrl: keyVaultKey.KeyVaultBaseUrl,
+			VaultBaseURL: keyVaultKey.KeyVaultBaseURL,
 			KeyName:      keyVaultKey.Name,
 			KeyVersion:   &keyVaultKey.Version,
-			Identity: &factories.CMKIdentityDefinition{
-				UserAssignedIdentity: utils.String(d.Get("customer_managed_key_identity_id").(string)),
-			},
+			Identity:     expandDataFactoryEncryptionIdentity(d.Get("customer_managed_key_identity_id").(string)),
 		}
 	}
 
@@ -298,24 +298,24 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 	d.SetId(id.ID())
 
-	githubConfiguration := expandGitHubRepoConfiguration(d.Get("github_configuration").([]interface{}))
+	githubConfiguration := expandGitHubRepoConfiguration(d.Get("github_configuration").([]any))
 	if githubConfiguration != nil {
 		repoUpdate := factories.FactoryRepoUpdate{
-			FactoryResourceId: utils.String(id.ID()),
+			FactoryResourceId: pointer.To(id.ID()),
 			RepoConfiguration: githubConfiguration,
 		}
-		locationId := factories.NewLocationID(id.SubscriptionId, location)
+		locationId := factories.NewLocationID(id.SubscriptionId, normalizedLocation)
 		if _, err := client.ConfigureFactoryRepo(ctx, locationId, repoUpdate); err != nil {
 			return fmt.Errorf("configuring Repository for %s: %+v", locationId, err)
 		}
 	}
-	vstsConfiguration := expandVSTSRepoConfiguration(d.Get("vsts_configuration").([]interface{}))
+	vstsConfiguration := expandVSTSRepoConfiguration(d.Get("vsts_configuration").([]any))
 	if vstsConfiguration != nil {
 		repoUpdate := factories.FactoryRepoUpdate{
-			FactoryResourceId: utils.String(id.ID()),
+			FactoryResourceId: pointer.To(id.ID()),
 			RepoConfiguration: vstsConfiguration,
 		}
-		locationId := factories.NewLocationID(id.SubscriptionId, location)
+		locationId := factories.NewLocationID(id.SubscriptionId, normalizedLocation)
 		if _, err := client.ConfigureFactoryRepo(ctx, locationId, repoUpdate); err != nil {
 			return fmt.Errorf("configuring Repository for %s: %+v", locationId, err)
 		}
@@ -334,7 +334,7 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	return resourceDataFactoryRead(d, meta)
 }
 
-func resourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.Factories
 	managedVirtualNetworksClient := meta.(*clients.Client).DataFactory.ManagedVirtualNetworks
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -373,22 +373,22 @@ func resourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			customerManagedKeyId := ""
 			customerManagedKeyIdentityId := ""
 			if enc := props.Encryption; enc != nil {
-				if enc.VaultBaseUrl != "" && enc.KeyName != "" && enc.KeyVersion != nil {
+				if enc.VaultBaseURL != "" && enc.KeyName != "" && enc.KeyVersion != nil {
 					version := ""
 					if enc.KeyVersion != nil && *enc.KeyVersion != "" {
 						version = *enc.KeyVersion
 					}
-					keyId, err := keyVaultParse.NewNestedKeyID(enc.VaultBaseUrl, enc.KeyName, version)
+					keyId, err := keyvault.NewNestedItemID(enc.VaultBaseURL, keyvault.NestedItemTypeKey, enc.KeyName, version)
 					if err != nil {
 						return fmt.Errorf("parsing Nested Item ID: %+v", err)
 					}
 					customerManagedKeyId = keyId.ID()
 				}
 
-				if encIdentity := enc.Identity; encIdentity != nil && encIdentity.UserAssignedIdentity != nil {
-					parsed, err := commonids.ParseUserAssignedIdentityIDInsensitively(*encIdentity.UserAssignedIdentity)
+				if encIdentity := enc.Identity; encIdentity != nil && pointer.From(encIdentity.UserAssignedIdentity) != "" {
+					parsed, err := commonids.ParseUserAssignedIdentityIDInsensitively(pointer.From(encIdentity.UserAssignedIdentity))
 					if err != nil {
-						return fmt.Errorf("parsing %q: %+v", *encIdentity.UserAssignedIdentity, err)
+						return err
 					}
 					customerManagedKeyIdentityId = parsed.ID()
 				}
@@ -404,13 +404,11 @@ func resourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error 
 				return fmt.Errorf("setting `global_parameter`: %+v", err)
 			}
 
-			githubConfiguration := flattenGitHubRepoConfiguration(props.RepoConfiguration)
-			if err := d.Set("github_configuration", githubConfiguration); err != nil {
+			if err := d.Set("github_configuration", flattenGitHubRepoConfiguration(props.RepoConfiguration)); err != nil {
 				return fmt.Errorf("setting `github_configuration`: %+v", err)
 			}
 
-			vstsConfiguration := flattenVSTSRepoConfiguration(props.RepoConfiguration)
-			if err := d.Set("vsts_configuration", vstsConfiguration); err != nil {
+			if err := d.Set("vsts_configuration", flattenVSTSRepoConfiguration(props.RepoConfiguration)); err != nil {
 				return fmt.Errorf("setting `vsts_configuration`: %+v", err)
 			}
 
@@ -442,7 +440,7 @@ func resourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func resourceDataFactoryDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.Factories
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -459,7 +457,7 @@ func resourceDataFactoryDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func expandDataFactoryGlobalParameters(input []interface{}) (*map[string]factories.GlobalParameterSpecification, error) {
+func expandDataFactoryGlobalParameters(input []any) (*map[string]factories.GlobalParameterSpecification, error) {
 	result := make(map[string]factories.GlobalParameterSpecification)
 	if len(input) == 0 {
 		return &result, nil
@@ -468,7 +466,7 @@ func expandDataFactoryGlobalParameters(input []interface{}) (*map[string]factori
 		if item == nil {
 			continue
 		}
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 
 		name := v["name"].(string)
 		if _, ok := v[name]; ok {
@@ -483,8 +481,8 @@ func expandDataFactoryGlobalParameters(input []interface{}) (*map[string]factori
 	return &result, nil
 }
 
-func flattenDataFactoryGlobalParameters(input *map[string]factories.GlobalParameterSpecification) (*[]interface{}, error) {
-	output := make([]interface{}, 0)
+func flattenDataFactoryGlobalParameters(input *map[string]factories.GlobalParameterSpecification) (*[]any, error) {
+	output := make([]any, 0)
 	if input == nil || len(*input) == 0 {
 		return &output, nil
 	}
@@ -502,7 +500,7 @@ func flattenDataFactoryGlobalParameters(input *map[string]factories.GlobalParame
 			valueResult = fmt.Sprintf("%v", item.Value)
 		}
 
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"name":  name,
 			"type":  string(item.Type),
 			"value": valueResult,
@@ -531,12 +529,12 @@ func getManagedVirtualNetworkName(ctx context.Context, client *managedvirtualnet
 	return nil, nil
 }
 
-func expandGitHubRepoConfiguration(input []interface{}) *factories.FactoryGitHubConfiguration {
+func expandGitHubRepoConfiguration(input []any) *factories.FactoryGitHubConfiguration {
 	if len(input) == 0 {
 		return nil
 	}
 
-	item := input[0].(map[string]interface{})
+	item := input[0].(map[string]any)
 	return &factories.FactoryGitHubConfiguration{
 		AccountName:         item["account_name"].(string),
 		CollaborationBranch: item["branch_name"].(string),
@@ -547,22 +545,18 @@ func expandGitHubRepoConfiguration(input []interface{}) *factories.FactoryGitHub
 	}
 }
 
-func flattenGitHubRepoConfiguration(input factories.FactoryRepoConfiguration) []interface{} {
-	output := make([]interface{}, 0)
+func flattenGitHubRepoConfiguration(input factories.FactoryRepoConfiguration) []any {
+	output := make([]any, 0)
 
 	if v, ok := input.(factories.FactoryGitHubConfiguration); ok {
-		gitUrl := ""
-		if v.HostName != nil {
-			gitUrl = *v.HostName
-		}
 		publishingEnabled := true
 		if v.DisablePublish != nil {
 			publishingEnabled = !*v.DisablePublish
 		}
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"account_name":       v.AccountName,
 			"branch_name":        v.CollaborationBranch,
-			"git_url":            gitUrl,
+			"git_url":            pointer.From(v.HostName),
 			"publishing_enabled": publishingEnabled,
 			"repository_name":    v.RepositoryName,
 			"root_folder":        v.RootFolder,
@@ -572,12 +566,12 @@ func flattenGitHubRepoConfiguration(input factories.FactoryRepoConfiguration) []
 	return output
 }
 
-func expandVSTSRepoConfiguration(input []interface{}) *factories.FactoryVSTSConfiguration {
+func expandVSTSRepoConfiguration(input []any) *factories.FactoryVSTSConfiguration {
 	if len(input) == 0 {
 		return nil
 	}
 
-	item := input[0].(map[string]interface{})
+	item := input[0].(map[string]any)
 	return &factories.FactoryVSTSConfiguration{
 		AccountName:         item["account_name"].(string),
 		CollaborationBranch: item["branch_name"].(string),
@@ -589,26 +583,22 @@ func expandVSTSRepoConfiguration(input []interface{}) *factories.FactoryVSTSConf
 	}
 }
 
-func flattenVSTSRepoConfiguration(input factories.FactoryRepoConfiguration) []interface{} {
-	output := make([]interface{}, 0)
+func flattenVSTSRepoConfiguration(input factories.FactoryRepoConfiguration) []any {
+	output := make([]any, 0)
 
 	if v, ok := input.(factories.FactoryVSTSConfiguration); ok {
-		tenantId := ""
-		if v.TenantId != nil {
-			tenantId = *v.TenantId
-		}
 		publishingEnabled := true
 		if v.DisablePublish != nil {
 			publishingEnabled = !*v.DisablePublish
 		}
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"account_name":       v.AccountName,
 			"branch_name":        v.CollaborationBranch,
 			"project_name":       v.ProjectName,
 			"publishing_enabled": publishingEnabled,
 			"repository_name":    v.RepositoryName,
 			"root_folder":        v.RootFolder,
-			"tenant_id":          tenantId,
+			"tenant_id":          pointer.From(v.TenantId),
 		})
 	}
 

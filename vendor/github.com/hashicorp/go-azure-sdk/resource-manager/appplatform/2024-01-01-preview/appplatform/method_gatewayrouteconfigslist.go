@@ -23,6 +23,18 @@ type GatewayRouteConfigsListCompleteResult struct {
 	Items              []GatewayRouteConfigResource
 }
 
+type GatewayRouteConfigsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *GatewayRouteConfigsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // GatewayRouteConfigsList ...
 func (c AppPlatformClient) GatewayRouteConfigsList(ctx context.Context, id GatewayId) (result GatewayRouteConfigsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c AppPlatformClient) GatewayRouteConfigsList(ctx context.Context, id Gatew
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &GatewayRouteConfigsListCustomPager{},
 		Path:       fmt.Sprintf("%s/routeConfigs", id.ID()),
 	}
 

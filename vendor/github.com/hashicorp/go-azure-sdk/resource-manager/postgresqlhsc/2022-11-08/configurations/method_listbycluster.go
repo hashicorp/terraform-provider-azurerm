@@ -23,6 +23,18 @@ type ListByClusterCompleteResult struct {
 	Items              []Configuration
 }
 
+type ListByClusterCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByClusterCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByCluster ...
 func (c ConfigurationsClient) ListByCluster(ctx context.Context, id ServerGroupsv2Id) (result ListByClusterOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ConfigurationsClient) ListByCluster(ctx context.Context, id ServerGroups
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByClusterCustomPager{},
 		Path:       fmt.Sprintf("%s/configurations", id.ID()),
 	}
 

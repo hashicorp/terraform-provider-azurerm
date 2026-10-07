@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = FlexibleServerAzureActiveDirectoryAdministratorId{}
 
-func TestFlexibleServerAzureActiveDirectoryAdministratorIDFormatter(t *testing.T) {
+func TestParseFlexibleServerAzureActiveDirectoryAdministratorIDFormatter(t *testing.T) {
 	actual := NewFlexibleServerAzureActiveDirectoryAdministratorID("12345678-1234-9876-4563-123456789012", "resGroup1", "server1", "ActiveDirectory").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DBforMySQL/flexibleServers/server1/administrators/ActiveDirectory"
 	if actual != expected {
@@ -21,13 +21,12 @@ func TestFlexibleServerAzureActiveDirectoryAdministratorIDFormatter(t *testing.T
 	}
 }
 
-func TestFlexibleServerAzureActiveDirectoryAdministratorID(t *testing.T) {
+func TestParseFlexibleServerAzureActiveDirectoryAdministratorID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
 		Expected *FlexibleServerAzureActiveDirectoryAdministratorId
 	}{
-
 		{
 			// empty
 			Input: "",

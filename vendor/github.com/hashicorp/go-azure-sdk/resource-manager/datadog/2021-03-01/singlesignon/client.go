@@ -15,7 +15,7 @@ type SingleSignOnClient struct {
 }
 
 func NewSingleSignOnClientWithBaseURI(sdkApi sdkEnv.Api) (*SingleSignOnClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "singlesignon", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "singlesignon", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SingleSignOnClient: %+v", err)
 	}

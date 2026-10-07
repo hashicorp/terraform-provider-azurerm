@@ -1,11 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package iotcentral
 
 import (
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	dataplane "github.com/tombuildsstuff/kermit/sdk/iotcentral/2022-10-31-preview/iotcentral"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	dataplane "github.com/jackofallops/kermit/sdk/iotcentral/2022-10-31-preview/iotcentral"
 )
 
 type Role struct {
@@ -21,8 +21,8 @@ func ConvertToRoleAssignments(input []Role) *[]dataplane.RoleAssignment {
 	results := make([]dataplane.RoleAssignment, 0)
 	for _, item := range input {
 		results = append(results, dataplane.RoleAssignment{
-			Organization: utils.String(item.OrganizationId),
-			Role:         utils.String(item.RoleId),
+			Organization: pointer.To(item.OrganizationId),
+			Role:         pointer.To(item.RoleId),
 		})
 	}
 	return &results

@@ -15,7 +15,7 @@ type SmartDetectorAlertRulesClient struct {
 }
 
 func NewSmartDetectorAlertRulesClientWithBaseURI(sdkApi sdkEnv.Api) (*SmartDetectorAlertRulesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "smartdetectoralertrules", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "smartdetectoralertrules", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SmartDetectorAlertRulesClient: %+v", err)
 	}

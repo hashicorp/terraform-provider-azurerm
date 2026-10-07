@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package iothub_test
@@ -9,12 +9,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type IotHubEndpointServiceBusQueueResource struct{}
@@ -155,7 +155,7 @@ resource "azurerm_servicebus_queue" "test" {
   name         = "acctest-%[1]d"
   namespace_id = azurerm_servicebus_namespace.test.id
 
-  enable_partitioning = true
+  partitioning_enabled = true
 }
 
 resource "azurerm_servicebus_queue_authorization_rule" "test" {
@@ -179,6 +179,10 @@ resource "azurerm_iothub" "test" {
 
   tags = {
     purpose = "testing"
+  }
+
+  lifecycle {
+    ignore_changes = [endpoint]
   }
 }
 
@@ -212,6 +216,8 @@ provider "azurerm" {
   features {}
 }
 
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-eventhub-%[1]d"
   location = "%[2]s"
@@ -233,7 +239,7 @@ resource "azurerm_servicebus_queue" "test" {
   name         = "acctest-%[1]d"
   namespace_id = azurerm_servicebus_namespace.test.id
 
-  enable_partitioning = true
+  partitioning_enabled = true
 }
 
 resource "azurerm_servicebus_queue_authorization_rule" "test" {
@@ -258,12 +264,17 @@ resource "azurerm_iothub" "test" {
   tags = {
     purpose = "testing"
   }
+
+  lifecycle {
+    ignore_changes = [endpoint]
+  }
 }
 
 resource "azurerm_iothub_endpoint_servicebus_queue" "test" {
   resource_group_name = azurerm_resource_group.test.name
   name                = "acctest"
   iothub_id           = azurerm_iothub.test.id
+  subscription_id     = data.azurerm_client_config.current.subscription_id
 
   connection_string = azurerm_servicebus_queue_authorization_rule.test.primary_connection_string
 }
@@ -285,13 +296,13 @@ func (t IotHubEndpointServiceBusQueueResource) Exists(ctx context.Context, clien
 		for _, endpoint := range *endpoints {
 			if existingEndpointName := endpoint.Name; existingEndpointName != nil {
 				if strings.EqualFold(*existingEndpointName, id.EndpointName) {
-					return utils.Bool(true), nil
+					return pointer.To(true), nil
 				}
 			}
 		}
 	}
 
-	return utils.Bool(false), nil
+	return pointer.To(false), nil
 }
 
 func (r IotHubEndpointServiceBusQueueResource) authenticationTypeDefault(data acceptance.TestData) string {
@@ -367,7 +378,7 @@ resource "azurerm_servicebus_queue" "test" {
   name         = "acctest-%[1]d"
   namespace_id = azurerm_servicebus_namespace.test.id
 
-  enable_partitioning = true
+  partitioning_enabled = true
 }
 
 resource "azurerm_servicebus_queue_authorization_rule" "test" {
@@ -415,6 +426,10 @@ resource "azurerm_iothub" "test" {
   depends_on = [
     azurerm_role_assignment.test_azure_service_bus_data_sender_user,
   ]
+
+  lifecycle {
+    ignore_changes = [endpoint]
+  }
 }
 
 resource "azurerm_role_assignment" "test_azure_service_bus_data_sender_system" {
