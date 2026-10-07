@@ -5,7 +5,7 @@ package arcresourcebridge_test
 
 import (
 	"context"
-	cryptoRand "crypto/rand"
+	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
@@ -201,7 +201,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 func (r ArcResourceBridgeApplianceResource) generatePublicKey() string {
-	privateKey, err := rsa.GenerateKey(cryptoRand.Reader, 4096)
+	privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
 	if err != nil {
 		return ""
 	}

@@ -10,18 +10,18 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LoadBalancerProbe struct{}
+type LbProbeResource struct{}
 
 func TestAccAzureRMLoadBalancerProbe_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_probe", "test")
-	r := LoadBalancerProbe{}
+	r := LbProbeResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,13 +36,14 @@ func TestAccAzureRMLoadBalancerProbe_basic(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerProbe_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_probe", "test")
-	r := LoadBalancerProbe{}
+	r := LbProbeResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("no_healthy_backends_behavior").HasValue("AllProbedUp"),
 			),
 		},
 		data.ImportStep(),
@@ -51,7 +52,7 @@ func TestAccAzureRMLoadBalancerProbe_complete(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerProbe_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_probe", "test")
-	r := LoadBalancerProbe{}
+	r := LbProbeResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -66,7 +67,7 @@ func TestAccAzureRMLoadBalancerProbe_requiresImport(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerProbe_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_probe", "test")
-	r := LoadBalancerProbe{}
+	r := LbProbeResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
@@ -79,7 +80,7 @@ func TestAccAzureRMLoadBalancerProbe_disappears(t *testing.T) {
 func TestAccAzureRMLoadBalancerProbe_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_probe", "test")
 	data2 := acceptance.BuildTestData(t, "azurerm_lb_probe", "test2")
-	r := LoadBalancerProbe{}
+	r := LbProbeResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -106,7 +107,7 @@ func TestAccAzureRMLoadBalancerProbe_update(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerProbe_updateProtocol(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_probe", "test")
-	r := LoadBalancerProbe{}
+	r := LbProbeResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -127,7 +128,7 @@ func TestAccAzureRMLoadBalancerProbe_updateProtocol(t *testing.T) {
 	})
 }
 
-func (r LoadBalancerProbe) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r LbProbeResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := loadbalancers.ParseProbeID(state.ID)
 	if err != nil {
 		return nil, err
@@ -158,7 +159,7 @@ func (r LoadBalancerProbe) Exists(ctx context.Context, client *clients.Client, s
 	return pointer.To(found), nil
 }
 
-func (r LoadBalancerProbe) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r LbProbeResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := loadbalancers.ParseProbeID(state.ID)
 	if err != nil {
 		return nil, err
@@ -189,15 +190,14 @@ func (r LoadBalancerProbe) Destroy(ctx context.Context, client *clients.Client, 
 	}
 	lb.Model.Properties.Probes = &probes
 
-	err = client.LoadBalancers.LoadBalancersClient.CreateOrUpdateThenPoll(ctx, plbId, *lb.Model)
-	if err != nil {
+	if err = client.LoadBalancers.LoadBalancersClient.CreateOrUpdateThenPoll(ctx, plbId, *lb.Model); err != nil {
 		return nil, fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	return pointer.To(true), nil
 }
 
-func (r LoadBalancerProbe) basic(data acceptance.TestData) string {
+func (r LbProbeResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -234,7 +234,7 @@ resource "azurerm_lb_probe" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r LoadBalancerProbe) complete(data acceptance.TestData) string {
+func (r LbProbeResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -264,17 +264,18 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_probe" "test" {
-  loadbalancer_id     = azurerm_lb.test.id
-  name                = "probe-%[1]d"
-  port                = 22
-  interval_in_seconds = 5
-  number_of_probes    = 2
-  probe_threshold     = 2
+  loadbalancer_id              = azurerm_lb.test.id
+  name                         = "probe-%[1]d"
+  port                         = 22
+  interval_in_seconds          = 5
+  number_of_probes             = 2
+  probe_threshold              = 2
+  no_healthy_backends_behavior = "AllProbedUp"
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r LoadBalancerProbe) requiresImport(data acceptance.TestData) string {
+func (r LbProbeResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -287,7 +288,7 @@ resource "azurerm_lb_probe" "import" {
 `, template)
 }
 
-func (r LoadBalancerProbe) multipleProbes(data, data2 acceptance.TestData) string {
+func (r LbProbeResource) multipleProbes(data, data2 acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -332,7 +333,7 @@ resource "azurerm_lb_probe" "test2" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data2.RandomInteger)
 }
 
-func (r LoadBalancerProbe) multipleProbesUpdate(data, data2 acceptance.TestData) string {
+func (r LbProbeResource) multipleProbesUpdate(data, data2 acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -375,7 +376,7 @@ resource "azurerm_lb_probe" "test2" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data2.RandomInteger)
 }
 
-func (r LoadBalancerProbe) updateProtocolBefore(data acceptance.TestData) string {
+func (r LbProbeResource) updateProtocolBefore(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -414,7 +415,7 @@ resource "azurerm_lb_probe" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r LoadBalancerProbe) updateProtocolAfter(data acceptance.TestData) string {
+func (r LbProbeResource) updateProtocolAfter(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

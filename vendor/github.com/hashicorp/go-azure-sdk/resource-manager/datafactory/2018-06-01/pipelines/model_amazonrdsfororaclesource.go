@@ -12,8 +12,8 @@ var _ CopySource = AmazonRdsForOracleSource{}
 
 type AmazonRdsForOracleSource struct {
 	AdditionalColumns *interface{}                         `json:"additionalColumns,omitempty"`
-	NumberPrecision   *int64                               `json:"numberPrecision,omitempty"`
-	NumberScale       *int64                               `json:"numberScale,omitempty"`
+	NumberPrecision   *interface{}                         `json:"numberPrecision,omitempty"`
+	NumberScale       *interface{}                         `json:"numberScale,omitempty"`
 	OracleReaderQuery *interface{}                         `json:"oracleReaderQuery,omitempty"`
 	PartitionOption   *interface{}                         `json:"partitionOption,omitempty"`
 	PartitionSettings *AmazonRdsForOraclePartitionSettings `json:"partitionSettings,omitempty"`
@@ -21,9 +21,9 @@ type AmazonRdsForOracleSource struct {
 
 	// Fields inherited from CopySource
 
-	DisableMetricsCollection *bool        `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64       `json:"maxConcurrentConnections,omitempty"`
-	SourceRetryCount         *int64       `json:"sourceRetryCount,omitempty"`
+	DisableMetricsCollection *interface{} `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *interface{} `json:"maxConcurrentConnections,omitempty"`
+	SourceRetryCount         *interface{} `json:"sourceRetryCount,omitempty"`
 	SourceRetryWait          *interface{} `json:"sourceRetryWait,omitempty"`
 	Type                     string       `json:"type"`
 }

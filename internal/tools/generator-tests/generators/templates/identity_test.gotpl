@@ -21,6 +21,14 @@ func testAcc{{ToCamel .ResourceName}}_resourceIdentity(t *testing.T) {
 {{- else }}
 func TestAcc{{ToCamel .ResourceName}}_resourceIdentity(t *testing.T) {
 {{- end }}
+	{{- if (gt (.TestEnvVars | len) 0) }}
+	for _, v := range []string{{ "{" }}{{ ToQuotedCommaSeparated .TestEnvVars }}{{ "}" }} {
+		if os.Getenv(v) == "" {
+			t.Skipf("Skipping as `%s` was not specified", v)
+		}
+	}
+
+	{{ end }}
 	data := acceptance.BuildTestData(t, "azurerm_{{ ToSnake $resourceName }}", "test")
 	r := {{ ToCamel $resourceName }}Resource{}
 
@@ -42,7 +50,7 @@ func TestAcc{{ToCamel .ResourceName}}_resourceIdentity(t *testing.T) {
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
 		{
 			{{- if (gt (.TestParams | len) 0) }}
-			Config: r.{{ .TestName }}(data {{ range $v := .TestParams -}} , "{{ $v }}" {{ end }}),
+			Config: r.{{ .TestName }}(data {{ range $v := .TestParams -}} , {{ QuoteIfNeeded $v }} {{ end }}),
 				{{- else }}
 			Config: r.{{ .TestName }}(data),
 			{{- end }}

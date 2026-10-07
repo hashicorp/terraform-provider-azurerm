@@ -23,6 +23,8 @@ import (
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name redis_firewall_rule -service-package-name redis -properties "name,resource_group_name,redis_name:redis_cache_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
+var redisFirewallRuleResourceName = "azurerm_redis_firewall_rule"
+
 func resourceRedisFirewallRule() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create:   resourceRedisFirewallRuleCreateUpdate,
@@ -84,22 +86,25 @@ func resourceRedisFirewallRule() *pluginsdk.Resource {
 	}
 }
 
-func resourceRedisFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRedisFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Redis.FirewallRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := redisfirewallrules.NewFirewallRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("redis_cache_name").(string), d.Get("name").(string))
+
 	if d.IsNewResource() {
-		existing, err := client.FirewallRulesGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.FirewallRulesGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_redis_firewall_rule", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_redis_firewall_rule", id.ID())
+			}
 		}
 	}
 
@@ -111,18 +116,20 @@ func resourceRedisFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if _, err := client.FirewallRulesCreateOrUpdate(ctx, id, payload); err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
-	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
-		return err
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+		if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+			return err
+		}
 	}
 
 	return resourceRedisFirewallRuleRead(d, meta)
 }
 
-func resourceRedisFirewallRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRedisFirewallRuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Redis.FirewallRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -143,19 +150,23 @@ func resourceRedisFirewallRuleRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	return resourceRedisFirewallRuleFlatten(d, id, resp.Model)
+}
+
+func resourceRedisFirewallRuleFlatten(d *pluginsdk.ResourceData, id *redisfirewallrules.FirewallRuleId, firewallRule *redisfirewallrules.RedisFirewallRule) error {
 	d.Set("name", id.FirewallRuleName)
 	d.Set("redis_cache_name", id.RedisName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
-		d.Set("end_ip", model.Properties.EndIP)
-		d.Set("start_ip", model.Properties.StartIP)
+	if firewallRule != nil {
+		d.Set("end_ip", firewallRule.Properties.EndIP)
+		d.Set("start_ip", firewallRule.Properties.StartIP)
 	}
 
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceRedisFirewallRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRedisFirewallRuleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Redis.FirewallRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

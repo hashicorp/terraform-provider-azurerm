@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/privatelinkservices"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/privatelinkservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -31,6 +31,7 @@ func TestAccPrivateLinkService_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestPLS-%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("nat_ip_configuration.#").HasValue("1"),
 				check.That(data.ResourceName).Key("load_balancer_frontend_ip_configuration_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("proxy_protocol_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -168,6 +169,7 @@ func TestAccPrivateLinkService_enableProxyProtocol(t *testing.T) {
 			Config: r.enableProxyProtocol(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("proxy_protocol_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -176,6 +178,7 @@ func TestAccPrivateLinkService_enableProxyProtocol(t *testing.T) {
 			Config: r.enableProxyProtocol(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("proxy_protocol_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -184,6 +187,7 @@ func TestAccPrivateLinkService_enableProxyProtocol(t *testing.T) {
 			Config: r.enableProxyProtocol(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("proxy_protocol_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -405,10 +409,10 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_private_link_service" "test" {
-  name                  = "acctestPLS-%d"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  enable_proxy_protocol = %t
+  name                   = "acctestPLS-%d"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
+  proxy_protocol_enabled = %t
 
   nat_ip_configuration {
     name      = "primaryIpConfiguration-%d"

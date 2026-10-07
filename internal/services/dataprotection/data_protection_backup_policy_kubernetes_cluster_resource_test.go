@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/basebackuppolicyresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -61,12 +61,26 @@ func TestAccDataProtectionBackupPolicyKubernatesCluster_complete(t *testing.T) {
 	})
 }
 
+func TestAccDataProtectionBackupPolicyKubernatesCluster_vaultStore(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_kubernetes_cluster", "test")
+	r := DataProtectionBackupPolicyKubernetesClusterResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.vaultStore(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r DataProtectionBackupPolicyKubernetesClusterResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := backuppolicies.ParseBackupPolicyID(state.ID)
+	id, err := basebackuppolicyresources.ParseBackupPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.DataProtection.BackupPolicyClient.Get(ctx, *id)
+	resp, err := client.DataProtection.BackupPolicyClient.BackupPoliciesGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil
@@ -209,6 +223,45 @@ resource "azurerm_data_protection_backup_policy_kubernetes_cluster" "test" {
     life_cycle {
       duration        = "P7D"
       data_store_type = "OperationalStore"
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r DataProtectionBackupPolicyKubernetesClusterResource) vaultStore(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_data_protection_backup_policy_kubernetes_cluster" "test" {
+  name                = "acctest-aks-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  vault_name          = azurerm_data_protection_backup_vault.test.name
+
+  backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
+
+  retention_rule {
+    name     = "Daily"
+    priority = 25
+
+    life_cycle {
+      duration        = "P7D"
+      data_store_type = "VaultStore"
+    }
+
+    criteria {
+      days_of_week           = ["Thursday"]
+      months_of_year         = ["November"]
+      weeks_of_month         = ["First"]
+      scheduled_backup_times = ["2021-05-23T02:30:00Z"]
+    }
+  }
+
+  default_retention_rule {
+    life_cycle {
+      duration        = "P7D"
+      data_store_type = "VaultStore"
     }
   }
 }
