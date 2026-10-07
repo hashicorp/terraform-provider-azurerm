@@ -89,7 +89,7 @@ func TestAccApiManagementCertificate_basicKeyVaultUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_certificate", "test")
 	r := ApiManagementCertificateResource{}
 
-	certUpdatedRegex := regexp.MustCompile(fmt.Sprintf(`https://acct%d\.vault\.azure\.net/secrets/cert2/[a-z0-9]{32}`, data.RandomInteger))
+	certUpdatedRegex := regexp.MustCompile(fmt.Sprintf(`https://acctest%s\.vault\.azure\.net/secrets/cert2/[a-z0-9]{32}`, data.RandomString))
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -278,9 +278,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  name                       = "acctest%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
 
   tenant_id = data.azurerm_client_config.test.tenant_id
 

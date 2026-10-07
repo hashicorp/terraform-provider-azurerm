@@ -48,8 +48,8 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_table" "test" {
-  name                 = "tabletesttedsc%s"
-  storage_account_name = azurerm_storage_account.test.name
+  name               = "tabletesttedsc%s"
+  storage_account_id = azurerm_storage_account.test.id
 }
 
 resource "azurerm_storage_table_entity" "test" {

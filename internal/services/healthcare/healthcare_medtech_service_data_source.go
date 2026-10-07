@@ -67,7 +67,7 @@ func dataSourceHealthcareIotConnector() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceHealthcareIotConnectorRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceHealthcareIotConnectorRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceIotConnectorsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	domainSuffix, ok := meta.(*clients.Client).Account.Environment.ServiceBus.DomainSuffix()
