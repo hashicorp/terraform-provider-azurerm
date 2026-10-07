@@ -85,8 +85,8 @@ func resourcePostgresqlFlexibleServerDatabaseCreate(d *pluginsdk.ResourceData, m
 
 	id := databases.NewDatabaseID(subscriptionId, serverId.ResourceGroupName, serverId.FlexibleServerName, d.Get("name").(string))
 
-	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
-	defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
+	locks.ByID(serverId.ID())
+	defer locks.UnlockByID(serverId.ID())
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
@@ -158,8 +158,9 @@ func resourcePostgresqlFlexibleServerDatabaseDelete(d *pluginsdk.ResourceData, m
 		return err
 	}
 
-	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
-	defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
+	serverId := databases.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
+	locks.ByID(serverId.ID())
+	defer locks.UnlockByID(serverId.ID())
 
 	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)

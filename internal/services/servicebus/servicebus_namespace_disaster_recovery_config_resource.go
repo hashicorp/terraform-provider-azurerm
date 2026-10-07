@@ -152,8 +152,9 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigUpdate(d *pluginsdk.Resour
 		return err
 	}
 
-	locks.ByName(id.NamespaceName, serviceBusNamespaceResourceName)
-	defer locks.UnlockByName(id.NamespaceName, serviceBusNamespaceResourceName)
+	servicebusNamespaceID := namespaces.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
+	locks.ByID(servicebusNamespaceID.ID())
+	defer locks.UnlockByID(servicebusNamespaceID.ID())
 
 	if d.HasChange("partner_namespace_id") {
 		if _, err := client.DisasterRecoveryConfigsBreakPairing(ctx, *id); err != nil {

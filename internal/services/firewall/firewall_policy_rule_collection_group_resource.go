@@ -474,8 +474,8 @@ func resourceFirewallPolicyRuleCollectionGroupCreateUpdate(d *pluginsdk.Resource
 		}
 	}
 
-	locks.ByName(policyId.FirewallPolicyName, AzureFirewallPolicyResourceName)
-	defer locks.UnlockByName(policyId.FirewallPolicyName, AzureFirewallPolicyResourceName)
+	locks.ByID(policyId.ID())
+	defer locks.UnlockByID(policyId.ID())
 
 	param := firewallpolicyrulecollectiongroups.FirewallPolicyRuleCollectionGroup{
 		Properties: &firewallpolicyrulecollectiongroups.FirewallPolicyRuleCollectionGroupProperties{
@@ -573,8 +573,9 @@ func resourceFirewallPolicyRuleCollectionGroupDelete(d *pluginsdk.ResourceData, 
 		return err
 	}
 
-	locks.ByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
-	defer locks.UnlockByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
+	firewallPolicyID := firewallpolicies.NewFirewallPolicyID(id.SubscriptionId, id.ResourceGroupName, id.FirewallPolicyName)
+	locks.ByID(firewallPolicyID.ID())
+	defer locks.UnlockByID(firewallPolicyID.ID())
 
 	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)

@@ -124,8 +124,8 @@ func resourceNatGatewayCreate(d *pluginsdk.ResourceData, meta any) error {
 
 	id := natgateways.NewNatGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	locks.ByName(id.NatGatewayName, natGatewayResourceName)
-	defer locks.UnlockByName(id.NatGatewayName, natGatewayResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		resp, err := client.Get(ctx, id, natgateways.DefaultGetOperationOptions())
@@ -177,8 +177,8 @@ func resourceNatGatewayUpdate(d *pluginsdk.ResourceData, meta any) error {
 		return err
 	}
 
-	locks.ByName(id.NatGatewayName, natGatewayResourceName)
-	defer locks.UnlockByName(id.NatGatewayName, natGatewayResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	existing, err := client.Get(ctx, *id, natgateways.DefaultGetOperationOptions())
 	if err != nil {
@@ -287,8 +287,8 @@ func resourceNatGatewayDelete(d *pluginsdk.ResourceData, meta any) error {
 		return err
 	}
 
-	locks.ByName(id.NatGatewayName, natGatewayResourceName)
-	defer locks.UnlockByName(id.NatGatewayName, natGatewayResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)

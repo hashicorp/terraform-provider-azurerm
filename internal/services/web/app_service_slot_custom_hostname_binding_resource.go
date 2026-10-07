@@ -18,8 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-const appServiceSlotCustomHostnameBindingResourceName = "azurerm_app_service_slot_custom_hostname_binding"
-
 func resourceAppServiceSlotCustomHostnameBinding() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceAppServiceSlotCustomHostnameBindingCreate,
@@ -93,8 +91,8 @@ func resourceAppServiceSlotCustomHostnameBindingCreate(d *pluginsdk.ResourceData
 
 	id := webapps.NewSlotHostNameBindingID(slotId.SubscriptionId, slotId.ResourceGroupName, slotId.SiteName, slotId.SlotName, d.Get("hostname").(string))
 
-	locks.ByName(id.HostNameBindingName, appServiceSlotCustomHostnameBindingResourceName)
-	defer locks.UnlockByName(id.HostNameBindingName, appServiceSlotCustomHostnameBindingResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.GetHostNameBindingSlot(ctx, id)
@@ -175,8 +173,8 @@ func resourceAppServiceSlotCustomHostnameBindingDelete(d *pluginsdk.ResourceData
 		return err
 	}
 
-	locks.ByName(id.HostNameBindingName, appServiceSlotCustomHostnameBindingResourceName)
-	defer locks.UnlockByName(id.HostNameBindingName, appServiceSlotCustomHostnameBindingResourceName)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	if _, err := client.DeleteHostNameBindingSlot(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)

@@ -21,8 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-var applicationType = "azurerm_virtual_desktop_application"
-
 func resourceVirtualDesktopApplication() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceVirtualDesktopApplicationCreateUpdate,
@@ -121,8 +119,8 @@ func resourceVirtualDesktopApplicationCreateUpdate(d *pluginsdk.ResourceData, me
 	applicationGroup, _ := applicationgroup.ParseApplicationGroupID(d.Get("application_group_id").(string))
 	id := application.NewApplicationID(subscriptionId, applicationGroup.ResourceGroupName, applicationGroup.ApplicationGroupName, d.Get("name").(string))
 
-	locks.ByName(id.ApplicationName, applicationType)
-	defer locks.UnlockByName(id.ApplicationName, applicationType)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -213,8 +211,8 @@ func resourceVirtualDesktopApplicationDelete(d *pluginsdk.ResourceData, meta any
 		return err
 	}
 
-	locks.ByName(id.ApplicationName, applicationType)
-	defer locks.UnlockByName(id.ApplicationName, applicationType)
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

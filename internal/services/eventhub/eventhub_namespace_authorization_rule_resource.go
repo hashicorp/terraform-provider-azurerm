@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/authorizationrulesnamespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/eventhubs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -89,8 +90,9 @@ func resourceEventHubNamespaceAuthorizationRuleCreateUpdate(d *pluginsdk.Resourc
 		}
 	}
 
-	locks.ByName(id.NamespaceName, eventHubNamespaceResourceName)
-	defer locks.UnlockByName(id.NamespaceName, eventHubNamespaceResourceName)
+	eventhubNamespaceID := eventhubs.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
+	locks.ByID(eventhubNamespaceID.ID())
+	defer locks.UnlockByID(eventhubNamespaceID.ID())
 
 	parameters := authorizationrulesnamespaces.AuthorizationRule{
 		Name: &id.AuthorizationRuleName,
@@ -168,8 +170,9 @@ func resourceEventHubNamespaceAuthorizationRuleDelete(d *pluginsdk.ResourceData,
 		return err
 	}
 
-	locks.ByName(id.NamespaceName, eventHubNamespaceResourceName)
-	defer locks.UnlockByName(id.NamespaceName, eventHubNamespaceResourceName)
+	eventhubNamespaceID := eventhubs.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
+	locks.ByID(eventhubNamespaceID.ID())
+	defer locks.UnlockByID(eventhubNamespaceID.ID())
 
 	if _, err := eventhubClient.NamespacesDeleteAuthorizationRule(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)

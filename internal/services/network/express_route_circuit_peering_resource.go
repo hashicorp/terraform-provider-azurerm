@@ -242,8 +242,9 @@ func resourceExpressRouteCircuitPeeringCreate(d *pluginsdk.ResourceData, meta an
 
 	id := commonids.NewExpressRouteCircuitPeeringID(subscriptionId, d.Get("resource_group_name").(string), d.Get("express_route_circuit_name").(string), d.Get("peering_type").(string))
 
-	locks.ByName(id.CircuitName, expressRouteCircuitResourceName)
-	defer locks.UnlockByName(id.CircuitName, expressRouteCircuitResourceName)
+	expressRouteCircuitID := expressroutecircuitpeerings.NewExpressRouteCircuitID(id.SubscriptionId, id.ResourceGroupName, id.CircuitName)
+	locks.ByID(expressRouteCircuitID.ID())
+	defer locks.UnlockByID(expressRouteCircuitID.ID())
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
@@ -353,8 +354,9 @@ func resourceExpressRouteCircuitPeeringUpdate(d *pluginsdk.ResourceData, meta an
 		return err
 	}
 
-	locks.ByName(id.CircuitName, expressRouteCircuitResourceName)
-	defer locks.UnlockByName(id.CircuitName, expressRouteCircuitResourceName)
+	expressRouteCircuitID := expressroutecircuitpeerings.NewExpressRouteCircuitID(id.SubscriptionId, id.ResourceGroupName, id.CircuitName)
+	locks.ByID(expressRouteCircuitID.ID())
+	defer locks.UnlockByID(expressRouteCircuitID.ID())
 
 	existing, err := client.Get(ctx, *id)
 	if err != nil {
@@ -534,8 +536,9 @@ func resourceExpressRouteCircuitPeeringDelete(d *pluginsdk.ResourceData, meta an
 		return err
 	}
 
-	locks.ByName(id.CircuitName, expressRouteCircuitResourceName)
-	defer locks.UnlockByName(id.CircuitName, expressRouteCircuitResourceName)
+	expressRouteCircuitID := expressroutecircuitpeerings.NewExpressRouteCircuitID(id.SubscriptionId, id.ResourceGroupName, id.CircuitName)
+	locks.ByID(expressRouteCircuitID.ID())
+	defer locks.UnlockByID(expressRouteCircuitID.ID())
 
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)

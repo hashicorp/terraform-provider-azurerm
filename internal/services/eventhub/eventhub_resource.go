@@ -22,8 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-var eventHubResourceName = "azurerm_eventhub"
-
 func resourceEventHub() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceEventHubCreate,
