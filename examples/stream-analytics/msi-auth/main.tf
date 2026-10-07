@@ -55,7 +55,7 @@ resource "azurerm_role_assignment" "example" {
 
 resource "azurerm_storage_container" "example" {
   name                  = "${var.prefix}example"
-  storage_account_name  = azurerm_storage_account.example.name
+  storage_account_id    = azurerm_storage_account.example.id
   container_access_type = "private"
 }
 
@@ -86,11 +86,10 @@ resource "azurerm_eventhub_namespace" "example" {
 }
 
 resource "azurerm_eventhub" "example" {
-  name                = "${var.prefix}-example-eventhub"
-  namespace_name      = azurerm_eventhub_namespace.example.name
-  resource_group_name = azurerm_resource_group.example.name
-  partition_count     = 2
-  message_retention   = 1
+  name              = "${var.prefix}-example-eventhub"
+  namespace_id      = azurerm_eventhub_namespace.example.id
+  partition_count   = 2
+  message_retention = 1
 }
 
 resource "azurerm_role_assignment" "example_eventhub" {

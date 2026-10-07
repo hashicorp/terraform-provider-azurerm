@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestVirtualNetworkGatewayPolicyGroupID(t *testing.T) {
+func TestValidateVirtualNetworkGatewayPolicyGroupID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
