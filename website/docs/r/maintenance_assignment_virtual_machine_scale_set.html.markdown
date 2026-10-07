@@ -157,8 +157,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
   }
 
   automatic_os_upgrade_policy {
-    disable_automatic_rollback  = true
-    enable_automatic_os_upgrade = true
+    automatic_rollback_enabled   = false
+    automatic_os_upgrade_enabled = true
   }
 
   rolling_upgrade_policy {

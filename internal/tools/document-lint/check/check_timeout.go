@@ -68,8 +68,7 @@ func (t *TimeoutDiffItem) FixLine(line string) string {
 	if end <= start {
 		return line
 	}
-	res := fmt.Sprintf("%s%s%s", line[:start], t.ValueString(), line[end:])
-	return res
+	return fmt.Sprintf("%s%s%s", line[:start], t.ValueString(), line[end:])
 }
 
 func NewTimeoutDiffItem(line int, typ TimeoutType, want int64) TimeoutDiffItem {
@@ -91,9 +90,9 @@ func newTimeoutDiff(checkBase checkBase, items []TimeoutDiffItem) *timeoutDiff {
 
 func (t timeoutDiff) String() string {
 	var bs strings.Builder
-	bs.WriteString(fmt.Sprintf("%d Document has incorrect or missing Timeouts. These should be:", t.Line()))
+	fmt.Fprintf(&bs, "%d Document has incorrect or missing Timeouts. These should be:", t.Line())
 	for _, item := range t.TimeoutDiff {
-		bs.WriteString(fmt.Sprintf("\n* `%s` - (Defaults to %s) Used when %s the xxx", item.Type, item.ValueString(), item.Type.IngString()))
+		fmt.Fprintf(&bs, "\n* `%s` - (Defaults to %s) Used when %s the xxx", item.Type, item.ValueString(), item.Type.IngString())
 	}
 	return bs.String()
 }

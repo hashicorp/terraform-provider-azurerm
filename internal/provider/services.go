@@ -97,7 +97,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/nginx"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/orbital"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal"
@@ -110,7 +109,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redhatopenshift"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/search"
@@ -208,7 +206,6 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		newrelic.Registration{},
 		nginx.Registration{},
 		oracle.Registration{},
-		orbital.Registration{},
 		paloalto.Registration{},
 		policy.Registration{},
 		postgres.Registration{},
@@ -244,7 +241,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 
 func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 	return func() []sdk.UntypedServiceRegistration {
-		out := []sdk.UntypedServiceRegistration{
+		return []sdk.UntypedServiceRegistration{
 			advisor.Registration{},
 			analysisservices.Registration{},
 			apimanagement.Registration{},
@@ -320,7 +317,6 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			purview.Registration{},
 			recoveryservices.Registration{},
 			redis.Registration{},
-			redisenterprise.Registration{},
 			relay.Registration{},
 			resource.Registration{},
 			search.Registration{},
@@ -339,12 +335,11 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			vmware.Registration{},
 			web.Registration{},
 		}
-		return out
 	}()
 }
 
 func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
-	services := []sdk.FrameworkServiceRegistration{
+	return []sdk.FrameworkServiceRegistration{
 		// Services with Framework Resources, Data Sources, or Ephemeral Resources to be listed here
 		// e.g.
 		// resource.Registration{}
@@ -438,7 +433,6 @@ func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
 		nginx.Registration{},
 		notificationhub.Registration{},
 		oracle.Registration{},
-		orbital.Registration{},
 		paloalto.Registration{},
 		policy.Registration{},
 		portal.Registration{},
@@ -451,7 +445,6 @@ func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
 		recoveryservices.Registration{},
 		redhatopenshift.Registration{},
 		redis.Registration{},
-		redisenterprise.Registration{},
 		relay.Registration{},
 		resource.Registration{},
 		search.Registration{},
@@ -477,6 +470,4 @@ func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
 		web.Registration{},
 		workloads.Registration{},
 	}
-
-	return services
 }

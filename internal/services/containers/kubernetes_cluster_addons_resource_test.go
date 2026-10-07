@@ -134,20 +134,30 @@ func TestAccKubernetesCluster_addonProfileOMSToggle(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesCluster_addonProfileRoutingToggle(t *testing.T) {
+func TestAccKubernetesCluster_addonProfileOMSRetinaFlowLogsToggle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.addonProfileRoutingConfig(data, true),
+			// Enable with Retina Flow Logs
+			Config: r.addonProfileOMSRetinaFlowLogsConfig(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.addonProfileRoutingConfig(data, false),
+			// Disable Retina Flow Logs
+			Config: r.addonProfileOMSRetinaFlowLogsConfig(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			// Re-enable Retina Flow Logs
+			Config: r.addonProfileOMSRetinaFlowLogsConfig(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -402,6 +412,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   aci_connector_linux {
     subnet_name = azurerm_subnet.test-aci.name
   }
@@ -465,6 +480,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -508,6 +528,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   azure_policy_enabled = %t
@@ -571,6 +596,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   oms_agent {
@@ -638,6 +668,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   oms_agent {
     log_analytics_workspace_id      = azurerm_log_analytics_workspace.test.id
     msi_auth_for_monitoring_enabled = true
@@ -684,6 +719,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -691,7 +731,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (KubernetesClusterResource) addonProfileRoutingConfig(data acceptance.TestData, enabled bool) string {
+func (KubernetesClusterResource) addonProfileOMSRetinaFlowLogsConfig(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -700,6 +740,26 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-aks-%d"
   location = "%s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctest-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+}
+
+resource "azurerm_log_analytics_solution" "test" {
+  solution_name         = "ContainerInsights"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  workspace_resource_id = azurerm_log_analytics_workspace.test.id
+  workspace_name        = azurerm_log_analytics_workspace.test.name
+
+  plan {
+    publisher = "Microsoft"
+    product   = "OMSGallery/ContainerInsights"
+  }
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
@@ -725,13 +785,22 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
-  http_application_routing_enabled = %t
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
+  oms_agent {
+    log_analytics_workspace_id      = azurerm_log_analytics_workspace.test.id
+    msi_auth_for_monitoring_enabled = true
+    retina_flow_logs_enabled        = %t
+  }
 
   identity {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, enabled)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, enabled)
 }
 
 func (KubernetesClusterResource) addonProfileIngressApplicationGatewayAppGatewayConfig(data acceptance.TestData) string {
@@ -857,6 +926,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   ingress_application_gateway {
     gateway_id = azurerm_application_gateway.test.id
   }
@@ -911,6 +985,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   ingress_application_gateway {
     gateway_name = "acctestgwn%d"
     subnet_cidr  = "%s"
@@ -955,6 +1034,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {
@@ -1020,6 +1104,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   ingress_application_gateway {
     gateway_name = "acctestgwn%d"
     subnet_id    = azurerm_subnet.test.id
@@ -1075,6 +1164,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   open_service_mesh_enabled = %t
 
   identity {
@@ -1116,6 +1210,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   key_vault_secrets_provider {
@@ -1164,6 +1263,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   confidential_computing {
     sgx_quote_helper_enabled = %t
   }
@@ -1209,6 +1313,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -1244,11 +1353,12 @@ resource "azurerm_subnet" "test" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestKV-%[1]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctestKV-%[1]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 }
 
 resource "azurerm_key_vault_access_policy" "test" {
@@ -1446,6 +1556,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "UserAssigned"
     identity_ids = [
@@ -1534,6 +1649,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {
