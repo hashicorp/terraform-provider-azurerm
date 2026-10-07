@@ -87,7 +87,7 @@ resource "azurerm_dev_test_global_vm_shutdown_schedule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -125,7 +125,7 @@ The following additional attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Dev Test Global Vm Shutdown Schedule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Dev Test Global Vm Shutdown Schedule.
@@ -146,4 +146,4 @@ The name of the resource within the `resource id` will always follow the format 
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DevTestLab`: 2018-09-15
+* `Microsoft.DevTestLab` - 2018-09-15

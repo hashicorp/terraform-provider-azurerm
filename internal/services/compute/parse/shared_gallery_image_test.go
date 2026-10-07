@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -10,14 +10,6 @@ import (
 )
 
 var _ resourceids.Id = SharedGalleryImageId{}
-
-func TestSharedGalleryImageIDFormatter(t *testing.T) {
-	actual := NewSharedGalleryImageID("myGallery1", "myImage1").ID()
-	expected := "/sharedGalleries/myGallery1/images/myImage1"
-	if actual != expected {
-		t.Fatalf("Expected %q but got %q", expected, actual)
-	}
-}
 
 func TestSharedGalleryImageID(t *testing.T) {
 	testData := []struct {

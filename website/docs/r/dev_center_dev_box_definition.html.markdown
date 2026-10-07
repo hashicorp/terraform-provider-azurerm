@@ -51,6 +51,10 @@ The following arguments are supported:
 
 * `sku_name` - (Required) The name of the SKU for the Dev Center Dev Box Definition.
 
+* `hibernate_support_enabled` - (Optional) Whether the Dev Boxes created with this definition are capable of hibernation. Defaults to `false`.
+
+-> **Note:** Not all images are capable of supporting hibernation, for more information see https://aka.ms/devbox/hibernate.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Dev Center Dev Box Definition.
 
 ## Attributes Reference
@@ -61,7 +65,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Dev Center Dev Box Definition.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Dev Center Dev Box Definition.
@@ -80,4 +84,4 @@ terraform import azurerm_dev_center_dev_box_definition.example /subscriptions/00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DevCenter`: 2025-02-01
+* `Microsoft.DevCenter` - 2025-02-01

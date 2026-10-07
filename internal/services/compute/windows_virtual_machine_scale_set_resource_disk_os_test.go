@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute_test
@@ -93,6 +93,21 @@ func TestAccWindowsVirtualMachineScaleSet_disksOSDiskEphemeralResourceDisk(t *te
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.disksOSDiskEphemeralResourceDisk(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
+func TestAccWindowsVirtualMachineScaleSet_disksOSDiskEphemeralNvmeDisk(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.disksOSDiskEphemeralNvmeDisk(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -356,9 +371,11 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctestkv%s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "standard"
   purge_protection_enabled    = true
+  soft_delete_retention_days  = 7
   enabled_for_disk_encryption = true
 }
 
@@ -587,6 +604,50 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 `, r.template(data))
 }
 
+func (r WindowsVirtualMachineScaleSetResource) disksOSDiskEphemeralNvmeDisk(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_D2ads_v6"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2022-datacenter-azure-edition-smalldisk"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadOnly"
+
+    diff_disk_settings {
+      option    = "Local"
+      placement = "NvmeDisk"
+    }
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+}
+`, r.template(data))
+}
+
 func (r WindowsVirtualMachineScaleSetResource) disksOSDiskStorageAccountType(data acceptance.TestData, storageAccountType string) string {
 	return fmt.Sprintf(`
 %s
@@ -689,8 +750,8 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
-    offer     = "windows-cvm"
-    sku       = "2022-datacenter-cvm"
+    offer     = "WindowsServer"
+    sku       = "2022-datacenter-azure-edition-core"
     version   = "latest"
   }
 
@@ -744,8 +805,8 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
-    offer     = "windows-cvm"
-    sku       = "2022-datacenter-cvm"
+    offer     = "WindowsServer"
+    sku       = "2022-datacenter-azure-edition-core"
     version   = "latest"
   }
 
@@ -780,6 +841,7 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctestkv%[3]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
   sku_name                    = "premium"
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   enabled_for_disk_encryption = true
