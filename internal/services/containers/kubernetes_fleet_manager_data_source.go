@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
@@ -23,10 +23,10 @@ var _ sdk.DataSource = KubernetesFleetManagerDataSource{}
 type KubernetesFleetManagerDataSource struct{}
 
 type KubernetesFleetManagerDataSourceModel struct {
-	Location          string                 `tfschema:"location"`
-	Name              string                 `tfschema:"name"`
-	ResourceGroupName string                 `tfschema:"resource_group_name"`
-	Tags              map[string]interface{} `tfschema:"tags"`
+	Location          string         `tfschema:"location"`
+	Name              string         `tfschema:"name"`
+	ResourceGroupName string         `tfschema:"resource_group_name"`
+	Tags              map[string]any `tfschema:"tags"`
 }
 
 func (KubernetesFleetManagerDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -47,7 +47,7 @@ func (KubernetesFleetManagerDataSource) Attributes() map[string]*pluginsdk.Schem
 	}
 }
 
-func (KubernetesFleetManagerDataSource) ModelObject() interface{} {
+func (KubernetesFleetManagerDataSource) ModelObject() any {
 	return &KubernetesFleetManagerDataSourceModel{}
 }
 
@@ -59,7 +59,7 @@ func (KubernetesFleetManagerDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ContainerService.V20231015.Fleets
+			client := metadata.Client.ContainerService.V20240401.Fleets
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var state KubernetesFleetManagerDataSourceModel

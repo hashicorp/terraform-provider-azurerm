@@ -13,6 +13,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -150,8 +151,8 @@ func newModuleResolver(e *ProcessEnv, moduleCacheCache *DirInfoCache) (*ModuleRe
 				Path: "",
 				Dir:  filepath.Join(filepath.Dir(goWork), "vendor"),
 			}
-			r.modsByModPath = append(append([]*gocommand.ModuleJSON{}, mainModsVendor...), r.dummyVendorMod)
-			r.modsByDir = append(append([]*gocommand.ModuleJSON{}, mainModsVendor...), r.dummyVendorMod)
+			r.modsByModPath = append(slices.Clone(mainModsVendor), r.dummyVendorMod)
+			r.modsByDir = append(slices.Clone(mainModsVendor), r.dummyVendorMod)
 		}
 	} else {
 		// Vendor mode is off, so run go list -m ... to find everything.
@@ -165,10 +166,7 @@ func newModuleResolver(e *ProcessEnv, moduleCacheCache *DirInfoCache) (*ModuleRe
 		}
 	}
 
-	r.moduleCacheDir = gomodcacheForEnv(goenv)
-	if r.moduleCacheDir == "" {
-		return nil, fmt.Errorf("cannot resolve GOMODCACHE")
-	}
+	r.moduleCacheDir = goenv["GOMODCACHE"]
 
 	sort.Slice(r.modsByModPath, func(i, j int) bool {
 		count := func(x int) int {
@@ -237,23 +235,6 @@ func newModuleResolver(e *ProcessEnv, moduleCacheCache *DirInfoCache) (*ModuleRe
 	return r, nil
 }
 
-// gomodcacheForEnv returns the GOMODCACHE value to use based on the given env
-// map, which must have GOMODCACHE and GOPATH populated.
-//
-// TODO(rfindley): this is defensive refactoring.
-//  1. Is this even relevant anymore? Can't we just read GOMODCACHE.
-//  2. Use this to separate module cache scanning from other scanning.
-func gomodcacheForEnv(goenv map[string]string) string {
-	if gmc := goenv["GOMODCACHE"]; gmc != "" {
-		return gmc
-	}
-	gopaths := filepath.SplitList(goenv["GOPATH"])
-	if len(gopaths) == 0 {
-		return ""
-	}
-	return filepath.Join(gopaths[0], "/pkg/mod")
-}
-
 func (r *ModuleResolver) initAllMods() error {
 	stdout, err := r.env.invokeGo(context.TODO(), "list", "-m", "-e", "-json", "...")
 	if err != nil {
@@ -265,9 +246,7 @@ func (r *ModuleResolver) initAllMods() error {
 			return err
 		}
 		if mod.Dir == "" {
-			if r.env.Logf != nil {
-				r.env.Logf("module %v has not been downloaded and will be ignored", mod.Path)
-			}
+			r.env.logf("module %v has not been downloaded and will be ignored", mod.Path)
 			// Can't do anything with a module that's not downloaded.
 			continue
 		}
@@ -677,11 +656,11 @@ func modRelevance(mod *gocommand.ModuleJSON) float64 {
 
 	_, versionString, ok := module.SplitPathVersion(mod.Path)
 	if ok {
-		index := strings.Index(versionString, "v")
-		if index == -1 {
+		_, after, ok := strings.Cut(versionString, "v")
+		if !ok {
 			return relevance
 		}
-		if versionNumber, err := strconv.ParseFloat(versionString[index+1:], 64); err == nil {
+		if versionNumber, err := strconv.ParseFloat(after, 64); err == nil {
 			relevance += versionNumber / 1000
 		}
 	}
@@ -742,8 +721,8 @@ func (r *ModuleResolver) loadExports(ctx context.Context, pkg *pkg, includeTest 
 
 func (r *ModuleResolver) scanDirForPackage(root gopathwalk.Root, dir string) directoryPackageInfo {
 	subdir := ""
-	if dir != root.Path {
-		subdir = dir[len(root.Path)+len("/"):]
+	if prefix := root.Path + string(filepath.Separator); strings.HasPrefix(dir, prefix) {
+		subdir = dir[len(prefix):]
 	}
 	importPath := filepath.ToSlash(subdir)
 	if strings.HasPrefix(importPath, "vendor/") {
@@ -766,9 +745,7 @@ func (r *ModuleResolver) scanDirForPackage(root gopathwalk.Root, dir string) dir
 		}
 		modPath, err := module.UnescapePath(filepath.ToSlash(matches[1]))
 		if err != nil {
-			if r.env.Logf != nil {
-				r.env.Logf("decoding module cache path %q: %v", subdir, err)
-			}
+			r.env.logf("decoding module cache path %q: %v", subdir, err)
 			return directoryPackageInfo{
 				status: directoryScanned,
 				err:    fmt.Errorf("decoding module cache path %q: %v", subdir, err),

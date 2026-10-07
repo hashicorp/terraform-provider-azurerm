@@ -1,4 +1,4 @@
-## Example: Kubernetes Cluster with private API server
+## Example: Kubernetes Cluster with private API server
 
 This example creates a Kubernetes Cluster with private API server.
 
@@ -8,4 +8,4 @@ The control plane or API server is in an Azure Kubernetes Service (AKS)-managed 
 
 The Private Link service is supported on Standard Azure Load Balancer only. Basic Azure Load Balancer isn't supported.
 
-For further information, refer to Azure AKS [documentation](https://docs.microsoft.com/en-us/azure/aks/private-clusters).
+For further information, refer to Azure AKS [documentation](https://docs.microsoft.com/azure/aks/private-clusters).

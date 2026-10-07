@@ -45,11 +45,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `duplicate_detection_history_time_window` - The ISO 8601 timespan duration during which duplicates can be detected.
 
-* `enable_batched_operations` - Boolean flag which controls whether server-side batched operations are enabled.
+* `batched_operations_enabled` - Boolean flag which controls whether server-side batched operations are enabled.
 
-* `enable_express` - Boolean flag which controls whether Express Entities are enabled. An express queue holds a message in memory temporarily before writing it to persistent storage.
+* `express_enabled` - Boolean flag which controls whether Express Entities are enabled. An express queue holds a message in memory temporarily before writing it to persistent storage.
 
-* `enable_partitioning` - Boolean flag which controls whether to enable the queue to be partitioned across multiple message brokers.
+* `partitioning_enabled` - Boolean flag which controls whether to enable the queue to be partitioned across multiple message brokers.
 
 * `forward_dead_lettered_messages_to` - The name of a Queue or Topic to automatically forward dead lettered messages to.
 
@@ -58,6 +58,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `lock_duration` - The ISO 8601 timespan duration of a peek-lock; that is, the amount of time that the message is locked for other receivers.
 
 * `max_delivery_count` - Integer value which controls when a message is automatically dead lettered.
+
+* `maximum_message_size_in_kb` - Integer value which controls the maximum size of a message allowed on the queue for Premium SKU.
 
 * `max_size_in_megabytes` - Integer value which controls the size of memory allocated for the queue. For supported values see the "Queue or topic size" section of [Service Bus Quotas](https://docs.microsoft.com/azure/service-bus-messaging/service-bus-quotas).
 
@@ -69,6 +71,12 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Service Bus Queue.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.ServiceBus` - 2026-01-01
