@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -149,26 +150,26 @@ func resourceArmDevTestWindowsVirtualMachine() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmDevTestWindowsVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmDevTestWindowsVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DevTestLabs.VirtualMachinesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for DevTest Windows Virtual Machine creation")
-
 	id := virtualmachines.NewVirtualMachineID(subscriptionId, d.Get("resource_group_name").(string), d.Get("lab_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, virtualmachines.GetOperationOptions{})
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id, virtualmachines.GetOperationOptions{})
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_dev_test_windows_virtual_machine", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_dev_test_windows_virtual_machine", id.ID())
+			}
 		}
 	}
 
@@ -183,7 +184,7 @@ func resourceArmDevTestWindowsVirtualMachineCreateUpdate(d *pluginsdk.ResourceDa
 	storageType := d.Get("storage_type").(string)
 	username := d.Get("username").(string)
 
-	galleryImageReferenceRaw := d.Get("gallery_image_reference").([]interface{})
+	galleryImageReferenceRaw := d.Get("gallery_image_reference").([]any)
 	galleryImageReference := expandDevTestLabVirtualMachineGalleryImageReference(galleryImageReferenceRaw, "Windows")
 
 	natRulesRaw := d.Get("inbound_nat_rule").(*pluginsdk.Set)
@@ -217,20 +218,24 @@ func resourceArmDevTestWindowsVirtualMachineCreateUpdate(d *pluginsdk.ResourceDa
 			StorageType:                pointer.To(storageType),
 			UserName:                   pointer.To(username),
 		},
-		Tags: expandTags(d.Get("tags").(map[string]interface{})),
+		Tags: expandTags(d.Get("tags").(map[string]any)),
 	}
 
-	err := client.CreateOrUpdateThenPoll(ctx, id, parameters)
-	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
-
-	d.SetId(id.ID())
 
 	return resourceArmDevTestWindowsVirtualMachineRead(d, meta)
 }
 
-func resourceArmDevTestWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmDevTestWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DevTestLabs.VirtualMachinesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -268,8 +273,7 @@ func resourceArmDevTestWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta
 		d.Set("storage_type", props.StorageType)
 		d.Set("username", props.UserName)
 
-		flattenedImage := flattenDevTestVirtualMachineGalleryImage(props.GalleryImageReference)
-		if err := d.Set("gallery_image_reference", flattenedImage); err != nil {
+		if err := d.Set("gallery_image_reference", flattenDevTestVirtualMachineGalleryImage(props.GalleryImageReference)); err != nil {
 			return fmt.Errorf("setting `gallery_image_reference`: %+v", err)
 		}
 
@@ -284,7 +288,7 @@ func resourceArmDevTestWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta
 	return nil
 }
 
-func resourceArmDevTestWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmDevTestWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DevTestLabs.VirtualMachinesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -305,8 +309,7 @@ func resourceArmDevTestWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, me
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = BackendSettingsCollectionId{}
 
-func TestBackendSettingsCollectionIDFormatter(t *testing.T) {
+func TestParseBackendSettingsCollectionIDFormatter(t *testing.T) {
 	actual := NewBackendSettingsCollectionID("12345678-1234-9876-4563-123456789012", "group1", "applicationGateway1", "backendSettings1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/backendSettingsCollection/backendSettings1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestBackendSettingsCollectionIDFormatter(t *testing.T) {
 	}
 }
 
-func TestBackendSettingsCollectionID(t *testing.T) {
+func TestParseBackendSettingsCollectionID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -129,7 +129,7 @@ func TestBackendSettingsCollectionID(t *testing.T) {
 	}
 }
 
-func TestBackendSettingsCollectionIDInsensitively(t *testing.T) {
+func TestParseBackendSettingsCollectionIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

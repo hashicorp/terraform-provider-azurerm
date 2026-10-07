@@ -5,7 +5,6 @@ package automation
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -76,25 +75,25 @@ func resourceAutomationConnectionCertificate() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationConnectionCertificateCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionCertificateCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Connection
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Automation Connection creation.")
-
 	id := connection.NewConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_automation_connection_certificate", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_automation_connection_certificate", id.ID())
+		}
 	}
 
 	parameters := connection.ConnectionCreateOrUpdateParameters{
@@ -120,7 +119,7 @@ func resourceAutomationConnectionCertificateCreate(d *pluginsdk.ResourceData, me
 	return resourceAutomationConnectionCertificateRead(d, meta)
 }
 
-func resourceAutomationConnectionCertificateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionCertificateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Connection
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -168,7 +167,7 @@ func resourceAutomationConnectionCertificateUpdate(d *pluginsdk.ResourceData, me
 	return resourceAutomationConnectionCertificateRead(d, meta)
 }
 
-func resourceAutomationConnectionCertificateRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionCertificateRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Connection
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -209,7 +208,7 @@ func resourceAutomationConnectionCertificateRead(d *pluginsdk.ResourceData, meta
 	return nil
 }
 
-func resourceAutomationConnectionCertificateDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionCertificateDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Connection
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

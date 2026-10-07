@@ -92,7 +92,7 @@ resource "azurerm_subnet_network_security_group_association" "untrust" {
 resource "azurerm_palo_alto_local_rulestack" "example" {
   name                = "example-rulestack"
   resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.locatio
+  location            = azurerm_resource_group.example.location
 }
 
 resource "azurerm_palo_alto_local_rulestack_rule" "example" {
@@ -143,9 +143,7 @@ The following arguments are supported:
 
 * `marketplace_offer_id` - (Optional) The marketplace offer ID. Defaults to `pan_swfw_cloud_ngfw`. Changing this forces a new resource to be created.
 
-* `plan_id` - (Optional) The billing plan ID as published by Liftr.PAN. Defaults to `panw-cloud-ngfw-payg`.
-
-~> **Note:** The former `plan_id` `panw-cloud-ngfw-payg` is defined as stop sell, but has been set as the default to not break any existing resources that were originally provisioned with it. Users need to explicitly set `plan_id` to `panw-cngfw-payg` when creating new resources.
+* `plan_id` - (Optional) The billing plan ID as published by Liftr.PAN. Defaults to `panw-cngfw-payg`.
 
 ---
 
