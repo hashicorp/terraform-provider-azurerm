@@ -41,12 +41,13 @@ resource "azurerm_cognitive_account" "example" {
 }
 
 resource "azurerm_key_vault" "example" {
-  name                     = "example-vault"
-  location                 = azurerm_resource_group.example.location
-  resource_group_name      = azurerm_resource_group.example.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "example-vault"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
 
   access_policy {
     tenant_id = azurerm_cognitive_account.example.identity[0].tenant_id
@@ -134,4 +135,4 @@ terraform import azurerm_cognitive_account_customer_managed_key.example /subscri
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.CognitiveServices` - 2025-06-01
+* `Microsoft.CognitiveServices` - 2026-03-01

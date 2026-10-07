@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package authorization
@@ -45,7 +45,7 @@ func dataSourceArmClientConfig() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceArmClientConfigRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceArmClientConfigRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client)
 	_, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

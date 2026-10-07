@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -16,13 +16,6 @@ var _ resourceids.Id = MicrosoftPartnerAccountBillingScopeId{}
 type MicrosoftPartnerAccountBillingScopeId struct {
 	BillingAccountName string
 	CustomerName       string
-}
-
-func NewMPABillingScopeID(billingAccountName, customerName string) MicrosoftPartnerAccountBillingScopeId {
-	return MicrosoftPartnerAccountBillingScopeId{
-		BillingAccountName: billingAccountName,
-		CustomerName:       customerName,
-	}
 }
 
 func (id MicrosoftPartnerAccountBillingScopeId) String() string {

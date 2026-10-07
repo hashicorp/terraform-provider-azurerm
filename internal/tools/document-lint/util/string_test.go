@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package util
@@ -25,7 +25,7 @@ func TestExtractCodeValue(t *testing.T) {
 		},
 		{
 			args: args{
-				line: "defauts to `def`.",
+				line: "defaults to `def`.",
 			},
 			wantRes: []string{"def"},
 		},

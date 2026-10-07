@@ -1,13 +1,15 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networksecuritygroups"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -29,9 +31,6 @@ func (r NetworkSecurityGroupListResource) Metadata(_ context.Context, _ resource
 
 func (r NetworkSecurityGroupListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.Network.NetworkSecurityGroups
-
-	ctx, cancel := context.WithTimeout(ctx, time.Minute*60)
-	defer cancel()
 
 	var data sdk.DefaultListModel
 	diags := request.Config.Get(ctx, &data)
@@ -73,7 +72,7 @@ func (r NetworkSecurityGroupListResource) List(ctx context.Context, request list
 
 			id, err := networksecuritygroups.ParseNetworkSecurityGroupID(pointer.From(nsg.Id))
 			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "parsing Network Security Group ID", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Network Security Group ID", err)
 				return
 			}
 
@@ -81,29 +80,13 @@ func (r NetworkSecurityGroupListResource) List(ctx context.Context, request list
 			rd.SetId(id.ID())
 
 			if err := resourceNetworkSecurityGroupFlatten(rd, id, &nsg); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, fmt.Sprintf("encoding `%s` resource data", networkSecurityGroupResourceName), err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", networkSecurityGroupResourceName), err)
 				return
 			}
 
-			tfTypeIdentity, err := rd.TfTypeIdentityState()
-			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "converting Identity State", err)
-				return
-			}
-
-			if err := result.Identity.Set(ctx, *tfTypeIdentity); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "setting Identity Data", err)
-				return
-			}
-
-			tfTypeResourceState, err := rd.TfTypeResourceState()
-			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "converting Resource State", err)
-				return
-			}
-
-			if err := result.Resource.Set(ctx, *tfTypeResourceState); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "setting Resource Data", err)
+			sdk.EncodeListResult(ctx, rd, &result)
+			if result.Diagnostics.HasError() {
+				push(result)
 				return
 			}
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -21,7 +21,7 @@ func (ScheduledQueryRulesLogUpgradeV0ToV1) Schema() map[string]*pluginsdk.Schema
 }
 
 func (ScheduledQueryRulesLogUpgradeV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		// old
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/microsoft.insights/scheduledQueryRules/rule1
 		// new:
@@ -133,7 +133,7 @@ func scheduledQueryRulesLogSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
 			MinItems: 1,
-			// Curently, it allows to define only one dynamic criteria in one metric alert.
+			// Currently, it allows to define only one dynamic criteria in one metric alert.
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
