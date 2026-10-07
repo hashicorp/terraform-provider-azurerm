@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func TestAccGraphServicesAccount(t *testing.T) {
+func TestAccGraphServicesAccount_sequential(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests due to
 	// the account need a pre-existing AD application, here we use the service principal.
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){

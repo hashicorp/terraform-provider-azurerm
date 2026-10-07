@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = FrontendPortId{}
 
-func TestFrontendPortIDFormatter(t *testing.T) {
+func TestParseFrontendPortIDFormatter(t *testing.T) {
 	actual := NewFrontendPortID("12345678-1234-9876-4563-123456789012", "group1", "applicationGateway1", "feport1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/frontendPorts/feport1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestFrontendPortIDFormatter(t *testing.T) {
 	}
 }
 
-func TestFrontendPortID(t *testing.T) {
+func TestParseFrontendPortID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -129,7 +129,7 @@ func TestFrontendPortID(t *testing.T) {
 	}
 }
 
-func TestFrontendPortIDInsensitively(t *testing.T) {
+func TestParseFrontendPortIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
