@@ -129,7 +129,7 @@ func dataSourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceCdnFrontDoorCustomDomainRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceCdnFrontDoorCustomDomainRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.AFDCustomDomainsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

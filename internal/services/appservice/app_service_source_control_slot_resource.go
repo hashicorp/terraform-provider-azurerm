@@ -131,7 +131,7 @@ func (r SourceControlSlotResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r SourceControlSlotResource) ModelObject() interface{} {
+func (r SourceControlSlotResource) ModelObject() any {
 	return &SourceControlSlotModel{}
 }
 

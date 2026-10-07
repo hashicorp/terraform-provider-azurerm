@@ -101,7 +101,7 @@ func (r OutputCosmosDBResource) Attributes() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r OutputCosmosDBResource) ModelObject() interface{} {
+func (r OutputCosmosDBResource) ModelObject() any {
 	return &OutputCosmosDBResourceModel{}
 }
 

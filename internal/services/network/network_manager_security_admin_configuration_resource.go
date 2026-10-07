@@ -31,7 +31,7 @@ func (r ManagerSecurityAdminConfigurationResource) ResourceType() string {
 	return "azurerm_network_manager_security_admin_configuration"
 }
 
-func (r ManagerSecurityAdminConfigurationResource) ModelObject() interface{} {
+func (r ManagerSecurityAdminConfigurationResource) ModelObject() any {
 	return &ManagerSecurityAdminConfigurationModel{}
 }
 
