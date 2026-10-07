@@ -128,4 +128,3 @@ Running `make generate` - will output the following files:
 * `./internal/service/resource/validate/resource_group_example_id.go` - contains Terraform validation functions for the Resource ID.
 
 > **Note:** This is an outdated way of handling resource IDs in the provider and is being phased out. This method should only be used in exceptional cases.
-

@@ -210,13 +210,12 @@ func expandStatefulAgentModel(input []StatefulAgentModel) pools.AgentProfile {
 
 		resourcePredictions := expandResourcePredictionsModel(manualResourcePrediction)
 		if resourcePredictions != nil {
-			stateful.ResourcePredictions = pointer.To(interface{}(*resourcePredictions))
+			stateful.ResourcePredictions = pointer.To(any(*resourcePredictions))
 		}
 
-		manualPredictionProfile := &pools.ManualResourcePredictionsProfile{
+		stateful.ResourcePredictionsProfile = &pools.ManualResourcePredictionsProfile{
 			Kind: pools.ResourcePredictionsProfileTypeManual,
 		}
-		stateful.ResourcePredictionsProfile = manualPredictionProfile
 	} else if len(agentProfile.AutomaticResourcePrediction) > 0 {
 		automaticResourcePrediction := agentProfile.AutomaticResourcePrediction[0]
 
@@ -225,8 +224,7 @@ func expandStatefulAgentModel(input []StatefulAgentModel) pools.AgentProfile {
 		}
 
 		if automaticResourcePrediction.PredictionPreference != "" {
-			predictionPreference := pools.PredictionPreference(automaticResourcePrediction.PredictionPreference)
-			automaticPredictionProfile.PredictionPreference = &predictionPreference
+			automaticPredictionProfile.PredictionPreference = pointer.ToEnum[pools.PredictionPreference](automaticResourcePrediction.PredictionPreference)
 		}
 
 		stateful.ResourcePredictionsProfile = automaticPredictionProfile
@@ -251,13 +249,12 @@ func expandStatelessAgentModel(input []StatelessAgentModel) pools.AgentProfile {
 
 		resourcePredictions := expandResourcePredictionsModel(manualResourcePrediction)
 		if resourcePredictions != nil {
-			stateless.ResourcePredictions = pointer.To(interface{}(*resourcePredictions))
+			stateless.ResourcePredictions = pointer.To(any(*resourcePredictions))
 		}
 
-		manualPredictionProfile := &pools.ManualResourcePredictionsProfile{
+		stateless.ResourcePredictionsProfile = &pools.ManualResourcePredictionsProfile{
 			Kind: pools.ResourcePredictionsProfileTypeManual,
 		}
-		stateless.ResourcePredictionsProfile = manualPredictionProfile
 	} else if len(agentProfile.AutomaticResourcePrediction) > 0 {
 		automaticPredictionProfile := &pools.AutomaticResourcePredictionsProfile{
 			Kind: pools.ResourcePredictionsProfileTypeAutomatic,
@@ -265,8 +262,7 @@ func expandStatelessAgentModel(input []StatelessAgentModel) pools.AgentProfile {
 
 		automaticResourcePrediction := agentProfile.AutomaticResourcePrediction[0]
 		if automaticResourcePrediction.PredictionPreference != "" {
-			predictionPreference := pools.PredictionPreference(automaticResourcePrediction.PredictionPreference)
-			automaticPredictionProfile.PredictionPreference = &predictionPreference
+			automaticPredictionProfile.PredictionPreference = pointer.ToEnum[pools.PredictionPreference](automaticResourcePrediction.PredictionPreference)
 		}
 
 		stateless.ResourcePredictionsProfile = automaticPredictionProfile
@@ -507,7 +503,7 @@ func flattenStatelessAgentToModel(input pools.StatelessAgentProfile) []Stateless
 	return []StatelessAgentModel{statelessAgentModel}
 }
 
-func flattenManualResourcePredictionsModel(input interface{}) ManualResourcePredictionModel {
+func flattenManualResourcePredictionsModel(input any) ManualResourcePredictionModel {
 	manualProfile := ManualResourcePredictionModel{}
 
 	if input == nil {

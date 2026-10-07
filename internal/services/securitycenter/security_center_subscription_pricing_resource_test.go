@@ -9,42 +9,14 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	pricings_v2023_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/security/2023-01-01/pricings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2023-01-01/pricings"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type SecurityCenterSubscriptionPricingResource struct{}
-
-func TestAccServerVulnerabilityAssessment(t *testing.T) {
-	// these tests need to change `azurerm_security_center_subscription_pricing` of `VirtualMachines` in their test configs, so we need to run them serially.
-	// `securityCenterAssessmentPolicy` is included because it's using same `azurerm_security_center_assessment_policy` with other tests
-	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
-		"securityCenterAssessment": {
-			"basic":          testAccSecurityCenterAssessment_basic,
-			"complete":       testAccSecurityCenterAssessment_complete,
-			"update":         testAccSecurityCenterAssessment_update,
-			"requiresImport": testAccSecurityCenterAssessment_requiresImport,
-		},
-		"securityCenterAssessmentPolicy": {
-			"basic":    testAccSecurityCenterAssessmentPolicy_basic,
-			"complete": testAccSecurityCenterAssessmentPolicy_complete,
-			"update":   testAccSecurityCenterAssessmentPolicy_update,
-		},
-		"serverVulnerabilityAssessmentVirtualMachine": {
-			"basic":          testAccServerVulnerabilityAssessmentVirtualMachine_basic,
-			"requiresImport": testAccServerVulnerabilityAssessmentVirtualMachine_requiresImport,
-		},
-		"workSpace": {
-			"basic":          testAccSecurityCenterWorkspace_basic,
-			"update":         testAccSecurityCenterWorkspace_update,
-			"requiresImport": testAccSecurityCenterWorkspace_requiresImport,
-		},
-	})
-}
 
 func TestAccSecurityCenterSubscriptionPricing_cloudPosture(t *testing.T) {
 	// These tests will change pricing tier of cloud posture
@@ -117,9 +89,6 @@ func TestAccSecurityCenterSubscriptionPricing_cosmosDbs(t *testing.T) {
 }
 
 func testAccSecurityCenterSubscriptionPricing_storageAccountSubplan(t *testing.T) {
-	if !features.FivePointOh() {
-		t.Skipf("the `subplan` forces new in 4.0, but should be updated in 5.0.")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
 	r := SecurityCenterSubscriptionPricingResource{}
 
@@ -252,7 +221,7 @@ func testAccSecurityCenterSubscriptionPricing_cloudPostureExtensionStandardToFre
 }
 
 func (SecurityCenterSubscriptionPricingResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := pricings_v2023_01_01.ParsePricingIDInsensitively(state.ID)
+	id, err := pricings.ParsePricingIDInsensitively(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -262,7 +231,7 @@ func (SecurityCenterSubscriptionPricingResource) Exists(ctx context.Context, cli
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return pointer.To(resp.Model.Properties != nil && resp.Model.Properties.PricingTier != pricings_v2023_01_01.PricingTierFree), nil
+	return pointer.To(resp.Model.Properties != nil && resp.Model.Properties.PricingTier != pricings.PricingTierFree), nil
 }
 
 func (SecurityCenterSubscriptionPricingResource) tier(tier string, resource_type string) string {
