@@ -75,12 +75,24 @@ fun BuildSteps.ConfigureGoEnv() {
     })
 }
 
+// Downloads Terraform Core to the agent only when that version isn't already there.
 fun BuildSteps.DownloadTerraformBinary() {
-    // https://releases.hashicorp.com/terraform/0.12.28/terraform_0.12.28_linux_amd64.zip
-    var terraformUrl = "https://releases.hashicorp.com/terraform/%env.TERRAFORM_CORE_VERSION%/terraform_%env.TERRAFORM_CORE_VERSION%_linux_amd64.zip"
     step(ScriptBuildStep {
         name = "Download Terraform Core v%env.TERRAFORM_CORE_VERSION%.."
-        scriptContent = "mkdir -p tools && wget -O tf.zip %s && unzip tf.zip && mv terraform tools/".format(terraformUrl)
+        scriptContent = File("scripts/download_terraform.sh").readText()
+        conditions {
+            equals("env.SCHEDULE_MATCHES", "true")
+        }
+    })
+}
+
+// Fetches the providers the tests will ask for into the agent's shared provider directory.
+// Requires TerraformProviderMirror() in the build's params.
+fun BuildSteps.DownloadTerraformProviders(packageName: String) {
+    step(ScriptBuildStep {
+        name = "Download Terraform Providers"
+        // not every build defines SERVICE_PATH as a parameter, so the package under test is filled in here
+        scriptContent = File("scripts/download_terraform_providers.sh").readText().replace("%SERVICE_PATH%", servicePath(packageName))
         conditions {
             equals("env.SCHEDULE_MATCHES", "true")
         }
@@ -143,7 +155,14 @@ fun ParametrizedWithType.TerraformAcceptanceTestsFlag() {
 
 fun ParametrizedWithType.TerraformCoreBinaryTesting() {
     text("env.TERRAFORM_CORE_VERSION", defaultTerraformCoreVersion, "The version of Terraform Core which should be used for testing")
-    hiddenVariable("env.TF_ACC_TERRAFORM_PATH", "%system.teamcity.build.checkoutDir%/tools/terraform", "The path where the Terraform Binary is located")
+    hiddenVariable("env.TF_ACC_TERRAFORM_PATH", "%teamcity.agent.work.dir%/terraform-cache/core/%env.TERRAFORM_CORE_VERSION%/terraform", "The path where the Terraform Binary is located - shared by every build on the agent")
+}
+
+fun ParametrizedWithType.TerraformProviderMirror() {
+    hiddenVariable("env.TF_ACC_TERRAFORM_PROVIDER_CACHE_MIRROR_PATH", "%teamcity.agent.work.dir%/terraform-cache/providers", "The directory of provider binaries shared by every build on the agent, which tests link to rather than downloading their own")
+    hiddenVariable("env.TF_ACC_TERRAFORM_PROVIDER_CACHE_CONFIG_FILE", "%teamcity.agent.work.dir%/terraform-cache/providers.tfrc", "The Terraform CLI config which has tests install providers from that directory when they are present")
+    // TF_CLI_CONFIG_FILE is the name Terraform itself reads, so it has to be set for the tests to pick the config up
+    hiddenVariable("env.TF_CLI_CONFIG_FILE", "%env.TF_ACC_TERRAFORM_PROVIDER_CACHE_CONFIG_FILE%", "Points Terraform at the provider cache CLI config")
 }
 
 fun ParametrizedWithType.TerraformShouldPanicForSchemaErrors() {
