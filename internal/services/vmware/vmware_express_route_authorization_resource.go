@@ -66,7 +66,7 @@ func resourceVmwareExpressRouteAuthorization() *pluginsdk.Resource {
 	}
 }
 
-func resourceVmwareExpressRouteAuthorizationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVmwareExpressRouteAuthorizationCreate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Vmware.AuthorizationClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -102,7 +102,7 @@ func resourceVmwareExpressRouteAuthorizationCreate(d *pluginsdk.ResourceData, me
 	return resourceVmwareExpressRouteAuthorizationRead(d, meta)
 }
 
-func resourceVmwareExpressRouteAuthorizationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVmwareExpressRouteAuthorizationRead(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Vmware.AuthorizationClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -137,7 +137,7 @@ func resourceVmwareExpressRouteAuthorizationRead(d *pluginsdk.ResourceData, meta
 	return nil
 }
 
-func resourceVmwareExpressRouteAuthorizationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVmwareExpressRouteAuthorizationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Vmware.AuthorizationClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
