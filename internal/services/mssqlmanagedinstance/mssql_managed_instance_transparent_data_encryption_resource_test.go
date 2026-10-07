@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssqlmanagedinstance_test
@@ -6,8 +6,10 @@ package mssqlmanagedinstance_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -15,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MsSqlManagedInstanceTransparentDataEncryptionResource struct{}
@@ -26,7 +27,7 @@ func TestAccMsSqlManagedInstanceTransparentDataEncryption_keyVaultSystemAssigned
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.keyVaultSystemAssignedIdentity(data),
+			Config: r.keyVaultSystemAssignedIdentity(data, "test"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -66,6 +67,22 @@ func TestAccMsSqlManagedInstanceTransparentDataEncryption_autoRotate(t *testing.
 	})
 }
 
+func TestAccMsSqlManagedInstanceTransparentDataEncryption_autoRotateVersionless(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance_transparent_data_encryption", "test")
+	r := MsSqlManagedInstanceTransparentDataEncryptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.autoRotateVersionless(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("key_vault_key_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMsSqlManagedInstanceTransparentDataEncryption_systemManaged(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance_transparent_data_encryption", "test")
 	r := MsSqlManagedInstanceTransparentDataEncryptionResource{}
@@ -83,12 +100,23 @@ func TestAccMsSqlManagedInstanceTransparentDataEncryption_systemManaged(t *testi
 }
 
 func TestAccMsSqlManagedInstanceTransparentDataEncryption_managedHSM(t *testing.T) {
+	if os.Getenv("ARM_TEST_HSM_KEY") == "" {
+		t.Skip("Skipping as ARM_TEST_HSM_KEY is not specified")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance_transparent_data_encryption", "test")
 	r := MsSqlManagedInstanceTransparentDataEncryptionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.managedHSM(data),
+			Config: r.managedHSM(data, "test"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.managedHSM(data, "test2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -101,10 +129,9 @@ func TestAccMsSqlManagedInstanceTransparentDataEncryption_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance_transparent_data_encryption", "test")
 	r := MsSqlManagedInstanceTransparentDataEncryptionResource{}
 
-	// Test going from systemManaged to keyVault and back
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.keyVaultSystemAssignedIdentity(data),
+			Config: r.keyVaultSystemAssignedIdentity(data, "test"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -115,6 +142,20 @@ func TestAccMsSqlManagedInstanceTransparentDataEncryption_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("key_vault_key_id").HasValue(""),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.keyVaultSystemAssignedIdentity(data, "test"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.keyVaultSystemAssignedIdentity(data, "test2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -137,10 +178,10 @@ func (MsSqlManagedInstanceTransparentDataEncryptionResource) Exists(ctx context.
 		return nil, fmt.Errorf("reading Encryption Protector for managed instance %q (Resource Group %q): %v", id.ManagedInstanceName, id.ResourceGroup, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
-func (r MsSqlManagedInstanceTransparentDataEncryptionResource) keyVaultSystemAssignedIdentity(data acceptance.TestData) string {
+func (r MsSqlManagedInstanceTransparentDataEncryptionResource) keyVaultSystemAssignedIdentity(data acceptance.TestData, keyResourceLabel string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -148,6 +189,7 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctestsqlserver%[2]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
   enabled_for_disk_encryption = true
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days  = 7
@@ -174,8 +216,28 @@ resource "azurerm_key_vault" "test" {
   }
 }
 
-resource "azurerm_key_vault_key" "generated" {
-  name         = "keyVault"
+resource "azurerm_key_vault_key" "test" {
+  name         = "acctest-key-%[2]s"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+
+  depends_on = [
+    azurerm_key_vault.test,
+  ]
+}
+
+resource "azurerm_key_vault_key" "test2" {
+  name         = "acctest-key2-%[2]s"
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
@@ -196,9 +258,9 @@ resource "azurerm_key_vault_key" "generated" {
 
 resource "azurerm_mssql_managed_instance_transparent_data_encryption" "test" {
   managed_instance_id = azurerm_mssql_managed_instance.test.id
-  key_vault_key_id    = azurerm_key_vault_key.generated.id
+  key_vault_key_id    = azurerm_key_vault_key.%[3]s.id
 }
-`, r.serverSAMI(data), data.RandomStringOfLength(5))
+`, r.serverSAMI(data), data.RandomStringOfLength(5), keyResourceLabel)
 }
 
 func (r MsSqlManagedInstanceTransparentDataEncryptionResource) keyVaultUserAssignedIdentity(data acceptance.TestData) string {
@@ -209,6 +271,7 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctestsqlserver%[2]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
   enabled_for_disk_encryption = true
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days  = 7
@@ -270,6 +333,7 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctestsqlserver%[2]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
   enabled_for_disk_encryption = true
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days  = 7
@@ -319,6 +383,69 @@ resource "azurerm_key_vault_key" "generated" {
 resource "azurerm_mssql_managed_instance_transparent_data_encryption" "test" {
   managed_instance_id   = azurerm_mssql_managed_instance.test.id
   key_vault_key_id      = azurerm_key_vault_key.generated.id
+  auto_rotation_enabled = true
+}
+`, r.serverUAMI(data), data.RandomStringOfLength(5))
+}
+
+func (r MsSqlManagedInstanceTransparentDataEncryptionResource) autoRotateVersionless(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_key_vault" "test" {
+  name                        = "acctestsqlserver%[2]s"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
+  enabled_for_disk_encryption = true
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
+  soft_delete_retention_days  = 7
+  purge_protection_enabled    = false
+
+  sku_name = "standard"
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    key_permissions = [
+      "Get", "List", "Create", "Delete", "Update", "Purge", "GetRotationPolicy", "SetRotationPolicy"
+    ]
+  }
+
+  access_policy {
+    tenant_id = azurerm_user_assigned_identity.test.tenant_id
+    object_id = azurerm_user_assigned_identity.test.principal_id
+
+    key_permissions = [
+      "Get", "WrapKey", "UnwrapKey", "List", "Create", "GetRotationPolicy", "SetRotationPolicy"
+    ]
+  }
+}
+
+resource "azurerm_key_vault_key" "generated" {
+  name         = "keyVault"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+
+  depends_on = [
+    azurerm_key_vault.test,
+  ]
+}
+
+resource "azurerm_mssql_managed_instance_transparent_data_encryption" "test" {
+  managed_instance_id   = azurerm_mssql_managed_instance.test.id
+  key_vault_key_id      = azurerm_key_vault_key.generated.versionless_id
   auto_rotation_enabled = true
 }
 `, r.serverUAMI(data), data.RandomStringOfLength(5))
@@ -456,7 +583,7 @@ resource "azurerm_mssql_managed_instance" "test" {
 `, db.template(data, data.Locations.Primary), data.RandomInteger)
 }
 
-func (r MsSqlManagedInstanceTransparentDataEncryptionResource) managedHSM(data acceptance.TestData) string {
+func (r MsSqlManagedInstanceTransparentDataEncryptionResource) managedHSM(data acceptance.TestData, keyResourceLabel string) string {
 	db := MsSqlManagedInstanceResource{}
 	return fmt.Sprintf(`
 %s
@@ -485,6 +612,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctest%[2]s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -615,6 +743,19 @@ resource "azurerm_key_vault_managed_hardware_security_module_key" "test" {
   ]
 }
 
+resource "azurerm_key_vault_managed_hardware_security_module_key" "test2" {
+  name           = "acctestHSMK-2-%[2]s"
+  managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.test.id
+  key_type       = "RSA-HSM"
+  key_size       = 2048
+  key_opts       = ["unwrapKey", "wrapKey"]
+
+  depends_on = [
+    azurerm_key_vault_managed_hardware_security_module_role_assignment.test,
+    azurerm_key_vault_managed_hardware_security_module_role_assignment.test1
+  ]
+}
+
 resource "azurerm_mssql_managed_instance" "test" {
   name                = "acctestsqlserver%[3]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -649,7 +790,7 @@ resource "azurerm_mssql_managed_instance" "test" {
 
 resource "azurerm_mssql_managed_instance_transparent_data_encryption" "test" {
   managed_instance_id = azurerm_mssql_managed_instance.test.id
-  managed_hsm_key_id  = azurerm_key_vault_managed_hardware_security_module_key.test.versioned_id
+  key_vault_key_id    = azurerm_key_vault_managed_hardware_security_module_key.%[4]s.versioned_id
 }
-`, db.template(data, data.Locations.Primary), data.RandomStringOfLength(5), data.RandomInteger)
+`, db.template(data, data.Locations.Primary), data.RandomStringOfLength(5), data.RandomInteger, keyResourceLabel)
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -19,7 +19,7 @@ var _ pluginsdk.StateUpgrade = ApiManagementPolicyV0ToV1{}
 type ApiManagementPolicyV0ToV1 struct{}
 
 func (ApiManagementPolicyV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		apiMgmtId, err := policy.ParseServiceID(rawState["id"].(string))
 		if err != nil {
 			return rawState, nil // lint:ignore nilerr this is not an error as we just want to skip the upgrade

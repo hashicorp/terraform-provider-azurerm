@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -6,16 +6,16 @@ package validate
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 )
 
-func WorkbookTags(i interface{}, k string) (warnings []string, errors []error) {
+func WorkbookTags(i any, k string) (warnings []string, errors []error) {
 	warnings, errors = tags.Validate(i, k)
 	if len(errors) > 0 {
 		return
 	}
 
-	tagsMap := i.(map[string]interface{})
+	tagsMap := i.(map[string]any)
 	if _, ok := tagsMap["hidden-title"]; ok {
 		errors = append(errors, fmt.Errorf("a tag with the key `hidden-title` should not be used to set the display name. Please Use `display_name` instead"))
 	}

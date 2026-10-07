@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor_test
@@ -8,13 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MonitorDiagnosticSettingResource struct{}
@@ -29,7 +28,6 @@ func TestAccMonitorDiagnosticSetting_eventhub(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("eventhub_name").Exists(),
 				check.That(data.ResourceName).Key("eventhub_authorization_rule_id").Exists(),
-				check.That(data.ResourceName).Key("metric.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -47,7 +45,6 @@ func TestAccMonitorDiagnosticSetting_CategoryGroup(t *testing.T) {
 				check.That(data.ResourceName).Key("eventhub_name").Exists(),
 				check.That(data.ResourceName).Key("eventhub_authorization_rule_id").Exists(),
 				check.That(data.ResourceName).Key("enabled_log.#").HasValue("1"),
-				check.That(data.ResourceName).Key("metric.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -82,7 +79,6 @@ func TestAccMonitorDiagnosticSetting_logAnalyticsWorkspace(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("log_analytics_workspace_id").Exists(),
-				check.That(data.ResourceName).Key("metric.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -114,7 +110,6 @@ func TestAccMonitorDiagnosticSetting_partnerSolution(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("partner_solution_id").Exists(),
-				check.That(data.ResourceName).Key("metric.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -131,7 +126,35 @@ func TestAccMonitorDiagnosticSetting_storageAccount(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("storage_account_id").Exists(),
-				check.That(data.ResourceName).Key("metric.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMonitorDiagnosticSetting_updateEnabledMetric(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
+	r := MonitorDiagnosticSettingResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.storageAccountTargetTransaction(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.storageAccountTargetTransactionCapacity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.storageAccountTargetTransaction(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -292,7 +315,21 @@ func TestAccMonitorDiagnosticSetting_enabledLogs(t *testing.T) {
 	})
 }
 
-func (t MonitorDiagnosticSettingResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func TestAccMonitorDiagnosticSetting_managementGroup(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
+	r := MonitorDiagnosticSettingResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.managementGroup(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (r MonitorDiagnosticSettingResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := monitor.ParseMonitorDiagnosticId(state.ID)
 	if err != nil {
 		return nil, err
@@ -303,73 +340,10 @@ func (t MonitorDiagnosticSettingResource) Exists(ctx context.Context, clients *c
 		return nil, fmt.Errorf("reading diagnostic setting (%s): %+v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil && resp.Model.Id != nil), nil
+	return pointer.To(resp.Model != nil && resp.Model.Id != nil), nil
 }
 
 func (MonitorDiagnosticSettingResource) eventhub(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_eventhub_namespace" "test" {
-  name                = "acctest-EHN-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
-}
-
-resource "azurerm_eventhub" "test" {
-  name              = "acctest-EH-%[1]d"
-  namespace_id      = azurerm_eventhub_namespace.test.id
-  partition_count   = 2
-  message_retention = 1
-}
-
-resource "azurerm_eventhub_namespace_authorization_rule" "test" {
-  name                = "example"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  listen              = true
-  send                = true
-  manage              = true
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "acctest%[3]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
-}
-
-resource "azurerm_monitor_diagnostic_setting" "test" {
-  name                           = "acctest-DS-%[1]d"
-  target_resource_id             = azurerm_key_vault.test.id
-  eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
-  eventhub_name                  = azurerm_eventhub.test.name
-
-  metric {
-    category = "AllMetrics"
-    enabled  = true
-
-    retention_policy {
-      enabled = false
-      days    = 7
-    }
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -398,7 +372,7 @@ resource "azurerm_eventhub" "test" {
 }
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
-  name                = "example"
+  name                = "acctest-EHN-AR%[1]d"
   namespace_name      = azurerm_eventhub_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
   listen              = true
@@ -407,11 +381,12 @@ resource "azurerm_eventhub_namespace_authorization_rule" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%[3]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctest%[3]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 }
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
@@ -420,9 +395,8 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
   eventhub_name                  = azurerm_eventhub.test.name
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
-    enabled  = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
@@ -457,7 +431,7 @@ resource "azurerm_eventhub" "test" {
 }
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
-  name                = "example"
+  name                = "acctest-EHN-AR%[1]d"
   namespace_name      = azurerm_eventhub_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
   listen              = true
@@ -466,11 +440,12 @@ resource "azurerm_eventhub_namespace_authorization_rule" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%[3]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctest%[3]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 }
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
@@ -481,14 +456,9 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   enabled_log {
     category_group = "Audit"
-
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
   }
 }
@@ -505,7 +475,7 @@ resource "azurerm_monitor_diagnostic_setting" "import" {
   eventhub_authorization_rule_id = azurerm_monitor_diagnostic_setting.test.eventhub_authorization_rule_id
   eventhub_name                  = azurerm_monitor_diagnostic_setting.test.eventhub_name
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
   }
 }
@@ -535,11 +505,12 @@ resource "azurerm_log_analytics_workspace" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%[3]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctest%[3]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 }
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
@@ -547,7 +518,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   target_resource_id         = azurerm_key_vault.test.id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
   }
 }
@@ -591,93 +562,49 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   enabled_log {
     category = "ActivityRuns"
-    retention_policy {
-      enabled = false
-      days    = 0
-    }
   }
 
   enabled_log {
     category = "PipelineRuns"
-    retention_policy {
-      enabled = false
-      days    = 0
-    }
   }
 
   enabled_log {
     category = "TriggerRuns"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SSISIntegrationRuntimeLogs"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SSISPackageEventMessageContext"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SSISPackageEventMessages"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SSISPackageExecutableStatistics"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SSISPackageExecutionComponentPhases"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SSISPackageExecutionDataStatistics"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SandboxActivityRuns"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SandboxPipelineRuns"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
   }
 }
@@ -699,11 +626,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%[3]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctest%[3]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 }
 
 resource "azurerm_elastic_cloud_elasticsearch" "test" {
@@ -711,7 +639,7 @@ resource "azurerm_elastic_cloud_elasticsearch" "test" {
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   sku_name                    = "ess-consumption-2024_Monthly"
-  elastic_cloud_email_address = "user@example.com"
+  elastic_cloud_email_address = "user-%[1]d@example.com"
 }
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
@@ -719,7 +647,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   target_resource_id  = azurerm_key_vault.test.id
   partner_solution_id = azurerm_elastic_cloud_elasticsearch.test.id
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
   }
 }
@@ -749,11 +677,12 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%[3]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctest%[3]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 }
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
@@ -761,8 +690,80 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   target_resource_id = azurerm_key_vault.test.id
   storage_account_id = azurerm_storage_account.test.id
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
+}
+
+func (MonitorDiagnosticSettingResource) storageAccountTargetTransaction(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctest%[3]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_replication_type = "LRS"
+  account_tier             = "Standard"
+}
+
+resource "azurerm_monitor_diagnostic_setting" "test" {
+  name               = "acctest-DS-%[1]d"
+  target_resource_id = azurerm_storage_account.test.id
+  storage_account_id = azurerm_storage_account.test.id
+
+  enabled_metric {
+    category = "Transaction"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
+}
+
+func (MonitorDiagnosticSettingResource) storageAccountTargetTransactionCapacity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctest%[3]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_replication_type = "LRS"
+  account_tier             = "Standard"
+}
+
+resource "azurerm_monitor_diagnostic_setting" "test" {
+  name               = "acctest-DS-%[1]d"
+  target_resource_id = azurerm_storage_account.test.id
+  storage_account_id = azurerm_storage_account.test.id
+
+  enabled_metric {
+    category = "Transaction"
+  }
+
+  enabled_metric {
+    category = "Capacity"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
@@ -865,7 +866,7 @@ resource "azurerm_eventhub" "test" {
 }
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
-  name                = "example"
+  name                = "acctest-EHN-AR%[1]d"
   namespace_name      = azurerm_eventhub_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
   listen              = true
@@ -874,11 +875,12 @@ resource "azurerm_eventhub_namespace_authorization_rule" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%[3]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctest%[3]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 }
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
@@ -889,25 +891,14 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   enabled_log {
     category = "AuditEvent"
-
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "AzurePolicyEvaluationDetails"
-
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
-    enabled  = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
@@ -942,7 +933,7 @@ resource "azurerm_eventhub" "test" {
 }
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
-  name                = "example"
+  name                = "acctest-EHN-AR%[1]d"
   namespace_name      = azurerm_eventhub_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
   listen              = true
@@ -951,11 +942,12 @@ resource "azurerm_eventhub_namespace_authorization_rule" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%[3]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctest%[3]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 }
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
@@ -966,16 +958,10 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   enabled_log {
     category = "AuditEvent"
-
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
-    enabled  = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
@@ -1010,7 +996,7 @@ resource "azurerm_eventhub" "test" {
 }
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
-  name                = "example"
+  name                = "acctest-EHN-AR%[1]d"
   namespace_name      = azurerm_eventhub_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
   listen              = true
@@ -1019,11 +1005,12 @@ resource "azurerm_eventhub_namespace_authorization_rule" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%[3]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctest%[3]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 }
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
@@ -1034,25 +1021,14 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   enabled_log {
     category_group = "allLogs"
-
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category_group = "audit"
-
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
-    enabled  = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
@@ -1087,7 +1063,7 @@ resource "azurerm_eventhub" "test" {
 }
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
-  name                = "example"
+  name                = "acctest-EHN-AR%[1]d"
   namespace_name      = azurerm_eventhub_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
   listen              = true
@@ -1096,11 +1072,12 @@ resource "azurerm_eventhub_namespace_authorization_rule" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%[3]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctest%[3]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 }
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
@@ -1111,16 +1088,10 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   enabled_log {
     category_group = "allLogs"
-
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
-    enabled  = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
@@ -1161,95 +1132,50 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   enabled_log {
     category = "ActivityRuns"
-    retention_policy {
-      enabled = false
-      days    = 0
-    }
   }
 
   enabled_log {
     category = "PipelineRuns"
-    retention_policy {
-      enabled = false
-      days    = 0
-    }
   }
 
   enabled_log {
     category = "TriggerRuns"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SSISIntegrationRuntimeLogs"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SSISPackageEventMessageContext"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SSISPackageEventMessages"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SSISPackageExecutableStatistics"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SSISPackageExecutionComponentPhases"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SSISPackageExecutionDataStatistics"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SandboxActivityRuns"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SandboxPipelineRuns"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
-    enabled  = false
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -1292,96 +1218,91 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   enabled_log {
     category = "ActivityRuns"
-    retention_policy {
-      enabled = false
-      days    = 0
-    }
   }
 
   enabled_log {
     category = "PipelineRuns"
-    retention_policy {
-      enabled = false
-      days    = 0
-    }
   }
 
   enabled_log {
     category = "TriggerRuns"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SSISIntegrationRuntimeLogs"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SSISPackageEventMessageContext"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SSISPackageEventMessages"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
+
   }
 
   enabled_log {
     category = "SSISPackageExecutableStatistics"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
+
   }
 
   enabled_log {
     category = "SSISPackageExecutionComponentPhases"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SSISPackageExecutionDataStatistics"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SandboxActivityRuns"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
   enabled_log {
     category = "SandboxPipelineRuns"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
-    enabled  = false
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (MonitorDiagnosticSettingResource) managementGroup(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG%[1]d"
+  location = "eastus"
+}
+
+resource "azurerm_management_group" "test" {
+  name = "acctestMG%[1]d"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_monitor_diagnostic_setting" "test" {
+  name = "acctestMDS%[1]d"
+
+  target_resource_id         = azurerm_management_group.test.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+
+  enabled_log {
+    category = "Administrative"
+  }
+
+  enabled_log {
+    category = "Policy"
+  }
+}
+`, data.RandomInteger)
 }

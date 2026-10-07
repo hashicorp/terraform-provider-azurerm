@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package authorization
@@ -59,7 +59,7 @@ type PimActiveRoleAssignmentScheduleInfoExpiration struct {
 	EndDateTime   string `tfschema:"end_date_time"`
 }
 
-func (PimActiveRoleAssignmentResource) ModelObject() interface{} {
+func (PimActiveRoleAssignmentResource) ModelObject() any {
 	return &PimActiveRoleAssignmentModel{}
 }
 
@@ -80,7 +80,7 @@ func (PimActiveRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema 
 			Description: "Scope for this role assignment, should be a valid resource ID",
 			ValidateFunc: validation.Any(
 				// Elevated access for a global admin is needed to assign roles in this scope:
-				// https://docs.microsoft.com/en-us/azure/role-based-access-control/elevate-access-global-admin#azure-cli
+				// https://docs.microsoft.com/azure/role-based-access-control/elevate-access-global-admin#azure-cli
 				// It seems only user account is allowed to be elevated access.
 				validation.StringMatch(regexp.MustCompile("/providers/Microsoft.Subscription.*"), "Subscription scope is invalid"),
 
@@ -110,7 +110,7 @@ func (PimActiveRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema 
 		"justification": {
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
-			Computed:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 			ForceNew:    true,
 			Description: "The justification for this role assignment",
 		},
@@ -137,14 +137,14 @@ func (PimActiveRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema 
 			Type:        pluginsdk.TypeList,
 			MaxItems:    1,
 			Optional:    true,
-			Computed:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 			ForceNew:    true,
 			Description: "The schedule details for this role assignment",
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"start_date_time": { // defaults to now
 						Optional:    true,
-						Computed:    true,
+						Computed:    true, // azignore:AZS007 - pre-existing violation
 						ForceNew:    true,
 						Type:        pluginsdk.TypeString,
 						Description: "The start date/time of the role assignment",
@@ -158,7 +158,7 @@ func (PimActiveRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema 
 							Schema: map[string]*pluginsdk.Schema{
 								"duration_days": {
 									Optional: true,
-									Computed: true,
+									Computed: true, // azignore:AZS007 - pre-existing violation
 									ForceNew: true,
 									Type:     pluginsdk.TypeInt,
 									ConflictsWith: []string{
@@ -171,7 +171,7 @@ func (PimActiveRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema 
 								"duration_hours": {
 									Type:     pluginsdk.TypeInt,
 									Optional: true,
-									Computed: true,
+									Computed: true, // azignore:AZS007 - pre-existing violation
 									ForceNew: true,
 									ConflictsWith: []string{
 										"schedule.0.expiration.0.duration_days",
@@ -182,7 +182,7 @@ func (PimActiveRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema 
 
 								"end_date_time": {
 									Optional: true,
-									Computed: true,
+									Computed: true, // azignore:AZS007 - pre-existing violation
 									ForceNew: true,
 									Type:     pluginsdk.TypeString,
 									ConflictsWith: []string{
@@ -202,7 +202,7 @@ func (PimActiveRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema 
 			Type:        pluginsdk.TypeList,
 			MaxItems:    1,
 			Optional:    true,
-			Computed:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 			ForceNew:    true,
 			Description: "Ticket details relating to the assignment",
 			Elem: &pluginsdk.Resource{
@@ -250,12 +250,14 @@ func (r PimActiveRoleAssignmentResource) Create() sdk.ResourceFunc {
 
 			id := parse.NewPimRoleAssignmentID(config.Scope, config.RoleDefinitionId, config.PrincipalId)
 
-			schedule, err := findRoleAssignmentSchedule(ctx, schedulesClient, id)
-			if err != nil {
-				return err
-			}
-			if schedule != nil {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				schedule, err := findRoleAssignmentSchedule(ctx, schedulesClient, id)
+				if err != nil {
+					return err
+				}
+				if schedule != nil {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			scheduleInfo := &roleassignmentschedulerequests.RoleAssignmentScheduleRequestPropertiesScheduleInfo{
@@ -342,7 +344,7 @@ func (r PimActiveRoleAssignmentResource) Create() sdk.ResourceFunc {
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending: []string{"Retry"},
 				Target:  []string{"Created"},
-				Refresh: func() (interface{}, string, error) {
+				Refresh: func() (any, string, error) {
 					// Retry new requests to smooth over AAD replication issues with the subject principal
 					result, err := requestsClient.Create(ctx, requestId, payload)
 					if err != nil {
@@ -423,7 +425,7 @@ func (r PimActiveRoleAssignmentResource) Read() sdk.ResourceFunc {
 				// A request is still present and was found, so populate from the request
 				state.Justification = pointer.From(request.Properties.Justification)
 				state.PrincipalId = request.Properties.PrincipalId
-				state.PrincipalType = string(pointer.From(request.Properties.PrincipalType))
+				state.PrincipalType = pointer.FromEnum(request.Properties.PrincipalType)
 				state.RoleDefinitionId = request.Properties.RoleDefinitionId
 
 				state.Condition = pointer.From(request.Properties.Condition)
@@ -492,7 +494,7 @@ func (r PimActiveRoleAssignmentResource) Read() sdk.ResourceFunc {
 			} else if props := schedule.Properties; props != nil {
 				// The request has likely expired, so populate from the schedule (not all fields will be available)
 				state.PrincipalId = pointer.From(props.PrincipalId)
-				state.PrincipalType = string(pointer.From(props.PrincipalType))
+				state.PrincipalType = pointer.FromEnum(props.PrincipalType)
 				state.RoleDefinitionId = pointer.From(props.RoleDefinitionId)
 
 				if props.StartDateTime != nil {
@@ -613,7 +615,7 @@ func (PimActiveRoleAssignmentResource) Delete() sdk.ResourceFunc {
 				stateConf := &pluginsdk.StateChangeConf{
 					Pending: []string{"Pending"},
 					Target:  []string{"Submitted", "GoneAway"},
-					Refresh: func() (interface{}, string, error) {
+					Refresh: func() (any, string, error) {
 						// Removal request is not accepted within a minimum duration window, so retry it
 						result, err := requestsClient.Create(ctx, deleteId, payload)
 						if err != nil {
@@ -691,7 +693,7 @@ func findRoleAssignmentSchedule(ctx context.Context, client *roleassignmentsched
 }
 
 func pollForRoleAssignmentSchedule(ctx context.Context, client *roleassignmentschedules.RoleAssignmentSchedulesClient, id parse.PimRoleAssignmentId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		log.Printf("[DEBUG] Polling for %s", id)
 
 		schedule, err := findRoleAssignmentSchedule(ctx, client, id)

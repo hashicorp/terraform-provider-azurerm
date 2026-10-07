@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package providerjson
@@ -23,14 +23,14 @@ func (p *ProviderJSON) DataSourcesHandler(w http.ResponseWriter, req *http.Reque
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 	dsRaw := strings.Split(req.URL.RequestURI(), DataSourcesPath)
-	ds := strings.Split(dsRaw[1], "/")[0]
+	ds, _, _ := strings.Cut(dsRaw[1], "/")
 	data, err := resourceFromRaw(p.DataSourcesMap[ds])
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		log.Println(w.Write([]byte(fmt.Sprintf("[{\"error\": \"Could not process ProviderSchema for %q from provider: %+v\"}]", ds, err))))
+		log.Println(fmt.Fprintf(w, "[{\"error\": \"Could not process ProviderSchema for %q from provider: %+v\"}]", ds, err))
 	} else if err := json.NewEncoder(w).Encode(data); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		log.Println(w.Write([]byte(fmt.Sprintf("Marshall error: %+v", err))))
+		log.Println(fmt.Fprintf(w, "Marshall error: %+v", err))
 	}
 }
 
@@ -38,28 +38,28 @@ func (p *ProviderJSON) ResourcesHandler(w http.ResponseWriter, req *http.Request
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 	dsRaw := strings.Split(req.URL.RequestURI(), ResourcesPath)
-	ds := strings.Split(dsRaw[1], "/")[0]
+	ds, _, _ := strings.Cut(dsRaw[1], "/")
 	data, err := resourceFromRaw(p.ResourcesMap[ds])
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		log.Println(w.Write([]byte(fmt.Sprintf("[{\"error\": \"Could not process ProviderSchema for %q from provider: %+v\"}]", ds, err))))
+		log.Println(fmt.Fprintf(w, "[{\"error\": \"Could not process ProviderSchema for %q from provider: %+v\"}]", ds, err))
 	} else if err := json.NewEncoder(w).Encode(data); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		log.Println(w.Write([]byte(fmt.Sprintf("Marshall error: %+v", err))))
+		log.Println(fmt.Fprintf(w, "Marshall error: %+v", err))
 	}
 }
 
 func (p *ProviderJSON) ListResources(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	if err := json.NewEncoder(w).Encode(p.Resources()); err != nil {
-		log.Println(w.Write([]byte(fmt.Sprintf("Marshall error: %+v", err))))
+		log.Println(fmt.Fprintf(w, "Marshall error: %+v", err))
 	}
 }
 
 func (p *ProviderJSON) ListDataSources(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	if err := json.NewEncoder(w).Encode(p.DataSources()); err != nil {
-		log.Println(w.Write([]byte(fmt.Sprintf("Marshall error: %+v", err))))
+		log.Println(fmt.Fprintf(w, "Marshall error: %+v", err))
 	}
 }
 
@@ -68,9 +68,9 @@ func (p *ProviderJSON) DumpAllSchema(w http.ResponseWriter, _ *http.Request) {
 	provider, err := ProviderFromRaw(p)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		log.Println(w.Write([]byte(fmt.Sprintf("[{\"error\": \"Could not process provider: %+v\"}]", err))))
+		log.Println(fmt.Fprintf(w, "[{\"error\": \"Could not process provider: %+v\"}]", err))
 	}
 	if err := json.NewEncoder(w).Encode(provider); err != nil {
-		log.Println(w.Write([]byte(fmt.Sprintf("Marshall error: %+v", err))))
+		log.Println(fmt.Fprintf(w, "Marshall error: %+v", err))
 	}
 }
