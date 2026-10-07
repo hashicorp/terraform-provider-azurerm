@@ -30,7 +30,7 @@ func (r PrivateDNSResolverVirtualNetworkLinkDataSource) ResourceType() string {
 	return "azurerm_private_dns_resolver_virtual_network_link"
 }
 
-func (r PrivateDNSResolverVirtualNetworkLinkDataSource) ModelObject() interface{} {
+func (r PrivateDNSResolverVirtualNetworkLinkDataSource) ModelObject() any {
 	return &PrivateDNSResolverVirtualNetworkLinDataSourcekModel{}
 }
 
