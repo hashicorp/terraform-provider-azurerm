@@ -42,7 +42,7 @@ func (r CognitiveAccountProjectConnectionEntraIDResource) ResourceType() string 
 	return "azurerm_cognitive_account_project_connection_entra_id"
 }
 
-func (r CognitiveAccountProjectConnectionEntraIDResource) ModelObject() interface{} {
+func (r CognitiveAccountProjectConnectionEntraIDResource) ModelObject() any {
 	return &CognitiveAccountProjectConnectionEntraIDModel{}
 }
 
