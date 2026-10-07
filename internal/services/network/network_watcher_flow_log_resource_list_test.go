@@ -19,7 +19,7 @@ import (
 )
 
 func testAccNetworkWatcherFlowLog_listByNetworkWatcherID(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "testlist1")
+	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "list")
 	r := NetworkWatcherFlowLogResource{}
 
 	resource.Test(t, resource.TestCase{

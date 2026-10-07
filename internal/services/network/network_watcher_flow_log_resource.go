@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -31,7 +32,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -test-sequential true -properties "name" -compare-values "network_watcher_name:network_watcher_id,resource_group_name:network_watcher_id"
+//go:generate go run ../../tools/generator-tests resourceidentity -test-sequential -properties "name" -compare-values "network_watcher_name:network_watcher_id,resource_group_name:network_watcher_id"
 
 const azureNetworkWatcherFlowLogResourceName = "azurerm_network_watcher_flow_log"
 
@@ -265,7 +266,7 @@ func resourceNetworkWatcherFlowLogCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
