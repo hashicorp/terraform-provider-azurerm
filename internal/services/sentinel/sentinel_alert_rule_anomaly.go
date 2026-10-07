@@ -4,15 +4,11 @@
 package sentinel
 
 import (
-	"context"
-	"fmt"
-
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2023-09-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/securitymlanalyticssettings"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/azuresdkhacks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	securityinsight "github.com/jackofallops/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
 type AnomalyRuleRequiredDataConnectorModel struct {
@@ -60,32 +56,21 @@ func AnomalyRuleMultiSelectSchema() *pluginsdk.Schema {
 	}
 }
 
-func flattenSentinelAlertRuleAnomalyMultiSelect(input *[]azuresdkhacks.AnomalySecurityMLAnalyticsMultiSelectObservations) []AnomalyRuleMultiSelectModel {
+func flattenSentinelAlertRuleAnomalyMultiSelect(input *[]securitymlanalyticssettings.AnomalySecurityMLAnalyticsMultiSelectObservations) []AnomalyRuleMultiSelectModel {
+	output := make([]AnomalyRuleMultiSelectModel, 0)
 	if input == nil {
-		return []AnomalyRuleMultiSelectModel{}
+		return output
 	}
 
-	output := make([]AnomalyRuleMultiSelectModel, 0)
 	for _, item := range *input {
-		o := AnomalyRuleMultiSelectModel{}
-		if item.Values != nil {
-			values := make([]string, 0)
-			values = append(values, *item.Values...)
-			o.Values = values
-		}
-		if item.SupportValues != nil {
-			supportValues := make([]string, 0)
-			supportValues = append(supportValues, *item.SupportValues...)
-			o.SupportValues = supportValues
-		}
-		if item.Name != nil {
-			o.Name = *item.Name
-		}
-		if item.Description != nil {
-			o.Description = *item.Description
-		}
-		output = append(output, o)
+		output = append(output, AnomalyRuleMultiSelectModel{
+			Name:          pointer.From(item.Name),
+			Description:   pointer.From(item.Description),
+			SupportValues: pointer.From(item.SupportedValues),
+			Values:        pointer.From(item.Values),
+		})
 	}
+
 	return output
 }
 
@@ -126,29 +111,19 @@ func AnomalyRuleSingleSelectSchema() *pluginsdk.Schema {
 	}
 }
 
-func flattenSentinelAlertRuleAnomalySingleSelect(input *[]azuresdkhacks.AnomalySecurityMLAnalyticsSingleSelectObservations) []AnomalyRuleSingleSelectModel {
+func flattenSentinelAlertRuleAnomalySingleSelect(input *[]securitymlanalyticssettings.AnomalySecurityMLAnalyticsSingleSelectObservations) []AnomalyRuleSingleSelectModel {
+	output := make([]AnomalyRuleSingleSelectModel, 0)
 	if input == nil {
-		return []AnomalyRuleSingleSelectModel{}
+		return output
 	}
 
-	output := make([]AnomalyRuleSingleSelectModel, 0)
 	for _, item := range *input {
-		o := AnomalyRuleSingleSelectModel{}
-		if item.Value != nil {
-			o.Value = *item.Value
-		}
-		if item.SupportValues != nil {
-			supportValues := make([]string, 0)
-			supportValues = append(supportValues, *item.SupportValues...)
-			o.SupportValues = supportValues
-		}
-		if item.Name != nil {
-			o.Name = *item.Name
-		}
-		if item.Description != nil {
-			o.Description = *item.Description
-		}
-		output = append(output, o)
+		output = append(output, AnomalyRuleSingleSelectModel{
+			Name:          pointer.From(item.Name),
+			Description:   pointer.From(item.Description),
+			SupportValues: pointer.From(item.SupportedValues),
+			Value:         pointer.From(item.Value),
+		})
 	}
 	return output
 }
@@ -187,27 +162,19 @@ func AnomalyRulePrioritySchema() *pluginsdk.Schema {
 	}
 }
 
-func flattenSentinelAlertRuleAnomalyPriority(input *[]azuresdkhacks.AnomalySecurityMLAnalyticsPrioritizeExcludeObservations) []AnomalyRulePriorityModel {
+func flattenSentinelAlertRuleAnomalyPriority(input *[]securitymlanalyticssettings.AnomalySecurityMLAnalyticsPrioritizeExcludeObservations) []AnomalyRulePriorityModel {
+	output := make([]AnomalyRulePriorityModel, 0)
 	if input == nil {
-		return []AnomalyRulePriorityModel{}
+		return output
 	}
 
-	output := make([]AnomalyRulePriorityModel, 0)
 	for _, item := range *input {
-		o := AnomalyRulePriorityModel{}
-		if item.Prioritize != nil {
-			o.Prioritize = *item.Prioritize
-		}
-		if item.Exclude != nil {
-			o.Exclude = *item.Exclude
-		}
-		if item.Name != nil {
-			o.Name = *item.Name
-		}
-		if item.Description != nil {
-			o.Description = *item.Description
-		}
-		output = append(output, o)
+		output = append(output, AnomalyRulePriorityModel{
+			Name:        pointer.From(item.Name),
+			Description: pointer.From(item.Description),
+			Prioritize:  pointer.From(item.Prioritize),
+			Exclude:     pointer.From(item.Exclude),
+		})
 	}
 	return output
 }
@@ -251,59 +218,47 @@ func AnomalyRuleThresholdSchema() *pluginsdk.Schema {
 	}
 }
 
-func flattenSentinelAlertRuleAnomalyThreshold(input *[]azuresdkhacks.AnomalySecurityMLAnalyticsThresholdObservations) []AnomalyRuleThresholdModel {
+func flattenSentinelAlertRuleAnomalyThreshold(input *[]securitymlanalyticssettings.AnomalySecurityMLAnalyticsThresholdObservations) []AnomalyRuleThresholdModel {
+	output := make([]AnomalyRuleThresholdModel, 0)
 	if input == nil {
-		return []AnomalyRuleThresholdModel{}
+		return output
 	}
 
-	output := make([]AnomalyRuleThresholdModel, 0)
 	for _, item := range *input {
-		o := AnomalyRuleThresholdModel{}
-		if item.Max != nil {
-			o.Max = *item.Max
-		}
-		if item.Min != nil {
-			o.Min = *item.Min
-		}
-		if item.Value != nil {
-			o.Value = *item.Value
-		}
-		if item.Name != nil {
-			o.Name = *item.Name
-		}
-		if item.Description != nil {
-			o.Description = *item.Description
-		}
-		output = append(output, o)
+		output = append(output, AnomalyRuleThresholdModel{
+			Name:        pointer.From(item.Name),
+			Description: pointer.From(item.Description),
+			Max:         pointer.From(item.Maximum),
+			Min:         pointer.From(item.Minimum),
+			Value:       pointer.From(item.Value),
+		})
 	}
 	return output
-}
-
-// the service always return a fixed one no matter what id we pass, tracked on https://github.com/Azure/azure-rest-api-specs/issues/22485
-func AlertRuleAnomalyReadWithPredicate(ctx context.Context, baseClient securityinsight.BaseClient, workspaceId workspaces.WorkspaceId, predicateFunc func(v *azuresdkhacks.AnomalySecurityMLAnalyticsSettings) bool) (*azuresdkhacks.AnomalySecurityMLAnalyticsSettings, error) {
-	client := azuresdkhacks.SecurityMLAnalyticsSettingsClient{BaseClient: baseClient}
-	resp, err := client.ListComplete(ctx, workspaceId.ResourceGroupName, workspaceId.WorkspaceName)
-	if err != nil {
-		return nil, fmt.Errorf("retrieving: %+v", err)
-	}
-
-	for resp.NotDone() {
-		item := resp.Value()
-		if v, ok := item.AsAnomalySecurityMLAnalyticsSettings(); ok {
-			if predicateFunc(v) {
-				return v, nil
-			}
-		}
-		if err := resp.NextWithContext(ctx); err != nil {
-			return nil, fmt.Errorf("listing next: %+v", err)
-		}
-	}
-	return nil, nil
 }
 
 // when the id of workspace is too long, the service return without workspace name:
 // "/subscriptions/{sub_id}/resourceGroups/{rg_name}/providers/Microsoft.OperationalInsights/workspaces//providers/Microsoft.SecurityInsights/securityMLAnalyticsSettings/5020e404-9768-4364-98f6-679940c21362",
 // tracked on https://github.com/Azure/azure-rest-api-specs/issues/22500
 func AlertRuleAnomalyIdFromWorkspaceId(workspaceId workspaces.WorkspaceId, name string) string {
-	return parse.NewMLAnalyticsSettingsID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, name).ID()
+	return securitymlanalyticssettings.NewSecurityMLAnalyticsSettingID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, name).ID()
+}
+
+func flattenSentinelAlertRuleAnomalyRequiredDataConnectors(input *[]securitymlanalyticssettings.SecurityMLAnalyticsSettingsDataSource) []AnomalyRuleRequiredDataConnectorModel {
+	output := make([]AnomalyRuleRequiredDataConnectorModel, 0)
+	if input == nil {
+		return output
+	}
+
+	for _, v := range *input {
+		if v.ConnectorId == nil || v.DataTypes == nil {
+			continue
+		}
+
+		output = append(output, AnomalyRuleRequiredDataConnectorModel{
+			ConnectorId: *v.ConnectorId,
+			DataTypes:   *v.DataTypes,
+		})
+	}
+
+	return output
 }
