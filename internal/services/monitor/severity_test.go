@@ -23,6 +23,7 @@ func TestNormalizeMonitorSeverity(t *testing.T) {
 		{input: "verbose", expected: 4},
 		{input: " Warning ", expected: 2},
 		{input: "invalid", expectError: true},
+		{input: "", expectError: true},
 	}
 
 	for _, tc := range cases {
@@ -61,5 +62,12 @@ func TestSuppressMonitorSeverityDiff(t *testing.T) {
 
 	if suppressMonitorSeverityDiff("severity", "1", "warning", nil) {
 		t.Fatal("did not expect 1 and warning to suppress diff")
+	}
+}
+func TestSuppressMonitorSeverityDiff_Empty(t *testing.T) {
+	// An empty value is not a valid severity, so it must not be treated as equal to "0".
+	// This is why the v1 resource needs Default: "0".
+	if suppressMonitorSeverityDiff("severity", "0", "", nil) {
+		t.Fatal("expected empty and 0 NOT to suppress the diff")
 	}
 }
