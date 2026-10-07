@@ -21,8 +21,6 @@ As a general rule the Provider is typically released weekly on a Thursday, howev
 
 Whilst we do our best to review pull requests as they come in, unfortunately there are cases where it can take some time and merge conflicts can result if they have been sitting for a while. Generally speaking we recommend rebasing/merging from `main` only once a maintainer has taken a look through the PR and explicitly requested it.  
 
-TODO.
-
 ### Once a major release is published, will new features and fixes be backported to previous versions?
 
 Generally new features and fixes will only be added to the most recent major version.
@@ -48,4 +46,3 @@ Whilst we thank you for reaching out, unfortunately we're unable to assist with 
 We've closed your issue because we believe it's an issue with the Terraform Configuration being used (or, that the credentials being used to interact with Azure may not have permission to the resources in question), rather than a bug in the Azure Provider.
 
 We instead ask that configuration issues/usage questions related to the Provider are opened [on the Community Discuss forum](https://discuss.hashicorp.com) so that we can keep this repository focused on bugs/feature enhancements related to the Azure Provider.
-

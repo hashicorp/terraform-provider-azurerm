@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimageversions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-07-03/galleryimageversions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -101,14 +101,14 @@ func dataSourceSharedImageVersions() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceSharedImageVersionsRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceSharedImageVersionsRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.GalleryImageVersionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := galleryimageversions.NewGalleryImageID(subscriptionId, d.Get("resource_group_name").(string), d.Get("gallery_name").(string), d.Get("image_name").(string))
-	filterTags := tags.Expand(d.Get("tags_filter").(map[string]interface{}))
+	filterTags := tags.Expand(d.Get("tags_filter").(map[string]any))
 
 	resp, err := client.ListByGalleryImageComplete(ctx, id)
 	if err != nil {
@@ -136,8 +136,8 @@ func dataSourceSharedImageVersionsRead(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func flattenSharedImageVersions(input []galleryimageversions.GalleryImageVersion, filterTags *map[string]string) []interface{} {
-	results := make([]interface{}, 0)
+func flattenSharedImageVersions(input []galleryimageversions.GalleryImageVersion, filterTags *map[string]string) []any {
+	results := make([]any, 0)
 
 	if len(input) == 0 {
 		return results
@@ -167,8 +167,8 @@ func flattenSharedImageVersions(input []galleryimageversions.GalleryImageVersion
 	return results
 }
 
-func flattenSharedImageVersion(input galleryimageversions.GalleryImageVersion) map[string]interface{} {
-	output := make(map[string]interface{})
+func flattenSharedImageVersion(input galleryimageversions.GalleryImageVersion) map[string]any {
+	output := make(map[string]any)
 
 	output["id"] = input.Id
 	output["name"] = input.Name

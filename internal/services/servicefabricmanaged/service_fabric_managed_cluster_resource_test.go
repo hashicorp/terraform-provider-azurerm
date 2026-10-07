@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package servicefabricmanaged_test
@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicefabricmanagedcluster/2021-05-01/managedcluster"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicefabricmanagedcluster/2024-04-01/managedcluster"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ClusterResource struct{}
@@ -29,7 +29,8 @@ func TestAccServiceFabricManagedCluster_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-				check.That(data.ResourceName).Key("tags.Test").HasValue("value")),
+				check.That(data.ResourceName).Key("tags.Test").HasValue("value"),
+			),
 		},
 		data.ImportStep("password"),
 	})
@@ -45,7 +46,8 @@ func TestAccServiceFabricManagedCluster_withCustomSettings(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-				check.That(data.ResourceName).Key("tags.Test").HasValue("value")),
+				check.That(data.ResourceName).Key("tags.Test").HasValue("value"),
+			),
 		},
 		data.ImportStep("password"),
 	})
@@ -62,7 +64,8 @@ func TestAccServiceFabricManagedCluster_importError(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-				check.That(data.ResourceName).Key("tags.Test").HasValue("value")),
+				check.That(data.ResourceName).Key("tags.Test").HasValue("value"),
+			),
 		},
 		{
 			Config:      r.requiresImport(data, nodeTypeData1),
@@ -84,7 +87,8 @@ func TestAccServiceFabricManagedCluster_full(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-				check.That(data.ResourceName).Key("tags.Test").HasValue("value")),
+				check.That(data.ResourceName).Key("tags.Test").HasValue("value"),
+			),
 		},
 		data.ImportStep("password"),
 		{
@@ -101,14 +105,16 @@ func TestAccServiceFabricManagedCluster_full(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("node_type.#").HasValue("1"),
-				check.That(data.ResourceName).Key("node_type.0.name").HasValue("test1")),
+				check.That(data.ResourceName).Key("node_type.0.name").HasValue("test1"),
+			),
 		},
 		{
 			Config: r.basic(data, nodeTypeData1Altered),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("node_type.#").HasValue("1"),
-				check.That(data.ResourceName).Key("node_type.0.data_disk_size_gb").HasValue("140")),
+				check.That(data.ResourceName).Key("node_type.0.data_disk_size_gb").HasValue("140"),
+			),
 		},
 	})
 }
@@ -137,11 +143,11 @@ func (r ClusterResource) Exists(ctx context.Context, clients *clients.Client, st
 	resp, err := clients.ServiceFabricManaged.ManagedClusterClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("while checking for cluster's %q existence: %+v", id.String(), err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r ClusterResource) basic(data acceptance.TestData, nodeTypeData string) string {
@@ -190,9 +196,33 @@ provider "azurerm" {
   features {}
 }
 
+data "azuread_service_principal" "test" {
+  display_name = "Azure Service Fabric Resource Provider"
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-sfmc-%[1]d"
   location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_subnet.test.id
+  role_definition_name = "Network Contributor"
+  principal_id         = data.azuread_service_principal.test.object_id
 }
 
 resource "azurerm_service_fabric_managed_cluster" "test" {
@@ -203,6 +233,7 @@ resource "azurerm_service_fabric_managed_cluster" "test" {
   username            = "testUser"
   password            = "NotV3ryS3cur3P@$$w0rd"
   dns_service_enabled = true
+  subnet_id           = azurerm_subnet.test.id
 
   client_connection_port = 12345
   http_gateway_port      = 23456
@@ -226,6 +257,8 @@ resource "azurerm_service_fabric_managed_cluster" "test" {
   tags = {
     Test = "value"
   }
+
+  depends_on = [azurerm_role_assignment.test]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, nodeTypeData)
 }

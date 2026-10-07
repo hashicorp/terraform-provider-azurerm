@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -7,35 +7,35 @@ import (
 	"context"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 )
 
 func TestCustomHttpsConfigurationV0ToV1(t *testing.T) {
 	testData := []struct {
 		name     string
-		input    map[string]interface{}
+		input    map[string]any
 		expected *string
 	}{
 		{
 			name: "missing id",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"id": "",
 			},
 			expected: nil,
 		},
 		{
 			name: "old id",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourcegroups/mygroup1/providers/Microsoft.Network/frontdoors/frontdoor1/customHttpsConfiguration/config2",
 			},
-			expected: utils.String("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/mygroup1/providers/Microsoft.Network/frontDoors/frontdoor1/customHttpsConfiguration/config2"),
+			expected: pointer.To("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/mygroup1/providers/Microsoft.Network/frontDoors/frontdoor1/customHttpsConfiguration/config2"),
 		},
 		{
 			name: "old id - mixed case",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourcegroups/mygroup1/providers/Microsoft.Network/Frontdoors/frontdoor1/CustomHttpsConfiguration/config2",
 			},
-			expected: utils.String("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/mygroup1/providers/Microsoft.Network/frontDoors/frontdoor1/customHttpsConfiguration/config2"),
+			expected: pointer.To("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/mygroup1/providers/Microsoft.Network/frontDoors/frontdoor1/customHttpsConfiguration/config2"),
 		},
 	}
 	for _, test := range testData {

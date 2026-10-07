@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package toproto6
@@ -26,6 +26,11 @@ func MoveResourceStateResponse(ctx context.Context, fw *fwserver.MoveResourceSta
 
 	proto6.Diagnostics = append(proto6.Diagnostics, Diagnostics(ctx, diags)...)
 	proto6.TargetPrivate = targetPrivate
+
+	targetIdentity, diags := ResourceIdentity(ctx, fw.TargetIdentity)
+
+	proto6.Diagnostics = append(proto6.Diagnostics, Diagnostics(ctx, diags)...)
+	proto6.TargetIdentity = targetIdentity
 
 	targetState, diags := State(ctx, fw.TargetState)
 
