@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -77,7 +77,7 @@ type VirtualMachineScaleSetSkuProfileVMSize struct {
 	Rank int64  `tfschema:"rank"`
 }
 
-func (r OrchestratedVirtualMachineScaleSetDataSource) ModelObject() interface{} {
+func (r OrchestratedVirtualMachineScaleSetDataSource) ModelObject() any {
 	return &OrchestratedVirtualMachineScaleSetDataSourceModel{}
 }
 
@@ -90,7 +90,7 @@ func (r OrchestratedVirtualMachineScaleSetDataSource) Arguments() map[string]*pl
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: computeValidate.VirtualMachineName,
+			ValidateFunc: validate.VirtualMachineName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
@@ -342,7 +342,7 @@ func flattenOrchestratedVirtualMachineScaleSetPublicIPAddress(input *virtualmach
 		}
 
 		if props.PublicIPAddressVersion != nil {
-			version = string(pointer.From(props.PublicIPAddressVersion))
+			version = pointer.FromEnum(props.PublicIPAddressVersion)
 		}
 
 		if props.IdleTimeoutInMinutes != nil {
@@ -381,7 +381,7 @@ func flattenVirtualMachineScaleSetSkuProfileForDataSource(input *virtualmachines
 	}
 
 	return []VirtualMachineScaleSetSkuProfile{{
-		AllocationStrategy: string(pointer.From(input.AllocationStrategy)),
+		AllocationStrategy: pointer.FromEnum(input.AllocationStrategy),
 		VirtualMachineSize: vmSizes,
 	}}
 }

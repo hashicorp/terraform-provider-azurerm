@@ -134,20 +134,30 @@ func TestAccKubernetesCluster_addonProfileOMSToggle(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesCluster_addonProfileRoutingToggle(t *testing.T) {
+func TestAccKubernetesCluster_addonProfileOMSRetinaFlowLogsToggle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.addonProfileRoutingConfig(data, true),
+			// Enable with Retina Flow Logs
+			Config: r.addonProfileOMSRetinaFlowLogsConfig(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.addonProfileRoutingConfig(data, false),
+			// Disable Retina Flow Logs
+			Config: r.addonProfileOMSRetinaFlowLogsConfig(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			// Re-enable Retina Flow Logs
+			Config: r.addonProfileOMSRetinaFlowLogsConfig(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -721,7 +731,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (KubernetesClusterResource) addonProfileRoutingConfig(data acceptance.TestData, enabled bool) string {
+func (KubernetesClusterResource) addonProfileOMSRetinaFlowLogsConfig(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -730,6 +740,26 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-aks-%d"
   location = "%s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctest-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+}
+
+resource "azurerm_log_analytics_solution" "test" {
+  solution_name         = "ContainerInsights"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  workspace_resource_id = azurerm_log_analytics_workspace.test.id
+  workspace_name        = azurerm_log_analytics_workspace.test.name
+
+  plan {
+    publisher = "Microsoft"
+    product   = "OMSGallery/ContainerInsights"
+  }
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
@@ -760,13 +790,17 @@ resource "azurerm_kubernetes_cluster" "test" {
     default_node_pools = "Auto"
   }
 
-  http_application_routing_enabled = %t
+  oms_agent {
+    log_analytics_workspace_id      = azurerm_log_analytics_workspace.test.id
+    msi_auth_for_monitoring_enabled = true
+    retina_flow_logs_enabled        = %t
+  }
 
   identity {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, enabled)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, enabled)
 }
 
 func (KubernetesClusterResource) addonProfileIngressApplicationGatewayAppGatewayConfig(data acceptance.TestData) string {
@@ -1319,11 +1353,12 @@ resource "azurerm_subnet" "test" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestKV-%[1]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctestKV-%[1]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 }
 
 resource "azurerm_key_vault_access_policy" "test" {

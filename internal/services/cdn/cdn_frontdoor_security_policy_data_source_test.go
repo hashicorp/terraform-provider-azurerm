@@ -16,6 +16,7 @@ type CdnFrontDoorSecurityPolicyDataSource struct{}
 func TestAccCdnFrontDoorSecurityPolicyDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_cdn_frontdoor_security_policy", "test")
 	d := CdnFrontDoorSecurityPolicyDataSource{}
+	d.preCheck(t)
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -28,6 +29,10 @@ func TestAccCdnFrontDoorSecurityPolicyDataSource_basic(t *testing.T) {
 			),
 		},
 	})
+}
+
+func (CdnFrontDoorSecurityPolicyDataSource) preCheck(t *testing.T) {
+	CdnFrontDoorSecurityPolicyResource{}.preCheck(t)
 }
 
 func (CdnFrontDoorSecurityPolicyDataSource) basic(data acceptance.TestData) string {

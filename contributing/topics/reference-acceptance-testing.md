@@ -163,7 +163,7 @@ func TestAccExampleResource_basic(t *testing.T) {
 
 At a minimum, a Data Source requires:
 
-* A `basic` test ([Example](#Example---Data-Source---Basic)) - this tests the minimum fields (e.g. all Required fields) for this Data Source.
+* A `basic` test ([Example](#example---data-source---basic)) - this tests the minimum fields (e.g. all Required fields) for this Data Source.
 
 However, more complex Data Sources can warrant additional acceptance tests - consideration should be given during the development of each Data Source to what's important to be tested.
 
@@ -171,13 +171,13 @@ However, more complex Data Sources can warrant additional acceptance tests - con
 
 At a minimum, a Resource requires:
 
-* A `basic` test ([Example](#Example---Resource---Basic)) - this tests the minimum fields (e.g. all Required fields) for this Resource.
+* A `basic` test ([Example](#example---resource---basic)) - this tests the minimum fields (e.g. all Required fields) for this Resource.
 
-* A `requiresImport` test ([Example](#Example---Resource---Requires-Import)) - this test exercises the logic in the `create` function of a resource that checks for the prior existence of the resource and being created and expects an error. The acceptance test package provides a helper function is provided to be used in the test, called `RequiresImportErrorStep` for this purpose.
+* A `requiresImport` test ([Example](#example---resource---requires-import)) - this test exercises the logic in the `create` function of a resource that checks for the prior existence of the resource and being created and expects an error. The acceptance test package provides a helper function is provided to be used in the test, called `RequiresImportErrorStep` for this purpose.
 
-* A `complete` test ([Example](#Example---Resource---Complete)) - this tests all possible fields (e.g. all Required/Optional fields) for this Resource.
+* A `complete` test ([Example](#example---resource---complete)) - this tests all possible fields (e.g. all Required/Optional fields) for this Resource.
 
-* A `update` test ([Example](#Example---Resource---Update)) - This test exercises a change of values for any properties that can be updated by executing consecutive configurations to change a resource in a predictable manner. Properties which are `ForceNew` should not be tested in this way.
+* A `update` test ([Example](#example---resource---update)) - This test exercises a change of values for any properties that can be updated by executing consecutive configurations to change a resource in a predictable manner. Properties which are `ForceNew` should not be tested in this way.
 
 However, more complex Resource generally warrant additional acceptance tests - consideration should be given during the development of each Resource to what's important to be tested.
 

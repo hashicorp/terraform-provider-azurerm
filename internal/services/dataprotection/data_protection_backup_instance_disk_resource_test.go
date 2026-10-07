@@ -129,15 +129,15 @@ func TestAccDataProtectionBackupInstanceDisk_snapshotSubscriptionIdCrossSubscrip
 }
 
 func altSubscriptionCheck() *DataProtectionBackupInstanceDiskAlternateSubscription {
-	altSubscriptonID := os.Getenv("ARM_SUBSCRIPTION_ID_ALT")
+	altSubscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID_ALT")
 	altTenantID := os.Getenv("ARM_TENANT_ID")
 
-	if altSubscriptonID == "" || altTenantID == "" {
+	if altSubscriptionID == "" || altTenantID == "" {
 		return nil
 	}
 
 	return &DataProtectionBackupInstanceDiskAlternateSubscription{
-		subscriptionId: altSubscriptonID,
+		subscriptionId: altSubscriptionID,
 		tenantId:       altTenantID,
 	}
 }
