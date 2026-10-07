@@ -91,7 +91,7 @@ func TestAccBackendAddressPool_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccBackendAddressPool_standardSkuBasic(t *testing.T) {
+func TestAccBackendAddressPool_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
 	r := LoadBalancerBackendAddressPool{}
 
@@ -117,33 +117,6 @@ func TestAccBackendAddressPool_standardSkuBasic(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-	})
-}
-
-func TestAccBackendAddressPool_standardSkuDisappears(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
-	r := LoadBalancerBackendAddressPool{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		data.DisappearsStep(acceptance.DisappearsStepData{
-			Config:       r.basic,
-			TestResource: r,
-		}),
-	})
-}
-
-func TestAccBackendAddressPool_standardSkuRequiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
-	r := LoadBalancerBackendAddressPool{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 

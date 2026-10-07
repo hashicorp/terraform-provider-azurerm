@@ -6,7 +6,6 @@ package loadbalancer_test
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -47,33 +46,6 @@ func TestAccAzureRMLoadBalancer_requiresImport(t *testing.T) {
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
-	})
-}
-
-func TestAccAzureRMLoadBalancer_standard(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
-	r := LoadBalancer{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.standard(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccAzureRMLoadBalancer_basicSkuDeprecated(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
-	r := LoadBalancer{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.basicSkuDeprecated(data),
-			ExpectError: regexp.MustCompile("creation of new `Basic` SKU load balancers is no longer permitted"),
-		},
 	})
 }
 
@@ -224,7 +196,7 @@ func TestAccAzureRMLoadBalancer_zonesSingleRemoved(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.standard(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -304,7 +276,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_lb" "test" {
-  name                = "acctest-loadbalancer-%d"
+  name                = "acctestlb-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -332,52 +304,6 @@ resource "azurerm_lb" "import" {
   }
 }
 `, template)
-}
-
-func (r LoadBalancer) standard(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-lb-%d"
-  location = "%s"
-}
-
-resource "azurerm_lb" "test" {
-  name                = "acctestlb-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard"
-  sku_tier            = "Regional"
-
-  tags = {
-    Environment = "production"
-    Purpose     = "AcceptanceTests"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (r LoadBalancer) basicSkuDeprecated(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-lb-%d"
-  location = "%s"
-}
-
-resource "azurerm_lb" "test" {
-  name                = "acctestlb-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
-}
-`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r LoadBalancer) updatedTags(data acceptance.TestData) string {

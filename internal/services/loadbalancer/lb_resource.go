@@ -26,6 +26,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -36,7 +37,7 @@ import (
 const loadBalancerBasicSkuCreateDeprecationMessage = "creation of new `Basic` SKU load balancers is no longer permitted following its retirement. For more information, see https://learn.microsoft.com/azure/load-balancer/load-balancer-basic-upgrade-guidance"
 
 func resourceArmLoadBalancer() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceArmLoadBalancerCreate,
 		Read:   resourceArmLoadBalancerRead,
 		Update: resourceArmLoadBalancerUpdate,
@@ -68,11 +69,14 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
 			"sku": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Default:      string(loadbalancers.LoadBalancerSkuNameStandard),
-				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice(loadbalancers.PossibleValuesForLoadBalancerSkuName(), false),
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(loadbalancers.LoadBalancerSkuNameStandard),
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(loadbalancers.LoadBalancerSkuNameStandard),
+					string(loadbalancers.LoadBalancerSkuNameGateway),
+				}, false),
 			},
 
 			"sku_tier": {
@@ -238,6 +242,12 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 			}),
 		),
 	}
+
+	if !features.SixPointOh() {
+		resource.Schema["sku"].ValidateFunc = validation.StringInSlice(loadbalancers.PossibleValuesForLoadBalancerSkuName(), false)
+	}
+
+	return resource
 }
 
 func resourceArmLoadBalancerCreate(d *pluginsdk.ResourceData, meta any) error {
