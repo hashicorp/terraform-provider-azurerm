@@ -71,13 +71,13 @@ func resourceCdnFrontDoorRuleSet() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FrontDoorProfileID,
+				ValidateFunc: profiles.ValidateProfileID,
 			},
 		},
 	}
 }
 
-func resourceCdnFrontDoorRuleSetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorRuleSetCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -110,7 +110,7 @@ func resourceCdnFrontDoorRuleSetCreate(d *pluginsdk.ResourceData, meta interface
 	return resourceCdnFrontDoorRuleSetRead(d, meta)
 }
 
-func resourceCdnFrontDoorRuleSetRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorRuleSetRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -136,7 +136,7 @@ func resourceCdnFrontDoorRuleSetRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceCdnFrontDoorRuleSetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorRuleSetDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -146,8 +146,7 @@ func resourceCdnFrontDoorRuleSetDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

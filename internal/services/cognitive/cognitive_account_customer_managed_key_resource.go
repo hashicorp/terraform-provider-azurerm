@@ -61,7 +61,7 @@ func resourceCognitiveAccountCustomerManagedKey() *pluginsdk.Resource {
 	}
 }
 
-func resourceCognitiveAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCognitiveAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cognitive.AccountsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -71,8 +71,8 @@ func resourceCognitiveAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.Resourc
 		return err
 	}
 
-	locks.ByName(id.AccountName, "azurerm_cognitive_account")
-	defer locks.UnlockByName(id.AccountName, "azurerm_cognitive_account")
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
@@ -87,12 +87,10 @@ func resourceCognitiveAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.Resourc
 		}
 	}
 
-	keySource := cognitiveservicesaccounts.KeySourceMicrosoftPointKeyVault
-
 	props := cognitiveservicesaccounts.Account{
 		Properties: &cognitiveservicesaccounts.AccountProperties{
 			Encryption: &cognitiveservicesaccounts.Encryption{
-				KeySource: &keySource,
+				KeySource: pointer.To(cognitiveservicesaccounts.KeySourceMicrosoftPointKeyVault),
 			},
 		},
 	}
@@ -120,7 +118,7 @@ func resourceCognitiveAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.Resourc
 	return resourceCognitiveAccountCustomerManagedKeyRead(d, meta)
 }
 
-func resourceCognitiveAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCognitiveAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cognitive.AccountsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -156,7 +154,7 @@ func resourceCognitiveAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, m
 	return nil
 }
 
-func resourceCognitiveAccountCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCognitiveAccountCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cognitive.AccountsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -166,8 +164,8 @@ func resourceCognitiveAccountCustomerManagedKeyDelete(d *pluginsdk.ResourceData,
 		return err
 	}
 
-	locks.ByName(id.AccountName, "azurerm_cognitive_account")
-	defer locks.UnlockByName(id.AccountName, "azurerm_cognitive_account")
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	resp, err := client.AccountsGet(ctx, *id)
 	if err != nil {
@@ -178,12 +176,11 @@ func resourceCognitiveAccountCustomerManagedKeyDelete(d *pluginsdk.ResourceData,
 		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 	}
 
-	keySource := cognitiveservicesaccounts.KeySourceMicrosoftPointCognitiveServices
 	// set key source to Microsoft.CognitiveServices to disable customer managed key
 	props := cognitiveservicesaccounts.Account{
 		Properties: &cognitiveservicesaccounts.AccountProperties{
 			Encryption: &cognitiveservicesaccounts.Encryption{
-				KeySource: &keySource,
+				KeySource: pointer.To(cognitiveservicesaccounts.KeySourceMicrosoftPointCognitiveServices),
 			},
 		},
 	}
