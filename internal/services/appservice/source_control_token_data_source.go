@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -50,7 +50,7 @@ func (d AppServiceSourceControlTokenDataSource) Attributes() map[string]*plugins
 	}
 }
 
-func (d AppServiceSourceControlTokenDataSource) ModelObject() interface{} {
+func (d AppServiceSourceControlTokenDataSource) ModelObject() any {
 	return &AppServiceSourceControlTokenModel{}
 }
 

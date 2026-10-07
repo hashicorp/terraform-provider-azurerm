@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cognitive_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesaccounts"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/cognitiveservicesaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CognitiveAccountCustomerManagedKeyResource struct{}
@@ -104,14 +104,14 @@ func (r CognitiveAccountCustomerManagedKeyResource) Exists(ctx context.Context, 
 	}
 
 	if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.Encryption == nil || resp.Model.Properties.Encryption.KeySource == nil {
-		return utils.Bool(false), nil
+		return pointer.To(false), nil
 	}
 
 	if *resp.Model.Properties.Encryption.KeySource == cognitiveservicesaccounts.KeySourceMicrosoftPointCognitiveServices {
-		return utils.Bool(false), nil
+		return pointer.To(false), nil
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r CognitiveAccountCustomerManagedKeyResource) basic(data acceptance.TestData) string {
@@ -191,6 +191,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctestkv%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   purge_protection_enabled   = true

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2021-08-08/alertprocessingrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MonitorAlertProcessingRuleSuppressionResource struct{}
@@ -109,7 +109,7 @@ func (r MonitorAlertProcessingRuleSuppressionResource) Exists(ctx context.Contex
 		return nil, fmt.Errorf("retrieving (%s): %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r MonitorAlertProcessingRuleSuppressionResource) basic(data acceptance.TestData) string {
@@ -117,7 +117,7 @@ func (r MonitorAlertProcessingRuleSuppressionResource) basic(data acceptance.Tes
 %s
 
 resource "azurerm_monitor_alert_processing_rule_suppression" "test" {
-  name                = "acctest-moniter-%d"
+  name                = "acctest-monitor-%d"
   resource_group_name = azurerm_resource_group.test.name
   scopes              = [azurerm_resource_group.test.id]
 }
@@ -141,7 +141,7 @@ func (r MonitorAlertProcessingRuleSuppressionResource) update(data acceptance.Te
 %s
 
 resource "azurerm_monitor_alert_processing_rule_suppression" "test" {
-  name                = "acctest-moniter-%d"
+  name                = "acctest-monitor-%d"
   resource_group_name = azurerm_resource_group.test.name
   scopes              = [azurerm_resource_group.test.id]
   enabled             = false
@@ -177,7 +177,7 @@ func (r MonitorAlertProcessingRuleSuppressionResource) complete(data acceptance.
 %s
 
 resource "azurerm_monitor_alert_processing_rule_suppression" "test" {
-  name                = "acctest-moniter-%d"
+  name                = "acctest-monitor-%d"
   resource_group_name = azurerm_resource_group.test.name
   description         = "alertprocessingrule-test"
   scopes              = [azurerm_resource_group.test.id]
@@ -226,7 +226,7 @@ resource "azurerm_monitor_alert_processing_rule_suppression" "test" {
 
     target_resource {
       operator = "Contains"
-      values   = ["resourseId1", "resourceId2"]
+      values   = ["resourceId1", "resourceId2"]
     }
 
     target_resource_group {

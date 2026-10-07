@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sdk
@@ -20,7 +20,7 @@ func (d *DiagnosticsLogger) Info(message string) {
 	log.Printf("[INFO] %s", message)
 }
 
-func (d *DiagnosticsLogger) Infof(format string, args ...interface{}) {
+func (d *DiagnosticsLogger) Infof(format string, args ...any) {
 	log.Printf("[INFO] "+format, args...)
 }
 
@@ -33,7 +33,7 @@ func (d *DiagnosticsLogger) Warn(message string) {
 	})
 }
 
-func (d *DiagnosticsLogger) Warnf(format string, args ...interface{}) {
+func (d *DiagnosticsLogger) Warnf(format string, args ...any) {
 	d.diagnostics = append(d.diagnostics, diag.Diagnostic{
 		Severity:      diag.Warning,
 		Summary:       fmt.Sprintf(format, args...),

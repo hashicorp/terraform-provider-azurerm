@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package oracle
@@ -421,7 +421,7 @@ func (d AutonomousDatabaseRegularDataSource) Attributes() map[string]*pluginsdk.
 	}
 }
 
-func (d AutonomousDatabaseRegularDataSource) ModelObject() interface{} {
+func (d AutonomousDatabaseRegularDataSource) ModelObject() any {
 	return &AutonomousDatabaseRegularDataModel{}
 }
 
