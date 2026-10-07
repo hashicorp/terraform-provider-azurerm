@@ -840,7 +840,7 @@ func expandWebApplicationFirewallPolicyExceptions(input []any) *[]webapplication
 			result.Selector = pointer.To(selector)
 		}
 		if selectorMatchOperator := v["selector_match_operator"].(string); selectorMatchOperator != "" {
-			result.SelectorMatchOperator = pointer.To(webapplicationfirewallpolicies.ExceptionEntrySelectorMatchOperator(selectorMatchOperator))
+			result.SelectorMatchOperator = pointer.ToEnum[webapplicationfirewallpolicies.ExceptionEntrySelectorMatchOperator](selectorMatchOperator)
 		}
 		if values := v["values"].([]any); len(values) > 0 {
 			result.Values = pluginsdk.ExpandStringSlice(values)
@@ -1215,7 +1215,7 @@ func flattenWebApplicationFirewallPolicyExceptions(input *[]webapplicationfirewa
 
 		v["match_variable"] = string(item.MatchVariable)
 		v["selector"] = pointer.From(item.Selector)
-		v["selector_match_operator"] = string(pointer.From(item.SelectorMatchOperator))
+		v["selector_match_operator"] = pointer.FromEnum(item.SelectorMatchOperator)
 		v["value_match_operator"] = string(item.ValueMatchOperator)
 		v["values"] = pointer.From(item.Values)
 		v["exception_rule_set"] = flattenWebApplicationFirewallPolicyExceptionManagedRuleSets(item.ExceptionManagedRuleSets)
