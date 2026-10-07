@@ -58,9 +58,20 @@ func (c RedisClient) FlushCache(ctx context.Context, id RediId) (result FlushCac
 
 // FlushCacheThenPoll performs FlushCache then polls until it's completed
 func (c RedisClient) FlushCacheThenPoll(ctx context.Context, id RediId) error {
+	return c.FlushCacheCallbackThenPoll(ctx, id, nil)
+}
+
+// FlushCacheCallbackThenPoll performs FlushCache, runs the optional callback function, then polls until it's completed
+func (c RedisClient) FlushCacheCallbackThenPoll(ctx context.Context, id RediId, callback func() error) error {
 	result, err := c.FlushCache(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing FlushCache: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

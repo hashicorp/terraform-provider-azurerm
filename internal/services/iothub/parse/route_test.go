@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = RouteId{}
 
-func TestRouteIDFormatter(t *testing.T) {
+func TestParseRouteIDFormatter(t *testing.T) {
 	actual := NewRouteID("12345678-1234-9876-4563-123456789012", "resGroup1", "hub1", "route1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Devices/iotHubs/hub1/routes/route1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestRouteIDFormatter(t *testing.T) {
 	}
 }
 
-func TestRouteID(t *testing.T) {
+func TestParseRouteID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -129,7 +129,7 @@ func TestRouteID(t *testing.T) {
 	}
 }
 
-func TestRouteIDInsensitively(t *testing.T) {
+func TestParseRouteIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

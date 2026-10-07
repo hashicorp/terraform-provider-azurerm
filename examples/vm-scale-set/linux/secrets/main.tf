@@ -32,6 +32,7 @@ resource "azurerm_key_vault" "main" {
   resource_group_name = azurerm_resource_group.main.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
 
+  rbac_authorization_enabled      = false
   sku_name                        = "standard"
   enabled_for_template_deployment = true
   enabled_for_deployment          = true
