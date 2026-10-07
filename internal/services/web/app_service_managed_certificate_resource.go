@@ -8,26 +8,24 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/certificates"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceAppServiceManagedCertificate() *pluginsdk.Resource {
-	r := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceAppServiceManagedCertificateCreate,
 		Read:   resourceAppServiceManagedCertificateRead,
 		Update: resourceAppServiceManagedCertificateUpdate,
@@ -98,28 +96,9 @@ func resourceAppServiceManagedCertificate() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FivePointOh() {
-		// Parse insensitively for 4.x matching existing behaviour, enforce casing in 5.0
-		r.Schema["custom_hostname_binding_id"].ValidateFunc = func(input interface{}, key string) (warnings []string, errors []error) {
-			v, ok := input.(string)
-			if !ok {
-				errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-				return
-			}
-
-			if _, err := webapps.ParseHostNameBindingIDInsensitively(v); err != nil {
-				errors = append(errors, err)
-			}
-
-			return
-		}
-	}
-
-	return r
 }
 
-func resourceAppServiceManagedCertificateCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceManagedCertificateCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.CertificatesClient
 	appServiceClient := meta.(*clients.Client).Web.WebAppsClient
 	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
@@ -149,15 +128,17 @@ func resourceAppServiceManagedCertificateCreate(d *pluginsdk.ResourceData, meta 
 
 	id := certificates.NewCertificateID(subscriptionID, appServicePlanID.ResourceGroupName, chbID.HostNameBindingName)
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %w", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %w", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_app_service_managed_certificate", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_app_service_managed_certificate", id.ID())
+		}
 	}
 
 	certificate := certificates.Certificate{
@@ -174,6 +155,8 @@ func resourceAppServiceManagedCertificateCreate(d *pluginsdk.ResourceData, meta 
 		return fmt.Errorf("creating %s: %w", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	// API may return a 202, however, the Location header returned does not return a ProvisioningState when polled
 	// causing the provider to poll until timeout.
 	if response.WasStatusCode(resp.HttpResponse, http.StatusAccepted) {
@@ -183,12 +166,10 @@ func resourceAppServiceManagedCertificateCreate(d *pluginsdk.ResourceData, meta 
 		}
 	}
 
-	d.SetId(id.ID())
-
 	// An API issue prevents setting tags using the PUT operation, so we'll patch them in after
 	// https://github.com/Azure/azure-rest-api-specs/issues/14529
 	t := certificates.CertificatePatchResource{
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if _, err := client.Update(ctx, id, t); err != nil {
@@ -198,7 +179,7 @@ func resourceAppServiceManagedCertificateCreate(d *pluginsdk.ResourceData, meta 
 	return resourceAppServiceManagedCertificateRead(d, meta)
 }
 
-func resourceAppServiceManagedCertificateRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceManagedCertificateRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.CertificatesClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -235,7 +216,7 @@ func resourceAppServiceManagedCertificateRead(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func resourceAppServiceManagedCertificateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceManagedCertificateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.CertificatesClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -251,7 +232,7 @@ func resourceAppServiceManagedCertificateUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	payload := certificates.CertificatePatchResource{
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if _, err := client.Update(ctx, *id, payload); err != nil {
@@ -261,7 +242,7 @@ func resourceAppServiceManagedCertificateUpdate(d *pluginsdk.ResourceData, meta 
 	return resourceAppServiceManagedCertificateRead(d, meta)
 }
 
-func resourceAppServiceManagedCertificateDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceManagedCertificateDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.CertificatesClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)

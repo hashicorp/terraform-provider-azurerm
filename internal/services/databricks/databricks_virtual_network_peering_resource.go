@@ -17,10 +17,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name databricks_virtual_network_peering -service-package-name databricks -properties "name" -compare-values "subscription_id:workspace_id,resource_group_name:workspace_id,workspace_name:workspace_id"
@@ -122,7 +122,7 @@ func resourceDatabricksVirtualNetworkPeering() *pluginsdk.Resource {
 	}
 }
 
-func resourceDatabricksVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatabricksVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataBricks.VnetPeeringClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -142,15 +142,17 @@ func resourceDatabricksVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, me
 	locks.ByID(databricksVnetPeeringsResourceType)
 	defer locks.UnlockByID(databricksVnetPeeringsResourceType)
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing Databricks %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing Databricks %s: %s", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_databricks_virtual_network_peering", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_databricks_virtual_network_peering", id.ID())
+		}
 	}
 
 	allowForwardedTraffic := d.Get("allow_forwarded_traffic").(bool)
@@ -158,8 +160,8 @@ func resourceDatabricksVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, me
 	allowVirtualNetworkAccess := d.Get("allow_virtual_network_access").(bool)
 	useRemoteGateways := d.Get("use_remote_gateways").(bool)
 	remoteVirtualNetwork := d.Get("remote_virtual_network_id").(string)
-	databricksAddressSpace := utils.ExpandStringSlice(d.Get("address_space_prefixes").([]interface{}))
-	remoteAddressSpace := utils.ExpandStringSlice(d.Get("remote_address_space_prefixes").([]interface{}))
+	databricksAddressSpace := pluginsdk.ExpandStringSlice(d.Get("address_space_prefixes").([]any))
+	remoteAddressSpace := pluginsdk.ExpandStringSlice(d.Get("remote_address_space_prefixes").([]any))
 
 	props := vnetpeering.VirtualNetworkPeeringPropertiesFormat{
 		DatabricksAddressSpace: &vnetpeering.AddressSpace{
@@ -187,7 +189,7 @@ func resourceDatabricksVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, me
 		Properties: props,
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, peer); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, peer, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating Databricks %s: %+v", id, err)
 	}
 
@@ -199,7 +201,7 @@ func resourceDatabricksVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, me
 	return resourceDatabricksVirtualNetworkPeeringRead(d, meta)
 }
 
-func resourceDatabricksVirtualNetworkPeeringRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatabricksVirtualNetworkPeeringRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataBricks.VnetPeeringClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -247,17 +249,13 @@ func resourceDatabricksVirtualNetworkPeeringRead(d *pluginsdk.ResourceData, meta
 		}
 		d.Set("virtual_network_id", databricksVirtualNetworkId)
 
-		remoteVirtualNetworkId := ""
-		if model.Properties.RemoteVirtualNetwork.Id != nil {
-			remoteVirtualNetworkId = *model.Properties.RemoteVirtualNetwork.Id
-		}
-		d.Set("remote_virtual_network_id", remoteVirtualNetworkId)
+		d.Set("remote_virtual_network_id", pointer.From(model.Properties.RemoteVirtualNetwork.Id))
 	}
 
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceDatabricksVirtualNetworkPeeringUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatabricksVirtualNetworkPeeringUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataBricks.VnetPeeringClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -299,7 +297,7 @@ func resourceDatabricksVirtualNetworkPeeringUpdate(d *pluginsdk.ResourceData, me
 	return resourceDatabricksVirtualNetworkPeeringRead(d, meta)
 }
 
-func resourceDatabricksVirtualNetworkPeeringDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatabricksVirtualNetworkPeeringDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataBricks.VnetPeeringClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

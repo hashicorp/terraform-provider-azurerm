@@ -43,7 +43,7 @@ type ContainerAppJobModel struct {
 	ManualTriggerConfig       []helpers.ManualTriggerConfiguration       `tfschema:"manual_trigger_config"`
 	ScheduleTriggerConfig     []helpers.ScheduleTriggerConfiguration     `tfschema:"schedule_trigger_config"`
 	Identity                  []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	Tags                      map[string]interface{}                     `tfschema:"tags"`
+	Tags                      map[string]any                             `tfschema:"tags"`
 
 	OutboundIPAddresses []string `tfschema:"outbound_ip_addresses"`
 	EventStreamEndpoint string   `tfschema:"event_stream_endpoint"`
@@ -51,7 +51,7 @@ type ContainerAppJobModel struct {
 
 var _ sdk.ResourceWithUpdate = ContainerAppJobResource{}
 
-func (r ContainerAppJobResource) ModelObject() interface{} {
+func (r ContainerAppJobResource) ModelObject() any {
 	return &ContainerAppJobModel{}
 }
 
@@ -235,15 +235,17 @@ func (r ContainerAppJobResource) Create() sdk.ResourceFunc {
 
 			id := jobs.NewJobID(subscriptionId, model.ResourceGroup, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			registries, err := helpers.ExpandContainerAppJobRegistries(model.Registries)
@@ -291,7 +293,7 @@ func (r ContainerAppJobResource) Create() sdk.ResourceFunc {
 				job.Properties.WorkloadProfileName = pointer.To(model.WorkloadProfileName)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, job); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, job, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -363,6 +365,8 @@ func (r ContainerAppJobResource) Read() sdk.ResourceFunc {
 						}
 					}
 					state.WorkloadProfileName = pointer.From(props.WorkloadProfileName)
+					state.EventStreamEndpoint = pointer.From(props.EventStreamEndpoint)
+					state.OutboundIPAddresses = pointer.From(props.OutboundIPAddresses)
 				}
 			}
 

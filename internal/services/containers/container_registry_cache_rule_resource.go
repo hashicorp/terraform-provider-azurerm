@@ -73,7 +73,7 @@ type ContainerRegistryCacheRuleModel struct {
 	TargetRepo          string `tfschema:"target_repo"`
 }
 
-func (ContainerRegistryCacheRule) ModelObject() interface{} {
+func (ContainerRegistryCacheRule) ModelObject() any {
 	return &ContainerRegistryCacheRuleModel{}
 }
 
@@ -105,15 +105,17 @@ func (r ContainerRegistryCacheRule) Create() sdk.ResourceFunc {
 				metadata.ResourceData.Get("name").(string),
 			)
 
-			existing, err := cacheRulesClient.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := cacheRulesClient.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_container_registry_cache_rule", id.ID())
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError("azurerm_container_registry_cache_rule", id.ID())
+				}
 			}
 
 			parameters := cacherules.CacheRule{
@@ -129,7 +131,7 @@ func (r ContainerRegistryCacheRule) Create() sdk.ResourceFunc {
 				parameters.Properties.CredentialSetResourceId = pointer.To(config.CredentialSetId)
 			}
 
-			if err := cacheRulesClient.CreateThenPoll(ctx, id, parameters); err != nil {
+			if err := cacheRulesClient.CreateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

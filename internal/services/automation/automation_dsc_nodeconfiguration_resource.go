@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/dscnodeconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -70,7 +71,7 @@ func resourceAutomationDscNodeConfiguration() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationDscNodeConfigurationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationDscNodeConfigurationCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.DscNodeConfiguration
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -78,15 +79,17 @@ func resourceAutomationDscNodeConfigurationCreate(d *pluginsdk.ResourceData, met
 
 	id := dscnodeconfiguration.NewNodeConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_automation_dsc_nodeconfiguration", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_automation_dsc_nodeconfiguration", id.ID())
+		}
 	}
 
 	parameters := dscnodeconfiguration.DscNodeConfigurationCreateOrUpdateParameters{
@@ -104,7 +107,7 @@ func resourceAutomationDscNodeConfigurationCreate(d *pluginsdk.ResourceData, met
 		Name: pointer.To(id.NodeConfigurationName),
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -113,7 +116,7 @@ func resourceAutomationDscNodeConfigurationCreate(d *pluginsdk.ResourceData, met
 	return resourceAutomationDscNodeConfigurationRead(d, meta)
 }
 
-func resourceAutomationDscNodeConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationDscNodeConfigurationUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.DscNodeConfiguration
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -151,7 +154,7 @@ func resourceAutomationDscNodeConfigurationUpdate(d *pluginsdk.ResourceData, met
 	return resourceAutomationDscNodeConfigurationRead(d, meta)
 }
 
-func resourceAutomationDscNodeConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationDscNodeConfigurationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.DscNodeConfiguration
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -190,7 +193,7 @@ func resourceAutomationDscNodeConfigurationRead(d *pluginsdk.ResourceData, meta 
 	return nil
 }
 
-func resourceAutomationDscNodeConfigurationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationDscNodeConfigurationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.DscNodeConfiguration
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -82,7 +82,7 @@ func resourceAppServiceCertificateBinding() *pluginsdk.Resource {
 	}
 }
 
-func resourceAppServiceCertificateBindingCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceCertificateBindingCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.WebAppsClient
 	certClient := meta.(*clients.Client).Web.CertificatesClient
 
@@ -128,9 +128,15 @@ func resourceAppServiceCertificateBindingCreate(d *pluginsdk.ResourceData, meta 
 		return fmt.Errorf("retrieving %s: `model` was nil", id.First)
 	}
 
+	if binding.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id.First)
+	}
+
 	props := binding.Model.Properties
-	if props != nil && props.Thumbprint != nil && *props.Thumbprint == *thumbprint {
-		return tf.ImportAsExistsError("azurerm_app_service_certificate_binding", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		if props.Thumbprint != nil && *props.Thumbprint == *thumbprint {
+			return tf.ImportAsExistsError("azurerm_app_service_certificate_binding", id.ID())
+		}
 	}
 
 	locks.ByName(id.First.SiteName, appServiceHostnameBindingResourceName)
@@ -148,7 +154,7 @@ func resourceAppServiceCertificateBindingCreate(d *pluginsdk.ResourceData, meta 
 	return resourceAppServiceCertificateBindingRead(d, meta)
 }
 
-func resourceAppServiceCertificateBindingRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceCertificateBindingRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.WebAppsClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -184,7 +190,7 @@ func resourceAppServiceCertificateBindingRead(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func resourceAppServiceCertificateBindingDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceCertificateBindingDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.WebAppsClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)

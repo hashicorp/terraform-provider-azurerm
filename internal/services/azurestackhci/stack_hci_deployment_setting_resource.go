@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/machines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resourceconnector/2022-10-27/appliances"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -150,7 +150,7 @@ type StorageModel struct {
 	ConfigurationMode string `tfschema:"configuration_mode"`
 }
 
-func (StackHCIDeploymentSettingResource) ModelObject() interface{} {
+func (StackHCIDeploymentSettingResource) ModelObject() any {
 	return &StackHCIDeploymentSettingModel{}
 }
 
@@ -223,7 +223,7 @@ func (StackHCIDeploymentSettingResource) Arguments() map[string]*pluginsdk.Schem
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
-									ValidateFunc: storageValidate.StorageAccountName,
+									ValidateFunc: validate.StorageAccountName,
 								},
 
 								"witness_type": {
@@ -723,12 +723,14 @@ func (r StackHCIDeploymentSettingResource) Create() sdk.ResourceFunc {
 			}
 			id := deploymentsettings.NewDeploymentSettingID(stackHCIClusterId.SubscriptionId, stackHCIClusterId.ResourceGroupName, stackHCIClusterId.ClusterName, "default")
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			payload := deploymentsettings.DeploymentSetting{
@@ -749,7 +751,7 @@ func (r StackHCIDeploymentSettingResource) Create() sdk.ResourceFunc {
 
 			// do deployment
 			payload.Properties.DeploymentMode = deploymentsettings.DeploymentModeDeploy
-			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("deploying %s: %+v", id, err)
 			}
 
@@ -851,7 +853,7 @@ func (StackHCIDeploymentSettingResource) Delete() sdk.ResourceFunc {
 				// match Storage Paths under the Custom Location, the generated Storage Path name should match below pattern
 				storageContainerNamePattern := regexp.MustCompile(`UserStorage[0-9]+-[a-z0-9]{32}`)
 				for _, v := range storageContainers.Items {
-					if v.Id != nil && v.ExtendedLocation != nil && v.ExtendedLocation.Name != nil && strings.EqualFold(*v.ExtendedLocation.Name, customLocationId.ID()) && v.Name != nil && storageContainerNamePattern.Match([]byte(*v.Name)) {
+					if v.Id != nil && v.ExtendedLocation != nil && v.ExtendedLocation.Name != nil && strings.EqualFold(*v.ExtendedLocation.Name, customLocationId.ID()) && v.Name != nil && storageContainerNamePattern.MatchString(*v.Name) {
 						storageContainerId, err := storagecontainers.ParseStorageContainerIDInsensitively(*v.Id)
 						if err != nil {
 							return fmt.Errorf("parsing the Stack HCI Storage Path ID generated during deployment: %+v", err)

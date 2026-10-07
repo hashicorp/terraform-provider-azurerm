@@ -56,9 +56,20 @@ func (c LocalRulestackResourcesClient) LocalRulestackscommit(ctx context.Context
 
 // LocalRulestackscommitThenPoll performs LocalRulestackscommit then polls until it's completed
 func (c LocalRulestackResourcesClient) LocalRulestackscommitThenPoll(ctx context.Context, id LocalRulestackId) error {
+	return c.LocalRulestackscommitCallbackThenPoll(ctx, id, nil)
+}
+
+// LocalRulestackscommitCallbackThenPoll performs LocalRulestackscommit, runs the optional callback function, then polls until it's completed
+func (c LocalRulestackResourcesClient) LocalRulestackscommitCallbackThenPoll(ctx context.Context, id LocalRulestackId, callback func() error) error {
 	result, err := c.LocalRulestackscommit(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing LocalRulestackscommit: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

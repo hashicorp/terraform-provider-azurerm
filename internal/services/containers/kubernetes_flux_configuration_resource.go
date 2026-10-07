@@ -128,12 +128,12 @@ func (r KubernetesFluxConfigurationResource) ResourceType() string {
 	return "azurerm_kubernetes_flux_configuration"
 }
 
-func (r KubernetesFluxConfigurationResource) ModelObject() interface{} {
+func (r KubernetesFluxConfigurationResource) ModelObject() any {
 	return &KubernetesFluxConfigurationModel{}
 }
 
 func (r KubernetesFluxConfigurationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return func(val interface{}, key string) (warns []string, errs []error) {
+	return func(val any, key string) (warns []string, errs []error) {
 		idRaw, ok := val.(string)
 		if !ok {
 			errs = append(errs, fmt.Errorf("expected `id` to be a string but got %+v", val))
@@ -586,14 +586,11 @@ func (r KubernetesFluxConfigurationResource) Arguments() map[string]*pluginsdk.S
 		},
 
 		"scope": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(fluxconfiguration.ScopeTypeNamespace),
-				string(fluxconfiguration.ScopeTypeCluster),
-			}, false),
-			Default: string(fluxconfiguration.ScopeTypeNamespace),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(fluxconfiguration.PossibleValuesForScopeType(), false),
+			Default:      string(fluxconfiguration.ScopeTypeNamespace),
 		},
 
 		"continuous_reconciliation_enabled": {
@@ -629,19 +626,22 @@ func (r KubernetesFluxConfigurationResource) Create() sdk.ResourceFunc {
 
 			// defined as strings because they're not enums in the swagger https://github.com/Azure/azure-rest-api-specs/pull/23545
 			id := fluxconfiguration.NewScopedFluxConfigurationID(clusterID.ID(), model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			properties := &fluxconfiguration.FluxConfiguration{
 				Properties: &fluxconfiguration.FluxConfigurationProperties{
 					Kustomizations: expandKustomizationDefinitionModel(model.Kustomizations),
-					Scope:          pointer.To(fluxconfiguration.ScopeType(model.Scope)),
+					Scope:          pointer.ToEnum[fluxconfiguration.ScopeType](model.Scope),
 					Suspend:        pointer.To(!model.ContinuousReconciliationEnabled),
 				},
 			}
@@ -672,7 +672,7 @@ func (r KubernetesFluxConfigurationResource) Create() sdk.ResourceFunc {
 				properties.Properties.Namespace = &model.Namespace
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, *properties, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -821,7 +821,7 @@ func (r KubernetesFluxConfigurationResource) Read() sdk.ResourceFunc {
 					state.GitRepository = gitRepositoryValue
 					state.Kustomizations = flattenKustomizationDefinitionModel(properties.Kustomizations)
 					state.Namespace = pointer.From(properties.Namespace)
-					state.Scope = string(pointer.From(properties.Scope))
+					state.Scope = pointer.FromEnum(properties.Scope)
 					state.ContinuousReconciliationEnabled = !pointer.From(properties.Suspend)
 				}
 			}
@@ -1088,7 +1088,7 @@ func expandGitRepositoryDefinitionModel(inputList []GitRepositoryDefinitionModel
 	}
 
 	if input.Provider != "" {
-		output.Provider = pointer.To(fluxconfiguration.ProviderType(input.Provider))
+		output.Provider = pointer.ToEnum[fluxconfiguration.ProviderType](input.Provider)
 	}
 
 	configSettings := make(map[string]string)
@@ -1280,7 +1280,7 @@ func flattenGitRepositoryDefinitionModel(input *fluxconfiguration.GitRepositoryD
 		HttpsCACert:           pointer.From(input.HTTPSCACert),
 		HttpsUser:             pointer.From(input.HTTPSUser),
 		LocalAuthRef:          pointer.From(input.LocalAuthRef),
-		Provider:              string(pointer.From(input.Provider)),
+		Provider:              pointer.FromEnum(input.Provider),
 		SshKnownHosts:         pointer.From(input.SshKnownHosts),
 		SyncIntervalInSeconds: pointer.From(input.SyncIntervalInSeconds),
 		TimeoutInSeconds:      pointer.From(input.TimeoutInSeconds),

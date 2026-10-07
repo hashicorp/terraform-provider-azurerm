@@ -12,12 +12,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/streamingjobs"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
-	streamAnalyticsValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -43,13 +42,9 @@ func (r JobScheduleResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"start_mode": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(streamingjobs.OutputStartModeCustomTime),
-				string(streamingjobs.OutputStartModeJobStartTime),
-				string(streamingjobs.OutputStartModeLastOutputEventTime),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(streamingjobs.PossibleValuesForOutputStartMode(), false),
 		},
 
 		"start_time": {
@@ -57,7 +52,7 @@ func (r JobScheduleResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 			// NOTE: O+C There is no sensible default that we can set here, this should remain Computed
 			Computed:     true,
-			ValidateFunc: validate.ISO8601DateTime,
+			ValidateFunc: validation.ISO8601DateTime,
 		},
 	}
 }
@@ -71,7 +66,7 @@ func (r JobScheduleResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r JobScheduleResource) ModelObject() interface{} {
+func (r JobScheduleResource) ModelObject() any {
 	return &JobScheduleResourceModel{}
 }
 
@@ -80,7 +75,7 @@ func (r JobScheduleResource) ResourceType() string {
 }
 
 func (r JobScheduleResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return streamAnalyticsValidate.StreamingJobScheduleID
+	return validate.StreamingJobScheduleID
 }
 
 func (r JobScheduleResource) Create() sdk.ResourceFunc {
@@ -133,6 +128,7 @@ func (r JobScheduleResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
 			if err := client.StartThenPoll(ctx, *streamAnalyticsId, *props); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -167,15 +163,9 @@ func (r JobScheduleResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					startTime := ""
-					if v := props.OutputStartTime; v != nil {
-						startTime = *v
-					}
+					startTime := pointer.From(props.OutputStartTime)
 
-					lastOutputTime := ""
-					if v := props.LastOutputEventTime; v != nil {
-						lastOutputTime = *v
-					}
+					lastOutputTime := pointer.From(props.LastOutputEventTime)
 
 					startMode := ""
 					if v := props.OutputStartMode; v != nil {
