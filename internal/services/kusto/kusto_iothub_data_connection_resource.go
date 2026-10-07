@@ -12,11 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/dataconnections"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	iotHubParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
@@ -145,7 +144,7 @@ func resourceKustoIotHubDataConnection() *pluginsdk.Resource {
 	}
 }
 
-func resourceKustoIotHubDataConnectionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoIotHubDataConnectionCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -181,7 +180,7 @@ func resourceKustoIotHubDataConnectionCreate(d *pluginsdk.ResourceData, meta int
 	return resourceKustoIotHubDataConnectionRead(d, meta)
 }
 
-func resourceKustoIotHubDataConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoIotHubDataConnectionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -210,17 +209,17 @@ func resourceKustoIotHubDataConnectionRead(d *pluginsdk.ResourceData, meta inter
 			d.Set("location", location.NormalizeNilable(dataConnection.Location))
 			if props := dataConnection.Properties; props != nil {
 				iotHubId := ""
-				if parsedIoTHubId, err := iotHubParse.IotHubIDInsensitively(props.IotHubResourceId); err == nil {
+				if parsedIoTHubId, err := parse.IotHubIDInsensitively(props.IotHubResourceId); err == nil {
 					iotHubId = parsedIoTHubId.ID()
 				}
 				d.Set("iothub_id", iotHubId)
 				d.Set("consumer_group", props.ConsumerGroup)
 				d.Set("table_name", props.TableName)
 				d.Set("mapping_rule_name", props.MappingRuleName)
-				d.Set("data_format", string(pointer.From(props.DataFormat)))
-				d.Set("database_routing_type", string(pointer.From(props.DatabaseRouting)))
+				d.Set("data_format", pointer.FromEnum(props.DataFormat))
+				d.Set("database_routing_type", pointer.FromEnum(props.DatabaseRouting))
 				d.Set("shared_access_policy_name", props.SharedAccessPolicyName)
-				d.Set("event_system_properties", helpers.FlattenStringSlice(props.EventSystemProperties))
+				d.Set("event_system_properties", pluginsdk.FlattenSlice(props.EventSystemProperties))
 				d.Set("retrieval_start_date", pointer.From(props.RetrievalStartDate))
 			}
 		}
@@ -229,7 +228,7 @@ func resourceKustoIotHubDataConnectionRead(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func resourceKustoIotHubDataConnectionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoIotHubDataConnectionUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -277,7 +276,7 @@ func resourceKustoIotHubDataConnectionUpdate(d *pluginsdk.ResourceData, meta int
 	return resourceKustoIotHubDataConnectionRead(d, meta)
 }
 
-func resourceKustoIotHubDataConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoIotHubDataConnectionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -318,7 +317,7 @@ func expandKustoIotHubDataConnectionProperties(d *pluginsdk.ResourceData) *datac
 	}
 
 	if eventSystemProperties, ok := d.GetOk("event_system_properties"); ok {
-		iotHubDataConnectionProperties.EventSystemProperties = helpers.ExpandStringSlice(eventSystemProperties.(*pluginsdk.Set).List())
+		iotHubDataConnectionProperties.EventSystemProperties = pluginsdk.ExpandStringSlice(eventSystemProperties.(*pluginsdk.Set).List())
 	}
 
 	if retrievalStartDate, ok := d.GetOk("retrieval_start_date"); ok {

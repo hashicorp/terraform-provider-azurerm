@@ -31,7 +31,7 @@ var (
 
 type VirtualMachineImplicitDataDiskFromSourceResource struct{}
 
-func (r VirtualMachineImplicitDataDiskFromSourceResource) ModelObject() interface{} {
+func (r VirtualMachineImplicitDataDiskFromSourceResource) ModelObject() any {
 	return &VirtualMachineImplicitDataDiskFromSourceResourceModel{}
 }
 

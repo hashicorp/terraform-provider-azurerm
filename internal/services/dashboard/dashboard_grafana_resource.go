@@ -75,7 +75,7 @@ func (r DashboardGrafanaResource) ResourceType() string {
 	return "azurerm_dashboard_grafana"
 }
 
-func (r DashboardGrafanaResource) ModelObject() interface{} {
+func (r DashboardGrafanaResource) ModelObject() any {
 	return &DashboardGrafanaModel{}
 }
 
@@ -276,7 +276,7 @@ func (r DashboardGrafanaResource) Create() sdk.ResourceFunc {
 
 			properties := expandCreateForDashboardGrafana(model)
 
-			properties.Identity = expandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+			properties.Identity = expandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]any))
 
 			if err := client.GrafanaCreateCallbackThenPoll(ctx, id, *properties, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -640,7 +640,7 @@ func expandAzureMonitorWorkspaceIntegrationModelArray(inputList []AzureMonitorWo
 	return &outputList
 }
 
-func expandLegacySystemAndUserAssignedMap(input []interface{}) *identity.LegacySystemAndUserAssignedMap {
+func expandLegacySystemAndUserAssignedMap(input []any) *identity.LegacySystemAndUserAssignedMap {
 	identityValue, err := identity.ExpandSystemOrUserAssignedMap(input)
 	if err != nil {
 		return nil
@@ -687,7 +687,7 @@ func flattenSMTPConfigurationModel(input *managedgrafanas.Smtp, data *schema.Res
 	}
 
 	if input.StartTLSPolicy != nil {
-		output.StartTLSPolicy = string(pointer.From(input.StartTLSPolicy))
+		output.StartTLSPolicy = pointer.FromEnum(input.StartTLSPolicy)
 	}
 
 	output.Password = data.Get("smtp.0.password").(string)
@@ -714,9 +714,9 @@ func flattenAzureMonitorWorkspaceIntegrationModelArray(inputList *[]managedgrafa
 	return outputList
 }
 
-func flattenLegacySystemAndUserAssignedMap(input *identity.LegacySystemAndUserAssignedMap) *[]interface{} {
+func flattenLegacySystemAndUserAssignedMap(input *identity.LegacySystemAndUserAssignedMap) *[]any {
 	if input == nil {
-		return &[]interface{}{}
+		return &[]any{}
 	}
 
 	identityValue := &identity.SystemOrUserAssignedMap{
@@ -728,7 +728,7 @@ func flattenLegacySystemAndUserAssignedMap(input *identity.LegacySystemAndUserAs
 
 	output, err := identity.FlattenSystemOrUserAssignedMap(identityValue)
 	if err != nil {
-		return &[]interface{}{}
+		return &[]any{}
 	}
 	return output
 }

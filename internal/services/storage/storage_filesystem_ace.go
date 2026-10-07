@@ -9,14 +9,14 @@ import (
 	"github.com/jackofallops/giovanni/storage/accesscontrol"
 )
 
-func ExpandDataLakeGen2AceList(input []interface{}) (*accesscontrol.ACL, error) {
+func ExpandDataLakeGen2AceList(input []any) (*accesscontrol.ACL, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
 	aceList := make([]accesscontrol.ACE, len(input))
 
 	for i := range input {
-		v := input[i].(map[string]interface{})
+		v := input[i].(map[string]any)
 
 		isDefault := false
 		if scopeRaw, ok := v["scope"]; ok {
@@ -49,9 +49,9 @@ func ExpandDataLakeGen2AceList(input []interface{}) (*accesscontrol.ACL, error) 
 	return &accesscontrol.ACL{Entries: aceList}, nil
 }
 
-func FlattenDataLakeGen2AceList(d *pluginsdk.ResourceData, acl accesscontrol.ACL) []interface{} {
+func FlattenDataLakeGen2AceList(d *pluginsdk.ResourceData, acl accesscontrol.ACL) []any {
 	existingACLs, _ := ExpandDataLakeGen2AceList(d.Get("ace").(*pluginsdk.Set).List())
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 
 	for _, v := range acl.Entries {
 		// Filter ACL default entries (ones without ID value, for scopes 'user', 'group', 'other', 'mask').
@@ -60,7 +60,7 @@ func FlattenDataLakeGen2AceList(d *pluginsdk.ResourceData, acl accesscontrol.ACL
 			continue
 		}
 
-		ace := make(map[string]interface{})
+		ace := make(map[string]any)
 
 		scope := "access"
 		if v.IsDefault {

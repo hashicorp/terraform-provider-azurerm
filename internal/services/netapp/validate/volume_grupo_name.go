@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func VolumeGroupName(v interface{}, k string) ([]string, []error) {
+func VolumeGroupName(v any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile(`^[a-zA-Z][-_\da-zA-Z]{0,63}$`), "must be between 1 and 64 characters in length and start with letters and contains only letters, numbers, underscore or hyphens")(v, k)
 }

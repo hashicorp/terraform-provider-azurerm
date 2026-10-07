@@ -66,7 +66,7 @@ func (s DataConnectorMicrosoftThreatIntelligenceResource) Attributes() map[strin
 	return map[string]*schema.Schema{}
 }
 
-func (s DataConnectorMicrosoftThreatIntelligenceResource) ModelObject() interface{} {
+func (s DataConnectorMicrosoftThreatIntelligenceResource) ModelObject() any {
 	return &DataConnectorMicrosoftThreatIntelligenceModel{}
 }
 
