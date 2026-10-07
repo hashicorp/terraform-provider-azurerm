@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package loadtestservice
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -6,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -29,7 +33,7 @@ var (
 
 type LoadTestResource struct{}
 
-func (r LoadTestResource) ModelObject() interface{} {
+func (r LoadTestResource) ModelObject() any {
 	return &LoadTestResourceSchema{}
 }
 
@@ -41,7 +45,7 @@ type LoadTestResourceSchema struct {
 	Location          string                                     `tfschema:"location"`
 	Name              string                                     `tfschema:"name"`
 	ResourceGroupName string                                     `tfschema:"resource_group_name"`
-	Tags              map[string]interface{}                     `tfschema:"tags"`
+	Tags              map[string]any                             `tfschema:"tags"`
 }
 
 type LoadTestEncryption struct {
@@ -280,13 +284,7 @@ func (r LoadTestResource) EnsureEncryptionIdentityIDExistsInIdentity(model LoadT
 			return errors.New(msg)
 		}
 
-		existsInIdentity := false
-		for _, id := range model.Identity[0].IdentityIds {
-			if id == model.Encryption[0].Identity[0].IdentityID {
-				existsInIdentity = true
-				break
-			}
-		}
+		existsInIdentity := slices.Contains(model.Identity[0].IdentityIds, model.Encryption[0].Identity[0].IdentityID)
 
 		if !existsInIdentity {
 			return errors.New(msg)
@@ -296,7 +294,7 @@ func (r LoadTestResource) EnsureEncryptionIdentityIDExistsInIdentity(model LoadT
 	return nil
 }
 
-// nolint unparam
+//nolint:unparam
 func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestProperties(input LoadTestResourceSchema, output *loadtests.LoadTestProperties) error {
 	output.Description = &input.Description
 	output.Encryption = r.mapLoadTestResourceSchemaToLoadTestEncryption(input.Encryption)
@@ -314,7 +312,7 @@ func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestEncryption(input []
 	encryptionIdentity := &loadtests.EncryptionPropertiesIdentity{}
 	if attrIdentity := attr.Identity; len(attrIdentity) > 0 {
 		encryptionIdentity.ResourceId = pointer.To(attrIdentity[0].IdentityID)
-		encryptionIdentity.Type = pointer.To(loadtests.Type(attrIdentity[0].Type))
+		encryptionIdentity.Type = pointer.ToEnum[loadtests.Type](attrIdentity[0].Type)
 	}
 
 	return &loadtests.EncryptionProperties{
@@ -323,25 +321,23 @@ func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestEncryption(input []
 	}
 }
 
-// nolint unparam
+//nolint:unparam
 func (r LoadTestResource) mapLoadTestPropertiesToLoadTestResourceSchema(input loadtests.LoadTestProperties, output *LoadTestResourceSchema) error {
 	output.DataPlaneURI = pointer.From(input.DataPlaneURI)
 	output.Description = pointer.From(input.Description)
 
 	if encryption := input.Encryption; encryption != nil {
-		outputEncryption := make([]LoadTestEncryption, 0)
-		outputEncryptionIdentity := make([]LoadTestEncryptionIdentity, 0)
-		output.Encryption = append(outputEncryption, LoadTestEncryption{
+		output.Encryption = []LoadTestEncryption{{
 			KeyURL:   pointer.From(encryption.KeyURL),
-			Identity: outputEncryptionIdentity,
-		})
+			Identity: make([]LoadTestEncryptionIdentity, 0),
+		}}
 		if encryptionIdentity := encryption.Identity; encryptionIdentity != nil {
 			output.Encryption[0].Identity = append(output.Encryption[0].Identity, LoadTestEncryptionIdentity{
 				IdentityID: pointer.From(encryptionIdentity.ResourceId),
 			})
 
 			if encryptionIdentity.Type != nil {
-				output.Encryption[0].Identity[0].Type = string(pointer.From(encryptionIdentity.Type))
+				output.Encryption[0].Identity[0].Type = pointer.FromEnum(encryptionIdentity.Type)
 			}
 		}
 	}

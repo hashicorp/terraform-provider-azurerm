@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"fmt"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -16,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/integrationruntimes"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -25,7 +23,7 @@ import (
 )
 
 func resourceDataFactoryIntegrationRuntimeSelfHosted() *pluginsdk.Resource {
-	r := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceDataFactoryIntegrationRuntimeSelfHostedCreateUpdate,
 		Read:   resourceDataFactoryIntegrationRuntimeSelfHostedRead,
 		Update: resourceDataFactoryIntegrationRuntimeSelfHostedCreateUpdate,
@@ -103,19 +101,9 @@ func resourceDataFactoryIntegrationRuntimeSelfHosted() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		r.Schema["rbac_authorization"].Elem.(*pluginsdk.Resource).Schema["resource_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		}
-	}
-
-	return r
 }
 
-func resourceDataFactoryIntegrationRuntimeSelfHostedCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryIntegrationRuntimeSelfHostedCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -172,7 +160,7 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedCreateUpdate(d *pluginsdk.Re
 	return resourceDataFactoryIntegrationRuntimeSelfHostedRead(d, meta)
 }
 
-func resourceDataFactoryIntegrationRuntimeSelfHostedRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryIntegrationRuntimeSelfHostedRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -243,7 +231,7 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedRead(d *pluginsdk.ResourceDa
 	return nil
 }
 
-func resourceDataFactoryIntegrationRuntimeSelfHostedDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryIntegrationRuntimeSelfHostedDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -263,12 +251,12 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedDelete(d *pluginsdk.Resource
 	return nil
 }
 
-func expandAzureRmDataFactoryIntegrationRuntimeSelfHostedTypePropertiesLinkedInfo(input []interface{}) *integrationruntimes.LinkedIntegrationRuntimeRbacAuthorization {
+func expandAzureRmDataFactoryIntegrationRuntimeSelfHostedTypePropertiesLinkedInfo(input []any) *integrationruntimes.LinkedIntegrationRuntimeRbacAuthorization {
 	if len(input) == 0 {
 		return nil
 	}
 
-	rbacConfig := input[0].(map[string]interface{})
+	rbacConfig := input[0].(map[string]any)
 	rbac := rbacConfig["resource_id"].(string)
 	return &integrationruntimes.LinkedIntegrationRuntimeRbacAuthorization{
 		ResourceId:        rbac,
@@ -276,23 +264,19 @@ func expandAzureRmDataFactoryIntegrationRuntimeSelfHostedTypePropertiesLinkedInf
 	}
 }
 
-func flattenAzureRmDataFactoryIntegrationRuntimeSelfHostedTypePropertiesRbacAuthorization(input integrationruntimes.LinkedIntegrationRuntimeRbacAuthorization) []interface{} {
-	result := make(map[string]interface{})
+func flattenAzureRmDataFactoryIntegrationRuntimeSelfHostedTypePropertiesRbacAuthorization(input integrationruntimes.LinkedIntegrationRuntimeRbacAuthorization) []any {
+	result := make(map[string]any)
 	result["resource_id"] = input.ResourceId
 
-	return []interface{}{result}
+	return []any{result}
 }
 
-func resourceDataFactoryIntegrationRuntimeSelfHostedRbacAuthorizationHash(v interface{}) int {
+func resourceDataFactoryIntegrationRuntimeSelfHostedRbacAuthorizationHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
+	if m, ok := v.(map[string]any); ok {
 		if v, ok := m["resource_id"]; ok {
-			if !features.FivePointOh() {
-				fmt.Fprintf(&buf, "%s-", strings.ToLower(v.(string)))
-			} else {
-				fmt.Fprintf(&buf, "%s-", v.(string))
-			}
+			fmt.Fprintf(&buf, "%s-", v.(string))
 		}
 	}
 

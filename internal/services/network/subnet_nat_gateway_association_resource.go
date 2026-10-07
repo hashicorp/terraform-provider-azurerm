@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/natgateways"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/subnets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/natgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/subnets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -56,7 +56,7 @@ func resourceSubnetNatGatewayAssociation() *pluginsdk.Resource {
 	}
 }
 
-func resourceSubnetNatGatewayAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSubnetNatGatewayAssociationCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.Subnets
 	vnetClient := meta.(*clients.Client).Network.VirtualNetworks
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -72,12 +72,13 @@ func resourceSubnetNatGatewayAssociationCreate(d *pluginsdk.ResourceData, meta i
 		return err
 	}
 
-	locks.ByName(gatewayId.NatGatewayName, natGatewayResourceName)
-	defer locks.UnlockByName(gatewayId.NatGatewayName, natGatewayResourceName)
-	locks.ByName(subnetId.VirtualNetworkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(subnetId.VirtualNetworkName, VirtualNetworkResourceName)
-	locks.ByName(subnetId.SubnetName, SubnetResourceName)
-	defer locks.UnlockByName(subnetId.SubnetName, SubnetResourceName)
+	locks.ByID(gatewayId.ID())
+	defer locks.UnlockByID(gatewayId.ID())
+	vnetId := commonids.NewVirtualNetworkID(subnetId.SubscriptionId, subnetId.ResourceGroupName, subnetId.VirtualNetworkName)
+	locks.ByID(vnetId.ID())
+	defer locks.UnlockByID(vnetId.ID())
+	locks.ByID(subnetId.ID())
+	defer locks.UnlockByID(subnetId.ID())
 
 	subnet, err := client.Get(ctx, *subnetId, subnets.DefaultGetOperationOptions())
 	if err != nil {
@@ -122,7 +123,6 @@ func resourceSubnetNatGatewayAssociationCreate(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("waiting for provisioning state of subnet for NAT Gateway Association for %s: %+v", *subnetId, err)
 	}
 
-	vnetId := commonids.NewVirtualNetworkID(subnetId.SubscriptionId, subnetId.ResourceGroupName, subnetId.VirtualNetworkName)
 	vnetStateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{string(subnets.ProvisioningStateUpdating)},
 		Target:     []string{string(subnets.ProvisioningStateSucceeded)},
@@ -137,7 +137,7 @@ func resourceSubnetNatGatewayAssociationCreate(d *pluginsdk.ResourceData, meta i
 	return resourceSubnetNatGatewayAssociationRead(d, meta)
 }
 
-func resourceSubnetNatGatewayAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSubnetNatGatewayAssociationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.Subnets
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -182,7 +182,7 @@ func resourceSubnetNatGatewayAssociationRead(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func resourceSubnetNatGatewayAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSubnetNatGatewayAssociationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.Subnets
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -219,10 +219,11 @@ func resourceSubnetNatGatewayAssociationDelete(d *pluginsdk.ResourceData, meta i
 		return err
 	}
 
-	locks.ByName(gatewayId.NatGatewayName, natGatewayResourceName)
-	defer locks.UnlockByName(gatewayId.NatGatewayName, natGatewayResourceName)
-	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
+	locks.ByID(gatewayId.ID())
+	defer locks.UnlockByID(gatewayId.ID())
+	vnetId := commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, id.VirtualNetworkName)
+	locks.ByID(vnetId.ID())
+	defer locks.UnlockByID(vnetId.ID())
 
 	subnet, err = client.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {

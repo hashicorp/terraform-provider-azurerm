@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/staticsites"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/sdkhacks"
@@ -54,7 +53,7 @@ type StaticWebAppResourceModel struct {
 }
 
 func (r StaticWebAppResource) Arguments() map[string]*pluginsdk.Schema {
-	resource := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -140,10 +139,6 @@ func (r StaticWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
-	if !features.FivePointOh() {
-		resource["identity"] = commonschema.SystemAssignedUserAssignedIdentityOptional()
-	}
-	return resource
 }
 
 func (r StaticWebAppResource) Attributes() map[string]*pluginsdk.Schema {
@@ -161,7 +156,7 @@ func (r StaticWebAppResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r StaticWebAppResource) ModelObject() interface{} {
+func (r StaticWebAppResource) ModelObject() any {
 	return &StaticWebAppResourceModel{}
 }
 
@@ -201,8 +196,7 @@ func (r StaticWebAppResource) Create() sdk.ResourceFunc {
 			}
 
 			envelope := staticsites.StaticSiteARMResource{
-				Location:   location.Normalize(model.Location),
-				Properties: nil,
+				Location: location.Normalize(model.Location),
 				Sku: &staticsites.SkuDescription{
 					Name: pointer.To(model.SkuSize),
 					Tier: pointer.To(model.SkuTier),
@@ -492,9 +486,7 @@ func (r StaticWebAppResource) Update() sdk.ResourceFunc {
 				} else {
 					authProps.Properties = &staticsites.StaticSiteBasicAuthPropertiesARMResourceProperties{
 						ApplicableEnvironmentsMode: "SpecifiedEnvironments",
-						Password:                   nil,
-						// To remove a password the backend validation requires 'secretState' to be in JSON, so we send an empty string
-						SecretState: pointer.To(""),
+						SecretState:                pointer.To(""),
 					}
 				}
 
@@ -525,11 +517,11 @@ func (r StaticWebAppResource) CustomizeDiff() sdk.ResourceFunc {
 
 			if strings.EqualFold(skuTier, string(resourceproviders.SkuNameFree)) && strings.EqualFold(skuSize, string(resourceproviders.SkuNameFree)) {
 				basicAuth, authOk := rd.GetOk("basic_auth")
-				if authOk && len(basicAuth.([]interface{})) > 0 {
+				if authOk && len(basicAuth.([]any)) > 0 {
 					return fmt.Errorf("basic_auth cannot be used with the Free tier of Static Web Apps")
 				}
 				ident, identOk := rd.GetOk("identity")
-				if identOk && len(ident.([]interface{})) > 0 {
+				if identOk && len(ident.([]any)) > 0 {
 					return fmt.Errorf("identities cannot be used with the Free tier of Static Web Apps")
 				}
 			}

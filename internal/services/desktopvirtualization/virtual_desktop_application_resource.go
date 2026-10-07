@@ -44,18 +44,17 @@ func resourceVirtualDesktopApplication() *pluginsdk.Resource {
 			return err
 		}),
 
-		SchemaVersion: 0,
-
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.All(
-					validation.StringIsNotEmpty,
+					// NOTE: name string length is incorrect in the API specs, see: https://github.com/Azure/azure-rest-api-specs/issues/46813
+					validation.StringLenBetween(1, 260),
 					validation.StringMatch(
-						regexp.MustCompile("^[-a-zA-Z0-9]{1,260}$"),
-						"Virtual desktop application name must be 1 - 260 characters long, contain only letters, numbers and hyphens.",
+						regexp.MustCompile(`^[A-Za-z0-9@.\\-_ ]*$`),
+						"Virtual desktop application name must be 1 - 260 characters long and may only contain letters, numbers, spaces, periods, underscores, hyphens, and @.",
 					),
 				),
 			},
@@ -68,13 +67,9 @@ func resourceVirtualDesktopApplication() *pluginsdk.Resource {
 			},
 
 			"command_line_argument_policy": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(application.CommandLineSettingAllow),
-					string(application.CommandLineSettingDoNotAllow),
-					string(application.CommandLineSettingRequire),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(application.PossibleValuesForCommandLineSetting(), false),
 			},
 
 			"application_type": {
@@ -146,7 +141,7 @@ func resourceVirtualDesktopApplication() *pluginsdk.Resource {
 	}
 }
 
-func resourceVirtualDesktopApplicationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopApplicationCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DesktopVirtualization.ApplicationsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 
@@ -210,7 +205,7 @@ func resourceVirtualDesktopApplicationCreateUpdate(d *pluginsdk.ResourceData, me
 	return resourceVirtualDesktopApplicationRead(d, meta)
 }
 
-func resourceVirtualDesktopApplicationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopApplicationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DesktopVirtualization.ApplicationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -256,7 +251,7 @@ func resourceVirtualDesktopApplicationRead(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func resourceVirtualDesktopApplicationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopApplicationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DesktopVirtualization.ApplicationsClient
 
 	id, err := application.ParseApplicationID(d.Id())

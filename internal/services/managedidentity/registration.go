@@ -28,16 +28,14 @@ func (r Registration) Name() string {
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
-	dataSources := []sdk.DataSource{}
-	return dataSources
+	return []sdk.DataSource{}
 }
 
 func (r Registration) Resources() []sdk.Resource {
-	resources := []sdk.Resource{
+	return []sdk.Resource{
 		FederatedIdentityCredentialResource{},
 		UserAssignedIdentityResource{},
 	}
-	return resources
 }
 
 // WebsiteCategories returns a list of categories which can be used for the sidebar
@@ -78,5 +76,6 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
 		FederatedIdentityCredentialListResource{},
+		UserAssignedIdentityListResource{},
 	}
 }

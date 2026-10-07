@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = StorageContainerImmutabilityPolicyId{}
 
-func TestStorageContainerImmutabilityPolicyIDFormatter(t *testing.T) {
+func TestParseStorageContainerImmutabilityPolicyIDFormatter(t *testing.T) {
 	actual := NewStorageContainerImmutabilityPolicyID("12345678-1234-9876-4563-123456789012", "resGroup1", "storageAccount1", "default", "container1", "default").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Storage/storageAccounts/storageAccount1/blobServices/default/containers/container1/immutabilityPolicies/default"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestStorageContainerImmutabilityPolicyIDFormatter(t *testing.T) {
 	}
 }
 
-func TestStorageContainerImmutabilityPolicyID(t *testing.T) {
+func TestParseStorageContainerImmutabilityPolicyID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
