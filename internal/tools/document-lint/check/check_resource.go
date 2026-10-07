@@ -33,13 +33,10 @@ func (d *ResourceDiff) Diffs() []Checker {
 func (d *ResourceDiff) ToString() string {
 	var bs strings.Builder
 
-	bs.WriteString(
-		fmt.Sprintf("%s: %s:1 has %d issue[s]:\n",
-			util.Bold(d.tf.ResourceType),
-			d.tf.FilePathRel(),
-			len(d.Diff),
-		),
-	)
+	fmt.Fprintf(&bs, "%s: %s:1 has %d issue[s]:\n",
+		util.Bold(d.tf.ResourceType),
+		d.tf.FilePathRel(),
+		len(d.Diff))
 	file := d.MDFile + ":"
 	if idx := strings.Index(file, "website"); idx > 0 {
 		file = "./" + file[idx:]

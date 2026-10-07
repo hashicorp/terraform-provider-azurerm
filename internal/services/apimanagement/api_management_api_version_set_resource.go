@@ -60,13 +60,9 @@ func resourceApiManagementApiVersionSet() *pluginsdk.Resource {
 			},
 
 			"versioning_scheme": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(apiversionset.VersioningSchemeHeader),
-					string(apiversionset.VersioningSchemeQuery),
-					string(apiversionset.VersioningSchemeSegment),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(apiversionset.PossibleValuesForVersioningScheme(), false),
 			},
 
 			"description": {
@@ -92,7 +88,7 @@ func resourceApiManagementApiVersionSet() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementApiVersionSetCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementApiVersionSetCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ApiVersionSetClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -101,15 +97,17 @@ func resourceApiManagementApiVersionSetCreateUpdate(d *pluginsdk.ResourceData, m
 	id := apiversionset.NewApiVersionSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_api_version_set", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_api_management_api_version_set", id.ID())
+			}
 		}
 	}
 
@@ -167,7 +165,7 @@ func resourceApiManagementApiVersionSetCreateUpdate(d *pluginsdk.ResourceData, m
 	return resourceApiManagementApiVersionSetRead(d, meta)
 }
 
-func resourceApiManagementApiVersionSetRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementApiVersionSetRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ApiVersionSetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -205,7 +203,7 @@ func resourceApiManagementApiVersionSetRead(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func resourceApiManagementApiVersionSetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementApiVersionSetDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ApiVersionSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
