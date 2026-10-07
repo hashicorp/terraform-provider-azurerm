@@ -33,7 +33,7 @@ func (r PrivateDNSResolverOutboundEndpointDataSource) ResourceType() string {
 	return "azurerm_private_dns_resolver_outbound_endpoint"
 }
 
-func (r PrivateDNSResolverOutboundEndpointDataSource) ModelObject() interface{} {
+func (r PrivateDNSResolverOutboundEndpointDataSource) ModelObject() any {
 	return &PrivateDNSResolverOutboundEndpointDataSourceModel{}
 }
 

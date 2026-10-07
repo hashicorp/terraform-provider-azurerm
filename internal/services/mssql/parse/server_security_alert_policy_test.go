@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = ServerSecurityAlertPolicyId{}
 
-func TestServerSecurityAlertPolicyIDFormatter(t *testing.T) {
+func TestParseServerSecurityAlertPolicyIDFormatter(t *testing.T) {
 	actual := NewServerSecurityAlertPolicyID("12345678-1234-9876-4563-123456789012", "group1", "server1", "Default").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Sql/servers/server1/securityAlertPolicies/Default"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestServerSecurityAlertPolicyIDFormatter(t *testing.T) {
 	}
 }
 
-func TestServerSecurityAlertPolicyID(t *testing.T) {
+func TestParseServerSecurityAlertPolicyID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

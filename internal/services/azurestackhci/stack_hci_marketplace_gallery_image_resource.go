@@ -37,7 +37,7 @@ func (StackHCIMarketplaceGalleryImageResource) ResourceType() string {
 	return "azurerm_stack_hci_marketplace_gallery_image"
 }
 
-func (StackHCIMarketplaceGalleryImageResource) ModelObject() interface{} {
+func (StackHCIMarketplaceGalleryImageResource) ModelObject() any {
 	return &StackHCIMarketplaceGalleryImageResourceModel{}
 }
 
@@ -51,7 +51,7 @@ type StackHCIMarketplaceGalleryImageResourceModel struct {
 	OsType            string                                      `tfschema:"os_type"`
 	Version           string                                      `tfschema:"version"`
 	StoragePathId     string                                      `tfschema:"storage_path_id"`
-	Tags              map[string]interface{}                      `tfschema:"tags"`
+	Tags              map[string]any                              `tfschema:"tags"`
 }
 
 type StackHCIMarketplaceGalleryImageIdentifier struct {
@@ -180,7 +180,7 @@ func (r StackHCIMarketplaceGalleryImageResource) Create() sdk.ResourceFunc {
 				Properties: &marketplacegalleryimages.MarketplaceGalleryImageProperties{
 					Identifier:       expandStackHCIMarketplaceGalleryImageIdentifier(config.Identifier),
 					OsType:           marketplacegalleryimages.OperatingSystemTypes(config.OsType),
-					HyperVGeneration: pointer.To(marketplacegalleryimages.HyperVGeneration(config.HypervGeneration)),
+					HyperVGeneration: pointer.ToEnum[marketplacegalleryimages.HyperVGeneration](config.HypervGeneration),
 					Version: &marketplacegalleryimages.GalleryImageVersion{
 						Name: pointer.To(config.Version),
 					},
@@ -243,7 +243,7 @@ func (r StackHCIMarketplaceGalleryImageResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					schema.StoragePathId = pointer.From(props.ContainerId)
 					schema.OsType = string(props.OsType)
-					schema.HypervGeneration = string(pointer.From(props.HyperVGeneration))
+					schema.HypervGeneration = pointer.FromEnum(props.HyperVGeneration)
 					schema.Identifier = flattenStackHCIMarketplaceGalleryImageIdentifier(props.Identifier)
 
 					if props.Version != nil {
