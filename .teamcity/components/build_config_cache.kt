@@ -22,9 +22,12 @@ class buildCacheConfiguration(environment: String, vcsRootId: String) {
                 ConfigureGoEnv()
                 step(ScriptBuildStep {
                     name = "Compile Test Binary"
+                    // the build cache now outlives a build, so it's emptied first - what gets published is then
+                    // only what main needs, rather than everything other builds have left on this agent
                     scriptContent = """
                         mkdir -p %env.GOCACHE%
                         mkdir -p %env.GOMODCACHE%
+                        go clean -cache
                         go test -c -o test-binary
                     """.trimIndent()
                 })

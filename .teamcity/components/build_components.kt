@@ -177,9 +177,12 @@ fun ParametrizedWithType.BuildStartTime() {
     text("env.BUILD_START_TIME", "1777662664", "The time at which the build started")
 }
 
+// The Go caches can't live in the agent's work directory: once a build finishes TeamCity deletes everything
+// in there which isn't a checkout directory. The agent's persistent cache directory is left alone until the
+// agent runs short of disk space.
 fun ParametrizedWithType.GoCache() {
-    text("env.GOMODCACHE", "%teamcity.agent.work.dir%/go-cache/mod", "The location of the Go Module Cache")
-    text("env.GOCACHE", "%teamcity.agent.work.dir%/go-cache/build", "The location of the Go Cache")
+    text("env.GOMODCACHE", "%system.agent.persistent.cache%/go-cache/mod", "The location of the Go Module Cache")
+    text("env.GOCACHE", "%system.agent.persistent.cache%/go-cache/build", "The location of the Go Cache")
 }
 
 fun ParametrizedWithType.hiddenVariable(name: String, value: String, description: String) {
