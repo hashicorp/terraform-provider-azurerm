@@ -17,19 +17,34 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type FederatedIdentityCredentialTestResource struct{}
+type FederatedIdentityCredentialResource struct{}
 
-func TestAccFederatedIdentityCredential_basic(t *testing.T) {
+func TestAccFederatedIdentityCredential_sequential(t *testing.T) {
+	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+		"federatedIdentityCredential": {
+			"basic":            testAccFederatedIdentityCredential_basic,
+			"list":             testAccFederatedIdentityCredential_list,
+			"requiresImport":   testAccFederatedIdentityCredential_requiresImport,
+			"resourceIdentity": testAccFederatedIdentityCredential_resourceIdentity,
+		},
+	})
+}
+
+func testAccFederatedIdentityCredential_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_federated_identity_credential", "test")
-	r := FederatedIdentityCredentialTestResource{}
+	r := FederatedIdentityCredentialResource{}
 
 	rg := *regexp.MustCompile(`-updated`)
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("user_assigned_identity_id").Exists(),
+				check.That(data.ResourceName).Key("audience.0").HasValue("foo"),
+				check.That(data.ResourceName).Key("issuer").HasValue("https://foo"),
+				check.That(data.ResourceName).Key("subject").HasValue("foo"),
 			),
 		},
 		data.ImportStep(),
@@ -42,14 +57,22 @@ func TestAccFederatedIdentityCredential_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("subject").MatchesRegex(&rg),
 			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccFederatedIdentityCredential_requiresImport(t *testing.T) {
+func testAccFederatedIdentityCredential_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_federated_identity_credential", "test")
-	r := FederatedIdentityCredentialTestResource{}
+	r := FederatedIdentityCredentialResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -60,7 +83,7 @@ func TestAccFederatedIdentityCredential_requiresImport(t *testing.T) {
 	})
 }
 
-func (r FederatedIdentityCredentialTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r FederatedIdentityCredentialResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := federatedidentitycredentials.ParseFederatedIdentityCredentialID(state.ID)
 	if err != nil {
 		return nil, err
@@ -74,46 +97,46 @@ func (r FederatedIdentityCredentialTestResource) Exists(ctx context.Context, cli
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r FederatedIdentityCredentialTestResource) basic(data acceptance.TestData) string {
+func (r FederatedIdentityCredentialResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_federated_identity_credential" "test" {
-  audience  = ["foo"]
-  issuer    = "https://foo"
-  name      = "acctest-${local.random_integer}"
-  parent_id = azurerm_user_assigned_identity.test.id
-  subject   = "foo"
+  audience                  = ["foo"]
+  issuer                    = "https://foo"
+  name                      = "acctest-${local.random_integer}"
+  user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+  subject                   = "foo"
 }
 `, r.template(data))
 }
 
-func (r FederatedIdentityCredentialTestResource) update(data acceptance.TestData) string {
+func (r FederatedIdentityCredentialResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_federated_identity_credential" "test" {
-  audience  = ["foo-updated"]
-  issuer    = "https://foo-updated"
-  name      = "acctest-${local.random_integer}"
-  parent_id = azurerm_user_assigned_identity.test.id
-  subject   = "foo-updated"
+  audience                  = ["foo-updated"]
+  issuer                    = "https://foo-updated"
+  name                      = "acctest-${local.random_integer}"
+  user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+  subject                   = "foo-updated"
 }
 `, r.template(data))
 }
 
-func (r FederatedIdentityCredentialTestResource) requiresImport(data acceptance.TestData) string {
+func (r FederatedIdentityCredentialResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_federated_identity_credential" "import" {
-  audience  = ["foo"]
-  issuer    = "https://foo"
-  name      = "acctest-${local.random_integer}"
-  parent_id = azurerm_user_assigned_identity.test.id
-  subject   = "foo"
+  audience                  = ["foo"]
+  issuer                    = "https://foo"
+  name                      = "acctest-${local.random_integer}"
+  user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+  subject                   = "foo"
 }
 `, r.basic(data))
 }
 
-func (r FederatedIdentityCredentialTestResource) template(data acceptance.TestData) string {
+func (r FederatedIdentityCredentialResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

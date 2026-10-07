@@ -61,9 +61,20 @@ func (c VirtualMachineInstancesClient) CreateCheckpoint(ctx context.Context, id 
 
 // CreateCheckpointThenPoll performs CreateCheckpoint then polls until it's completed
 func (c VirtualMachineInstancesClient) CreateCheckpointThenPoll(ctx context.Context, id commonids.ScopeId, input VirtualMachineCreateCheckpoint) error {
+	return c.CreateCheckpointCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CreateCheckpointCallbackThenPoll performs CreateCheckpoint, runs the optional callback function, then polls until it's completed
+func (c VirtualMachineInstancesClient) CreateCheckpointCallbackThenPoll(ctx context.Context, id commonids.ScopeId, input VirtualMachineCreateCheckpoint, callback func() error) error {
 	result, err := c.CreateCheckpoint(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateCheckpoint: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
