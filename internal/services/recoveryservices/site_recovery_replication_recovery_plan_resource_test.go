@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices_test
@@ -210,8 +210,6 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = azurerm_resource_group.test2.location
   resource_group_name = azurerm_resource_group.test2.name
   sku                 = "Standard"
-
-  soft_delete_enabled = false
 }
 
 resource "azurerm_site_recovery_fabric" "test1" {
@@ -388,7 +386,9 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
 
   network_interface {
     source_network_interface_id = azurerm_network_interface.test.id
-    target_subnet_name          = "snet-%[2]d_2"
+    ip_configuration {
+      target_subnet_name = "snet-%[2]d_2"
+    }
   }
 
   depends_on = [

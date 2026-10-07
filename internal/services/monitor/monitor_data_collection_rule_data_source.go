@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -24,7 +24,7 @@ type DataCollectionRuleDataSource struct{}
 
 var _ sdk.DataSource = DataCollectionRuleDataSource{}
 
-func (d DataCollectionRuleDataSource) ModelObject() interface{} {
+func (d DataCollectionRuleDataSource) ModelObject() any {
 	return &DataCollectionRule{}
 }
 
@@ -95,8 +95,7 @@ func (d DataCollectionRuleDataSource) Attributes() map[string]*pluginsdk.Schema 
 				Schema: map[string]*schema.Schema{
 					"event_hub": {
 						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
+						Computed: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"event_hub_id": {
@@ -112,8 +111,7 @@ func (d DataCollectionRuleDataSource) Attributes() map[string]*pluginsdk.Schema 
 					},
 					"event_hub_direct": {
 						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
+						Computed: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"event_hub_id": {
@@ -330,7 +328,7 @@ func (d DataCollectionRuleDataSource) Attributes() map[string]*pluginsdk.Schema 
 					},
 					"log_file": {
 						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Computed: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
@@ -410,7 +408,7 @@ func (d DataCollectionRuleDataSource) Attributes() map[string]*pluginsdk.Schema 
 					},
 					"platform_telemetry": {
 						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Computed: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
@@ -606,7 +604,6 @@ func (d DataCollectionRuleDataSource) Read() sdk.ResourceFunc {
 			}
 
 			id := datacollectionrules.NewDataCollectionRuleID(subscriptionId, state.ResourceGroupName, state.Name)
-			metadata.Logger.Infof("retrieving %s", id)
 			resp, err := client.Get(ctx, id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
@@ -616,7 +613,7 @@ func (d DataCollectionRuleDataSource) Read() sdk.ResourceFunc {
 			}
 
 			var dataCollectionEndpointId, description, immutableId, kind, loc string
-			var tag map[string]interface{}
+			var tag map[string]any
 			var dataFlows []DataFlow
 			var dataSources []DataSource
 			var destinations []Destination

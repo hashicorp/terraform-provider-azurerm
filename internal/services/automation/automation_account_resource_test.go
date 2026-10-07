@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation_test
@@ -354,7 +354,7 @@ resource "azurerm_key_vault" "test" {
   sku_name                   = "standard"
   soft_delete_retention_days = 7
   purge_protection_enabled   = true
-  enable_rbac_authorization  = true
+  rbac_authorization_enabled = true
 }
 
 resource "azurerm_role_assignment" "current" {

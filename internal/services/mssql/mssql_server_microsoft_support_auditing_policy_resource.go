@@ -1,21 +1,19 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serverdevopsaudit"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/serverdevopsaudit"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -45,7 +43,7 @@ func resourceMsSqlServerMicrosoftSupportAuditingPolicy() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ServerID,
+				ValidateFunc: validation.AsGeneratedID(commonids.ParseSqlServerIDInsensitively),
 			},
 
 			"enabled": {
@@ -83,13 +81,11 @@ func resourceMsSqlServerMicrosoftSupportAuditingPolicy() *pluginsdk.Resource {
 	}
 }
 
-func resourceMsSqlServerMicrosoftSupportAuditingPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlServerMicrosoftSupportAuditingPolicyCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.ServerDevOpsAuditSettingsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for MsSql Server Microsoft Support Auditing Policy creation.")
 
 	serverId, err := commonids.ParseSqlServerID(d.Get("server_id").(string))
 	if err != nil {
@@ -97,16 +93,18 @@ func resourceMsSqlServerMicrosoftSupportAuditingPolicyCreateUpdate(d *pluginsdk.
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.SettingsGet(ctx, *serverId)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("retrieving MsSql Server Microsoft Support Auditing Policy %s: %+v", serverId, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.SettingsGet(ctx, *serverId)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("retrieving MsSql Server Microsoft Support Auditing Policy %s: %+v", serverId, err)
+				}
 			}
-		}
 
-		// if state is not disabled, we should import it.
-		if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" && existing.Model.Properties != nil && existing.Model.Properties.State != serverdevopsaudit.BlobAuditingPolicyStateDisabled {
-			return tf.ImportAsExistsError("azurerm_mssql_server_microsoft_support_auditing_policy", *existing.Model.Id)
+			// if state is not disabled, we should import it.
+			if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" && existing.Model.Properties != nil && existing.Model.Properties.State != serverdevopsaudit.BlobAuditingPolicyStateDisabled {
+				return tf.ImportAsExistsError("azurerm_mssql_server_microsoft_support_auditing_policy", *existing.Model.Id)
+			}
 		}
 	}
 
@@ -134,8 +132,8 @@ func resourceMsSqlServerMicrosoftSupportAuditingPolicyCreateUpdate(d *pluginsdk.
 		params.Properties.StorageAccountAccessKey = pointer.To(v.(string))
 	}
 
-	err = client.SettingsCreateOrUpdateThenPoll(ctx, *serverId, params)
-	if err != nil {
+	// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
+	if err := client.SettingsCreateOrUpdateThenPoll(ctx, *serverId, params); err != nil {
 		return fmt.Errorf("creating MsSql Server Microsoft Support Auditing Policy %s: %+v", serverId, err)
 	}
 
@@ -146,7 +144,7 @@ func resourceMsSqlServerMicrosoftSupportAuditingPolicyCreateUpdate(d *pluginsdk.
 	return resourceMsSqlServerMicrosoftSupportAuditingPolicyRead(d, meta)
 }
 
-func resourceMsSqlServerMicrosoftSupportAuditingPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlServerMicrosoftSupportAuditingPolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.ServerDevOpsAuditSettingsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -184,7 +182,7 @@ func resourceMsSqlServerMicrosoftSupportAuditingPolicyRead(d *pluginsdk.Resource
 	return nil
 }
 
-func resourceMsSqlServerMicrosoftSupportAuditingPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlServerMicrosoftSupportAuditingPolicyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.ServerDevOpsAuditSettingsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -202,8 +200,7 @@ func resourceMsSqlServerMicrosoftSupportAuditingPolicyDelete(d *pluginsdk.Resour
 		},
 	}
 
-	err = client.SettingsCreateOrUpdateThenPoll(ctx, serverId, params)
-	if err != nil {
+	if err = client.SettingsCreateOrUpdateThenPoll(ctx, serverId, params); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 

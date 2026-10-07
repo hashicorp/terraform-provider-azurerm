@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -18,7 +18,7 @@ var _ pluginsdk.StateUpgrade = ManagementGroupSubscriptionAssociationV0ToV1{}
 type ManagementGroupSubscriptionAssociationV0ToV1 struct{}
 
 func (ManagementGroupSubscriptionAssociationV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		oldId := rawState["id"].(string)
 		newId := strings.Replace(strings.Replace(rawState["id"].(string), "/managementGroup/", "/providers/Microsoft.Management/managementGroups/", 1), "/subscription/", "/subscriptions/", 1)
 

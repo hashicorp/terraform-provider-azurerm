@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package securitycenter
@@ -9,8 +9,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -18,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceAdvancedThreatProtection() *pluginsdk.Resource {
@@ -61,22 +61,24 @@ func resourceAdvancedThreatProtection() *pluginsdk.Resource {
 	}
 }
 
-func resourceAdvancedThreatProtectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAdvancedThreatProtectionCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.AdvancedThreatProtectionClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := parse.NewAdvancedThreatProtectionId(d.Get("target_resource_id").(string))
 	if d.IsNewResource() {
-		server, err := client.Get(ctx, id.TargetResourceID)
-		if err != nil {
-			if !utils.ResponseWasNotFound(server.Response) {
-				return fmt.Errorf("checking for presence of existing Advanced Threat Protection for %q: %+v", id.TargetResourceID, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			server, err := client.Get(ctx, id.TargetResourceID)
+			if err != nil {
+				if !response.WasNotFound(server.Response.Response) {
+					return fmt.Errorf("checking for presence of existing Advanced Threat Protection for %q: %+v", id.TargetResourceID, err)
+				}
 			}
-		}
 
-		if server.ID != nil && *server.ID != "" && server.IsEnabled != nil && *server.IsEnabled {
-			return tf.ImportAsExistsError("azurerm_advanced_threat_protection", id.ID())
+			if server.ID != nil && *server.ID != "" && server.IsEnabled != nil && *server.IsEnabled {
+				return tf.ImportAsExistsError("azurerm_advanced_threat_protection", id.ID())
+			}
 		}
 	}
 
@@ -99,7 +101,7 @@ func resourceAdvancedThreatProtectionCreateUpdate(d *pluginsdk.ResourceData, met
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending: []string{"diff"},
 		Target:  []string{"consistent"},
-		Refresh: func() (result interface{}, state string, err error) {
+		Refresh: func() (result any, state string, err error) {
 			resp, err := client.Get(ctx, id.TargetResourceID)
 			if err != nil {
 				return resp, "error", err
@@ -127,7 +129,7 @@ func resourceAdvancedThreatProtectionCreateUpdate(d *pluginsdk.ResourceData, met
 	return resourceAdvancedThreatProtectionRead(d, meta)
 }
 
-func resourceAdvancedThreatProtectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAdvancedThreatProtectionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.AdvancedThreatProtectionClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -139,7 +141,7 @@ func resourceAdvancedThreatProtectionRead(d *pluginsdk.ResourceData, meta interf
 
 	resp, err := client.Get(ctx, id.TargetResourceID)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("Advanced Threat Protection was not found for %q: %+v", id.TargetResourceID, err)
 			d.SetId("")
 			return nil
@@ -156,7 +158,7 @@ func resourceAdvancedThreatProtectionRead(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func resourceAdvancedThreatProtectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAdvancedThreatProtectionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.AdvancedThreatProtectionClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

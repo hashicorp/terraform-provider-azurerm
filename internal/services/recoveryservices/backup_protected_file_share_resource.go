@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices
@@ -6,12 +6,11 @@ package recoveryservices
 import (
 	"context"
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-12-01/backup" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-12-01/backup" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -23,7 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	recoveryServicesValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -38,7 +37,7 @@ func resourceBackupProtectedFileShare() *pluginsdk.Resource {
 		Delete: resourceBackupProtectedFileShareDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ProtectedItemID(id)
+			_, err := protecteditems.ParseProtectedItemID(id)
 			return err
 		}),
 
@@ -82,7 +81,7 @@ func resourceBackupProtectedFileShare() *pluginsdk.Resource {
 	}
 }
 
-func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	protectedClient := meta.(*clients.Client).RecoveryServices.ProtectedItemsGroupClient
 	protectableClient := meta.(*clients.Client).RecoveryServices.ProtectableItemsClient
 	protectionContainerClient := meta.(*clients.Client).RecoveryServices.BackupProtectionContainersClient
@@ -108,7 +107,6 @@ func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	containerName := fmt.Sprintf("StorageContainer;storage;%s;%s", parsedStorageAccountID.ResourceGroupName, parsedStorageAccountID.StorageAccountName)
-	log.Printf("[DEBUG] creating/updating Recovery Service Protected File Share %q (Container Name %q)", fileShareName, containerName)
 
 	// the fileshare has a user defined name, but its system name (fileShareSystemName) is only known to Azure Backup
 	fileShareSystemName := ""
@@ -146,7 +144,7 @@ func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, met
 	operationID := parsedLocation.Path["operationResults"]
 
 	// `inquire` API is an async operation and the results should be tracked using location header or Azure-async-url.
-	//  The Azure-AsyncOperation is not included in swagger, so call location (https://docs.microsoft.com/en-us/rest/api/backup/protection-container-operation-results/get)
+	//  The Azure-AsyncOperation is not included in swagger, so call location (https://docs.microsoft.com/rest/api/backup/protection-container-operation-results/get)
 	//  to wait the operation successfully completes.
 	state := &pluginsdk.StateChangeConf{
 		MinTimeout: 10 * time.Second,
@@ -219,15 +217,17 @@ func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, met
 	id := protecteditems.NewProtectedItemID(subscriptionId, d.Get("resource_group_name").(string), d.Get("recovery_vault_name").(string), "Azure", containerName, fileShareSystemName)
 
 	if d.IsNewResource() {
-		existing, err2 := client.Get(ctx, id, protecteditems.GetOperationOptions{})
-		if err2 != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing Recovery Service Protected File Share %q (Resource Group %q): %+v", fileShareName, resourceGroup, err2)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err2 := client.Get(ctx, id, protecteditems.GetOperationOptions{})
+			if err2 != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing Recovery Service Protected File Share %q (Resource Group %q): %+v", fileShareName, resourceGroup, err2)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_backup_protected_file_share", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_backup_protected_file_share", id.ID())
+			}
 		}
 	}
 
@@ -240,16 +240,21 @@ func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, met
 		},
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, item); err != nil {
-		return fmt.Errorf("creating/updating Recovery Service Protected File Share %q (Resource Group %q): %+v", fileShareName, resourceGroup, err)
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, item, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, item); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
-
-	d.SetId(id.ID())
 
 	return resourceBackupProtectedFileShareRead(d, meta)
 }
 
-func resourceBackupProtectedFileShareRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBackupProtectedFileShareRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).RecoveryServices.ProtectedItemsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -258,8 +263,6 @@ func resourceBackupProtectedFileShareRead(d *pluginsdk.ResourceData, meta interf
 	if err != nil {
 		return err
 	}
-
-	log.Printf("[DEBUG] Reading %s", *id)
 
 	resp, err := client.Get(ctx, *id, protecteditems.GetOperationOptions{})
 	if err != nil {
@@ -278,8 +281,7 @@ func resourceBackupProtectedFileShareRead(d *pluginsdk.ResourceData, meta interf
 		if properties := model.Properties; properties != nil {
 			if item, ok := properties.(protecteditems.AzureFileshareProtectedItem); ok {
 				if item.SourceResourceId != nil {
-					sourceResourceID := strings.Replace(*item.SourceResourceId, "Microsoft.storage", "Microsoft.Storage", 1) // The SDK is returning inconsistent capitalization
-					d.Set("source_storage_account_id", sourceResourceID)
+					d.Set("source_storage_account_id", strings.Replace(*item.SourceResourceId, "Microsoft.storage", "Microsoft.Storage", 1))
 				}
 				d.Set("source_file_share_name", item.FriendlyName)
 
@@ -293,7 +295,7 @@ func resourceBackupProtectedFileShareRead(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func resourceBackupProtectedFileShareDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBackupProtectedFileShareDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).RecoveryServices.ProtectedItemsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -303,8 +305,6 @@ func resourceBackupProtectedFileShareDelete(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
-	log.Printf("[DEBUG] Deleting %s", *id)
-
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
@@ -313,7 +313,7 @@ func resourceBackupProtectedFileShareDelete(d *pluginsdk.ResourceData, meta inte
 }
 
 func protectionContainerOperationResultsRefreshFunc(ctx context.Context, client *backup.ProtectionContainerOperationResultsClient, vaultName, resourceGroup, containerName string, operationID string) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		resp, err := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, operationID)
 		if err != nil {
 			return nil, "Error", fmt.Errorf("making Read request on Recovery Service Protection Container operation %q (Vault %q in Resource Group %q): %+v", operationID, vaultName, resourceGroup, err)

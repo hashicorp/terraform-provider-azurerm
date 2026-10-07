@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package common
@@ -8,15 +8,14 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 )
 
-func ExpandCosmosDbConflicResolutionPolicy(inputs []interface{}) *cosmosdb.ConflictResolutionPolicy {
+func ExpandCosmosDbConflicResolutionPolicy(inputs []any) *cosmosdb.ConflictResolutionPolicy {
 	if len(inputs) == 0 || inputs[0] == nil {
 		return nil
 	}
 
-	input := inputs[0].(map[string]interface{})
-	conflictResolutionMode := cosmosdb.ConflictResolutionMode(input["mode"].(string))
+	input := inputs[0].(map[string]any)
 	conflict := &cosmosdb.ConflictResolutionPolicy{
-		Mode: &conflictResolutionMode,
+		Mode: pointer.ToEnum[cosmosdb.ConflictResolutionMode](input["mode"].(string)),
 	}
 
 	if conflictResolutionPath, ok := input["conflict_resolution_path"].(string); ok {
@@ -30,11 +29,11 @@ func ExpandCosmosDbConflicResolutionPolicy(inputs []interface{}) *cosmosdb.Confl
 	return conflict
 }
 
-func FlattenCosmosDbConflictResolutionPolicy(input *cosmosdb.ConflictResolutionPolicy) []interface{} {
+func FlattenCosmosDbConflictResolutionPolicy(input *cosmosdb.ConflictResolutionPolicy) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
-	conflictResolutionPolicy := make(map[string]interface{})
+	conflictResolutionPolicy := make(map[string]any)
 
 	conflictResolutionPolicy["mode"] = input.Mode
 	var path, procedure string
@@ -45,8 +44,8 @@ func FlattenCosmosDbConflictResolutionPolicy(input *cosmosdb.ConflictResolutionP
 		procedure = *input.ConflictResolutionProcedure
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"mode":                          input.Mode,
 			"conflict_resolution_path":      path,
 			"conflict_resolution_procedure": procedure,

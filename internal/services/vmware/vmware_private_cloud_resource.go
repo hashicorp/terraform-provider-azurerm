@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package vmware
@@ -201,21 +201,24 @@ func resourceVmwarePrivateCloud() *pluginsdk.Resource {
 	}
 }
 
-func resourceVmwarePrivateCloudCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVmwarePrivateCloudCreate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Vmware.PrivateCloudClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := privateclouds.NewPrivateCloudID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_vmware_private_cloud", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_vmware_private_cloud", id.ID())
+		}
 	}
 
 	internet := privateclouds.InternetEnumDisabled
@@ -237,13 +240,16 @@ func resourceVmwarePrivateCloudCreate(d *pluginsdk.ResourceData, meta interface{
 			NsxtPassword:    pointer.To(d.Get("nsxt_password").(string)),
 			VcenterPassword: pointer.To(d.Get("vcenter_password").(string)),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, privateCloud); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	// TODO:
+	// @sreallymatt: this can likely be removed in favour of using polling methods from the SDK, however,
+	// we have no capacity to test this resource at the moment so leaving it be for now.
 	deadline, ok := ctx.Deadline()
 	if !ok {
 		return fmt.Errorf("internal-error: context had no deadline")
@@ -264,7 +270,7 @@ func resourceVmwarePrivateCloudCreate(d *pluginsdk.ResourceData, meta interface{
 	return resourceVmwarePrivateCloudRead(d, meta)
 }
 
-func resourceVmwarePrivateCloudRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVmwarePrivateCloudRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Vmware.PrivateCloudClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -324,7 +330,7 @@ func resourceVmwarePrivateCloudRead(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceVmwarePrivateCloudUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVmwarePrivateCloudUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Vmware.PrivateCloudClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -357,7 +363,7 @@ func resourceVmwarePrivateCloudUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("tags") {
-		privateCloudUpdate.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		privateCloudUpdate.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, privateCloudUpdate); err != nil {
@@ -367,7 +373,7 @@ func resourceVmwarePrivateCloudUpdate(d *pluginsdk.ResourceData, meta interface{
 	return resourceVmwarePrivateCloudRead(d, meta)
 }
 
-func resourceVmwarePrivateCloudDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVmwarePrivateCloudDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Vmware.PrivateCloudClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -385,7 +391,7 @@ func resourceVmwarePrivateCloudDelete(d *pluginsdk.ResourceData, meta interface{
 }
 
 func privateCloudStateRefreshFunc(ctx context.Context, client *privateclouds.PrivateCloudsClient, id privateclouds.PrivateCloudId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		res, err := client.Get(ctx, id)
 		if err != nil {
 			return nil, "", fmt.Errorf("polling for status of vmware private cloud %s error: %+v", id, err)

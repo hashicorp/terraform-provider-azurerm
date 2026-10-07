@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package devcenter_test
@@ -166,5 +166,5 @@ resource "azurerm_dev_center" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, "West Europe")
+`, data.RandomInteger, data.Locations.Primary)
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/tenantaccess"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -231,7 +230,7 @@ func dataSourceApiManagementService() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceApiManagementRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceApiManagementRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
 	tenantAccessClient := meta.(*clients.Client).ApiManagement.TenantAccessClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -289,7 +288,7 @@ func dataSourceApiManagementRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 		d.Set("sku_name", flattenApiManagementServiceSkuName(&model.Sku))
 
-		tenantAccess := make([]interface{}, 0)
+		tenantAccess := make([]any, 0)
 		if model.Sku.Name != apimanagementservice.SkuTypeConsumption && !strings.Contains(string(model.Sku.Name), "V2") {
 			tenantAccessServiceId := tenantaccess.NewAccessID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, "access")
 			tenantAccessInformationContract, err := tenantAccessClient.ListSecrets(ctx, tenantAccessServiceId)
@@ -313,29 +312,26 @@ func dataSourceApiManagementRead(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
-func flattenDataSourceApiManagementHostnameConfigurations(input *[]apimanagementservice.HostnameConfiguration) []interface{} {
+func flattenDataSourceApiManagementHostnameConfigurations(input *[]apimanagementservice.HostnameConfiguration) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	// management, portal, proxy, scm
-	managementResults := make([]interface{}, 0)
-	proxyResults := make([]interface{}, 0)
-	portalResults := make([]interface{}, 0)
-	developerPortalResults := make([]interface{}, 0)
-	scmResults := make([]interface{}, 0)
+	managementResults := make([]any, 0)
+	proxyResults := make([]any, 0)
+	portalResults := make([]any, 0)
+	developerPortalResults := make([]any, 0)
+	scmResults := make([]any, 0)
 
 	for _, config := range *input {
-		output := make(map[string]interface{})
+		output := make(map[string]any)
 
 		output["host_name"] = config.HostName
 
 		output["negotiate_client_certificate"] = pointer.From(config.NegotiateClientCertificate)
 
 		output["key_vault_certificate_id"] = pointer.From(config.KeyVaultId)
-		if !features.FivePointOh() {
-			output["key_vault_id"] = pointer.From(config.KeyVaultId)
-		}
 
 		switch strings.ToLower(string(config.Type)) {
 		case strings.ToLower(string(apimanagementservice.HostnameTypeProxy)):
@@ -359,8 +355,8 @@ func flattenDataSourceApiManagementHostnameConfigurations(input *[]apimanagement
 		}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"management":       managementResults,
 			"portal":           portalResults,
 			"developer_portal": developerPortalResults,
@@ -370,14 +366,14 @@ func flattenDataSourceApiManagementHostnameConfigurations(input *[]apimanagement
 	}
 }
 
-func flattenDataSourceApiManagementAdditionalLocations(input *[]apimanagementservice.AdditionalLocation) []interface{} {
-	results := make([]interface{}, 0)
+func flattenDataSourceApiManagementAdditionalLocations(input *[]apimanagementservice.AdditionalLocation) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, prop := range *input {
-		results = append(results, map[string]interface{}{
+		results = append(results, map[string]any{
 			"capacity":             int32(prop.Sku.Capacity),
 			"gateway_regional_url": pointer.From(prop.GatewayRegionalURL),
 			"location":             location.NormalizeNilable(pointer.To(prop.Location)),
@@ -392,7 +388,7 @@ func flattenDataSourceApiManagementAdditionalLocations(input *[]apimanagementser
 }
 
 func apiManagementDataSourceHostnameSchema() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"host_name": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -408,15 +404,6 @@ func apiManagementDataSourceHostnameSchema() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 	}
-
-	if !features.FivePointOh() {
-		s["key_vault_id"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		}
-	}
-
-	return s
 }
 
 func apiManagementDataSourceHostnameProxySchema() map[string]*pluginsdk.Schema {

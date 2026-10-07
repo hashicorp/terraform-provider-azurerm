@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics
@@ -112,25 +112,26 @@ func resourceStreamAnalyticsStreamInputBlob() *pluginsdk.Resource {
 	}
 }
 
-func resourceStreamAnalyticsStreamInputBlobCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsStreamInputBlobCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.InputsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Stream Input Blob creation.")
 	id := inputs.NewInputID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_stream_analytics_stream_input_blob", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_stream_analytics_stream_input_blob", id.ID())
+			}
 		}
 	}
 
@@ -141,7 +142,7 @@ func resourceStreamAnalyticsStreamInputBlobCreateUpdate(d *pluginsdk.ResourceDat
 	storageAccountName := d.Get("storage_account_name").(string)
 	timeFormat := d.Get("time_format").(string)
 
-	serializationRaw := d.Get("serialization").([]interface{})
+	serializationRaw := d.Get("serialization").([]any)
 	serialization, err := expandStreamAnalyticsStreamInputSerialization(serializationRaw)
 	if err != nil {
 		return fmt.Errorf("expanding `serialization`: %+v", err)
@@ -164,7 +165,7 @@ func resourceStreamAnalyticsStreamInputBlobCreateUpdate(d *pluginsdk.ResourceDat
 							AccountKey:  pointer.To(storageAccountKey),
 						},
 					},
-					AuthenticationMode: pointer.To(inputs.AuthenticationMode(d.Get("authentication_mode").(string))),
+					AuthenticationMode: pointer.ToEnum[inputs.AuthenticationMode](d.Get("authentication_mode").(string)),
 				},
 			},
 			Serialization: serialization,
@@ -186,7 +187,7 @@ func resourceStreamAnalyticsStreamInputBlobCreateUpdate(d *pluginsdk.ResourceDat
 	return resourceStreamAnalyticsStreamInputBlobRead(d, meta)
 }
 
-func resourceStreamAnalyticsStreamInputBlobRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsStreamInputBlobRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.InputsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -224,29 +225,13 @@ func resourceStreamAnalyticsStreamInputBlobRead(d *pluginsdk.ResourceData, meta 
 			}
 
 			if streamBlobInputProps := streamBlobInput.Properties; streamBlobInputProps != nil {
-				dateFormat := ""
-				if v := streamBlobInput.Properties.DateFormat; v != nil {
-					dateFormat = *v
-				}
-				d.Set("date_format", dateFormat)
+				d.Set("date_format", pointer.From(streamBlobInput.Properties.DateFormat))
 
-				pathPattern := ""
-				if v := streamBlobInputProps.PathPattern; v != nil {
-					pathPattern = *v
-				}
-				d.Set("path_pattern", pathPattern)
+				d.Set("path_pattern", pointer.From(streamBlobInputProps.PathPattern))
 
-				containerName := ""
-				if v := streamBlobInputProps.Container; v != nil {
-					containerName = *v
-				}
-				d.Set("storage_container_name", containerName)
+				d.Set("storage_container_name", pointer.From(streamBlobInputProps.Container))
 
-				timeFormat := ""
-				if v := streamBlobInputProps.TimeFormat; v != nil {
-					timeFormat = *v
-				}
-				d.Set("time_format", timeFormat)
+				d.Set("time_format", pointer.From(streamBlobInputProps.TimeFormat))
 
 				authMode := ""
 				if v := streamBlobInputProps.AuthenticationMode; v != nil {
@@ -269,7 +254,7 @@ func resourceStreamAnalyticsStreamInputBlobRead(d *pluginsdk.ResourceData, meta 
 	return nil
 }
 
-func resourceStreamAnalyticsStreamInputBlobDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsStreamInputBlobDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.InputsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

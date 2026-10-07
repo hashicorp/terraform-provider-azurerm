@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package machinelearning
@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 )
 
-func expandIdentity(input []interface{}) (*identity.LegacySystemAndUserAssignedMap, error) {
+func expandIdentity(input []any) (*identity.LegacySystemAndUserAssignedMap, error) {
 	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
 	if err != nil {
 		return nil, err
@@ -34,7 +34,7 @@ func expandIdentity(input []interface{}) (*identity.LegacySystemAndUserAssignedM
 	return &out, nil
 }
 
-func flattenIdentity(input *identity.LegacySystemAndUserAssignedMap) (*[]interface{}, error) {
+func flattenIdentity(input *identity.LegacySystemAndUserAssignedMap) (*[]any, error) {
 	var config *identity.SystemAndUserAssignedMap
 
 	if input != nil {
@@ -46,7 +46,7 @@ func flattenIdentity(input *identity.LegacySystemAndUserAssignedMap) (*[]interfa
 		if input.PrincipalId != "" {
 			config.PrincipalId = input.PrincipalId
 		}
-		if input.TenantId != "nil" {
+		if input.TenantId != "" {
 			config.TenantId = input.TenantId
 		}
 		identityIds := make(map[string]identity.UserAssignedIdentityDetails)

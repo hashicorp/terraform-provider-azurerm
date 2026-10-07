@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package resource_test
@@ -17,6 +17,16 @@ import (
 )
 
 type ResourceManagementPrivateLinkTestResource struct{}
+
+func TestAccResourceManagementPrivateLink_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_management_private_link", "test")
+	r := ResourceManagementPrivateLinkTestResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccResourceManagementPrivateLink_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_management_private_link", "test")

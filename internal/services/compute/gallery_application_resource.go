@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -116,7 +116,7 @@ func (r GalleryApplicationResource) ResourceType() string {
 	return "azurerm_gallery_application"
 }
 
-func (r GalleryApplicationResource) ModelObject() interface{} {
+func (r GalleryApplicationResource) ModelObject() any {
 	return &GalleryApplicationModel{}
 }
 
@@ -141,12 +141,15 @@ func (r GalleryApplicationResource) Create() sdk.ResourceFunc {
 			}
 
 			id := galleryapplications.NewApplicationID(subscriptionId, galleryId.ResourceGroupName, galleryId.GalleryName, state.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for the presence of existing %q: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for the presence of existing %q: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			payload := galleryapplications.GalleryApplication{
@@ -178,12 +181,12 @@ func (r GalleryApplicationResource) Create() sdk.ResourceFunc {
 				payload.Properties.ReleaseNoteUri = pointer.To(state.ReleaseNoteURI)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
-			return nil
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id)
 		},
 		Timeout: 30 * time.Minute,
 	}
@@ -284,7 +287,14 @@ func (r GalleryApplicationResource) Update() sdk.ResourceFunc {
 			}
 
 			payload := *existing.Model
-			if metadata.ResourceData.HasChanges("description", "end_of_life_date", "eula", "privacy_statement_uri", "release_note_uri") {
+			// lintignore:R019 // deliberate subset: only the fields feeding payload.Properties; tags are applied separately below
+			if metadata.ResourceData.HasChanges(
+				"description",
+				"end_of_life_date",
+				"eula",
+				"privacy_statement_uri",
+				"release_note_uri",
+			) {
 				if payload.Properties == nil {
 					payload.Properties = &galleryapplications.GalleryApplicationProperties{}
 				}

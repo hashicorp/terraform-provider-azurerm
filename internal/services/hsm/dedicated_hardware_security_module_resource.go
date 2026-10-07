@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package hsm
@@ -17,8 +17,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hardwaresecuritymodules/2021-11-30/dedicatedhsms"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -57,18 +57,10 @@ func resourceDedicatedHardwareSecurityModule() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(dedicatedhsms.SkuNameSafeNetLunaNetworkHSMASevenNineZero),
-					string(dedicatedhsms.SkuNamePayShieldOneZeroKLMKOneCPSSixZero),
-					string(dedicatedhsms.SkuNamePayShieldOneZeroKLMKOneCPSTwoFiveZero),
-					string(dedicatedhsms.SkuNamePayShieldOneZeroKLMKOneCPSTwoFiveZeroZero),
-					string(dedicatedhsms.SkuNamePayShieldOneZeroKLMKTwoCPSSixZero),
-					string(dedicatedhsms.SkuNamePayShieldOneZeroKLMKTwoCPSTwoFiveZero),
-					string(dedicatedhsms.SkuNamePayShieldOneZeroKLMKTwoCPSTwoFiveZeroZero),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(dedicatedhsms.PossibleValuesForSkuName(), false),
 			},
 
 			"network_profile": {
@@ -83,7 +75,7 @@ func resourceDedicatedHardwareSecurityModule() *pluginsdk.Resource {
 							ForceNew: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: azValidate.IPv4Address,
+								ValidateFunc: validation.IsIPv4Address,
 							},
 						},
 
@@ -109,7 +101,7 @@ func resourceDedicatedHardwareSecurityModule() *pluginsdk.Resource {
 							ForceNew: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: azValidate.IPv4Address,
+								ValidateFunc: validation.IsIPv4Address,
 							},
 						},
 
@@ -140,21 +132,24 @@ func resourceDedicatedHardwareSecurityModule() *pluginsdk.Resource {
 	}
 }
 
-func resourceDedicatedHardwareSecurityModuleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDedicatedHardwareSecurityModuleCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).HSM.DedicatedHsmClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := dedicatedhsms.NewDedicatedHSMID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.DedicatedHsmGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.DedicatedHsmGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_dedicated_hardware_security_module", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_dedicated_hardware_security_module", id.ID())
+		}
 	}
 
 	skuName := dedicatedhsms.SkuName(d.Get("sku_name").(string))
@@ -167,13 +162,13 @@ func resourceDedicatedHardwareSecurityModuleCreate(d *pluginsdk.ResourceData, me
 	parameters := dedicatedhsms.DedicatedHsm{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: dedicatedhsms.DedicatedHsmProperties{
-			NetworkProfile:           expandDedicatedHsmNetworkProfile(d.Get("network_profile").([]interface{})),
-			ManagementNetworkProfile: expandDedicatedHsmNetworkProfile(d.Get("management_network_profile").([]interface{})),
+			NetworkProfile:           expandDedicatedHsmNetworkProfile(d.Get("network_profile").([]any)),
+			ManagementNetworkProfile: expandDedicatedHsmNetworkProfile(d.Get("management_network_profile").([]any)),
 		},
 		Sku: &dedicatedhsms.Sku{
 			Name: &skuName,
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v, ok := d.GetOk("stamp_id"); ok {
@@ -187,7 +182,7 @@ func resourceDedicatedHardwareSecurityModuleCreate(d *pluginsdk.ResourceData, me
 		}
 	}
 
-	if err := client.DedicatedHsmCreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.DedicatedHsmCreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -195,7 +190,7 @@ func resourceDedicatedHardwareSecurityModuleCreate(d *pluginsdk.ResourceData, me
 	return resourceDedicatedHardwareSecurityModuleRead(d, meta)
 }
 
-func resourceDedicatedHardwareSecurityModuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDedicatedHardwareSecurityModuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).HSM.DedicatedHsmClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -248,7 +243,7 @@ func resourceDedicatedHardwareSecurityModuleRead(d *pluginsdk.ResourceData, meta
 	return nil
 }
 
-func resourceDedicatedHardwareSecurityModuleUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDedicatedHardwareSecurityModuleUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).HSM.DedicatedHsmClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -260,7 +255,7 @@ func resourceDedicatedHardwareSecurityModuleUpdate(d *pluginsdk.ResourceData, me
 
 	parameters := dedicatedhsms.DedicatedHsmPatchParameters{}
 	if d.HasChange("tags") {
-		parameters.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		parameters.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.DedicatedHsmUpdateThenPoll(ctx, *id, parameters); err != nil {
@@ -270,7 +265,7 @@ func resourceDedicatedHardwareSecurityModuleUpdate(d *pluginsdk.ResourceData, me
 	return resourceDedicatedHardwareSecurityModuleRead(d, meta)
 }
 
-func resourceDedicatedHardwareSecurityModuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDedicatedHardwareSecurityModuleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).HSM.DedicatedHsmClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -287,12 +282,12 @@ func resourceDedicatedHardwareSecurityModuleDelete(d *pluginsdk.ResourceData, me
 	return nil
 }
 
-func expandDedicatedHsmNetworkProfile(input []interface{}) *dedicatedhsms.NetworkProfile {
+func expandDedicatedHsmNetworkProfile(input []any) *dedicatedhsms.NetworkProfile {
 	if len(input) == 0 {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	result := dedicatedhsms.NetworkProfile{
 		Subnet: &dedicatedhsms.ApiEntityReference{
@@ -304,7 +299,7 @@ func expandDedicatedHsmNetworkProfile(input []interface{}) *dedicatedhsms.Networ
 	return &result
 }
 
-func expandDedicatedHsmNetworkInterfacePrivateIPAddresses(input []interface{}) *[]dedicatedhsms.NetworkInterface {
+func expandDedicatedHsmNetworkInterfacePrivateIPAddresses(input []any) *[]dedicatedhsms.NetworkInterface {
 	results := make([]dedicatedhsms.NetworkInterface, 0)
 
 	for _, item := range input {
@@ -318,9 +313,9 @@ func expandDedicatedHsmNetworkInterfacePrivateIPAddresses(input []interface{}) *
 	return &results
 }
 
-func flattenDedicatedHsmNetworkProfile(input *dedicatedhsms.NetworkProfile) []interface{} {
+func flattenDedicatedHsmNetworkProfile(input *dedicatedhsms.NetworkProfile) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
 	var subnetId string
@@ -328,16 +323,16 @@ func flattenDedicatedHsmNetworkProfile(input *dedicatedhsms.NetworkProfile) []in
 		subnetId = *input.Subnet.Id
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"network_interface_private_ip_addresses": flattenDedicatedHsmNetworkInterfacePrivateIPAddresses(input.NetworkInterfaces),
 			"subnet_id":                              subnetId,
 		},
 	}
 }
 
-func flattenDedicatedHsmNetworkInterfacePrivateIPAddresses(input *[]dedicatedhsms.NetworkInterface) []interface{} {
-	results := make([]interface{}, 0)
+func flattenDedicatedHsmNetworkInterfacePrivateIPAddresses(input *[]dedicatedhsms.NetworkInterface) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}

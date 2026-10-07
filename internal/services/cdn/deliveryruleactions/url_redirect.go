@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package deliveryruleactions
@@ -6,7 +6,7 @@ package deliveryruleactions
 import (
 	"errors"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -17,25 +17,16 @@ func URLRedirect() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"redirect_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cdn.RedirectTypeFound),
-					string(cdn.RedirectTypeMoved),
-					string(cdn.RedirectTypePermanentRedirect),
-					string(cdn.RedirectTypeTemporaryRedirect),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInEnumSlice(cdn.PossibleRedirectTypeValues(), false),
 			},
 
 			"protocol": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(cdn.DestinationProtocolMatchRequest),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cdn.DestinationProtocolMatchRequest),
-					string(cdn.DestinationProtocolHTTP),
-					string(cdn.DestinationProtocolHTTPS),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(cdn.DestinationProtocolMatchRequest),
+				ValidateFunc: validation.StringInEnumSlice(cdn.PossibleDestinationProtocolValues(), false),
 			},
 
 			"hostname": {
@@ -64,11 +55,11 @@ func URLRedirect() *pluginsdk.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointActionUrlRedirect(input []interface{}) (*[]cdn.BasicDeliveryRuleAction, error) {
+func ExpandArmCdnEndpointActionUrlRedirect(input []any) (*[]cdn.BasicDeliveryRuleAction, error) {
 	output := make([]cdn.BasicDeliveryRuleAction, 0)
 
 	for _, v := range input {
-		item := v.(map[string]interface{})
+		item := v.(map[string]any)
 
 		params := cdn.URLRedirectActionParameters{
 			OdataType:    pointer.To("Microsoft.Azure.Cdn.Models.DeliveryRuleUrlRedirectActionParameters"),
@@ -104,7 +95,7 @@ func ExpandArmCdnEndpointActionUrlRedirect(input []interface{}) (*[]cdn.BasicDel
 	return &output, nil
 }
 
-func FlattenArmCdnEndpointActionUrlRedirect(input cdn.BasicDeliveryRuleAction) (*map[string]interface{}, error) {
+func FlattenArmCdnEndpointActionUrlRedirect(input cdn.BasicDeliveryRuleAction) (*map[string]any, error) {
 	action, ok := input.AsURLRedirectAction()
 	if !ok {
 		return nil, errors.New("expected a delivery rule url redirect action")
@@ -138,7 +129,7 @@ func FlattenArmCdnEndpointActionUrlRedirect(input cdn.BasicDeliveryRuleAction) (
 		}
 	}
 
-	return &map[string]interface{}{
+	return &map[string]any{
 		"fragment":      fragment,
 		"hostname":      customHostname,
 		"query_string":  queryString,

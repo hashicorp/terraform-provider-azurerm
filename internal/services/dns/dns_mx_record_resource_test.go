@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dns_test
@@ -90,7 +90,7 @@ func TestAccDnsMxRecord_updateRecords(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDnsMxRecord_withTags(t *testing.T) {
+func TestAccDnsMxRecord_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_mx_record", "test")
 	r := DnsMxRecordResource{}
 

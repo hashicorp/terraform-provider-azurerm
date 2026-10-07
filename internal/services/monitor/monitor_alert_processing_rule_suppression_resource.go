@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -34,7 +34,7 @@ func (r AlertProcessingRuleSuppressionResource) ResourceType() string {
 	return "azurerm_monitor_alert_processing_rule_suppression"
 }
 
-func (r AlertProcessingRuleSuppressionResource) ModelObject() interface{} {
+func (r AlertProcessingRuleSuppressionResource) ModelObject() any {
 	return &AlertProcessingRuleSuppressionModel{}
 }
 
@@ -43,8 +43,7 @@ func (r AlertProcessingRuleSuppressionResource) IDValidationFunc() pluginsdk.Sch
 }
 
 func (r AlertProcessingRuleSuppressionResource) Arguments() map[string]*pluginsdk.Schema {
-	arguments := schemaAlertProcessingRule()
-	return arguments
+	return schemaAlertProcessingRule()
 }
 
 func (r AlertProcessingRuleSuppressionResource) Attributes() map[string]*pluginsdk.Schema {
@@ -63,12 +62,15 @@ func (r AlertProcessingRuleSuppressionResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := alertprocessingrules.NewActionRuleID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.GetByName(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetByName(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			alertProcessingRule := alertprocessingrules.AlertProcessingRule{

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package securitycenter_test
@@ -214,7 +214,7 @@ resource "azurerm_iot_security_solution" "test" {
   events_to_export           = ["RawEvents"]
   disabled_data_sources      = ["TwinData"]
 
-  recommendations_enabled {
+  recommendations {
     acr_authentication               = false
     agent_send_unutilized_msg        = false
     baseline                         = false

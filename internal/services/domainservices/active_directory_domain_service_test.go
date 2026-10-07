@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package domainservices_test
@@ -490,8 +490,8 @@ resource "azurerm_virtual_network_peering" "test_primary_secondary" {
   use_remote_gateways          = false
 
   depends_on = [
-    azurerm_subent.aadds_secondary,
-    azurerm_subent.workload_secondary,
+    azurerm_subnet.aadds_secondary,
+    azurerm_subnet.workload_secondary,
   ]
 }
 
@@ -507,8 +507,8 @@ resource "azurerm_virtual_network_peering" "test_secondary_primary" {
   use_remote_gateways          = false
 
   depends_on = [
-    azurerm_subent.aadds_secondary,
-    azurerm_subent.workload_secondary,
+    azurerm_subnet.aadds_secondary,
+    azurerm_subnet.workload_secondary,
   ]
 }
 

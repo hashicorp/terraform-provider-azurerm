@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -13,12 +13,12 @@ import (
 func TestKubernetesClusterNodePoolV0ToV1_id(t *testing.T) {
 	testData := []struct {
 		name     string
-		input    map[string]interface{}
+		input    map[string]any
 		expected *string
 	}{
 		{
 			name: "missing id",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"id":                    "",
 				"kubernetes_cluster_id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.ContainerService/managedClusters/cluster1",
 			},
@@ -26,7 +26,7 @@ func TestKubernetesClusterNodePoolV0ToV1_id(t *testing.T) {
 		},
 		{
 			name: "old id",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"id":                    "/subscriptions/12345678-1234-5678-1234-123456789012/resourcegroups/group1/providers/Microsoft.ContainerService/managedClusters/cluster1/agentPools/pool1",
 				"kubernetes_cluster_id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.ContainerService/managedClusters/cluster1",
 			},
@@ -34,7 +34,7 @@ func TestKubernetesClusterNodePoolV0ToV1_id(t *testing.T) {
 		},
 		{
 			name: "new id",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"id":                    "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.ContainerService/managedClusters/cluster1/agentPools/pool1",
 				"kubernetes_cluster_id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.ContainerService/managedClusters/cluster1",
 			},
@@ -65,12 +65,12 @@ func TestKubernetesClusterNodePoolV0ToV1_id(t *testing.T) {
 func TestKubernetesClusterNodePoolV0ToV1_kubernetes_cluster_id(t *testing.T) {
 	testData := []struct {
 		name     string
-		input    map[string]interface{}
+		input    map[string]any
 		expected *string
 	}{
 		{
 			name: "missing id",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"id":                    "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.ContainerService/managedClusters/cluster1/agentPools/pool1",
 				"kubernetes_cluster_id": "",
 			},
@@ -78,7 +78,7 @@ func TestKubernetesClusterNodePoolV0ToV1_kubernetes_cluster_id(t *testing.T) {
 		},
 		{
 			name: "old id",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"id":                    "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.ContainerService/managedClusters/cluster1/agentPools/pool1",
 				"kubernetes_cluster_id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourcegroups/group1/providers/Microsoft.ContainerService/managedClusters/cluster1",
 			},
@@ -86,7 +86,7 @@ func TestKubernetesClusterNodePoolV0ToV1_kubernetes_cluster_id(t *testing.T) {
 		},
 		{
 			name: "new id",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"id":                    "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.ContainerService/managedClusters/cluster1/agentPools/pool1",
 				"kubernetes_cluster_id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.ContainerService/managedClusters/cluster1",
 			},

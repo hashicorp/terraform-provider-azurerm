@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -10,26 +10,25 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
 func resourceSpringCloudApp() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		DeprecationMessage: features.DeprecatedInFivePointOh("Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_app` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information."),
+		DeprecationMessage: "Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_app` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.",
 
 		Create: resourceSpringCloudAppCreate,
 		Read:   resourceSpringCloudAppRead,
@@ -42,7 +41,9 @@ func resourceSpringCloudApp() *pluginsdk.Resource {
 		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.SpringCloudAppID(id)
+			// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+			// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+			_, err := appplatform_rm.ParseAppIDInsensitively(id)
 			return err
 		}),
 
@@ -73,7 +74,7 @@ func resourceSpringCloudApp() *pluginsdk.Resource {
 			"addon_json": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Computed:         true,
+				Computed:         true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 			},
@@ -137,18 +138,15 @@ func resourceSpringCloudApp() *pluginsdk.Resource {
 			"ingress_settings": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"backend_protocol": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(appplatform.BackendProtocolDefault),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(appplatform.BackendProtocolDefault),
-								string(appplatform.BackendProtocolGRPC),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(appplatform.BackendProtocolDefault),
+							ValidateFunc: validation.StringInEnumSlice(appplatform.PossibleBackendProtocolValues(), false),
 						},
 
 						"read_timeout_in_seconds": {
@@ -166,13 +164,10 @@ func resourceSpringCloudApp() *pluginsdk.Resource {
 						},
 
 						"session_affinity": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(appplatform.SessionAffinityNone),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(appplatform.SessionAffinityCookie),
-								string(appplatform.SessionAffinityNone),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(appplatform.SessionAffinityNone),
+							ValidateFunc: validation.StringInEnumSlice(appplatform.PossibleSessionAffinityValues(), false),
 						},
 
 						"session_cookie_max_age": {
@@ -187,7 +182,7 @@ func resourceSpringCloudApp() *pluginsdk.Resource {
 			"persistent_disk": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -231,32 +226,32 @@ func resourceSpringCloudApp() *pluginsdk.Resource {
 	}
 }
 
-func resourceSpringCloudAppCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudAppCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.AppsClient
 	servicesClient := meta.(*clients.Client).AppPlatform.ServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewSpringCloudAppID(subscriptionId, d.Get("resource_group_name").(string), d.Get("service_name").(string), d.Get("name").(string))
-	serviceResp, err := servicesClient.Get(ctx, id.ResourceGroup, id.SpringName)
+	id := appplatform_rm.NewAppID(subscriptionId, d.Get("resource_group_name").(string), d.Get("service_name").(string), d.Get("name").(string))
+	serviceResp, err := servicesClient.Get(ctx, id.ResourceGroupName, id.SpringName)
 	if err != nil {
 		return fmt.Errorf("unable to retrieve %q: %+v", id, err)
 	}
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.AppName, "")
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id.ResourceGroupName, id.SpringName, id.AppName, "")
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return fmt.Errorf("checking for presence of existing %q: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.Response.Response) {
 			return tf.ImportAsExistsError("azurerm_spring_cloud_app", id.ID())
 		}
 	}
 
-	identity, err := expandSpringCloudAppIdentity(d.Get("identity").([]interface{}))
+	identity, err := expandSpringCloudAppIdentity(d.Get("identity").([]any))
 	if err != nil {
 		return err
 	}
@@ -273,20 +268,23 @@ func resourceSpringCloudAppCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			AddonConfigs:          addonConfig,
 			EnableEndToEndTLS:     pointer.To(d.Get("tls_enabled").(bool)),
 			Public:                pointer.To(d.Get("is_public").(bool)),
-			CustomPersistentDisks: expandAppCustomPersistentDiskResourceArray(d.Get("custom_persistent_disk").([]interface{}), id),
+			CustomPersistentDisks: expandAppCustomPersistentDiskResourceArray(d.Get("custom_persistent_disk").([]any), id),
 		},
 	}
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.AppName, app)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.SpringName, id.AppName, app)
 	if err != nil {
 		return fmt.Errorf("creating %q: %+v", id, err)
 	}
+
+	d.SetId(id.ID())
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation of %q: %+v", id, err)
 	}
 
 	// HTTPSOnly and PersistentDisk could only be set by update
 	app.Properties.HTTPSOnly = pointer.To(d.Get("https_only").(bool))
-	app.Properties.PersistentDisk = expandSpringCloudAppPersistentDisk(d.Get("persistent_disk").([]interface{}))
+	app.Properties.PersistentDisk = expandSpringCloudAppPersistentDisk(d.Get("persistent_disk").([]any))
 	// VNetAddons.PublicEndpoint could only be set by update
 	if enabled := d.Get("public_endpoint_enabled").(bool); enabled {
 		app.Properties.VnetAddons = &appplatform.AppVNetAddons{
@@ -295,8 +293,8 @@ func resourceSpringCloudAppCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 	// IngressSettings could only be set by update
 	// Issue: https://github.com/Azure/azure-rest-api-specs/issues/21536
-	app.Properties.IngressSettings = expandSpringCloudAppIngressSetting(d.Get("ingress_settings").([]interface{}))
-	future, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.AppName, app)
+	app.Properties.IngressSettings = expandSpringCloudAppIngressSetting(d.Get("ingress_settings").([]any))
+	future, err = client.CreateOrUpdate(ctx, id.ResourceGroupName, id.SpringName, id.AppName, app)
 	if err != nil {
 		return fmt.Errorf("update %q: %+v", id, err)
 	}
@@ -304,21 +302,22 @@ func resourceSpringCloudAppCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("waiting for update of %q: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
 	return resourceSpringCloudAppRead(d, meta)
 }
 
-func resourceSpringCloudAppUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudAppUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.AppsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SpringCloudAppID(d.Id())
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+	id, err := appplatform_rm.ParseAppIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
 
-	identity, err := expandSpringCloudAppIdentity(d.Get("identity").([]interface{}))
+	identity, err := expandSpringCloudAppIdentity(d.Get("identity").([]any))
 	if err != nil {
 		return err
 	}
@@ -335,9 +334,9 @@ func resourceSpringCloudAppUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			EnableEndToEndTLS:     pointer.To(d.Get("tls_enabled").(bool)),
 			Public:                pointer.To(d.Get("is_public").(bool)),
 			HTTPSOnly:             pointer.To(d.Get("https_only").(bool)),
-			IngressSettings:       expandSpringCloudAppIngressSetting(d.Get("ingress_settings").([]interface{})),
-			PersistentDisk:        expandSpringCloudAppPersistentDisk(d.Get("persistent_disk").([]interface{})),
-			CustomPersistentDisks: expandAppCustomPersistentDiskResourceArray(d.Get("custom_persistent_disk").([]interface{}), *id),
+			IngressSettings:       expandSpringCloudAppIngressSetting(d.Get("ingress_settings").([]any)),
+			PersistentDisk:        expandSpringCloudAppPersistentDisk(d.Get("persistent_disk").([]any)),
+			CustomPersistentDisks: expandAppCustomPersistentDiskResourceArray(d.Get("custom_persistent_disk").([]any), *id),
 		},
 	}
 	if enabled := d.Get("public_endpoint_enabled").(bool); enabled {
@@ -345,7 +344,7 @@ func resourceSpringCloudAppUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			PublicEndpoint: pointer.To(enabled),
 		}
 	}
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.AppName, app)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.SpringName, id.AppName, app)
 	if err != nil {
 		return fmt.Errorf("update %s: %+v", id, err)
 	}
@@ -356,29 +355,31 @@ func resourceSpringCloudAppUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	return resourceSpringCloudAppRead(d, meta)
 }
 
-func resourceSpringCloudAppRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudAppRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.AppsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SpringCloudAppID(d.Id())
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+	id, err := appplatform_rm.ParseAppIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.AppName, "")
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.SpringName, id.AppName, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] Spring Cloud App %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", id.AppName, id.SpringName, id.ResourceGroup, err)
+		return fmt.Errorf("reading Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", id.AppName, id.SpringName, id.ResourceGroupName, err)
 	}
 
 	d.Set("name", id.AppName)
 	d.Set("service_name", id.SpringName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	identity, err := flattenSpringCloudAppIdentity(resp.Identity)
 	if err != nil {
@@ -414,17 +415,19 @@ func resourceSpringCloudAppRead(d *pluginsdk.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceSpringCloudAppDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudAppDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.AppsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SpringCloudAppID(d.Id())
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+	id, err := appplatform_rm.ParseAppIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.SpringName, id.AppName)
+	future, err := client.Delete(ctx, id.ResourceGroupName, id.SpringName, id.AppName)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
@@ -435,7 +438,7 @@ func resourceSpringCloudAppDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func expandSpringCloudAppIdentity(input []interface{}) (*appplatform.ManagedIdentityProperties, error) {
+func expandSpringCloudAppIdentity(input []any) (*appplatform.ManagedIdentityProperties, error) {
 	config, err := identity.ExpandSystemAndUserAssignedMap(input)
 	if err != nil {
 		return nil, err
@@ -456,50 +459,49 @@ func expandSpringCloudAppIdentity(input []interface{}) (*appplatform.ManagedIden
 	return &out, nil
 }
 
-func expandSpringCloudAppPersistentDisk(input []interface{}) *appplatform.PersistentDisk {
+func expandSpringCloudAppPersistentDisk(input []any) *appplatform.PersistentDisk {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 	return &appplatform.PersistentDisk{
 		SizeInGB:  pointer.To(int32(raw["size_in_gb"].(int))),
 		MountPath: pointer.To(raw["mount_path"].(string)),
 	}
 }
 
-func expandAppCustomPersistentDiskResourceArray(input []interface{}, id parse.SpringCloudAppId) *[]appplatform.CustomPersistentDiskResource {
+func expandAppCustomPersistentDiskResourceArray(input []any, id appplatform_rm.AppId) *[]appplatform.CustomPersistentDiskResource {
 	results := make([]appplatform.CustomPersistentDiskResource, 0)
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 		results = append(results, appplatform.CustomPersistentDiskResource{
-			StorageID: pointer.To(parse.NewSpringCloudStorageID(id.SubscriptionId, id.ResourceGroup, id.SpringName, v["storage_name"].(string)).ID()),
+			StorageID: pointer.To(appplatform_rm.NewStorageID(id.SubscriptionId, id.ResourceGroupName, id.SpringName, v["storage_name"].(string)).ID()),
 			CustomPersistentDiskProperties: &appplatform.AzureFileVolume{
 				ShareName:    pointer.To(v["share_name"].(string)),
 				MountPath:    pointer.To(v["mount_path"].(string)),
 				ReadOnly:     pointer.To(v["read_only_enabled"].(bool)),
-				MountOptions: utils.ExpandStringSlice(v["mount_options"].(*pluginsdk.Set).List()),
+				MountOptions: pluginsdk.ExpandStringSlice(v["mount_options"].(*pluginsdk.Set).List()),
 			},
 		})
 	}
 	return &results
 }
 
-func expandSpringCloudAppAddon(input string) (map[string]interface{}, error) {
-	var addonConfig map[string]interface{}
+func expandSpringCloudAppAddon(input string) (map[string]any, error) {
+	var addonConfig map[string]any
 	if len(input) != 0 {
-		err := json.Unmarshal([]byte(input), &addonConfig)
-		if err != nil {
+		if err := json.Unmarshal([]byte(input), &addonConfig); err != nil {
 			return nil, fmt.Errorf("unable to unmarshal `addon_json`: %+v", err)
 		}
 	}
 	return addonConfig, nil
 }
 
-func expandSpringCloudAppIngressSetting(input []interface{}) *appplatform.IngressSettings {
+func expandSpringCloudAppIngressSetting(input []any) *appplatform.IngressSettings {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 
 	return &appplatform.IngressSettings{
 		ReadTimeoutInSeconds: pointer.To(int32(raw["read_timeout_in_seconds"].(int))),
@@ -510,7 +512,7 @@ func expandSpringCloudAppIngressSetting(input []interface{}) *appplatform.Ingres
 	}
 }
 
-func flattenSpringCloudAppIdentity(input *appplatform.ManagedIdentityProperties) (*[]interface{}, error) {
+func flattenSpringCloudAppIdentity(input *appplatform.ManagedIdentityProperties) (*[]any, error) {
 	var transform *identity.SystemAndUserAssignedMap
 	if input != nil {
 		transform = &identity.SystemAndUserAssignedMap{
@@ -534,9 +536,9 @@ func flattenSpringCloudAppIdentity(input *appplatform.ManagedIdentityProperties)
 	return identity.FlattenSystemAndUserAssignedMap(transform)
 }
 
-func flattenSpringCloudAppPersistentDisk(input *appplatform.PersistentDisk) []interface{} {
+func flattenSpringCloudAppPersistentDisk(input *appplatform.PersistentDisk) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
 	sizeInGB := 0
@@ -544,21 +546,16 @@ func flattenSpringCloudAppPersistentDisk(input *appplatform.PersistentDisk) []in
 		sizeInGB = int(*input.SizeInGB)
 	}
 
-	mountPath := ""
-	if input.MountPath != nil {
-		mountPath = *input.MountPath
-	}
-
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"size_in_gb": sizeInGB,
-			"mount_path": mountPath,
+			"mount_path": pointer.From(input.MountPath),
 		},
 	}
 }
 
-func flattenAppCustomPersistentDiskResourceArray(input *[]appplatform.CustomPersistentDiskResource) []interface{} {
-	results := make([]interface{}, 0)
+func flattenAppCustomPersistentDiskResourceArray(input *[]appplatform.CustomPersistentDiskResource) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
@@ -569,7 +566,7 @@ func flattenAppCustomPersistentDiskResourceArray(input *[]appplatform.CustomPers
 			// The returned value has inconsistent casing
 			// TODO: Remove the normalization codes once the following issue is fixed.
 			// Issue: https://github.com/Azure/azure-rest-api-specs/issues/22205
-			if id, err := parse.SpringCloudStorageIDInsensitively(*item.StorageID); err == nil {
+			if id, err := appplatform_rm.ParseStorageIDInsensitively(*item.StorageID); err == nil {
 				storageName = id.StorageName
 			}
 		}
@@ -592,7 +589,7 @@ func flattenAppCustomPersistentDiskResourceArray(input *[]appplatform.CustomPers
 			}
 		}
 
-		results = append(results, map[string]interface{}{
+		results = append(results, map[string]any{
 			"storage_name":      storageName,
 			"mount_path":        mountPath,
 			"share_name":        shareName,
@@ -603,7 +600,7 @@ func flattenAppCustomPersistentDiskResourceArray(input *[]appplatform.CustomPers
 	return results
 }
 
-func flattenSpringCloudAppAddon(configs map[string]interface{}) *string {
+func flattenSpringCloudAppAddon(configs map[string]any) *string {
 	if len(configs) == 0 {
 		return nil
 	}
@@ -611,9 +608,9 @@ func flattenSpringCloudAppAddon(configs map[string]interface{}) *string {
 	// TODO: Remove the normalization codes once the following issue is fixed.
 	// Issue: https://github.com/Azure/azure-rest-api-specs/issues/22481
 	if raw, ok := configs["applicationConfigurationService"]; ok && raw != nil {
-		if applicationConfigurationService, ok := raw.(map[string]interface{}); ok && len(applicationConfigurationService) != 0 {
+		if applicationConfigurationService, ok := raw.(map[string]any); ok && len(applicationConfigurationService) != 0 {
 			if resourceId, ok := applicationConfigurationService["resourceId"]; ok && resourceId != nil {
-				applicationConfigurationServiceId, err := parse.SpringCloudConfigurationServiceIDInsensitively(resourceId.(string))
+				applicationConfigurationServiceId, err := appplatform_rm.ParseConfigurationServiceIDInsensitively(resourceId.(string))
 				if err == nil {
 					applicationConfigurationService["resourceId"] = applicationConfigurationServiceId.ID()
 					configs["applicationConfigurationService"] = applicationConfigurationService
@@ -622,9 +619,9 @@ func flattenSpringCloudAppAddon(configs map[string]interface{}) *string {
 		}
 	}
 	if raw, ok := configs["serviceRegistry"]; ok && raw != nil {
-		if serviceRegistry, ok := raw.(map[string]interface{}); ok && len(serviceRegistry) != 0 {
+		if serviceRegistry, ok := raw.(map[string]any); ok && len(serviceRegistry) != 0 {
 			if resourceId, ok := serviceRegistry["resourceId"]; ok && resourceId != nil {
-				serviceRegistryId, err := parse.SpringCloudServiceRegistryIDInsensitively(resourceId.(string))
+				serviceRegistryId, err := appplatform_rm.ParseServiceRegistryIDInsensitively(resourceId.(string))
 				if err == nil {
 					serviceRegistry["resourceId"] = serviceRegistryId.ID()
 					configs["serviceRegistry"] = serviceRegistry
@@ -636,9 +633,9 @@ func flattenSpringCloudAppAddon(configs map[string]interface{}) *string {
 	return pointer.To(string(addonConfig))
 }
 
-func flattenSpringCloudAppIngressSettings(input *appplatform.IngressSettings) interface{} {
+func flattenSpringCloudAppIngressSettings(input *appplatform.IngressSettings) any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 	var readTimeout, sendTimeout, maxAge int32
 	backendProtocol := string(input.BackendProtocol)
@@ -652,7 +649,7 @@ func flattenSpringCloudAppIngressSettings(input *appplatform.IngressSettings) in
 	if input.SessionCookieMaxAge != nil {
 		maxAge = *input.SessionCookieMaxAge
 	}
-	return []interface{}{map[string]interface{}{
+	return []any{map[string]any{
 		"backend_protocol":        backendProtocol,
 		"read_timeout_in_seconds": readTimeout,
 		"send_timeout_in_seconds": sendTimeout,

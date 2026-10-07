@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package logic_test
@@ -67,8 +67,8 @@ func componentExists(ctx context.Context, clients *clients.Client, state *plugin
 	}
 
 	definitionRaw := *resp.Model.Properties.Definition
-	definitionMap := definitionRaw.(map[string]interface{})
-	actions := definitionMap[propertyName].(map[string]interface{})
+	definitionMap := definitionRaw.(map[string]any)
+	actions := definitionMap[propertyName].(map[string]any)
 
 	exists := false
 	for k := range actions {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos_test
@@ -221,7 +221,7 @@ func (t CosmosGremlinGraphResource) Exists(ctx context.Context, clients *clients
 
 	resp, err := clients.Cosmos.CosmosDBClient.GremlinResourcesGetGremlinGraph(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Cosmos Gremlin Graph (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	return pointer.To(resp.Model != nil), nil

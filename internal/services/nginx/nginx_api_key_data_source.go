@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package nginx
@@ -58,7 +58,7 @@ func (m APIKeyDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (m APIKeyDataSource) ModelObject() interface{} {
+func (m APIKeyDataSource) ModelObject() any {
 	return &APIKeyDataSourceModel{}
 }
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package check
@@ -12,7 +12,7 @@ import (
 
 type resource struct {
 	name   string
-	schema interface{}
+	schema any
 }
 
 type Resources struct {
@@ -111,7 +111,7 @@ func AzurermAllResources(service, skipService string, resources, skipResources s
 				continue
 			}
 
-			filePath := schema.FileForResource(svc.Read, svc.ReadContext) //nolint:staticcheck
+			filePath := schema.FileForResource(svc.Read, svc.ReadContext)
 			// Skip deprecated resources, as some of these don't have documents
 			sch := schema.NewResource(svc, name)
 			if shouldSkipFile(filePath) || sch.IsDeprecated() {

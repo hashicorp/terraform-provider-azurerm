@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -15,13 +15,13 @@ import (
 func TestKeyResourceV1ToV2(t *testing.T) {
 	testData := []struct {
 		name                        string
-		input                       map[string]interface{}
+		input                       map[string]any
 		expected                    *string
 		appConfigurationEnvironment environments.Api
 	}{
 		{
 			name: "old id (normal)",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/keyName/Label/labelName",
 			},
 			expected:                    pointer.To("https://appConf1.azconfig.io/kv/keyName?label=labelName"),
@@ -29,7 +29,7 @@ func TestKeyResourceV1ToV2(t *testing.T) {
 		},
 		{
 			name: "old id (complicated)",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/key:name/test/Label/test:label/name",
 			},
 			expected:                    pointer.To("https://appConf1.azconfig.io/kv/key:name%2Ftest?label=test%3Alabel%2Fname"),
@@ -37,7 +37,7 @@ func TestKeyResourceV1ToV2(t *testing.T) {
 		},
 		{
 			name: "old id (no label)",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/keyName/Label/%00",
 			},
 			expected:                    pointer.To("https://appConf1.azconfig.io/kv/keyName?label="),
@@ -45,7 +45,7 @@ func TestKeyResourceV1ToV2(t *testing.T) {
 		},
 		{
 			name: "old id (\000 label)",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/keyName/Label/\000",
 			},
 			expected:                    pointer.To("https://appConf1.azconfig.io/kv/keyName?label="),
@@ -53,7 +53,7 @@ func TestKeyResourceV1ToV2(t *testing.T) {
 		},
 		{
 			name: "old id (empty label)",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/keyName/Label/",
 			},
 			expected:                    pointer.To("https://appConf1.azconfig.io/kv/keyName?label="),
@@ -61,7 +61,7 @@ func TestKeyResourceV1ToV2(t *testing.T) {
 		},
 		{
 			name: "old id (fix bug with no-label)",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/keyName/Label/\000/AppConfigurationKey/keyName/Label/",
 			},
 			expected:                    pointer.To("https://appConf1.azconfig.io/kv/keyName?label="),
@@ -69,7 +69,7 @@ func TestKeyResourceV1ToV2(t *testing.T) {
 		},
 		{
 			name: "old id (fix bug with no-label - china)",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/keyName/Label/\000/AppConfigurationKey/keyName/Label/",
 			},
 			expected:                    pointer.To("https://appConf1.azconfig.azure.cn/kv/keyName?label="),
@@ -77,7 +77,7 @@ func TestKeyResourceV1ToV2(t *testing.T) {
 		},
 		{
 			name: "old id (fix bug with no-label - usgov)",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/keyName/Label/\000/AppConfigurationKey/keyName/Label/",
 			},
 			expected:                    pointer.To("https://appConf1.azconfig.azure.us/kv/keyName?label="),

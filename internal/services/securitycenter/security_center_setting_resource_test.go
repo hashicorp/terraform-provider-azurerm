@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package securitycenter_test
@@ -18,7 +18,7 @@ import (
 
 type SecurityCenterSettingResource struct{}
 
-func TestAccSecurityCenterSetting(t *testing.T) {
+func TestAccSecurityCenterSetting_sequential(t *testing.T) {
 	// there is only one workspace with the same name could exist, so run the tests in sequence.
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"setting": {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -438,12 +438,10 @@ func expandAlertProcessingRuleSingleConditions(input []AlertProcessingRuleSingle
 	}
 
 	for _, v := range input {
-		operator := alertprocessingrules.Operator(v.Operator)
-		values := v.Values
 		*conditions = append(*conditions, alertprocessingrules.Condition{
 			Field:    &field,
-			Operator: &operator,
-			Values:   &values,
+			Operator: pointer.ToEnum[alertprocessingrules.Operator](v.Operator),
+			Values:   pointer.To(v.Values),
 		})
 	}
 }

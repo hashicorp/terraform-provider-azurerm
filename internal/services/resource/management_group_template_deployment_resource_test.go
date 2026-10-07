@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package resource_test
@@ -17,6 +17,16 @@ import (
 )
 
 type ManagementGroupTemplateDeploymentResource struct{}
+
+func TestAccManagementGroupTemplateDeployment_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_management_group_template_deployment", "test")
+	r := ManagementGroupTemplateDeploymentResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.templateSpecVersionConfig(data),
+		},
+	}, "")
+}
 
 func TestAccManagementGroupTemplateDeployment_empty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group_template_deployment", "test")
